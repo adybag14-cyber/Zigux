@@ -238,7 +238,10 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper_tests, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
@@ -258,7 +261,10 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(survey, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(survey, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
+    try expectContains(survey, "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix");
+    try expectContains(survey, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
     try expectContains(survey, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
+    try expectContains(survey, "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly");
     try expectContains(survey, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(survey, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectContains(survey, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
