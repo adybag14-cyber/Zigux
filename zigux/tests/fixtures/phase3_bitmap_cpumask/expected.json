@@ -44,6 +44,20 @@
       "probe_present": true,
       "probe_absent_index": 75,
       "probe_absent": false
+    },
+    {
+      "name": "cpumask_full_tail_masked",
+      "kind": "cpumask",
+      "nbits": 75,
+      "nr_cpu_ids": 75,
+      "word_count": 2,
+      "first_set": 0,
+      "first_zero": 75,
+      "weight": 75,
+      "probe_present_index": 74,
+      "probe_present": true,
+      "probe_absent_index": 75,
+      "probe_absent": false
     }
   ]
 }
