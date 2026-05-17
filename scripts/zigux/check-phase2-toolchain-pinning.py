@@ -17,6 +17,7 @@ BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
@@ -31,11 +32,14 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
 )
 
 README_PRESENT_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -64,6 +68,7 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -87,11 +92,7 @@ BOOTSTRAP_WARNING_MARKERS = (
     "Treat the absent validator-first, cross-route, installer, and Linux-style make replay names as historical packet members",
 )
 
-README_FORBIDDEN_MARKERS = (
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-)
+README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
 
 EXPECTED_POLICY = {
     "phase": "Phase 2",
@@ -100,7 +101,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 73
+EXPECTED_SELF_TEST_CASE_COUNT = 77
 
 
 def read_text(path: Path) -> str:
