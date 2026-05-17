@@ -13,13 +13,12 @@ REQUIRED_TESTS_README_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`scripts/zigux/README.md`",
+    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
@@ -28,15 +27,14 @@ REQUIRED_TESTS_README_MARKERS = (
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, and toolchain reminder set",
+    "is directly readable on current `master` and keeps the pinned-channel probe, repo-local `.zig-toolchain` fallback, and archive-integrity validation surface explicit beside the scripts-root kbuild, cross-selftest, and toolchain reminder guards plus the live kconfig bridge helpers and fixture roster",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, toolchain reminder, and direct toolchain-checker set",
     "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`make -C zigux phase2-toolchain`",
@@ -45,8 +43,6 @@ REQUIRED_TESTS_README_MARKERS = (
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2`",
-    "pinned `x86_64-linux` bootstrap archive note",
-    "repo-local `.zig-toolchain` fallback reused",
     "historical packet members rather than direct tests-root evidence",
     "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
@@ -55,6 +51,8 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
 )
 REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py` keeps the docs-root Phase 2 summary honest too",
@@ -65,11 +63,13 @@ REQUIRED_DOCS_ROOT_MARKERS = (
     "`zigux/Makefile`",
 )
 
+
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+
 
 def resolve_path(root: Path, path: Path) -> Path:
     try:
@@ -78,11 +78,14 @@ def resolve_path(root: Path, path: Path) -> Path:
         rel = path
     return root / rel
 
+
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
 
+
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker in text]
+
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
@@ -108,6 +111,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     return issues
 
+
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
@@ -121,18 +125,22 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         print(f"{code}_END")
     return 1
 
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_README), "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
 
+
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
+
 
 def run_self_test() -> int:
     checks_run = 0
@@ -184,6 +192,7 @@ def run_self_test() -> int:
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Keep the current directly readable Phase 2 tests-root and docs-root reminder packet aligned."
@@ -201,6 +210,7 @@ def main() -> int:
     print(f"PHASE2_TESTS_README_ALIGNMENT_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_TESTS_README_MARKERS)}")
     print(f"PHASE2_TESTS_README_ALIGNMENT_DOCS_ROOT_MARKER_COUNT={len(REQUIRED_DOCS_ROOT_MARKERS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
