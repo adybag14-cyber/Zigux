@@ -25,6 +25,7 @@ CHECKERS = (
     ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
 )
 
 EXPECTED_PRESENT_FILE_MARKERS = (
