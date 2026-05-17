@@ -67,6 +67,7 @@ Phase 2 review packet
   * `scripts/zigux/check-phase2-cross-selftest-alignment.py`
   * `scripts/zigux/check-phase2-toolchain-pinning.py`
   * `scripts/zigux/check-phase2-toolchain-pin-scope.py`
+  * `python3 scripts/zigux/check-zig-toolchain.py --self-test`
   * `scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
   * `scripts/zigux/kconfig/conf_bridge.zig`
   * `scripts/zigux/kconfig/confdata_bridge.zig`
