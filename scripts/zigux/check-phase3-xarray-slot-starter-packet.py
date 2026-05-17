@@ -32,6 +32,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase3_xarray_slot_starter_packet.zig",
         "zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
         "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
+        "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` still carry broader shared Phase 3 reminder language",
     ),
     HELPER_PATH: (
         'const err_ptr = @import("err_ptr");',
