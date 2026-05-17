@@ -41,6 +41,10 @@ WORKFLOW_LINES = (
 
 README_PRESENT_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
+    "`.github/workflows/zigux-bootstrap.yml`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
@@ -158,7 +162,7 @@ EXPECTED_TOOL_MANIFEST = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 94
+EXPECTED_SELF_TEST_CASE_COUNT = 98
 
 
 def read_text(path: Path) -> str:
