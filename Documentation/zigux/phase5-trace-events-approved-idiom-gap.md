@@ -8,7 +8,11 @@ The roadmap-backed Phase 5 trace-events anchor is still:
 
 - `samples/trace_events/trace-events-sample.c`
 
-But `samples/zigux/README.md` now says current `master` directly exposes only the separate Phase 9 runtime sample-root files, not a direct non-runtime `samples/zigux/trace_events_sample.zig` sample-root port.
+Authenticated sample-root readback now directly exposes this bounded non-runtime companion:
+
+- `samples/zigux/trace_events_string_formatting_sample.zig`
+
+But `samples/zigux/README.md` still keeps the older non-runtime `samples/zigux/trace_events_sample.zig` packet out of direct-proof wording for this authenticated route.
 
 Keep the approved formatting idiom bounded to the shared reminder packet:
 
@@ -17,13 +21,14 @@ Keep the approved formatting idiom bounded to the shared reminder packet:
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
 - `samples/zigux/README.md`
+- `samples/zigux/trace_events_string_formatting_sample.zig`
 - `zigux/tests/README.md`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest that the current proof is reminder-surface guidance rather than direct sample-root evidence.
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest that the directly readable proof is the small companion sample plus reminder-surface guidance rather than the older full non-runtime sample-root packet.
 
 ## Review boundary
 
-Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample.
+Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample.
 
 Use this note only to restate the bounded formatting cue that Phase 5 reviewers should preserve.
 
@@ -32,6 +37,7 @@ Do not treat this note as proof of:
 - standalone formatting-helper delivery
 - standalone `printf` parity
 - standalone `vsprintf` parity
+- standalone string-helper delivery
 - a fifth approved Phase 5 sample
 - direct proof that `samples/zigux/trace_events_sample.zig` is currently present on `master`
 
@@ -39,4 +45,4 @@ Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/v
 
 ## Next bounded step
 
-Leave this note parked unless a fresh reread shows that the shared trace-events reminder packet drifted away from the same selected-string plus `iter=%d` cue or the sample root once again directly exposes the non-runtime trace-events sample port.
+Leave this note parked unless a fresh reread shows that the shared trace-events reminder packet drifted away from the same selected-string plus `iter=%d` cue or the sample root once again directly exposes the older non-runtime trace-events sample port.
