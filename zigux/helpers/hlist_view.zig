@@ -46,6 +46,15 @@ pub const HListView = struct {
         return nodeFromRaw(self.head.first);
     }
 
+    pub fn last(self: HListView) ?*const HListNode {
+        var tail: ?*const HListNode = null;
+        var it = self.iterator();
+        while (it.next()) |node| {
+            tail = node;
+        }
+        return tail;
+    }
+
     pub fn iterator(self: HListView) Iterator {
         return .{ .current = self.first() };
     }
@@ -91,12 +100,7 @@ pub const HListView = struct {
     }
 
     pub fn tailNextIsNull(self: HListView) bool {
-        var tail: ?*const HListNode = null;
-        var it = self.iterator();
-        while (it.next()) |node| {
-            tail = node;
-        }
-        return if (tail) |node| node.next == 0 else true;
+        return if (self.last()) |node| node.next == 0 else true;
     }
 };
 
@@ -107,6 +111,7 @@ test "hlist view treats an empty head as empty" {
     try std.testing.expect(view.isEmpty());
     try std.testing.expectEqual(@as(usize, 0), view.len());
     try std.testing.expectEqual(@as(?*const HListNode, null), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, null), view.last());
     try std.testing.expect(view.firstPprevMatchesHead());
     try std.testing.expect(view.hasConsistentPrevLinks());
     try std.testing.expect(view.firstBrokenPrevLink() == null);
@@ -128,6 +133,7 @@ test "hlist view walks a singly linked hlist chain in order" {
     try std.testing.expect(!view.isEmpty());
     try std.testing.expectEqual(@as(usize, 2), view.len());
     try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &second), view.last());
     try std.testing.expect(view.firstPprevMatchesHead());
 
     var it = view.iterator();
@@ -153,6 +159,7 @@ test "hlist view reports the first broken prev-link witness" {
     try std.testing.expect(!view.isEmpty());
     try std.testing.expectEqual(@as(usize, 2), view.len());
     try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &second), view.last());
     try std.testing.expect(view.firstPprevMatchesHead());
     try std.testing.expect(!view.hasConsistentPrevLinks());
 
@@ -160,5 +167,26 @@ test "hlist view reports the first broken prev-link witness" {
     try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
+    try std.testing.expect(view.tailNextIsNull());
+}
+
+test "hlist view last returns the tail across a longer chain" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+    var third = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&head.first);
+    second.next = @intFromPtr(&third);
+    second.pprev = @intFromPtr(&first.next);
+    third.next = 0;
+    third.pprev = @intFromPtr(&second.next);
+
+    const view = HListView.init(&head);
+    try std.testing.expectEqual(@as(usize, 3), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &third), view.last());
+    try std.testing.expect(view.hasConsistentPrevLinks());
     try std.testing.expect(view.tailNextIsNull());
 }
