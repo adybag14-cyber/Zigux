@@ -2,10 +2,11 @@
 """Fail-close guard for the current-head Phase 11 HVC cleanup packet.
 
 The current `master` branch keeps the HVC cleanup packet reviewable through the
-survey note, the verify-helper boundary note, and the shared Phase 11 build
-inventory. The direct HVC teardown, matrix, verify, and helper files are still
-inventory-backed archival members, so this checker must validate that bounded
-current-head truth instead of requiring those missing files to exist locally.
+survey note, the verify-helper boundary note, the shared Phase 11 build
+inventory, and the direct HVC starter-depth packet that current readback now
+materializes again. This checker therefore validates the current-head wording
+that explicitly names both the smaller continuity packet and the returned direct
+HVC packet without widening into live tty or hypervisor execution claims.
 """
 
 from __future__ import annotations
@@ -24,11 +25,11 @@ VERIFY_HELPER_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundar
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 
 SURVEY_MARKERS = (
-    "shared Phase 11 inventory-backed continuity anchors `zigux/tests/fixtures/phase11_build_inventory.json` and `scripts/zigux/check-phase11-build-inventory.py`",
-    "did not rematerialize `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`",
-    "The direct driver, test, split-replay, dedicated-checker, and coupled-doc companions above should stay framed as inventory-backed archival packet members until a future reread materializes them again.",
-    "That archived helper keeps sysrq toggle handoff, pending-dispatch separation, literal-byte fallback on non-kernel `^O`, and post-teardown unavailability explicit without claiming live sysrq execution.",
-    "Those archival companions keep direct `hvc_console` replay, verify-side helper boundaries, bounded cleanup-time teardown checks, and the targetless notifier no-unregister edge visible beside the archival survey gate",
+    "current `master` still keeps the HVC lane reviewable through this survey note,",
+    "public current-head readback in this lane also reconfirmed",
+    "Treat the current bounded HVC continuity packet on `master` as the shared",
+    "The direct HVC packet is again current-head readback evidence in this lane, so",
+    "The roadmap destination family and the bounded simple-driver support packet are",
 )
 
 VERIFY_HELPER_MARKERS = (
@@ -221,11 +222,76 @@ def fixture_survey() -> str:
         [
             "# Phase 11 HVC Console Survey",
             "",
-            "* current `master` still keeps the HVC archival lane reviewable through this survey note together with the shared Phase 11 inventory-backed continuity anchors `zigux/tests/fixtures/phase11_build_inventory.json` and `scripts/zigux/check-phase11-build-inventory.py`",
-            "* direct contents reads in this run did not rematerialize `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `Documentation/zigux/phase11-hvc-console-slice.md`, `Documentation/zigux/phase11-hvc-console-teardown-note.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, or `scripts/zigux/check-phase11-hvc-survey-packet.py`, so keep those as inventory-backed archival packet members until a future reread confirms them again",
-            "* The direct driver, test, split-replay, dedicated-checker, and coupled-doc companions above should stay framed as inventory-backed archival packet members until a future reread materializes them again.",
-            "* That archived helper keeps sysrq toggle handoff, pending-dispatch separation, literal-byte fallback on non-kernel `^O`, and post-teardown unavailability explicit without claiming live sysrq execution.",
-            "* Those archival companions keep direct `hvc_console` replay, verify-side helper boundaries, bounded cleanup-time teardown checks, and the targetless notifier no-unregister edge visible beside the archival survey gate without promoting the lane to live tty-driver registration, notifier callback execution, khvcd execution, live sysrq dispatch, or host-backed teardown parity.",
+            "This note keeps the bounded Phase 11 `hvc_console` packet truthful on current `master`.",
+            "The original archival landing happened on `P11-L13`, while the currently coupled",
+            "continuity remains parked under `P11-L16`.",
+            "",
+            "## Status",
+            "",
+            "* current `master` still keeps the HVC lane reviewable through this survey note,",
+            "  `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,",
+            "  `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,",
+            "  `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,",
+            "  `zigux/tests/fixtures/phase11_build_inventory.json`,",
+            "  `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,",
+            "  `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and",
+            "  `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+            "* public current-head readback in this lane also reconfirmed",
+            "  `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`,",
+            "  `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,",
+            "  `zigux/tests/phase11_hvc_cleanup.zig`,",
+            "  `zigux/tests/phase11_hvc_console_survey.zig`,",
+            "  `zigux/tests/phase11_hvc_console_manifest.json`,",
+            "  `zigux/tests/phase11_hvc_console_modem_control_split.zig`,",
+            "  `zigux/tests/phase11_hvc_console_poll_retry_split.zig`,",
+            "  `Documentation/zigux/phase11-hvc-console-slice.md`,",
+            "  `Documentation/zigux/phase11-hvc-console-teardown-note.md`,",
+            "  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and",
+            "  `scripts/zigux/check-phase11-hvc-survey-packet.py` as the bounded",
+            "  starter-depth packet that closes the Phase 11 simple-driver roadmap gap",
+            "  without claiming live tty or hypervisor execution",
+            "",
+            "## Current-Head Continuity Packet",
+            "",
+            "Treat the current bounded HVC continuity packet on `master` as the shared",
+            "inventory-backed and proof-backed packet below:",
+            "",
+            "- `Documentation/zigux/phase11-hvc-console-survey.md`",
+            "- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+            "- `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
+            "- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+            "- `zigux/tests/fixtures/phase11_build_inventory.json`",
+            "- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
+            "- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
+            "- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+            "",
+            "## Current-Head Starter Packet",
+            "",
+            "The direct HVC packet is again current-head readback evidence in this lane, so",
+            "keep the bounded starter, helper, replay, split, teardown, validation, and",
+            "survey paths below tied directly to the roadmap-facing simple-driver packet:",
+            "",
+            "- `drivers/tty/hvc/hvc_console.zig`",
+            "- `drivers/tty/hvc/hvc_console_verify.zig`",
+            "- `drivers/tty/hvc/hvc_console_sysrq.zig`",
+            "- `zigux/tests/phase11_hvc_console.zig`",
+            "- `zigux/tests/phase11_hvc_cleanup.zig`",
+            "- `zigux/tests/phase11_hvc_console_survey.zig`",
+            "- `zigux/tests/phase11_hvc_console_manifest.json`",
+            "- `zigux/tests/phase11_hvc_console_modem_control_split.zig`",
+            "- `zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
+            "- `Documentation/zigux/phase11-hvc-console-slice.md`",
+            "- `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
+            "- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+            "- `scripts/zigux/check-phase11-hvc-survey-packet.py`",
+            "- `make -C zigux phase11-hvc-survey`",
+            "",
+            "## Bounded Meaning",
+            "",
+            "The roadmap destination family and the bounded simple-driver support packet are",
+            "now directly readable on current `master`, so the remaining same-lane work is",
+            "execution-facing follow-through rather than a missing simple-driver starter or a",
+            "missing survey-backed validation packet.",
             "",
         ]
     )
