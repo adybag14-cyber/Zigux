@@ -70,6 +70,8 @@ SAMPLE_EXITED_FN_REPLAY_REJECTION_MARKER = (
 SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER = (
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());"
 )
+SAMPLE_EXITED_STAGE_MARKER = "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);"
+SAMPLE_EXIT_RUN_COUNT_MARKER = "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);"
 SAMPLE_OUTSTANDING_REGISTRATION_MARKER = "error.OutstandingRegistration"
 
 SEQUENCING_REQUIRED_MARKERS = [
@@ -105,6 +107,8 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_EXITED_REGISTRATION_REJECTION_MARKER,
     SAMPLE_EXITED_FN_REPLAY_REJECTION_MARKER,
     SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER,
+    SAMPLE_EXITED_STAGE_MARKER,
+    SAMPLE_EXIT_RUN_COUNT_MARKER,
     SAMPLE_OUTSTANDING_REGISTRATION_MARKER,
 ]
 
@@ -206,6 +210,9 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
+    const after_exit = module.summary();
+    {SAMPLE_EXITED_STAGE_MARKER}
+    {SAMPLE_EXIT_RUN_COUNT_MARKER}
 }}
 
 test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {{
