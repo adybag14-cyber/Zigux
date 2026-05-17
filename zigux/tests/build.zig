@@ -238,6 +238,43 @@ fn addPhase3PolicyStarterPacket(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3LowLevelWrappers(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const atomic = b.createModule(.{
+        .root_source_file = b.path("../helpers/atomic.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const barrier = b.createModule(.{
+        .root_source_file = b.path("../helpers/barrier.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const mmio = b.createModule(.{
+        .root_source_file = b.path("../helpers/mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_low_level_wrappers.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("atomic", atomic);
+    root_module.addImport("barrier", barrier);
+    root_module.addImport("mmio", mmio);
+
+    const tests = b.addTest(.{
+        .name = "phase3-low-level-wrappers",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -271,10 +308,9 @@ pub fn build(b: *std.Build) void {
     const phase3_errptr_xarray_starter_packet = addPhase3ErrPtrXarrayStarterPacket(b, target, optimize);
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
+    const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
 
-    // Keep the shared tests root centered on anchors that are still present on
-    // current master while reintroducing a compact Phase 1 host-tools smoke path.
     const phase12_virtio_net_survey = addSurveyTest(
         b,
         "phase12-virtio-net-survey",
@@ -313,6 +349,12 @@ pub fn build(b: *std.Build) void {
     );
     phase3_policy_step.dependOn(&phase3_policy_starter_packet.step);
 
+    const phase3_low_level_wrapper_step = b.step(
+        "phase3-low-level-wrappers",
+        "Run the shared Phase 3 low-level wrapper packet from zigux/tests",
+    );
+    phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
+
     const phase3_test_step = b.step(
         "phase3-test",
         "Run the current shared Phase 3 starter packet bundle from zigux/tests",
@@ -320,6 +362,7 @@ pub fn build(b: *std.Build) void {
     phase3_test_step.dependOn(&phase3_dev_t_starter_packet.step);
     phase3_test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
     phase3_test_step.dependOn(&phase3_policy_starter_packet.step);
+    phase3_test_step.dependOn(&phase3_low_level_wrappers.step);
 
     const phase3_dump_step = b.step(
         "phase3-dump",
