@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 ARTIFACT_DIFF_REL = Path("scripts/zigux/artifact_diff.py")
+README_REL = Path("scripts/zigux/README.md")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 REPLAY_REL = Path("zigux/tests/phase1_helpers.zig")
@@ -82,6 +83,16 @@ ARTIFACT_DIFF_MARKERS = (
     "MODE=sha256",
 )
 
+README_REQUIRED_MARKERS = (
+    "`python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-phase1-parity.py --self-test`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 parity, artifact-diff, and reminder checks",
+    "`scripts/zigux/artifact_diff.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped parity-fixture, artifact-diff, string-review, and direct-owner marker packet explicit from the scripts root",
+    "`Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zigux/tests/fixtures/phase1_helpers.json` remain the current reminder-surface companions for that packet",
+)
+
+README_FORBIDDEN_MARKERS = (
+    "`scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`",
+)
+
 
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -95,11 +106,12 @@ def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
 
     artifact_diff = root / ARTIFACT_DIFF_REL
+    readme = root / README_REL
     fixture = root / FIXTURE_REL
     manifest = root / MANIFEST_REL
     replay = root / REPLAY_REL
 
-    for rel in (ARTIFACT_DIFF_REL, FIXTURE_REL, MANIFEST_REL):
+    for rel in (ARTIFACT_DIFF_REL, README_REL, FIXTURE_REL, MANIFEST_REL):
         if not (root / rel).exists():
             issues.append(f"missing:{rel.as_posix()}")
 
@@ -110,6 +122,14 @@ def collect_issues(root: Path) -> list[str]:
     for marker in ARTIFACT_DIFF_MARKERS:
         if marker not in artifact_diff_text:
             issues.append(f"artifact_diff_marker:{marker}")
+
+    readme_text = _read_text(readme)
+    for marker in README_REQUIRED_MARKERS:
+        if marker not in readme_text:
+            issues.append(f"readme_marker:{marker}")
+    for marker in README_FORBIDDEN_MARKERS:
+        if marker in readme_text:
+            issues.append(f"readme_forbidden:{marker}")
 
     fixture_payload = _read_json(fixture)
     if not isinstance(fixture_payload, dict):
@@ -230,8 +250,27 @@ def make_artifact_diff_text() -> str:
     ) + "\n"
 
 
+def make_readme_text() -> str:
+    return "\n".join(
+        (
+            "# scripts/zigux",
+            "",
+            "This directory holds shipped Zigux validation helpers and compact reminder surfaces.",
+            "",
+            "## Phase 1",
+            "",
+            "- Phase 1 flow - the current host-tools reminder packet keeps the closed helper tranche reviewable through the live parity-fixture, owner-map, and string-review guards instead of rebuilding the broader installer-backed closure packet from older missing routes",
+            f"- {README_REQUIRED_MARKERS[0]}",
+            f"- {README_REQUIRED_MARKERS[1]}",
+            f"- {README_REQUIRED_MARKERS[2]}",
+            "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, closure-side, bench-side, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
+        )
+    ) + "\n"
+
+
 def build_case_root(base: Path) -> Path:
     write_file(base / ARTIFACT_DIFF_REL, make_artifact_diff_text())
+    write_file(base / README_REL, make_readme_text())
     write_file(base / FIXTURE_REL, make_fixture_json())
     write_file(base / MANIFEST_REL, make_manifest_json())
     return base
@@ -296,7 +335,9 @@ def run_self_test() -> int:
             )
             + "\n",
         )
-        cases.append(("manifest_status_drift", run_check(manifest_status_drift_root) != 0))
+        cases.append(
+            ("manifest_status_drift", run_check(manifest_status_drift_root) != 0)
+        )
 
         manifest_drift_root = build_case_root(tmp_root / "manifest_drift")
         write_file(
@@ -313,6 +354,21 @@ def run_self_test() -> int:
             + "\n",
         )
         cases.append(("manifest_drift", run_check(manifest_drift_root) != 0))
+
+        readme_marker_root = build_case_root(tmp_root / "readme_marker")
+        write_file(
+            readme_marker_root / README_REL,
+            make_readme_text().replace(README_REQUIRED_MARKERS[1], "", 1),
+        )
+        cases.append(("readme_marker", run_check(readme_marker_root) != 0))
+
+        readme_forbidden_root = build_case_root(tmp_root / "readme_forbidden")
+        write_file(
+            readme_forbidden_root / README_REL,
+            make_readme_text()
+            + "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`\n",
+        )
+        cases.append(("readme_forbidden", run_check(readme_forbidden_root) != 0))
 
         replay_anchor_root = build_case_root(tmp_root / "replay_anchor")
         write_file(replay_anchor_root / REPLAY_REL, make_replay_text())
