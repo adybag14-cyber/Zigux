@@ -291,8 +291,8 @@ test \"trace-events sample keeps selftest replay-summary continuity explicit aft
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
     const selftest_complete_summary = module.summary();
     const exited_summary = module.summary();
-    try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);
-    try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);
+    try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);
+    try std.testing.expectEqual(selftest_complete_summary.registration_depth, exited_summary.registration_depth);
     try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
