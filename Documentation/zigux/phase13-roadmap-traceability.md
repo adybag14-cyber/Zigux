@@ -48,11 +48,10 @@ Keep the roadmap-owned helper packet explicit through these bounded owner surfac
 
 Adjacent notifier evidence supports release-surface truthfulness for the same Phase 13 packet, but it still does not become a fifth roadmap anchor.
 
-Keep that adjacent packet explicit through:
+Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note framed as a repo-reality gap and keep the surviving adjacent notifier packet explicit through:
 
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `scripts/zigux/validate-phase13-release.py`
 - `zigux/bindings/notifier_abi.zig`
@@ -68,6 +67,7 @@ Keep that adjacent packet explicit through:
 Keep the remaining shared-summary and direct-companion gaps explicit until current `master` materializes them again:
 
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `zigux/tests/phase13_build.zig`
 - `zigux/tests/phase13_libfs_addressability.zig`
@@ -79,7 +79,7 @@ Keep the remaining shared-summary and direct-companion gaps explicit until curre
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 
-Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, so keep that workflow note aligned as a shipped shared surface while the missing shared-summary checker, the absent shared build companion, and the older missing direct helper or notifier companions stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
+Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, so keep that workflow note aligned as a shipped shared surface while the missing shared-summary checker, the absent notifier survey, the absent shared build companion, and the older missing direct helper or notifier companions stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
 
 ## Boundaries
 
