@@ -61,7 +61,9 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py"
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-zig-toolchain.py"
 ]
 
 EXPECTED_MISSING_FILES = [
@@ -270,7 +272,7 @@ def run_self_test() -> int:
         assert ("INVALID_MANIFEST_FIELD", "missing_files") in collect_issues(root)
         checks_run += 1
 
-        build_self_test_root(root)
+        build_self_test_ROOT(root)
         bad = json.loads(manifest_json())
         bad["packet"] = "wrong"
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
