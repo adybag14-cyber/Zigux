@@ -1,9 +1,11 @@
 savedcmd_sample_escaped_colon.o := clang -c zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c -o sample_escaped_colon.o
 
-source_sample_escaped_colon.o := zigux/tests/fixtures/fixdep/sample_escaped_colon_source.rmeta
+source_sample_escaped_colon.o := zigux/tests/fixtures/fixdep/sample_escaped_colon_source.c
 
 deps_sample_escaped_colon.o := \
- zigux/tests/fixtures/fixdep/dep:colon.so \
+  zigux/tests/fixtures/fixdep/shared:config.h \
+    $(wildcard include/config/ZIGUX_COLON) \
+    $(wildcard include/config/ZIGUX_SHARED_COLON) \
 
 sample_escaped_colon.o: $(deps_sample_escaped_colon.o)
 
