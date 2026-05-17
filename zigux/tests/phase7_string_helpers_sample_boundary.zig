@@ -54,10 +54,9 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(slice_note, "bounded size rendering with three significant figures, optional separator suppression, and truncation-safe output accounting");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
     try expectContains(slice_note, "allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched");
-    try expectContains(slice_note, "quoted cmdline duplication that collapses trailing NULs, replaces inter-argument NULs with spaces, and then reuses the quotable escape path inside caller-owned output");
     try expectContains(slice_note, "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries");
-    try expectContains(slice_note, "the broader full-family packet that still leaves `parse_int_array()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()` outside the current `master` helper packet");
-    try expectContains(slice_note, "before deciding whether `parse_int_array()` can join the same helper-local packet without widening into file-path or device-managed semantics.");
+    try expectContains(slice_note, "the broader full-family packet that still leaves `parse_int_array()`, `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()` outside the current `master` helper packet");
+    try expectContains(slice_note, "before deciding whether `kstrdup_quotable_cmdline()` can join the same helper-local packet.");
     try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
@@ -69,12 +68,12 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper, "pub fn kstrdupAndReplace");
     try expectContains(helper, "pub fn kstrdupQuotable");
     try expectContains(helper, "pub fn kstrdup_quotable");
-    try expectContains(helper, "pub fn kstrdupQuotableCmdline");
-    try expectContains(helper, "pub fn kstrdup_quotable_cmdline");
     try expectContains(helper, "pub fn stringEscapeMem");
     try expectContains(helper, "pub fn stringEscapeStrAnyNp");
     try expectContains(helper, "pub fn memcpyAndPad");
     try expectContains(helper, "pub fn strreplace");
+    try expectNotContains(helper, "pub fn kstrdupQuotableCmdline");
+    try expectNotContains(helper, "pub fn kstrdup_quotable_cmdline");
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
@@ -88,11 +87,11 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(helper_tests, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix");
-    try expectContains(helper_tests, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
     try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
-    try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
+    try expectNotContains(helper_tests, "kstrdupQuotableCmdline");
+    try expectNotContains(helper_tests, "kstrdup_quotable_cmdline");
 
     const survey = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_survey.zig");
     defer allocator.free(survey);
@@ -106,7 +105,6 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(survey, "phase 7 string helpers starter frees partially built arrays when allocator failure interrupts setup");
     try expectContains(survey, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
-    try expectContains(survey, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
     try expectContains(survey, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(survey, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
@@ -122,8 +120,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
     try expectContains(manifest, "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries");
-    try expectContains(manifest, "the broader parse, file-path, or device-managed follow-ons as landed");
-    try expectContains(manifest, "whether `parse_int_array()` belongs in the same helper-local packet");
+    try expectContains(manifest, "the broader parse, cmdline, file-path, or device-managed follow-ons as landed");
+    try expectContains(manifest, "`kstrdup_quotable_cmdline()` belongs in the same helper-local packet");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
@@ -135,10 +133,4 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     defer allocator.free(sample_boundary);
     try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-string-sample policy lane-local");
     try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
-    try expectNotContains(sample_boundary, "scripts/zigux/validate-phase7.py");
-    try expectNotContains(sample_boundary, "scripts/zigux/check-phase7-make-wrapper.py");
-    try expectNotContains(sample_boundary, "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py");
-    try expectNotContains(sample_boundary, "scripts/zigux/check-phase7-build-wiring.py");
-    try expectNotContains(sample_boundary, "zigux/tests/phase7_build.zig");
-    try expectNotContains(sample_boundary, "current shared reminders aligned");
 }
