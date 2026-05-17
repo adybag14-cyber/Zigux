@@ -682,6 +682,45 @@ test "conf bridge emits savedefconfig mode argument before kconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_CONFIG\":\".config\"") != null);
 }
 
+test "conf bridge escapes quoted and backslashed defconfig request fields in json output" {
+    var capture = try TestCapture.init(std.testing.allocator, 320);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .defconfig,
+        .kconfig = "Kconfig \\\"quoted\\\"\\\\path",
+        .config = "out/\\\"quoted\\\\.config",
+        .arch = "arm64\\\\\\\"lab",
+        .mode_arg = "arch/arm64/configs/zigux\\\"debug\\\\defconfig",
+    });
+
+    try std.testing.expectEqualStrings(
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"defconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--defconfig\",\"arch/arm64/configs/zigux\\\\\\\"debug\\\\\\\\defconfig\",\"Kconfig \\\\\\\"quoted\\\\\\\"\\\\\\\\path\"],\"env\":{\"ARCH\":\"arm64\\\\\\\\\\\\\\\"lab\",\"KCONFIG_CONFIG\":\"out/\\\\\\\"quoted\\\\\\\\.config\"}}\n",
+        capture.list.items,
+    );
+}
+
+test "conf bridge escapes quoted and backslashed randconfig env overrides in json output" {
+    var capture = try TestCapture.init(std.testing.allocator, 384);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .silent = true,
+        .allconfig = "all\\\"random\\\\.config",
+        .seed = "0xC0\\\"FFEE\\\\42",
+        .probability = "15:25\\\"mix\\\\cap",
+    });
+
+    try std.testing.expectEqualStrings(
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"randconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--randconfig\",\"Kconfig\"],\"env\":{\"ARCH\":\"x86_64\",\"KCONFIG_CONFIG\":\"rand/.config\",\"KCONFIG_ALLCONFIG\":\"all\\\\\\\"random\\\\\\\\.config\",\"KCONFIG_SEED\":\"0xC0\\\\\\\"FFEE\\\\\\\\42\",\"KCONFIG_PROBABILITY\":\"15:25\\\\\\\"mix\\\\\\\\cap\"}}\n",
+        capture.list.items,
+    );
+}
+
 test "conf bridge escapes low control bytes in JSON strings" {
     var capture = try TestCapture.init(std.testing.allocator, 32);
     defer capture.deinit();
