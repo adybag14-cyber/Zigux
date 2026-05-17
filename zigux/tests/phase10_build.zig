@@ -27,6 +27,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_input_verify_module.addImport("virtio_input", virtio_input_module);
+    const virtio_mmio_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase10_virtio_input_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input.zig"),
@@ -126,9 +131,15 @@ pub fn build(b: *std.Build) void {
     const run_phase10_virtio_input_verify_tests =
         b.addRunArtifact(phase10_virtio_input_verify_tests);
 
+    const phase10_virtio_mmio_tests = b.addTest(.{
+        .name = "phase10-virtio-mmio-tests",
+        .root_module = virtio_mmio_module,
+    });
+    const run_phase10_virtio_mmio_tests = b.addRunArtifact(phase10_virtio_mmio_tests);
+
     const test_step = b.step(
         "test",
-        "Run the live Phase 10 virtio input lab validation tests",
+        "Run the live Phase 10 virtio input and MMIO lab validation tests",
     );
     test_step.dependOn(&run_phase10_virtio_input_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_probe_preflight_tests.step);
@@ -137,4 +148,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_input_status_drain_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_teardown_observation_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_verify_tests.step);
+    test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
 }
