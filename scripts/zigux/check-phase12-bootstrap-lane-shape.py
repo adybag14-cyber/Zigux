@@ -78,6 +78,14 @@ WORKFLOW_EXACT_LINES = [
     "        run: make -C zigux phase12-validate",
 ]
 
+WORKFLOW_FORBIDDEN_MARKERS = [
+    "Check current docs-root sanity markers",
+    "ZIGUX_BOOTSTRAP_SANITY=pass",
+    "ZIGUX_BOOTSTRAP_REQUIRED_FILE_COUNT=",
+    "ZIGUX_BOOTSTRAP_MARKER_COUNT=",
+    "python3 - <<'PY2'",
+]
+
 SURVEY_MARKERS = [
     "`PHASE12_STATUS=active`",
     "`PHASE12_RELEASE_CLOSED=no`",
@@ -105,6 +113,10 @@ def validate_workflow(workflow_text: str) -> list[str]:
     for marker in WORKFLOW_COMMAND_MARKERS:
         if marker not in workflow_text:
             failures.append(f"workflow_marker:{marker}")
+
+    for marker in WORKFLOW_FORBIDDEN_MARKERS:
+        if marker in workflow_text:
+            failures.append(f"workflow_forbidden_marker:{marker}")
 
     for line in WORKFLOW_EXACT_LINES:
         actual = workflow_lines.count(line)
@@ -347,6 +359,19 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, "workflow_step:Validate Phase 12 degraded-workflow bundle")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8")
+            + "\n      - name: Check current docs-root sanity markers\n"
+            + "        run: |\n"
+            + "          python3 - <<'PY2'\n"
+            + "          print('ZIGUX_BOOTSTRAP_SANITY=pass')\n"
+            + "          PY2\n",
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_forbidden_marker:Check current docs-root sanity markers")
 
         write_fixture_tree(base)
         survey_path = base / SURVEY_PATH
