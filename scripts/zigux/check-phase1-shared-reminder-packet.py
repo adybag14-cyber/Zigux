@@ -23,6 +23,7 @@ REQUIRED_FILES = [
 
 DOCS_ROOT_MARKERS = [
     "  * the current docs-root Phase 1 reminder packet should stay parked on the live owner-map and string-review guards: `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` are the shipped direct checks, while `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around them.",
+    "  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, closure-side, validator-first, bench, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence.",
     "  * keep the helper-family split explicit here too: the nine shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string keep the only bounded direct-anchor follow-up anchors on current master.",
 ]
 
@@ -34,10 +35,12 @@ SCRIPTS_README_MARKERS = [
 
 TESTS_README_MARKERS = [
     "  * current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py`",
+    "  * repo-reality warning for the broader Phase 1 installer-backed closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
     "  * keep current Phase 1 follow-through tied to the live owner-map plus string-review reminder packet instead of reconstructing the broader installer-backed closure-and-replay packet from those older missing installer, closure-side, and replay files and routes alone",
 ]
 
 REVIEW_CHECKLIST_MARKERS = [
+    "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` still agree on the same bounded current-`master` reminder packet: the thirteen-helper owner map, the parked shared-replay-versus-direct-anchor split, the live string-review and direct-owner guards, and the repo-reality warning that older installer-backed, closure-side, validator-first, make-route, bench, and replay paths such as `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` stay framed as historical packet members rather than direct current evidence unless a fresh reread materializes them again, without widening Phase 1 beyond the bounded host-side helper packet?",
     "  * if the change touches that same Phase 1 reminder packet, does the checklist still say clearly that `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the bounded live reminder checks while `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` guard the shipped current-`master` Phase 1 reminder packet, and that the older installer-companion self-test-versus-live route wording stays historical until `scripts/zigux/check-phase1-installer-companion-checks.py` is directly readable again?",
 ]
 
@@ -63,7 +66,7 @@ SMOKE_ZIG_MARKERS = [
     'try std.testing.expect(@hasDecl(bitmap, "setRange"));',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def repo_root(root: str | None) -> Path:
@@ -183,13 +186,16 @@ def run_self_test() -> int:
         ("missing_file", "Documentation/zigux/README.md", "remove_file"),
         ("missing_docs_marker", "Documentation/zigux/README.md", "remove_marker"),
         ("duplicate_docs_marker", "Documentation/zigux/README.md", "duplicate_marker"),
+        ("missing_docs_historical_warning", "Documentation/zigux/README.md", "remove_docs_historical_warning"),
         ("missing_scripts_marker", "scripts/zigux/README.md", "remove_marker"),
         ("missing_scripts_bench_marker", "scripts/zigux/README.md", "remove_scripts_bench_marker"),
         ("missing_bench_checker", "scripts/zigux/check-phase1-bench.py", "remove_file"),
         ("missing_tests_marker", "zigux/tests/README.md", "remove_marker"),
+        ("missing_tests_historical_warning", "zigux/tests/README.md", "remove_tests_historical_warning"),
         ("missing_phase1_build", "zigux/tests/build.zig", "remove_file"),
         ("missing_phase1_host_tools_smoke", "zigux/tests/phase1_host_tools_smoke.zig", "remove_file"),
         ("missing_checklist_marker", "Documentation/zigux/review-checklist.md", "remove_marker"),
+        ("missing_checklist_packet_alignment", "Documentation/zigux/review-checklist.md", "remove_checklist_packet_alignment"),
         ("missing_build_marker", "zigux/tests/build.zig", "remove_build_marker"),
         ("missing_smoke_marker", "zigux/tests/phase1_host_tools_smoke.zig", "remove_smoke_marker"),
         ("missing_workflow_bench_selftest", ".github/workflows/zigux-bootstrap.yml", "remove_bench_selftest"),
@@ -204,10 +210,13 @@ def run_self_test() -> int:
         return 1
 
     first_docs_marker = DOCS_ROOT_MARKERS[0]
+    docs_historical_warning_marker = DOCS_ROOT_MARKERS[1]
     first_scripts_marker = SCRIPTS_README_MARKERS[0]
     bench_scripts_marker = SCRIPTS_README_MARKERS[2]
     first_tests_marker = TESTS_README_MARKERS[0]
+    tests_historical_warning_marker = TESTS_README_MARKERS[1]
     first_checklist_marker = REVIEW_CHECKLIST_MARKERS[0]
+    checklist_packet_alignment_marker = REVIEW_CHECKLIST_MARKERS[0]
     first_build_marker = BUILD_ZIG_MARKERS[0]
     first_smoke_marker = SMOKE_ZIG_MARKERS[0]
 
@@ -229,10 +238,25 @@ def run_self_test() -> int:
                     target.write_text(text.replace(first_tests_marker + "\n", "", 1), encoding="utf-8")
                 else:
                     target.write_text(text.replace(first_checklist_marker + "\n", "", 1), encoding="utf-8")
+            elif operation == "remove_docs_historical_warning":
+                target.write_text(
+                    text.replace(docs_historical_warning_marker + "\n", "", 1),
+                    encoding="utf-8",
+                )
             elif operation == "remove_scripts_bench_marker":
                 target.write_text(text.replace(bench_scripts_marker + "\n", "", 1), encoding="utf-8")
+            elif operation == "remove_tests_historical_warning":
+                target.write_text(
+                    text.replace(tests_historical_warning_marker + "\n", "", 1),
+                    encoding="utf-8",
+                )
             elif operation == "duplicate_marker":
                 target.write_text(text.replace(first_docs_marker, first_docs_marker + "\n" + first_docs_marker, 1), encoding="utf-8")
+            elif operation == "remove_checklist_packet_alignment":
+                target.write_text(
+                    text.replace(checklist_packet_alignment_marker + "\n", "", 1),
+                    encoding="utf-8",
+                )
             elif operation == "remove_build_marker":
                 target.write_text(text.replace(first_build_marker + "\n", "", 1), encoding="utf-8")
             elif operation == "remove_smoke_marker":
