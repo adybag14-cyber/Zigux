@@ -302,8 +302,8 @@ def main() -> int:
             readme_path = root / README
             readme_path.write_text(
                 readme_path.read_text(encoding="utf-8").replace(
-                    README_OWNER_MARKERS[1],
-                    "historical route handoff drifted",
+                    README_OWNER_MARKERS[0],
+                    "current shared ownership reminder drifted",
                 ),
                 encoding="utf-8",
             )
@@ -334,8 +334,8 @@ def main() -> int:
             checklist_path = root / CHECKLIST
             checklist_path.write_text(
                 checklist_path.read_text(encoding="utf-8").replace(
-                    CHECKLIST_PENDING_REQ[-1],
-                    "shared CI posture drifted",
+                    CHECKLIST_PENDING_REQ[4],
+                    "coordination-owner wording drifted",
                 ),
                 encoding="utf-8",
             )
@@ -360,8 +360,8 @@ def main() -> int:
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
-                    "scripts/zigux/check-phase4-matrix-gap-drift.py",
+                    "scripts/zigux/check-artifact-diff-contract.py",
+                    "scripts/zigux/check-artifact-diff-contract-drift.py",
                 ),
                 encoding="utf-8",
             )
@@ -371,7 +371,7 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError(
-                    "expected missing remaining-gap matrix marker to fail"
+                    "expected missing artifact-diff contract marker to fail"
                 )
 
         print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
