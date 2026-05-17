@@ -65,6 +65,11 @@ pub fn runMkElfconfig(stdin_bytes: []const u8, stdout: anytype, stderr: anytype)
     return renderOutcome(stdout, stderr, classify(stdin_bytes));
 }
 
+fn runMkElfconfigFromReader(reader: anytype, stdout: anytype, stderr: anytype) !u8 {
+    const header = try readHeaderFromReader(reader);
+    return renderOutcome(stdout, stderr, classify(header.bytes[0..header.len]));
+}
+
 fn readHeaderFromReader(reader: anytype) !HeaderReadResult {
     var header: [ei_nident]u8 = undefined;
     var filled: usize = 0;
@@ -83,15 +88,15 @@ fn readHeader(fd: std.posix.fd_t) !HeaderReadResult {
 
 pub fn main(init: std.process.Init) !void {
     const io = init.io;
-    const header = try readHeader(std.posix.STDIN_FILENO);
     var stdout_buffer: [128]u8 = undefined;
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     var stderr_buffer: [128]u8 = undefined;
     var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-    const exit_code = try renderOutcome(
+    var reader = FdReader{ .fd = std.posix.STDIN_FILENO };
+    const exit_code = try runMkElfconfigFromReader(
+        &reader,
         &stdout_writer.interface,
         &stderr_writer.interface,
-        classify(header.bytes[0..header.len]),
     );
     try stdout_writer.interface.flush();
     try stderr_writer.interface.flush();
@@ -373,4 +378,42 @@ test "invalid class exits without stderr" {
     try std.testing.expectEqual(@as(u8, 1), exit_code);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "split-read ELF input exits with stdout and ignores trailing bytes" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E',  'L',  'F', elfclass64, 1, 1, 0,
+            0,    0,    0,    0,   0,          0, 0, 0,
+            0xaa, 0xbb, 0xcc,
+        },
+        .chunk_sizes = &[_]usize{ 4, 4, 8, 3 },
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "split-read truncated input exits with stderr after final EOF read" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
+        .chunk_sizes = &[_]usize{ 2, 2, 4 },
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 4), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
 }
