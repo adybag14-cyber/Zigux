@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import tempfile
 from pathlib import Path
@@ -31,6 +32,11 @@ def is_hex_sha(value: object) -> bool:
     return all(ch in "0123456789abcdef" for ch in value)
 
 
+def git_blob_sha(path: Path) -> str:
+    data = path.read_bytes()
+    return hashlib.sha1(f"blob {len(data)}\0".encode("utf-8") + data).hexdigest()
+
+
 def collect_missing(root: Path) -> list[str]:
     snapshot_file = root / SNAPSHOT_PATH
     if not snapshot_file.exists():
@@ -43,6 +49,8 @@ def collect_missing(root: Path) -> list[str]:
         missing.append(f"snapshot:lane_key:{EXPECTED_LANE_KEY}")
     if packet.get("phase") != EXPECTED_PHASE:
         missing.append(f"snapshot:phase:{EXPECTED_PHASE}")
+    if not is_hex_sha(packet.get("surveyed_commit")):
+        missing.append("snapshot:surveyed_commit:sha1")
 
     tracked_file_count = packet.get("tracked_file_count")
     if tracked_file_count != len(EXPECTED_TRACKED_PATHS):
@@ -70,6 +78,8 @@ def collect_missing(root: Path) -> list[str]:
             continue
         if entry.get("path") != expected_path:
             missing.append(f"snapshot:files:{index}:path:{expected_path}")
+            continue
+
         blob_sha = entry.get("blob_sha")
         if not is_hex_sha(blob_sha):
             missing.append(f"snapshot:files:{index}:blob_sha")
@@ -77,8 +87,15 @@ def collect_missing(root: Path) -> list[str]:
             missing.append(f"snapshot:files:{index}:duplicate_path")
         seen_paths.add(entry.get("path"))
 
+        actual_path = root / expected_path
+        if not actual_path.exists():
+            missing.append(f"missing_file:{expected_path}")
+            continue
+        if is_hex_sha(blob_sha) and blob_sha != git_blob_sha(actual_path):
+            missing.append(f"snapshot:files:{index}:blob_sha:mismatch")
+
     for rel_path in EXPECTED_TRACKED_PATHS:
-        if not (root / rel_path).exists():
+        if not (root / rel_path).exists() and f"missing_file:{rel_path}" not in missing:
             missing.append(f"missing_file:{rel_path}")
 
     return missing
@@ -86,10 +103,12 @@ def collect_missing(root: Path) -> list[str]:
 
 def build_fixture_tree(root: Path) -> None:
     (root / SNAPSHOT_PATH.parent).mkdir(parents=True, exist_ok=True)
-    for rel_path in EXPECTED_TRACKED_PATHS:
+    files = []
+    for index, rel_path in enumerate(EXPECTED_TRACKED_PATHS):
         path = root / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text("# fixture\n", encoding="utf-8")
+        path.write_text(f"# fixture {index}\n", encoding="utf-8")
+        files.append({"path": rel_path, "blob_sha": git_blob_sha(path)})
 
     snapshot = {
         "lane_key": EXPECTED_LANE_KEY,
@@ -98,10 +117,7 @@ def build_fixture_tree(root: Path) -> None:
         "tracked_file_count": len(EXPECTED_TRACKED_PATHS),
         "tracked_paths": EXPECTED_TRACKED_PATHS,
         "supporting_notes": EXPECTED_TRACKED_PATHS,
-        "files": [
-            {"path": rel_path, "blob_sha": f"{index + 1:040x}"}
-            for index, rel_path in enumerate(EXPECTED_TRACKED_PATHS)
-        ],
+        "files": files,
     }
     (root / SNAPSHOT_PATH).write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
 
@@ -134,6 +150,14 @@ def run_self_test() -> None:
 
         replace_once(
             tmp_root / SNAPSHOT_PATH,
+            "9695696dae13fac53792eb77b7ff68ae2053ceea",
+            "not-a-sha",
+        )
+        expect_case(tmp_root, "snapshot:surveyed_commit:sha1", "surveyed_commit")
+        build_fixture_tree(tmp_root)
+
+        replace_once(
+            tmp_root / SNAPSHOT_PATH,
             f"\"tracked_file_count\": {len(EXPECTED_TRACKED_PATHS)}",
             "\"tracked_file_count\": 3",
         )
@@ -152,7 +176,13 @@ def run_self_test() -> None:
         expect_case(tmp_root, "snapshot:tracked_paths:exact_order", "tracked_paths")
         build_fixture_tree(tmp_root)
 
-        replace_once(tmp_root / SNAPSHOT_PATH, f"{1:040x}", "short-sha")
+        first_blob_sha = git_blob_sha(tmp_root / EXPECTED_TRACKED_PATHS[0])
+        replace_once(tmp_root / SNAPSHOT_PATH, first_blob_sha, f"{'0' * 40}")
+        expect_case(tmp_root, "snapshot:files:0:blob_sha:mismatch", "blob_sha_mismatch")
+        build_fixture_tree(tmp_root)
+
+        first_blob_sha = git_blob_sha(tmp_root / EXPECTED_TRACKED_PATHS[0])
+        replace_once(tmp_root / SNAPSHOT_PATH, first_blob_sha, "short-sha")
         expect_case(tmp_root, "snapshot:files:0:blob_sha", "blob_sha")
         build_fixture_tree(tmp_root)
 
@@ -164,7 +194,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=5")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=7")
 
 
 def main() -> int:
