@@ -23,6 +23,7 @@ EXPECTED_TARGETS = [
 ]
 EXPECTED_ZIG_TEST_FILES = [
     "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 
 
@@ -30,6 +31,7 @@ def require_files(root: Path) -> list[str]:
     required = [
         Path("zigux/tests/fixtures/phase2_cross_targets.json"),
         Path("scripts/zigux/kconfig/conf_bridge.zig"),
+        Path("scripts/zigux/kconfig/confdata_bridge.zig"),
     ]
     return [str(rel) for rel in required if not (root / rel).is_file()]
 
@@ -127,6 +129,7 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
     write_text(root / "scripts/zigux/kconfig/conf_bridge.zig", 'test "stub" {}\n')
+    write_text(root / "scripts/zigux/kconfig/confdata_bridge.zig", 'test "stub" {}\n')
 
 
 def run_self_test() -> int:
@@ -184,6 +187,12 @@ def run_self_test() -> int:
         (root / "scripts/zigux/kconfig/conf_bridge.zig").unlink()
         missing = require_files(root)
         assert "scripts/zigux/kconfig/conf_bridge.zig" in missing
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/kconfig/confdata_bridge.zig").unlink()
+        missing = require_files(root)
+        assert "scripts/zigux/kconfig/confdata_bridge.zig" in missing
         case_count += 1
 
     print("PHASE2_CROSS_SELF_TEST=pass")
