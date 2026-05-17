@@ -88,6 +88,9 @@ jobs:
       - name: Check current Zig toolchain policy packet
         run: python3 scripts/zigux/check-zig-toolchain.py --policy-only
 
+      - name: Check current pinned Zig archive packet
+        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
+
       - name: Self-test current Phase 2 kconfig bridge checker
         run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
 
@@ -117,6 +120,18 @@ jobs:
 
       - name: Check current Phase 2 toolchain pinning packet
         run: python3 scripts/zigux/check-phase2-toolchain-pinning.py
+
+      - name: Self-test current Phase 2 toolchain pin-scope checker
+        run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test
+
+      - name: Check current Phase 2 toolchain pin-scope packet
+        run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py
+
+      - name: Self-test current Phase 2 required make-routes checker
+        run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
+
+      - name: Check current Phase 2 required make routes
+        run: python3 scripts/zigux/check-phase2-required-make-routes.py
 
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
