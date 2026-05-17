@@ -15,6 +15,7 @@ ROOT = (
 
 CURRENT_RING_PACKET_FILES = [
     "drivers/virtio/virtio_ring.zig",
+    "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
@@ -35,6 +36,13 @@ MARKERS = {
         "pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {",
         "if (slot.broken) return error.QueueBroken;",
         "if (slot.broken) return error.QueueResetWhileBroken;",
+    ],
+    "drivers/virtio/virtio_ring_verify.zig": [
+        "pub fn summarizeDelayedCallback(",
+        "pub fn summarizeResetReadiness(",
+        'test "phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit" {',
+        'test "phase10 virtio ring verify keeps broken queue fences visible until clear" {',
+        'test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {',
     ],
     "zigux/tests/phase10_build.zig": [
         '.root_source_file = b.path("../../drivers/virtio/virtio_ring.zig"),',
@@ -58,7 +66,7 @@ MARKERS = {
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
         'test "phase10 virtio ring reset reuse stays blocked until queue-local reset prerequisites clear and then replays from a clean queue state" {',
         "var readiness = try ring.queueResetReadinessSummary(2);",
-        "try std.testing.expectEqualStrings(\"unpublished_chains\", @tagName(readiness.blocker.?));",
+        'try std.testing.expectEqualStrings("unpublished_chains", @tagName(readiness.blocker.?));',
         "const reset = try ring.resetQueue(2);",
         "const after_reset = try ring.notificationSummary(2);",
         "const kick_after_reset = try ring.prepareKick(2);",
@@ -153,6 +161,14 @@ def run_self_test() -> int:
             "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
         )
         expect_missing_marker(
+            "drivers/virtio/virtio_ring_verify.zig",
+            'test "phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit" {',
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring_verify.zig",
+            'test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {',
+        )
+        expect_missing_marker(
             "zigux/tests/phase10_build.zig",
             '.name = "phase10-virtio-ring-broken-queue-queue-discipline-tests",',
         )
@@ -185,6 +201,7 @@ def run_self_test() -> int:
             "try std.testing.expectError(error.QueueResetWhileBroken, ring.resetQueue(3));",
         )
         expect_missing_file("drivers/virtio/virtio_ring.zig")
+        expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
         expect_missing_file("zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig")
         expect_missing_file("zigux/tests/phase10_virtio_ring_reset_reuse.zig")
@@ -197,7 +214,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current directly materialized Phase 10 virtio ring wrapper packet."
+        description="Validate the current directly materialized Phase 10 virtio ring helper-and-verify packet."
     )
     parser.add_argument(
         "--self-test",
