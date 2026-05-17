@@ -1,0 +1,80 @@
+{
+  "abi_version": 1,
+  "boundary_header": {
+    "size": 8,
+    "align": 4,
+    "fields": {
+      "size_offset": 0,
+      "abi_version_offset": 4,
+      "flags_offset": 6
+    },
+    "default": {
+      "size": 8,
+      "abi_version": 1,
+      "flags": 0
+    },
+    "compatibility": {
+      "canonical": true,
+      "size_matches": true,
+      "version_matches": true
+    }
+  },
+  "export_status": {
+    "size": 8,
+    "align": 4,
+    "fields": {
+      "code_offset": 0,
+      "facility_offset": 4,
+      "flags_offset": 6
+    },
+    "error_flag": 1
+  },
+  "interop_policy": {
+    "size": 4,
+    "align": 1,
+    "fields": {
+      "panic_mode_offset": 0,
+      "allocator_mode_offset": 1,
+      "unsafe_scope_offset": 2,
+      "reserved_offset": 3
+    },
+    "default": {
+      "panic_mode": 0,
+      "allocator_mode": 0,
+      "unsafe_scope": 0,
+      "reserved": 0
+    }
+  },
+  "panic_mode": {
+    "abort": 0,
+    "bug": 1,
+    "warn": 2
+  },
+  "allocator_mode": {
+    "caller_provided": 0,
+    "kernel_heap": 1,
+    "arena": 2
+  },
+  "unsafe_scope": {
+    "none": 0,
+    "volatile_mmio": 1,
+    "raw_pointer_bridge": 2
+  },
+  "facility": {
+    "kernel": 1,
+    "helpers": 2,
+    "drivers": 3
+  },
+  "notifier": {
+    "done": 0,
+    "ok": 1,
+    "stop": 2,
+    "block_size": 24,
+    "block_align": 8,
+    "fields": {
+      "notifier_call_offset": 0,
+      "next_offset": 8,
+      "priority_offset": 16
+    }
+  }
+}
