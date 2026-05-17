@@ -189,6 +189,53 @@ test "shift and block helpers preserve odd-byte carry discipline" {
     try std.testing.expectEqual(seed, blockSub(odd_added, fragment, 1));
 }
 
+fn referencePartial(bytes: []const u8, seed: u32) u32 {
+    var sum: u64 = seed;
+    var index: usize = 0;
+
+    while (index < bytes.len) : (index += 2) {
+        const hi = @as(u64, bytes[index]) << 8;
+        const lo = if (index + 1 < bytes.len) @as(u64, bytes[index + 1]) else 0;
+        sum += hi | lo;
+    }
+
+    while ((sum >> 16) != 0) {
+        sum = (sum & 0xffff) + (sum >> 16);
+    }
+    return @intCast(sum);
+}
+
+test "partial and compute match reference accumulation across seeded odd payloads" {
+    const odd_payload = [_]u8{ 0xde, 0xad, 0xbe, 0xef, 0x42 };
+    const even_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
+    const single_payload = [_]u8{0xa5};
+    const empty_payload = [_]u8{};
+    const partial_cases = [_]struct {
+        bytes: []const u8,
+        seed: u32,
+    }{
+        .{ .bytes = empty_payload[0..], .seed = 0 },
+        .{ .bytes = odd_payload[0..], .seed = 0 },
+        .{ .bytes = odd_payload[0..], .seed = 0x1357_9bdf },
+        .{ .bytes = even_payload[0..], .seed = 0x2468_ace0 },
+        .{ .bytes = single_payload[0..], .seed = 0xffff_ffff },
+    };
+
+    for (partial_cases) |case| {
+        try std.testing.expectEqual(referencePartial(case.bytes, case.seed), partial(case.bytes, case.seed));
+    }
+
+    const compute_cases = [_][]const u8{
+        empty_payload[0..],
+        odd_payload[0..],
+        even_payload[0..],
+        single_payload[0..],
+    };
+    for (compute_cases) |case| {
+        try std.testing.expectEqual(fold(referencePartial(case, 0)), compute(case));
+    }
+}
+
 test "replacement helpers match direct recomputation for payload and header edits" {
     var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
     const old_partial = partial(&payload, 0);
