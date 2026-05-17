@@ -26,9 +26,10 @@ The currently reviewable Phase 1 reminder packet is:
 - `scripts/zigux/validate-phase1-closure.py`
 - `zigux/tests/README.md`
 - `zigux/tests/build.zig`
+- `zigux/tests/phase1_host_tools_smoke.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
+- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
 - `PHASE1_SHARED_REMINDER_SYNC_STATE=complete`
 
 ## Current Repo-Reality Gaps
