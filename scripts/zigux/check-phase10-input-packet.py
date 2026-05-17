@@ -16,6 +16,7 @@ FILES = [
     "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_status_drain.zig",
+    "drivers/virtio/virtio_input_teardown_observation.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
@@ -49,6 +50,7 @@ MODULE_MARKERS = [
     "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_status_drain.zig",
+    "drivers/virtio/virtio_input_teardown_observation.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
@@ -73,6 +75,7 @@ SURVEY_NOTE_MARKERS = [
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "drivers/virtio/virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "Current `master` keeps this input lane reviewable through the bounded helper packet:",
@@ -97,6 +100,8 @@ MANIFEST_MARKERS = [
     "\"zigux_destination\": \"drivers/virtio/virtio_input_registration_preflight.zig\"",
     "\"id\": \"phase10-virtio-input-status-drain-helper\"",
     "\"zigux_destination\": \"drivers/virtio/virtio_input_status_drain.zig\"",
+    "\"id\": \"phase10-virtio-input-teardown-observation-helper\"",
+    "\"zigux_destination\": \"drivers/virtio/virtio_input_teardown_observation.zig\"",
     "\"id\": \"phase10-virtio-input-registration-lifecycle\"",
     "\"status\": \"blocked_on_risky_transport\"",
 ]
@@ -134,6 +139,14 @@ STATUS_DRAIN_HELPER_MARKERS = [
     "pub const StatusDrainSummary = virtio_input.StatusDrainSummary;",
     "pub fn summarize(",
     "return device.drainStatusQueue(completed_count);",
+]
+
+TEARDOWN_HELPER_MARKERS = [
+    "pub const TeardownObservationSummary = virtio_input.TeardownObservationSummary;",
+    "pub fn summarize(device: *const virtio_input.VirtioInputLab) TeardownObservationSummary {",
+    "pub fn runtimeStateArmed(summary: TeardownObservationSummary) bool {",
+    "pub fn capabilityStateArmed(summary: TeardownObservationSummary) bool {",
+    "pub fn preservesIdentity(summary: TeardownObservationSummary) bool {",
 ]
 
 VERIFY_HELPER_MARKERS = [
@@ -260,6 +273,7 @@ def required_marker_count() -> int:
         + len(PROBE_HELPER_MARKERS)
         + len(REGISTRATION_HELPER_MARKERS)
         + len(STATUS_DRAIN_HELPER_MARKERS)
+        + len(TEARDOWN_HELPER_MARKERS)
         + len(VERIFY_HELPER_MARKERS)
         + len(BUILD_MARKERS)
         + len(SURVEY_GATE_MARKERS)
@@ -309,6 +323,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     )
     check_markers(
         missing_markers,
+        "teardown_helper",
+        read_text(root, "drivers/virtio/virtio_input_teardown_observation.zig"),
+        TEARDOWN_HELPER_MARKERS,
+    )
+    check_markers(
+        missing_markers,
         "verify_helper",
         read_text(root, "drivers/virtio/virtio_input_verify.zig"),
         VERIFY_HELPER_MARKERS,
@@ -347,6 +367,7 @@ def write_fixture(root: Path) -> None:
         "drivers/virtio/virtio_input_probe_preflight.zig": "\n".join(PROBE_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_registration_preflight.zig": "\n".join(REGISTRATION_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_status_drain.zig": "\n".join(STATUS_DRAIN_HELPER_MARKERS) + "\n",
+        "drivers/virtio/virtio_input_teardown_observation.zig": "\n".join(TEARDOWN_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_HELPER_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_manifest.json": "\n".join(
@@ -544,6 +565,24 @@ def run_self_test() -> int:
             "phase10-input-live-packet-self-test:status_drain_helper_call",
         )
         status_drain_helper_path.write_text(original_status_drain_helper, encoding="utf-8")
+        case_count += 1
+
+        teardown_helper_path = root / "drivers/virtio/virtio_input_teardown_observation.zig"
+        original_teardown_helper = teardown_helper_path.read_text(encoding="utf-8")
+        teardown_helper_path.write_text(
+            original_teardown_helper.replace(
+                "pub fn preservesIdentity(summary: TeardownObservationSummary) bool {",
+                "pub fn losesIdentity(summary: TeardownObservationSummary) bool {",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "teardown_helper:pub fn preservesIdentity(summary: TeardownObservationSummary) bool {",
+            "phase10-input-live-packet-self-test:teardown_helper_identity_guard",
+        )
+        teardown_helper_path.write_text(original_teardown_helper, encoding="utf-8")
         case_count += 1
 
         (root / "zigux/tests/phase10_virtio_input_survey.zig").unlink()
