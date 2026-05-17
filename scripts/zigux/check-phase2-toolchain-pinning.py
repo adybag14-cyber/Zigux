@@ -15,6 +15,7 @@ SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 SURFACE_PATHS = (
+    ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
@@ -25,6 +26,8 @@ SURFACE_PATHS = (
 )
 
 WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
 )
@@ -93,7 +96,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 63
+EXPECTED_SELF_TEST_CASE_COUNT = 68
 
 
 def read_text(path: Path) -> str:
