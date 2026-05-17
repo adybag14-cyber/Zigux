@@ -115,6 +115,12 @@ jobs:
       - name: Self-test current Phase 1 bench checker
         run: python3 scripts/zigux/check-phase1-bench.py --self-test
 
+      - name: Self-test current Phase 1 shared reminder checker
+        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test
+
+      - name: Check current Phase 1 shared reminder packet
+        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
+
       - name: Self-test current Phase 12 build-only checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
 
