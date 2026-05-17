@@ -118,48 +118,23 @@ Phase 7 review packet
   * leave `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond rbtree, even if older helper packet references still mention `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`
 
 Phase 8 review packet
-  * `Documentation/zigux/phase8-tooling-lane-sequencing.md`
-  * `Documentation/zigux/phase8-help-slice.md`
-  * `Documentation/zigux/phase8-kallsyms-slice.md`
-  * `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
-  * `Documentation/zigux/phase8-libbpf-segment-survey.md`
-  * `scripts/zigux/validate-phase8.py`
-  * `scripts/zigux/check-phase8-tests-readme-alignment.py`
-  * `scripts/zigux/check-phase8-exec-cmd-packet.py`
-  * `scripts/zigux/check-phase8-help-kallsyms-packet.py`
-  * `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
-  * `scripts/zigux/check-phase8-libbpf-segment-gate.py`
-  * `scripts/zigux/check-phase8-libbpf-shard-routes.py`
-  * `zigux/tests/phase8_exec_cmd.zig`
-  * `zigux/tests/phase8_exec_cmd_only_build.zig`
-  * `zigux/tests/phase8_help.zig`
-  * `zigux/tests/phase8_help_only_build.zig`
-  * `zigux/tests/phase8_help_kallsyms_only_build.zig`
-  * `zigux/tests/phase8_kallsyms.zig`
-  * `zigux/tests/phase8_kallsyms_only_build.zig`
-  * `zigux/tests/phase8_cpu_mask.zig`
-  * `zigux/tests/phase8_cpu_mask_only_build.zig`
-  * `zigux/tests/phase8_logging.zig`
-  * `zigux/tests/phase8_pin_path.zig`
-  * `zigux/tests/phase8_bpf_type_names.zig`
-  * `zigux/tests/phase8_file_path_handle_bridge.zig`
-  * `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
-  * `zigux/tests/phase8_perf_buffer_poll.zig`
-  * `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
-  * `zigux/tests/phase8_libbpf_segments.zig`
-  * `zigux/tests/phase8_libbpf_segments_only_build.zig`
-  * `make -C zigux phase8-validate`
-  * `make -C zigux phase8-exec-cmd-test`
-  * `make -C zigux phase8-help-test`
-  * `make -C zigux phase8-help-kallsyms-test`
-  * `make -C zigux phase8-kallsyms-test`
-  * `make -C zigux phase8-cpu-mask-test`
-  * `make -C zigux phase8-file-path-handle-bridge-test`
-  * `make -C zigux phase8-libbpf-segments-test`
-  * `make -C zigux phase8-perf-buffer-poll-test`
-  * `make -C zigux phase8-test`
-  * `make -C zigux phase8`
-  * keep the shared Phase 8 tooling packet explicit here too: the focused exec-cmd, help, symbol, cpu-mask, file-path bridge, segmented libbpf, and perf-buffer poll replay surfaces stay reviewable from the tests root without widening into deferred process-launch, handle-ownership, or online-CPU routing work
+  * current direct-readback Phase 8 anchors:
+    `scripts/zigux/check-phase8-tests-readme-alignment.py`
+    `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
+    `zigux/tests/phase8_perf_buffer_poll.zig`
+  * repo-reality warning for the broader Phase 8 tooling packet:
+    `Documentation/zigux/phase8-tooling-lane-sequencing.md`
+    `Documentation/zigux/phase8-help-slice.md`
+    `Documentation/zigux/phase8-kallsyms-slice.md`
+    `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
+    `Documentation/zigux/phase8-libbpf-segment-survey.md`
+    `scripts/zigux/validate-phase8.py`
+    `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+    `zigux/tests/phase8_libbpf_segments.zig`
+    `zigux/Makefile`
+    `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
+  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker-and-test packet instead of reconstructing the broader shared tooling packet from older route names alone
+  * if future same-lane work rematerializes the missing docs, validator, focused build shard, libbpf segment test, Makefile routes, or the helper-local `perf_buffer_poll.zig` file, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`
 
 Phase 9 review packet
   * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
