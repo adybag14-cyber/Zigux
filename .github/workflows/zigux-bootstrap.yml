@@ -145,6 +145,12 @@ jobs:
       - name: Check current Phase 4 tests README packet
         run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
 
+      - name: Self-test current Phase 7 shared-control gap checker
+        run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test
+
+      - name: Check current Phase 7 shared-control gap packet
+        run: python3 scripts/zigux/check-phase7-shared-control-gap.py
+
       - name: Self-test current Phase 12 build-only checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
 
