@@ -39,7 +39,7 @@ fn writeCase(writer: anytype, name: []const u8, raw: usize, trailing_comma: bool
     const raw_decimal = try std.fmt.bufPrint(&decimal_buffer, "{}", .{raw});
 
     try writer.print(
-        "    {\n" ++
+        "    {{\n" ++
             "      \"name\": \"{s}\",\n" ++
             "      \"kind\": \"{s}\",\n" ++
             "      \"raw_hex\": \"{s}\",\n" ++
