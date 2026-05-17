@@ -27,7 +27,7 @@ The helper pair stays intentionally small:
 
 ## Current Replay Surface
 
-The current helper-local packet now has two bounded replay layers:
+The current helper-local packet now has three bounded replay layers:
 
 - one manifest-backed starter packet:
   - `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
@@ -44,21 +44,24 @@ The current helper-local packet now has two bounded replay layers:
   - `python3 scripts/zigux/check-phase3-errptr-xarray.py --self-test`
   - `python3 scripts/zigux/check-phase3-errptr-xarray.py --repo-root . --zig zig --cc gcc`
   - `zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig`
+- two dedicated shared tests-root companions:
+  - `zigux/tests/build.zig`
+  - `zig build phase3-errptr-xarray-starter-packet --build-file zigux/tests/build.zig`
+  - `zig build phase3-errptr-xarray-dump --build-file zigux/tests/build.zig`
 
-That fixture-backed parity packet keeps one tiny C-vs-Zig comparison explicit without reopening the broader shared tests root.
+That fixture-backed parity packet keeps one tiny C-vs-Zig comparison explicit, and the shared tests root now also exposes separate starter and dump step names for the slice without yet claiming a combined shared `phase3-errptr-xarray` route.
 
 ## Current Gap
 
-This is still not the broader Phase 3 ABI, export/UAPI, catalog, or low-level-wrapper packet that older reminder surfaces still name. It is one helper-local interop proof layered beside the existing `dev_t` starter packet.
+This is still not the broader Phase 3 ABI, export/UAPI, catalog, or low-level-wrapper packet that older reminder surfaces still name. It is one helper-local interop proof layered beside the existing `dev_t` starter packet plus two dedicated shared step names in `zigux/tests/build.zig`.
 
-Current shared reminder follow-up still belongs to the broader Phase 3 truthfulness pass:
+Current same-area follow-through should stay limited to the remaining combined shared-route wiring and any later reminder-surface drift:
 
-- `Documentation/zigux/README.md`
-- `zigux/tests/README.md`
-- `Documentation/zigux/review-checklist.md`
+- `zigux/tests/build.zig`
+- `Documentation/zigux/phase3-shared-reminder-gap.md`
 
-Those surfaces still talk in broader Phase 3 packet terms and should be narrowed separately instead of being treated as proof that the wider validator or export-boundary routes already ship on `master`.
+That follow-through should stay separate instead of being treated as proof that the wider validator or export-boundary routes already ship on `master`.
 
 ## Scope
 
-This note is limited to the helper-local `err_ptr` and `xarray` value-tag boundary plus one tiny fixture-backed parity dump. It does not claim runtime pointer dereference behavior, export-shim wiring, broader UAPI layout support, IDR or IDA coverage, or any shared `phase3` replay route.
+This note is limited to the helper-local `err_ptr` and `xarray` value-tag boundary, one tiny fixture-backed parity dump, and the current separate starter and dump step names already exposed from `zigux/tests/build.zig`. It does not claim runtime pointer dereference behavior, export-shim wiring, broader UAPI layout support, IDR or IDA coverage, or the still-missing combined shared `phase3-errptr-xarray` route.
