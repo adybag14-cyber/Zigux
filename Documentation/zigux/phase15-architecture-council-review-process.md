@@ -8,9 +8,9 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=stay-in-c-review-field-inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-16`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory, the dedicated review-process manifest, and the focused review-process handoff checker are landed, while the focused Zig replay and the broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
+- this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory, the dedicated review-process manifest, the focused review-process handoff checker, and the focused Zig replay are landed, while the broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
 
 ## Purpose
 
@@ -95,7 +95,8 @@ The current honest packet is therefore docs-root governance plus gap tracking:
 - `Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json` keeps the dedicated review-packet field inventory machine-readable
 - `scripts/zigux/check-phase15-review-process-handoff.py` keeps the review-process packet, the maintenance handoff, and the shared-summary-gap dependency aligned
-- `Documentation/zigux/phase15-shared-summary-gap.md` keeps the still-missing focused Zig replay and broader validator-first shared-summary surfaces explicit instead of letting this note imply that they have already landed
+- `zigux/tests/phase15_architecture_council_review_process.zig` keeps the focused review-process replay explicit beside the docs and manifest-backed packet
+- `Documentation/zigux/phase15-shared-summary-gap.md` keeps the broader validator-first shared-summary surfaces explicit instead of letting this note imply that they have already landed
 - this note keeps the Architecture Council request fields, stay-in-C closeout rule, and reopen-evidence rule explicit
 
 Together, those surfaces define the review policy without claiming that any deep-core anchor is ready to leave C.
@@ -107,9 +108,9 @@ This packet should stay narrow.
 If a future lane reopens it, prefer one of these equally bounded follow-ups:
 
 - align one missing review field between this note and `Documentation/zigux/review-checklist.md`
-- keep the dedicated review-process manifest and the focused handoff checker aligned with this note before widening into broader Phase 15 prose
+- keep the dedicated review-process manifest, the focused Zig replay, and the focused handoff checker aligned with this note before widening into broader Phase 15 prose
 - keep the restored dedicated indefinite-C policy companion aligned without widening into unrelated Phase 15 prose
-- if the focused Zig replay or broader validator-first packet truly lands later, align this note with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `zigux/tests/phase15_architecture_council_review_process_manifest.json` before claiming those broader surfaces as current evidence here
+- if the broader validator-first packet truly lands later, align this note with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `zigux/tests/phase15_architecture_council_review_process_manifest.json` before claiming those broader surfaces as current evidence here
 
 Until then, treat this note as the Architecture Council source of truth for review-packet shape and stay-in-C closeout behavior.
 
@@ -118,9 +119,9 @@ Until then, treat this note as the Architecture Council source of truth for revi
 This note does not claim:
 
 - an Architecture Council approval for any freeze-map status change
-- a dedicated focused Zig replay or a broader validator-first route as current landed evidence here
+- a broader validator-first route as current landed evidence here
 - a deep-core Zig bridge, wrapper, or status change
 
 ## Next bounded step
 
-Keep this lane parked unless fresh repo inspection shows a new same-packet field drift in the Architecture Council request inventory, the stay-in-C closeout rule, the reopen-evidence rule, or the current shared-summary gap tracking for the still-missing focused Zig replay and broader validator-first surfaces.
+Keep this lane parked unless fresh repo inspection shows a new same-packet field drift in the Architecture Council request inventory, the stay-in-C closeout rule, the reopen-evidence rule, the focused review-process replay, or the current shared-summary gap tracking for the broader validator-first surfaces.
