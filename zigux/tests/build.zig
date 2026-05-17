@@ -323,6 +323,30 @@ fn addPhase3AbiDump(
     return b.addRunArtifact(exe);
 }
 
+fn addPhase12VirtioNetThroughputParity(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_throughput_parity.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const throughput_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_throughput_parity.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("virtio_net_throughput_parity", throughput_module);
+
+    const tests = b.addTest(.{
+        .name = "phase12-virtio-net-throughput-parity",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -334,6 +358,11 @@ pub fn build(b: *std.Build) void {
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
+    const phase12_virtio_net_throughput_parity = addPhase12VirtioNetThroughputParity(
+        b,
+        target,
+        optimize,
+    );
 
     const phase12_virtio_net_survey = addSurveyTest(
         b,
@@ -396,9 +425,16 @@ pub fn build(b: *std.Build) void {
 
     const phase12_step = b.step(
         "phase12-virtio-net-survey",
-        "Run the Phase 12 virtio net survey anchor from the shared tests root",
+        "Run the Phase 12 virtio net survey and throughput-parity anchors from the shared tests root",
     );
     phase12_step.dependOn(&phase12_virtio_net_survey.step);
+    phase12_step.dependOn(&phase12_virtio_net_throughput_parity.step);
+
+    const phase12_throughput_step = b.step(
+        "phase12-virtio-net-throughput-parity",
+        "Run the Phase 12 virtio net throughput-parity anchor from the shared tests root",
+    );
+    phase12_throughput_step.dependOn(&phase12_virtio_net_throughput_parity.step);
 
     const smoke_step = b.step(
         "smoke",
@@ -407,6 +443,7 @@ pub fn build(b: *std.Build) void {
     smoke_step.dependOn(&phase1_host_tools_smoke.step);
     smoke_step.dependOn(phase3_test_step);
     smoke_step.dependOn(&phase12_virtio_net_survey.step);
+    smoke_step.dependOn(&phase12_virtio_net_throughput_parity.step);
 
     const test_step = b.step(
         "test",
@@ -415,4 +452,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&phase1_host_tools_smoke.step);
     test_step.dependOn(phase3_test_step);
     test_step.dependOn(&phase12_virtio_net_survey.step);
+    test_step.dependOn(&phase12_virtio_net_throughput_parity.step);
 }
