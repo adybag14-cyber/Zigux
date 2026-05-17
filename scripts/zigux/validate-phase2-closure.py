@@ -272,7 +272,7 @@ def run_self_test() -> int:
         assert ("INVALID_MANIFEST_FIELD", "missing_files") in collect_issues(root)
         checks_run += 1
 
-        build_self_test_ROOT(root)
+        build_self_test_root(root)
         bad = json.loads(manifest_json())
         bad["packet"] = "wrong"
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
