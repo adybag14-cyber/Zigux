@@ -429,7 +429,6 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         header_path = root / ABI_HEADER_PATH
-        header_path.writeText = None
         header_path.write_text(
             _read(header_path)
             + "\ntypedef struct zigux_alias_probe {\n"
