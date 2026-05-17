@@ -1,54 +1,51 @@
 # Phase 2 Closure
 
-This note restores a current-master-safe Lane 24 closure anchor for the bounded
-Phase 2 toolchain and kbuild-facing reminder surface.
+This note restores a bounded Lane 22 closure anchor for the current Phase 2 packet on live `master`.
 
-It does not claim that the older broader Phase 2 closure matrix is fully live on
-current `master`.
+It is intentionally current-master-safe: the shared reminder surfaces already name a broader Phase 2 toolchain and kbuild-facing packet, but several of those closure-side files are still missing on current `master`. This note keeps the shipped reminder packet honest while recording the smallest concrete next restore step.
 
 ## Status
 
-- `PHASE2_STATUS=active`
-- `PHASE2_CLOSURE_MODE=current-master-safe`
-- `PHASE2_LANE24_PACKET_STATUS=partial_restore`
-- `PHASE2_SHARED_ALIGNMENT_PACKET_COUNT=3`
-- `PHASE2_SHARED_ALIGNMENT_PACKET=scripts/zigux/check-phase2-tests-readme-alignment.py,scripts/zigux/check-phase2-kconfig-selftest-alignment.py,scripts/zigux/check-phase2-cross-selftest-alignment.py`
+- `PHASE2_STATUS=current-master-safe`
+- `PHASE2_CLOSURE_ROUTE_STATUS=partial`
+- `PHASE2_CLOSURE_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase2-closure.py --self-test`
+- `PHASE2_CLOSURE_VALIDATOR_GATE=python3 scripts/zigux/validate-phase2-closure.py`
+- `PHASE2_TOOL_MANIFEST=zigux/tests/fixtures/phase2_tool_manifest.json`
+- the current closure packet is the shared reminder-and-validation surface carried by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, and `.github/workflows/zigux-bootstrap.yml`
 
-## Current Packet
+## Present Current-Master Packet
 
-- the directly readable shared reminder surface is currently centered on:
+- closure anchor: `Documentation/zigux/phase2-closure.md`
+- closure validator: `scripts/zigux/validate-phase2-closure.py`
+- compact closure manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`
+- shared reminder companions:
   - `Documentation/zigux/README.md`
-  - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
   - `Documentation/zigux/review-checklist.md`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
+- shipped checker companions that are directly readable on current `master`:
   - `scripts/zigux/check-phase2-tests-readme-alignment.py`
-  - `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
   - `scripts/zigux/check-phase2-cross-selftest-alignment.py`
-- this note and `scripts/zigux/validate-phase2-closure.py` now keep that smaller
-  reminder packet explicit instead of leaving `Documentation/zigux/README.md`,
-  `scripts/zigux/README.md`, and `zigux/tests/README.md` pointing at a missing
-  closure anchor.
+  - `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+- the current bootstrap workflow remains part of the shared reminder surface because `.github/workflows/zigux-bootstrap.yml` still names the bounded Zigux packet even though this run does not widen that workflow with new Phase 2 closure steps
 
-## Repo Reality Gaps
+## Current Gaps
 
-- repeated authenticated reads on current `master` still returned missing for:
+- repeated authenticated current-`master` reads still returned missing for:
+  - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
   - `scripts/zigux/validate-phase2.py`
+  - `scripts/zigux/check-phase2-tool-manifest-packets.py`
+  - `scripts/zigux/check-phase2-cross.py`
+  - `scripts/zigux/check-phase2-kconfig-readme-alignment.py`
   - `scripts/zigux/check-phase2-toolchain-pin-scope.py`
-  - `scripts/zigux/check-kconfig-bridge.py`
   - `scripts/zigux/check-genksyms-bridge.py`
+  - `scripts/zigux/check-kconfig-bridge.py`
+  - `scripts/zigux/install-zig.py`
   - `zigux/Makefile`
-  - `zigux/tests/fixtures/phase2_tool_manifest.json`
-- keep the broader validator-first, make-route, and manifest-backed closure
-  packet parked until those missing files are restored together.
-- do not reuse `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`,
-  `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`,
-  `make -C zigux phase2-cross`, or `make -C zigux phase2` as direct
-  current-master evidence until `zigux/Makefile` returns.
+- treat the broader validator-first, toolchain-pin, direct-cross, direct-bridge, and Linux-style make-route packet as historical closure vocabulary until those files are re-materialized on current `master`
 
-## Next Same-Lane Step
+## Review Notes
 
-- restore the missing `zigux/Makefile`, `scripts/zigux/validate-phase2.py`, and
-  `zigux/tests/fixtures/phase2_tool_manifest.json` packet in one bounded follow-up
-  before widening the workflow or reminder surfaces back to the older closure-matrix
-  claims.
+- `zigux/tests/fixtures/phase2_tool_manifest.json` keeps the current closure packet explicit as a present-versus-missing inventory instead of letting the broader shared reminder surfaces imply that the full Phase 2 closure stack is already live
+- the shared reminder surfaces still need their broader Phase 2 wording because they already name the missing toolchain and make-route packet; this closure note is the bounded source of truth for what is directly materialized today
+- `PHASE2_NEXT_STEP=restore the missing toolchain and shared-validator companions one bounded packet at a time, starting with the dedicated Phase 2 bootstrap note plus the shared validator or the Makefile route set, instead of widening this lane into a speculative full replay`
