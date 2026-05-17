@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -224,6 +225,10 @@ def normalize_explicit_zig_path(explicit_zig: str) -> str:
     return str(normalized)
 
 
+def normalize_explicit_archive_path(explicit_archive: str) -> Path:
+    return Path(explicit_archive).expanduser()
+
+
 def iter_repo_local_zig_candidates(
     *,
     root: Path = ROOT,
@@ -313,7 +318,7 @@ def describe_missing_archive(
     search_roots: list[Path],
 ) -> tuple[str, str | None]:
     if explicit_archive is not None:
-        resolved = archive_path or Path(explicit_archive)
+        resolved = archive_path or normalize_explicit_archive_path(explicit_archive)
         return f"explicit archive path does not exist: {resolved}", None
     return "pinned Zig archive not found in archive search roots", format_search_roots(search_roots)
 
@@ -372,7 +377,7 @@ def resolve_policy_archive(
 ) -> tuple[str | None, Path | None]:
     payload = load_policy(policy_path)
     if payload is None:
-        return explicit_target, Path(explicit_archive) if explicit_archive is not None else None
+        return explicit_target, normalize_explicit_archive_path(explicit_archive) if explicit_archive is not None else None
 
     archive_targets = [str(target) for target in payload["upgrade_policy"]["archive_target_scope"]]
     target = explicit_target
@@ -387,7 +392,7 @@ def resolve_policy_archive(
             if len(archive_targets) != 1:
                 raise ValueError("archive target must be explicit when policy covers multiple archive targets")
             target = archive_targets[0]
-        return target, Path(explicit_archive)
+        return target, normalize_explicit_archive_path(explicit_archive)
 
     candidates = iter_repo_local_archive_candidates(root=root, policy_path=policy_path)
     if target is not None:
@@ -743,6 +748,30 @@ def run_self_test() -> int:
                 None,
             ),
         )
+        original_home = os.environ.get("HOME")
+        os.environ["HOME"] = str(root)
+        try:
+            expanded_archive = root / "archive-under-home.tar.xz"
+            expect_equal(
+                resolve_policy_archive("~/archive-under-home.tar.xz", "x86_64-linux", root=root, policy_path=policy_path),
+                ("x86_64-linux", expanded_archive),
+            )
+            expect_equal(
+                describe_missing_archive(
+                    expanded_archive,
+                    explicit_archive="~/archive-under-home.tar.xz",
+                    search_roots=iter_archive_search_roots(root),
+                ),
+                (
+                    f"explicit archive path does not exist: {expanded_archive}",
+                    None,
+                ),
+            )
+        finally:
+            if original_home is None:
+                os.environ.pop("HOME", None)
+            else:
+                os.environ["HOME"] = original_home
         explicit_archive_dir = root / "archive-dir"
         explicit_archive_dir.mkdir()
         expect_equal(
