@@ -157,6 +157,9 @@ pub fn build(b: *std.Build) void {
     const run_hexdump_perf = b.addRunArtifact(hexdump_perf);
     run_hexdump_perf.skip_foreign_checks = true;
 
+    const base64_test_step = b.step("phase6-base64-test", "Run Phase 6 base64 helper tests");
+    base64_test_step.dependOn(&run_base64_tests.step);
+
     const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");
     bsearch_test_step.dependOn(&run_bsearch_tests.step);
     bsearch_test_step.dependOn(&run_bsearch_lower_bound_c_abi_tests.step);
