@@ -90,6 +90,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper_tests, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
     try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
 
@@ -106,6 +107,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(survey, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(survey, "phase 7 string helpers starter duplicates and replaces only the exported c-string prefix");
     try expectContains(survey, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
+    try expectContains(survey, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
     try expectContains(survey, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(survey, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
