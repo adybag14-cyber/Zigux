@@ -37,7 +37,7 @@ MISSING_BROADER_PACKET = (
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 8
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 9
 EXPECTED_PIN_SELF_TEST_CASES = 7
 
 NOTE_REQ = (
@@ -76,6 +76,10 @@ README_OWNER_MARKERS = (
     "historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again",
 )
 
+README_ATOMIC64_GAP_MARKERS = (
+    "roadmap-backed Phase 4 differential-gate destinations still missing on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
+)
+
 README_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
@@ -84,7 +88,7 @@ README_PENDING_REQ = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
     "historical provenance for that missing broader packet",
-) + README_OWNER_MARKERS
+) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS
 
 CHECKLIST_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
@@ -189,7 +193,7 @@ def baseline_note() -> str:
             "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.",
             "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, local-only perf, and bitmap-diff packet is directly readable again.",
             "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-            "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=8`",
+            "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`",
             "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
         ]
     ) + "\n"
@@ -263,7 +267,7 @@ def main() -> int:
             drifted = root / NOTE
             drifted.write_text(
                 drifted.read_text(encoding="utf-8").replace(
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=8`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=9`",
                     "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=99`",
                 ),
                 encoding="utf-8",
@@ -308,6 +312,22 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected tests README route drift to fail")
+
+            build_baseline_tree(root)
+            readme_path = root / README
+            readme_path.write_text(
+                readme_path.read_text(encoding="utf-8").replace(
+                    README_ATOMIC64_GAP_MARKERS[0],
+                    "roadmap-backed Phase 4 differential-gate warning drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected tests README atomic64 warning drift to fail")
 
             build_baseline_tree(root)
             checklist_path = root / CHECKLIST
