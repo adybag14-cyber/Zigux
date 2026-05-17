@@ -21,7 +21,6 @@ The current same-lane truthfulness task is no longer to treat the previously par
 
 The following paths were previously treated as missing in this shared-gap packet but are now materialized on current `master` and must be treated as present governance evidence:
 
-- `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
@@ -37,6 +36,12 @@ Direct current-`master` reads now materialize this focused review-process compan
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+
+## Still-missing parity-scorecard companion on current master
+
+This broader parity-accounting companion is still not directly materialized on current `master`, so shared-summary surfaces must keep it framed as a gap-tracked reminder path rather than shipped evidence:
+
+- `Documentation/zigux/phase15-parity-scorecard-survey.md`
 
 ## Still-missing broader validator-first companions on current master
 
@@ -64,7 +69,7 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
-- broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes
+- broader parity-scorecard and validator-first wording around `Documentation/zigux/phase15-parity-scorecard-survey.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes
 
 These are the surfaces that should be reread together before claiming any new Phase 15 shared-summary drift.
 
@@ -74,7 +79,7 @@ Treat the current Phase 15 shared-summary state as a wording-and-alignment check
 
 - do not reintroduce stale missing-path claims for materialized governance assets or the now-materialized focused review-process companion
 - if a materialized Phase 15 governance asset or materialized focused review-process companion disappears, tighten this note and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately
-- do not treat the still-missing broader validator-first companions as shipped evidence until direct current-tree reads recover them
+- do not treat the still-missing parity-scorecard companion or the still-missing broader validator-first companions as shipped evidence until direct current-tree reads recover them
 - do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves
 - if docs-root, checklist, scripts-root, or tests-root wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 - keep tests-root follow-through separate from review-process and parity-scorecard packet maintenance unless the same direct evidence forces them back together
@@ -90,4 +95,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above or one of the materialized focused companions disappears and forces the shared-gap packet to narrow again.
+Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above, the missing parity-scorecard companion lands, or one of the materialized focused companions disappears and forces the shared-gap packet to narrow again.
