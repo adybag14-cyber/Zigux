@@ -3,13 +3,14 @@
 This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.
 
 - surveyed head: `840f388`
-- lane scope: shared helper-evidence rows only
+- lane scope: shared helper-evidence rows, machine-readable manifest, and control-surface gap survey only
 - shared scripts-root reminder: `scripts/zigux/README.md`
 - shared tests-root reminder: `zigux/tests/README.md`
 - shared docs-root reminder: `Documentation/zigux/README.md`
 - shared review-checklist reminder: `Documentation/zigux/review-checklist.md`
 - directly readable shared build foothold: `zigux/tests/phase6_build.zig`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`
+- runtime control-surface gap survey: `Documentation/zigux/phase6-runtime-command-environment-gap-survey.md`
 - roadmap-backed helper anchors:
   - `lib/base64.c`
   - `lib/bsearch.c`
@@ -26,25 +27,27 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
 - `Documentation/zigux/phase6-perf-gate-survey.md`
-- `Documentation/zigux/phase6-checksum-slice.md`
-- `Documentation/zigux/phase6-hexdump-slice.md`
-- `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
 - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - `zigux/tests/phase6_checksum.zig`
-- `zigux/tests/phase6_checksum_perf.zig`
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - `zigux/tests/phase6_hexdump.zig`
-- `zigux/tests/phase6_hexdump_perf.zig`
-- `zigux/tests/phase6_hexdump_perf_matrix.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
 - `scripts/zigux/check-phase6-base64-c-parity.py`
 - `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
 - `scripts/zigux/check-phase6-hexdump-packet.py`
 
-Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. Keep this catalog aligned with that direct-readback limit instead of overstating shared-note or helper-local reviewability from older route names alone. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, and the restored shared build foothold `zigux/tests/phase6_build.zig`.
+Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, `Documentation/zigux/phase6-runtime-command-environment-gap-survey.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`.
+
+## Runtime control-surface gap vs roadmap
+
+- survey note: `Documentation/zigux/phase6-runtime-command-environment-gap-survey.md`
+- roadmap scope remains the four bounded leaf helpers: `lib/base64.c`, `lib/bsearch.c`, `lib/checksum.c`, and `lib/hexdump.c`
+- runtime archive command/control surfaces already exist in ZAR through bounded shell batching (`shell-run`, `shell-expand`), TTY session command dispatch (`tty-send`, `tty-shell`), and typed tool-service verbs such as `CMD`, `EXEC`, `APPSTATE`, `APPRUN`, `DISPLAYSET`, and `TRUSTSELECT`
+- runtime archive environment and persisted-control surfaces already exist in ZAR through `/runtime/tty/<name>/`, `/dev/tty/sessions/<name>/{info,input,pending,stdout,stderr,events,transcript}`, `/sys/tty/sessions/<name>/{info,input,pending,stdout,stderr,events,transcript}`, `/runtime/state/runtime-state.json`, and `/runtime/workspaces/<name>.txt`
+- current review posture: those command, session, and persisted runtime-environment control surfaces are intentionally recorded here as out-of-scope for the bounded Phase 6 leaf-helper tranche; later roadmap-backed tooling or runtime lanes may reuse the survey, but this Phase 6 packet should stay helper-local
 
 ## Current helper-evidence rows
 
@@ -78,7 +81,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, dedicated slowdown replay, slice note, and parity members again
+- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again
 
 ### hexdump
 
@@ -91,7 +94,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`
 - perf refresh note: `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
-- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, dedicated slowdown replay, perf-matrix preflight, checker, perf refresh note, and slice note again
+- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again
 
 ## Last-known shared replay inventory
 
@@ -108,4 +111,4 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - `make -C zigux phase6-hexdump-test`
 - `make -C zigux phase6-hexdump-perf`
 
-Reopen this catalog only when one of the four roadmap anchors gains or loses a truthful helper-evidence row on `master`.
+Reopen this catalog only when one of the four roadmap anchors gains or loses a truthful helper-evidence row on `master`, or when the runtime control-surface survey needs a same-lane truthfulness refresh.
