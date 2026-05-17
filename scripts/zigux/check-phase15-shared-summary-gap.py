@@ -8,18 +8,21 @@ from pathlib import Path
 GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 
-MATERIALIZED_PATHS = (
+MATERIALIZED_GOVERNANCE_PATHS = (
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
-    "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
-    "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
+)
+
+MISSING_FOCUSED_COMPANIONS = (
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_build.zig",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
@@ -37,7 +40,10 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
-    "`scripts/zigux/validate-phase15.py`",
+    "broader validator-first wording around `scripts/zigux/validate-phase15.py`",
+    "`make -C zigux phase15-validate`",
+    "`make -C zigux phase15-test`",
+    "`make -C zigux phase15`",
 )
 
 STALE_TEXT_MARKERS = (
@@ -60,11 +66,17 @@ def collect_failures(root: Path) -> list[str]:
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
     failures: list[str] = []
 
-    for rel in MATERIALIZED_PATHS:
+    for rel in MATERIALIZED_GOVERNANCE_PATHS:
         if not (root / rel).exists():
             failures.append(f"expected materialized Phase 15 path missing: {rel}")
         if f"`{rel}`" not in gap_note:
             failures.append(f"gap note missing materialized path marker: `{rel}`")
+
+    for rel in MISSING_FOCUSED_COMPANIONS:
+        if (root / rel).exists():
+            failures.append(f"expected missing focused companion unexpectedly materialized: {rel}")
+        if f"`{rel}`" not in gap_note:
+            failures.append(f"gap note missing focused-companion gap marker: `{rel}`")
 
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in gap_note:
@@ -86,13 +98,18 @@ def _write(path: Path, text: str) -> None:
 
 
 def _sample_gap_note() -> str:
-    materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_PATHS)
+    materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_GOVERNANCE_PATHS)
+    missing = "\n".join(f"- `{rel}`" for rel in MISSING_FOCUSED_COMPANIONS)
     required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS)
     return f"""# Phase 15 Shared Summary Gap
 
 ## Materialized Phase 15 governance assets
 
 {materialized}
+
+## Still-missing focused companions on current master
+
+{missing}
 
 ## Current shared-summary watchpoints
 
@@ -107,7 +124,7 @@ def _sample_handoff_note() -> str:
 def _seed_repo(root: Path) -> None:
     _write(root / GAP_NOTE_PATH, _sample_gap_note())
     _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-    for rel in MATERIALIZED_PATHS:
+    for rel in MATERIALIZED_GOVERNANCE_PATHS:
         _write(root / rel, "present\n")
 
 
@@ -121,19 +138,19 @@ def run_self_test() -> int:
 
         missing_root = root / "missing"
         _seed_repo(missing_root)
-        (missing_root / MATERIALIZED_PATHS[0]).unlink()
+        (missing_root / MATERIALIZED_GOVERNANCE_PATHS[0]).unlink()
         failures = collect_failures(missing_root)
-        if failures != [f"expected materialized Phase 15 path missing: {MATERIALIZED_PATHS[0]}"]:
+        if failures != [f"expected materialized Phase 15 path missing: {MATERIALIZED_GOVERNANCE_PATHS[0]}"]:
             raise AssertionError(f"unexpected missing-path failure: {failures}")
 
         note_root = root / "note"
         _seed_repo(note_root)
         _write(
             note_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace(f"- `{MATERIALIZED_PATHS[1]}`\n", "", 1),
+            _sample_gap_note().replace(f"- `{MATERIALIZED_GOVERNANCE_PATHS[1]}`\n", "", 1),
         )
         failures = collect_failures(note_root)
-        expected = [f"gap note missing materialized path marker: `{MATERIALIZED_PATHS[1]}`"]
+        expected = [f"gap note missing materialized path marker: `{MATERIALIZED_GOVERNANCE_PATHS[1]}`"]
         if failures != expected:
             raise AssertionError(f"unexpected note-marker failure: {failures}")
 
@@ -154,6 +171,16 @@ def run_self_test() -> int:
         expected = [f"handoff note missing landed status marker: {HANDOFF_STATUS_MARKER}"]
         if failures != expected:
             raise AssertionError(f"unexpected handoff failure: {failures}")
+
+        focused_root = root / "focused"
+        _seed_repo(focused_root)
+        _write(focused_root / MISSING_FOCUSED_COMPANIONS[0], "unexpected\n")
+        failures = collect_failures(focused_root)
+        expected = [
+            f"expected missing focused companion unexpectedly materialized: {MISSING_FOCUSED_COMPANIONS[0]}"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected focused-companion failure: {failures}")
 
     print("PHASE15_SHARED_SUMMARY_GAP_SELF_TEST=pass")
     return 0
