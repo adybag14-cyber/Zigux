@@ -72,6 +72,10 @@ Keep the shared-versus-dedicated simple-driver packet explicit through:
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-survey.md`
+- `Documentation/zigux/phase11-dw-wdt-slice.md`
+- `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
