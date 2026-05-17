@@ -2,7 +2,7 @@
 
 This note records the current validator-facing Phase 3 surface on live `master`.
 
-Current `master` now carries one bounded `dev_t` starter packet, one focused helper-local `err_ptr` / `xarray` interop slice, and one focused helper-local policy slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
+Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings, one focused helper-local `err_ptr` / `xarray` interop slice, and one focused helper-local policy slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
 
 ## Current starter packet present on `master`
 
@@ -12,6 +12,7 @@ Current `master` now carries one bounded `dev_t` starter packet, one focused hel
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
 - `zigux/bindings/dev_t.zig`
+- `zigux/bindings/version.zig`
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
