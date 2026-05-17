@@ -75,14 +75,22 @@ Use the shared docs to preserve these bounded cues:
 
 ## Ownership and lifetime posture
 
-For `kobject`, follow the current mixed direct-plus-public-tree-backed packet recorded in `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json`, while keeping `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` framed as current public-tree-backed companion evidence rather than direct authenticated-contents proof.
+The roadmap still includes the `kobject` anchor, but fresh direct current-`master` readback in this run did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited:
 
-Use the shared docs to preserve these bounded cues:
+* `Documentation/zigux/phase5-kobject-sample-survey.md`
+* `samples/zigux/kobject_example.zig`
+* `zigux/tests/phase5_kobject_example.zig`
+* `zigux/tests/phase5_kobject_example_manifest.json`
+* `zigux/tests/phase5_kobject_example_survey.zig`
+* `zigux/tests/phase5_build.zig`
 
-* `runAnchorReplay()` and `ownershipSummary()` stay named beside the ownership-and-lifetime packet instead of being collapsed into a smaller kobject cue list
-* `runSingleInitBoundaryReplay()`, `runPreRegistrationBoundaryReplay()`, `runRegistrationOwnershipReplay()`, `runRegisteredBoundaryReplay()`, `runInputValidationReplay()`, `runOwnershipReplay()`, and `runTeardownReplay()` stay explicit across the sample root, focused test, manifest-backed contract, dedicated survey replay, and shared build route
-* shared reminder surfaces should keep `Documentation/zigux/phase5-kobject-sample-survey.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` honest about that mixed packet instead of dropping the dedicated survey replay or the shared `phase5_build.zig` companion from contributor-facing wording
-* keep sysfs creation, `kernel_kobj` integration, uevents, and module-registration claims out of scope so the packet stays in the non-runtime Phase 5 lane
+Keep shared contributor guidance honest about that repo-reality gap instead of restating the older mixed direct-plus-public-tree-backed kobject packet as current proof.
+
+Use the shared docs to preserve only these bounded cues until a fresh reread proves the packet returned:
+
+* Phase 5 still owns the roadmap-backed `samples/kobject/kobject-example.c` anchor
+* the lane still stays non-runtime and should not widen into sysfs creation, `kernel_kobj` integration, uevents, or module-registration claims
+* same-lane follow-through should repair one shared reminder surface at a time instead of recreating missing sample-local ownership checklists from historical wording alone
 
 ## Approved idiom gap
 
@@ -96,18 +104,18 @@ Do not describe that formatting cue as a fifth Phase 5 sample, a standalone form
 
 ## Review posture
 
-Because current `master` keeps the restored direct kretprobe packet reviewable, the kobject ownership-and-lifetime packet in a mixed direct-plus-public-tree-backed posture, and the trace-events side in the narrower formatting-companion posture, same-lane follow-through should stay inside these bounded categories:
+Because current `master` keeps the restored direct kretprobe packet, the shared trace-events side in the narrower formatting-companion posture, and the `kobject` anchor in the repo-reality-gap bucket, same-lane follow-through should stay inside these bounded categories:
 
 * one trace-events reminder-surface truthfulness repair at a time
 * one trace-events approved-idiom-gap repair at a time
 * one trace-events sample-root, tests-root, approved-idiom-gap, or shared-build reminder alignment repair at a time
-* one kobject reminder-surface truthfulness repair at a time
+* one kobject repo-reality-gap reminder repair at a time
 
 Avoid:
 
 * treating the narrower trace-events reminder packet as a restored direct sample packet when current sample-root and tests-root rereads still keep the direct sample-local companions in the gap bucket
 * treating `zigux/tests/phase5_build.zig` as direct authenticated proof while the current lane still only has bounded public-tree-backed confirmation for that shared build route
-* treating the mixed kobject packet as if its dedicated survey replay or shared `phase5_build.zig` companion were absent when the current public tree still carries them
+* treating the `kobject` anchor as a returned sample packet while current direct rereads still keep its older sample-root and tests-root packet members in the gap bucket
 * broadening the lane into runtime-loader, module-registration, procfs, sysfs, workqueue, or ring-buffer claims
 * treating Phase 9 runtime samples as extra Phase 5 evidence
 * treating the trace-events packet as permission to reopen unrelated bytestream, kobject, or kretprobe reminder work here
