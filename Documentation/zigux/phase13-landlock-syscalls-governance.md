@@ -6,7 +6,7 @@ This note records the bounded governance and review-owner split for the shared P
 
 This note is for the syscall side of the active Phase 13 Landlock packet only.
 
-Current `master` now materializes `security/landlock/syscalls.zig` as a helper-local starter for the roadmap-owned `security/landlock/syscalls.c` anchor. Keep the helper-owned wording tightly scoped to descriptor-backed create-ruleset planning, the top-level create-ruleset initialization plus attr-presence wrapper checks, and one planning-only ruleset-fd install helper that fixes the `anon_inode_getfd()` label, `O_RDWR | O_CLOEXEC` flags, and release-on-fd-failure discipline, and do not present that helper packet as live FD installation, credential replacement, or full Landlock enforcement.
+Current `master` now materializes `security/landlock/syscalls.zig` as a helper-local starter for the roadmap-owned `security/landlock/syscalls.c` anchor. Keep the helper-owned wording tightly scoped to descriptor-backed create-ruleset planning, the top-level create-ruleset initialization plus attr-presence wrapper checks, one planning-only ruleset-fd install helper that fixes the `anon_inode_getfd()` label, `O_RDWR | O_CLOEXEC` flags, and release-on-fd-failure discipline, and one planning-only ruleset-fd stub helper that keeps the dummy read or write mode discipline plus shared `-EINVAL` return reviewable as data, and do not present that helper packet as live FD installation, file-buffer handling, credential replacement, or full Landlock enforcement.
 
 ## Current Repo Reality
 
@@ -55,7 +55,7 @@ Use this note to keep these boundaries explicit:
 - ruleset-helper ownership stays with `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - shared packet routing stays with the shipped docs-root reminder surfaces above while the direct syscall replay companions and shared make-route handles remain absent; keep those paths recorded as repo reality rather than as shipped evidence
 - adjacent notifier evidence stays explicit as release-surface support rather than becoming an extra shared replay step
-- if a future helper lands, keep it tied to descriptor-backed planning only instead of treating it as live syscall enforcement or as a claim that FD, path, credential, or domain ownership moved into Zigux
+- if a future helper lands, keep it tied to descriptor-backed planning only instead of treating it as live syscall enforcement or as a claim that FD, file-buffer, credential, or domain ownership moved into Zigux
 
 Keep this packet parked unless a future lane can add another equally bounded planner.
 
@@ -67,4 +67,4 @@ If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
 - the packet remains active and reviewable rather than being described as closed or frozen
 - any still-missing direct syscall companions stay framed as repo-reality gaps rather than as shipped current-`master` evidence
-- helper-owned wording must match the current helper boundary: create-ruleset planning, ABI-version query planning, top-level create-ruleset initialization plus attr-presence wrapper checks, ruleset-fd install planning, handled-access plus attr-size plus flag validation, delegated ruleset-creation planning, and no live FD installation or credential replacement
+- helper-owned wording must match the current helper boundary: create-ruleset planning, ABI-version query planning, top-level create-ruleset initialization plus attr-presence wrapper checks, ruleset-fd install planning, ruleset-fd stub planning, handled-access plus attr-size plus flag validation, delegated ruleset-creation planning, and no live FD installation, file-buffer handling, or credential replacement
