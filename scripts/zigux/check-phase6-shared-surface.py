@@ -13,6 +13,7 @@ DOCS_README_PATH = Path("Documentation/zigux/README.md")
 HELPER_EVIDENCE_CATALOG_PATH = Path(
     "Documentation/zigux/phase6-helper-evidence-catalog.md"
 )
+HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
 
 REQUIRED_SCRIPTS_SNIPPETS = [
     "## Phase 6",
@@ -48,7 +49,27 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 21
+REQUIRED_MANIFEST_SNIPPETS = [
+    '"packet": "phase6-helper-evidence"',
+    '"phase": "Phase 6"',
+    '"lane_scope": "shared helper-evidence rows and machine-readable manifest only"',
+    '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
+    '"zigux/tests/phase6_build.zig"',
+    '"scripts/zigux/check-phase6-shared-surface.py"',
+    '"scripts/zigux/check-phase6-present-entrypoints.py"',
+    '"key": "base64"',
+    '"key": "bsearch"',
+    '"key": "checksum"',
+    '"key": "hexdump"',
+    '"current_review_posture": "direct-helper-readback-restored"',
+    '"current_review_posture": "direct-readback-limited"',
+    '"Documentation/zigux/phase6-helper-parity-catalog.md"',
+    '"Documentation/zigux/phase6-perf-gate-survey.md"',
+    '"zigux/tests/phase6_helper_parity_manifest.json"',
+    '"make -C zigux phase6-hexdump-perf"',
+]
+
+SELF_TEST_CASE_COUNT = 29
 
 
 class ValidationError(RuntimeError):
@@ -76,6 +97,7 @@ def validate(repo_root: Path) -> None:
     require_snippets(repo_root / TESTS_README_PATH, REQUIRED_TESTS_SNIPPETS)
     require_snippets(repo_root / DOCS_README_PATH, REQUIRED_DOCS_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_MANIFEST_SNIPPETS)
 
 
 def write(path: Path, content: str) -> None:
@@ -90,6 +112,10 @@ def scaffold_repo(root: Path) -> None:
     write(
         root / HELPER_EVIDENCE_CATALOG_PATH,
         "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n",
+    )
+    write(
+        root / HELPER_EVIDENCE_MANIFEST_PATH,
+        "\n".join(REQUIRED_MANIFEST_SNIPPETS) + "\n",
     )
 
 
@@ -189,6 +215,29 @@ def run_self_test() -> None:
             (
                 root / HELPER_EVIDENCE_CATALOG_PATH,
                 "- `make -C zigux phase6-hexdump-perf`",
+            ),
+            (root / HELPER_EVIDENCE_MANIFEST_PATH, '"packet": "phase6-helper-evidence"'),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"lane_scope": "shared helper-evidence rows and machine-readable manifest only"',
+            ),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
+            ),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-shared-surface.py"',
+            ),
+            (root / HELPER_EVIDENCE_MANIFEST_PATH, '"key": "base64"'),
+            (root / HELPER_EVIDENCE_MANIFEST_PATH, '"key": "hexdump"'),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"zigux/tests/phase6_helper_parity_manifest.json"',
+            ),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"make -C zigux phase6-hexdump-perf"',
             ),
         ]:
             expect_failure(root, path, snippet)
