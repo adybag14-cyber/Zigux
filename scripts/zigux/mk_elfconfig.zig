@@ -145,6 +145,18 @@ test "renders 32-bit define" {
     try std.testing.expectEqualStrings("", stderr.list.items);
 }
 
+test "renders 64-bit define" {
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try renderOutcome(&stdout, &stderr, .elf64);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
 test "renders truncated error" {
     var stdout = try Capture.init(std.testing.allocator);
     defer stdout.deinit();
@@ -155,6 +167,22 @@ test "renders truncated error" {
     try std.testing.expectEqual(@as(u8, 1), exit_code);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
+
+test "non-ELF input exits with stderr" {
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfig(
+        &[_]u8{ 0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        &stdout,
+        &stderr,
+    );
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
 }
 
 test "invalid class exits without stderr" {
