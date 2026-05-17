@@ -22,7 +22,6 @@
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"
   ],
   "repo_reality_gaps": [
-    "zigux/unsafe/narrow.zig",
     "zigux/helpers/mmio.zig",
     "zigux/helpers/barrier.zig",
     "zigux/helpers/atomic.zig",
