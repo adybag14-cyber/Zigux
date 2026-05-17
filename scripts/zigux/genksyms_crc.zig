@@ -301,6 +301,29 @@ test "runGenksymsCrc trims repeated carriage returns before hashing" {
     );
 }
 
+test "runGenksymsCrc trims carriage-return-only continuation chunks after an oversized split" {
+    var long_line = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 5);
+    defer long_line.deinit(std.testing.allocator);
+    try long_line.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try long_line.append(std.testing.allocator, '\r');
+    try long_line.append(std.testing.allocator, '\n');
+    try long_line.appendSlice(std.testing.allocator, "x\n");
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(long_line.items, &capture);
+
+    const first_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(long_line.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(first_crc);
+    const unsplit_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(long_line.items[0 .. c_line_payload_len + 1])});
+    defer std.testing.allocator.free(unsplit_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, unsplit_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, first_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
+}
+
 test "runGenksymsCrc trims carriage returns and escapes json-sensitive bytes" {
     var capture = try Capture(128).init(std.testing.allocator);
     defer capture.deinit();
