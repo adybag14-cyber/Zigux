@@ -19,13 +19,19 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);
+    const version_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    version_binding.addImport("uapi_version", uapi_version);
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_dev_t_starter_packet.zig"),
         .target = target,
         .optimize = optimize,
     });
     root_module.addImport("dev_t_binding", dev_t_binding);
-    root_module.addImport("uapi_version", uapi_version);
+    root_module.addImport("version_binding", version_binding);
 
     const unit_tests = b.addTest(.{
         .root_module = root_module,
