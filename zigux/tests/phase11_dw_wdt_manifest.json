@@ -1,0 +1,110 @@
+{
+  "lane_key": "P11-L05",
+  "phase": "Phase 11",
+  "surveyed_commit": "75f8336c4305beed127d7abfae37d3999b7cc57c",
+  "anchor": "drivers/watchdog/dw_wdt.c",
+  "roadmap_destinations": [
+    "drivers/watchdog/*.zig",
+    "zigux/tests/",
+    "Documentation/zigux/"
+  ],
+  "survey_summary": {
+    "dw_wdt_c_lines": 701,
+    "preexisting_phase11_build_present": true,
+    "preexisting_phase11_gpio_lane_present": true,
+    "preexisting_phase11_bcm2835_lane_present": true,
+    "dw_wdt_zig_present": true,
+    "dw_wdt_test_present": true,
+    "dw_wdt_registration_scaffold_present": true,
+    "dw_wdt_registration_order_present": true,
+    "dw_wdt_slice_note_present": true,
+    "dw_wdt_survey_gate_present": true,
+    "dw_wdt_survey_note_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase11-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_build.zig",
+      "why_now": "The shared Phase 11 build route still keeps the current DesignWare starter, the direct replay, the teardown-parity replay, and the bounded platform-registration scaffold visible beside the other simple-driver surfaces."
+    },
+    {
+      "id": "phase11-dw-wdt-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_dw_wdt_survey.zig",
+      "why_now": "The survey gate keeps the teardown-parity replay coupled to the bounded platform-registration scaffold so the landed DesignWare packet stays truthful as the lane narrows toward platform-backed follow-through."
+    },
+    {
+      "id": "phase11-dw-wdt-driver-starter",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/dw_wdt.zig",
+      "why_now": "The bounded DesignWare starter still keeps fixed TOP timeout windows, reset-versus-IRQ timeout selection, register-image transitions, and the probe-time summary reviewable without claiming live platform behavior."
+    },
+    {
+      "id": "phase11-dw-wdt-driver-tests",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
+      "why_now": "The direct DesignWare replay still keeps timeout selection, restart intent, and registration-facing handoff outputs reviewable around the landed starter."
+    },
+    {
+      "id": "phase11-dw-wdt-slice-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-dw-wdt-slice.md",
+      "why_now": "The slice note keeps the current starter, the validation matrix, and the deferred platform-backed boundary explicit in one reviewable Phase 11 owner surface."
+    },
+    {
+      "id": "phase11-dw-wdt-probe-summary",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/dw_wdt.zig",
+      "why_now": "The probe summary keeps fixed-versus-custom TOP sourcing and already-running watchdog state explicit before the lane widens into platform-backed probe work."
+    },
+    {
+      "id": "phase11-dw-wdt-registration-handoff",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/dw_wdt.zig",
+      "why_now": "The registration handoff keeps watchdog info selection, timeout-programming intent, and the register-device handoff reviewable without claiming live watchdog-core execution."
+    },
+    {
+      "id": "phase11-dw-wdt-registration-order-scaffold",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
+      "why_now": "The scaffold replay keeps timer-clock path choice, reset-release posture, and register-device request ordering explicit before any host-backed platform path lands."
+    },
+    {
+      "id": "phase11-dw-wdt-teardown-parity",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/dw_wdt_verify.zig",
+      "why_now": "The verify helper keeps teardown and failure-mode parity explicit across unstoppable hardware, idle remove without a fabricated heartbeat, idle remove with reset-backed quiesce, idle stop outcomes across reset-controlled and non-stoppable hardware, idle IRQ-configured teardown without a fabricated stop path or continued heartbeat, and IRQ-mode teardown outcomes."
+    },
+    {
+      "id": "phase11-dw-wdt-platform-registration-scaffold",
+      "status": "starter_landed",
+      "kind": "simple_driver_starter",
+      "zigux_destination": "drivers/watchdog/dw_wdt.zig",
+      "why_now": "The current driver packet already carries the bounded platform-registration scaffold through `module_platform_driver`, the named `dw_wdt_drv_probe` follow-through, and the surrounding platform-registration scaffold summary without claiming live platform execution."
+    },
+    {
+      "id": "phase11-dw-wdt-owner-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md",
+      "why_now": "The owner note keeps the surviving DesignWare platform-registration follow-through parked on one smaller same-lane packet instead of reopening the older survey-era ownership stack."
+    },
+    {
+      "id": "phase11-dw-wdt-live-platform-pm",
+      "status": "ready_next",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
+      "why_now": "After the bounded scaffold stays stable, the next real gap is suspend and resume handling plus hardware-backed MMIO validation in a real platform-backed probe or remove execution slice, still without widening into unrelated driver behavior."
+    }
+  ]
+}
