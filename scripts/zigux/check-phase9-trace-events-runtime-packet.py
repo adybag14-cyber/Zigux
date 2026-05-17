@@ -24,6 +24,7 @@ def infer_repo_root() -> Path:
 ROOT = infer_repo_root()
 
 TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
+TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 ABSENT_SHARED_LOADER_MARKER = "does not currently expose the broader shared runtime-loader packet"
@@ -99,6 +100,7 @@ TESTS_README_REQUIRED_MARKERS = [
 
 SAMPLES_README_REQUIRED_MARKERS = [
     TRACE_EVENTS_SAMPLE_MARKER,
+    TRACE_EVENTS_PACKET_CHECKER_MARKER,
     SELFTEST_HOOK_MARKER,
     LIFECYCLE_MARKER,
     ABSENT_SHARED_LOADER_MARKER,
@@ -191,7 +193,7 @@ def build_samples_readme_fixture_text() -> str:
     return f"""# samples/zigux
 
 ## Separate Phase 9 runtime pilot family
-* keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, and `zigux/tests/README.md` aligned with the surviving direct runtime-module sample {TRACE_EVENTS_SAMPLE_MARKER}
+* keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, and `zigux/tests/README.md` aligned with the surviving direct runtime-module sample {TRACE_EVENTS_SAMPLE_MARKER}
 * keep the current direct runtime-module evidence explicit: {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER}
 * keep saying clearly that current `master` {ABSENT_SHARED_LOADER_MARKER}, so {ABSENT_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {ABSENT_RUNTIME_LOADER_KERNEL_MARKER}, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, {ABSENT_WORKFLOW_MARKER}, and the older {ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER} stay backlog references unless a fresh repo reread proves they have returned
 * keep older cross-phase non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} remain Phase 2 config-surface bridge references, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} remain Phase 3 export-boundary references rather than runtime-pilot evidence
