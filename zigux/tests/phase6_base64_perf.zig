@@ -1,0 +1,145 @@
+const std = @import("std");
+const base64 = @import("base64");
+const fixtures = @import("fixtures/phase6_base64_vectors.zig");
+
+const Codec = struct {
+    helper_variant: base64.Variant,
+    encoder: *const std.base64.Base64Encoder,
+    decoder: *const std.base64.Base64Decoder,
+};
+
+fn resolveCodec(case: fixtures.PerfCase) Codec {
+    if (std.mem.eql(u8, case.variant_name, "std")) {
+        return .{
+            .helper_variant = .std,
+            .encoder = if (case.padding) &std.base64.standard.Encoder else &std.base64.standard_no_pad.Encoder,
+            .decoder = if (case.padding) &std.base64.standard.Decoder else &std.base64.standard_no_pad.Decoder,
+        };
+    }
+    if (std.mem.eql(u8, case.variant_name, "urlsafe")) {
+        return .{
+            .helper_variant = .urlsafe,
+            .encoder = if (case.padding) &std.base64.url_safe.Encoder else &std.base64.url_safe_no_pad.Encoder,
+            .decoder = if (case.padding) &std.base64.url_safe.Decoder else &std.base64.url_safe_no_pad.Decoder,
+        };
+    }
+    unreachable;
+}
+
+fn encodeSlowdownPct(case: fixtures.PerfCase, codec: Codec) !u64 {
+    var helper_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
+    var std_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
+
+    const helper_len = try base64.encode(helper_buf[0..], case.payload, case.padding, codec.helper_variant);
+    const std_out = codec.encoder.encode(std_buf[0..], case.payload);
+    try std.testing.expectEqual(helper_len, std_out.len);
+    try std.testing.expectEqualStrings(std_out, helper_buf[0..helper_len]);
+
+    var helper_sink: u8 = 0;
+    var std_sink: u8 = 0;
+
+    var started_ns = monotonicNs();
+    var iteration: usize = 0;
+    while (iteration < case.iterations) : (iteration += 1) {
+        const written = try base64.encode(helper_buf[0..], case.payload, case.padding, codec.helper_variant);
+        helper_sink +%= helper_buf[written - 1];
+    }
+    const helper_ns = monotonicNs() - started_ns;
+
+    started_ns = monotonicNs();
+    iteration = 0;
+    while (iteration < case.iterations) : (iteration += 1) {
+        const encoded = codec.encoder.encode(std_buf[0..], case.payload);
+        std_sink +%= encoded[encoded.len - 1];
+    }
+    const std_ns = monotonicNs() - started_ns;
+
+    std.mem.doNotOptimizeAway(helper_sink);
+    std.mem.doNotOptimizeAway(std_sink);
+    return slowdownPct(helper_ns, std_ns);
+}
+
+fn decodeSlowdownPct(case: fixtures.PerfCase, codec: Codec) !u64 {
+    var encoded_buf: [fixtures.perf_encoded_buf_size]u8 = undefined;
+    const encoded_len = try base64.encode(encoded_buf[0..], case.payload, case.padding, codec.helper_variant);
+    const encoded = encoded_buf[0..encoded_len];
+
+    var helper_buf: [fixtures.perf_payload_buf_size]u8 = undefined;
+    var std_buf: [fixtures.perf_payload_buf_size]u8 = undefined;
+
+    const helper_written = try base64.decode(helper_buf[0..], encoded, case.padding, codec.helper_variant);
+    try codec.decoder.decode(std_buf[0..case.payload.len], encoded);
+    try std.testing.expectEqual(case.payload.len, helper_written);
+    try std.testing.expectEqualStrings(case.payload, helper_buf[0..helper_written]);
+    try std.testing.expectEqualStrings(case.payload, std_buf[0..case.payload.len]);
+
+    var helper_sink: u8 = 0;
+    var std_sink: u8 = 0;
+
+    var started_ns = monotonicNs();
+    var iteration: usize = 0;
+    while (iteration < case.iterations) : (iteration += 1) {
+        const written = try base64.decode(helper_buf[0..], encoded, case.padding, codec.helper_variant);
+        helper_sink +%= helper_buf[written - 1];
+    }
+    const helper_ns = monotonicNs() - started_ns;
+
+    started_ns = monotonicNs();
+    iteration = 0;
+    while (iteration < case.iterations) : (iteration += 1) {
+        try codec.decoder.decode(std_buf[0..case.payload.len], encoded);
+        std_sink +%= std_buf[case.payload.len - 1];
+    }
+    const std_ns = monotonicNs() - started_ns;
+
+    std.mem.doNotOptimizeAway(helper_sink);
+    std.mem.doNotOptimizeAway(std_sink);
+    return slowdownPct(helper_ns, std_ns);
+}
+
+fn slowdownPct(helper_ns: u64, baseline_ns: u64) u64 {
+    if (helper_ns <= baseline_ns) {
+        return 0;
+    }
+    const delta = @as(u128, helper_ns - baseline_ns) * 100;
+    const denom = @max(@as(u128, baseline_ns), 1);
+    return @intCast(delta / denom);
+}
+
+fn monotonicNs() u64 {
+    var ts: std.posix.timespec = undefined;
+    switch (std.posix.errno(std.posix.system.clock_gettime(std.posix.CLOCK.MONOTONIC, &ts))) {
+        .SUCCESS => return @as(u64, @intCast(ts.sec)) * std.time.ns_per_s + @as(u64, @intCast(ts.nsec)),
+        else => unreachable,
+    }
+}
+
+pub fn main() !void {
+    for (fixtures.perf_cases) |case| {
+        const codec = resolveCodec(case);
+        const encode_slowdown = try encodeSlowdownPct(case, codec);
+        if (encode_slowdown > case.max_encode_slowdown_pct) {
+            std.debug.print(
+                "PHASE6_BASE64_PERF=fail label={s} encode_slowdown_pct={} max={}\n",
+                .{ case.label, encode_slowdown, case.max_encode_slowdown_pct },
+            );
+            return error.TestExpectedEqual;
+        }
+
+        const decode_slowdown = try decodeSlowdownPct(case, codec);
+        if (decode_slowdown > case.max_decode_slowdown_pct) {
+            std.debug.print(
+                "PHASE6_BASE64_PERF=fail label={s} decode_slowdown_pct={} max={}\n",
+                .{ case.label, decode_slowdown, case.max_decode_slowdown_pct },
+            );
+            return error.TestExpectedEqual;
+        }
+
+        std.debug.print(
+            "PHASE6_BASE64_PERF_CASE=pass label={s} encode_slowdown_pct={} decode_slowdown_pct={}\n",
+            .{ case.label, encode_slowdown, decode_slowdown },
+        );
+    }
+
+    std.debug.print("PHASE6_BASE64_PERF=pass\n", .{});
+}
