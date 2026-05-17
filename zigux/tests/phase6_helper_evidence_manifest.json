@@ -8,6 +8,7 @@
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
+    "zigux/tests/phase6_build.zig",
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py"
   ],
@@ -35,7 +36,7 @@
         "scripts/zigux/check-phase6-base64-c-parity.py"
       ],
       "slice_note": "Documentation/zigux/phase6-base64-slice.md",
-      "current_review_posture": "direct-readback-limited"
+      "current_review_posture": "direct-helper-readback-restored"
     },
     {
       "key": "bsearch",
