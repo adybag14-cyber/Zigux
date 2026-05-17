@@ -168,6 +168,24 @@ UNREGISTERED_GATE_SUMMARY_STABLE_HELPER_MARKER = (
 UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER = (
     "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);"
 )
+UNREGISTERED_GATE_SELFTEST_MAIN_ITERATIONS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.main_iterations);"
+)
+UNREGISTERED_GATE_SELFTEST_FN_ITERATIONS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.fn_iterations);"
+)
+UNREGISTERED_GATE_SELFTEST_MAIN_THREAD_EVENTS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 10), selftest_complete_before.main_thread_events);"
+)
+UNREGISTERED_GATE_SELFTEST_FN_THREAD_EVENTS_MARKER = (
+    "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.fn_thread_events);"
+)
+UNREGISTERED_GATE_SELFTEST_LAST_MAIN_COUNT_MARKER = (
+    "try std.testing.expectEqual(@as(i32, 5), selftest_complete_before.last_main_count);"
+)
+UNREGISTERED_GATE_SELFTEST_LAST_FN_COUNT_MARKER = (
+    "try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);"
+)
 UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER = (
     "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\n"
     "    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
@@ -283,8 +301,14 @@ UNREGISTERED_GATE_REQUIRED_MARKERS = [
     UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER,
     UNREGISTERED_GATE_INITIAL_SUMMARY_STABLE_MARKER,
     UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER,
+    UNREGISTERED_GATE_SELFTEST_MAIN_ITERATIONS_MARKER,
+    UNREGISTERED_GATE_SELFTEST_FN_ITERATIONS_MARKER,
+    UNREGISTERED_GATE_SELFTEST_MAIN_THREAD_EVENTS_MARKER,
+    UNREGISTERED_GATE_SELFTEST_FN_THREAD_EVENTS_MARKER,
     UNREGISTERED_GATE_SELFTEST_RUNS_MARKER,
     UNREGISTERED_GATE_TOTAL_EVENTS_MARKER,
+    UNREGISTERED_GATE_SELFTEST_LAST_MAIN_COUNT_MARKER,
+    UNREGISTERED_GATE_SELFTEST_LAST_FN_COUNT_MARKER,
     UNREGISTERED_GATE_POST_SELFTEST_FAIL_CLOSED_PAIR_MARKER,
     UNREGISTERED_GATE_SELFTEST_SUMMARY_STABLE_MARKER,
     UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER,
@@ -479,8 +503,14 @@ test \"phase9 trace-events sample keeps unregistered function-thread failures fa
 
     const selftest_complete_before = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);
+    try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.main_iterations);
+    try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 10), selftest_complete_before.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.selftest_runs);
     try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);
+    try std.testing.expectEqual(@as(i32, 5), selftest_complete_before.last_main_count);
+    try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);
     try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 
@@ -560,7 +590,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> int:
-    args = parse_args()
+    args = parser.parse_args()
     if args.self_test:
         return run_self_test()
 
