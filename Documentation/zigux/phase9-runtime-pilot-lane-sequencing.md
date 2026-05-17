@@ -40,6 +40,7 @@ The shared Phase 9 reminder packet is now aligned around the narrow surviving tr
 - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `zigux/tests/README.md`, and the surviving `samples/zigux/runtime_trace_events.zig` packet now center the same narrow trace-events selftest-hook evidence rather than the removed shared runtime-loader family
 - the same narrow packet also now keeps `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the fail-closed companion for the direct runtime trace-events sample instead of pretending the broader loader family returned
 - no current shared reminder surface should describe `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds as shipped current-`master` evidence unless a fresh repo reread proves they have returned
+- the older wider-family reminder-survey trio `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_loader_gap_survey.zig` may still preserve blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and depmod-publication vocabulary, but they no longer count as current shared-owner evidence for this narrow packet unless a fresh repo reread proves the broader loader family returned
 - the next honest shared Phase 9 move is no longer another speculative reminder rewrite; it is a fresh repo-first reread if one of the surviving shared reminder surfaces or the surviving direct trace-events sample pair changes again
 
 ## Governance rule for this lane
@@ -65,9 +66,10 @@ This lane should not reopen:
 2. Keep the shipped `scripts/zigux/check-phase9-trace-events-runtime-packet.py` guard visible whenever this note names the surviving direct runtime sample packet.
 3. Keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` visible as the same narrow packet's fail-closed companion whenever this note summarizes the currently shipped runtime sample family.
 4. Do not describe `zigux/tests/phase9_build.zig`, shared `zigux/tests/runtime_*` replays, shared runtime-loader kernel files, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds as shipped evidence unless a fresh repo reread proves they have returned.
-5. Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work.
-6. Refresh one shared reminder surface at a time when the tree changes again.
-7. If the broader shared runtime-loader packet returns later, reread the exact file family before widening this note back out.
+5. Treat the older `phase9-runtime-loader-gap-survey` note plus the `runtime_loader_gap_*` survey companions as historical blocked-boundary vocabulary, not as current shared-owner proof for the surviving narrow packet, unless a fresh repo reread proves the broader loader family returned.
+6. Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work.
+7. Refresh one shared reminder surface at a time when the tree changes again.
+8. If the broader shared runtime-loader packet returns later, reread the exact file family before widening this note back out.
 
 ## Recommended next-step order
 
