@@ -100,6 +100,18 @@ jobs:
       - name: Check current Phase 2 kbuild packet
         run: python3 scripts/zigux/check-phase2-kbuild-routes.py
 
+      - name: Self-test current Phase 2 tests README checker
+        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test
+
+      - name: Check current Phase 2 tests README packet
+        run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py
+
+      - name: Self-test current Phase 2 cross selftest alignment checker
+        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 cross alignment packet
+        run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py
+
       - name: Self-test current Phase 2 toolchain pinning checker
         run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test
 
