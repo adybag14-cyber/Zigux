@@ -14,6 +14,8 @@ PRESENT_PATHS = (
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kbuild-routes.py",
+    "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/kconfig/conf_bridge.zig",
 )
@@ -31,6 +33,7 @@ MISSING_PATHS = (
     "scripts/zigux/mk_elfconfig.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "zigux/Makefile",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
 )
@@ -43,7 +46,7 @@ REQUIRED_NOTE_MARKERS = (
     "Treat those paths as active repo-reality gaps on current `master`, not as shipped scripts-root evidence.",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 47
+EXPECTED_SELF_TEST_CASE_COUNT = 53
 
 
 def read_text(path: Path) -> str:
@@ -126,7 +129,7 @@ def build_note_text() -> str:
             "",
             "## Lane 25 boundary",
             "",
-            "Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure and tool-restoration lanes land.",
+            "Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure, cross-target, and tool-restoration lanes land.",
             "",
         ]
     )
