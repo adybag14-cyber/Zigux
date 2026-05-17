@@ -42,7 +42,7 @@ REQUIRED_FILES = (
 
 REQUIRED_MATRIX_MARKERS = (
     "scope: keep the active shared Phase 12 packet reviewable without implying a broader validator-first or deep-core delivery claim",
-    "the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard",
+    "the shipped `python3 scripts/zigux/check-phase12-cross.py --self-test` companion",
     "the parked `zigux/tests/fixtures/phase12_libbpf_snapshot.json` anchor",
     "starter-present direct `virtio_net` packet",
     "bounded driver-local NVMe starter-plus-verifier-plus-direct-replay-plus-slice-plus-survey packet",
@@ -51,52 +51,59 @@ REQUIRED_MATRIX_MARKERS = (
 )
 
 REQUIRED_READINESS_MARKERS = (
-    "The build-only release packet stays inside segmented preparation and bounded delivery only.",
-    "Drivers with DMA queues, recovery loops, or throughput ownership remain blocked from runtime claims until later phases.",
-    "Shared review is limited to docs, build-only helper slices, validator scripts, and deterministic fixtures.",
-    "`scripts/zigux/check-build-only-phase12-surface.py` and the support-checker plus validate wording in the adjacent shared surfaces are aligned and required for every Phase 12 release-packet rerun.",
-    "`zigux/tests/fixtures/phase12_libbpf_snapshot.json` and `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json` remain the only approved libbpf-heavy snapshot fixtures under this packet.",
+    "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
+    "`scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too.",
+    "Keep the same degraded-workflow validation quartet explicit too:",
+    "The public fallback split must stay explicit:",
+    "During degraded GitHub contents reads, keep the intended shared-tree anchor pair `zigux/tests/phase12_build.zig` and `scripts/zigux/check-build-only-phase12-surface.py` explicit",
 )
 
 REQUIRED_SEQUENCING_MARKERS = (
-    "bounded direct-build shards only",
-    "keep `virtio_net_transmit_recycle` and `virtio_net_queue_resume` parked as follow-up review targets rather than folding them into the direct build-only shard list",
-    "queue ownership, DMA routing, recovery, and throughput semantics stay deferred even when helper or fixture surfaces expand",
-    "tests-root fixture updates must preserve both the snapshot fixture and the determinism fixture before any shared release packet is considered complete",
+    "Keep the degraded-workflow validation quartet explicit beside that same order too:",
+    "The active smoke-first direct shard set is `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`, because those are the files the current `smoke` step actually runs.",
+    "Current `master` now also ships the degraded-workflow `make -C zigux phase12-validate` route together with `scripts/zigux/validate-phase12.py` and `scripts/zigux/check-phase12-release-readiness-packet.py`",
+    "If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
 )
 
 REQUIRED_RAW_GITHUB_MARKERS = (
-    "raw GitHub coverage stays documentation-first and build-only",
-    "reviewers must not infer runtime queueing, DMA ownership, recovery, or throughput readiness from raw file presence alone",
-    "the snapshot fixture and the determinism fixture are both part of the required direct-read packet for libbpf-heavy consumers",
+    "rule: keep this one-catalog plus one-gap-note plus two-anchor split explicit in shared PMO wording",
+    "exact coverage evidence checked on `2026-05-17`: direct contents reads now succeed for `scripts/zigux/check-build-only-phase12-surface.py`",
+    "exact runtime-reality evidence checked on `2026-05-17`: treat the directly readable checker, workflow, and scripts-root README trio as bounded reminder evidence only",
+    "keep the current validator-first then smoke-first order explicit through `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`",
 )
 
 REQUIRED_LIBBPF_SEQUENCE_MARKERS = (
-    "phase12_libbpf_snapshot.json",
-    "phase12_libbpf_snapshot_determinism.json",
-    "determinism fixture stays mandatory for any replay-route or helper-survey refresh",
-    "throughput, recovery, DMA, and queue semantics remain blocked behind later delivery work even when the fixture packet changes",
+    "scope: shared release-planning truthfulness, fallback wording, smoke-first replay reminders, and anti-overlap guidance for the bounded libbpf survey packet plus the parked verify-shard boundary already documented on current `master`",
+    "Keep the degraded-workflow support bundle explicit beside that same order too:",
+    "`python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
+    "Keep the shared fallback split explicit here too:",
 )
 
 REQUIRED_COMPLEX_DRIVER_MARKERS = (
-    "complex-driver preparation stays bounded to build-only helper evidence, deterministic fixtures, and segmented release coordination",
-    "do not claim queue ownership, DMA wiring, recovery loops, or throughput behavior from these surfaces",
-    "virtio, nvme, and mlx5 helper consumers stay in the same parked packet until later delivery phases reopen runtime work",
+    "scope: shared release-planning truthfulness, build-only contract reminders, and anti-overlap guidance for the starter-present `virtio_net` packet, the bounded `virtio_scsi` rollback-lab packet, and the published-but-still-unwired NVMe foothold",
+    "Keep the degraded-workflow support bundle explicit beside that same order too:",
+    "Keep the current partial direct-read bridge explicit too:",
+    "Keep the shared fallback split explicit:",
 )
 
 REQUIRED_SCRIPTS_README_MARKERS = (
-    "`check-build-only-phase12-surface.py` validates the segmented Phase 12 release packet for the release coordination matrix, readiness survey, sequencing note, raw-GitHub survey, complex-driver lane note, libbpf-heavy lane note, tests guide, review checklist, and both libbpf snapshot fixtures",
-    "keeps the Phase 12 packet limited to build-only helper evidence for complex drivers and other heavy helper consumers without reopening queue ownership, DMA routing, recovery, or throughput semantics",
+    "Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned",
+    "`scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit",
+    "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root",
+    "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-smoke ZIG=<attached-zig-path>` and `make -C zigux phase12 ZIG=<attached-zig-path>`, while `make -C zigux phase12-validate` stays the shipped support-bundle route.",
 )
 
 REQUIRED_TESTS_README_MARKERS = (
-    "`fixtures/phase12_libbpf_snapshot.json` and `fixtures/phase12_libbpf_snapshot_determinism.json` are the locked libbpf-heavy replay fixtures for the segmented Phase 12 build-only packet",
-    "Phase 12 tests remain build-only and may not be cited as runtime queue, DMA, recovery, or throughput evidence",
+    "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+    "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
+    "`zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`",
+    "`make -C zigux phase12`",
 )
 
 REQUIRED_REVIEW_CHECKLIST_MARKERS = (
-    "Phase 12 release packet reruns `scripts/zigux/check-build-only-phase12-surface.py` and confirms both libbpf-heavy fixtures stay present before citing complex-driver build-only readiness",
-    "No review note may treat Phase 12 helper, fixture, or survey changes as proof of runtime queue, DMA, recovery, or throughput behavior.",
+    "if the change touches the shared Phase 12 complex-driver packet",
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "`scripts/zigux/check-phase12-release-readiness-packet.py` checker plus the shipped `make -C zigux phase12-validate` route explicit as support-bundle evidence rather than as a second direct replay route",
 )
 
 
@@ -227,8 +234,8 @@ def run_self_test() -> None:
         write_text(
             readiness_path,
             original_readiness.replace(
-                "The build-only release packet stays inside segmented preparation and bounded delivery only.",
-                "The build-only release packet drifts outside segmented preparation and bounded delivery only.",
+                "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
+                "shared build-only contract drift: `scripts/zigux/check-build-only-phase12-surface.py`",
                 1,
             ),
         )
@@ -237,7 +244,7 @@ def run_self_test() -> None:
             "missing_markers:phase12-release-readiness-survey:"
             + json.dumps(
                 [
-                    "The build-only release packet stays inside segmented preparation and bounded delivery only.",
+                    "shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`",
                 ],
                 ensure_ascii=True,
             ),
@@ -249,15 +256,20 @@ def run_self_test() -> None:
         write_text(
             sequencing_path,
             original_sequencing.replace(
-                "bounded direct-build shards only",
-                "bounded direct-build shard drift only",
+                "Keep the degraded-workflow validation quartet explicit beside that same order too:",
+                "Keep the degraded-workflow validation quartet drift beside that same order too:",
                 1,
             ),
         )
         expect_failure(
             root,
             "missing_markers:phase12-release-sequencing:"
-            + json.dumps(["bounded direct-build shards only"], ensure_ascii=True),
+            + json.dumps(
+                [
+                    "Keep the degraded-workflow validation quartet explicit beside that same order too:",
+                ],
+                ensure_ascii=True,
+            ),
         )
         write_text(sequencing_path, original_sequencing)
 
@@ -266,8 +278,8 @@ def run_self_test() -> None:
         write_text(
             raw_survey_path,
             original_raw_survey.replace(
-                "raw GitHub coverage stays documentation-first and build-only",
-                "raw GitHub coverage drifts documentation-first and build-only",
+                "rule: keep this one-catalog plus one-gap-note plus two-anchor split explicit in shared PMO wording",
+                "rule: keep this one-catalog plus one-gap-note plus two-anchor split drift in shared PMO wording",
                 1,
             ),
         )
@@ -275,7 +287,9 @@ def run_self_test() -> None:
             root,
             "missing_markers:phase12-raw-github-coverage-survey:"
             + json.dumps(
-                ["raw GitHub coverage stays documentation-first and build-only"],
+                [
+                    "rule: keep this one-catalog plus one-gap-note plus two-anchor split explicit in shared PMO wording",
+                ],
                 ensure_ascii=True,
             ),
         )
@@ -286,15 +300,20 @@ def run_self_test() -> None:
         write_text(
             libbpf_sequence_path,
             original_libbpf_sequence.replace(
-                "phase12_libbpf_snapshot_determinism.json",
-                "phase12_libbpf_snapshot_determinism_missing.json",
+                "scope: shared release-planning truthfulness, fallback wording, smoke-first replay reminders, and anti-overlap guidance for the bounded libbpf survey packet plus the parked verify-shard boundary already documented on current `master`",
+                "scope: drift the shared release-planning truthfulness, fallback wording, smoke-first replay reminders, and anti-overlap guidance for the bounded libbpf survey packet",
                 1,
             ),
         )
         expect_failure(
             root,
             "missing_markers:phase12-libbpf-heavy-consumer-lane-sequencing:"
-            + json.dumps(["phase12_libbpf_snapshot_determinism.json"], ensure_ascii=True),
+            + json.dumps(
+                [
+                    "scope: shared release-planning truthfulness, fallback wording, smoke-first replay reminders, and anti-overlap guidance for the bounded libbpf survey packet plus the parked verify-shard boundary already documented on current `master`",
+                ],
+                ensure_ascii=True,
+            ),
         )
         write_text(libbpf_sequence_path, original_libbpf_sequence)
 
@@ -303,8 +322,8 @@ def run_self_test() -> None:
         write_text(
             complex_driver_path,
             original_complex_driver.replace(
-                "complex-driver preparation stays bounded to build-only helper evidence, deterministic fixtures, and segmented release coordination",
-                "complex-driver preparation drifts to build-only helper evidence, deterministic fixtures, and segmented release coordination",
+                "scope: shared release-planning truthfulness, build-only contract reminders, and anti-overlap guidance for the starter-present `virtio_net` packet, the bounded `virtio_scsi` rollback-lab packet, and the published-but-still-unwired NVMe foothold",
+                "scope: drift the shared release-planning truthfulness and build-only contract reminders for the starter-present driver packet",
                 1,
             ),
         )
@@ -313,7 +332,7 @@ def run_self_test() -> None:
             "missing_markers:phase12-complex-driver-lane-sequencing:"
             + json.dumps(
                 [
-                    "complex-driver preparation stays bounded to build-only helper evidence, deterministic fixtures, and segmented release coordination",
+                    "scope: shared release-planning truthfulness, build-only contract reminders, and anti-overlap guidance for the starter-present `virtio_net` packet, the bounded `virtio_scsi` rollback-lab packet, and the published-but-still-unwired NVMe foothold",
                 ],
                 ensure_ascii=True,
             ),
@@ -325,8 +344,8 @@ def run_self_test() -> None:
         write_text(
             scripts_readme_path,
             original_scripts_readme.replace(
-                "`check-build-only-phase12-surface.py` validates the segmented Phase 12 release packet for the release coordination matrix, readiness survey, sequencing note, raw-GitHub survey, complex-driver lane note, libbpf-heavy lane note, tests guide, review checklist, and both libbpf snapshot fixtures",
-                "`check-build-only-phase12-surface.py` validates only part of the segmented Phase 12 release packet",
+                "Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned",
+                "Phase 12 flow - `validate-phase12.py` drifts away from the current complex-driver packet",
                 1,
             ),
         )
@@ -335,7 +354,7 @@ def run_self_test() -> None:
             "missing_markers:scripts-readme:"
             + json.dumps(
                 [
-                    "`check-build-only-phase12-surface.py` validates the segmented Phase 12 release packet for the release coordination matrix, readiness survey, sequencing note, raw-GitHub survey, complex-driver lane note, libbpf-heavy lane note, tests guide, review checklist, and both libbpf snapshot fixtures",
+                    "Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned",
                 ],
                 ensure_ascii=True,
             ),
@@ -347,8 +366,8 @@ def run_self_test() -> None:
         write_text(
             tests_readme_path,
             original_tests_readme.replace(
-                "`fixtures/phase12_libbpf_snapshot.json` and `fixtures/phase12_libbpf_snapshot_determinism.json` are the locked libbpf-heavy replay fixtures for the segmented Phase 12 build-only packet",
-                "`fixtures/phase12_libbpf_snapshot.json` is the only locked libbpf-heavy replay fixture for the segmented Phase 12 build-only packet",
+                "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+                "`zigux/tests/fixtures/phase12_libbpf_snapshot_missing.json`",
                 1,
             ),
         )
@@ -357,7 +376,7 @@ def run_self_test() -> None:
             "missing_markers:tests-readme:"
             + json.dumps(
                 [
-                    "`fixtures/phase12_libbpf_snapshot.json` and `fixtures/phase12_libbpf_snapshot_determinism.json` are the locked libbpf-heavy replay fixtures for the segmented Phase 12 build-only packet",
+                    "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
                 ],
                 ensure_ascii=True,
             ),
@@ -369,8 +388,8 @@ def run_self_test() -> None:
         write_text(
             review_checklist_path,
             original_review_checklist.replace(
-                "Phase 12 release packet reruns `scripts/zigux/check-build-only-phase12-surface.py` and confirms both libbpf-heavy fixtures stay present before citing complex-driver build-only readiness",
-                "Phase 12 release packet reruns only part of the build-only checker before citing complex-driver build-only readiness",
+                "if the change touches the shared Phase 12 complex-driver packet",
+                "if the change drifts away from the shared Phase 12 complex-driver packet",
                 1,
             ),
         )
@@ -379,7 +398,7 @@ def run_self_test() -> None:
             "missing_markers:review-checklist:"
             + json.dumps(
                 [
-                    "Phase 12 release packet reruns `scripts/zigux/check-build-only-phase12-surface.py` and confirms both libbpf-heavy fixtures stay present before citing complex-driver build-only readiness",
+                    "if the change touches the shared Phase 12 complex-driver packet",
                 ],
                 ensure_ascii=True,
             ),
