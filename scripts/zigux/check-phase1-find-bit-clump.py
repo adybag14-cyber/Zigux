@@ -14,28 +14,38 @@ else:
 
 TARGET = Path("tools/lib/find_bit.zig")
 
-REQUIRED_FUNCTION_MARKERS = [
-    "pub fn findNextClump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
-    "pub fn find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
-    "pub fn _find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
-    "pub fn findFirstClump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
-    "pub fn find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
-    "pub fn _find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
-]
+REQUIRED_FUNCTION_MARKERS = {
+    "find_next_clump8": "pub fn findNextClump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
+    "find_next_clump8_alias": "pub fn find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
+    "find_next_clump8_underscore": "pub fn _find_next_clump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {",
+    "find_first_clump8": "pub fn findFirstClump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
+    "find_first_clump8_alias": "pub fn find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
+    "find_first_clump8_underscore": "pub fn _find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
+}
 
-REQUIRED_TEST_MARKERS = [
-    'test "clump8 scans align to the containing byte and return its value" {',
-    'test "clump8 scans keep tail bytes reachable from partial final words" {',
-    'test "clump8 scans mask tail bits beyond nbits" {',
-    'test "clump8 scans leave the caller byte untouched when no set bit remains" {',
-]
+REQUIRED_TEST_MARKERS = {
+    "byte_alignment": 'test "clump8 scans align to the containing byte and return its value" {',
+    "tail_reachable": 'test "clump8 scans keep tail bytes reachable from partial final words" {',
+    "tail_mask": 'test "clump8 scans mask tail bits beyond nbits" {',
+    "no_match_preserves_byte": 'test "clump8 scans leave the caller byte untouched when no set bit remains" {',
+}
 
-REQUIRED_ALIAS_EXPECTATIONS = [
-    "try std.testing.expectEqual(@as(usize, 0), _find_first_clump8(&clump, &clump_map, 8));",
-    "try std.testing.expectEqual(@as(usize, 0), _find_next_clump8(&clump, &clump_map, 8, 0));",
-    "try std.testing.expectEqual(@as(usize, 0), find_first_clump8(&clump, &[_]Word{@as(Word, 1)}, 8));",
-    "try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));",
-]
+REQUIRED_ALIAS_EXPECTATIONS = {
+    "underscore_first": "try std.testing.expectEqual(@as(usize, 0), _find_first_clump8(&clump, &clump_map, 8));",
+    "underscore_next": "try std.testing.expectEqual(@as(usize, 0), _find_next_clump8(&clump, &clump_map, 8, 0));",
+    "linux_first": "try std.testing.expectEqual(@as(usize, 0), find_first_clump8(&clump, &[_]Word{@as(Word, 1)}, 8));",
+    "linux_next": "try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));",
+}
+
+
+def validate_exact_lines(section: str, text: str, markers: dict[str, str]) -> list[str]:
+    failures: list[str] = []
+    lines = [line.strip() for line in text.splitlines()]
+    for label, marker in markers.items():
+        count = sum(1 for line in lines if line == marker)
+        if count != 1:
+            failures.append(f"{section}:{label}:expected=1:actual={count}")
+    return failures
 
 
 def validate(root: Path) -> list[str]:
@@ -45,19 +55,9 @@ def validate(root: Path) -> list[str]:
 
     text = path.read_text(encoding="utf-8")
     missing: list[str] = []
-
-    for marker in REQUIRED_FUNCTION_MARKERS:
-        if marker not in text:
-            missing.append(f"function:{marker}")
-
-    for marker in REQUIRED_TEST_MARKERS:
-        if marker not in text:
-            missing.append(f"test:{marker}")
-
-    for marker in REQUIRED_ALIAS_EXPECTATIONS:
-        if marker not in text:
-            missing.append(f"alias:{marker}")
-
+    missing.extend(validate_exact_lines("function", text, REQUIRED_FUNCTION_MARKERS))
+    missing.extend(validate_exact_lines("test", text, REQUIRED_TEST_MARKERS))
+    missing.extend(validate_exact_lines("alias", text, REQUIRED_ALIAS_EXPECTATIONS))
     return missing
 
 
@@ -115,18 +115,12 @@ def build_fixture(root: Path) -> None:
 def run_self_test() -> int:
     cases = [
         ("missing_file", "missing_file:tools/lib/find_bit.zig"),
-        (
-            "missing_test",
-            'test:test "clump8 scans mask tail bits beyond nbits" {',
-        ),
-        (
-            "missing_alias_expectation",
-            "alias:try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));",
-        ),
-        (
-            "missing_function",
-            "function:pub fn _find_first_clump8(clump: *u8, addr: []const Word, nbits: usize) usize {",
-        ),
+        ("missing_test", "test:tail_mask:expected=1:actual=0"),
+        ("missing_alias_expectation", "alias:linux_next:expected=1:actual=0"),
+        ("missing_function", "function:find_first_clump8_underscore:expected=1:actual=0"),
+        ("duplicate_test", "test:tail_mask:expected=1:actual=2"),
+        ("duplicate_alias_expectation", "alias:linux_next:expected=1:actual=2"),
+        ("duplicate_function", "function:find_first_clump8_underscore:expected=1:actual=2"),
     ]
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_find_bit_clump_") as tmp_dir:
@@ -141,7 +135,7 @@ def run_self_test() -> int:
         text = (tmp_root / TARGET).read_text(encoding="utf-8")
 
         (tmp_root / TARGET).write_text(
-            text.replace(REQUIRED_TEST_MARKERS[2] + "\n", "", 1),
+            text.replace(REQUIRED_TEST_MARKERS["tail_mask"] + "\n", "", 1),
             encoding="utf-8",
         )
         if cases[1][1] not in validate(tmp_root):
@@ -150,7 +144,7 @@ def run_self_test() -> int:
         build_fixture(tmp_root)
         text = (tmp_root / TARGET).read_text(encoding="utf-8")
         (tmp_root / TARGET).write_text(
-            text.replace(REQUIRED_ALIAS_EXPECTATIONS[3] + "\n", "", 1),
+            text.replace(REQUIRED_ALIAS_EXPECTATIONS["linux_next"] + "\n", "", 1),
             encoding="utf-8",
         )
         if cases[2][1] not in validate(tmp_root):
@@ -159,14 +153,53 @@ def run_self_test() -> int:
         build_fixture(tmp_root)
         text = (tmp_root / TARGET).read_text(encoding="utf-8")
         (tmp_root / TARGET).write_text(
-            text.replace(REQUIRED_FUNCTION_MARKERS[5] + "\n", "", 1),
+            text.replace(REQUIRED_FUNCTION_MARKERS["find_first_clump8_underscore"] + "\n", "", 1),
             encoding="utf-8",
         )
         if cases[3][1] not in validate(tmp_root):
             raise SystemExit("phase1-find-bit-clump:self-test:missing_function")
 
+        build_fixture(tmp_root)
+        text = (tmp_root / TARGET).read_text(encoding="utf-8")
+        (tmp_root / TARGET).write_text(
+            text.replace(
+                REQUIRED_TEST_MARKERS["tail_mask"],
+                REQUIRED_TEST_MARKERS["tail_mask"] + "\n" + REQUIRED_TEST_MARKERS["tail_mask"],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if cases[4][1] not in validate(tmp_root):
+            raise SystemExit("phase1-find-bit-clump:self-test:duplicate_test")
+
+        build_fixture(tmp_root)
+        text = (tmp_root / TARGET).read_text(encoding="utf-8")
+        (tmp_root / TARGET).write_text(
+            text.replace(
+                REQUIRED_ALIAS_EXPECTATIONS["linux_next"],
+                REQUIRED_ALIAS_EXPECTATIONS["linux_next"] + "\n" + REQUIRED_ALIAS_EXPECTATIONS["linux_next"],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if cases[5][1] not in validate(tmp_root):
+            raise SystemExit("phase1-find-bit-clump:self-test:duplicate_alias")
+
+        build_fixture(tmp_root)
+        text = (tmp_root / TARGET).read_text(encoding="utf-8")
+        (tmp_root / TARGET).write_text(
+            text.replace(
+                REQUIRED_FUNCTION_MARKERS["find_first_clump8_underscore"],
+                REQUIRED_FUNCTION_MARKERS["find_first_clump8_underscore"] + "\n" + REQUIRED_FUNCTION_MARKERS["find_first_clump8_underscore"],
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if cases[6][1] not in validate(tmp_root):
+            raise SystemExit("phase1-find-bit-clump:self-test:duplicate_function")
+
     print("PHASE1_FIND_BIT_CLUMP_SELF_TEST=pass")
-    print("PHASE1_FIND_BIT_CLUMP_SELF_TEST_CASE_COUNT=4")
+    print("PHASE1_FIND_BIT_CLUMP_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
