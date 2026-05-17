@@ -170,7 +170,7 @@ SCALAR_FIELDS = (
     "next_safe_step_note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def repo_root(root: str | None) -> Path:
@@ -312,6 +312,7 @@ def build_self_test_cases() -> list[tuple[str, str, str]]:
         ("missing_rule_line", "lane_rule", "remove"),
         ("duplicate_rule_line", "lane_rule", "duplicate"),
         ("missing_helper_anchor", "helper_anchor", "remove"),
+        ("duplicate_helper_anchor", "helper_anchor", "duplicate"),
         ("missing_next_safe_step", "lane_next_safe_step_note", "remove"),
         ("duplicate_next_safe_step", "lane_next_safe_step_note", "duplicate"),
         *[(f"mutate_{field}", field, "mutate_list") for field in LIST_FIELDS],
@@ -361,7 +362,13 @@ def run_self_test() -> int:
                 helper_path = root / STRING_HELPER_REL
                 text = helper_path.read_text(encoding="utf-8")
                 marker = EXPECTED_STRING_ANCHORS["helper_test_anchors"][0]
-                helper_path.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
+                if operation == "remove":
+                    helper_path.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
+                elif operation == "duplicate":
+                    helper_path.write_text(
+                        text.replace(marker + "\n", marker + "\n" + marker + "\n", 1),
+                        encoding="utf-8",
+                    )
             elif target == "lane_next_safe_step_note":
                 lane_note = root / LANE_NOTE_REL
                 text = lane_note.read_text(encoding="utf-8")
