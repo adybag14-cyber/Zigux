@@ -17,6 +17,8 @@ The currently reviewable Phase 1 packet is:
 
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
+- `Documentation/zigux/README.md`
+- `scripts/zigux/README.md`
 - `scripts/zigux/check-phase1-string-review-packet.py`
 - `scripts/zigux/check-phase1-direct-owner-markers.py`
 - `scripts/zigux/validate-phase1-closure.py`
@@ -24,8 +26,8 @@ The currently reviewable Phase 1 packet is:
 - `zigux/tests/phase1_host_tools_smoke.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
-- `PHASE1_SHARED_REMINDER_SYNC_STATE=pending`
+- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
+- `PHASE1_SHARED_REMINDER_SYNC_STATE=tests_root_and_checklist_pending`
 
 ## Current Repo-Reality Gaps
 
@@ -58,6 +60,6 @@ The validator checks this note against the committed helper manifest and the alr
 
 ## Next Step
 
-The next same-lane follow-up is to realign the shared docs-root, scripts-root, and tests-root reminder surfaces around this restored closure anchor before widening back into replay-side helper or bench claims.
+The next same-lane follow-up is to realign `zigux/tests/README.md` and `Documentation/zigux/review-checklist.md` around this restored closure anchor before widening back into replay-side helper or bench claims.
 
-- `PHASE1_NEXT_SAFE_STEP=sync Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and zigux/tests/README.md to this restored closure anchor before widening into zigux/tests/phase1_helpers.zig or bench claims`
+- `PHASE1_NEXT_SAFE_STEP=sync zigux/tests/README.md and Documentation/zigux/review-checklist.md to this restored closure anchor before widening into zigux/tests/phase1_helpers.zig or bench claims`
