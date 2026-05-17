@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import shutil
 import stat
@@ -99,7 +101,10 @@ def validate_fixture(root: Path) -> list[str]:
 
 def resolve_zig(override: str | None) -> str | None:
     if override:
-        return override
+        override_path = Path(override)
+        if override_path.is_file():
+            return override
+        return shutil.which(override)
     return shutil.which("zig")
 
 
@@ -213,6 +218,13 @@ def make_fake_zig(path: Path, log_path: Path, fail_target: str | None = None) ->
     )
     path.write_text(script, encoding="utf-8")
     path.chmod(path.stat().st_mode | stat.S_IXUSR)
+
+
+def run_main(args: list[str]) -> tuple[int, str]:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        code = main(args)
+    return code, stdout.getvalue()
 
 
 def run_self_test() -> int:
@@ -339,12 +351,71 @@ def run_self_test() -> int:
         assert any("-target riscv64-linux-musl --test-no-exec" in line for line in fail_lines)
         case_count += 1
 
+        build_self_test_root(root)
+        single_log = root / "single-zig.log"
+        single_zig = root / "fake-zig-single.sh"
+        make_fake_zig(single_zig, single_log)
+        assert run_cross_compile(root, EXPECTED_TARGETS[1], str(single_zig)) == 0
+        single_lines = single_log.read_text(encoding="utf-8").splitlines()
+        assert len(single_lines) == len(EXPECTED_ZIG_TEST_FILES)
+        assert all(f"-target {EXPECTED_TARGETS[1]} --test-no-exec" in line for line in single_lines)
+        case_count += 1
+
+        build_self_test_root(root)
+        missing_target_code, missing_target_output = run_main(
+            ["--root", str(root), "--target", "powerpc64-linux-musl", "--zig", "/bin/true"]
+        )
+        assert missing_target_code == 1
+        assert "PHASE2_CROSS_NOTE=target not listed in fixture" in missing_target_output
+        case_count += 1
+
+        build_self_test_root(root)
+        both_flags_code, both_flags_output = run_main(
+            [
+                "--root",
+                str(root),
+                "--target",
+                EXPECTED_TARGETS[0],
+                "--all-targets",
+                "--zig",
+                "/bin/true",
+            ]
+        )
+        assert both_flags_code == 1
+        assert "PHASE2_CROSS_NOTE=choose either --target or --all-targets" in both_flags_output
+        case_count += 1
+
+        build_self_test_root(root)
+        missing_zig_code, missing_zig_output = run_main(
+            ["--root", str(root), "--target", EXPECTED_TARGETS[0], "--zig", str(root / "missing-zig")]
+        )
+        assert missing_zig_code == 1
+        assert "PHASE2_CROSS_NOTE=zig not found on PATH" in missing_zig_output
+        case_count += 1
+
+        build_self_test_root(root)
+        missing_zig_path = root / "missing-zig"
+        missing_zig_code, missing_zig_output = run_main(
+            ["--root", str(root), "--all-targets", "--zig", str(missing_zig_path)]
+        )
+        assert missing_zig_code == 1
+        assert "PHASE2_CROSS_NOTE=zig not found on PATH" in missing_zig_output
+        case_count += 1
+
+        build_self_test_root(root)
+        broken_fixture = fixture_path(root)
+        broken_fixture.write_text("{not-json}\n", encoding="utf-8")
+        invalid_json_code, invalid_json_output = run_main(["--root", str(root)])
+        assert invalid_json_code == 1
+        assert "PHASE2_CROSS_NOTE=invalid fixture JSON:" in invalid_json_output
+        case_count += 1
+
     print("PHASE2_CROSS_SELF_TEST=pass")
     print(f"PHASE2_CROSS_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Validate the current-master-safe Phase 2 cross-target starter packet and optionally replay one target or the full starter matrix."
     )
@@ -353,7 +424,7 @@ def main() -> int:
     parser.add_argument("--target", help="Run the configured Zig test files for one target.")
     parser.add_argument("--all-targets", action="store_true", help="Run the configured Zig test files for every listed target.")
     parser.add_argument("--zig", help="Path to the Zig executable for target-mode replays.")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     if args.self_test:
         return run_self_test()
