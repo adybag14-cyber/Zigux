@@ -94,7 +94,7 @@ README_REQUIRED_MARKERS = (
     "`python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-phase1-parity.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 parity, artifact-diff, bench, and reminder checks",
     "`scripts/zigux/artifact_diff.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped parity-fixture, artifact-diff, bench, string-review, and direct-owner marker packet explicit from the scripts root",
     "`Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_helpers.json`, and `zigux/tests/fixtures/phase1_replay_blockers.json` remain the current reminder-surface companions for that packet",
-    "`zigux/tests/fixtures/phase1_replay_blockers.json` keeps the currently parked replay state explicit: the focused `phase1_helpers.zig` rerun still diverges on `slab.zero_after_kmalloc`, and the older C harness route still depended on `tools/lib/*.c` inputs that current `master` no longer ships beside the `.zig` helper ports.",
+    "`zigux/tests/fixtures/phase1_replay_blockers.json` keeps the currently parked replay state explicit: the focused `phase1_helpers.zig` rerun still diverges on `slab.zero_after_kmalloc`, and the older C harness route still depended on `tools/lib/*.c` inputs that current `master` no longer ships beside the `.zig` helper ports.`",
     "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
 )
 
@@ -134,6 +134,7 @@ def _expected_blockers_payload() -> dict[str, object]:
             "state": "blocked",
             "reason": "The old host-side parity route still depends on helper `tools/lib/*.c` inputs that current master no longer ships beside the Phase 1 `.zig` ports.",
             "helper_count": len(EXPECTED_HELPERS),
+            "helpers": list(EXPECTED_HELPERS),
             "blocker_id": EXPECTED_REPLAY_BLOCKER_IDS[1],
         },
     }
@@ -389,6 +390,8 @@ def collect_issues(root: Path) -> list[str]:
                         "blockers_c_harness_helper_count:"
                         f"{harness_blocker.get('helper_count')!r}"
                     )
+                if harness_blocker.get("helpers") != list(EXPECTED_HELPERS):
+                    issues.append("blockers_c_harness_helpers")
                 if (
                     harness_blocker.get("blocker_id")
                     != EXPECTED_REPLAY_BLOCKER_IDS[1]
@@ -683,6 +686,17 @@ def run_self_test() -> int:
             json.dumps(payload, indent=2) + "\n",
         )
         cases.append(("blockers_drift", run_check(blockers_drift_root) != 0))
+
+        blockers_helpers_drift_root = build_case_root(tmp_root / "blockers_helpers_drift")
+        payload = json.loads(make_blockers_json())
+        payload["c_harness"]["helpers"] = payload["c_harness"]["helpers"][:-1]
+        write_file(
+            blockers_helpers_drift_root / BLOCKERS_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            ("blockers_helpers_drift", run_check(blockers_helpers_drift_root) != 0)
+        )
 
         replay_anchor_root = build_case_root(tmp_root / "replay_anchor")
         write_file(replay_anchor_root / REPLAY_REL, make_replay_text())
