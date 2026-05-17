@@ -39,6 +39,8 @@ PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than 
 REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 REVIEW_CHECKLIST_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
+REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+REVIEW_CHECKLIST_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
 REVIEW_CHECKLIST_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
 REVIEW_CHECKLIST_PHASE9_BUILD_MARKER = "`zigux/tests/phase9_build.zig`"
 REVIEW_CHECKLIST_RUNTIME_LOADER_MARKER = "`zigux/kernel/runtime_loader.zig`"
@@ -85,6 +87,8 @@ CHECKLIST_REQUIRED_MARKERS = [
     REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER,
     REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER,
     REVIEW_CHECKLIST_LIFECYCLE_MARKER,
+    REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER,
+    REVIEW_CHECKLIST_FAIL_CLOSED_MARKER,
     REVIEW_CHECKLIST_BACKLOG_MARKER,
     REVIEW_CHECKLIST_PHASE9_BUILD_MARKER,
     REVIEW_CHECKLIST_RUNTIME_LOADER_MARKER,
@@ -236,7 +240,7 @@ def build_fixture_text() -> str:
     return f"""# Zigux Review Checklist
 
 - {PHASE9_SHARED_PACKET_MARKER}
-- the shared Phase 9 reminder should keep the surviving runtime packet explicit through {TRACE_EVENTS_PACKET_CHECKER_MARKER}, {REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER}, {REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER}, and {REVIEW_CHECKLIST_LIFECYCLE_MARKER}
+- the shared Phase 9 reminder should keep the surviving runtime packet explicit through {TRACE_EVENTS_PACKET_CHECKER_MARKER}, {REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER}, {REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER}, {REVIEW_CHECKLIST_LIFECYCLE_MARKER}, and the fail-closed companion {REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER} with {REVIEW_CHECKLIST_FAIL_CLOSED_MARKER}
 - the same reminder should keep the backlog posture explicit: current `master` {REVIEW_CHECKLIST_BACKLOG_MARKER}, so {REVIEW_CHECKLIST_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {REVIEW_CHECKLIST_RUNTIME_LOADER_MARKER}, {REVIEW_CHECKLIST_RUNTIME_LOADER_CONTRACT_MARKER}, `zigux/Makefile`, {REVIEW_CHECKLIST_WORKFLOW_MARKER}, and the older {REVIEW_CHECKLIST_RUNTIME_LOADER_SCAFFOLD_MARKER} stay absent backlog references unless a fresh repo reread proves they have returned
 - the shared Phase 9 reminder should also keep the older cross-phase non-owner boundaries explicit:
   {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while
@@ -372,7 +376,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, backlog posture, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, fail-closed companion, backlog posture, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
     )
     parser.add_argument(
         "--repo-root",
