@@ -56,3 +56,27 @@ test "safe inline limit still lands in the tagged-value lane" {
     try testing.expectEqual(@as(?usize, xa_value.safe_inline_limit), slot.value());
     try testing.expect(raw < err_ptr.err_floor);
 }
+
+test "inline zero stays tagged without looking like a null slot" {
+    const raw = try xa_value.makeValue(0);
+    const slot = xarray_slot_view.fromRaw(raw);
+
+    try testing.expect(!slot.isNull());
+    try testing.expect(slot.isValue());
+    try testing.expect(!slot.isErr());
+    try testing.expect(!slot.isPointer());
+    try testing.expectEqual(@as(?usize, 0), slot.value());
+    try testing.expect(xarray_slot_view.isTaggedInternalEntry(raw));
+}
+
+test "top err_ptr encoding stays tagged and never falls back to pointer-like" {
+    const raw = err_ptr.fromErrorCode(-1);
+    const slot = xarray_slot_view.fromRaw(raw);
+
+    try testing.expect(!slot.isNull());
+    try testing.expect(!slot.isValue());
+    try testing.expect(slot.isErr());
+    try testing.expect(!slot.isPointer());
+    try testing.expectEqual(@as(?isize, -1), slot.errorCode());
+    try testing.expect(xarray_slot_view.isTaggedInternalEntry(raw));
+}
