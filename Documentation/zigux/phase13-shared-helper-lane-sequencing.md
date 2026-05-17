@@ -66,7 +66,7 @@ When a real Phase 13 change lands, keep these shared surfaces aligned:
 
 Treat stable `make -C zigux phase13-validate` as the shared replay handle, keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as the remaining shared-summary repo-reality gap until current `master` materializes it again, and keep `make -C zigux phase13` framed as blocked convenience wiring until `zigux/tests/phase13_build.zig` lands.
 
-If `scripts/zigux/validate-phase13-release.py` or the direct `zigux/tests/phase13_build.zig` build route cannot be materialized on current `master`, record those direct paths as repo reality instead of listing them as independently shipped evidence.
+If the direct `zigux/tests/phase13_build.zig` build route still cannot be materialized on current `master`, keep that build path recorded as the remaining repo-reality gap while `scripts/zigux/validate-phase13-release.py` stays explicit as shipped validator-first evidence.
 
 ## Sequencing Rules
 
