@@ -10,7 +10,7 @@ Use this note when a Phase 11 change touches the shared reminder packet under `D
 
 Keep the current lane split explicit:
 
-- shared sequencing lane `P11-Y06` owns only the current-head truthfulness surfaces that were directly re-readable in this run: `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-validation-matrix-gap-survey.md`, `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-matrix-gap-survey.py`, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `zigux/tests/fixtures/phase11_build_inventory.json`, `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- shared sequencing lane `P11-Y06` owns only the cross-driver current-head truthfulness surfaces that were directly re-readable in this run: `Documentation/zigux/phase11-driver-lane-sequencing.md`, `Documentation/zigux/phase11-validation-matrix-gap-survey.md`, `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-matrix-gap-survey.py`, and `zigux/tests/fixtures/phase11_build_inventory.json`
 - bcm2835 continuity stays separate from the shared truthfulness lane; if future rereads rematerialize a bcm2835 replay or validation note, refresh that packet in its own bounded step instead of rebuilding it through shared-summary wording
 - gpio continuity stays separate from the shared truthfulness lane; do not use shared-note work to recreate missing gpio validation-matrix claims from older reminder text alone
 - DesignWare lane `P11-L10` owns the currently readable continuity packet `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`; if driver-local `dw_wdt` replay files, packet docs, or the compile-local verify helper rematerialize again, reopen them inside the same DesignWare lane rather than through the shared reminder lane
@@ -20,19 +20,16 @@ Keep the current lane split explicit:
 
 ## Shared Packet Boundaries
 
-Treat the current shared Phase 11 packet as the smaller current-head truthfulness stack, not as the older full contract-and-make-route packet:
+Treat the current shared Phase 11 packet as the smaller cross-driver truthfulness stack, not as the older full contract-and-make-route packet or the HVC-local continuity packet:
 
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
-- `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
-- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
-- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
-- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
-- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+
+Current direct rereads in this run still kept the HVC continuity packet readable through `Documentation/zigux/phase11-hvc-console-survey.md`, `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`, `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`, `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, but those remain HVC-local continuity surfaces under `P11-L16` rather than shared sequencing inventory.
 
 Current direct rereads in this run did not rematerialize `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, `zigux/tests/phase11_build.zig`, or `zigux/Makefile`, so shared-note repairs should not present those paths as live current-head evidence until a later reread proves they returned.
 
@@ -41,9 +38,9 @@ Current direct rereads in this run did not rematerialize `Documentation/zigux/ph
 Use this note to keep the bounded work order honest:
 
 1. Prefer one Phase 11 lane at a time instead of batching bcm2835, gpio, DesignWare, HVC, header-boundary, and contributor-note work into one mixed change.
-2. Keep the shared-versus-dedicated split explicit: the shared sequencing lane only repairs the smaller current-head truthfulness packet listed above and must not recreate missing shared-contract or make-route claims from historical wording alone.
+2. Keep the shared-versus-dedicated split explicit: the shared sequencing lane only repairs the smaller cross-driver truthfulness packet listed above and must not recreate missing shared-contract or make-route claims from historical wording alone.
 3. Keep the validation-matrix gap survey authoritative for the four driver-local validation matrices until fresh direct reads recover those files; do not let shared-summary wording promote missing matrix files back into live evidence.
-4. Keep the HVC survey and cleanup current-head checker authoritative for the HVC archival packet until direct rereads rematerialize the broader driver, split-replay, and teardown companion files.
+4. Keep the HVC survey and cleanup current-head checker authoritative for the HVC archival packet; shared sequencing work may cite that packet when comparing lane boundaries, but it must not claim ownership of the HVC-local note, checker, or proof surfaces.
 5. Keep the shared header-boundary matrix bounded to public layout and declaration truthfulness; do not widen it into tty-core, notifier-execution, or watchdog-core ownership claims.
 6. Do not imply broader registration, notifier, sysrq, khvcd, teardown, reset, or hardware-backed parity closure beyond the reminder notes and proof files that were directly readable in this run.
 7. When contributor-facing summaries reopen, either keep this smaller current-head packet explicit across all broad reminder surfaces or leave them parked; do not let one summary drift back to the missing shared-contract stack while the others stay narrowed.
