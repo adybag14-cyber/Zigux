@@ -5,6 +5,7 @@ const ReviewProcessManifest = struct {
     phase: []const u8,
     surveyed_commit: []const u8,
     review_process_note: []const u8,
+    decision_record_template: []const u8,
     handoff_note: []const u8,
     shared_summary_gap_note: []const u8,
     checker: []const u8,
@@ -47,6 +48,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-17", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.review_process_note);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", manifest.decision_record_template);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-shared-summary-gap.md", manifest.shared_summary_gap_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-review-process-handoff.py", manifest.checker);
@@ -85,6 +87,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "PHASE15_STATUS=architecture_council_review_process_landed");
     try expectContains(review_process, manifest.surveyed_commit);
     try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process_manifest.json`");
+    try expectContains(review_process, "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`");
     try expectContains(review_process, "`scripts/zigux/check-phase15-review-process-handoff.py`");
     try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(review_process, "the focused Zig replay are landed");
