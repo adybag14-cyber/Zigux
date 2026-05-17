@@ -94,6 +94,8 @@ PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     "summarizeBufferFdLookup",
     "summarizeBufferWindowLookup",
     "resolveBufferFdLookupReturn",
+    "resolveBufferFd(found)",
+    "BufferFdLookupDisposition.found_fd",
     "resolveBufferWindowLookupReturn",
     "resolveBufferWindowMappedSize",
     "PollReturnDisposition.ready_count",
@@ -104,6 +106,7 @@ PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     "BufferWindowLookupDisposition.found_window",
     "BufferWindowLookupDisposition.missing_window",
     "BufferWindowLookupDisposition.invalid_index",
+    "error.MissingFd",
     "error.MissingWindow",
     "error.InvalidIndex",
     "mapped_size",
@@ -251,6 +254,12 @@ test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and
     _ = summarizeBufferFdLookup;
     _ = resolveBufferFdLookupReturn;
     _ = BufferFdLookupDisposition.missing_fd;
+}
+
+test "phase 8 perf-buffer poll helper exposes typed fd resolution beside errno-shaped fd returns" {
+    _ = BufferFdLookupDisposition.found_fd;
+    _ = resolveBufferFd(found);
+    _ = error.MissingFd;
 }
 
 test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {
