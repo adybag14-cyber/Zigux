@@ -33,6 +33,7 @@ It keeps the starter-present network and storage packet reviewable without turni
   - `python3 scripts/zigux/check-phase12-cross.py --self-test`
   - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
   - `make -C zigux phase12-validate`
+- Keep the current partial direct-read bridge explicit too: `Documentation/zigux/phase12-raw-github-coverage-survey.md` now records that `.github/workflows/zigux-bootstrap.yml` and `scripts/zigux/README.md` are directly readable on current `master`, while `zigux/tests/phase12_build.zig`, `zigux/Makefile`, and `scripts/zigux/check-phase12-release-readiness-packet.py` still fail through the same bridge, so the readable workflow-plus-scripts pair stays reminder evidence only rather than proof for the larger shared packet.
 
 ## Anti-Overlap Rules
 
