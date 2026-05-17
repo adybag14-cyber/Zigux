@@ -18,16 +18,12 @@ DOCS_README_OVERCLAIM_MARKERS = (
 )
 
 MISSING_PATHS = (
-    "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
-    "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/validate-phase15.py",
-    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_build.zig",
@@ -39,6 +35,11 @@ MISSING_PATHS = (
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
+REQUIRED_PRESENT_PATHS = (
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+)
+
 REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/README.md`",
     "`zigux/tests/README.md`",
@@ -46,6 +47,8 @@ REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_build.zig`",
@@ -89,6 +92,12 @@ def collect_gap_failures(root: Path) -> list[str]:
                 f"previously missing Phase 15 path now exists and the gap note must be refreshed: {relative_path}"
             )
 
+    for relative_path in REQUIRED_PRESENT_PATHS:
+        if not (root / relative_path).exists():
+            failures.append(
+                f"expected landed Phase 15 path is missing and the gap note is overstating current master: {relative_path}"
+            )
+
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in gap_note:
             failures.append(f"gap note is missing required marker: {marker}")
@@ -130,6 +139,8 @@ def _sample_gap_note() -> str:
 `Documentation/zigux/phase15-parity-scorecard.md`
 `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+`zigux/tests/phase15_architecture_council_review_process_manifest.json`
+`scripts/zigux/check-phase15-review-process-handoff.py`
 `scripts/zigux/check-phase15-shared-summary-gap.py`
 `scripts/zigux/validate-phase15.py`
 `zigux/tests/phase15_build.zig`
@@ -151,6 +162,8 @@ def _seed_missing_layout(root: Path) -> None:
     _write(root / "Documentation/zigux/phase15-freeze-map-governance.md", "freeze-map packet\n")
     _write(root / "Documentation/zigux/phase15-parity-scorecard.md", "scorecard packet\n")
     _write(root / "Documentation/zigux/phase15-study-only-anchor-accounting.md", "study-only packet\n")
+    _write(root / "scripts/zigux/check-phase15-review-process-handoff.py", "#!/usr/bin/env python3\n")
+    _write(root / "zigux/tests/phase15_architecture_council_review_process_manifest.json", "{}\n")
 
 
 def run_self_test() -> int:
@@ -183,6 +196,13 @@ def run_self_test() -> int:
         failures = collect_gap_failures(note_root)
         if len(failures) != 1 or "`zigux/tests/phase15_build.zig`" not in failures[0]:
             raise AssertionError(f"gap-note marker failure missing expected marker: {failures}")
+
+        present_root = root / "present"
+        _seed_missing_layout(present_root)
+        (present_root / "scripts/zigux/check-phase15-review-process-handoff.py").unlink()
+        failures = collect_gap_failures(present_root)
+        if len(failures) != 1 or "expected landed Phase 15 path is missing" not in failures[0]:
+            raise AssertionError(f"present-path failure missing expected marker: {failures}")
 
         handoff_root = root / "handoff"
         _seed_missing_layout(handoff_root)
