@@ -193,6 +193,16 @@ test "runGenksymsCrc preserves case order while skipping blank lines" {
     );
 }
 
+test "runGenksymsCrc hashes a trailing unterminated line at EOF" {
+    var capture = try Capture(128).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc("int\nunsigned int eof_tail", &capture);
+    try std.testing.expectEqualStrings(
+        "{\"cases\":[{\"input\":\"int\",\"crc_hex\":\"0x1451dab1\"},{\"input\":\"unsigned int eof_tail\",\"crc_hex\":\"0x1d2695dc\"}]}\n",
+        capture.list.items,
+    );
+}
+
 test "runGenksymsCrc mirrors C fgets chunking for oversized lines" {
     var long_line = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 3);
     defer long_line.deinit(std.testing.allocator);
