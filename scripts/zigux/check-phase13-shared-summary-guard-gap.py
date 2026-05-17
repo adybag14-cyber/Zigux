@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the current Phase 13 shared-summary missing-checker gap."""
+"""Track the remaining follow-up after the Phase 13 shared-summary guard landed."""
 
 from __future__ import annotations
 
@@ -11,34 +11,26 @@ from pathlib import Path
 
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
-        "`scripts/zigux/check-phase13-shared-summary-surfaces.py`",
-        "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
-        "`Documentation/zigux/phase13-release-coordination-matrix.md`",
-        "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
-        "`python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`",
-        "blocked convenience route `make -C zigux phase13`",
+        "This note records the closure of the old missing-checker gap.",
+        "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
+        "The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.",
     ],
     "Documentation/zigux/phase13-contributor-workflow-guide.md": [
-        "`scripts/zigux/check-phase13-shared-summary-surfaces.py`",
-        "repo-reality gaps stay explicit instead of being promoted into shipped current-`master` evidence",
-    ],
-    "Documentation/zigux/phase13-release-coordination-matrix.md": [
-        "shared-summary guard gap: `scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`",
-        "Keep only `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as a shared-summary repo-reality gap",
-    ],
-    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
-        "the dedicated shared-summary guard `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
-        "blocked `make -C zigux phase13` convenience-route wording in `zigux/Makefile`",
+        "stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
     ],
 }
 
-ABSENT_PATHS = [
-    "scripts/zigux/check-phase13-shared-summary-surfaces.py",
-]
+FORBIDDEN_MARKERS = (
+    "missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
+    "`scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`",
+)
 
 
 def read_text(root: Path, relpath: str) -> str:
-    return (root / relpath).read_text(encoding="utf-8")
+    path = root / relpath
+    if not path.exists():
+        raise SystemExit(f"required file missing: {relpath}")
+    return path.read_text(encoding="utf-8")
 
 
 def write_text(root: Path, relpath: str, content: str) -> None:
@@ -47,108 +39,91 @@ def write_text(root: Path, relpath: str, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def validate(root: Path) -> list[str]:
-    errors: list[str] = []
+def collect_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+
+    if not (root / "scripts/zigux/check-phase13-shared-summary-surfaces.py").exists():
+        issues.append("missing_file:scripts/zigux/check-phase13-shared-summary-surfaces.py")
 
     for relpath, markers in REQUIRED_MARKERS.items():
-        path = root / relpath
-        if not path.exists():
-            errors.append(f"missing_file:{relpath}")
+        try:
+            text = read_text(root, relpath)
+        except SystemExit as exc:
+            issues.append(str(exc))
             continue
-        text = read_text(root, relpath)
         for marker in markers:
             if marker not in text:
-                errors.append(f"missing_marker:{relpath}:{marker}")
+                issues.append(f"missing_marker:{relpath}:{marker}")
+        for marker in FORBIDDEN_MARKERS:
+            if marker in text:
+                issues.append(f"forbidden_marker:{relpath}:{marker}")
 
-    for relpath in ABSENT_PATHS:
-        if (root / relpath).exists():
-            errors.append(f"unexpected_present:{relpath}")
-
-    return errors
+    return issues
 
 
 def populate_repo(root: Path) -> None:
+    write_text(
+        root,
+        "scripts/zigux/check-phase13-shared-summary-surfaces.py",
+        "#!/usr/bin/env python3\nprint('placeholder')\n",
+    )
     for relpath, markers in REQUIRED_MARKERS.items():
         write_text(root, relpath, "\n".join(markers) + "\n")
 
 
-def assert_only(actual: list[str], expected: list[str], label: str) -> None:
-    if actual != expected:
-        raise AssertionError(f"{label}: expected {expected!r}, got {actual!r}")
-
-
 def run_self_test() -> int:
     tempdir = Path(tempfile.mkdtemp(prefix="phase13-shared-summary-guard-gap-"))
-    case_count = 0
+    checks_run = 0
     try:
         populate_repo(tempdir)
-        assert_only(validate(tempdir), [], "baseline")
-        case_count += 1
+        assert collect_issues(tempdir) == []
+        checks_run += 1
 
-        write_text(
-            tempdir,
-            "scripts/zigux/check-phase13-shared-summary-surfaces.py",
-            "# placeholder\n",
-        )
-        assert_only(
-            validate(tempdir),
-            ["unexpected_present:scripts/zigux/check-phase13-shared-summary-surfaces.py"],
-            "unexpected_present",
-        )
         (tempdir / "scripts/zigux/check-phase13-shared-summary-surfaces.py").unlink()
-        case_count += 1
-
-        write_text(
-            tempdir,
-            "Documentation/zigux/phase13-release-coordination-matrix.md",
-            "shared replay handle only\n",
-        )
-        assert_only(
-            validate(tempdir),
-            [
-                "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:shared-summary guard gap: `scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`",
-                "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:Keep only `scripts/zigux/check-phase13-shared-summary-surfaces.py` recorded as a shared-summary repo-reality gap",
-            ],
-            "missing_release_matrix_markers",
-        )
+        issues = collect_issues(tempdir)
+        assert "missing_file:scripts/zigux/check-phase13-shared-summary-surfaces.py" in issues
         populate_repo(tempdir)
-        case_count += 1
+        checks_run += 1
 
-        write_text(
-            tempdir,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            "blocked `make -C zigux phase13` convenience-route wording in `zigux/Makefile`\n",
+        gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
+        gap_path.write_text(
+            gap_path.read_text(encoding="utf-8")
+            + "missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`\n",
+            encoding="utf-8",
         )
-        assert_only(
-            validate(tempdir),
-            [
-                "missing_marker:Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:the dedicated shared-summary guard `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
-            ],
-            "missing_tests_root_guard_marker",
+        issues = collect_issues(tempdir)
+        assert (
+            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`"
+            in issues
         )
-        case_count += 1
+        checks_run += 1
     finally:
         shutil.rmtree(tempdir)
 
     print("PHASE13_SHARED_SUMMARY_GUARD_GAP_SELF_TEST=pass")
-    print(f"PHASE13_SHARED_SUMMARY_GUARD_GAP_SELF_TEST_CASES={case_count}")
+    print(f"PHASE13_SHARED_SUMMARY_GUARD_GAP_SELF_TEST_CASES={checks_run}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--repo-root", default=".")
+    parser = argparse.ArgumentParser(
+        description="Keep the Phase 13 shared-summary handoff note honest after the guard landed."
+    )
+    parser.add_argument("--repo-root", type=Path, default=Path("."))
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    errors = validate(Path(args.repo_root))
-    if errors:
-        for error in errors:
-            print(error)
+    issues = collect_issues(args.repo_root)
+    if issues:
+        print("PHASE13_SHARED_SUMMARY_GUARD_GAP=fail")
+        for issue in issues:
+            print(issue)
         return 1
+
+    print("PHASE13_SHARED_SUMMARY_GUARD_GAP=pass")
     return 0
 
 
