@@ -44,6 +44,11 @@ For the shared tracing and probe lane, keep reviewer guidance grounded in the re
 * `samples/zigux/README.md`
 * `zigux/tests/README.md`
 
+The same reread also confirmed that authenticated contents reads now return missing for these older dedicated survey notes:
+
+* `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+* `Documentation/zigux/phase5-trace-events-sample-survey.md`
+
 Keep those shared surfaces honest about the gap between the roadmap-approved anchors and the files that current `master` directly exposes.
 
 ## Tracing and probe posture
@@ -52,7 +57,7 @@ For `kretprobe` and `trace_events`, treat the Phase 5 anchors as approved refere
 
 Use the shared docs to preserve these bounded cues:
 
-* `zigux/tests/README.md` keeps the kretprobe reminder visible by recording that current authenticated readback still returns missing for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`
+* `zigux/tests/README.md` keeps the direct-readback gap visible by recording that current authenticated readback still returns missing for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, `zigux/tests/phase5_kretprobe_example_survey.zig`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig`
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the tracing-side formatting cue visible without claiming direct sample-root proof from `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/README.md` remains the source of truth for whether those non-runtime sample-root files are directly present on current `master`
 
