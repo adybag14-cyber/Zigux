@@ -110,8 +110,9 @@ test "bitmap view helpers stay bounded and predictable" {
     try std.testing.expectEqual(@as(u32, 1), firstSet(view));
     try std.testing.expectEqual(@as(u32, 0), firstZero(view));
     try std.testing.expectEqual(@as(u32, 4), weight(view));
-    try std.testing.expect(testBit(view, 2));
+    try std.testing.expect(testBit(view, bits_per_word + 2));
     try std.testing.expect(!testBit(view, 4));
+    try std.testing.expect(!testBit(view, bits_per_word + 5));
     try std.testing.expectEqual(@as(u32, 1), summary.first_set);
     try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
     try std.testing.expectEqual(@as(u32, 4), summary.weight);
