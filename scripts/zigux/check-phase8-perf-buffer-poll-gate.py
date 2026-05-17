@@ -23,12 +23,13 @@ TESTS_README_PATH = "zigux/tests/README.md"
 PERF_BUFFER_POLL_TEST_PATH = "zigux/tests/phase8_perf_buffer_poll.zig"
 
 SCRIPTS_README_REQUIRED_MARKERS = [
-    "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves",
-    "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test` replays the shipped bounded Phase 8 reminder check",
-    "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `scripts/zigux/check-phase8-tests-readme-alignment.py`, `zigux/tests/README.md`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` keep the directly readable checker, tests-root reminder, helper, and focused test packet explicit from the scripts root",
+    "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly",
+    "`python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test` and `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test` replay the shipped bounded Phase 8 reminder checks",
+    "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `scripts/zigux/check-phase8-tests-readme-alignment.py`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` keep the directly readable checker, validator, tests-root reminder, helper, and focused perf-buffer packet explicit from the scripts root",
+    "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile` keep the current mixed-source file-path-handle bridge packet and its shipped shared-build and make-route evidence reviewable on current `master`",
     "`zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface and still keeps the bounded wait-result, ready-buffer, and errno-shaped lookup packet below broader route-management or online-CPU parity claims",
-    "repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/Makefile`, so keep those broader doc, validator, focused-build, segment-test, and make-route names framed as repo-reality gaps or historical packet members until a same-lane reread proves they returned on current `master`",
-    "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone",
+    "repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, and `zigux/tests/phase8_libbpf_segments.zig`, so keep those broader doc, focused-build, and shared-segment names framed as repo-reality gaps or historical packet members until a same-lane reread proves they returned on current `master`",
+    "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build and make routes instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone",
 ]
 
 TESTS_README_REQUIRED_MARKERS = [
@@ -37,13 +38,26 @@ TESTS_README_REQUIRED_MARKERS = [
     "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
     "`zigux/tests/phase8_perf_buffer_poll.zig`",
     "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`",
-    "repo-reality warning for the broader Phase 8 tooling packet:",
+    "current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:",
+    "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`",
     "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`",
     "`scripts/zigux/validate-phase8.py`",
+    "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
+    "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+    "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+    "`zigux/tests/phase8_build.zig`",
+    "`make -C zigux phase8-file-path-handle-bridge-test`",
+    "repo-reality warning for the broader remaining Phase 8 tooling packet:",
+    "`Documentation/zigux/phase8-tooling-lane-sequencing.md`",
+    "`Documentation/zigux/phase8-help-slice.md`",
+    "`Documentation/zigux/phase8-kallsyms-slice.md`",
+    "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
     "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
+    "`zigux/tests/phase8_libbpf_segments.zig`",
+    "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
     "`zigux/Makefile`",
-    "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone",
-    "if future same-lane work rematerializes the missing docs, validator, focused build shard, libbpf segment test, or Makefile routes, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`",
+    "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence",
+    "if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`",
 ]
 
 PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
@@ -53,16 +67,29 @@ PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     '"scripts/zigux/README.md"',
     '"current direct-readback Phase 8 anchors:"',
     '"`scripts/zigux/check-phase8-tests-readme-alignment.py`"',
-    '"repo-reality warning for the broader Phase 8 tooling packet:"',
+    '"current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:"',
+    '"`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`"',
     '"`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`"',
     '"`scripts/zigux/validate-phase8.py`"',
+    '"`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`"',
+    '"`zigux/tests/phase8_file_path_handle_bridge.zig`"',
+    '"`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`"',
+    '"`zigux/tests/phase8_build.zig`"',
+    '"`make -C zigux phase8-file-path-handle-bridge-test`"',
+    '"repo-reality warning for the broader remaining Phase 8 tooling packet:"',
+    '"`Documentation/zigux/phase8-tooling-lane-sequencing.md`"',
+    '"`Documentation/zigux/phase8-help-slice.md`"',
+    '"`Documentation/zigux/phase8-kallsyms-slice.md`"',
+    '"`Documentation/zigux/phase8-libbpf-segment-survey.md`"',
     '"`zigux/tests/phase8_perf_buffer_poll_only_build.zig`"',
+    '"`zigux/tests/phase8_libbpf_segments.zig`"',
+    '"`zigux/tests/phase8_libbpf_segments_only_build.zig`"',
     '"`zigux/Makefile`"',
-    '"keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone"',
-    '"Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves"',
+    '"keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence"',
+    '"Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly"',
     '"`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"',
     '"`zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface"',
-    '"keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone"',
+    '"keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build and make routes instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone"',
     "summarizePollExecutionResultFromWaitResult",
     "summarizeBufferFdLookup",
     "summarizeBufferWindowLookup",
@@ -131,12 +158,13 @@ def build_scripts_readme_fixture() -> str:
 
 ## Phase 8
 
-- Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves
-- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test` replays the shipped bounded Phase 8 reminder check
-- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `scripts/zigux/check-phase8-tests-readme-alignment.py`, `zigux/tests/README.md`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` keep the directly readable checker, tests-root reminder, helper, and focused test packet explicit from the scripts root
+- Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly
+- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test` and `python3 scripts/zigux/check-phase8-tests-readme-alignment.py --self-test` replay the shipped bounded Phase 8 reminder checks
+- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `scripts/zigux/check-phase8-tests-readme-alignment.py`, `scripts/zigux/validate-phase8.py`, `zigux/tests/README.md`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` keep the directly readable checker, validator, tests-root reminder, helper, and focused perf-buffer packet explicit from the scripts root
+- `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_build.zig`, and `zigux/Makefile` keep the current mixed-source file-path-handle bridge packet and its shipped shared-build and make-route evidence reviewable on current `master`
 - `zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface and still keeps the bounded wait-result, ready-buffer, and errno-shaped lookup packet below broader route-management or online-CPU parity claims
-- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/Makefile`, so keep those broader doc, validator, focused-build, segment-test, and make-route names framed as repo-reality gaps or historical packet members until a same-lane reread proves they returned on current `master`
-- keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone
+- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, and `zigux/tests/phase8_libbpf_segments.zig`, so keep those broader doc, focused-build, and shared-segment names framed as repo-reality gaps or historical packet members until a same-lane reread proves they returned on current `master`
+- keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build and make routes instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone
 """
 
 
@@ -149,13 +177,26 @@ Phase 8 review packet
   * `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
   * `zigux/tests/phase8_perf_buffer_poll.zig`
   * `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-  * repo-reality warning for the broader Phase 8 tooling packet:
+  * current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:
+  * `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
   * `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
   * `scripts/zigux/validate-phase8.py`
+  * `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+  * `zigux/tests/phase8_file_path_handle_bridge.zig`
+  * `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
+  * `zigux/tests/phase8_build.zig`
+  * `make -C zigux phase8-file-path-handle-bridge-test`
+  * repo-reality warning for the broader remaining Phase 8 tooling packet:
+  * `Documentation/zigux/phase8-tooling-lane-sequencing.md`
+  * `Documentation/zigux/phase8-help-slice.md`
+  * `Documentation/zigux/phase8-kallsyms-slice.md`
+  * `Documentation/zigux/phase8-libbpf-segment-survey.md`
   * `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
+  * `zigux/tests/phase8_libbpf_segments.zig`
+  * `zigux/tests/phase8_libbpf_segments_only_build.zig`
   * `zigux/Makefile`
-  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone
-  * if future same-lane work rematerializes the missing docs, validator, focused build shard, libbpf segment test, or Makefile routes, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`
+  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence
+  * if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`
 """
 
 
@@ -166,20 +207,33 @@ test "phase 8 perf-buffer poll tests README keeps the current direct-readback pa
     _ = "zigux/tests/README.md";
     _ = "current direct-readback Phase 8 anchors:";
     _ = "`scripts/zigux/check-phase8-tests-readme-alignment.py`";
-    _ = "repo-reality warning for the broader Phase 8 tooling packet:";
+    _ = "current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:";
+    _ = "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`";
     _ = "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`";
     _ = "`scripts/zigux/validate-phase8.py`";
+    _ = "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`";
+    _ = "`zigux/tests/phase8_file_path_handle_bridge.zig`";
+    _ = "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`";
+    _ = "`zigux/tests/phase8_build.zig`";
+    _ = "`make -C zigux phase8-file-path-handle-bridge-test`";
+    _ = "repo-reality warning for the broader remaining Phase 8 tooling packet:";
+    _ = "`Documentation/zigux/phase8-tooling-lane-sequencing.md`";
+    _ = "`Documentation/zigux/phase8-help-slice.md`";
+    _ = "`Documentation/zigux/phase8-kallsyms-slice.md`";
+    _ = "`Documentation/zigux/phase8-libbpf-segment-survey.md`";
     _ = "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`";
+    _ = "`zigux/tests/phase8_libbpf_segments.zig`";
+    _ = "`zigux/tests/phase8_libbpf_segments_only_build.zig`";
     _ = "`zigux/Makefile`";
-    _ = "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone";
+    _ = "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence";
 }
 
 test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet explicit" {
     _ = "scripts/zigux/README.md";
-    _ = "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves";
+    _ = "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly";
     _ = "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`";
     _ = "`zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface";
-    _ = "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone";
+    _ = "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build and make routes instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone";
 }
 
 test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {
