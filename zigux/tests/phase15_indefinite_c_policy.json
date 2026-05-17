@@ -45,7 +45,7 @@
         "latest blocker disposition",
         "evidence archive path",
         "automatic return-to-blocked trigger",
-        "retained discussion state",
+        "retired_from_active_discussion state",
         "reopen triggers",
         "trigger-specific evidence refresh",
         "parity scorecard link or blocker record",
