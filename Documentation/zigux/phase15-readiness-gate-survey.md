@@ -51,6 +51,8 @@ Repeated authenticated reads on current `master` still return missing for:
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/Makefile`
 
+The dedicated readiness manifest exact-pins those broader companions as absent repo evidence so this note's maintenance-only posture stays machine-checkable.
+
 Because those paths are still missing:
 
 - `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
