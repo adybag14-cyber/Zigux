@@ -39,10 +39,13 @@ It is intentionally current-master-safe: the shared reminder surfaces already na
   - `scripts/zigux/check-phase2-kconfig-readme-alignment.py`
   - `scripts/zigux/check-phase2-toolchain-pin-scope.py`
   - `scripts/zigux/check-genksyms-bridge.py`
+  - `scripts/zigux/genksyms.zig`
+  - `zigux/tests/fixtures/genksyms_bridge/cases.json`
+  - `zigux/tests/fixtures/genksyms_bridge/manifest.json`
   - `scripts/zigux/check-kconfig-bridge.py`
   - `scripts/zigux/install-zig.py`
   - `zigux/Makefile`
-- treat the broader validator-first, toolchain-pin, direct-cross, direct-bridge, and Linux-style make-route packet as historical closure vocabulary until those files are re-materialized on current `master`
+- treat the broader validator-first, toolchain-pin, direct-cross, direct-bridge, direct genksyms helper-and-fixture, and Linux-style make-route packet as historical closure vocabulary until those files are re-materialized on current `master`
 
 ## Review Notes
 
