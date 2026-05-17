@@ -49,8 +49,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
-    try expectContains(manifest, "\"lane_key\": \"P7-L04\"");
-    try expectContains(manifest, "\"lane_key_note\": \"P7-L04 remains the packet-local helper-slice marker for the expanded string-helpers starter packet. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with the separate Phase 7 shared-control lanes.\"");
+    try expectContains(manifest, "\"lane_key\": \"helper-local\"");
+    try expectContains(manifest, "\"lane_key_note\": \"helper-local keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those shared-control lanes.\"");
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
     try expectContains(manifest, "\"sysfsStreq\"");
     try expectContains(manifest, "\"sysfs_streq\"");
