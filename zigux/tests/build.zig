@@ -101,6 +101,38 @@ fn addPhase3DevTStarterPacket(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3ErrPtrXarrayStarterPacket(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const err_ptr = b.createModule(.{
+        .root_source_file = b.path("../helpers/err_ptr.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const xa_value = b.createModule(.{
+        .root_source_file = b.path("../helpers/xa_value.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    xa_value.addImport("err_ptr", err_ptr);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_errptr_xarray_starter_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("err_ptr", err_ptr);
+    root_module.addImport("xa_value", xa_value);
+
+    const tests = b.addTest(.{
+        .name = "phase3-errptr-xarray-starter-packet",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3PolicyStarterPacket(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -177,6 +209,7 @@ pub fn build(b: *std.Build) void {
 
     const phase1_host_tools_smoke = addPhase1HostToolsSmoke(b, target, optimize);
     const phase3_dev_t_starter_packet = addPhase3DevTStarterPacket(b, target, optimize);
+    const phase3_errptr_xarray_starter_packet = addPhase3ErrPtrXarrayStarterPacket(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
 
@@ -201,6 +234,12 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 3 dev_t starter packet from zigux/tests",
     );
     phase3_step.dependOn(&phase3_dev_t_starter_packet.step);
+
+    const phase3_errptr_xarray_step = b.step(
+        "phase3-errptr-xarray-starter-packet",
+        "Run the shared Phase 3 err_ptr/xarray starter packet from zigux/tests",
+    );
+    phase3_errptr_xarray_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
 
     const phase3_policy_step = b.step(
         "phase3-policy-starter-packet",
