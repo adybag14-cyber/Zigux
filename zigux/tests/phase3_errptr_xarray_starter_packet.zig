@@ -28,9 +28,10 @@ test "xa_value rejects inline values that would overlap err_ptr encodings" {
     );
 }
 
-test "safe inline limit stays below the err_ptr floor" {
+test "safe inline limit stays the highest tagged value below the err_ptr floor" {
     const raw = try xa_value.makeValue(xa_value.safe_inline_limit);
 
     try testing.expect(xa_value.isValue(raw));
-    try testing.expect(raw < err_ptr.err_floor);
+    try testing.expectEqual(xa_value.safe_inline_limit, xa_value.toValue(raw));
+    try testing.expectEqual(err_ptr.err_floor, raw + 2);
 }
