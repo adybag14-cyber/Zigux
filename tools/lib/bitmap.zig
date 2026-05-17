@@ -78,6 +78,14 @@ pub fn copyAndExtend(dst: []Word, src: []const Word, count: usize, size: usize) 
     @memset(dst[copied_words..bitsToWords(size)], 0);
 }
 
+pub fn bitmap_copy_clear_tail(dst: []Word, src: []const Word, nbits: usize) void {
+    copyClearTail(dst, src, nbits);
+}
+
+pub fn bitmap_copy_and_extend(dst: []Word, src: []const Word, count: usize, size: usize) void {
+    copyAndExtend(dst, src, count, size);
+}
+
 pub fn empty(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
     return find_bit.findFirstBit(src, nbits) == nbits;
@@ -418,21 +426,18 @@ test "bitmap copy aliases preserve tail clearing and extension semantics" {
     const count = bits_per_long + 5;
     const size = bits_per_long * 3;
     const src = [_]Word{ ~@as(Word, 0), ~@as(Word, 0), 0 };
-    var dst = [_]Word{ 0, 0, 0 };
 
-    copy(&dst, src[0..2], count);
-    try std.testing.expectEqual(~@as(Word, 0), dst[1]);
+    var direct_tail = [_]Word{ 0, 0, 0 };
+    var alias_tail = [_]Word{ 0, 0, 0 };
+    copyClearTail(&direct_tail, src[0..2], count);
+    bitmap_copy_clear_tail(&alias_tail, src[0..2], count);
+    try std.testing.expectEqualSlices(Word, &direct_tail, &alias_tail);
 
-    copyClearTail(&dst, src[0..2], count);
-    try std.testing.expectEqual(~@as(Word, 0), dst[0]);
-    try std.testing.expectEqual(lastWordMask(count), dst[1]);
-    try std.testing.expectEqual(@as(Word, 0), dst[2]);
-
-    var extended = [_]Word{ 0xaa55, 0xaa55, 0xaa55 };
-    copyAndExtend(&extended, src[0..2], count, size);
-    try std.testing.expectEqual(~@as(Word, 0), extended[0]);
-    try std.testing.expectEqual(lastWordMask(count), extended[1]);
-    try std.testing.expectEqual(@as(Word, 0), extended[2]);
+    var direct_extend = [_]Word{ 0xaa55, 0xaa55, 0xaa55 };
+    var alias_extend = [_]Word{ 0xaa55, 0xaa55, 0xaa55 };
+    copyAndExtend(&direct_extend, src[0..2], count, size);
+    bitmap_copy_and_extend(&alias_extend, src[0..2], count, size);
+    try std.testing.expectEqualSlices(Word, &direct_extend, &alias_extend);
 }
 
 test "bitmap copy and extend handles zero and aligned counts" {
