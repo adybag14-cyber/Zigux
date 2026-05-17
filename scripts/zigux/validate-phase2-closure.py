@@ -23,6 +23,7 @@ EXPECTED_DOC_MARKERS = (
     "`PHASE2_CLOSURE_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase2-closure.py --self-test`",
     "`PHASE2_CLOSURE_VALIDATOR_GATE=python3 scripts/zigux/validate-phase2-closure.py`",
     "`PHASE2_TOOL_MANIFEST=zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`PHASE2_TOOLCHAIN_BOOTSTRAP_NOTES=Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`PHASE2_SHARED_VALIDATOR=scripts/zigux/validate-phase2.py`",
     "`PHASE2_SHARED_MAKEFILE=zigux/Makefile`",
@@ -37,7 +38,7 @@ EXPECTED_DOC_MARKERS = (
     "`scripts/zigux/check-kconfig-bridge.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-zig-toolchain.py`",
-    "`PHASE2_NEXT_STEP=restore one remaining toolchain helper or reviewer-surface checker packet at a time now that the shared validator, Linux-style Makefile routes, and current-master kconfig bridge checker are back on the lane branch, instead of replaying the older full closure matrix in one jump`",
+    "`PHASE2_NEXT_STEP=restore one remaining toolchain helper or reviewer-surface checker packet at a time now that the shared validator and Linux-style Makefile routes are back on the lane branch, instead of replaying the older full closure matrix in one jump`",
 )
 
 EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
@@ -46,9 +47,11 @@ EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
     "`PHASE2_TOOLCHAIN_WORKFLOW_SURFACE=.github/workflows/zigux-bootstrap.yml`",
     "`PHASE2_CLOSURE_COMPANION=Documentation/zigux/phase2-closure.md`",
     "`PHASE2_TOOL_MANIFEST=zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`PHASE2_SHARED_VALIDATOR=scripts/zigux/validate-phase2.py`",
     "`PHASE2_SHARED_MAKEFILE=zigux/Makefile`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
@@ -60,6 +63,7 @@ EXPECTED_PRESENT_FILES = [
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "Documentation/zigux/README.md",
@@ -69,15 +73,14 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-    "scripts/zigux/check-kconfig-bridge.py",
 ]
 
 EXPECTED_MISSING_FILES = [
-    "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/check-zig-toolchain.py",
 ]
@@ -97,7 +100,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -180,6 +183,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_FIELD", "closure_doc"))
     if manifest.get("shared_validator") != "scripts/zigux/validate-phase2.py":
         issues.append(("INVALID_MANIFEST_FIELD", "shared_validator"))
+    if manifest.get("tool_manifest_checker") != "scripts/zigux/check-phase2-tool-manifest-packets.py":
+        issues.append(("INVALID_MANIFEST_FIELD", "tool_manifest_checker"))
     if manifest.get("makefile") != "zigux/Makefile":
         issues.append(("INVALID_MANIFEST_FIELD", "makefile"))
     if manifest.get("present_files") != EXPECTED_PRESENT_FILES:
@@ -221,6 +226,7 @@ def manifest_json(
     closure_validator: str = "scripts/zigux/validate-phase2-closure.py",
     closure_doc: str = "Documentation/zigux/phase2-closure.md",
     shared_validator: str = "scripts/zigux/validate-phase2.py",
+    tool_manifest_checker: str = "scripts/zigux/check-phase2-tool-manifest-packets.py",
     makefile: str = "zigux/Makefile",
     present_files: list[str] | None = None,
     missing_files: list[str] | None = None,
@@ -233,6 +239,7 @@ def manifest_json(
         "closure_validator": closure_validator,
         "closure_doc": closure_doc,
         "shared_validator": shared_validator,
+        "tool_manifest_checker": tool_manifest_checker,
         "makefile": makefile,
         "present_files": EXPECTED_PRESENT_FILES if present_files is None else present_files,
         "missing_files": EXPECTED_MISSING_FILES if missing_files is None else missing_files,
@@ -265,96 +272,35 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, CLOSURE_DOC)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), EXPECTED_DOC_MARKERS[0]), encoding="utf-8")
-        assert ("MISSING_CLOSURE_DOC_MARKERS", EXPECTED_DOC_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
+        for path, marker, code in (
+            (CLOSURE_DOC, EXPECTED_DOC_MARKERS[0], "MISSING_CLOSURE_DOC_MARKERS"),
+            (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_NOTES_MARKERS[0], "MISSING_BOOTSTRAP_NOTES_MARKERS"),
+            (DOCS_ROOT_README, EXPECTED_DOCS_ROOT_MARKERS[0], "MISSING_DOCS_ROOT_MARKERS"),
+            (TESTS_README, EXPECTED_TESTS_README_MARKERS[0], "MISSING_TESTS_README_MARKERS"),
+            (REVIEW_CHECKLIST, EXPECTED_REVIEW_CHECKLIST_MARKERS[0], "MISSING_REVIEW_CHECKLIST_MARKERS"),
+            (SCRIPTS_README, EXPECTED_SCRIPTS_README_MARKERS[0], "MISSING_SCRIPTS_README_MARKERS"),
+        ):
+            build_self_test_root(root)
+            target = resolve_path(root, path)
+            target.write_text(replace_once(target.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert (code, marker) in collect_issues(root)
+            checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, BOOTSTRAP_NOTES)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), EXPECTED_BOOTSTRAP_NOTES_MARKERS[0]),
-            encoding="utf-8",
-        )
-        assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", EXPECTED_BOOTSTRAP_NOTES_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, DOCS_ROOT_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), EXPECTED_DOCS_ROOT_MARKERS[0]),
-            encoding="utf-8",
-        )
-        assert ("MISSING_DOCS_ROOT_MARKERS", EXPECTED_DOCS_ROOT_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, TESTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), EXPECTED_TESTS_README_MARKERS[0]),
-            encoding="utf-8",
-        )
-        assert ("MISSING_TESTS_README_MARKERS", EXPECTED_TESTS_README_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, REVIEW_CHECKLIST)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), EXPECTED_REVIEW_CHECKLIST_MARKERS[0]),
-            encoding="utf-8",
-        )
-        assert ("MISSING_REVIEW_CHECKLIST_MARKERS", EXPECTED_REVIEW_CHECKLIST_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, SCRIPTS_README)
-        path.write_text(
-            replace_once(path.read_text(encoding="utf-8"), EXPECTED_SCRIPTS_README_MARKERS[0]),
-            encoding="utf-8",
-        )
-        assert ("MISSING_SCRIPTS_README_MARKERS", EXPECTED_SCRIPTS_README_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(packet="not_phase2_tool_manifest"))
-        assert ("INVALID_MANIFEST_FIELD", "packet") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(phase="Phase 2"))
-        assert ("INVALID_MANIFEST_FIELD", "phase") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(status="partial"))
-        assert ("INVALID_MANIFEST_FIELD", "status") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(toolchain_bootstrap_doc="Documentation/zigux/other.md"))
-        assert ("INVALID_MANIFEST_FIELD", "toolchain_bootstrap_doc") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(closure_validator="scripts/zigux/other.py"))
-        assert ("INVALID_MANIFEST_FIELD", "closure_validator") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(closure_doc="Documentation/zigux/other.md"))
-        assert ("INVALID_MANIFEST_FIELD", "closure_doc") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(shared_validator="scripts/zigux/other.py"))
-        assert ("INVALID_MANIFEST_FIELD", "shared_validator") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(makefile="zigux/Other.mk"))
-        assert ("INVALID_MANIFEST_FIELD", "makefile") in collect_issues(root)
-        checks_run += 1
+        for field, kwargs in (
+            ("packet", {"packet": "wrong"}),
+            ("phase", {"phase": "Phase 2"}),
+            ("status", {"status": "partial"}),
+            ("toolchain_bootstrap_doc", {"toolchain_bootstrap_doc": "Documentation/zigux/other.md"}),
+            ("closure_validator", {"closure_validator": "scripts/zigux/other.py"}),
+            ("closure_doc", {"closure_doc": "Documentation/zigux/other.md"}),
+            ("shared_validator", {"shared_validator": "scripts/zigux/other.py"}),
+            ("tool_manifest_checker", {"tool_manifest_checker": "scripts/zigux/other.py"}),
+            ("makefile", {"makefile": "zigux/Other.mk"}),
+        ):
+            build_self_test_root(root)
+            write_text(root, MANIFEST, manifest_json(**kwargs))
+            assert ("INVALID_MANIFEST_FIELD", field) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(present_files=EXPECTED_PRESENT_FILES[:-1]))
