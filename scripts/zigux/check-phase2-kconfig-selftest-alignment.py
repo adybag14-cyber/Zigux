@@ -90,7 +90,8 @@ REVIEW_CHECKLIST_MARKERS = (
 PHASE2_CLOSURE_DOC_MARKERS = (
     "shared kconfig selftest-alignment self-test: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test`",
     "shared kconfig selftest-alignment gate: `python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "direct replay owners stay split on current `master`: `zig test scripts/zigux/fixdep.zig` remains the shipped direct Phase 2 Zig replay, while the broader fixdep, genksyms, artifact-tools, and kconfig bridge evidence stays documented through `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, `zigux/tests/README.md`, and `zigux/Makefile` instead of implying unshipped direct bridge or artifact replay entrypoints on current `master`",
+    "direct replay owners stay bounded on current `master`: `zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test scripts/zigux/kconfig/conf_bridge.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` remain the shipped direct Phase 2 Zig replays",
+    "while the broader artifact-tools packet stays documented through `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, `zigux/tests/README.md`, and `zigux/Makefile` instead of implying extra standalone artifact replay entrypoints on current `master`",
 )
 
 PHASE2_BOOTSTRAP_NOTES_MARKERS = (
@@ -100,7 +101,7 @@ PHASE2_BOOTSTRAP_NOTES_MARKERS = (
     "the Linux-style `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` replay routes keep this dedicated note tied to the same kbuild-facing replay surface named by `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the shared validator pair, and the closure note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 66
+EXPECTED_SELF_TEST_CASE_COUNT = 67
 
 
 def read_text(path: Path) -> str:
@@ -108,7 +109,6 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
-
 
 
 def resolve_path(root: Path, path: Path) -> Path:
