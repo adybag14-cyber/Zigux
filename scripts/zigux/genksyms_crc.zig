@@ -36,6 +36,9 @@ const crctab32 = [_]u32{
     0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94, 0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
 };
 
+const c_line_buffer_len = 4096;
+const c_line_payload_len = c_line_buffer_len - 1;
+
 pub fn partialCrc32One(c: u8, crc: u32) u32 {
     return crctab32[(crc ^ c) & 0xff] ^ (crc >> 8);
 }
@@ -56,6 +59,22 @@ fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
     return text[0..end];
 }
 
+fn nextCHarnessLineChunk(input: []const u8, cursor: *usize) ?[]const u8 {
+    if (cursor.* >= input.len) return null;
+
+    const remaining = input[cursor.*..];
+    const scan_len = @min(remaining.len, c_line_payload_len);
+    const scan = remaining[0..scan_len];
+
+    if (std.mem.indexOfScalar(u8, scan, '\n')) |newline_index| {
+        cursor.* += newline_index + 1;
+        return trimTrailingCarriageReturn(scan[0..newline_index]);
+    }
+
+    cursor.* += scan_len;
+    return trimTrailingCarriageReturn(scan);
+}
+
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
     for (text) |c| switch (c) {
         '\\' => try writer.writeAll("\\\\"),
@@ -69,10 +88,9 @@ fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
 
 pub fn runGenksymsCrc(input: []const u8, writer: anytype) !void {
     try writer.writeAll("{\"cases\":[");
-    var it = std.mem.splitScalar(u8, input, '\n');
+    var cursor: usize = 0;
     var first = true;
-    while (it.next()) |raw_line| {
-        const line = trimTrailingCarriageReturn(raw_line);
+    while (nextCHarnessLineChunk(input, &cursor)) |line| {
         if (line.len == 0) continue;
         if (!first) try writer.writeByte(',');
         first = false;
@@ -193,6 +211,60 @@ test "runGenksymsCrc preserves case order while skipping blank lines" {
         "{\"cases\":[{\"input\":\"struct device\",\"crc_hex\":\"0xa38c4517\"},{\"input\":\"int\",\"crc_hex\":\"0x1451dab1\"}]}\n",
         capture.list.items,
     );
+}
+
+test "runGenksymsCrc mirrors C fgets chunking for oversized lines" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 12288),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var long_line = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 3);
+    defer long_line.deinit(std.testing.allocator);
+    try long_line.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try long_line.append(std.testing.allocator, 'b');
+    try long_line.append(std.testing.allocator, '\n');
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(long_line.items, &capture);
+
+    const first_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(long_line.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(first_crc);
+    const second_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("b")});
+    defer std.testing.allocator.free(second_crc);
+    const unsplit_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(long_line.items[0 .. long_line.items.len - 1])});
+    defer std.testing.allocator.free(unsplit_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, unsplit_crc) == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, first_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, second_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") != null);
 }
 
 test "runGenksymsCrc trims repeated carriage returns before hashing" {
