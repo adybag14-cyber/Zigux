@@ -1,6 +1,6 @@
 const std = @import("std");
 
-pub fn read(comptime T: type, ptr: *volatile const T) T {
+pub fn read(comptime T: type, ptr: *const volatile T) T {
     return ptr.*;
 }
 
@@ -47,4 +47,22 @@ test "phase3 mmio helper keeps masked register updates reviewable" {
         writeMasked(u8, register_ptr, 0b0011_0001, 0b0001_0010),
     );
     try std.testing.expectEqual(@as(u8, 0b1001_0110), register);
+}
+
+test "phase3 mmio helper keeps 64-bit const reads and masked updates reviewable" {
+    var register: u64 = 0x1234_5678_9ABC_DEF0;
+    const register_ptr: *volatile u64 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u64 = @ptrCast(&register);
+
+    try std.testing.expectEqual(@as(u64, 0x1234_5678_9ABC_DEF0), read(u64, const_register_ptr));
+    try std.testing.expectEqual(@as(u64, 0x1234_5678_9ABC_DEF0), exchange(u64, register_ptr, 0x0F0E_0D0C_0B0A_0908));
+    try std.testing.expectEqual(@as(u64, 0x0F0E_0D0C_0B0A_0908), register);
+
+    write(u64, register_ptr, 0x1234_5678_9ABC_DEF0);
+    try std.testing.expectEqual(
+        @as(u64, 0x1255_5678_9A11_DEA0),
+        writeMasked(u64, register_ptr, 0x00FF_0000_00FF_00F0, 0x0055_0000_0011_00A0),
+    );
+    try std.testing.expectEqual(@as(u64, 0x1255_5678_9A11_DEA0), register);
+    try std.testing.expectEqual(@as(u64, 0x1255_5678_9A11_DEA0), read(u64, const_register_ptr));
 }
