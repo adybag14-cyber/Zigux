@@ -271,7 +271,7 @@ def run_self_test() -> int:
                     encoding="utf-8",
                 )
             elif operation == "duplicate_marker":
-                target.writeText(text.replace(first_docs_marker, first_docs_marker + "\n" + first_docs_marker, 1), encoding="utf-8")
+                target.write_text(text.replace(first_docs_marker, first_docs_marker + "\n" + first_docs_marker, 1), encoding="utf-8")
             elif operation == "remove_checklist_packet_alignment":
                 target.write_text(
                     text.replace(checklist_packet_alignment_marker + "\n", "", 1),
