@@ -1,12 +1,12 @@
 # Phase 2 Closure
 
-This note tracks the bounded Lane 22 closure anchor on the active Phase 2 branch.
+This note tracks the bounded Lane 24 closure anchor on the active Phase 2 branch.
 
 It stays branch-scoped: live `master` still lacks parts of the broader Phase 2 packet, but this lane branch now carries the shared validator, the manifest-packet checker, the dedicated kconfig README alignment checker, the dedicated toolchain pin-scope guard, and Linux-style `zigux/Makefile` routes alongside the restored closure note, the dedicated bootstrap companion, and the compact manifest.
 
 ## Status
 
-- `PHASE2_STATUS=lane22-branch-restacked`
+- `PHASE2_STATUS=lane24-branch-restacked`
 - `PHASE2_CLOSURE_ROUTE_STATUS=branch-closure-packet-restacked-on-current-master`
 - `PHASE2_CLOSURE_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase2-closure.py --self-test`
 - `PHASE2_CLOSURE_VALIDATOR_GATE=python3 scripts/zigux/validate-phase2-closure.py`
@@ -56,5 +56,5 @@ It stays branch-scoped: live `master` still lacks parts of the broader Phase 2 p
 - `zigux/tests/fixtures/phase2_tool_manifest.json` now keeps the restacked branch packet explicit as a present-versus-missing inventory and no longer leaves `scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/check-zig-toolchain.py`, or `scripts/zigux/check-phase2-toolchain-pin-scope.py` in the missing bucket after those helpers became directly readable on the lane branch
 - `scripts/zigux/check-phase2-tool-manifest-packets.py` now keeps `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/check-phase2-kconfig-readme-alignment.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, and `zigux/tests/fixtures/phase2_tool_manifest.json` aligned around the branch-local manifest packet without claiming the broader missing helper set is already back
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md` now records the same branch-local validator, checker, pin-scope, and Makefile packet while treating `scripts/zigux/check-zig-toolchain.py` as present shared toolchain evidence and treating `scripts/zigux/install-zig.py` as the remaining installer-backed gap
-- the shared reminder surfaces still carry the broader Phase 2 vocabulary they already shipped with; this closure note is the bounded branch-local source of truth for which closure-side pieces are materialized together on PR `#789`
+- the shared reminder surfaces still carry the broader Phase 2 vocabulary they already shipped with; this closure note is the bounded branch-local source of truth for which closure-side pieces are materialized together on PR `#937`
 - `PHASE2_NEXT_STEP=restore one remaining broader checker or installer-backed helper packet at a time now that the closure note, bootstrap companion, shared validator, dedicated kconfig README checker, dedicated toolchain pin-scope guard, manifest checker, and Linux-style Makefile routes are replayed together on the lane branch`
