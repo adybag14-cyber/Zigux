@@ -364,7 +364,7 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--self-test", action="store_true", help="run the built-in fixture test")
-    args = parse_args()
+    args = parser.parse_args()
     if args.self_test:
         return run_self_test()
     issues = validate(ROOT)
