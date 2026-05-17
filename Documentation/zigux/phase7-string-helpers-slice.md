@@ -34,7 +34,7 @@ This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Curr
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
 
 4. keep shared-control drift out of this helper-local slice unless it rematerializes on current `master`
-- do not count `scripts/zigux/validate-phase7.py`
+- do not count `python3 scripts/zigux/validate-phase7.py`
 - do not count `scripts/zigux/check-phase7-make-wrapper.py`
 - do not count `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
 - do not count `scripts/zigux/check-phase7-build-wiring.py`
