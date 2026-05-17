@@ -28,6 +28,10 @@ pub fn sanitizePinPath(path: []u8) void {
     }
 }
 
+fn sanitizePinnedMapName(path: []u8, map_name: []const u8) void {
+    sanitizePinPath(path[path.len - map_name.len ..]);
+}
+
 pub fn validatePinName(name: []const u8) PinPathError!void {
     if (name.len == 0) {
         return error.EmptyName;
@@ -62,13 +66,13 @@ pub fn buildValidatedMapPinPath(buffer: []u8, root_path: ?[]const u8, map_name: 
 
 pub fn buildSanitizedMapPinPath(buffer: []u8, root_path: ?[]const u8, map_name: []const u8) PinPathError![]u8 {
     const full_path = try buildMapPinPath(buffer, root_path, map_name);
-    sanitizePinPath(full_path);
+    sanitizePinnedMapName(full_path, map_name);
     return full_path;
 }
 
 pub fn buildValidatedSanitizedMapPinPath(buffer: []u8, root_path: ?[]const u8, map_name: []const u8) PinPathError![]u8 {
     const full_path = try buildValidatedMapPinPath(buffer, root_path, map_name);
-    sanitizePinPath(full_path);
+    sanitizePinnedMapName(full_path, map_name);
     return full_path;
 }
 
@@ -106,7 +110,7 @@ test "buildSanitizedMapPinPath mirrors libbpf dot sanitization for pin names" {
         try buildSanitizedMapPinPath(&buffer, null, "metrics.v1"),
     );
     try std.testing.expectEqualStrings(
-        "/tmp/bpf_v1_2/cache_map",
+        "/tmp/bpf.v1.2/cache_map",
         try buildSanitizedMapPinPath(&buffer, "/tmp/bpf.v1.2", "cache.map"),
     );
 }
@@ -148,6 +152,10 @@ test "validated pin-path helpers keep pin-name and root-path shape checks explic
     try std.testing.expectEqualStrings(
         "/sys/fs/bpf/metrics_v1",
         try buildValidatedSanitizedMapPinPath(&buffer, null, "metrics.v1"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/metrics_v1",
+        try buildValidatedSanitizedMapPinPath(&buffer, "/tmp/bpf.v1", "metrics.v1"),
     );
     try std.testing.expectError(
         error.InvalidName,
