@@ -39,6 +39,7 @@ Current `master` now carries one bounded `dev_t` starter packet, one focused hel
 - `zigux/bindings/abi.zig`
 - `zigux/helpers/panic_policy.zig`
 - `zigux/helpers/allocator_policy.zig`
+- `zigux/helpers/unsafe_policy.zig`
 - `zigux/tests/phase3_policy_starter_packet.zig`
 - `zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_starter_packet_manifest.json`
@@ -61,7 +62,6 @@ The following representative Phase 3 routes still read as absent on the live tre
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `scripts/zigux/validate-phase3.py`
 - `scripts/zigux/phase3_catalog.py`
-- `zigux/bindings/notifier_abi.zig`
 - `zigux/tests/phase3_export_uapi_layout.zig`
 - `zigux/tests/phase3_export_uapi_layout_build.zig`
 - `zigux/tests/phase3_low_level_wrappers.zig`
