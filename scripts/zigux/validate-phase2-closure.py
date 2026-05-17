@@ -38,7 +38,7 @@ EXPECTED_DOC_MARKERS = (
     "`scripts/zigux/check-kconfig-bridge.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-zig-toolchain.py`",
-    "`PHASE2_NEXT_STEP=restore one remaining toolchain helper or reviewer-surface checker packet at a time now that the shared validator and Linux-style Makefile routes are back on the lane branch, instead of replaying the older full closure matrix in one jump`",
+    "`PHASE2_NEXT_STEP=restore one remaining toolchain helper or reviewer-surface checker packet at a time now that the shared validator, the dedicated kconfig README alignment checker, and Linux-style Makefile routes are back on the lane branch, instead of replaying the older full closure matrix in one jump`",
 )
 
 EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
@@ -73,11 +73,11 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
 ]
 
 EXPECTED_MISSING_FILES = [
     "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/check-kconfig-bridge.py",
