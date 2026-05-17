@@ -34,19 +34,24 @@ REQUIRED_MARKERS = (
     "`zigux/tests/phase13_landlock_syscalls.zig`",
     "`zigux/tests/phase13_landlock_syscalls_reviewability.zig`",
     "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
-    "`scripts/zigux/check-phase13-devres-packet-alignment.py`",
-    "`scripts/zigux/check-phase13-landlock-ruleset-packet.py`",
-    "`scripts/zigux/check-phase13-notifier-priority-signal.py`",
-    "`scripts/zigux/validate-phase13-release.py`",
-    "`zigux/Makefile`",
-    "`make -C zigux phase13-validate`",
-    "blocked convenience route `make -C zigux phase13`",
-    "Current `master` still does not materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py` or `Documentation/zigux/phase13-notifier-list-survey.md`",
+    "`zigux/helpers/notifier_chain_view.zig`",
+    "`zigux/bindings/notifier_abi.zig`",
+    "`include/zigux/abi.h`",
+    "`drivers/tty/hvc/hvc_console.h`",
+    "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
 )
 
 FORBIDDEN_SHIPPED_LINES = (
     "- `Documentation/zigux/phase13-notifier-list-survey.md`",
+    "- `zigux/Makefile`",
+    "- `make -C zigux phase13-validate`",
+    "- blocked convenience route `make -C zigux phase13`",
     "- `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
+)
+
+FORBIDDEN_TEXT = (
+    "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`",
+    "Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands",
 )
 
 
@@ -75,9 +80,13 @@ def collect_missing_markers(text: str) -> list[str]:
     return [marker for marker in REQUIRED_MARKERS if marker not in text]
 
 
-def collect_forbidden_markers(text: str) -> list[str]:
+def collect_forbidden_shipped_markers(text: str) -> list[str]:
     section = extract_phase13_shipped_section(text)
     return [line for line in FORBIDDEN_SHIPPED_LINES if line in section]
+
+
+def collect_forbidden_text(text: str) -> list[str]:
+    return [fragment for fragment in FORBIDDEN_TEXT if fragment in text]
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -85,8 +94,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for marker in collect_missing_markers(tests_readme_text):
         issues.append(("MISSING_MARKER", marker))
-    for marker in collect_forbidden_markers(tests_readme_text):
+    for marker in collect_forbidden_shipped_markers(tests_readme_text):
         issues.append(("FORBIDDEN_SHIPPED_MARKER", marker))
+    for fragment in collect_forbidden_text(tests_readme_text):
+        issues.append(("FORBIDDEN_TEXT", fragment))
     return issues
 
 
@@ -113,7 +124,7 @@ def build_self_test_root(root: Path) -> None:
         "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:",
     ]
     section_lines.extend(f"- {marker}" for marker in REQUIRED_MARKERS[:-1])
-    section_lines.append(f"Current `master` still does not materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py` or `Documentation/zigux/phase13-notifier-list-survey.md`, so keep both paths framed as remaining shared-summary repo-reality gaps rather than as shipped tests-root evidence.")
+    section_lines.append(REQUIRED_MARKERS[-1] + ", so keep those paths framed as repo-reality gaps rather than as shipped tests-root evidence.")
     section_lines.append("")
     section_lines.append(PHASE13_SECTION_END)
     write_text(resolve_path(root, TESTS_README), "\n".join(section_lines) + "\n")
@@ -127,7 +138,7 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 4
+    expected_case_count = 5
     with tempfile.TemporaryDirectory(prefix="zigux_p13_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -135,16 +146,42 @@ def run_self_test() -> int:
         checks_run += 1
 
         path = resolve_path(root, TESTS_README)
-        path.write_text(replace_once(path.read_text(encoding="utf-8"), "`zigux/tests/phase13_devres_boundary_evidence.zig`"), encoding="utf-8")
+        path.write_text(
+            replace_once(
+                path.read_text(encoding="utf-8"),
+                "`zigux/tests/phase13_devres_boundary_evidence.zig`",
+            ),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
         assert ("MISSING_MARKER", "`zigux/tests/phase13_devres_boundary_evidence.zig`") in issues
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TESTS_README)
-        path.write_text(path.read_text(encoding="utf-8").replace("Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n", "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n- `Documentation/zigux/phase13-notifier-list-survey.md`\n", 1), encoding="utf-8")
+        path.write_text(
+            path.read_text(encoding="utf-8").replace(
+                "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n",
+                "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n- `zigux/Makefile`\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
         issues = collect_issues(root)
-        assert ("FORBIDDEN_SHIPPED_MARKER", "- `Documentation/zigux/phase13-notifier-list-survey.md`") in issues
+        assert ("FORBIDDEN_SHIPPED_MARKER", "- `zigux/Makefile`") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TESTS_README)
+        path.write_text(
+            path.read_text(encoding="utf-8") + "\nCurrent `master` still exposes `make -C zigux phase13` through `zigux/Makefile`.\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(root)
+        assert (
+            "FORBIDDEN_TEXT",
+            "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -164,7 +201,9 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Keep the current Phase 13 tests-root reminder packet aligned with shared-helper repo reality.")
+    parser = argparse.ArgumentParser(
+        description="Keep the current Phase 13 tests-root reminder packet aligned with shared-helper repo reality."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
