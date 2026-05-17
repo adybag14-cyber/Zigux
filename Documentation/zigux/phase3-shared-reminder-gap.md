@@ -19,7 +19,6 @@ Current `master` already narrows the validator-facing Phase 3 packet to the boun
 
 ## Shared reminder surfaces still broader than current tree
 
-- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
 
