@@ -48,6 +48,10 @@ LANE_SEQUENCING_BACKLOG_MARKER = "does not currently expose the broader shared r
 TESTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 TESTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 TESTS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
+TESTS_README_BACKLOG_MARKER = (
+    "there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, "
+    "`make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`"
+)
 DOCS_README_PHASE9_NOTES_MARKER = "Phase 9 notes - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`"
 DOCS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 DOCS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
@@ -87,6 +91,7 @@ TESTS_README_REQUIRED_MARKERS = [
     TESTS_README_TRACE_EVENTS_SAMPLE_MARKER,
     TESTS_README_SELFTEST_HOOK_MARKER,
     TESTS_README_LIFECYCLE_MARKER,
+    TESTS_README_BACKLOG_MARKER,
 ]
 
 DOCS_README_REQUIRED_MARKERS = [
@@ -186,6 +191,7 @@ def build_tests_readme_fixture_text() -> str:
 
 Phase 9 review packet
   * the surviving trace-events sample still keeps the roadmap-backed runtime pilot shape concrete by exposing {TESTS_README_SELFTEST_HOOK_MARKER} together with {TESTS_README_LIFECYCLE_MARKER} inside {TESTS_README_TRACE_EVENTS_SAMPLE_MARKER}, so reviewers can still inspect one real runtime-module and selftest-hook surface while the broader shared loader packet remains backlog
+  * {TESTS_README_BACKLOG_MARKER}
 """
 
 
