@@ -58,9 +58,10 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
+    "`Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now reflect that bounded three-slice posture",
     "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for the earlier docs-root cleanup",
-    "`scripts/zigux/README.md` is still parked on the older absent-route wording for `zigux/kernel/export_shim.zig`",
+    "`scripts/zigux/check-phase3-readme-tooling-inventory.py` keeps the scripts-root inventory aligned with the current starter export shim companion,",
+    "the landed helper-local fixture-backed parity packet, and the focused policy slice.",
     "Keep any remaining follow-up focused on shared reminder or scripts-root inventory truthfulness if one of those broader surfaces drifts again.",
     "This note is limited to the current validator-support posture for Phase 3.",
 )
@@ -75,12 +76,16 @@ SELF_TEST_CASES = (
         "scripts/zigux/validate-phase3.py",
     ),
     (
-        "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
-        "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
+        "`Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now reflect that bounded three-slice posture",
+        "`Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now reflect that bounded three-slice posture",
     ),
     (
         "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for the earlier docs-root cleanup",
         "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for the earlier docs-root cleanup",
+    ),
+    (
+        "`scripts/zigux/check-phase3-readme-tooling-inventory.py` keeps the scripts-root inventory aligned with the current starter export shim companion,",
+        "`scripts/zigux/check-phase3-readme-tooling-inventory.py` keeps the scripts-root inventory aligned with the current starter export shim companion,",
     ),
     (
         "Keep any remaining follow-up focused on shared reminder or scripts-root inventory truthfulness if one of those broader surfaces drifts again.",
