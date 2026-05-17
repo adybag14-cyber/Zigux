@@ -531,6 +531,22 @@ test "conf bridge explicit allconfig override wins over alldefconfig sentinel" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
 }
 
+test "conf bridge emits explicit empty allconfig override for alldefconfig" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .alldefconfig,
+        .kconfig = "Kconfig",
+        .config = "build/.config",
+        .arch = "arm64",
+        .allconfig = "",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+}
+
 test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     var capture = try TestCapture.init(std.testing.allocator, 160);
     defer capture.deinit();
@@ -691,6 +707,16 @@ test "mode argument validation still accepts ordinary path text with equals" {
 
 test "bridge options parser accepts explicit allconfig override for allmodconfig" {
     const options = try parseBridgeOptions(.allmodconfig, &.{"allconfig="});
+    try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
+    try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
+    try std.testing.expect(options.nosilentupdate == null);
+}
+
+test "bridge options parser accepts explicit empty allconfig override for alldefconfig" {
+    const options = try parseBridgeOptions(.alldefconfig, &.{"allconfig="});
     try std.testing.expect(options.silent == false);
     try std.testing.expect(options.allconfig != null);
     try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
