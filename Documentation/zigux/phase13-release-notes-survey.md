@@ -33,10 +33,11 @@ Direct current-`master` readback in this run materialized these shared reminder 
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Those files keep the shared Phase 13 packet active and still not closed, but current `master` no longer keeps every reminder surface aligned on the same `devres` packet.
+Those files keep the shared Phase 13 packet active and still not closed. Current `master` now also keeps the old missing-checker gap closed through `Documentation/zigux/phase13-shared-summary-guard-gap.md` and `scripts/zigux/check-phase13-shared-summary-surfaces.py`, even though the broader reminder packet still does not keep every contributor-facing surface aligned on the same `devres` packet.
 
 Direct current-`master` rereads in this run show that `Documentation/zigux/phase13-release-coordination-matrix.md` and this survey keep the release-facing `devres` packet narrowed to `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`.
 
@@ -60,6 +61,8 @@ The release-planning handle that is directly supportable from this run stays anc
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
 Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build wrapper surfaces remain explicit repo-reality gaps, and while the stale direct-`devres` reminder wording in the broader docs-root, scripts-root, tests-root, tests-root companion, contributor-guide, traceability, and devres-slice packet stays recorded as a shared-summary gap rather than implied shipped evidence.
 
@@ -73,7 +76,6 @@ Direct current-`master` readback in this run still returned missing for:
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
-- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
 Keep those paths framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle.
 
@@ -90,8 +92,8 @@ Keep Phase 13 release wording inside these boundaries:
 - the Phase 13 packet is active and roadmap-backed, not closed
 - the shared packet is helper-local and reminder-surface backed rather than validator-first in the current direct-readback posture
 - the release-note packet should keep the broader reminder drift around the missing direct `devres` companions explicit until the shared reminder surfaces are reconciled again
-- the shared release handle is the materialized docs-root, scripts-root, and tests-root reminder packet listed above
-- the missing validator-first helpers, shared build companion, and shared wrapper surfaces stay explicit as repo-reality gaps
+- the shared release handle is the materialized docs-root, scripts-root, and tests-root reminder packet listed above together with the shipped shared-summary guard
+- the missing validator-first helpers and shared build wrapper surfaces stay explicit as repo-reality gaps
 - adjacent notifier evidence may still matter for release truthfulness, but it does not become a fifth roadmap anchor
 - contributor-facing reminder edits in this lane should stay narrow and should not reopen helper implementation, checker code, or tranche-closure claims
 
@@ -110,6 +112,7 @@ When this survey changes, reread these shared reminder surfaces together first:
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
