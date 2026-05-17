@@ -17,41 +17,44 @@ REQUIRED_MARKERS = (
     "## Close condition",
     "`Documentation/zigux/README.md`",
     "`Documentation/zigux/review-checklist.md`",
-    "Those two shared reminder surfaces still need the same narrowing pass before Lane 25 can close.",
-    "`Documentation/zigux/phase2-scripts-surface-reconciliation.md`",
     "`scripts/zigux/README.md`",
     "`zigux/tests/README.md`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "Those five shared reminder surfaces still need the same narrowing pass before Lane 25 can close.",
+    "`Documentation/zigux/phase2-scripts-surface-reconciliation.md`",
+    "`Documentation/zigux/phase2-shared-reminder-gap.md`",
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/fixdep.zig`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
-    "`zigux/tests/fixtures/phase2_cross_targets.json`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
-    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
-    "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
-    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
-    "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
     "Treat that set as the current directly readable Phase 2 reminder packet on `master`.",
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
-    "`zigux/Makefile`",
-    "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-cross.py`",
-    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/genksyms.zig`",
+    "`scripts/zigux/genksyms_crc.zig`",
+    "`scripts/zigux/mk_elfconfig.zig`",
+    "`zigux/Makefile`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2`",
-    "Treat those closure-side, validator-first, cross-route, toolchain-helper, and make-wrapper names as historical packet members until current `master` rematerializes them.",
-    "That tests-root companion pair still encodes the broader pre-narrowing Phase 2 packet. Any final close-out pass that updates the docs root and review checklist will need to narrow those two surfaces in the same packet if Lane 25 is going to stay checker-backed.",
-    "Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here without overstating the older Phase 2 closure stack.",
+    "Treat those closure-side, validator-first, cross-route, toolchain-helper, make-wrapper, and missing-fixture names as historical packet members until current `master` rematerializes them.",
+    "Those shared reminder surfaces still overstate the older Phase 2 closure stack or broader pre-narrowing packet. Any final close-out pass needs to narrow all five together if Lane 25 is going to stay checker-backed.",
+    "Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here without overstating the older Phase 2 closure stack.",
 )
 
 
@@ -75,46 +78,49 @@ def write_text(path: Path, content: str) -> None:
 def build_note_text() -> str:
     return """# Phase 2 Shared Reminder Gap
 
-This note records the remaining shared-surface Phase 2 drift after the scripts-root reminder packet was narrowed on Lane 25.
+This note records the remaining shared-surface Phase 2 drift after the current scripts-root packet was reread against `master`.
 
 ## Remaining same-lane drift
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/check-phase2-tests-readme-alignment.py`
 
-Those two shared reminder surfaces still need the same narrowing pass before Lane 25 can close.
+Those five shared reminder surfaces still need the same narrowing pass before Lane 25 can close.
 
 ## Current direct packet
 
 - `Documentation/zigux/phase2-scripts-surface-reconciliation.md`
-- `scripts/zigux/README.md`
-- `zigux/tests/README.md`
-- `scripts/zigux/check-phase2-tests-readme-alignment.py`
+- `Documentation/zigux/phase2-shared-reminder-gap.md`
+- `scripts/zigux/check-zig-toolchain.py`
+- `scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - `scripts/zigux/check-phase2-kbuild-routes.py`
 - `scripts/zigux/check-phase2-toolchain-pinning.py`
+- `scripts/zigux/fixdep.zig`
 - `scripts/zigux/kconfig/conf_bridge.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
-- `zigux/tests/fixtures/phase2_cross_targets.json`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
-- `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
-- `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
-- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
-- `zigux/tests/fixtures/kconfig_bridge/cases.json`
 
 Treat that set as the current directly readable Phase 2 reminder packet on `master`.
 
 ## Historical packet members
 
+- `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
 - `Documentation/zigux/phase2-closure.md`
 - `scripts/zigux/validate-phase2.py`
 - `scripts/zigux/validate-phase2-closure.py`
-- `zigux/Makefile`
-- `scripts/zigux/install-zig.py`
-- `scripts/zigux/check-zig-toolchain.py`
 - `scripts/zigux/check-phase2-cross.py`
-- `scripts/zigux/check-phase2-cross-selftest-alignment.py`
+- `scripts/zigux/install-zig.py`
 - `scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- `scripts/zigux/genksyms.zig`
+- `scripts/zigux/genksyms_crc.zig`
+- `scripts/zigux/mk_elfconfig.zig`
+- `zigux/Makefile`
+- `zigux/tests/fixtures/phase2_cross_targets.json`
+- `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
 - `make -C zigux phase2-toolchain`
 - `make -C zigux phase2-validate`
 - `make -C zigux phase2-tools`
@@ -122,18 +128,21 @@ Treat that set as the current directly readable Phase 2 reminder packet on `mast
 - `make -C zigux phase2-cross`
 - `make -C zigux phase2`
 
-Treat those closure-side, validator-first, cross-route, toolchain-helper, and make-wrapper names as historical packet members until current `master` rematerializes them.
+Treat those closure-side, validator-first, cross-route, toolchain-helper, make-wrapper, and missing-fixture names as historical packet members until current `master` rematerializes them.
 
 ## Alignment nuance
 
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase2-tests-readme-alignment.py`
 
-That tests-root companion pair still encodes the broader pre-narrowing Phase 2 packet. Any final close-out pass that updates the docs root and review checklist will need to narrow those two surfaces in the same packet if Lane 25 is going to stay checker-backed.
+Those shared reminder surfaces still overstate the older Phase 2 closure stack or broader pre-narrowing packet. Any final close-out pass needs to narrow all five together if Lane 25 is going to stay checker-backed.
 
 ## Close condition
 
-Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here without overstating the older Phase 2 closure stack.
+Lane 25 closes when `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` describe and guard the same current direct packet and the same historical packet members captured here without overstating the older Phase 2 closure stack.
 """
 
 
