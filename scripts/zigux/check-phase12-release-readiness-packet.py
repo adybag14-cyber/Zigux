@@ -66,6 +66,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase12-validate",
         "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
         "Documentation/zigux/phase12-nvme-pci-slice.md",
+        "`Documentation/zigux/phase12-release-coordination-matrix.md`",
     ],
     RELEASE_READINESS_SURVEY_PATH: [
         "`PHASE12_STATUS=active`",
@@ -112,6 +113,10 @@ REQUIRED_EXACT_COUNT_MARKERS = {
     },
     TESTS_README_PATH: {
         "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`": 1,
+        "`Documentation/zigux/phase12-release-coordination-matrix.md`": 1,
+    },
+    RELEASE_COORDINATION_MATRIX_PATH: {
+        "PMO / Release Management: keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned around the same active-not-closed release posture and the same smoke-first packet.": 1,
     },
 }
 
@@ -181,7 +186,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 50
+EXPECTED_SELF_TEST_CASE_COUNT = 53
 
 
 def write_fixture_tree(root: Path) -> None:
