@@ -28,13 +28,26 @@ REQUIRED_NOTE_LINES = {
     "selftest_steps": "- `PHASE1_WORKFLOW_SELFTEST_STEPS=Self-test current Phase 1 direct-owner checker,Self-test current Phase 1 string review checker,Self-test current Phase 1 bench checker,Self-test current Phase 1 workflow viability checker`",
     "live_steps": "- `PHASE1_WORKFLOW_LIVE_STEPS=Check current Phase 1 direct-owner markers,Check current Phase 1 string review packet,Check current Phase 1 workflow viability`",
     "command_packet": "- `PHASE1_WORKFLOW_COMMAND_PACKET=python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test; python3 scripts/zigux/check-phase1-direct-owner-markers.py; python3 scripts/zigux/check-phase1-string-review-packet.py --self-test; python3 scripts/zigux/check-phase1-string-review-packet.py; python3 scripts/zigux/check-phase1-bench.py --self-test; python3 scripts/zigux/check-phase1-workflow-viability.py --self-test; python3 scripts/zigux/check-phase1-workflow-viability.py`",
+    "phase2_neighbors": "- `PHASE1_WORKFLOW_NEIGHBOR_PHASE2_STEPS=Self-test current Phase 2 kconfig bridge checker,Check current Phase 2 kconfig bridge packet,Self-test current Phase 2 kbuild routes checker,Check current Phase 2 kbuild packet,Self-test current Phase 2 toolchain pinning checker,Check current Phase 2 toolchain pinning packet`",
     "historical_gap": "- current `master` workflow viability stays bounded to the shipped Phase 1 reminder packet, so treat `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` as broader closure-side or make-route packet members until fresh rereads recover them on current `master`.",
     "current_packet": "- the active bootstrap Phase 1 workflow now proves three live checks and one shipped checker self-test: direct-owner markers, string-review packet, the bench checker self-test, and workflow viability, and should stay narrower than the older installer-backed or live-bench closure stack until those routes materially return.",
-    "current_neighbor": "- replay this packet on top of the current bootstrap workflow instead of reviving the older `scripts/zigux/check-kconfig-bridge.py --self-test` route name; the live non-Phase-1 neighbor step stays the current `scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test` self-test that already ships on `master`.",
+    "current_neighbor": "- replay this packet on top of the current bootstrap workflow instead of reviving older Phase 2 neighbor names or dropping the newer current ones; the live non-Phase-1 neighbor packet now keeps the current `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, and `scripts/zigux/check-phase2-toolchain-pinning.py` self-test plus live-check pair ahead of the Phase 1 packet.",
     "next_step": "- if this lane reopens, harden the same current workflow packet first instead of reconstructing the broader missing closure-side Phase 1 validator family from historical route names alone.",
 }
 
 REQUIRED_WORKFLOW_LINES = {
+    "selftest_phase2_kconfig_name": "      - name: Self-test current Phase 2 kconfig bridge checker",
+    "selftest_phase2_kconfig_run": "        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "check_phase2_kconfig_name": "      - name: Check current Phase 2 kconfig bridge packet",
+    "check_phase2_kconfig_run": "        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "selftest_phase2_kbuild_name": "      - name: Self-test current Phase 2 kbuild routes checker",
+    "selftest_phase2_kbuild_run": "        run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+    "check_phase2_kbuild_name": "      - name: Check current Phase 2 kbuild packet",
+    "check_phase2_kbuild_run": "        run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
+    "selftest_phase2_toolchain_name": "      - name: Self-test current Phase 2 toolchain pinning checker",
+    "selftest_phase2_toolchain_run": "        run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+    "check_phase2_toolchain_name": "      - name: Check current Phase 2 toolchain pinning packet",
+    "check_phase2_toolchain_run": "        run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "selftest_direct_owner_name": "      - name: Self-test current Phase 1 direct-owner checker",
     "selftest_direct_owner_run": "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
     "check_direct_owner_name": "      - name: Check current Phase 1 direct-owner markers",
@@ -52,6 +65,12 @@ REQUIRED_WORKFLOW_LINES = {
 }
 
 STEP_ORDER = [
+    "Self-test current Phase 2 kconfig bridge checker",
+    "Check current Phase 2 kconfig bridge packet",
+    "Self-test current Phase 2 kbuild routes checker",
+    "Check current Phase 2 kbuild packet",
+    "Self-test current Phase 2 toolchain pinning checker",
+    "Check current Phase 2 toolchain pinning packet",
     "Self-test current Phase 1 direct-owner checker",
     "Check current Phase 1 direct-owner markers",
     "Self-test current Phase 1 string review checker",
@@ -66,6 +85,7 @@ FORBIDDEN_WORKFLOW_SNIPPETS = [
     "scripts/zigux/validate-phase1-closure.py",
     "make -C zigux phase1",
     "scripts/zigux/check-kconfig-bridge.py --self-test",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
 ]
 
 
@@ -143,6 +163,7 @@ def sample_note_text() -> str:
         REQUIRED_NOTE_LINES["selftest_steps"],
         REQUIRED_NOTE_LINES["live_steps"],
         REQUIRED_NOTE_LINES["command_packet"],
+        REQUIRED_NOTE_LINES["phase2_neighbors"],
         REQUIRED_NOTE_LINES["historical_gap"],
         REQUIRED_NOTE_LINES["current_packet"],
         REQUIRED_NOTE_LINES["current_neighbor"],
@@ -160,6 +181,21 @@ jobs:
     steps:
       - name: Self-test current Phase 2 kconfig bridge checker
         run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
+
+      - name: Check current Phase 2 kconfig bridge packet
+        run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py
+
+      - name: Self-test current Phase 2 kbuild routes checker
+        run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test
+
+      - name: Check current Phase 2 kbuild packet
+        run: python3 scripts/zigux/check-phase2-kbuild-routes.py
+
+      - name: Self-test current Phase 2 toolchain pinning checker
+        run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test
+
+      - name: Check current Phase 2 toolchain pinning packet
+        run: python3 scripts/zigux/check-phase2-toolchain-pinning.py
 
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
@@ -212,7 +248,25 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-    with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-missing-step-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-missing-phase2-step-") as tmpdir:
+        root = Path(tmpdir)
+        build_sample_repo(root)
+        workflow_path = root / WORKFLOW_REL
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "      - name: Self-test current Phase 2 kbuild routes checker\n        run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test\n\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        failures = collect_failures(root)
+        if "workflow:selftest_phase2_kbuild_name:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase2_step_case_failed")
+            return 1
+        case_count += 1
+
+    with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-missing-phase1-step-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
         workflow_path = root / WORKFLOW_REL
@@ -226,11 +280,11 @@ def run_self_test() -> int:
         )
         failures = collect_failures(root)
         if "workflow:selftest_bench_name:expected=1:actual=0" not in failures:
-            print("self-test:missing_step_case_failed")
+            print("self-test:missing_phase1_step_case_failed")
             return 1
         case_count += 1
 
-    with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-forbidden-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-forbidden-phase1-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
         workflow_path = root / WORKFLOW_REL
@@ -241,25 +295,25 @@ def run_self_test() -> int:
         )
         failures = collect_failures(root)
         if "workflow_forbidden:scripts/zigux/validate-phase1.py:unexpected_present" not in failures:
-            print("self-test:forbidden_case_failed")
+            print("self-test:forbidden_phase1_case_failed")
             return 1
         case_count += 1
 
-    with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-stale-kconfig-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-stale-phase2-neighbor-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
-                "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-                "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+                "python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+                "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
                 1,
             ),
             encoding="utf-8",
         )
         failures = collect_failures(root)
-        if "workflow_forbidden:scripts/zigux/check-kconfig-bridge.py --self-test:unexpected_present" not in failures:
-            print("self-test:stale_kconfig_case_failed")
+        if "workflow_forbidden:scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test:unexpected_present" not in failures:
+            print("self-test:stale_phase2_neighbor_case_failed")
             return 1
         case_count += 1
 
