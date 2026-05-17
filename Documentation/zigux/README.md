@@ -132,3 +132,18 @@ now keep the current docs-root Phase 14 reminder packet honest from the document
   * keep the broader shared-smoke packet explicit only as a repo-reality gap until fresh authenticated readback restores it: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/freeze-map.md`, `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_ring_buffer_survey.zig`, and `zigux/tests/phase14_rcu_tree_survey.zig` should stay framed as the broader claimed packet rather than as direct current-`master` docs-root evidence from this lane's contents-read path.
   * keep the four roadmap-owned anchors explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay in the study-only boundary bucket, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay freeze-in-C anchors until the Architecture Council records a status change with parity-scorecard evidence. This docs-root reminder should keep those anchors visible without implying direct Phase 14 parity delivery.
   * keep the next honest follow-through narrow and notes-first: either re-materialize the missing shared-smoke survey, validator, and build packet on current `master`, or tighten the remaining broad reminder surfaces so they only claim directly recoverable evidence. The attached-toolchain fallback remains a separate recorded same-family guidance gap and should not be turned into a new replay route or an anchor-local status change from this docs-root note.
+Phase 15 notes
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+- `scripts/zigux/check-phase15-docs-readme-alignment.py`
+- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/validate-phase15.py`
+- `zigux/tests/phase15_readiness_gate_manifest.json`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+now keep the current Phase 15 docs-root handoff explicit from the documentation root without implying any Architecture Council approval for a freeze-map status change.
+  * the shared Phase 15 docs-root handoff should also keep the landed readiness, handoff, governance-lane-sequencing, study-only-accounting, docs-readme-alignment, scripts-readme-alignment, review-process-handoff, and shared-summary-gap companions explicit while the broader validator-first and lane-owner-alignment packet stays framed as a repo-reality gap on current `master`.
+  * the named reopen trigger for this docs-root reminder is shared-summary drift on the broad reminder surfaces or a deep-core blocker-posture change; until then, keep the parked validator-first route vocabulary explicit instead of treating it as shipped direct evidence.
