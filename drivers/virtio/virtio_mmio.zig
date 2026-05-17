@@ -47,6 +47,9 @@ pub const FeatureNegotiationSummary = struct {
     anchor: []const u8,
     selected_device_feature_word: u32,
     selected_driver_feature_word: u32,
+    device_feature_selector_in_range: bool,
+    driver_feature_selector_in_range: bool,
+    selected_feature_words_in_range: bool,
     device_feature_word: u32,
     driver_feature_word: u32,
     negotiated_feature_word: u32,
@@ -193,26 +196,40 @@ pub const VirtioMmioLab = struct {
     }
 
     pub fn featureNegotiationSummary(self: *const Self) FeatureNegotiationSummary {
-        const device_index: usize = @min(self.selected_device_feature_word, self.device_feature_words.len - 1);
-        const driver_index: usize = @min(self.selected_driver_feature_word, self.driver_feature_words.len - 1);
-        const device_feature_word = self.device_feature_words[device_index];
-        const driver_feature_word = self.driver_feature_words[driver_index];
+        const device_selector_in_range = self.selectedDeviceFeatureWordInRange();
+        const driver_selector_in_range = self.selectedDriverFeatureWordInRange();
+        const selected_feature_words_in_range = device_selector_in_range and driver_selector_in_range;
+
+        const device_feature_word = if (device_selector_in_range)
+            self.device_feature_words[self.selectedDeviceFeatureWordIndex()]
+        else
+            0;
+        const driver_feature_word = if (driver_selector_in_range)
+            self.driver_feature_words[self.selectedDriverFeatureWordIndex()]
+        else
+            0;
         const negotiated_feature_word = device_feature_word & driver_feature_word;
-        const device_features_known = self.device_feature_words_known[device_index];
-        const driver_features_known = self.driver_feature_words_known[driver_index];
+        const device_features_known = device_selector_in_range and
+            self.device_feature_words_known[self.selectedDeviceFeatureWordIndex()];
+        const driver_features_known = driver_selector_in_range and
+            self.driver_feature_words_known[self.selectedDriverFeatureWordIndex()];
+
         return .{
             .anchor = anchor_path,
             .selected_device_feature_word = self.selected_device_feature_word,
             .selected_driver_feature_word = self.selected_driver_feature_word,
+            .device_feature_selector_in_range = device_selector_in_range,
+            .driver_feature_selector_in_range = driver_selector_in_range,
+            .selected_feature_words_in_range = selected_feature_words_in_range,
             .device_feature_word = device_feature_word,
             .driver_feature_word = driver_feature_word,
             .negotiated_feature_word = negotiated_feature_word,
             .device_only_feature_word = device_feature_word & ~driver_feature_word,
             .driver_only_feature_word = driver_feature_word & ~device_feature_word,
-            .feature_words_match = device_feature_word == driver_feature_word,
+            .feature_words_match = selected_feature_words_in_range and device_feature_word == driver_feature_word,
             .device_features_known = device_features_known,
             .driver_features_known = driver_features_known,
-            .negotiation_possible = device_features_known and driver_features_known,
+            .negotiation_possible = selected_feature_words_in_range and device_features_known and driver_features_known,
         };
     }
 
@@ -300,6 +317,22 @@ pub const VirtioMmioLab = struct {
         return @constCast(&self.queues[selected]);
     }
 
+    fn selectedDeviceFeatureWordInRange(self: *const Self) bool {
+        return self.selected_device_feature_word < self.device_feature_words.len;
+    }
+
+    fn selectedDriverFeatureWordInRange(self: *const Self) bool {
+        return self.selected_driver_feature_word < self.driver_feature_words.len;
+    }
+
+    fn selectedDeviceFeatureWordIndex(self: *const Self) usize {
+        return @intCast(self.selected_device_feature_word);
+    }
+
+    fn selectedDriverFeatureWordIndex(self: *const Self) usize {
+        return @intCast(self.selected_driver_feature_word);
+    }
+
     fn readConfigWord(self: *const Self, relative_offset: u32) !u32 {
         const end = std.math.add(u32, relative_offset, 4) catch return error.ConfigWindowOffsetOutOfRange;
         if (end > self.config_bytes_len) return error.ConfigWindowOffsetOutOfRange;
@@ -331,6 +364,9 @@ test "phase10 virtio mmio zero-valued staged feature words stay known for negoti
     try device.stageDriverFeatureWord(0, 0);
 
     const summary = device.featureNegotiationSummary();
+    try std.testing.expect(summary.device_feature_selector_in_range);
+    try std.testing.expect(summary.driver_feature_selector_in_range);
+    try std.testing.expect(summary.selected_feature_words_in_range);
     try std.testing.expect(summary.device_features_known);
     try std.testing.expect(summary.driver_features_known);
     try std.testing.expect(summary.negotiation_possible);
@@ -348,11 +384,30 @@ test "phase10 virtio mmio negotiation summary reports shared and mismatched feat
     try device.stageDriverFeatureWord(0, 0b1011);
 
     const summary = device.featureNegotiationSummary();
+    try std.testing.expect(summary.selected_feature_words_in_range);
     try std.testing.expect(summary.negotiation_possible);
     try std.testing.expect(!summary.feature_words_match);
     try std.testing.expectEqual(@as(u32, 0b1010), summary.negotiated_feature_word);
     try std.testing.expectEqual(@as(u32, 0b0100), summary.device_only_feature_word);
     try std.testing.expectEqual(@as(u32, 0b0001), summary.driver_only_feature_word);
+}
+
+test "phase10 virtio mmio negotiation summary exposes out-of-range selector drift" {
+    var device = try VirtioMmioLab.init(80, &[_]u16{ 8, 16 });
+    try device.stageDeviceFeatureWord(0, 0b0011);
+    try device.stageDriverFeatureWord(0, 0b0101);
+    device.selected_device_feature_word = 99;
+
+    const summary = device.featureNegotiationSummary();
+    try std.testing.expect(!summary.device_feature_selector_in_range);
+    try std.testing.expect(summary.driver_feature_selector_in_range);
+    try std.testing.expect(!summary.selected_feature_words_in_range);
+    try std.testing.expectEqual(@as(u32, 0), summary.device_feature_word);
+    try std.testing.expectEqual(@as(u32, 0b0101), summary.driver_feature_word);
+    try std.testing.expect(!summary.device_features_known);
+    try std.testing.expect(summary.driver_features_known);
+    try std.testing.expect(!summary.feature_words_match);
+    try std.testing.expect(!summary.negotiation_possible);
 }
 
 test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {
