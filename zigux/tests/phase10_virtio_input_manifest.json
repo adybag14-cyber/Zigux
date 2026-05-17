@@ -168,8 +168,8 @@
       "id": "phase10-virtio-input-teardown-observation-helper",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The direct helper reports reset-local cleanup intent while preserving identity strings and keeping remove, freeze, and restore work out of scope."
+      "zigux_destination": "drivers/virtio/virtio_input_teardown_observation.zig",
+      "why_now": "The dedicated teardown-observation helper reports reset-local cleanup intent while preserving identity strings and keeping remove, freeze, and restore work out of scope."
     },
     {
       "id": "phase10-virtio-input-teardown-observation-replay",
