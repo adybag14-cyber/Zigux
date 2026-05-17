@@ -59,7 +59,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 38
+SELF_TEST_CASE_COUNT = 45
 
 
 class ValidationError(RuntimeError):
@@ -133,7 +133,10 @@ def run_self_test() -> None:
             "- `zigux/tests/phase6_checksum.zig`",
             "- `zigux/tests/phase6_hexdump.zig`",
             "- `scripts/zigux/check-phase6-base64-c-parity.py`",
+            "- `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
+            "- `scripts/zigux/check-phase6-checksum-c-parity.py`",
             "- `scripts/zigux/check-phase6-hexdump-packet.py`",
+            "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
             "### base64",
             "### bsearch",
             "### checksum",
@@ -141,6 +144,7 @@ def run_self_test() -> None:
             "- Zig helper: `lib/base64.zig`",
             "- Zig helper: `lib/bsearch.zig`",
             "- Zig helper: `lib/checksum.zig`",
+            "- Zig helper: `lib/hexdump.zig`",
             "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
             "- direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
             "- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
@@ -150,14 +154,17 @@ def run_self_test() -> None:
             "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
             "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again",
             "## Last-known shared replay inventory",
+            "- `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
             "- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
             "- `make -C zigux phase6-base64-perf`",
+            "- `python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
             "- `python3 scripts/zigux/check-phase6-checksum-c-parity.py`",
             "- `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`",
+            "- `make -C zigux phase6-checksum-perf`",
             "- `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
             "- `make -C zigux phase6-bsearch-test`",
-            "- `make -C zigux phase6-checksum-perf`",
             "- `make -C zigux phase6-hexdump-review`",
+            "- `make -C zigux phase6-hexdump-test`",
             "- `make -C zigux phase6-hexdump-perf`",
         ]:
             write(catalog_path, read_text(catalog_path).replace(snippet + "\n", "", 1))
