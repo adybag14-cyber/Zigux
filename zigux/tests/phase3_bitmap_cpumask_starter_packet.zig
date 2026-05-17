@@ -62,6 +62,26 @@ test "cpumask starter helpers keep cpu membership reviewable" {
     try testing.expectEqual(@as(u32, 3), summary.weight);
 }
 
+test "cpumask starter helpers cover cross-word windows and tail masking" {
+    var backing = [_]usize{
+        (@as(usize, 1) << 5) | (@as(usize, 1) << 63),
+        (@as(usize, 1) << 1) | (@as(usize, 1) << 6) | (@as(usize, 1) << 10),
+    };
+    const view = cpumask_view.viewFromWords(backing[0..], bitmap_view.bits_per_word + 11);
+    const summary = cpumask_view.summarize(view);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expect(cpumask_view.cpuIsSet(view, 5));
+    try testing.expect(cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 10));
+    try testing.expect(!cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 11));
+    try testing.expectEqual(@as(u32, 5), cpumask_view.firstCpu(view));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(view));
+    try testing.expectEqual(@as(u32, 5), cpumask_view.weight(view));
+    try testing.expectEqual(@as(u32, 5), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 5), summary.weight);
+}
+
 test "starter packet stays aligned with the live Linux-facing header family version" {
     const current = version.current();
 
