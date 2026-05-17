@@ -126,6 +126,10 @@ VALIDATOR_SUPPORT_MARKERS = (
     "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
 )
 
+VALIDATOR_SUPPORT_EXACT_ONCE_MARKERS = (
+    "scripts/zigux/validate-phase3-validator-support-surface.py",
+)
+
 SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
@@ -192,6 +196,22 @@ def _check_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str
     return [f"missing {label} marker: {marker}" for marker in markers if marker not in text]
 
 
+def _check_exact_once_markers(path: Path, markers: tuple[str, ...], label: str) -> list[str]:
+    try:
+        text = _read(path)
+    except FileNotFoundError:
+        return [f"missing repo file: {path.as_posix()}"]
+
+    issues: list[str] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count != 1:
+            issues.append(
+                f"{label} exact-count drift: {marker} (expected 1, found {count})"
+            )
+    return issues
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     issues.extend(_check_markers(repo_root / README_PATH, README_MARKERS, "docs README"))
@@ -203,6 +223,13 @@ def validate_repo(repo_root: Path) -> list[str]:
         _check_markers(
             repo_root / VALIDATOR_SUPPORT_PATH,
             VALIDATOR_SUPPORT_MARKERS,
+            "validator-support note",
+        )
+    )
+    issues.extend(
+        _check_exact_once_markers(
+            repo_root / VALIDATOR_SUPPORT_PATH,
+            VALIDATOR_SUPPORT_EXACT_ONCE_MARKERS,
             "validator-support note",
         )
     )
@@ -234,6 +261,10 @@ def _remove_exact_line(path: Path, marker: str) -> None:
         path.write_text(_read(path).replace(marker, "", 1), encoding="utf-8")
         return
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _append_duplicate_line(path: Path, marker: str) -> None:
+    path.write_text(_read(path) + marker + "\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -318,8 +349,23 @@ def run_self_test() -> int:
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
+        _populate_repo(root)
+        _append_duplicate_line(
+            root / VALIDATOR_SUPPORT_PATH,
+            "scripts/zigux/validate-phase3-validator-support-surface.py",
+        )
+        issues = validate_repo(root)
+        expected = (
+            "validator-support note exact-count drift: "
+            "scripts/zigux/validate-phase3-validator-support-surface.py (expected 1, found 2)"
+        )
+        if not _expect_issue(issues, expected):
+            print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
+            print("expected duplicate validator-support marker drift was not reported")
+            return 1
+
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={len(cases)}")
+    print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={len(cases) + 1}")
     return 0
 
 
