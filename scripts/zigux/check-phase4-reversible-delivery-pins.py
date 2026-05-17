@@ -36,6 +36,7 @@ MISSING_BROADER_PACKET = (
     "`Documentation/zigux/phase4-gate-evidence.md`",
     "`Documentation/zigux/phase4-validation-matrix.md`",
     "`scripts/zigux/check-phase4-gate-evidence.py`",
+    "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
     "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "`scripts/zigux/validate-phase4.py`",
     "`zigux/tests/phase4_build.zig`",
@@ -108,6 +109,7 @@ WARNING_MARKERS = (
     "DIRECT_READBACK_PACKET = (",
     "MISSING_BROADER_PACKET = (",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
@@ -278,8 +280,8 @@ def main() -> int:
             repo_warning_path = root / REPO_REALITY_WARNING
             repo_warning_path.write_text(
                 repo_warning_path.read_text(encoding="utf-8").replace(
-                    WARNING_MARKERS[4],
-                    "repo-reality warning summary drifted",
+                    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+                    "scripts/zigux/check-phase4-gap-matrix-drifted.py",
                 ),
                 encoding="utf-8",
             )
