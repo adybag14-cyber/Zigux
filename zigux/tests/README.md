@@ -128,25 +128,26 @@ Phase 8 review packet
     `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`
     `zigux/tests/phase8_perf_buffer_poll.zig`
     `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`
-  * repo-reality warning for the broader Phase 8 tooling packet:
-    `Documentation/zigux/phase8-tooling-lane-sequencing.md`
-    `Documentation/zigux/phase8-help-slice.md`
-    `Documentation/zigux/phase8-kallsyms-slice.md`
+  * current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:
     `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
     `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`
-    `Documentation/zigux/phase8-libbpf-segment-survey.md`
     `scripts/zigux/validate-phase8.py`
     `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
     `zigux/tests/phase8_file_path_handle_bridge.zig`
     `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`
     `zigux/tests/phase8_build.zig`
+    `make -C zigux phase8-file-path-handle-bridge-test`
+  * repo-reality warning for the broader remaining Phase 8 tooling packet:
+    `Documentation/zigux/phase8-tooling-lane-sequencing.md`
+    `Documentation/zigux/phase8-help-slice.md`
+    `Documentation/zigux/phase8-kallsyms-slice.md`
+    `Documentation/zigux/phase8-libbpf-segment-survey.md`
     `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
     `zigux/tests/phase8_libbpf_segments.zig`
     `zigux/tests/phase8_libbpf_segments_only_build.zig`
     `zigux/Makefile`
-    `make -C zigux phase8-file-path-handle-bridge-test`
-  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while keeping the shared bridge-boundary survey, focused bridge helper, focused bridge replay, shared build replay, and Linux-style bridge make route framed as broader Phase 8 packet members rather than pretending they disappeared from the current review bundle
-  * if future same-lane work rematerializes the missing docs, validator, or Makefile routes, or changes the focused build shards, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`
+  * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence
+  * if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`
 
 Phase 9 review packet
   * `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
