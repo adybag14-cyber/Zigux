@@ -17,6 +17,12 @@ class FileExpectation:
     required_fragments: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class InventoryMarkerExpectation:
+    path: str
+    marker: str
+
+
 REQUIRED_PACKET_FILES = (
     "drivers/tty/hvc/hvc_console.zig",
     "drivers/tty/hvc/hvc_console_verify.zig",
@@ -25,6 +31,9 @@ REQUIRED_PACKET_FILES = (
     "zigux/tests/phase11_hvc_cleanup.zig",
     "zigux/tests/phase11_hvc_console_survey.zig",
     "zigux/tests/phase11_hvc_console_manifest.json",
+    "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+    "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+    "zigux/tests/fixtures/phase11_build_inventory.json",
     "Documentation/zigux/phase11-hvc-console-survey.md",
     "Documentation/zigux/phase11-hvc-console-slice.md",
     "Documentation/zigux/phase11-hvc-console-teardown-note.md",
@@ -68,7 +77,59 @@ FILE_EXPECTATIONS = (
             "hvc_hangup() disconnect summary",
             "hvc_remove() handoff summary",
             "direct replay and cleanup surfaces explicit",
+            "modem-control split",
+            "poll-retry split",
+            "shared build inventory",
         ),
+    ),
+    FileExpectation(
+        "drivers/tty/hvc/hvc_console_sysrq.zig",
+        (
+            "pub fn summarizeSysrqHandoff",
+            "keeps_live_sysrq_execution_out_of_scope",
+        ),
+    ),
+    FileExpectation(
+        "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+        (
+            "phase11 hvc console keeps tiocmget and tiocmset fallback on missing hv_ops callbacks",
+            "phase11 hvc console keeps tiocmset masks live when tiocmget falls back",
+        ),
+    ),
+    FileExpectation(
+        "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+        (
+            "phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep",
+            "phase11 hvc console keeps pending sysrq dispatch separate from ordinary poll bytes",
+            "phase11 hvc console keeps non-kernel ^O as a literal byte without toggling sysrq state",
+            "phase11 hvc console keeps sysrq handoff unavailable after teardown",
+        ),
+    ),
+)
+
+INVENTORY_REQUIRED_BUILD_TESTS = (
+    "phase11-hvc-console-tests",
+    "phase11-hvc-console-verify-tests",
+    "phase11-hvc-cleanup-tests",
+    "phase11-hvc-console-survey-tests",
+)
+
+INVENTORY_REQUIRED_MODULE_PATHS = {
+    "hvc_console_module": "../../drivers/tty/hvc/hvc_console.zig",
+    "hvc_console_verify_module": "../../drivers/tty/hvc/hvc_console_verify.zig",
+    "phase11_hvc_console_module": "phase11_hvc_console.zig",
+    "phase11_hvc_cleanup_module": "phase11_hvc_cleanup.zig",
+    "phase11_hvc_console_survey_module": "phase11_hvc_console_survey.zig",
+}
+
+INVENTORY_REQUIRED_MARKERS = (
+    InventoryMarkerExpectation(
+        "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+        "try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
+    ),
+    InventoryMarkerExpectation(
+        "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+        "try std.testing.expect(dispatch.invokes_sysrq_handler);",
     ),
 )
 
@@ -129,6 +190,8 @@ def require_manifest(root: Path) -> None:
         "hvc_console_test_present",
         "hvc_console_survey_gate_present",
         "hvc_console_survey_note_present",
+        "hvc_console_modem_control_split_present",
+        "hvc_console_poll_retry_split_present",
     )
     for flag in required_true_flags:
         if survey_summary.get(flag) is not True:
@@ -142,11 +205,20 @@ def require_manifest(root: Path) -> None:
 
     gap_ids = {entry.get("id") for entry in gaps if isinstance(entry, dict)}
     required_gap_ids = {
+        "phase11-hvc-console-survey-gate",
+        "phase11-hvc-console-survey-note",
+        "phase11-hvc-console-driver-starter",
         "phase11-hvc-console-close-teardown",
         "phase11-hvc-console-notifier-add-handoff",
+        "phase11-hvc-console-khvcd-sleep-handoff",
         "phase11-hvc-console-hangup-disconnect",
         "phase11-hvc-console-remove-handoff",
+        "phase11-hvc-console-header-parity",
+        "phase11-hvc-console-winsize-layout-assert",
+        "phase11-hvc-console-hv-ops-layout-assert",
+        "phase11-hvc-console-hv-ops-signature-assert",
         "phase11-hvc-console-validation-matrix",
+        "phase11-hvc-console-tty-and-teardown-parity",
     }
     missing_gap_ids = sorted(required_gap_ids - gap_ids)
     if missing_gap_ids:
@@ -176,6 +248,67 @@ def require_manifest(root: Path) -> None:
         )
 
 
+def require_inventory(root: Path) -> None:
+    inventory_text = read_text(root, "zigux/tests/fixtures/phase11_build_inventory.json")
+    try:
+        inventory = json.loads(inventory_text)
+    except json.JSONDecodeError as exc:
+        raise ValidationError(
+            "zigux/tests/fixtures/phase11_build_inventory.json is not valid JSON"
+        ) from exc
+
+    build_test_names = set(inventory.get("build_test_names", ()))
+    missing_build_tests = sorted(set(INVENTORY_REQUIRED_BUILD_TESTS) - build_test_names)
+    if missing_build_tests:
+        raise ValidationError(
+            "phase11_build_inventory.json is missing build_test_names: "
+            + ", ".join(missing_build_tests)
+        )
+
+    module_paths = {
+        entry.get("module"): entry.get("path")
+        for entry in inventory.get("module_root_source_files", ())
+        if isinstance(entry, dict)
+    }
+    for module, path in INVENTORY_REQUIRED_MODULE_PATHS.items():
+        if module_paths.get(module) != path:
+            raise ValidationError(
+                f"phase11_build_inventory.json must map module {module!r} to {path!r}"
+            )
+
+    dedicated_replays = set(inventory.get("dedicated_survey_replays", ()))
+    if "zigux/tests/phase11_hvc_console_survey.zig" not in dedicated_replays:
+        raise ValidationError(
+            "phase11_build_inventory.json must keep zigux/tests/phase11_hvc_console_survey.zig "
+            "inside dedicated_survey_replays"
+        )
+
+    shared_adjunct_replays = set(inventory.get("shared_adjunct_replays", ()))
+    required_adjuncts = {
+        "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+        "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
+    }
+    missing_adjuncts = sorted(required_adjuncts - shared_adjunct_replays)
+    if missing_adjuncts:
+        raise ValidationError(
+            "phase11_build_inventory.json is missing shared_adjunct_replays: "
+            + ", ".join(missing_adjuncts)
+        )
+
+    shared_markers = {
+        (entry.get("path"), entry.get("marker"))
+        for entry in inventory.get("shared_replay_markers", ())
+        if isinstance(entry, dict)
+    }
+    for expectation in INVENTORY_REQUIRED_MARKERS:
+        key = (expectation.path, expectation.marker)
+        if key not in shared_markers:
+            raise ValidationError(
+                "phase11_build_inventory.json is missing shared_replay_marker for "
+                f"{expectation.path!r}"
+            )
+
+
 def require_packet_files(root: Path) -> None:
     missing = [path for path in REQUIRED_PACKET_FILES if not (root / path).is_file()]
     if missing:
@@ -188,6 +321,7 @@ def validate(root: Path) -> None:
     require_packet_files(root)
     require_fragments(root)
     require_manifest(root)
+    require_inventory(root)
 
 
 def write_text(root: Path, relative_path: str, text: str) -> None:
@@ -254,6 +388,44 @@ def make_fixture(root: Path) -> None:
                 "hvc_hangup() disconnect summary",
                 "hvc_remove() handoff summary",
                 "direct replay and cleanup surfaces explicit",
+                "modem-control split",
+                "poll-retry split",
+                "shared build inventory",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        "drivers/tty/hvc/hvc_console_sysrq.zig",
+        "\n".join(
+            (
+                "pub fn summarizeSysrqHandoff() void {}",
+                "const keeps_live_sysrq_execution_out_of_scope = true;",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        "zigux/tests/phase11_hvc_console_modem_control_split.zig",
+        "\n".join(
+            (
+                "test \"phase11 hvc console keeps tiocmget and tiocmset fallback on missing hv_ops callbacks\" {}",
+                "test \"phase11 hvc console keeps tiocmset masks live when tiocmget falls back\" {}",
+            )
+        )
+        + "\n",
+    )
+    write_text(
+        root,
+        "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
+        "\n".join(
+            (
+                "test \"phase11 hvc console keeps irq-backed drained reads distinct when __hvc_poll can or cannot sleep\" {}",
+                "test \"phase11 hvc console keeps pending sysrq dispatch separate from ordinary poll bytes\" {}",
+                "test \"phase11 hvc console keeps non-kernel ^O as a literal byte without toggling sysrq state\" {}",
+                "test \"phase11 hvc console keeps sysrq handoff unavailable after teardown\" {}",
             )
         )
         + "\n",
@@ -272,6 +444,8 @@ def make_fixture(root: Path) -> None:
             "hvc_console_test_present": True,
             "hvc_console_survey_gate_present": True,
             "hvc_console_survey_note_present": True,
+            "hvc_console_modem_control_split_present": True,
+            "hvc_console_poll_retry_split_present": True,
         },
         "gaps": [
             {
@@ -307,12 +481,96 @@ def make_fixture(root: Path) -> None:
                     "ownership, and direct cleanup companion surface explicit."
                 ),
             },
+            {
+                "id": "phase11-hvc-console-survey-gate",
+                "status": "starter_landed",
+                "why_now": "Keep the final-close teardown handoff visible through one bounded survey gate.",
+            },
+            {
+                "id": "phase11-hvc-console-survey-note",
+                "status": "starter_landed",
+                "why_now": "Keep the final-close teardown summary aligned with the parked starter.",
+            },
+            {
+                "id": "phase11-hvc-console-driver-starter",
+                "status": "starter_landed",
+                "why_now": "Keep the driver starter honest about teardown and cleanup summaries.",
+            },
+            {
+                "id": "phase11-hvc-console-khvcd-sleep-handoff",
+                "status": "starter_landed",
+                "why_now": "Keep pre-sleep kick check and guard-tick timed sleep explicit.",
+            },
+            {
+                "id": "phase11-hvc-console-header-parity",
+                "status": "starter_landed",
+                "why_now": "Keep hv_ops and notifier-IRQ helper surface reviewable.",
+            },
+            {
+                "id": "phase11-hvc-console-winsize-layout-assert",
+                "status": "starter_landed",
+                "why_now": "Keep struct winsize offsets explicit.",
+            },
+            {
+                "id": "phase11-hvc-console-hv-ops-layout-assert",
+                "status": "starter_landed",
+                "why_now": "Keep struct hv_ops callback-table order explicit.",
+            },
+            {
+                "id": "phase11-hvc-console-hv-ops-signature-assert",
+                "status": "starter_landed",
+                "why_now": "Keep hv_ops callback signatures explicit.",
+            },
+            {
+                "id": "phase11-hvc-console-tty-and-teardown-parity",
+                "status": "starter_landed",
+                "why_now": "Keep final-close teardown, remove ordering, and cleanup ownership explicit.",
+            },
         ],
     }
     write_text(
         root,
         "zigux/tests/phase11_hvc_console_manifest.json",
         json.dumps(manifest, indent=2, sort_keys=True) + "\n",
+    )
+
+    inventory = {
+        "build_test_names": list(INVENTORY_REQUIRED_BUILD_TESTS),
+        "shared_test_depend_steps": [
+            "run_phase11_hvc_console_tests",
+            "run_hvc_console_verify_tests",
+            "run_phase11_hvc_cleanup_tests",
+        ],
+        "module_root_source_files": [
+            {"module": module, "path": path}
+            for module, path in INVENTORY_REQUIRED_MODULE_PATHS.items()
+        ],
+        "test_root_modules": [
+            {"test": "phase11-hvc-console-tests", "root_module": "phase11_hvc_console_module"},
+            {"test": "phase11-hvc-console-verify-tests", "root_module": "hvc_console_verify_module"},
+            {"test": "phase11-hvc-cleanup-tests", "root_module": "phase11_hvc_cleanup_module"},
+            {"test": "phase11-hvc-console-survey-tests", "root_module": "phase11_hvc_console_survey_module"},
+        ],
+        "forbidden_markers": [
+            "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
+        ],
+        "dedicated_survey_replays": [
+            "zigux/tests/phase11_hvc_console_survey.zig",
+        ],
+        "shared_split_replays": [],
+        "shared_adjunct_replays": [
+            "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+            "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
+        ],
+        "shared_replay_markers": [
+            {"path": expectation.path, "marker": expectation.marker}
+            for expectation in INVENTORY_REQUIRED_MARKERS
+        ],
+    }
+    write_text(
+        root,
+        "zigux/tests/fixtures/phase11_build_inventory.json",
+        json.dumps(inventory, indent=2, sort_keys=True) + "\n",
     )
 
 
@@ -348,6 +606,22 @@ def run_self_test() -> int:
             total_cases += 1
         else:
             raise AssertionError("expected teardown note fragment validation to fail")
+
+        make_fixture(temp_dir)
+        inventory = temp_dir / "zigux/tests/fixtures/phase11_build_inventory.json"
+        data = json.loads(inventory.read_text(encoding="utf-8"))
+        data["shared_replay_markers"] = [
+            entry
+            for entry in data["shared_replay_markers"]
+            if entry["path"] != "zigux/tests/phase11_hvc_console_poll_retry_split.zig"
+        ]
+        inventory.write_text(json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+        try:
+            validate(temp_dir)
+        except ValidationError:
+            total_cases += 1
+        else:
+            raise AssertionError("expected inventory marker validation to fail")
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)
 
