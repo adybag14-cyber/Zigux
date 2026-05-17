@@ -30,8 +30,13 @@ Key entrypoints
   * `zigux/tests/phase5_kobject_example.zig`
   * `zigux/tests/phase5_kobject_example_manifest.json`
   * current public-tree-backed Phase 5 kobject survey companion: `zigux/tests/phase5_kobject_example_survey.zig`
-  * current repo-reality warning for the kretprobe reminder and remaining sample-local companions: authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`
-  * keep this tests-root reminder aligned with the shared Phase 5 review packet instead of treating those five kretprobe paths as direct tests-root proof until a fresh reread shows they returned
+  * `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+  * `samples/zigux/kretprobe_example.zig`
+  * `zigux/tests/phase5_kretprobe_example.zig`
+  * `zigux/tests/phase5_kretprobe_example_manifest.json`
+  * `zigux/tests/phase5_kretprobe_example_survey.zig`
+  * current public-tree-backed Phase 5 kretprobe shared-build companion: `zigux/tests/phase5_build.zig`
+  * keep this tests-root reminder aligned with the restored non-runtime kretprobe packet and keep `zigux/tests/phase5_build.zig` framed as companion evidence instead of direct authenticated-contents proof
   * `Documentation/zigux/phase5-trace-events-sample-survey.md`
   * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
   * current repo-reality warning for the remaining trace-events sample-local companions: authenticated contents reads on current `master` now return missing for `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig`
@@ -99,7 +104,7 @@ Phase 3 review packet
   * `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
   * `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
   * keep the current shared Phase 3 reminder anchored to the bounded `dev_t` starter packet, the helper-local `err_ptr` / `xarray` slice, and the focused policy slice already described in `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, and `Documentation/zigux/phase3-policy-slice.md`, instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence
-  * treat broader routes such as `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, `scripts/zigux/validate-phase3.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `scripts/zigux/phase3_catalog.py` as repo-reality gaps until fresh current-tree proof lands
+  * treat broader routes such as `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `scripts/zigux/validate-phase3.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `scripts/zigux/phase3_catalog.py` as repo-reality gaps until fresh current-tree proof lands
   * keep the remaining broader shared-summary follow-up in `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` separate, because those two shared reminder surfaces still need the same three-slice narrowing pass after this tests-root packet is truthful again
 
 Phase 7 review packet
