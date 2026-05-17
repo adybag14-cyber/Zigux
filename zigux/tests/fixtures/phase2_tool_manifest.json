@@ -1,0 +1,41 @@
+{
+  "phase": "Phase 2",
+  "status": "active",
+  "scope": "current directly readable scripts-root kbuild, toolchain, and kconfig reminder packet",
+  "workflow": ".github/workflows/zigux-bootstrap.yml",
+  "present_surfaces": {
+    "review_surfaces": [
+      "Documentation/zigux/review-checklist.md",
+      "scripts/zigux/README.md",
+      "zigux/tests/README.md"
+    ],
+    "checkers": [
+      "scripts/zigux/check-zig-toolchain.py",
+      "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+      "scripts/zigux/check-phase2-kbuild-routes.py",
+      "scripts/zigux/check-phase2-toolchain-pinning.py",
+      "scripts/zigux/check-phase2-tests-readme-alignment.py"
+    ],
+    "bridge_helpers": [
+      "scripts/zigux/kconfig/conf_bridge.zig",
+      "scripts/zigux/kconfig/confdata_bridge.zig"
+    ],
+    "policy": [
+      "scripts/zigux/zig-toolchain-policy.json"
+    ],
+    "fixture_roster": [
+      "zigux/tests/fixtures/kconfig_bridge/cases.json",
+      "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
+      "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
+    ]
+  },
+  "repo_reality_gaps": [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+    "zigux/tests/fixtures/phase2_cross_targets.json"
+  ],
+  "notes": [
+    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, kbuild routes checker, and kconfig bridge fixture roster.",
+    "Do not treat missing closure-side, cross-route, or artifact-tools packet members as directly readable current-master evidence until they are republished."
+  ]
+}
