@@ -24,18 +24,19 @@ VALIDATION_GATE = (
 )
 ROLLBACK_OWNER = "Repo Tooling Pod"
 STATUS_BUCKET = "study_only"
-TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 SELF_TEST_SHARED_SURVEYED_COMMIT = "b9afa7c3be853219eba57856e08aeea900414116"
-SMOKE_NOTE_SHARED_GUARD_MARKER = (
-    "- `zigux/Makefile` now replays `scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test`, "
-    f"`{TESTS_README_CHECKER_PATH} --self-test`, "
-    "`scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test`, and "
-    "`scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test` before the four live checker invocations inside "
-    "`make -C zigux phase14-validate`, while `scripts/zigux/validate-phase14.py` continues to rerun "
-    f"`{TESTS_README_CHECKER_PATH}` inside that same validator-first route. That keeps all four dedicated Phase 14 "
-    "drift guards on the shared contract path without implying a separate tests-readme make target that current `master` "
-    "does not ship."
-)
+SMOKE_NOTE_SHARED_GUARD_MARKERS = [
+    "- `zigux/Makefile` now replays only `scripts/zigux/validate-phase14.py`, "
+    "`scripts/zigux/check-phase14-docs-root-smoke-summary.py`, "
+    "`scripts/zigux/check-phase14-rollback-threshold-sequencing.py`, and "
+    "`scripts/zigux/check-phase14-release-boundary-exact-counts.py` inside "
+    "`make -C zigux phase14-validate`; the tests-readme smoke checker remains "
+    "part of the shared packet inventory, but not part of the live validator "
+    "wrapper route on current `master`.",
+    "That keeps the shared smoke note aligned with the live Makefile route while "
+    "leaving the tests-root reminder explicit as shared packet evidence instead "
+    "of an already-wired validator rerun.",
+]
 ATTACHED_TOOLCHAIN_EXAMPLES = [
     "- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`",
     "- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`",
@@ -95,8 +96,6 @@ MAKEFILE_EXACT_LINES = [
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test",
-    f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
     "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
@@ -110,17 +109,21 @@ RELEASE_BOUNDARY_PATH = Path("Documentation/zigux/phase14-release-boundary-surve
 CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
+
 def read_text(root: Path, rel: Path) -> str:
     return (root / rel).read_text(encoding="utf-8")
 
+
 def source_text() -> str:
     return Path(__file__).read_text(encoding="utf-8")
+
 
 def anchor_note_fragment(packet: dict[str, object]) -> str:
     return (
         f"`{packet['manifest_path']}`, lane `{packet['lane_key']}`, "
         f"surveyed commit `{packet['surveyed_commit']}`"
     )
+
 
 def require_exact_line_count(errors: list[str], rel_path: str, text: str) -> None:
     lines = text.splitlines()
@@ -131,6 +134,7 @@ def require_exact_line_count(errors: list[str], rel_path: str, text: str) -> Non
                 f"marker count drift in {rel_path}: {marker} "
                 f"(expected 1, found {count})"
             )
+
 
 def check(root: Path) -> list[str]:
     errors: list[str] = []
@@ -198,7 +202,7 @@ def check(root: Path) -> list[str]:
         "- automatic return-to-blocked triggers:",
         *ROLLBACK_TRIGGER_MARKERS,
         "- attached-toolchain fallback examples for this note's shared replay routes only:",
-        SMOKE_NOTE_SHARED_GUARD_MARKER,
+        *SMOKE_NOTE_SHARED_GUARD_MARKERS,
         "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]:
         if marker not in smoke_note:
@@ -256,7 +260,6 @@ def check(root: Path) -> list[str]:
     makefile = read_text(root, MAKEFILE_PATH)
     for marker in [
         "phase14-validate:",
-        TESTS_README_CHECKER_PATH,
         "scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
         "phase14-smoke:",
         "phase14-test:",
@@ -268,10 +271,12 @@ def check(root: Path) -> list[str]:
 
     return errors
 
+
 def write(root: Path, rel: Path, text: str) -> None:
     path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
 
 def current_manifest_text() -> str:
     return json.dumps(
@@ -299,6 +304,7 @@ def current_manifest_text() -> str:
         indent=2,
     ) + "\n"
 
+
 def current_smoke_note_text() -> str:
     parts = [
         "- `PHASE14_STAY_IN_C_BOUNDARY=explicit`",
@@ -318,10 +324,11 @@ def current_smoke_note_text() -> str:
             for packet in SELF_TEST_ANCHOR_PACKETS
         ],
         *ANCHOR_MANIFEST_MARKERS,
-        SMOKE_NOTE_SHARED_GUARD_MARKER,
+        *SMOKE_NOTE_SHARED_GUARD_MARKERS,
         "Keep this shared smoke lane parked unless one of the four anchor-local manifests, survey notes, the compile shard matrix, or the shared replay wiring drifts.",
     ]
     return "\n".join(parts) + "\n"
+
 
 def current_release_boundary_text() -> str:
     return "\n".join(
@@ -333,11 +340,13 @@ def current_release_boundary_text() -> str:
         ]
     ) + "\n"
 
+
 def current_checklist_text() -> str:
     return (
         "if the change touches the shared Phase 14 smoke packet\n"
         "same study-only stay-in-C posture without implying an active deep-core port claim?\n"
     )
+
 
 def current_makefile_text() -> str:
     return "\n".join(
@@ -347,8 +356,6 @@ def current_makefile_text() -> str:
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-docs-root-smoke-summary.py",
-            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test",
-            f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py --self-test",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py",
             "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
@@ -358,6 +365,7 @@ def current_makefile_text() -> str:
             "phase14: phase14-validate phase14-smoke phase14-test",
         ]
     ) + "\n"
+
 
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -402,39 +410,41 @@ def run_self_test() -> int:
         write(root, MANIFEST_PATH, current_manifest_text())
         write(
             root,
-            MAKEFILE_PATH,
-            current_makefile_text().replace(
-                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH} --self-test\n",
+            SMOKE_NOTE_PATH,
+            current_smoke_note_text().replace(
+                SMOKE_NOTE_SHARED_GUARD_MARKERS[0] + "\n",
                 "",
                 1,
             ),
         )
         if not any(
-            f"{TESTS_README_CHECKER_PATH} --self-test" in error
+            "phase14-validate`; the tests-readme smoke checker remains" in error
             for error in check(root)
         ):
-            print("self-test expected tests-readme make self-test gap failure", file=sys.stderr)
+            print("self-test expected shared smoke note validator-route marker failure", file=sys.stderr)
             return 1
 
+        write(root, SMOKE_NOTE_PATH, current_smoke_note_text())
         write(
             root,
             MAKEFILE_PATH,
             current_makefile_text().replace(
-                f"\tcd $(ZIGUX_ROOT) && $(PYTHON) {TESTS_README_CHECKER_PATH}\n",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-rollback-threshold-sequencing.py\n",
                 "",
                 1,
             ),
         )
         if not any(
-            error.endswith(f"{TESTS_README_CHECKER_PATH} (expected 1, found 0)")
-            or error.endswith(f"{TESTS_README_CHECKER_PATH}:count=0")
+            "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+            in error
             for error in check(root)
         ):
-            print("self-test expected tests-readme make route gap failure", file=sys.stderr)
+            print("self-test expected rollback-threshold make route gap failure", file=sys.stderr)
             return 1
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=20")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -449,6 +459,7 @@ def main() -> int:
         return 1
     print("phase14 rollback-threshold sequencing packet validated")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
