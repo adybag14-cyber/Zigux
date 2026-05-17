@@ -47,6 +47,11 @@ test "phase10 virtio input survey note keeps the restored verifier and queue cal
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_survey.zig");
+    try expectContains(
+        survey_note,
+        "the direct input gate, the probe-preflight replay, the queue-callback-preflight replay, the registration-preflight replay, the status-drain replay, the teardown-observation replay, and the wrapper-facing verify replay into one bounded shared gate for the live input packet.",
+    );
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-local MMIO tests") == null);
 }
 
 test "phase10 virtio input manifest keeps the restored replay ids and blocked lifecycle posture explicit" {
