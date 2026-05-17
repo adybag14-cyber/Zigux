@@ -14,6 +14,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+TOOL_MANIFEST_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
@@ -22,8 +23,10 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     POLICY_PATH,
     BOOTSTRAP_NOTES,
+    TOOL_MANIFEST_PATH,
 )
 
 WORKFLOW_LINES = (
@@ -103,7 +106,54 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 79
+EXPECTED_TOOL_MANIFEST = {
+    "phase": "Phase 2",
+    "status": "active",
+    "scope": "current directly readable scripts-root kbuild, toolchain, and kconfig reminder packet",
+    "workflow": ".github/workflows/zigux-bootstrap.yml",
+    "present_surfaces": {
+        "review_surfaces": [
+            "Documentation/zigux/review-checklist.md",
+            "scripts/zigux/README.md",
+            "zigux/tests/README.md",
+        ],
+        "checkers": [
+            "scripts/zigux/check-zig-toolchain.py",
+            "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+            "scripts/zigux/check-phase2-kbuild-routes.py",
+            "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+            "scripts/zigux/check-phase2-toolchain-pinning.py",
+            "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+            "scripts/zigux/check-phase2-required-make-routes.py",
+        ],
+        "bridge_helpers": [
+            "scripts/zigux/kconfig/conf_bridge.zig",
+            "scripts/zigux/kconfig/confdata_bridge.zig",
+        ],
+        "policy": [
+            "scripts/zigux/zig-toolchain-policy.json",
+        ],
+        "artifact_support": [
+            "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+        ],
+        "fixture_roster": [
+            "zigux/tests/fixtures/kconfig_bridge/cases.json",
+            "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
+            "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+        ],
+    },
+    "repo_reality_gaps": [
+        "Documentation/zigux/phase2-closure.md",
+        "scripts/zigux/validate-phase2.py",
+        "scripts/zigux/validate-phase2-closure.py",
+        "zigux/Makefile",
+        "scripts/zigux/install-zig.py",
+        "scripts/zigux/check-phase2-cross.py",
+        "zigux/tests/fixtures/phase2_cross_targets.json",
+    ],
+}
+
+EXPECTED_SELF_TEST_CASE_COUNT = 93
 
 
 def read_text(path: Path) -> str:
@@ -134,6 +184,10 @@ def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) ->
 
 def load_policy(root: Path) -> object:
     return json.loads(read_text(resolve_path(root, POLICY_PATH)))
+
+
+def load_tool_manifest(root: Path) -> object:
+    return json.loads(read_text(resolve_path(root, TOOL_MANIFEST_PATH)))
 
 
 def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
@@ -185,6 +239,50 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     return issues
 
 
+def collect_tool_manifest_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    try:
+        payload = load_tool_manifest(root)
+    except json.JSONDecodeError as exc:
+        return [("INVALID_TOOL_MANIFEST_JSON", exc.msg)]
+
+    if not isinstance(payload, dict):
+        return [("INVALID_TOOL_MANIFEST_PAYLOAD", type(payload).__name__)]
+
+    for key in ("phase", "status", "scope", "workflow"):
+        if payload.get(key) != EXPECTED_TOOL_MANIFEST[key]:
+            issues.append(
+                (
+                    "TOOL_MANIFEST_FIELD_MISMATCH",
+                    f"{key}:actual={payload.get(key)!r}:expected={EXPECTED_TOOL_MANIFEST[key]!r}",
+                )
+            )
+
+    present_surfaces = payload.get("present_surfaces")
+    if not isinstance(present_surfaces, dict):
+        return issues + [("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", type(present_surfaces).__name__)]
+
+    expected_present_surfaces = EXPECTED_TOOL_MANIFEST["present_surfaces"]
+    for key, expected_value in expected_present_surfaces.items():
+        if present_surfaces.get(key) != expected_value:
+            issues.append(
+                (
+                    "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH",
+                    f"{key}:actual={present_surfaces.get(key)!r}:expected={expected_value!r}",
+                )
+            )
+
+    if payload.get("repo_reality_gaps") != EXPECTED_TOOL_MANIFEST["repo_reality_gaps"]:
+        issues.append(
+            (
+                "TOOL_MANIFEST_REPO_GAPS_MISMATCH",
+                f"actual={payload.get('repo_reality_gaps')!r}:expected={EXPECTED_TOOL_MANIFEST['repo_reality_gaps']!r}",
+            )
+        )
+
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
@@ -218,6 +316,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     if resolve_path(root, POLICY_PATH).exists():
         issues.extend(collect_policy_issues(root))
+    if resolve_path(root, TOOL_MANIFEST_PATH).exists():
+        issues.extend(collect_tool_manifest_issues(root))
     return issues
 
 
@@ -284,6 +384,8 @@ def build_self_test_root(root: Path) -> None:
                 )
                 + "\n",
             )
+        elif path == TOOL_MANIFEST_PATH:
+            write_text(resolve_path(root, path), json.dumps(EXPECTED_TOOL_MANIFEST, indent=2) + "\n")
         elif path == BOOTSTRAP_NOTES:
             continue
         else:
@@ -312,6 +414,12 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
+
+
+def mutate_json(path: Path, mutator) -> None:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    mutator(payload)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -447,6 +555,63 @@ def run_self_test() -> int:
         assert ("INVALID_POLICY_PAYLOAD", "list") in issues
         checks_run += 1
 
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("phase", "Phase 3"))
+        issues = collect_issues(root)
+        assert any(
+            code == "TOOL_MANIFEST_FIELD_MISMATCH" and "phase:" in value for code, value in issues
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("workflow", "zigux/Makefile"))
+        issues = collect_issues(root)
+        assert any(
+            code == "TOOL_MANIFEST_FIELD_MISMATCH" and "workflow:" in value for code, value in issues
+        )
+        checks_run += 1
+
+        for key in EXPECTED_TOOL_MANIFEST["present_surfaces"]:
+            build_self_test_root(root)
+            path = resolve_path(root, TOOL_MANIFEST_PATH)
+            mutate_json(path, lambda payload, key=key: payload["present_surfaces"].__setitem__(key, []))
+            issues = collect_issues(root)
+            assert any(
+                code == "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH" and value.startswith(f"{key}:")
+                for code, value in issues
+            )
+            checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("present_surfaces", "broken"))
+        issues = collect_issues(root)
+        assert ("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", "str") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("repo_reality_gaps", []))
+        issues = collect_issues(root)
+        assert any(code == "TOOL_MANIFEST_REPO_GAPS_MISMATCH" for code, _ in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        path.write_text("{not-json}\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_TOOL_MANIFEST_JSON", "Expecting property name enclosed in double quotes") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        path.write_text("[]\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_TOOL_MANIFEST_PAYLOAD", "list") in issues
+        checks_run += 1
+
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
     print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT={checks_run}")
@@ -471,6 +636,10 @@ def main() -> int:
     print("PHASE2_TOOLCHAIN_PINNING=pass")
     print(f"PHASE2_TOOLCHAIN_PINNING_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
     print(f"PHASE2_TOOLCHAIN_PINNING_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
+    print(
+        "PHASE2_TOOLCHAIN_PINNING_MANIFEST_CHECKER_COUNT="
+        + str(len(EXPECTED_TOOL_MANIFEST["present_surfaces"]["checkers"]))
+    )
     return 0
 
 
