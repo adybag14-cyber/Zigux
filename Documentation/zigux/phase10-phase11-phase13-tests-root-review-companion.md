@@ -56,7 +56,9 @@ Tests-root reviewer prompt:
 
 ## Phase 13 tests-root packet
 
-Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:
+Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` aligned with that stable handle as supporting shared reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.
+
+Keep the broader current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
