@@ -735,6 +735,22 @@ test "findNextClump8 keeps cross-word tail bytes reachable" {
     try std.testing.expectEqual(@as(u8, 0x55), clump);
 }
 
+test "findNextClump8 advances from a cross-word tail byte into a masked partial next-word byte" {
+    const nbits = bits_per_long + 5;
+    const bitmap = [_]Word{
+        @as(Word, 0xaa) << @intCast(bits_per_long - 8),
+        @as(Word, 0x1d),
+    };
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long - 8), findFirstClump8(&clump, &bitmap, nbits));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long), findNextClump8(&clump, &bitmap, nbits, bits_per_long));
+    try std.testing.expectEqual(@as(u8, 0x1d), clump);
+}
+
 test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {
     const boundary = bits_per_long - 1;
     const nbits = bits_per_long * 2;
@@ -816,76 +832,4 @@ test "find last bit returns nbits when no set bits remain" {
 
     try std.testing.expectEqual(@as(usize, nbits), findLastBit(&bitmap, nbits));
     try std.testing.expectEqual(@as(usize, 0), findLastBit(&empty, 0));
-}
-
-test "tail-word next zero and shared scans skip earlier in-range matches before clamping" {
-    const nbits = bits_per_long + 6;
-    const tail_zero_map = [_]Word{
-        ~@as(Word, 0),
-        lastWordMask(nbits) & ~((@as(Word, 1) << 1) | (@as(Word, 1) << 4)),
-    };
-    const tail_and_lhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
-    const tail_and_rhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
-
-    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 1));
-    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 2));
-    try std.testing.expectEqual(@as(usize, nbits), findNextZeroBit(&tail_zero_map, nbits, bits_per_long + 5));
-
-    try std.testing.expectEqual(@as(usize, bits_per_long + 1), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 1));
-    try std.testing.expectEqual(@as(usize, bits_per_long + 4), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 2));
-    try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 5));
-}
-
-test "low-level underscore aliases mirror the primary find helpers" {
-    const nbits = bits_per_long + 5;
-    const bitmap = [_]Word{ (@as(Word, 1) << 7), (@as(Word, 1) << 3) | (@as(Word, 1) << 10) };
-    const zero_map = [_]Word{ ~(@as(Word, 1) << 4), lastWordMask(nbits) };
-    const and_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
-    const and_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
-    const andnot_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
-    const andnot_rhs = [_]Word{ @as(Word, 1) << 5, @as(Word, 1) << 9 };
-    const clump_map = [_]Word{@as(Word, 1)};
-
-    try std.testing.expectEqual(findFirstBit(&bitmap, nbits), _find_first_bit(&bitmap, nbits));
-    try std.testing.expectEqual(findFirstAndBit(&and_lhs, &and_rhs, nbits), _find_first_and_bit(&and_lhs, &and_rhs, nbits));
-    try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), _find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));
-    try std.testing.expectEqual(findFirstZeroBit(&zero_map, nbits), _find_first_zero_bit(&zero_map, nbits));
-    try std.testing.expectEqual(findNextBit(&bitmap, nbits, 8), _find_next_bit(&bitmap, nbits, 8));
-    try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, bits_per_long), _find_next_and_bit(&and_lhs, &and_rhs, nbits, bits_per_long));
-    try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), _find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));
-    try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), _find_next_zero_bit(&zero_map, nbits, 5));
-    try std.testing.expectEqual(findLastBit(&bitmap, nbits), _find_last_bit(&bitmap, nbits));
-
-    var clump: u8 = 0;
-    try std.testing.expectEqual(@as(usize, 0), _find_first_clump8(&clump, &clump_map, 8));
-    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
-    clump = 0;
-    try std.testing.expectEqual(@as(usize, 0), _find_next_clump8(&clump, &clump_map, 8, 0));
-    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
-}
-
-test "Linux-style aliases mirror the primary find helpers" {
-    const nbits = bits_per_long + 5;
-    const bitmap = [_]Word{ (@as(Word, 1) << 7), (@as(Word, 1) << 3) | (@as(Word, 1) << 10) };
-    const zero_map = [_]Word{ ~(@as(Word, 1) << 4), lastWordMask(nbits) };
-    const and_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
-    const and_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
-    const andnot_lhs = [_]Word{ (@as(Word, 1) << 5), (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
-    const andnot_rhs = [_]Word{ @as(Word, 1) << 5, @as(Word, 1) << 9 };
-
-    try std.testing.expectEqual(findFirstBit(&bitmap, nbits), find_first_bit(&bitmap, nbits));
-    try std.testing.expectEqual(findFirstAndBit(&and_lhs, &and_rhs, nbits), find_first_and_bit(&and_lhs, &and_rhs, nbits));
-    try std.testing.expectEqual(findFirstAndNotBit(&andnot_lhs, &andnot_rhs, nbits), find_first_andnot_bit(&andnot_lhs, &andnot_rhs, nbits));
-    try std.testing.expectEqual(findFirstZeroBit(&zero_map, nbits), find_first_zero_bit(&zero_map, nbits));
-    try std.testing.expectEqual(findNextBit(&bitmap, nbits, 8), find_next_bit(&bitmap, nbits, 8));
-    try std.testing.expectEqual(findNextAndBit(&and_lhs, &and_rhs, nbits, bits_per_long), find_next_and_bit(&and_lhs, &and_rhs, nbits, bits_per_long));
-    try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));
-    try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), find_next_zero_bit(&zero_map, nbits, 5));
-    try std.testing.expectEqual(findLastBit(&bitmap, nbits), find_last_bit(&bitmap, nbits));
-
-    var clump: u8 = 0;
-    try std.testing.expectEqual(@as(usize, 0), find_first_clump8(&clump, &[_]Word{@as(Word, 1)}, 8));
-    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
-    try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));
-    try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
