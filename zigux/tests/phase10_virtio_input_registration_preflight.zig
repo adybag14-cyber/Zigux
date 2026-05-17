@@ -11,10 +11,18 @@ test "phase10 virtio input registration preflight helper exposes blocker tags an
     try std.testing.expect(!summary.ready_for_registration);
 
     try device.configureEventQueue(16);
-    try device.configureStatusQueue(8);
-    _ = try device.fillEventBuffers();
-    try device.markReady();
+    summary = registration.summarize(&device);
+    try std.testing.expectEqual(virtio_input.RegistrationBlocker.status_queue_unconfigured, summary.blocker.?);
 
+    try device.configureStatusQueue(8);
+    summary = registration.summarize(&device);
+    try std.testing.expectEqual(virtio_input.RegistrationBlocker.event_buffers_unfilled, summary.blocker.?);
+
+    _ = try device.fillEventBuffers();
+    summary = registration.summarize(&device);
+    try std.testing.expectEqual(virtio_input.RegistrationBlocker.device_not_ready, summary.blocker.?);
+
+    try device.markReady();
     summary = registration.summarize(&device);
     try std.testing.expectEqual(virtio_input.RegistrationBlocker.capability_setup_incomplete, summary.blocker.?);
 
