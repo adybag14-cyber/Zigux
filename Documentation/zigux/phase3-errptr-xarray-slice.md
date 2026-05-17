@@ -10,6 +10,12 @@ This note records one bounded Phase 3 helper-side interop slice on current `mast
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- `zigux/tests/phase3_errptr_xarray_dump.zig`
+- `zigux/tests/phase3_errptr_xarray_dump_build.zig`
+- `zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c`
+- `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`
+- `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
+- `scripts/zigux/check-phase3-errptr-xarray.py`
 
 ## Bounded Contract
 
@@ -21,16 +27,29 @@ The helper pair stays intentionally small:
 
 ## Current Replay Surface
 
-The current helper-local packet is now kept explicit through one small manifest-backed replay guard:
+The current helper-local packet now has two bounded replay layers:
 
-- `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
-- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
-- `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- one manifest-backed starter packet:
+  - `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
+  - `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+  - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
+  - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+- one fixture-backed parity packet:
+  - `zigux/tests/phase3_errptr_xarray_dump.zig`
+  - `zigux/tests/phase3_errptr_xarray_dump_build.zig`
+  - `zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c`
+  - `zigux/tests/fixtures/phase3_errptr_xarray/expected.json`
+  - `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
+  - `scripts/zigux/check-phase3-errptr-xarray.py`
+  - `python3 scripts/zigux/check-phase3-errptr-xarray.py --self-test`
+  - `python3 scripts/zigux/check-phase3-errptr-xarray.py --repo-root . --zig zig --cc gcc`
+  - `zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig`
+
+That fixture-backed parity packet keeps one tiny C-vs-Zig comparison explicit without reopening the broader shared tests root.
 
 ## Current Gap
 
-This is not the broader Phase 3 ABI, export/UAPI, catalog, or low-level-wrapper packet that older reminder surfaces still name. It is one helper-local interop proof layered beside the existing `dev_t` starter packet.
+This is still not the broader Phase 3 ABI, export/UAPI, catalog, or low-level-wrapper packet that older reminder surfaces still name. It is one helper-local interop proof layered beside the existing `dev_t` starter packet.
 
 Current shared reminder follow-up still belongs to the broader Phase 3 truthfulness pass:
 
@@ -42,4 +61,4 @@ Those surfaces still talk in broader Phase 3 packet terms and should be narrowed
 
 ## Scope
 
-This note is limited to the helper-local `err_ptr` and `xarray` value-tag boundary. It does not claim runtime pointer dereference behavior, export-shim wiring, broader UAPI layout support, IDR or IDA coverage, or any shared `phase3` replay route.
+This note is limited to the helper-local `err_ptr` and `xarray` value-tag boundary plus one tiny fixture-backed parity dump. It does not claim runtime pointer dereference behavior, export-shim wiring, broader UAPI layout support, IDR or IDA coverage, or any shared `phase3` replay route.
