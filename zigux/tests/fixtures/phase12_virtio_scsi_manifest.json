@@ -1,0 +1,29 @@
+{
+  "lane_key": "P12-L13",
+  "phase": "Phase 12",
+  "surveyed_commit": "unresolved_on_master",
+  "verified_on": "2026-05-17",
+  "anchor": "drivers/scsi/virtio_scsi.c",
+  "fixture_kind": "survey_packet_presence_manifest",
+  "source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json",
+  "scope": "Bounded virtio_scsi starter, survey gate, repeated replan, repeated rollback, support packet, and shared phase12 build-only surfaces.",
+  "required_paths": [
+    "Documentation/zigux/phase12-virtio-scsi-slice.md",
+    "Documentation/zigux/phase12-virtio-scsi-survey.md",
+    "drivers/scsi/virtio_scsi.zig",
+    "zigux/tests/phase12_virtio_scsi.zig",
+    "zigux/tests/phase12_virtio_scsi_syntax_lab.zig",
+    "zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig",
+    "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
+    "zigux/tests/phase12_virtio_scsi_packet.zig",
+    "zigux/tests/phase12_virtio_scsi_manifest.json",
+    "zigux/tests/phase12_virtio_scsi_survey.zig",
+    "zigux/tests/phase12_build.zig",
+    "zigux/Makefile",
+    "scripts/zigux/check-phase12-virtio-scsi-packet.py"
+  ],
+  "notes": [
+    "This fixture restores the lane-local manifest path that the survey gate keeps explicit on current master.",
+    "It stays scoped to the existing Phase 12 virtio_scsi survey packet and does not widen into runtime queue, scsi_host, blk-mq, or DMA-backed request flow work."
+  ]
+}
