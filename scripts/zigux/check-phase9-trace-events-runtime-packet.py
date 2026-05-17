@@ -13,6 +13,7 @@ TESTS_README_PATH = "zigux/tests/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
+REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
 
 
 def infer_repo_root() -> Path:
@@ -26,10 +27,12 @@ ROOT = infer_repo_root()
 
 TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 UNREGISTERED_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+REENTRY_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 FAIL_CLOSED_COMPANION_MARKER = "unregistered function-thread failures fail-closed"
+REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable before and after selftest"
 ABSENT_SHARED_LOADER_MARKER = "does not currently expose the broader shared runtime-loader packet"
 ABSENT_PHASE9_BUILD_MARKER = "`zigux/tests/phase9_build.zig`"
 ABSENT_RUNTIME_LOADER_KERNEL_MARKER = "`zigux/kernel/runtime_loader.zig`"
@@ -48,289 +51,174 @@ TESTS_README_BACKLOG_MARKER = (
 SEQUENCING_UNREGISTERED_GATE_MARKER = (
     "surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 )
+SEQUENCING_REENTRY_GATE_MARKER = (
+    "surviving registration-reentry runtime companion: `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
+)
 TESTS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
-
-SAMPLE_DESCRIPTOR_NAME_MARKER = '.name = "runtime_trace_events"'
-SAMPLE_DESCRIPTOR_ANCHOR_MARKER = '.anchor = "samples/trace_events/trace-events-sample.c"'
-SAMPLE_DESCRIPTOR_RUNTIME_SUBSTRATE_MARKER = ".requires_runtime_substrate = true"
-SAMPLE_DESCRIPTOR_MARKER = ".provides_selftest_hook = true"
-SAMPLE_RUN_SELFTEST_MARKER = "pub fn runSelftest(self: *Self) !EmissionSummary {"
-SAMPLE_EXIT_MARKER = "pub fn exit(self: *Self) !void {"
-SAMPLE_DUPLICATE_REGISTRATION_TEST_MARKER = (
-    'test "trace-events sample rejects duplicate function-thread registration" {'
+TESTS_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
+SAMPLES_README_REENTRY_GATE_DETAIL_MARKER = (
+    "Treat `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as the same packet's balanced registration re-entry companion across the initialized and selftest_complete stages"
 )
-SAMPLE_DUPLICATE_REGISTRATION_ERROR_MARKER = "error.FunctionThreadAlreadyRegistered"
-SAMPLE_DUPLICATE_REGISTRATION_BEFORE_SUMMARY_MARKER = "const before_duplicate = module.summary();"
-SAMPLE_DUPLICATE_REGISTRATION_BEFORE_DEPTH_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 1), before_duplicate.registration_depth);"
-)
-SAMPLE_DUPLICATE_REGISTRATION_AFTER_SUMMARY_MARKER = "const after_duplicate = module.summary();"
-SAMPLE_DUPLICATE_REGISTRATION_STAGE_STABLE_MARKER = (
-    "try std.testing.expectEqual(before_duplicate.stage, after_duplicate.stage);"
-)
-SAMPLE_DUPLICATE_REGISTRATION_TOTAL_EVENTS_STABLE_MARKER = (
-    "try std.testing.expectEqual(before_duplicate.total_events, after_duplicate.total_events);"
-)
-SAMPLE_DUPLICATE_REGISTRATION_REGISTER_LABEL_STABLE_MARKER = (
-    "try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);"
-)
-SAMPLE_CONTINUITY_TEST_MARKER = (
-    'test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {'
-)
-SAMPLE_COLD_STAGE_MARKER = "try std.testing.expectEqual(ModuleStage.cold, module.stage());"
-SAMPLE_COLD_SELFTEST_REJECTION_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.cold, module.stage());\\n"
-    "    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());"
-)
-SAMPLE_COLD_EXIT_REJECTION_MARKER = (
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());"
-)
-SAMPLE_SELFTEST_COMPLETE_MODULE_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());"
-)
-SAMPLE_SELFTEST_CONDITIONAL_PATHS_MARKER = (
-    "try std.testing.expect(selftest.conditional_paths_checked);"
-)
-SAMPLE_SELFTEST_REGISTRATION_PATHS_MARKER = (
-    "try std.testing.expect(selftest.registration_paths_checked);"
-)
-SAMPLE_FAILED_EXIT_TEST_MARKER = (
-    'test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {'
-)
-SAMPLE_FAILED_EXIT_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);"
-)
-SAMPLE_FAILED_EXIT_SELFTEST_RUNS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);"
-)
-SAMPLE_FAILED_EXIT_EXIT_RUNS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);"
-)
-SAMPLE_FAILED_EXIT_PRESERVED_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, after_failed_exit.stage);"
-)
-SAMPLE_FAILED_EXIT_FINAL_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);"
-)
-SAMPLE_FAILED_EXIT_FINAL_EXIT_RUNS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);"
-)
-SAMPLE_EXITED_INIT_RUNS_STABLE_MARKER = (
-    "try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);"
-)
-SAMPLE_EXITED_SELFTEST_RUNS_STABLE_MARKER = (
-    "try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);"
-)
-SAMPLE_EXITED_REGISTRATION_DEPTH_STABLE_MARKER = (
-    "try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);"
-)
-SAMPLE_REJECTED_SELFTEST_TEST_MARKER = (
-    'test "trace-events sample keeps rejected re-selftest rollback explicit" {'
-)
-SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER = (
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));"
-)
-SAMPLE_EXITED_REGISTRATION_REJECTION_MARKER = (
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());"
-)
-SAMPLE_EXITED_FN_REPLAY_REJECTION_MARKER = (
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));"
-)
-SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER = (
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());"
-)
-SAMPLE_EXITED_STAGE_MARKER = "try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);"
-SAMPLE_EXITED_INIT_RUNS_MARKER = "try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);"
-SAMPLE_EXITED_SELFTEST_RUNS_MARKER = "try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);"
-SAMPLE_EXIT_RUN_COUNT_MARKER = "try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);"
-SAMPLE_EXITED_TOTAL_EVENTS_MARKER = "try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);"
-SAMPLE_EXITED_REGISTRATION_DEPTH_MARKER = "try std.testing.expectEqual(selftest_complete_summary.registration_depth, exited_summary.registration_depth);"
-SAMPLE_SELFTEST_COMPLETE_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);"
-)
-SAMPLE_SELFTEST_COMPLETE_SELFTEST_RUNS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);"
-)
-SAMPLE_REJECTED_SELFTEST_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);"
-)
-SAMPLE_REJECTED_SELFTEST_SELFTEST_RUNS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);"
-)
-SAMPLE_REJECTED_EXIT_SELFTEST_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.exited, before_rejected_exit_selftest.stage);"
-)
-SAMPLE_REJECTED_EXIT_SELFTEST_EXIT_RUNS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);"
-)
-SAMPLE_OUTSTANDING_REGISTRATION_MARKER = "error.OutstandingRegistration"
-
-UNREGISTERED_GATE_TEST_MARKER = (
-    'test "phase9 trace-events sample keeps unregistered function-thread failures fail-closed" {'
-)
-UNREGISTERED_GATE_INITIALIZED_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);"
-)
-UNREGISTERED_GATE_INITIAL_FN_REJECTION_MARKER = (
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));"
-)
-UNREGISTERED_GATE_SUMMARY_STABLE_HELPER_MARKER = (
-    "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {"
-)
-UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);"
-)
-UNREGISTERED_GATE_SELFTEST_MAIN_ITERATIONS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.main_iterations);"
-)
-UNREGISTERED_GATE_SELFTEST_FN_ITERATIONS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.fn_iterations);"
-)
-UNREGISTERED_GATE_SELFTEST_MAIN_THREAD_EVENTS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 10), selftest_complete_before.main_thread_events);"
-)
-UNREGISTERED_GATE_SELFTEST_FN_THREAD_EVENTS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.fn_thread_events);"
-)
-UNREGISTERED_GATE_SELFTEST_LAST_MAIN_COUNT_MARKER = (
-    "try std.testing.expectEqual(@as(i32, 5), selftest_complete_before.last_main_count);"
-)
-UNREGISTERED_GATE_SELFTEST_LAST_FN_COUNT_MARKER = (
-    "try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);"
-)
-UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER = (
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\\n"
-    "    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
-)
-UNREGISTERED_GATE_INITIAL_SUMMARY_STABLE_MARKER = (
-    "try expectSummaryStable(initialized_before, initialized_after);"
-)
-UNREGISTERED_GATE_SELFTEST_RUNS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.selftest_runs);"
-)
-UNREGISTERED_GATE_TOTAL_EVENTS_MARKER = (
-    "try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);"
-)
-UNREGISTERED_GATE_POST_SELFTEST_FAIL_CLOSED_PAIR_MARKER = (
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));\\n"
-    "    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
-)
-UNREGISTERED_GATE_SELFTEST_SUMMARY_STABLE_MARKER = (
-    "try expectSummaryStable(selftest_complete_before, selftest_complete_after);"
-)
-UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER = (
-    "try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);"
-)
-
-SEQUENCING_REQUIRED_MARKERS = [
-    TRACE_EVENTS_SAMPLE_MARKER,
-    SELFTEST_HOOK_MARKER,
-    LIFECYCLE_MARKER,
-    SEQUENCING_UNREGISTERED_GATE_MARKER,
-    ABSENT_SHARED_LOADER_MARKER,
-    ABSENT_PHASE9_BUILD_MARKER,
-    ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
-    ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
-]
-
-TESTS_README_REQUIRED_MARKERS = [
-    TRACE_EVENTS_SAMPLE_MARKER,
-    TESTS_README_UNREGISTERED_GATE_MARKER,
-    SELFTEST_HOOK_MARKER,
-    LIFECYCLE_MARKER,
-    FAIL_CLOSED_COMPANION_MARKER,
-    TESTS_README_BACKLOG_MARKER,
-]
-
-SAMPLES_README_REQUIRED_MARKERS = [
-    TRACE_EVENTS_SAMPLE_MARKER,
-    UNREGISTERED_GATE_SAMPLE_MARKER,
-    TRACE_EVENTS_PACKET_CHECKER_MARKER,
-    SELFTEST_HOOK_MARKER,
-    LIFECYCLE_MARKER,
-    ABSENT_SHARED_LOADER_MARKER,
-    ABSENT_PHASE9_BUILD_MARKER,
-    ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
-    ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
-    ABSENT_WORKFLOW_MARKER,
-    PHASE2_CONF_BRIDGE_MARKER,
-    PHASE2_CONFDATA_BRIDGE_MARKER,
-    PHASE3_EXPORTS_MARKER,
-    PHASE3_EXPORT_SHIM_MARKER,
-]
 
 SAMPLE_REQUIRED_MARKERS = [
-    SAMPLE_DESCRIPTOR_NAME_MARKER,
-    SAMPLE_DESCRIPTOR_ANCHOR_MARKER,
-    SAMPLE_DESCRIPTOR_RUNTIME_SUBSTRATE_MARKER,
-    SAMPLE_DESCRIPTOR_MARKER,
-    SAMPLE_RUN_SELFTEST_MARKER,
-    SAMPLE_EXIT_MARKER,
-    SAMPLE_DUPLICATE_REGISTRATION_TEST_MARKER,
-    SAMPLE_DUPLICATE_REGISTRATION_ERROR_MARKER,
-    SAMPLE_DUPLICATE_REGISTRATION_BEFORE_SUMMARY_MARKER,
-    SAMPLE_DUPLICATE_REGISTRATION_BEFORE_DEPTH_MARKER,
-    SAMPLE_DUPLICATE_REGISTRATION_AFTER_SUMMARY_MARKER,
-    SAMPLE_DUPLICATE_REGISTRATION_STAGE_STABLE_MARKER,
-    SAMPLE_DUPLICATE_REGISTRATION_TOTAL_EVENTS_STABLE_MARKER,
-    SAMPLE_DUPLICATE_REGISTRATION_REGISTER_LABEL_STABLE_MARKER,
-    SAMPLE_CONTINUITY_TEST_MARKER,
-    SAMPLE_COLD_STAGE_MARKER,
-    SAMPLE_COLD_SELFTEST_REJECTION_MARKER,
-    SAMPLE_COLD_EXIT_REJECTION_MARKER,
-    SAMPLE_SELFTEST_COMPLETE_MODULE_STAGE_MARKER,
-    SAMPLE_SELFTEST_CONDITIONAL_PATHS_MARKER,
-    SAMPLE_SELFTEST_REGISTRATION_PATHS_MARKER,
-    SAMPLE_FAILED_EXIT_TEST_MARKER,
-    SAMPLE_FAILED_EXIT_STAGE_MARKER,
-    SAMPLE_FAILED_EXIT_SELFTEST_RUNS_MARKER,
-    SAMPLE_FAILED_EXIT_EXIT_RUNS_MARKER,
-    SAMPLE_FAILED_EXIT_PRESERVED_STAGE_MARKER,
-    SAMPLE_FAILED_EXIT_FINAL_STAGE_MARKER,
-    SAMPLE_FAILED_EXIT_FINAL_EXIT_RUNS_MARKER,
-    SAMPLE_EXITED_INIT_RUNS_STABLE_MARKER,
-    SAMPLE_EXITED_SELFTEST_RUNS_STABLE_MARKER,
-    SAMPLE_EXITED_REGISTRATION_DEPTH_STABLE_MARKER,
-    SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
-    SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER,
-    SAMPLE_EXITED_REGISTRATION_REJECTION_MARKER,
-    SAMPLE_EXITED_FN_REPLAY_REJECTION_MARKER,
-    SAMPLE_EXITED_UNREGISTER_REJECTION_MARKER,
-    SAMPLE_EXITED_STAGE_MARKER,
-    SAMPLE_EXITED_INIT_RUNS_MARKER,
-    SAMPLE_EXITED_SELFTEST_RUNS_MARKER,
-    SAMPLE_EXIT_RUN_COUNT_MARKER,
-    SAMPLE_EXITED_TOTAL_EVENTS_MARKER,
-    SAMPLE_EXITED_REGISTRATION_DEPTH_MARKER,
-    SAMPLE_SELFTEST_COMPLETE_STAGE_MARKER,
-    SAMPLE_SELFTEST_COMPLETE_SELFTEST_RUNS_MARKER,
-    SAMPLE_REJECTED_SELFTEST_STAGE_MARKER,
-    SAMPLE_REJECTED_SELFTEST_SELFTEST_RUNS_MARKER,
-    SAMPLE_REJECTED_EXIT_SELFTEST_STAGE_MARKER,
-    SAMPLE_REJECTED_EXIT_SELFTEST_EXIT_RUNS_MARKER,
-    SAMPLE_OUTSTANDING_REGISTRATION_MARKER,
+    '.name = "runtime_trace_events"',
+    '.anchor = "samples/trace_events/trace-events-sample.c"',
+    ".requires_runtime_substrate = true",
+    ".provides_selftest_hook = true",
+    "pub fn runSelftest(self: *Self) !EmissionSummary {",
+    "pub fn exit(self: *Self) !void {",
+    'test "trace-events sample rejects duplicate function-thread registration" {',
+    "error.FunctionThreadAlreadyRegistered",
+    "const before_duplicate = module.summary();",
+    "try std.testing.expectEqual(@as(usize, 1), before_duplicate.registration_depth);",
+    "const after_duplicate = module.summary();",
+    "try std.testing.expectEqual(before_duplicate.stage, after_duplicate.stage);",
+    "try std.testing.expectEqual(before_duplicate.total_events, after_duplicate.total_events);",
+    "try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);",
+    'test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {',
+    "try std.testing.expectEqual(ModuleStage.cold, module.stage());",
+    "try std.testing.expectEqual(ModuleStage.cold, module.stage());\n    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());",
+    "try std.testing.expect(selftest.conditional_paths_checked);",
+    "try std.testing.expect(selftest.registration_paths_checked);",
+    'test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {',
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);",
+    "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, after_failed_exit.stage);",
+    "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);",
+    "try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);",
+    "try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);",
+    "try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);",
+    'test "trace-events sample keeps rejected re-selftest rollback explicit" {',
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());",
+    "try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);",
+    "try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);",
+    "try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);",
+    "try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);",
+    "try std.testing.expectEqual(selftest_complete_summary.registration_depth, exited_summary.registration_depth);",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);",
+    "try std.testing.expectEqual(ModuleStage.exited, before_rejected_exit_selftest.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);",
+    "error.OutstandingRegistration",
 ]
 
 UNREGISTERED_GATE_REQUIRED_MARKERS = [
-    UNREGISTERED_GATE_TEST_MARKER,
-    UNREGISTERED_GATE_SUMMARY_STABLE_HELPER_MARKER,
-    UNREGISTERED_GATE_INITIALIZED_STAGE_MARKER,
-    UNREGISTERED_GATE_INITIAL_FN_REJECTION_MARKER,
-    UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER,
-    UNREGISTERED_GATE_INITIAL_SUMMARY_STABLE_MARKER,
-    UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER,
-    UNREGISTERED_GATE_SELFTEST_MAIN_ITERATIONS_MARKER,
-    UNREGISTERED_GATE_SELFTEST_FN_ITERATIONS_MARKER,
-    UNREGISTERED_GATE_SELFTEST_MAIN_THREAD_EVENTS_MARKER,
-    UNREGISTERED_GATE_SELFTEST_FN_THREAD_EVENTS_MARKER,
-    UNREGISTERED_GATE_SELFTEST_RUNS_MARKER,
-    UNREGISTERED_GATE_TOTAL_EVENTS_MARKER,
-    UNREGISTERED_GATE_SELFTEST_LAST_MAIN_COUNT_MARKER,
-    UNREGISTERED_GATE_SELFTEST_LAST_FN_COUNT_MARKER,
-    UNREGISTERED_GATE_POST_SELFTEST_FAIL_CLOSED_PAIR_MARKER,
-    UNREGISTERED_GATE_SELFTEST_SUMMARY_STABLE_MARKER,
-    UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER,
+    'test "phase9 trace-events sample keeps unregistered function-thread failures fail-closed" {',
+    "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {",
+    "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);",
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));",
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\n    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
+    "try expectSummaryStable(initialized_before, initialized_after);",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);",
+    "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.main_iterations);",
+    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.fn_iterations);",
+    "try std.testing.expectEqual(@as(usize, 10), selftest_complete_before.main_thread_events);",
+    "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.fn_thread_events);",
+    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.selftest_runs);",
+    "try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);",
+    "try std.testing.expectEqual(@as(i32, 5), selftest_complete_before.last_main_count);",
+    "try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);",
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));\n    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
+    "try expectSummaryStable(selftest_complete_before, selftest_complete_after);",
+    "try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);",
 ]
+
+REENTRY_GATE_REQUIRED_MARKERS = [
+    'test "phase9 trace-events sample keeps registration reentry reusable across initialized and selftest_complete stages" {',
+    "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);",
+    "try std.testing.expectEqual(@as(usize, 0), initialized_before.registration_depth);",
+    "try std.testing.expectEqual(@as(usize, 0), initialized_before.fn_iterations);",
+    "try std.testing.expectEqual(@as(usize, 0), initialized_before.fn_thread_events);",
+    "try std.testing.expectEqual(@as(usize, 0), initialized_before.total_events);",
+    "try module.registerFunctionThread();",
+    "const initialized_replay = try module.emitFunctionIteration(3);",
+    "try std.testing.expectEqual(@as(usize, 2), initialized_replay);",
+    "try module.unregisterFunctionThread();",
+    "try std.testing.expectEqual(ModuleStage.initialized, initialized_after.stage);",
+    "try std.testing.expectEqual(@as(usize, 0), initialized_after.registration_depth);",
+    "try std.testing.expectEqual(@as(usize, 1), initialized_after.fn_iterations);",
+    "try std.testing.expectEqual(@as(usize, 2), initialized_after.fn_thread_events);",
+    "try std.testing.expectEqual(@as(usize, 2), initialized_after.total_events);",
+    "try std.testing.expectEqual(@as(?usize, 2), initialized_after.last_fn_emitted_events);",
+    "try std.testing.expectEqual(@as(i32, 3), initialized_after.last_fn_count);",
+    'try std.testing.expectEqualStrings("foo_bar_reg", initialized_after.last_register_label orelse return error.ExpectedRegisterLabel);',
+    'try std.testing.expectEqualStrings("foo_bar_unreg", initialized_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);',
+    "_ = try module.runSelftest();",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_before.stage);",
+    "try std.testing.expectEqual(@as(usize, 0), selftest_before.registration_depth);",
+    "try std.testing.expectEqual(@as(usize, 2), selftest_before.fn_iterations);",
+    "try std.testing.expectEqual(@as(usize, 4), selftest_before.fn_thread_events);",
+    "try std.testing.expectEqual(@as(usize, 10), selftest_before.total_events);",
+    "try std.testing.expectEqual(@as(usize, 1), selftest_before.selftest_runs);",
+    "try std.testing.expectEqual(@as(i32, 1), selftest_before.last_fn_count);",
+    "const selftest_replay = try module.emitFunctionIteration(11);",
+    "try std.testing.expectEqual(@as(usize, 2), selftest_replay);",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_after.stage);",
+    "try std.testing.expectEqual(@as(usize, 0), selftest_after.registration_depth);",
+    "try std.testing.expectEqual(@as(usize, 3), selftest_after.fn_iterations);",
+    "try std.testing.expectEqual(@as(usize, 6), selftest_after.fn_thread_events);",
+    "try std.testing.expectEqual(@as(usize, 12), selftest_after.total_events);",
+    "try std.testing.expectEqual(@as(usize, 1), selftest_after.selftest_runs);",
+    "try std.testing.expectEqual(@as(?usize, 2), selftest_after.last_fn_emitted_events);",
+    "try std.testing.expectEqual(@as(i32, 11), selftest_after.last_fn_count);",
+    'try std.testing.expectEqualStrings("foo_bar_reg", selftest_after.last_register_label orelse return error.ExpectedRegisterLabel);',
+    'try std.testing.expectEqualStrings("foo_bar_unreg", selftest_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);',
+]
+
+FILE_MARKERS = {
+    SEQUENCING_PATH: [
+        TRACE_EVENTS_SAMPLE_MARKER,
+        SELFTEST_HOOK_MARKER,
+        LIFECYCLE_MARKER,
+        SEQUENCING_UNREGISTERED_GATE_MARKER,
+        SEQUENCING_REENTRY_GATE_MARKER,
+        ABSENT_SHARED_LOADER_MARKER,
+        ABSENT_PHASE9_BUILD_MARKER,
+        ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
+        ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
+    ],
+    TESTS_README_PATH: [
+        TRACE_EVENTS_SAMPLE_MARKER,
+        TESTS_README_UNREGISTERED_GATE_MARKER,
+        TESTS_README_REENTRY_GATE_MARKER,
+        SELFTEST_HOOK_MARKER,
+        LIFECYCLE_MARKER,
+        FAIL_CLOSED_COMPANION_MARKER,
+        REENTRY_COMPANION_MARKER,
+        TESTS_README_BACKLOG_MARKER,
+    ],
+    SAMPLES_README_PATH: [
+        TRACE_EVENTS_SAMPLE_MARKER,
+        UNREGISTERED_GATE_SAMPLE_MARKER,
+        TRACE_EVENTS_PACKET_CHECKER_MARKER,
+        SELFTEST_HOOK_MARKER,
+        LIFECYCLE_MARKER,
+        REENTRY_COMPANION_MARKER,
+        SAMPLES_README_REENTRY_GATE_DETAIL_MARKER,
+        ABSENT_SHARED_LOADER_MARKER,
+        ABSENT_PHASE9_BUILD_MARKER,
+        ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
+        ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
+        ABSENT_WORKFLOW_MARKER,
+        PHASE2_CONF_BRIDGE_MARKER,
+        PHASE2_CONFDATA_BRIDGE_MARKER,
+        PHASE3_EXPORTS_MARKER,
+        PHASE3_EXPORT_SHIM_MARKER,
+    ],
+    SAMPLE_PATH: SAMPLE_REQUIRED_MARKERS,
+    UNREGISTERED_GATE_SAMPLE_PATH: UNREGISTERED_GATE_REQUIRED_MARKERS,
+    REENTRY_GATE_SAMPLE_PATH: REENTRY_GATE_REQUIRED_MARKERS,
+}
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -342,28 +230,21 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def build_fixture_text(rel_path: str, markers: list[str]) -> str:
+    if rel_path.endswith(".md"):
+        return "\n".join(["# fixture", "", *markers, ""])
+    return "\n".join(markers) + "\n"
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    required = [
-        SEQUENCING_PATH,
-        TESTS_README_PATH,
-        SAMPLES_README_PATH,
-        SAMPLE_PATH,
-        UNREGISTERED_GATE_SAMPLE_PATH,
-    ]
-    for rel_path in required:
+    for rel_path in FILE_MARKERS:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
     if failures:
         return failures
 
-    for rel_path, markers in [
-        (SEQUENCING_PATH, SEQUENCING_REQUIRED_MARKERS),
-        (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
-        (SAMPLES_README_PATH, SAMPLES_README_REQUIRED_MARKERS),
-        (SAMPLE_PATH, SAMPLE_REQUIRED_MARKERS),
-        (UNREGISTERED_GATE_SAMPLE_PATH, UNREGISTERED_GATE_REQUIRED_MARKERS),
-    ]:
+    for rel_path, markers in FILE_MARKERS.items():
         text = read_text(root, rel_path)
         for marker in markers:
             if marker not in text:
@@ -371,239 +252,43 @@ def validate(root: Path) -> list[str]:
     return failures
 
 
-def build_sequencing_fixture_text() -> str:
-    return f"""# Phase 9 Runtime Pilot Lane Sequencing
+def seed_fixture_tree(base: Path) -> None:
+    for rel_path, markers in FILE_MARKERS.items():
+        write_text(base / rel_path, build_fixture_text(rel_path, markers))
 
-Current `master` keeps a narrow surviving runtime-pilot packet.
-
-- surviving direct runtime-module sample: {TRACE_EVENTS_SAMPLE_MARKER}
-- surviving runtime-module evidence inside that sample: {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER}
-- {SEQUENCING_UNREGISTERED_GATE_MARKER}
-
-Current `master` {ABSENT_SHARED_LOADER_MARKER}.
-Fresh repo-first rereads did not find {ABSENT_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {ABSENT_RUNTIME_LOADER_KERNEL_MARKER}, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, or the older {ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER} on `master`.
-"""
-
-
-def build_tests_readme_fixture_text() -> str:
-    return f"""# zigux/tests
-
-Phase 9 review packet
-  * the surviving trace-events sample still keeps the roadmap-backed runtime pilot shape concrete by exposing {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER} inside {TRACE_EVENTS_SAMPLE_MARKER}, while {TESTS_README_UNREGISTERED_GATE_MARKER} keeps the same narrow packet's {FAIL_CLOSED_COMPANION_MARKER}, so reviewers can still inspect one real runtime-module and its companion boundary while the broader shared loader packet remains backlog
-  * {TESTS_README_BACKLOG_MARKER}
-"""
-
-
-def build_samples_readme_fixture_text() -> str:
-    return f"""# samples/zigux
-
-## Separate Phase 9 runtime pilot family
-* keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, and `zigux/tests/README.md` aligned with the surviving direct runtime-module sample {TRACE_EVENTS_SAMPLE_MARKER}
-* keep the current direct runtime-module evidence explicit: {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER}
-* keep the shipped fail-closed companion explicit too: {UNREGISTERED_GATE_SAMPLE_MARKER}
-* keep saying clearly that current `master` {ABSENT_SHARED_LOADER_MARKER}, so {ABSENT_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {ABSENT_RUNTIME_LOADER_KERNEL_MARKER}, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, {ABSENT_WORKFLOW_MARKER}, and the older {ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER} stay backlog references unless a fresh repo reread proves they have returned
-* keep older cross-phase non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} remain Phase 2 config-surface bridge references, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} remain Phase 3 export-boundary references rather than runtime-pilot evidence
-"""
-
-def build_sample_fixture_text() -> str:
-    return f"""const std = @import(\"std\");
-
-const Self = @This();
-const ModuleStage = enum {{ cold, initialized, selftest_complete, exited }};
-const EmissionSummary = struct {{
-    conditional_paths_checked: bool = true,
-    registration_paths_checked: bool = true,
-}};
-
-pub const ModuleDescriptor = struct {{
-    name: []const u8,
-    anchor: []const u8,
-    requires_runtime_substrate: bool,
-    provides_selftest_hook: bool,
-}};
-
-pub fn descriptor() ModuleDescriptor {{
-    return .{{
-        .name = \"runtime_trace_events\",
-        .anchor = \"samples/trace_events/trace-events-sample.c\",
-        .requires_runtime_substrate = true,
-        .provides_selftest_hook = true,
-    }};
-}}
-
-pub fn runSelftest(self: *Self) !EmissionSummary {{
-    _ = self;
-    return .{{}};
-}}
-
-pub fn exit(self: *Self) !void {{
-    _ = self;
-    return error.InvalidLifecycleTransition;
-}}
-
-test \"trace-events sample rejects duplicate function-thread registration\" {{
-    const before_duplicate = module.summary();
-    try std.testing.expectEqual(@as(usize, 1), before_duplicate.registration_depth);
-    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
-    const after_duplicate = module.summary();
-    try std.testing.expectEqual(before_duplicate.stage, after_duplicate.stage);
-    try std.testing.expectEqual(before_duplicate.total_events, after_duplicate.total_events);
-    try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);
-}}
-
-test \"trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity\" {{
-    try std.testing.expectEqual(ModuleStage.cold, module.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
-    try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
-    try std.testing.expect(selftest.conditional_paths_checked);
-    try std.testing.expect(selftest.registration_paths_checked);
-    try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);
-    try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
-    const selftest_complete_summary = module.summary();
-    const exited_summary = module.summary();
-    try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);
-    try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);
-    try std.testing.expectEqual(selftest_complete_summary.registration_depth, exited_summary.registration_depth);
-}}
-
-test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {{
-    const before_failed_exit = module.summary();
-    try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);
-    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
-    try std.testing.expectError(error.OutstandingRegistration, module.exit());
-    const after_failed_exit = module.summary();
-    try std.testing.expectEqual(ModuleStage.selftest_complete, after_failed_exit.stage);
-    const before_exit = module.summary();
-    const after_exit = module.summary();
-    try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);
-    try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
-    try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
-    try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);
-}}
-
-test \"trace-events sample keeps rejected re-selftest rollback explicit\" {{
-    const before_rejected_selftest = module.summary();
-    try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);
-    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
-    const before_rejected_exit_selftest = module.summary();
-    try std.testing.expectEqual(ModuleStage.exited, before_rejected_exit_selftest.stage);
-    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
-}}
-"""
-
-def build_unregistered_gate_fixture_text() -> str:
-    return f"""const std = @import(\"std\");
-const trace_events = @import(\"runtime_trace_events.zig\");
-
-const ModuleStage = trace_events.ModuleStage;
-const RuntimeTraceEventsSummary = trace_events.RuntimeTraceEventsSummary;
-const RuntimeTraceEventsSample = trace_events.RuntimeTraceEventsSample;
-
-fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {{
-    try std.testing.expect(std.meta.eql(before, after));
-}}
-
-test \"phase9 trace-events sample keeps unregistered function-thread failures fail-closed\" {{
-    var module = RuntimeTraceEventsSample{{}};
-    try module.init();
-
-    const initialized_before = module.summary();
-    try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);
-    try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));
-    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
-
-    const initialized_after = module.summary();
-    try expectSummaryStable(initialized_before, initialized_after);
-
-    _ = try module.runSelftest();
-    _ = try module.emitMainIteration(5);
-
-    const selftest_complete_before = module.summary();
-    try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);
-    try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.main_iterations);
-    try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.fn_iterations);
-    try std.testing.expectEqual(@as(usize, 10), selftest_complete_before.main_thread_events);
-    try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.fn_thread_events);
-    try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.selftest_runs);
-    try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);
-    try std.testing.expectEqual(@as(i32, 5), selftest_complete_before.last_main_count);
-    try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);
-    try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));
-    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
-
-    const selftest_complete_after = module.summary();
-    try expectSummaryStable(selftest_complete_before, selftest_complete_after);
-    try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);
-}}
-"""
 
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
-        raise SystemExit(f"expected failure not found: {expected}\\nactual={failures!r}")
+        raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
 
 
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase9-trace-events-runtime-packet-"))
     try:
-        write_text(base / SEQUENCING_PATH, build_sequencing_fixture_text())
-        write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
-        write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
-        write_text(base / SAMPLE_PATH, build_sample_fixture_text())
-        write_text(base / UNREGISTERED_GATE_SAMPLE_PATH, build_unregistered_gate_fixture_text())
-
+        seed_fixture_tree(base)
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
-        for rel_path, builder, markers in [
-            (SEQUENCING_PATH, build_sequencing_fixture_text, SEQUENCING_REQUIRED_MARKERS),
-            (TESTS_README_PATH, build_tests_readme_fixture_text, TESTS_README_REQUIRED_MARKERS),
-            (SAMPLES_README_PATH, build_samples_readme_fixture_text, SAMPLES_README_REQUIRED_MARKERS),
-            (SAMPLE_PATH, build_sample_fixture_text, SAMPLE_REQUIRED_MARKERS),
-            (UNREGISTERED_GATE_SAMPLE_PATH, build_unregistered_gate_fixture_text, UNREGISTERED_GATE_REQUIRED_MARKERS),
-        ]:
+        for rel_path, markers in FILE_MARKERS.items():
             for marker in markers:
-                write_text(base / SEQUENCING_PATH, build_sequencing_fixture_text())
-                write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
-                write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
-                write_text(base / SAMPLE_PATH, build_sample_fixture_text())
-                write_text(base / UNREGISTERED_GATE_SAMPLE_PATH, build_unregistered_gate_fixture_text())
-                write_text(base / rel_path, builder().replace(marker, "", 1))
+                seed_fixture_tree(base)
+                write_text(base / rel_path, "missing target marker fixture\n")
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
-        for rel_path in [
-            SEQUENCING_PATH,
-            TESTS_README_PATH,
-            SAMPLES_README_PATH,
-            SAMPLE_PATH,
-            UNREGISTERED_GATE_SAMPLE_PATH,
-        ]:
-            write_text(base / SEQUENCING_PATH, build_sequencing_fixture_text())
-            write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
-            write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
-            write_text(base / SAMPLE_PATH, build_sample_fixture_text())
-            write_text(base / UNREGISTERED_GATE_SAMPLE_PATH, build_unregistered_gate_fixture_text())
+        for rel_path in FILE_MARKERS:
+            seed_fixture_tree(base)
             (base / rel_path).unlink()
             expect_failure(base, f"missing_file:{rel_path}")
 
         print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(SEQUENCING_REQUIRED_MARKERS)}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(SAMPLE_REQUIRED_MARKERS)}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(UNREGISTERED_GATE_REQUIRED_MARKERS)}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(FILE_MARKERS[TESTS_README_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(FILE_MARKERS[SAMPLES_README_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_REENTRY_GATE_MARKER_COUNT={len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -628,11 +313,12 @@ def main() -> int:
         return 1
 
     print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET=pass")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(SEQUENCING_REQUIRED_MARKERS)}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(SAMPLE_REQUIRED_MARKERS)}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(UNREGISTERED_GATE_REQUIRED_MARKERS)}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(FILE_MARKERS[TESTS_README_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(FILE_MARKERS[SAMPLES_README_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_REENTRY_GATE_MARKER_COUNT={len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}")
     return 0
 
 
