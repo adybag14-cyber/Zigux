@@ -180,6 +180,15 @@ test "classifies unsupported ELF class silently" {
     try std.testing.expectEqual(Outcome.invalid_class, classify(&header));
 }
 
+test "classifies valid ELF input even when trailing bytes are present" {
+    const header = [_]u8{
+        0x7f, 'E',  'L',  'F', elfclass64, 1, 1, 0,
+        0,    0,    0,    0,   0,          0, 0, 0,
+        0xaa, 0xbb, 0xcc,
+    };
+    try std.testing.expectEqual(Outcome.elf64, classify(&header));
+}
+
 test "readHeader returns zero bytes on immediate EOF" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
@@ -312,6 +321,26 @@ test "64-bit ELF input exits with stdout" {
 
     const exit_code = try runMkElfconfig(
         &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        &stdout,
+        &stderr,
+    );
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "valid ELF input with trailing bytes exits with stdout" {
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfig(
+        &[_]u8{
+            0x7f, 'E',  'L', 'F', elfclass64, 1, 1, 0,
+            0,    0,    0,   0,   0,          0, 0, 0,
+            0xaa, 0xbb,
+        },
         &stdout,
         &stderr,
     );
