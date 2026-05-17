@@ -1,0 +1,312 @@
+// SPDX-License-Identifier: GPL-2.0-only
+const std = @import("std");
+
+const CComparatorResult = c_int;
+
+pub fn Comparator(comptime Key: type, comptime T: type) type {
+    return *const fn (*const Key, *const T) i32;
+}
+
+pub fn CComparator(comptime Key: type, comptime T: type) type {
+    return *const fn (*const Key, *const T) callconv(.c) CComparatorResult;
+}
+
+pub const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;
+pub const CRawComparator = *const fn (*const anyopaque, *const anyopaque) callconv(.c) CComparatorResult;
+
+pub const IndexRange = struct {
+    lower: usize,
+    upper: usize,
+
+    pub fn len(self: @This()) usize {
+        return self.upper - self.lower;
+    }
+
+    pub fn isEmpty(self: @This()) bool {
+        return self.lower == self.upper;
+    }
+
+    pub fn sliceConst(self: @This(), comptime T: type, items: []const T) []const T {
+        std.debug.assert(self.lower <= self.upper);
+        std.debug.assert(self.upper <= items.len);
+        return items[self.lower..self.upper];
+    }
+
+    pub fn sliceMutable(self: @This(), comptime T: type, items: []T) []T {
+        std.debug.assert(self.lower <= self.upper);
+        std.debug.assert(self.upper <= items.len);
+        return items[self.lower..self.upper];
+    }
+
+    pub fn bytes(self: @This(), base: [*]const u8, size: usize) []const u8 {
+        std.debug.assert(self.lower <= self.upper);
+        return base[(self.lower * size)..(self.upper * size)];
+    }
+
+    pub fn bytesMutable(self: @This(), base: [*]u8, size: usize) []u8 {
+        std.debug.assert(self.lower <= self.upper);
+        return base[(self.lower * size)..(self.upper * size)];
+    }
+};
+
+fn expectedComparatorReturnType(comptime fn_info: std.builtin.Type.Fn) type {
+    return if (fn_info.calling_convention.eql(std.builtin.CallingConvention.c)) CComparatorResult else i32;
+}
+
+fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
+    const fn_info = switch (@typeInfo(Compare)) {
+        .@"fn" => |info| info,
+        .pointer => |pointer| switch (@typeInfo(pointer.child)) {
+            .@"fn" => |info| info,
+            else => @compileError("bsearch comparator must be a function or function pointer"),
+        },
+        else => @compileError("bsearch comparator must be a function or function pointer"),
+    };
+
+    if (fn_info.params.len != 2) @compileError("bsearch comparator must accept exactly two parameters");
+    if (fn_info.params[0].type orelse @compileError("bsearch comparator key parameter must be typed") != *const Key) {
+        @compileError("bsearch comparator first parameter must be *const Key");
+    }
+    if (fn_info.params[1].type orelse @compileError("bsearch comparator item parameter must be typed") != *const T) {
+        @compileError("bsearch comparator second parameter must be *const T");
+    }
+    if (fn_info.return_type orelse @compileError("bsearch comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
+        @compileError("bsearch comparator return type must be i32 for native callconv or c_int for C ABI callconv");
+    }
+}
+
+fn validateRawComparator(comptime Compare: type) void {
+    const fn_info = switch (@typeInfo(Compare)) {
+        .@"fn" => |info| info,
+        .pointer => |pointer| switch (@typeInfo(pointer.child)) {
+            .@"fn" => |info| info,
+            else => @compileError("bsearch raw comparator must be a function or function pointer"),
+        },
+        else => @compileError("bsearch raw comparator must be a function or function pointer"),
+    };
+
+    if (fn_info.params.len != 2) @compileError("bsearch raw comparator must accept exactly two parameters");
+    if (fn_info.params[0].type orelse @compileError("bsearch raw comparator key parameter must be typed") != *const anyopaque) {
+        @compileError("bsearch raw comparator first parameter must be *const anyopaque");
+    }
+    if (fn_info.params[1].type orelse @compileError("bsearch raw comparator item parameter must be typed") != *const anyopaque) {
+        @compileError("bsearch raw comparator second parameter must be *const anyopaque");
+    }
+    if (fn_info.return_type orelse @compileError("bsearch raw comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
+        @compileError("bsearch raw comparator return type must be i32 for native callconv or c_int for C ABI callconv");
+    }
+}
+
+fn normalizeCompareResult(result: anytype) i32 {
+    return if (result < 0) -1 else if (result > 0) 1 else 0;
+}
+
+fn advanceSearchWindow(start: *usize, count: *usize, pivot_index: usize, result: i32) bool {
+    if (result == 0) return true;
+    if (result > 0) {
+        start.* = pivot_index + 1;
+        count.* -= 1;
+    }
+    count.* >>= 1;
+    return false;
+}
+
+fn advanceLowerBoundWindow(start: *usize, count: *usize, pivot_index: usize, result: i32) void {
+    const half = count.* >> 1;
+    if (result > 0) {
+        start.* = pivot_index + 1;
+        count.* -= half + 1;
+    } else {
+        count.* = half;
+    }
+}
+
+fn advanceUpperBoundWindow(start: *usize, count: *usize, pivot_index: usize, result: i32) void {
+    const half = count.* >> 1;
+    if (result >= 0) {
+        start.* = pivot_index + 1;
+        count.* -= half + 1;
+    } else {
+        count.* = half;
+    }
+}
+
+pub fn searchIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) ?usize {
+    comptime validateComparator(Key, T, @TypeOf(compare));
+    var start: usize = 0;
+    var count = items.len;
+    while (count > 0) {
+        const pivot_index = start + (count >> 1);
+        if (advanceSearchWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, &items[pivot_index])))) {
+            return pivot_index;
+        }
+    }
+    return null;
+}
+
+pub fn search(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) ?*const T {
+    const index = searchIndex(Key, T, key, items, compare) orelse return null;
+    return &items[index];
+}
+
+pub fn searchMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) ?*T {
+    const index = searchIndex(Key, T, key, items, compare) orelse return null;
+    return &items[index];
+}
+
+pub fn lowerBoundIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) usize {
+    comptime validateComparator(Key, T, @TypeOf(compare));
+    var start: usize = 0;
+    var count = items.len;
+    while (count > 0) {
+        const pivot_index = start + (count >> 1);
+        advanceLowerBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, &items[pivot_index])));
+    }
+    return start;
+}
+
+pub fn upperBoundIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) usize {
+    comptime validateComparator(Key, T, @TypeOf(compare));
+    var start: usize = 0;
+    var count = items.len;
+    while (count > 0) {
+        const pivot_index = start + (count >> 1);
+        advanceUpperBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, &items[pivot_index])));
+    }
+    return start;
+}
+
+pub fn equalRangeIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) IndexRange {
+    return .{
+        .lower = lowerBoundIndex(Key, T, key, items, compare),
+        .upper = upperBoundIndex(Key, T, key, items, compare),
+    };
+}
+
+pub fn equalRange(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) []const T {
+    return equalRangeIndex(Key, T, key, items, compare).sliceConst(T, items);
+}
+
+pub fn equalRangeMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) []T {
+    return equalRangeIndex(Key, T, key, items, compare).sliceMutable(T, items);
+}
+
+pub fn bsearchIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) ?usize {
+    comptime validateRawComparator(@TypeOf(compare));
+    var start: usize = 0;
+    var count = num;
+    while (count > 0) {
+        const pivot_index = start + (count >> 1);
+        const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
+        if (advanceSearchWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)))) {
+            return pivot_index;
+        }
+    }
+    return null;
+}
+
+pub fn bsearch(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) ?*const anyopaque {
+    const index = bsearchIndex(key, base, num, size, compare) orelse return null;
+    return @ptrCast(base + (index * size));
+}
+
+pub fn bsearchMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) ?*anyopaque {
+    const index = bsearchIndex(key, base, num, size, compare) orelse return null;
+    return @ptrCast(base + (index * size));
+}
+
+pub fn bsearchLowerBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {
+    comptime validateRawComparator(@TypeOf(compare));
+    var start: usize = 0;
+    var count = num;
+    while (count > 0) {
+        const pivot_index = start + (count >> 1);
+        const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
+        advanceLowerBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)));
+    }
+    return start;
+}
+
+pub fn bsearchUpperBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {
+    comptime validateRawComparator(@TypeOf(compare));
+    var start: usize = 0;
+    var count = num;
+    while (count > 0) {
+        const pivot_index = start + (count >> 1);
+        const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
+        advanceUpperBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)));
+    }
+    return start;
+}
+
+pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {
+    return .{
+        .lower = bsearchLowerBoundIndex(key, base, num, size, compare),
+        .upper = bsearchUpperBoundIndex(key, base, num, size, compare),
+    };
+}
+
+pub fn bsearchEqualRange(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) []const u8 {
+    return bsearchEqualRangeIndex(key, base, num, size, compare).bytes(base, size);
+}
+
+pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {
+    return bsearchEqualRangeIndex(key, base, num, size, compare).bytesMutable(base, size);
+}
+
+fn compareInt(key: *const i32, item: *const i32) i32 {
+    return switch (std.math.order(key.*, item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
+    return compareInt(item, key);
+}
+
+fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return @as(CComparatorResult, compareDescendingInt(typed_key, typed_item));
+}
+
+fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return compareInt(typed_key, typed_item);
+}
+
+test "typed and raw searches support duplicate spans and descending C ABI pointers" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const key = @as(i32, 4);
+
+    const match_index = searchIndex(i32, i32, &key, ascending[0..], compareInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expect(match_index >= 1);
+    try std.testing.expect(match_index < 4);
+    try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, equalRangeIndex(i32, i32, &key, ascending[0..], compareInt));
+
+    const raw_range = bsearchEqualRangeIndex(&key, @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, raw_range);
+
+    const found = bsearch(&key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
+    const typed_found: *const i32 = @ptrCast(@alignCast(found));
+    try std.testing.expectEqual(@as(i32, 4), typed_found.*);
+}
+
+test "mutable wrappers keep write-through aliases" {
+    var values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const key = @as(i32, 11);
+
+    const typed = searchMutable(i32, i32, &key, values[0..], compareInt) orelse return error.TestUnexpectedResult;
+    typed.* = 12;
+    try std.testing.expectEqual(@as(i32, 12), values[3]);
+
+    const raw_key = @as(i32, 12);
+    const raw = bsearchMutable(&raw_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+    const typed_raw: *i32 = @ptrCast(@alignCast(raw));
+    typed_raw.* = 13;
+    try std.testing.expectEqual(@as(i32, 13), values[3]);
+}
