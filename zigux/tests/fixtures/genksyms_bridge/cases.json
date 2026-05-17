@@ -61,6 +61,22 @@
     "normalize_stderr": true
   },
   {
+    "name": "unexpected_long_option_argument",
+    "argv": [
+      "--help=extra"
+    ],
+    "mode": "process_json",
+    "expected": "unexpected_long_option_argument_expected.json"
+  },
+  {
+    "name": "version_before_invalid_short_option",
+    "argv": [
+      "-Vx"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_invalid_short_option_expected.json"
+  },
+  {
     "name": "quiet_overrides_warning",
     "argv": [
       "-w",
