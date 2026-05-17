@@ -43,3 +43,20 @@ test "strErrorR returns deterministic Linux-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", strErrorR(2, &buffer));
     try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", strErrorR(4096, &buffer));
 }
+
+test "strErrorR truncates known messages and keeps a terminator" {
+    var buffer: [6]u8 = undefined;
+    const rendered = strErrorR(0, &buffer);
+    try std.testing.expectEqualStrings("Succe", rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[5]);
+}
+
+test "strErrorR handles empty and single-byte buffers without exposing bytes" {
+    var empty: [0]u8 = undefined;
+    try std.testing.expectEqualStrings("", strErrorR(2, &empty));
+
+    var tiny = [_]u8{0xaa};
+    const rendered = strErrorR(4096, &tiny);
+    try std.testing.expectEqualStrings("", rendered);
+    try std.testing.expectEqual(@as(u8, 0), tiny[0]);
+}
