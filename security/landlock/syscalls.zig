@@ -47,6 +47,20 @@ pub const CreateRulesetPlan = struct {
     ruleset_plan: ?landlock_ruleset.CreationPlan,
 };
 
+pub const CreateRulesetSyscallRequest = struct {
+    initialized: bool = true,
+    attr_present: bool = true,
+    input: CreateRulesetInput = .{},
+};
+
+pub const CreateRulesetSyscallPlan = struct {
+    anchor: []const u8,
+    checks_initialization_gate: bool,
+    checks_attr_presence_before_copy_from_user: bool,
+    reuses_create_ruleset_validation: bool,
+    create_ruleset_plan: CreateRulesetPlan,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -113,6 +127,25 @@ pub const SyscallsHelperLab = struct {
             .performs_anon_inode_getfd = false,
             .returns_new_fd = false,
             .ruleset_plan = ruleset_plan,
+        };
+    }
+
+    pub fn planLandlockCreateRuleset(request: CreateRulesetSyscallRequest) !CreateRulesetSyscallPlan {
+        if (!request.initialized) {
+            return error.BootDisabled;
+        }
+
+        const create_ruleset_plan = try planCreateRuleset(request.input);
+        if (create_ruleset_plan.mode == .create_handle and !request.attr_present) {
+            return error.BadUserPointer;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .checks_initialization_gate = true,
+            .checks_attr_presence_before_copy_from_user = true,
+            .reuses_create_ruleset_validation = true,
+            .create_ruleset_plan = create_ruleset_plan,
         };
     }
 };
@@ -190,4 +223,39 @@ test "landlock syscalls create-ruleset delegates handled access planning before 
 
 test "landlock syscalls create-ruleset still rejects empty handled access" {
     try std.testing.expectError(error.EmptyRuleset, SyscallsHelperLab.planCreateRuleset(.{}));
+}
+
+test "landlock syscalls top-level wrapper keeps version query nullable and explicit" {
+    const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr_size = 0,
+            .flags = LANDLOCK_CREATE_RULESET_VERSION,
+        },
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
+    try std.testing.expect(wrapper.checks_initialization_gate);
+    try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(wrapper.reuses_create_ruleset_validation);
+    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
+    try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
+}
+
+test "landlock syscalls top-level wrapper requires attr presence for create path" {
+    try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    }));
+}
+
+test "landlock syscalls top-level wrapper rejects disabled boot before planning" {
+    try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .initialized = false,
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    }));
 }
