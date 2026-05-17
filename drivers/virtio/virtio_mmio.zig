@@ -49,6 +49,10 @@ pub const FeatureNegotiationSummary = struct {
     selected_driver_feature_word: u32,
     device_feature_word: u32,
     driver_feature_word: u32,
+    negotiated_feature_word: u32,
+    device_only_feature_word: u32,
+    driver_only_feature_word: u32,
+    feature_words_match: bool,
     device_features_known: bool,
     driver_features_known: bool,
     negotiation_possible: bool,
@@ -193,6 +197,7 @@ pub const VirtioMmioLab = struct {
         const driver_index: usize = @min(self.selected_driver_feature_word, self.driver_feature_words.len - 1);
         const device_feature_word = self.device_feature_words[device_index];
         const driver_feature_word = self.driver_feature_words[driver_index];
+        const negotiated_feature_word = device_feature_word & driver_feature_word;
         const device_features_known = self.device_feature_words_known[device_index];
         const driver_features_known = self.driver_feature_words_known[driver_index];
         return .{
@@ -201,6 +206,10 @@ pub const VirtioMmioLab = struct {
             .selected_driver_feature_word = self.selected_driver_feature_word,
             .device_feature_word = device_feature_word,
             .driver_feature_word = driver_feature_word,
+            .negotiated_feature_word = negotiated_feature_word,
+            .device_only_feature_word = device_feature_word & ~driver_feature_word,
+            .driver_only_feature_word = driver_feature_word & ~device_feature_word,
+            .feature_words_match = device_feature_word == driver_feature_word,
             .device_features_known = device_features_known,
             .driver_features_known = driver_features_known,
             .negotiation_possible = device_features_known and driver_features_known,
@@ -325,8 +334,25 @@ test "phase10 virtio mmio zero-valued staged feature words stay known for negoti
     try std.testing.expect(summary.device_features_known);
     try std.testing.expect(summary.driver_features_known);
     try std.testing.expect(summary.negotiation_possible);
+    try std.testing.expect(summary.feature_words_match);
     try std.testing.expectEqual(@as(u32, 0), summary.device_feature_word);
     try std.testing.expectEqual(@as(u32, 0), summary.driver_feature_word);
+    try std.testing.expectEqual(@as(u32, 0), summary.negotiated_feature_word);
+    try std.testing.expectEqual(@as(u32, 0), summary.device_only_feature_word);
+    try std.testing.expectEqual(@as(u32, 0), summary.driver_only_feature_word);
+}
+
+test "phase10 virtio mmio negotiation summary reports shared and mismatched feature bits" {
+    var device = try VirtioMmioLab.init(76, &[_]u16{ 8, 16 });
+    try device.stageDeviceFeatureWord(0, 0b1110);
+    try device.stageDriverFeatureWord(0, 0b1011);
+
+    const summary = device.featureNegotiationSummary();
+    try std.testing.expect(summary.negotiation_possible);
+    try std.testing.expect(!summary.feature_words_match);
+    try std.testing.expectEqual(@as(u32, 0b1010), summary.negotiated_feature_word);
+    try std.testing.expectEqual(@as(u32, 0b0100), summary.device_only_feature_word);
+    try std.testing.expectEqual(@as(u32, 0b0001), summary.driver_only_feature_word);
 }
 
 test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {
