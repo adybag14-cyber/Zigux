@@ -42,7 +42,8 @@ REQUIRED_MARKERS = (
     "zigux/kernel/export_shim.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "`Documentation/zigux/README.md` and `zigux/tests/README.md`",
+    "`Documentation/zigux/README.md` and `zigux/tests/README.md` still carry broader shared Phase 3 reminder language",
+    "`Documentation/zigux/review-checklist.md` now matches the bounded starter-packet-plus-helper-slice posture.",
     "This note is limited to the current validator-support posture for Phase 3.",
 )
 
