@@ -1,0 +1,31 @@
+{
+  "phase": "Phase 3",
+  "lane": "abi-runtime",
+  "slug": "phase3-dev-t-starter-packet",
+  "status": "starter_packet_present",
+  "scope": "starter Linux-facing header family and dev_t binding replay",
+  "packet_files": [
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/tests/phase3_dev_t_starter_packet.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_build.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
+    "scripts/zigux/check-phase3-dev-t-starter-packet.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py"
+  ],
+  "repo_reality_gaps": [
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "zigux/kernel/export_shim.zig",
+    "include/zigux/abi.h",
+    "zigux/tests/phase3_export_uapi_layout.zig"
+  ],
+  "next_safe_step": "keep the live starter packet honest with bounded manifest-backed validator work before widening the broader Phase 3 ABI substrate"
+}
