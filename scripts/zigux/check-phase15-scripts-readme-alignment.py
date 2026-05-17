@@ -105,6 +105,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
     "make -C zigux phase15",
 )
 
@@ -296,7 +297,7 @@ def _baseline_handoff_checker() -> str:
 
 
 def _baseline_review_checklist() -> str:
-    return "\n".join(("# Checklist", "- if the change touches the shared Phase 15 governance packet", "- scripts/zigux/check-phase15-scripts-readme-alignment.py", "- scripts/zigux/check-phase15-review-process-handoff.py", "- make -C zigux phase15-validate", "- make -C zigux phase15", ""))
+    return "\n".join(("# Checklist", "- if the change touches the shared Phase 15 governance packet", "- scripts/zigux/check-phase15-scripts-readme-alignment.py", "- scripts/zigux/check-phase15-review-process-handoff.py", "- make -C zigux phase15-validate", "- make -C zigux phase15-test", "- make -C zigux phase15", ""))
 
 
 def _baseline_review_process_note() -> str:
