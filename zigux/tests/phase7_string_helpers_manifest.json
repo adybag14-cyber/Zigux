@@ -78,5 +78,5 @@
     "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix",
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries"
   ],
-  "next_bounded_step": "Keep the quotable helper packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay, then decide whether `kstrdup_quotable_cmdline()` can join the same helper-local packet without widening into shared-control or file-path semantics."
+  "next_bounded_step": "Leave the current quotable helper packet parked unless a fresh reread finds helper-local drift across the slice note, helper-local manifest, dedicated survey, or dedicated no-string-sample boundary replay; if that packet stays aligned, the next same-lane reopen can decide whether `kstrdup_quotable_cmdline()` belongs in the same helper-local packet without widening into shared-control or file-path semantics."
 }
