@@ -37,10 +37,11 @@ Fresh repo-first inspection in this run confirmed that current `master` keeps th
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Keep `scripts/zigux/README.md` outside this shared owner map for now.
 Current `master` still ships no dedicated `validate-phase5.py`, no `check-phase5-*.py` checker packet, and no `phase5-validate` or `phase5` scripts-root route.
+Keep `scripts/zigux/README.md` inside this shared owner map as the current scripts-root reminder surface, but keep treating it as reminder text rather than direct proof of validator, make-wrapper, or workflow coverage that the repo does not ship.
 
 ## Current sample-backed packet
 
