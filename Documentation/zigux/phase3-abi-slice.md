@@ -33,12 +33,13 @@ This note keeps the current `abi` review surface explicit while the bounded Phas
 - `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
 - `zigux/tests/phase3_low_level_wrappers.zig`
 - `zigux/tests/phase3_low_level_wrappers_build.zig`
+- `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`
 
 ## Current Gap
 
 Current `master` still presents the honest same-lane outcome as a bounded starter-packet set plus a bounded low-level-wrapper reminder surface, not as full Phase 3 completion. Current `master` also separately exposes a bounded low-level-wrapper reminder surface through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`.
 
-That reminder surface keeps one directly readable MMIO helper companion, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion explicit without implying that the broader shared validator stack or export-or-UAPI replay routes already ship. Review shorthand for this bounded packet: the bounded low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, the dedicated survey note, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion; should stay explicit until broader Phase 3 routes materialize.
+That reminder surface keeps one directly readable MMIO helper companion, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion explicit through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without implying that the broader shared validator stack or export-or-UAPI replay routes already ship. Review shorthand for this bounded packet: the bounded low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, the dedicated survey note, the dedicated survey validator, the focused replay shard, the dedicated shared build companion, and the direct replay command; should stay explicit until broader Phase 3 routes materialize.
 
 ## Scope
 
