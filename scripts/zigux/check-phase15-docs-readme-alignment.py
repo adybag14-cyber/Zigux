@@ -12,6 +12,7 @@ REQUIRED_MARKERS = (
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
     "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
@@ -46,6 +47,7 @@ Phase 15 notes
 `Documentation/zigux/phase15-readiness-gate-survey.md`
 `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 `Documentation/zigux/phase15-governance-lane-sequencing.md`
+`Documentation/zigux/phase15-study-only-anchor-accounting.md`
 `scripts/zigux/check-phase15-docs-readme-alignment.py`
 `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 `scripts/zigux/check-phase15-shared-summary-gap.py`
@@ -68,6 +70,19 @@ def run_self_test() -> int:
 
         if collect_missing_markers(root):
             raise AssertionError("baseline docs README fixture should pass")
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "`Documentation/zigux/phase15-study-only-anchor-accounting.md`\n", "", 1
+            ),
+        )
+        missing = collect_missing_markers(root)
+        if missing != ["docs_readme:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"]:
+            raise AssertionError(
+                f"unexpected missing markers for study-only accounting case: {missing}"
+            )
         case_count += 1
 
         _write(
