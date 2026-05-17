@@ -268,7 +268,7 @@ def run_self_test() -> int:
             "workflow_exact_line:run: python3 scripts/zigux/check-build-only-phase12-surface.py:expected=1:actual=0",
         )
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
