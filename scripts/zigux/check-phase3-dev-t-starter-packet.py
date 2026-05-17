@@ -4,11 +4,13 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
 
 ABI_SLICE_PATH = Path("Documentation/zigux/phase3-abi-slice.md")
+VALIDATOR_NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
 LINUX_HEADER_PATH = Path("include/linux/zigux.h")
 DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
@@ -16,21 +18,24 @@ UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 BINDING_PATH = Path("zigux/bindings/dev_t.zig")
 TEST_PATH = Path("zigux/tests/phase3_dev_t_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_dev_t_starter_packet_build.zig")
+MANIFEST_PATH = Path("zigux/tests/phase3_dev_t_starter_packet_manifest.json")
 
 REQUIRED_MARKERS = {
     ABI_SLICE_PATH: (
-        "include/linux/zigux.h",
-        "include/zigux/dev_t.h",
-        "zigux/uapi/dev_t.zig",
-        "zigux/uapi/version.zig",
-        "zigux/bindings/dev_t.zig",
-        "zigux/tests/phase3_dev_t_starter_packet.zig",
-        "zigux/tests/phase3_dev_t_starter_packet_build.zig",
+        "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
         "scripts/zigux/check-phase3-dev-t-starter-packet.py",
         "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
+        "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
         "`zigux/tests/README.md` is still the next shared reminder surface to narrow so it matches this note and `Documentation/zigux/phase3-validator-support-surface.md` without implying the broader Phase 3 packet has already returned",
         "scripts/zigux/validate-phase3-export-uapi-survey.py",
         "zigux/kernel/export_shim.zig",
+    ),
+    VALIDATOR_NOTE_PATH: (
+        "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
+        "scripts/zigux/check-phase3-dev-t-starter-packet.py",
+        "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
+        "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
+        "the new manifest-backed starter packet",
     ),
     LINUX_HEADER_PATH: (
         "#define ZIGUX_UAPI_ABI_MAJOR 0u",
@@ -92,15 +97,72 @@ REQUIRED_MARKERS = {
         '"phase3-dev-t-starter-packet-test"',
         '"Run the Phase 3 dev_t starter-packet ABI self-check"',
     ),
+    MANIFEST_PATH: (
+        '"slug": "phase3-dev-t-starter-packet"',
+        '"status": "starter_packet_present"',
+        '"Documentation/zigux/phase3-abi-slice.md"',
+        '"Documentation/zigux/phase3-validator-support-surface.md"',
+        '"zigux/tests/phase3_dev_t_starter_packet_manifest.json"',
+        '"python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test"',
+        '"python3 scripts/zigux/check-phase3-dev-t-starter-packet.py"',
+        '"next_safe_step": "keep the live starter packet honest with bounded manifest-backed validator work before widening the broader Phase 3 ABI substrate"',
+    ),
 }
 
-SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
+SAMPLE_FILES = {
+    ABI_SLICE_PATH: """# Phase 3 ABI Slice
+
+zigux/tests/phase3_dev_t_starter_packet_manifest.json
+scripts/zigux/check-phase3-dev-t-starter-packet.py
+python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test
+python3 scripts/zigux/check-phase3-dev-t-starter-packet.py
+`zigux/tests/README.md` is still the next shared reminder surface to narrow so it matches this note and `Documentation/zigux/phase3-validator-support-surface.md` without implying the broader Phase 3 packet has already returned
+scripts/zigux/validate-phase3-export-uapi-survey.py
+zigux/kernel/export_shim.zig
+""",
+    VALIDATOR_NOTE_PATH: """# Phase 3 Validator Support Surface
+
+zigux/tests/phase3_dev_t_starter_packet_manifest.json
+scripts/zigux/check-phase3-dev-t-starter-packet.py
+python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test
+python3 scripts/zigux/check-phase3-dev-t-starter-packet.py
+the new manifest-backed starter packet
+""",
+    LINUX_HEADER_PATH: "\n".join(REQUIRED_MARKERS[LINUX_HEADER_PATH]) + "\n",
+    DEV_T_HEADER_PATH: "\n".join(REQUIRED_MARKERS[DEV_T_HEADER_PATH]) + "\n",
+    UAPI_DEV_T_PATH: "\n".join(REQUIRED_MARKERS[UAPI_DEV_T_PATH]) + "\n",
+    UAPI_VERSION_PATH: "\n".join(REQUIRED_MARKERS[UAPI_VERSION_PATH]) + "\n",
+    BINDING_PATH: "\n".join(REQUIRED_MARKERS[BINDING_PATH]) + "\n",
+    TEST_PATH: "\n".join(REQUIRED_MARKERS[TEST_PATH]) + "\n",
+    BUILD_PATH: "\n".join(REQUIRED_MARKERS[BUILD_PATH]) + "\n",
+    MANIFEST_PATH: """{
+  "slug": "phase3-dev-t-starter-packet",
+  "status": "starter_packet_present",
+  "packet_files": [
+    "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/version.zig",
+    "zigux/uapi/dev_t.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/tests/phase3_dev_t_starter_packet.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_build.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
+    "scripts/zigux/check-phase3-dev-t-starter-packet.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py"
+  ],
+  "next_safe_step": "keep the live starter packet honest with bounded manifest-backed validator work before widening the broader Phase 3 ABI substrate"
+}
+""",
+}
 
 SELF_TEST_CASES = (
-    (
-        ABI_SLICE_PATH,
-        "`zigux/tests/README.md` is still the next shared reminder surface to narrow so it matches this note and `Documentation/zigux/phase3-validator-support-surface.md` without implying the broader Phase 3 packet has already returned",
-    ),
+    (ABI_SLICE_PATH, "zigux/tests/phase3_dev_t_starter_packet_manifest.json"),
+    (VALIDATOR_NOTE_PATH, "the new manifest-backed starter packet"),
     (LINUX_HEADER_PATH, "#define ZIGUX_UAPI_DEV_T_PACKET_PRESENT 1u"),
     (DEV_T_HEADER_PATH, "#define ZIGUX_DEV_T_FIELDS_ALIGN 4u"),
     (UAPI_DEV_T_PATH, "std.debug.assert(@sizeOf(Fields) == 8);"),
@@ -108,6 +170,7 @@ SELF_TEST_CASES = (
     (BINDING_PATH, 'pub const major_offset: usize = @offsetOf(uapi.Fields, "major");'),
     (TEST_PATH, 'test "starter packet version stays aligned with the Linux-facing header family" {'),
     (BUILD_PATH, '"phase3-dev-t-starter-packet-test"'),
+    (MANIFEST_PATH, '"status": "starter_packet_present"'),
 )
 
 
@@ -132,6 +195,49 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+
+    manifest_path = repo_root / MANIFEST_PATH
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(_read(manifest_path))
+        except json.JSONDecodeError as exc:
+            issues.append(f"invalid JSON in {MANIFEST_PATH.as_posix()}: {exc}")
+        else:
+            packet_files = manifest.get("packet_files")
+            replay_routes = manifest.get("replay_routes")
+            if not isinstance(packet_files, list):
+                issues.append("phase3_dev_t_starter_packet_manifest.json packet_files is not a list")
+            if not isinstance(replay_routes, list):
+                issues.append("phase3_dev_t_starter_packet_manifest.json replay_routes is not a list")
+            if isinstance(packet_files, list):
+                for required_path in (
+                    "Documentation/zigux/phase3-abi-slice.md",
+                    "Documentation/zigux/phase3-validator-support-surface.md",
+                    "include/linux/zigux.h",
+                    "include/zigux/dev_t.h",
+                    "zigux/uapi/version.zig",
+                    "zigux/uapi/dev_t.zig",
+                    "zigux/bindings/dev_t.zig",
+                    "zigux/tests/phase3_dev_t_starter_packet.zig",
+                    "zigux/tests/phase3_dev_t_starter_packet_build.zig",
+                    "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
+                    "scripts/zigux/check-phase3-dev-t-starter-packet.py",
+                ):
+                    if required_path not in packet_files:
+                        issues.append(
+                            "phase3_dev_t_starter_packet_manifest.json missing packet_files entry: "
+                            f"{required_path}"
+                        )
+            if isinstance(replay_routes, list):
+                for route in (
+                    "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
+                    "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
+                ):
+                    if route not in replay_routes:
+                        issues.append(
+                            "phase3_dev_t_starter_packet_manifest.json missing replay route: "
+                            f"{route}"
+                        )
     return issues
 
 
@@ -191,6 +297,7 @@ def main() -> int:
         return 1
 
     print(f"validated {args.repo_root / TEST_PATH}")
+    print(f"validated {args.repo_root / MANIFEST_PATH}")
     return 0
 
 
