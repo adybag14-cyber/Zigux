@@ -10,6 +10,11 @@
     "expected": "elf64_expected.json"
   },
   {
+    "name": "elf64_trailing",
+    "input": "elf64_trailing.hex",
+    "expected": "elf64_trailing_expected.json"
+  },
+  {
     "name": "empty",
     "input": "empty.hex",
     "expected": "empty_expected.json"
