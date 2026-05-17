@@ -45,6 +45,10 @@ WORKFLOW_STEP_NAMES = [
 ]
 
 WORKFLOW_COMMAND_MARKERS = [
+    "workflow_dispatch:",
+    "concurrency:",
+    "group: ${{ github.ref == 'refs/heads/master'",
+    "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
     "uses: actions/checkout@v6.0.2",
     "uses: actions/setup-python@v6.2.0",
     "python-version: '3.x'",
@@ -115,6 +119,13 @@ def write_text(path: Path, content: str) -> None:
 
 def minimal_workflow() -> str:
     return """name: zigux-bootstrap
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
@@ -217,6 +228,33 @@ def run_self_test() -> int:
         expect_failure(base, "workflow_order:bootstrap-step-order")
 
         write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "  workflow_dispatch:\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_marker:workflow_dispatch:")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_marker:cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
+        )
+
+        write_fixture_tree(base)
         survey_path = base / SURVEY_PATH
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
@@ -227,7 +265,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=5")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=6")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -237,7 +275,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the small current Phase 12 bootstrap lane so the workflow "
-            "keeps checking the live build-only contract and docs-root survey markers."
+            "keeps checking the live build-only contract, docs-root survey markers, "
+            "manual dispatch hook, and concurrency guard."
         )
     )
     parser.add_argument(
