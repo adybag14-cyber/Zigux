@@ -26,40 +26,47 @@ Treat those four anchors as the approved Phase 5 destination set unless the road
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-17 confirmed that the current trace-events packet is directly readable on `master` through these packet-local surfaces:
+Fresh repo-first inspection on 2026-05-17 confirmed that the current trace-events packet on `master` is narrower than the older full-packet reminder wording:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
-* `Documentation/zigux/phase5-trace-events-sample-survey.md`
-* `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
-* `zigux/tests/phase5_trace_events_sample.zig`
-* `zigux/tests/phase5_trace_events_sample_manifest.json`
-* `zigux/tests/phase5_trace_events_sample_survey.zig`
-
-That direct packet proof is stronger than the current shared sample-root reminder wording in `samples/zigux/README.md`, which still lags the landed non-runtime trace-events packet.
-
-For the shared tracing and probe lane, ground reviewer guidance in the packet-local proof above plus these shared reminder surfaces:
-
-* `Documentation/zigux/phase5-sample-lane-sequencing.md`
 * `Documentation/zigux/phase5-sample-review-guide.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
 * `zigux/tests/README.md`
 
-Keep those shared surfaces honest about direct packet proof that is already readable today, and treat stale README or authenticated-readback gaps as reminder drift rather than as evidence that the trace-events packet disappeared.
+That directly readable formatting-companion packet is the current concrete trace-events evidence in this lane.
+Treat the older direct trace-events sample packet claims as reminder drift until a fresh reread proves these paths returned on current `master`:
+
+* `Documentation/zigux/phase5-trace-events-sample-survey.md`
+* `samples/zigux/trace_events_sample.zig`
+* `zigux/tests/phase5_trace_events_sample.zig`
+* `zigux/tests/phase5_trace_events_sample_manifest.json`
+* `zigux/tests/phase5_trace_events_sample_survey.zig`
+* `zigux/tests/phase5_build.zig`
+
+For the shared tracing and probe lane, ground reviewer guidance in the current direct-readback packet above plus these shared reminder surfaces:
+
+* `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+* `Documentation/zigux/phase5-sample-review-guide.md`
+* `Documentation/zigux/review-checklist.md`
+* `samples/zigux/README.md`
+* `scripts/zigux/README.md`
+* `zigux/tests/README.md`
+
+Keep those shared surfaces honest about the narrower trace-events packet that is directly readable today, and record the missing direct trace-events paths as repo-reality gaps instead of treating them as vanished roadmap intent.
 
 ## Tracing and probe posture
 
-For `kretprobe`, keep the Phase 5 anchor in the reminder-only posture unless a fresh reread proves the direct sample packet is back.
+For `kretprobe`, follow the restored direct packet recorded in `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, and `zigux/tests/phase5_kretprobe_example_manifest.json`, while keeping `zigux/tests/phase5_build.zig` framed only as current public-tree-backed companion evidence.
 
-For `trace_events`, follow the landed direct packet instead of the stale README posture.
+For `trace_events`, keep the Phase 5 anchor in the bounded formatting-companion posture until a fresh reread proves the direct sample packet is back.
 
 Use the shared docs to preserve these bounded cues:
 
-* `Documentation/zigux/phase5-trace-events-sample-survey.md` keeps the direct packet inventory explicit and records when `zigux/tests/phase5_build.zig` is only public-tree-backed companion evidence instead of authenticated direct proof
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the selected-string plus `iter=%d` formatting cue bounded to the trace-events packet instead of turning it into a fifth Phase 5 sample
-* `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, and `zigux/tests/phase5_trace_events_sample_survey.zig` keep the current helper names and lifecycle cues explicit: `runAnchorReplay()`, `runPayloadBoundaryReplay()`, `runCallbackBoundaryRecoveryReplay()`, `runStringFormattingCycleReplay()`, `runLifecycleBoundaryReplay()`, `lifecycleSummary()`, the exact `checked_focus` order, and the callback-boundary rejection path through `OutstandingRegistration`
-* `zigux/tests/phase5_trace_events_sample_manifest.json` keeps the same callback-boundary and armed-exit expectations reviewable in machine-readable form
+* `samples/zigux/trace_events_string_formatting_sample.zig` keeps the current formatting companion explicit through `selectedStringForIteration(...)`, the exact `iter=%d` buffer print, and the non-allocating lifecycle boundary around the bounded replay
+* `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, and `zigux/tests/phase5_kretprobe_example_manifest.json` keep the restored non-runtime kretprobe packet explicit without widening into the Phase 9 runtime family
 
 ## Approved idiom gap
 
@@ -73,15 +80,15 @@ Do not describe that formatting cue as a fifth Phase 5 sample, a standalone form
 
 ## Review posture
 
-Because current `master` now directly exposes the trace-events packet, same-lane follow-through should stay inside these bounded categories:
+Because current `master` only directly exposes the bounded trace-events formatting companion, same-lane follow-through should stay inside these bounded categories:
 
 * one trace-events reminder-surface truthfulness repair at a time
-* one trace-events survey-note or approved-idiom-gap repair at a time
-* one trace-events tests-root reminder alignment repair at a time
+* one trace-events approved-idiom-gap repair at a time
+* one trace-events sample-root or tests-root reminder alignment repair at a time
 
 Avoid:
 
-* letting stale `samples/zigux/README.md` wording overrule the direct trace-events packet
+* treating older direct trace-events packet claims as current proof when fresh rereads only recover the formatting companion and shared reminder surfaces
 * broadening the lane into runtime-loader, module-registration, procfs, sysfs, workqueue, or ring-buffer claims
 * treating Phase 9 runtime samples as extra Phase 5 evidence
 * treating the trace-events packet as permission to reopen unrelated bytestream, kobject, or kretprobe reminder work here
