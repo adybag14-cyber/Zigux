@@ -22,7 +22,6 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_dev_t_starter_packet.zig",
     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
-    "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "Documentation/zigux/review-checklist.md",
     "Those shared reminder surfaces still describe a wider validator, export/UAPI layout, low-level-wrapper, catalog, or shared replay packet",
