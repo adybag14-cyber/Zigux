@@ -1,17 +1,16 @@
 # Phase 7 Rbtree Direct Anchor Note
 
-Current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`
+Current direct-readback Phase 7 rbtree anchor: `zigux/tests/phase7_rbtree_survey.zig`
 
-Broader Phase 7 rbtree packet currently missing on `master`:
-- `Documentation/zigux/phase7-helper-lane-sequencing.md`
+Current directly readable shared Phase 7 packet also includes:
+- `Documentation/zigux/phase7-string-helpers-slice.md`
+- `Documentation/zigux/phase7-argv-split-slice.md`
 - `Documentation/zigux/phase7-rbtree-slice.md`
-- `scripts/zigux/check-phase7-rbtree-parity.py`
-- `zigux/tests/phase7_rbtree.zig`
-- `zigux/tests/phase7_rbtree_manifest.json`
-- `zigux/tests/fixtures/phase7_rbtree.json`
-- `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 - `zigux/tests/phase7_build.zig`
 
-Treat those paths plus the older `make -C zigux phase7-validate` and `make -C zigux phase7` route names as last-known packet members that need fresh reread or re-materialization before they are presented as shipped direct evidence.
+Keep the current Phase 7 reminder surface tied to those directly readable slice notes plus the shared build route-present packet:
+- `string_helpers` is back on current `master` as the Phase 7 expanded starter packet
+- `argv_split` and `rbtree` stay reviewable through their dedicated Phase 7 slice notes and survey gates
+- `cmdline` stays reviewable through the parked Phase 1 helper packet
 
-Leave `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond the surviving rbtree anchor.
+Do not widen this note into broader validator, checker, manifest, fixture, or make-wrapper claims without a fresh same-lane reread of those sibling review surfaces.
