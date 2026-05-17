@@ -36,9 +36,9 @@ The current closure packet also keeps the landed helper ladders explicit for the
 ## Survey Provenance
 The manifest-derived survey provenance for the current closure bundle is:
 - core: lane `P10-L01`, surveyed commit `31e9763eea7964dad7085d1a24bc098b4af49789`
-- ring: lane `P10-L07`, surveyed commit `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
+- ring: lane `P10-L10`, surveyed commit `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
 - input: lane `P10-L13`, surveyed commit `7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
-- mmio: lane `P10-L10`, surveyed commit `84f90e23ad1c28ae345905d5293a8c5395f37d43`
+- mmio: lane `P10-L11`, surveyed commit `84f90e23ad1c28ae345905d5293a8c5395f37d43`
 
 ## Closure Gates
 The directly re-readable replay packet recorded by the current shared closure packet is:
