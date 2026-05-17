@@ -16,6 +16,9 @@ pub const DecodeError = error{
     InvalidInput,
 };
 
+pub const EncodeAllocError = std.mem.Allocator.Error || EncodeError;
+pub const DecodeAllocError = std.mem.Allocator.Error || DecodeError;
+
 const std_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 const urlsafe_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 const imap_table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+,";
@@ -97,6 +100,20 @@ pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Encod
     return out_index;
 }
 
+pub fn encodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError![]u8 {
+    const written = try encode(dst, src, padding, variant);
+    return dst[0..written];
+}
+
+pub fn encodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool, variant: Variant) EncodeAllocError![]u8 {
+    const needed = chars(src.len, padding);
+    const dst = try allocator.alloc(u8, needed);
+    errdefer allocator.free(dst);
+
+    const written = try encode(dst, src, padding, variant);
+    return dst[0..written];
+}
+
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
     const exact_len = try bytes(src, padding, variant);
     if (dst.len < exact_len) {
@@ -141,6 +158,20 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
     }
     out_index += try decodeTailFromMap(dst[out_index..], src[src_index..], map);
     return out_index;
+}
+
+pub fn decodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError![]u8 {
+    const written = try decode(dst, src, padding, variant);
+    return dst[0..written];
+}
+
+pub fn decodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool, variant: Variant) DecodeAllocError![]u8 {
+    const exact_len = try bytes(src, padding, variant);
+    const dst = try allocator.alloc(u8, exact_len);
+    errdefer allocator.free(dst);
+
+    const written = try decode(dst, src, padding, variant);
+    return dst[0..written];
 }
 
 fn alphabet(variant: Variant) []const u8 {
@@ -344,6 +375,20 @@ test "encode covers standard and variant alphabets" {
     try std.testing.expectEqualStrings("APv,f4A=", imap_padded_buf[0..imap_padded_len]);
 }
 
+test "encode slice and allocator companions return exact written spans" {
+    const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+    var slice_buf: [8]u8 = undefined;
+
+    const url_slice = try encodeSlice(slice_buf[0..], &sample, false, .urlsafe);
+    try std.testing.expectEqual(@as(usize, 7), url_slice.len);
+    try std.testing.expectEqualStrings("APv_f4A", url_slice);
+
+    const imap_alloc = try encodeAlloc(std.testing.allocator, &sample, true, .imap);
+    defer std.testing.allocator.free(imap_alloc);
+    try std.testing.expectEqual(@as(usize, 8), imap_alloc.len);
+    try std.testing.expectEqualStrings("APv,f4A=", imap_alloc);
+}
+
 test "encode accepts exact-fit buffers and rejects one-byte-short buffers" {
     const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
     const exact_len = chars(sample.len, true);
@@ -379,6 +424,19 @@ test "decode covers padded, unpadded, and variant inputs" {
 
     const imap_padded_len = try decode(variant_out[0..], "APv,f4A=", true, .imap);
     try std.testing.expectEqualSlices(u8, &sample, variant_out[0..imap_padded_len]);
+}
+
+test "decode slice and allocator companions return exact written spans" {
+    var slice_buf: [8]u8 = undefined;
+
+    const url_slice = try decodeSlice(slice_buf[0..], "APv_f4A", false, .urlsafe);
+    try std.testing.expectEqual(@as(usize, 5), url_slice.len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 }, url_slice);
+
+    const imap_alloc = try decodeAlloc(std.testing.allocator, "APv,f4A=", true, .imap);
+    defer std.testing.allocator.free(imap_alloc);
+    try std.testing.expectEqual(@as(usize, 5), imap_alloc.len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 }, imap_alloc);
 }
 
 test "decode and bytes cover one-byte and two-byte variant tails" {
