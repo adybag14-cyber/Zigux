@@ -32,11 +32,11 @@ REQUIRED_NOTE_MARKERS = [
     "`PHASE1_CLOSURE_RESTORE_STATE=partial`",
     "`PHASE1_HELPER_COUNT=13`",
     "manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`",
-    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/fixtures/phase1_helper_manifest.json`",
     "`PHASE1_SHARED_REMINDER_SYNC_STATE=aligned`",
-    "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`",
+    "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`",
     "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
-    "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+    "`PHASE1_SHARED_TESTS_ROUTE=missing_on_current_master`",
     "`PHASE1_NEXT_SAFE_STEP=rematerialize one replay-side helper or bench companion on current master before widening reminder wording again`",
 ]
 
@@ -93,19 +93,6 @@ FORBIDDEN_README_MARKERS = [
     "`scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`",
 ]
 
-REQUIRED_BUILD_MARKERS = [
-    'const phase1_step = b.step(',
-    '"Run the shared Phase 1 host-tools smoke anchor from zigux/tests"',
-    '"phase1_host_tools_smoke.zig"',
-]
-
-REQUIRED_SMOKE_MARKERS = [
-    '@hasDecl(argv_split, "argvSplit")',
-    '@hasDecl(cmdline, "memparse")',
-    '@hasDecl(find_bit, "findFirstBit")',
-    '@hasDecl(bitmap, "setRange")',
-]
-
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -129,8 +116,6 @@ def collect_failures(root: Path) -> list[str]:
     tests_readme_path = root / "zigux/tests/README.md"
     readme_path = root / "scripts/zigux/README.md"
     manifest_path = root / "zigux/tests/fixtures/phase1_helper_manifest.json"
-    build_path = root / "zigux/tests/build.zig"
-    smoke_path = root / "zigux/tests/phase1_host_tools_smoke.zig"
 
     failures: list[str] = []
     for path in (
@@ -140,8 +125,6 @@ def collect_failures(root: Path) -> list[str]:
         tests_readme_path,
         readme_path,
         manifest_path,
-        build_path,
-        smoke_path,
     ):
         if not path.exists():
             failures.append(f"missing_file:{path.relative_to(root).as_posix()}")
@@ -153,8 +136,6 @@ def collect_failures(root: Path) -> list[str]:
     review_checklist_text = read_text(review_checklist_path)
     tests_readme_text = read_text(tests_readme_path)
     readme_text = read_text(readme_path)
-    build_text = read_text(build_path)
-    smoke_text = read_text(smoke_path)
     try:
         manifest = json.loads(read_text(manifest_path))
     except json.JSONDecodeError:
@@ -183,10 +164,6 @@ def collect_failures(root: Path) -> list[str]:
     for marker in FORBIDDEN_README_MARKERS:
         if marker in readme_text:
             failures.append(f"scripts_readme:forbidden={marker}")
-    for marker in REQUIRED_BUILD_MARKERS:
-        require_once(build_text, marker, "build_zig", failures)
-    for marker in REQUIRED_SMOKE_MARKERS:
-        require_once(smoke_text, marker, "phase1_host_tools_smoke", failures)
 
     if manifest.get("phase") != "Phase 1":
         failures.append("manifest:phase")
@@ -201,11 +178,26 @@ def collect_failures(root: Path) -> list[str]:
 
 
 def make_fixture_tree(root: Path) -> None:
-    write_text(root / "Documentation/zigux/phase1-closure.md", read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/phase1-closure.md"))
-    write_text(root / "Documentation/zigux/README.md", read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/README.md"))
-    write_text(root / "Documentation/zigux/review-checklist.md", read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/review-checklist.md"))
-    write_text(root / "zigux/tests/README.md", read_text(Path(__file__).resolve().parents[2] / "zigux/tests/README.md"))
-    write_text(root / "scripts/zigux/README.md", read_text(Path(__file__).resolve().parents[2] / "scripts/zigux/README.md"))
+    write_text(
+        root / "Documentation/zigux/phase1-closure.md",
+        read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/phase1-closure.md"),
+    )
+    write_text(
+        root / "Documentation/zigux/README.md",
+        read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/README.md"),
+    )
+    write_text(
+        root / "Documentation/zigux/review-checklist.md",
+        read_text(Path(__file__).resolve().parents[2] / "Documentation/zigux/review-checklist.md"),
+    )
+    write_text(
+        root / "zigux/tests/README.md",
+        read_text(Path(__file__).resolve().parents[2] / "zigux/tests/README.md"),
+    )
+    write_text(
+        root / "scripts/zigux/README.md",
+        read_text(Path(__file__).resolve().parents[2] / "scripts/zigux/README.md"),
+    )
     write_text(
         root / "zigux/tests/fixtures/phase1_helper_manifest.json",
         json.dumps(
@@ -218,31 +210,6 @@ def make_fixture_tree(root: Path) -> None:
             indent=2,
         )
         + "\n",
-    )
-    write_text(
-        root / "zigux/tests/build.zig",
-        """const phase1_step = b.step(
-    "phase1-host-tools-smoke",
-    "Run the shared Phase 1 host-tools smoke anchor from zigux/tests",
-);
-const smoke_file = "phase1_host_tools_smoke.zig";
-""",
-    )
-    write_text(
-        root / "zigux/tests/phase1_host_tools_smoke.zig",
-        """const std = @import("std");
-const argv_split = @import("argv_split");
-const cmdline = @import("cmdline");
-const find_bit = @import("find_bit");
-const bitmap = @import("bitmap");
-
-test "phase1 host-tools smoke imports the live helper modules" {
-    try std.testing.expect(@hasDecl(argv_split, "argvSplit"));
-    try std.testing.expect(@hasDecl(cmdline, "memparse"));
-    try std.testing.expect(@hasDecl(find_bit, "findFirstBit"));
-    try std.testing.expect(@hasDecl(bitmap, "setRange"));
-}
-""",
     )
 
 
@@ -311,30 +278,6 @@ def run_self_test() -> int:
                     read_text(root / "scripts/zigux/README.md"),
                     "restored closure anchor and narrow closure validator",
                     "owner-map and string-review guards",
-                ),
-            ),
-            False,
-        ),
-        (
-            "build_missing_marker",
-            lambda root: write_text(
-                root / "zigux/tests/build.zig",
-                replace_once(
-                    read_text(root / "zigux/tests/build.zig"),
-                    '"phase1_host_tools_smoke.zig"',
-                    '"phase1_host_tools_smoke_missing.zig"',
-                ),
-            ),
-            False,
-        ),
-        (
-            "smoke_missing_marker",
-            lambda root: write_text(
-                root / "zigux/tests/phase1_host_tools_smoke.zig",
-                replace_once(
-                    read_text(root / "zigux/tests/phase1_host_tools_smoke.zig"),
-                    '@hasDecl(bitmap, "setRange")',
-                    '@hasDecl(bitmap, "setBits")',
                 ),
             ),
             False,
