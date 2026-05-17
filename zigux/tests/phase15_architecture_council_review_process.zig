@@ -53,7 +53,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-shared-summary-gap.md", manifest.shared_summary_gap_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-review-process-handoff.py", manifest.checker);
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_fields.len);
-    try std.testing.expectEqual(@as(usize, 6), manifest.stay_in_c_closeout_fields.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.handoff_required_markers.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.shared_gap_expected_present_paths.len);
@@ -72,6 +72,9 @@ test "phase 15 review-process manifest records the focused replay as materialize
 test "phase 15 review-process note stays aligned with the focused replay packet" {
     const review_process = try readRepoFile("Documentation/zigux/phase15-architecture-council-review-process.md", 20 * 1024);
     defer std.testing.allocator.free(review_process);
+
+    const decision_record_template = try readRepoFile("Documentation/zigux/phase15-architecture-council-decision-record-template.md", 16 * 1024);
+    defer std.testing.allocator.free(decision_record_template);
 
     const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 20 * 1024);
     defer std.testing.allocator.free(handoff_note);
@@ -103,6 +106,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     }
     for (manifest.stay_in_c_closeout_fields) |field| {
         try expectContains(review_process, field);
+        try expectContains(decision_record_template, field);
     }
     for (manifest.reopen_evidence_fields) |field| {
         try expectContains(review_process, field);
