@@ -37,7 +37,7 @@ test "phase10 virtio input survey note keeps the restored verifier and queue cal
     defer allocator.free(manifest);
 
     try expectContains(survey_note, "PHASE10_STATUS=parked");
-    try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L13");
+    try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L22");
     try expectContains(survey_note, "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport");
     try expectContains(survey_note, "lab-only driver validation");
     try expectSurveyedCommitAlignment(allocator, survey_note, manifest);
