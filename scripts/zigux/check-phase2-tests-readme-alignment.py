@@ -49,6 +49,7 @@ REQUIRED_TESTS_README_MARKERS = (
 FORBIDDEN_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
 )
