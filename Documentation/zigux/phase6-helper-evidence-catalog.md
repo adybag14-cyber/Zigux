@@ -8,6 +8,7 @@ This note records the current helper-evidence survey for the bounded Phase 6 lea
 - shared tests-root reminder: `zigux/tests/README.md`
 - shared docs-root reminder: `Documentation/zigux/README.md`
 - shared review-checklist reminder: `Documentation/zigux/review-checklist.md`
+- directly readable shared build foothold: `zigux/tests/phase6_build.zig`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`
 - roadmap-backed helper anchors:
   - `lib/base64.c`
@@ -37,7 +38,7 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
 - `scripts/zigux/check-phase6-hexdump-packet.py`
 
-Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. Keep this catalog aligned with that direct-readback limit instead of overstating shared-note or helper-local reviewability from older route names alone. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with the docs-root, scripts-root, tests-root, and review-checklist reminders listed above.
+Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, and the restored shared build foothold `zigux/tests/phase6_build.zig`.
 
 ## Current helper-evidence rows
 
@@ -50,7 +51,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - committed fixture surfaces: `zigux/tests/fixtures/phase6_base64_vectors.zig` and `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`
 - direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
-- current review posture: the roadmap-backed base64 packet now has directly readable helper-local evidence through `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `Documentation/zigux/phase6-base64-slice.md`, while the dedicated slowdown and C-parity companions still need fresh direct reads before they are presented as current shipped evidence
+- current review posture: the roadmap-backed base64 packet now has directly readable helper-local evidence through `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `Documentation/zigux/phase6-base64-slice.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`, while the dedicated slowdown and C-parity companions still need fresh direct reads before they are presented as current shipped evidence
 
 ### bsearch
 
@@ -60,7 +61,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
 - last-known companion packet members still needing fresh direct reads: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, and `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
-- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, and `Documentation/zigux/phase6-bsearch-slice.md`, while the bounds-focused C ABI companions and dedicated corpus checker still need fresh direct reads before they are presented as current shipped evidence
+- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`, while the bounds-focused C ABI companions and dedicated corpus checker still need fresh direct reads before they are presented as current shipped evidence
 
 ### checksum
 
@@ -71,7 +72,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again
+- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again
 
 ### hexdump
 
@@ -84,7 +85,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`
 - perf refresh note: `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
-- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again
+- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again
 
 ## Last-known shared replay inventory
 
