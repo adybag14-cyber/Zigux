@@ -1,7 +1,7 @@
 {
   "packet": "phase2_tool_manifest",
   "phase": "phase2",
-  "status": "lane22_branch_closure_packet_restacked",
+  "status": "lane24_branch_closure_packet_restacked",
   "toolchain_bootstrap_doc": "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
   "closure_validator": "scripts/zigux/validate-phase2-closure.py",
   "closure_doc": "Documentation/zigux/phase2-closure.md",
