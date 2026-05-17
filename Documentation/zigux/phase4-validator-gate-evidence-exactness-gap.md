@@ -5,62 +5,74 @@
 - `PHASE4_VALIDATOR_GATE_EVIDENCE_EXACTNESS_GAP=present`
 - `PHASE4_VALIDATOR_GATE_EVIDENCE_EXACTNESS_LANE_KEY=validation-perf`
 - `PHASE4_VALIDATOR_GATE_EVIDENCE_EXACTNESS_SCOPE=validator_local_truthfulness_only`
-- `PHASE4_VALIDATOR_GATE_EVIDENCE_EXACTNESS_STATUS_BUCKET=shared_validator_prefix_drift`
+- `PHASE4_VALIDATOR_GATE_EVIDENCE_EXACTNESS_STATUS_BUCKET=historical_followthrough_waiting_for_republish`
 - `PHASE4_VALIDATOR_GATE_EVIDENCE_EXACTNESS_OWNER=Validation and Perf Team`
 - `PHASE4_VALIDATOR_TARGET=scripts/zigux/validate-phase4.py`
-- `PHASE4_VALIDATOR_BLOB_SHA=694ad85743612aa0a595cd1752dd03c1013603ab`
-- `PHASE4_GATE_EVIDENCE_NOTE=Documentation/zigux/phase4-gate-evidence.md`
-- `PHASE4_GATE_EVIDENCE_BLOB_SHA=8f604959c5250433c5fca14b20d7ff75341c8d33`
+- `PHASE4_VALIDATOR_LAST_KNOWN_BLOB_SHA=694ad85743612aa0a595cd1752dd03c1013603ab`
+- `PHASE4_GATE_EVIDENCE_LAST_KNOWN_NOTE=Documentation/zigux/phase4-gate-evidence.md`
+- `PHASE4_GATE_EVIDENCE_LAST_KNOWN_BLOB_SHA=8f604959c5250433c5fca14b20d7ff75341c8d33`
 
-## Why this gap note exists
+## Why this gap note still exists
 
-Current `master` already records the exact Phase 4 gate-evidence contract in
-`Documentation/zigux/phase4-gate-evidence.md`, including:
+This note now records a parked validator-local follow-through, not a current-head
+exactness claim.
 
-- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`
-- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`
-- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`
-- the shipped `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=` catalog that now includes
-  `shared_validator_reruns_gate_evidence_check_drift`
+Current `master` no longer exposes direct authenticated readback for
+`scripts/zigux/validate-phase4.py` or
+`Documentation/zigux/phase4-gate-evidence.md`. The live shared Phase 4 packet is
+instead the repo-reality warning anchored by:
 
-But current `master` still keeps the shared validator prefix-only for the same
-contract in `scripts/zigux/validate-phase4.py`.
+- `Documentation/zigux/phase4-reversible-delivery-evidence.md`
+- `scripts/zigux/check-phase4-repo-reality-warning.py`
+- `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 
-## Current bounded gap
+Those directly readable reminder surfaces currently say the broader Phase 4
+validator, lab-matrix, and local-only perf companions remain missing on current
+`master`. That means the validator exactness follow-through is still a real
+historical next step, but it is not current-head proof today.
 
-Inside `REQUIRED_GATE_EVIDENCE_MARKERS`, the shared validator still accepts:
+## Historical bounded gap
 
-- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=`
-- `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=`
-- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=`
-- `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=`
+The last directly verified validator-local gap was:
 
-That means the validator can still pass while the gate-evidence note drifts away
-from the exact current `34`-case catalog or the exact shared target count `19`
-that the surrounding Phase 4 packet already treats as shipped evidence.
+- `scripts/zigux/validate-phase4.py` accepted prefix-only markers for the gate-evidence
+  self-test count, the self-test catalog, the shared validator target count, and
+  the shared validator self-test count
+- `Documentation/zigux/phase4-gate-evidence.md` carried the exact `34` / `19`
+  contract that the validator still needed to exact-check
+
+That is why the last-known validator and gate-evidence blob SHAs stay pinned in
+the status block above. They remain the bounded follow-through target if the
+missing broader Phase 4 packet is republished or becomes directly readable again.
 
 ## Guardrail
 
-`scripts/zigux/check-phase4-validator-gate-evidence-exactness-gap.py` keeps
-this note honest against current repo reality. It fail-closes on one narrow
-rule:
+`scripts/zigux/check-phase4-validator-gate-evidence-exactness-gap.py` keeps this
+note honest against current repo reality. It fail-closes on three narrow rules:
 
-- the note may only claim this gap while `scripts/zigux/validate-phase4.py`
-  still exposes the four prefix-only marker lines above
-- the note must keep the exact `34` / `19` gate-evidence contract explicit so a
-  later validator rewrite cannot leave this gap note behind as stale evidence
+- this note must describe the validator exactness work as a historical parked
+  follow-through rather than claiming live current-head validator evidence
+- this note must point at the live repo-reality warning packet in
+  `Documentation/zigux/phase4-reversible-delivery-evidence.md`,
+  `scripts/zigux/check-phase4-repo-reality-warning.py`, and
+  `scripts/zigux/check-phase4-reversible-delivery-pins.py`
+- the note must keep the last-known validator and gate-evidence blob SHAs explicit
+  so the follow-through can resume exactly once those broader companions return
 
 ## Non-goals
 
 This note does not claim:
 
-- the validator rewrite is landed
-- the gate-evidence note is wrong today
+- the validator rewrite is landed on current `master`
+- `Documentation/zigux/phase4-gate-evidence.md` is directly readable today
 - broader Phase 4 rollback-ownership or perf-threshold policy changed
 
 ## Next bounded step
 
-When a publish-capable runtime can safely materialize and rewrite the full live
-validator body, apply the exactness helper to `scripts/zigux/validate-phase4.py`
-and then either delete this gap note or narrow it to any remaining exactness
-drift that still survives the validator rewrite.
+Reopen this validator-local exactness follow-through only after a same-family
+lane republishes one missing broader Phase 4 companion or direct readback once
+again proves that `scripts/zigux/validate-phase4.py` and
+`Documentation/zigux/phase4-gate-evidence.md` are present on current `master`.
+At that point, rerun the exactness helper against the re-materialized validator
+body and then either retire this note or narrow it to any exactness drift that
+still survives the republished packet.
