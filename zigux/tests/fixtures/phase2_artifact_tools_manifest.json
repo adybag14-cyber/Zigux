@@ -1,0 +1,22 @@
+{
+  "phase": "Phase 2",
+  "status": "active",
+  "scope": "artifact-diff support for fixture-backed scripts/zigux validation",
+  "tooling": {
+    "primary": [
+      "scripts/zigux/artifact_diff.py"
+    ],
+    "consumers": [
+      "scripts/zigux/check-kconfig-bridge.py"
+    ],
+    "supported_modes": [
+      "json",
+      "text",
+      "bytes"
+    ]
+  },
+  "notes": [
+    "The artifact diff helper provides deterministic comparison output for fixture-backed scripts-root checks.",
+    "Keep future Phase 2 artifact-diff follow-up bounded to live consumers and directly readable fixture packets before widening into broader closure routes."
+  ]
+}
