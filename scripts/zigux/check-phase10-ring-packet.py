@@ -433,6 +433,41 @@ def run_self_test() -> int:
             ).__setitem__("why_now", "synthetic drift"),
             "manifest:gap_why_now:phase10-notification-data-summary-helper='synthetic drift'",
         )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("freeze_status_change_claimed", True),
+            "manifest:freeze_status_change_claimed=True",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("risky_transport_posture", "starter_landed"),
+            "manifest:risky_transport_posture='starter_landed'",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__(
+                "allowed_evidence_kinds",
+                ["driver_local_lab_slices", "shared_validation_gates"],
+            ),
+            "manifest:allowed_evidence_kinds",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__(
+                "forbidden_transport_claims",
+                [
+                    "queue_setup_reset_paths",
+                    "irq_parity",
+                    "dma_paths",
+                    "input_registration_lifecycle",
+                ],
+            ),
+            "manifest:forbidden_transport_claims",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("architecture_council_reopen_required", False),
+            "manifest:architecture_council_reopen_required=False",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("architecture_council_reopen_attached", True),
+            "manifest:architecture_council_reopen_attached=True",
+        )
 
         slice_path = root / "Documentation/zigux/phase10-virtio-ring-slice.md"
         slice_original = slice_path.read_text(encoding="utf-8")
