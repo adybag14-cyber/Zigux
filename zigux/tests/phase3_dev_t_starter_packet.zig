@@ -1,6 +1,7 @@
 const std = @import("std");
 const testing = std.testing;
 
+const uapi_dev_t = @import("uapi_dev_t");
 const dev_t = @import("dev_t_binding");
 const version = @import("version_binding");
 
@@ -14,6 +15,13 @@ test "dev_t starter binding preserves the current ABI layout" {
     try testing.expectEqual(@as(usize, 4), dev_t.minor_offset);
     try testing.expectEqual(@as(u32, 11), fields.major);
     try testing.expectEqual(@as(u32, 29), fields.minor);
+}
+
+test "dev_t starter binding stays aligned with the UAPI field offsets" {
+    try testing.expectEqual(uapi_dev_t.fields_size, dev_t.fields_size);
+    try testing.expectEqual(uapi_dev_t.fields_align, dev_t.fields_align);
+    try testing.expectEqual(uapi_dev_t.major_offset, dev_t.major_offset);
+    try testing.expectEqual(uapi_dev_t.minor_offset, dev_t.minor_offset);
 }
 
 test "starter packet version binding preserves the Linux-facing header family layout" {
