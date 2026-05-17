@@ -41,13 +41,13 @@ REQUIRED_FILES = (
 )
 
 REQUIRED_MATRIX_MARKERS = (
-    "bounded coverage only",
-    "release packet stays segmented and build-only while queue ownership, DMA routing, recovery, and throughput semantics remain delivery-blocked follow-ups",
-    "virtio_net build-only helper evidence",
-    "nvme build-only helper evidence",
-    "mlx5 build-only helper evidence",
-    "none of the Phase 12 notes, fixtures, or validation routes authorize direct driver submission, runtime queueing semantics, or throughput claims beyond build-only replay",
-    "tests-root fixture packet keeps `phase12_libbpf_snapshot.json` and `phase12_libbpf_snapshot_determinism.json` under version control",
+    "scope: keep the active shared Phase 12 packet reviewable without implying a broader validator-first or deep-core delivery claim",
+    "the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard",
+    "the parked `zigux/tests/fixtures/phase12_libbpf_snapshot.json` anchor",
+    "starter-present direct `virtio_net` packet",
+    "bounded driver-local NVMe starter-plus-verifier-plus-direct-replay-plus-slice-plus-survey packet",
+    "one-catalog plus one-gap-note plus two-anchor split explicit in PMO release wording",
+    "Queueing, throughput, rollback, and recovery wording must stay bounded to the driver-local packets and the lab-only reversible-delivery evidence already recorded in the shared Phase 12 docs",
 )
 
 REQUIRED_READINESS_MARKERS = (
@@ -205,15 +205,20 @@ def run_self_test() -> None:
         write_text(
             matrix_path,
             original_matrix.replace(
-                "bounded coverage only",
-                "bounded coverage drift only",
+                "scope: keep the active shared Phase 12 packet reviewable without implying a broader validator-first or deep-core delivery claim",
+                "scope: drift the active shared Phase 12 packet beyond the current validator-first and deep-core delivery boundary",
                 1,
             ),
         )
         expect_failure(
             root,
             "missing_markers:phase12-release-coordination-matrix:"
-            + json.dumps(["bounded coverage only"], ensure_ascii=True),
+            + json.dumps(
+                [
+                    "scope: keep the active shared Phase 12 packet reviewable without implying a broader validator-first or deep-core delivery claim",
+                ],
+                ensure_ascii=True,
+            ),
         )
         write_text(matrix_path, original_matrix)
 
