@@ -27,9 +27,22 @@ UAPI_MARKER = "zigux/uapi/dev_t.zig"
 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER = (
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 )
+LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER = (
+    "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test"
+)
 LOW_LEVEL_WRAPPER_REPLAY_MARKER = "zigux/tests/phase3_low_level_wrappers.zig"
 LOW_LEVEL_WRAPPER_BUILD_MARKER = "zigux/tests/phase3_low_level_wrappers_build.zig"
 WORKFLOW_MARKER = ".github/workflows/zigux-bootstrap.yml"
+CATALOG_SELFTEST_GAP_MARKER = "scripts/zigux/check-phase3-catalog-selftest.py"
+CATALOG_WRAPPER_GAP_MARKER = "scripts/zigux/phase3_catalog.py"
+WRAPPER_GENERATION_GAP_MARKER = "scripts/zigux/generate-phase3-check-wrappers.py"
+BROADER_VALIDATOR_GAP_MARKER = "scripts/zigux/validate-phase3.py"
+MANIFEST_ROOT_GAP_MARKER = "zigux/tests/phase3_abi_manifest.json"
+README_GAP_SUMMARY_MARKER = (
+    "so treat those catalog, wrapper-generation, focused replay, export/UAPI, broader "
+    "validator, closure, and manifest-root routes as current repo-reality gaps until "
+    "fresh current-tree proof lands"
+)
 
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
@@ -119,6 +132,13 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     ".github/workflows/zigux-bootstrap.yml",
+    LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER,
+    CATALOG_SELFTEST_GAP_MARKER,
+    CATALOG_WRAPPER_GAP_MARKER,
+    WRAPPER_GENERATION_GAP_MARKER,
+    BROADER_VALIDATOR_GAP_MARKER,
+    MANIFEST_ROOT_GAP_MARKER,
+    README_GAP_SUMMARY_MARKER,
 )
 
 
@@ -157,7 +177,7 @@ def _populate_repo(root: Path) -> None:
 
 def _expect_missing_marker(root: Path, marker: str, message: str) -> int:
     readme = root / SCRIPTS_README_PATH
-    readme.write_text(_read(readme).replace(marker, "", 1), encoding="utf-8")
+    readme.write_text(_read(readme).replace(marker, ""), encoding="utf-8")
     issues = validate_repo(root)
     expected = f"missing scripts README marker: {marker}"
     if expected not in issues:
@@ -198,6 +218,10 @@ def run_self_test() -> int:
                 "expected missing low-level-wrapper survey validator README marker was not reported",
             ),
             (
+                LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER,
+                "expected missing low-level-wrapper survey self-test README marker was not reported",
+            ),
+            (
                 LOW_LEVEL_WRAPPER_REPLAY_MARKER,
                 "expected missing low-level-wrapper replay README marker was not reported",
             ),
@@ -206,6 +230,30 @@ def run_self_test() -> int:
                 "expected missing low-level-wrapper build README marker was not reported",
             ),
             (WORKFLOW_MARKER, "expected missing workflow README marker was not reported"),
+            (
+                CATALOG_SELFTEST_GAP_MARKER,
+                "expected missing catalog-selftest gap README marker was not reported",
+            ),
+            (
+                CATALOG_WRAPPER_GAP_MARKER,
+                "expected missing catalog wrapper gap README marker was not reported",
+            ),
+            (
+                WRAPPER_GENERATION_GAP_MARKER,
+                "expected missing wrapper-generation gap README marker was not reported",
+            ),
+            (
+                BROADER_VALIDATOR_GAP_MARKER,
+                "expected missing broader validator gap README marker was not reported",
+            ),
+            (
+                MANIFEST_ROOT_GAP_MARKER,
+                "expected missing manifest-root gap README marker was not reported",
+            ),
+            (
+                README_GAP_SUMMARY_MARKER,
+                "expected missing repo-reality gap summary README marker was not reported",
+            ),
         ):
             _populate_repo(root)
             if _expect_missing_marker(root, marker, message) != 0:
@@ -239,7 +287,7 @@ def run_self_test() -> int:
                 return 1
 
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=16")
+        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=23")
         return 0
 
 
