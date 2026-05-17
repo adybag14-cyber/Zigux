@@ -51,6 +51,7 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 
 - treat the current shared smoke packet as live shared evidence for the validator-first route, the focused smoke shard, and the full replay entrypoints named above
 - do not use that packet to claim direct ownership transfer, parity, or unfrozen delivery for workqueue, ring buffer, skbuff, or RCU tree
+- the remaining shared-packet drift is validator-local: `zigux/Makefile` reruns `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test` and `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` inside `make -C zigux phase14-validate`, but `scripts/zigux/validate-phase14.py` still does not exact-count those two lines
 - if a future direct readback loses any of the shared survey, manifest, validator, Makefile, or build-file anchors again, narrow this note back to a truthfulness-only retained-in-C summary and update the shared packet wording immediately
 - any future expansion beyond this shared reminder packet still needs explicit re-read evidence for the anchor-local files it names, plus the existing freeze-map discipline
 
@@ -67,4 +68,4 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 ## Next bounded step
 
 Keep this cross-anchor note aligned when the shared smoke packet moves.
-On the next same-lane reread, compare this note with `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `scripts/zigux/validate-phase14.py`, `zigux/Makefile`, and `zigux/tests/phase14_end_to_end_smoke_manifest.json` for the next already-landed shared marker that still lacks fail-closed coverage, without reopening anchor-local bridge or freeze-governance work from this shared boundary note.
+On the next same-lane reread, compare this note with `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `scripts/zigux/validate-phase14.py`, `zigux/Makefile`, and `zigux/tests/phase14_end_to_end_smoke_manifest.json` to confirm that `scripts/zigux/validate-phase14.py` exact-counts both `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test` and `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` before reopening anchor-local bridge or freeze-governance work from this shared boundary note.
