@@ -582,6 +582,22 @@ test "conf bridge emits explicit randconfig allconfig override when present" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_SEED\":\"0xC0FFEE\"") != null);
 }
 
+test "conf bridge emits explicit empty randconfig allconfig override" {
+    var capture = try TestCapture.init(std.testing.allocator, 208);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .randconfig,
+        .kconfig = "Kconfig",
+        .config = "rand/.config",
+        .arch = "x86_64",
+        .allconfig = "",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"randconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
+}
+
 test "conf bridge omits randconfig allconfig sentinel without explicit override" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
@@ -679,6 +695,15 @@ test "bridge options parser accepts explicit allconfig override for allmodconfig
     try std.testing.expect(options.seed == null);
     try std.testing.expect(options.probability == null);
     try std.testing.expect(options.nosilentupdate == null);
+}
+
+test "bridge options parser accepts explicit empty randconfig allconfig override" {
+    const options = try parseBridgeOptions(.randconfig, &.{"allconfig="});
+    try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
+    try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
 }
 
 test "bridge options parser accepts syncconfig nosilentupdate" {
