@@ -109,6 +109,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(policy_note, "the C implementation remains the source of truth");
     try expectContains(policy_note, "evidence archive path");
     try expectContains(policy_note, "automatic return-to-blocked trigger");
+    try expectContains(policy_note, "retired_from_active_discussion");
     try expectContains(policy_note, "trigger-specific evidence refresh");
     try expectContains(policy_note, "There is no silent exception path around the indefinite-C policy.");
     try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_policy.zig");
@@ -129,7 +130,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("rollback owner", recordkeeping.required_terms[7]);
     try std.testing.expectEqualStrings("evidence archive path", recordkeeping.required_terms[12]);
     try std.testing.expectEqualStrings("automatic return-to-blocked trigger", recordkeeping.required_terms[13]);
-    try std.testing.expectEqualStrings("retained discussion state", recordkeeping.required_terms[14]);
+    try std.testing.expectEqualStrings("retired_from_active_discussion state", recordkeeping.required_terms[14]);
     try std.testing.expectEqualStrings("reopen triggers", recordkeeping.required_terms[15]);
     try std.testing.expectEqualStrings("trigger-specific evidence refresh", recordkeeping.required_terms[16]);
 
