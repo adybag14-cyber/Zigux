@@ -6,6 +6,10 @@ Current directly readable same-lane Phase 7 sibling evidence also includes:
 - `Documentation/zigux/phase7-string-helpers-slice.md`
 - `lib/string_helpers.zig`
 - `zigux/tests/phase7_string_helpers.zig`
+- `zigux/tests/phase7_string_helpers_survey.zig`
+- `zigux/tests/phase7_string_helpers_manifest.json`
+- `zigux/tests/phase7_string_helpers_sample_boundary.zig`
+- `samples/zigux/README.md`
 
 Repo-reality warning for the broader Phase 7 rbtree packet:
 - `Documentation/zigux/phase7-rbtree-slice.md`
@@ -16,7 +20,7 @@ Repo-reality warning for the broader Phase 7 rbtree packet:
 - `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
 - `zigux/tests/phase7_build.zig`
 
-Keep the current Phase 7 reminder surface tied to the direct rbtree survey anchor plus the directly readable string-helpers starter packet:
+Keep the current Phase 7 reminder surface tied to the direct rbtree survey anchor plus the directly readable string-helpers helper-local packet:
 - `string_helpers` stays the only directly readable helper implementation packet in this lane today
 - `cmdline` stays reviewable through the parked Phase 1 helper packet
 - do not present `argv_split` or the broader `rbtree` helper-local slice, checker, manifest, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`
