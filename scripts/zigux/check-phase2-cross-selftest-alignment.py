@@ -152,10 +152,12 @@ BOOTSTRAP_NOTES_STALE_CROSS_WORKFLOW_BOUNDARY_SENTENCE = (
 DOCS_ROOT_README_BOUNDARY_SENTENCE = (
     "the docs-root Phase 2 summary should also keep the current bootstrap-versus-cross "
     "verification split explicit: the dedicated `phase2-cross` workflow job still reuses "
-    "the pinned installer path but stops at installer-side archive verification plus "
-    "`python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, while "
-    "the Linux-style `make -C zigux phase2-cross` route still picks up `phase2-toolchain` "
-    'and its `python3 scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"` replay through '
+    "the pinned installer path and reaches the same live toolchain gate indirectly through "
+    "`python3 scripts/zigux/check-phase2-cross.py --target <matrix-zig-target>`, because "
+    "that target-mode replay starts with `python3 scripts/zigux/check-zig-toolchain.py --zig "
+    "\"<resolved-zig>\"` before the cross-target Zig tests, while the Linux-style "
+    "`make -C zigux phase2-cross` route still picks up `phase2-toolchain` and its direct "
+    '"`python3 scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"` replay through '
     "`zigux/Makefile`."
 )
 
