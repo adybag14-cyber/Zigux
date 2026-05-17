@@ -8,7 +8,7 @@ import tempfile
 from pathlib import Path
 
 
-DEFAULT_ROOT = Path(__file__).resolve().parent
+DEFAULT_ROOT = Path(__file__).resolve().parents[2]
 LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 
 REQUIRED_EXACT_LINES = {
