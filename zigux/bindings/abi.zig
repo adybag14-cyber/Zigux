@@ -122,6 +122,12 @@ test "abi binding default header stays canonical" {
     try std.testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), header.size);
     try std.testing.expectEqual(@as(u16, ABI_VERSION), header.abi_version);
     try std.testing.expectEqual(@as(u16, 0x41), header.flags);
+
+    try std.testing.expectEqual(@as(usize, 8), @sizeOf(BoundaryHeader));
+    try std.testing.expectEqual(@as(usize, 4), @alignOf(BoundaryHeader));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(BoundaryHeader, "size"));
+    try std.testing.expectEqual(@as(usize, 4), @offsetOf(BoundaryHeader, "abi_version"));
+    try std.testing.expectEqual(@as(usize, 6), @offsetOf(BoundaryHeader, "flags"));
 }
 
 test "abi binding enums stay aligned with exported constants" {
@@ -147,6 +153,19 @@ test "abi binding enums stay aligned with exported constants" {
 }
 
 test "abi binding chrdev structs keep the published layout" {
+    try std.testing.expectEqual(@as(usize, 8), @sizeOf(ExportStatus));
+    try std.testing.expectEqual(@as(usize, 4), @alignOf(ExportStatus));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ExportStatus, "code"));
+    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ExportStatus, "facility"));
+    try std.testing.expectEqual(@as(usize, 6), @offsetOf(ExportStatus, "flags"));
+
+    try std.testing.expectEqual(@as(usize, 4), @sizeOf(InteropPolicy));
+    try std.testing.expectEqual(@as(usize, 1), @alignOf(InteropPolicy));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(InteropPolicy, "panic_mode"));
+    try std.testing.expectEqual(@as(usize, 1), @offsetOf(InteropPolicy, "allocator_mode"));
+    try std.testing.expectEqual(@as(usize, 2), @offsetOf(InteropPolicy, "unsafe_scope"));
+    try std.testing.expectEqual(@as(usize, 3), @offsetOf(InteropPolicy, "reserved"));
+
     try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView));
     try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window"));
