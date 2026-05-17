@@ -61,11 +61,18 @@
       "why_now": "A bounded slice note records exactly what the gpio_wdt starter, probe-summary helper, descriptor preflight helper, timeout-property helper, drvdata ownership helper, stop-policy helper, and registration handoff summary cover so later Phase 11 work can extend the model without reopening the starter contract."
     },
     {
+      "id": "phase11-gpio-wdt-teardown-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-teardown-note.md",
+      "why_now": "A tiny teardown note now records the bounded meaning of the stop-policy split, the drvdata ownership checkpoint, and the registration handoff so the lane can name teardown-facing ownership without overclaiming live reboot or remove execution."
+    },
+    {
       "id": "phase11-gpio-wdt-validation-matrix",
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
-      "why_now": "The bounded validation matrix now records the shared Phase 11 replay path, the current property, startup, descriptor-preflight, timeout-property, drvdata-ownership, runtime, and handoff evidence, and the explicit out-of-scope kernel-facing work so the review packet keeps one truthful validation posture."
+      "why_now": "The bounded validation matrix now records the shared Phase 11 replay path, the current property, startup, descriptor-preflight, timeout-property, drvdata-ownership, runtime, teardown-note, and handoff evidence, and the explicit out-of-scope kernel-facing work so the review packet keeps one truthful validation posture."
     },
     {
       "id": "phase11-gpio-wdt-probe-summary-followup",
@@ -114,7 +121,7 @@
       "status": "blocked_on_driver_scaffold",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_gpio_wdt.zig",
-      "why_now": "Platform-driver registration, GPIO descriptor acquisition, watchdog core registration, and reboot integration remain blocked until the lane grows a slightly richer teardown note or hardware-validation plan beyond the descriptor preflight, timeout-property, and drvdata ownership checkpoints."
+      "why_now": "Platform-driver registration, GPIO descriptor acquisition, watchdog core registration, and reboot integration remain blocked until the lane grows one hardware-validation or registration-intent checkpoint beyond the descriptor preflight, timeout-property, drvdata ownership, teardown-note, and registration-handoff packet."
     }
   ]
 }
