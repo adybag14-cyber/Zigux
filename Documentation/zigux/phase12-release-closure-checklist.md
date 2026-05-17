@@ -14,7 +14,6 @@ It is a PMO release artifact only. It does not claim that Phase 12 is already cl
 - shared coordination companion: `Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared fallback companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`
-- support-bundle cross companion: `scripts/zigux/check-phase12-cross.py`
 - validator-first support route: `scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`
 - shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
 
@@ -23,7 +22,7 @@ It is a PMO release artifact only. It does not claim that Phase 12 is already cl
 Keep Phase 12 marked open until every item below is true on current `master`:
 
 - The shared PMO packet stays aligned across `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this checklist, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
-- The shipped validator-first support bundle still reruns as `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-cross.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate`.
+- The shipped validator-first support bundle still reruns as `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate`.
 - The shipped validator-first support bundle is `make -C zigux phase12-validate`
 - The shared smoke-first replay packet still stays wired through `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`.
 - the shared build-and-make replay path
@@ -78,7 +77,6 @@ Before changing this checklist from open to closed, reread these files together:
 - `Documentation/zigux/phase12-nvme-pci-slice.md`
 - `Documentation/zigux/phase12-nvme-pci-survey.md`
 - `scripts/zigux/README.md`
-- `scripts/zigux/check-phase12-cross.py`
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `zigux/tests/README.md`
 
