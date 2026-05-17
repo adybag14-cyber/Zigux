@@ -18,15 +18,15 @@
   "files": [
     {
       "path": "Documentation/zigux/phase12-libbpf-segment-survey.md",
-      "blob_sha": "20147ff70905150c1e35692c3e3b1509d150647b"
+      "blob_sha": "d1c99dc10413cefc21cb22d5a617f8d3bfaa237a"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-      "blob_sha": "564b53f906927664a7923e48f733b028e0b3b53a"
+      "blob_sha": "b3ea80962e99643328ea6a67ca25ad044a138f27"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-      "blob_sha": "a3ded551b2dba98c55e1da347e6bc3c82eddc36e"
+      "blob_sha": "f033f94d97b11b49a29efca94d1cae852bb889a5"
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
