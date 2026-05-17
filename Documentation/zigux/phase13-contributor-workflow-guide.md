@@ -33,6 +33,7 @@ Current `master` still does not materialize `scripts/zigux/check-phase13-shared-
 
 When shared Phase 13 wording changes, reread these contributor-facing surfaces together:
 
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
