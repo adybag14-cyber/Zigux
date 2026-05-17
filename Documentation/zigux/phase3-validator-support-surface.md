@@ -2,7 +2,7 @@
 
 This note records the current validator-facing Phase 3 surface on live `master`.
 
-Current `master` now carries one bounded `dev_t` starter packet, two focused helper-local interop slices, and one focused helper-local policy slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
+Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings, two focused helper-local interop slices, and one focused helper-local policy slice. It does not currently ship the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
 
 ## Current starter packet present on `master`
 
@@ -12,12 +12,14 @@ Current `master` now carries one bounded `dev_t` starter packet, two focused hel
 - `zigux/uapi/version.zig`
 - `zigux/uapi/dev_t.zig`
 - `zigux/bindings/dev_t.zig`
+- `zigux/bindings/version.zig`
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-dev-t-starter-packet.py`
 - `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py`
+- `zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all`
 
 ## Focused helper interop slices present on `master`
 
@@ -45,6 +47,7 @@ Current `master` now carries one bounded `dev_t` starter packet, two focused hel
 - `scripts/zigux/check-phase3-list-hlist.py`
 - `python3 scripts/zigux/check-phase3-list-hlist.py --self-test`
 - `python3 scripts/zigux/check-phase3-list-hlist.py`
+- `zig build phase3-list-hlist-starter-packet-test --build-file zigux/tests/phase3_list_hlist_starter_packet_build.zig`
 
 ## Focused policy slice present on `master`
 
@@ -53,12 +56,14 @@ Current `master` now carries one bounded `dev_t` starter packet, two focused hel
 - `zigux/bindings/abi.zig`
 - `zigux/helpers/panic_policy.zig`
 - `zigux/helpers/allocator_policy.zig`
+- `zigux/helpers/unsafe_policy.zig`
 - `zigux/tests/phase3_policy_starter_packet.zig`
 - `zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-policy-starter-packet.py`
 - `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-policy-starter-packet.py`
+- `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
 
 ## Review boundary
 
@@ -90,6 +95,8 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 Keep the remaining shared reminder follow-up focused on narrowing those broader shared surfaces so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-list-hlist-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, this note, the manifest-backed starter packets, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
 
+`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback tracker for that docs-root, checklist, and tests-root cleanup.
+
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the focused helper interop slices, the focused policy slice, and their machine-readable manifests explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the focused helper interop slices, the focused policy slice, their machine-readable manifests, and their direct replay handles explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
