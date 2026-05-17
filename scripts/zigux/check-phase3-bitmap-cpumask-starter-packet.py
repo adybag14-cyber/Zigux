@@ -39,6 +39,11 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase3_bitmap_cpumask_starter_packet_manifest.json",
         "python3 scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-bitmap-cpumask-starter-packet.py",
+        "zigux/bindings/version.zig",
+        "zigux/helpers/unsafe_policy.zig",
+        "Keep the shared Phase 3 reminder packet anchored to those four current-tree-backed slices",
+        "`Documentation/zigux/review-checklist.md` still carries broader shared Phase 3 reminder language",
+        "`Documentation/zigux/README.md` and `zigux/tests/README.md` now match the bounded starter-packet-plus-helper-slice posture.",
     ),
     HEADER_PATH: (
         "#define ZIGUX_BITMAP_VIEW_ABI_VERSION 1u",
