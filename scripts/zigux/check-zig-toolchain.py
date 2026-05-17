@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -193,6 +194,103 @@ def resolve_zig_executable(
     return which("zig")
 
 
+def policy_archive_filename(target: str, channel: str) -> str:
+    return f"zig-{target}-{channel}.tar.xz"
+
+
+def iter_repo_local_archive_candidates(
+    *,
+    root: Path = ROOT,
+    policy_path: Path = TOOLCHAIN_POLICY,
+) -> list[tuple[str, Path]]:
+    payload = load_policy(policy_path)
+    if payload is None:
+        return []
+
+    channel = str(payload["channel"])
+    archive_targets = payload["upgrade_policy"]["archive_target_scope"]
+    search_roots = [
+        root / ".zig-toolchain",
+        root / "toolchains",
+        root / "third_party",
+        root / "agent_files",
+    ]
+    candidates: list[tuple[str, Path]] = []
+    seen: set[Path] = set()
+
+    for target in archive_targets:
+        filename = policy_archive_filename(str(target), channel)
+        for base in search_roots:
+            path = base / filename
+            if path not in seen:
+                candidates.append((str(target), path))
+                seen.add(path)
+    return candidates
+
+
+def resolve_policy_archive(
+    explicit_archive: str | None = None,
+    explicit_target: str | None = None,
+    *,
+    root: Path = ROOT,
+    policy_path: Path = TOOLCHAIN_POLICY,
+) -> tuple[str | None, Path | None]:
+    payload = load_policy(policy_path)
+    if payload is None:
+        return explicit_target, Path(explicit_archive) if explicit_archive is not None else None
+
+    archive_targets = [str(target) for target in payload["upgrade_policy"]["archive_target_scope"]]
+    target = explicit_target
+    if target is not None and target not in archive_targets:
+        raise ValueError(
+            f"archive target {target!r} is outside archive_target_scope in {policy_path}: "
+            + ", ".join(archive_targets)
+        )
+
+    if explicit_archive is not None:
+        if target is None:
+            if len(archive_targets) != 1:
+                raise ValueError("archive target must be explicit when policy covers multiple archive targets")
+            target = archive_targets[0]
+        return target, Path(explicit_archive)
+
+    candidates = iter_repo_local_archive_candidates(root=root, policy_path=policy_path)
+    if target is not None:
+        candidates = [(candidate_target, candidate_path) for candidate_target, candidate_path in candidates if candidate_target == target]
+    for candidate_target, candidate_path in candidates:
+        if candidate_path.is_file():
+            return candidate_target, candidate_path
+
+    if target is None and len(archive_targets) == 1:
+        target = archive_targets[0]
+    return target, None
+
+
+def compute_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while True:
+            chunk = handle.read(1024 * 1024)
+            if not chunk:
+                break
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def validate_policy_archive(path: Path, archive_target: str, *, policy_path: Path = TOOLCHAIN_POLICY) -> tuple[str, str | None]:
+    payload = load_policy(policy_path)
+    if payload is None:
+        raise ValueError(f"toolchain policy not found at {policy_path}")
+    if archive_target not in payload["archive_sha256"]:
+        raise ValueError(f"archive target {archive_target!r} is not pinned in {policy_path}")
+
+    actual_sha = compute_sha256(path)
+    expected_sha = str(payload["archive_sha256"][archive_target])
+    if actual_sha != expected_sha:
+        return "mismatch", f"expected sha256 {expected_sha} for {archive_target}"
+    return "present", None
+
+
 def read_zig_version(zig: str, *, runner=subprocess.run) -> str:
     try:
         completed = runner([zig, "version"], capture_output=True, text=True, check=False)
@@ -243,18 +341,9 @@ def emit_policy_summary(policy_path: Path = TOOLCHAIN_POLICY) -> None:
     print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={payload['channel']}")
     print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={payload['minimum_version']}")
     print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET_COUNT={len(archive_sha256)}")
-    print(
-        "ZIG_TOOLCHAIN_ARCHIVE_TARGETS="
-        + ",".join(str(target) for target in upgrade_policy["archive_target_scope"])
-    )
-    print(
-        "ZIG_TOOLCHAIN_REQUIRED_MAKE_ROUTES="
-        + ",".join(str(route) for route in upgrade_policy["required_make_routes"])
-    )
-    print(
-        "ZIG_TOOLCHAIN_PIN_POLICY="
-        + ("exact" if upgrade_policy["channel_minimum_lockstep"] else "minimum_only")
-    )
+    print("ZIG_TOOLCHAIN_ARCHIVE_TARGETS=" + ",".join(str(target) for target in upgrade_policy["archive_target_scope"]))
+    print("ZIG_TOOLCHAIN_REQUIRED_MAKE_ROUTES=" + ",".join(str(route) for route in upgrade_policy["required_make_routes"]))
+    print("ZIG_TOOLCHAIN_PIN_POLICY=" + ("exact" if upgrade_policy["channel_minimum_lockstep"] else "minimum_only"))
 
 
 def run_self_test() -> int:
@@ -287,6 +376,7 @@ def run_self_test() -> int:
     expect_true(parse_zig_version("0.17.0") > parse_zig_version("0.17.0-dev.999+abcdef"))
     expect_true(parse_zig_version("0.17.1-dev.1") > parse_zig_version("0.17.0"))
     expect_true(parse_zig_version("0.16.0") > parse_zig_version("0.15.2"))
+    expect_equal(policy_archive_filename("x86_64-linux", "0.17.0-dev.87+9b177a7d2"), "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz")
 
     expect_equal(
         evaluate_toolchain_version("0.17.0-dev.87+9b177a7d2", "0.17.0-dev.87+9b177a7d2"),
@@ -330,6 +420,7 @@ def run_self_test() -> int:
         policy_path = root / "zig-toolchain-policy.json"
         expect_equal(load_min_version(policy_path, "0.15.0"), "0.15.0")
         expect_equal(load_pinned_channel(policy_path), None)
+        expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), (None, None))
         policy_path.write_text(
             json.dumps(
                 {
@@ -366,6 +457,40 @@ def run_self_test() -> int:
             iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:2],
             [pinned_zig, toolchain_dir / "bin" / "zig"],
         )
+        archive_path = root / "agent_files" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
+        archive_path.parent.mkdir(parents=True)
+        archive_path.write_bytes(b"zigux-archive")
+        expected_archive_sha = hashlib.sha256(b"zigux-archive").hexdigest()
+        policy_path.write_text(
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": expected_archive_sha},
+                    "upgrade_policy": {
+                        "channel_minimum_lockstep": True,
+                        "archive_target_scope": ["x86_64-linux"],
+                        "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    },
+                }
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), ("x86_64-linux", archive_path))
+        expect_equal(resolve_policy_archive(str(archive_path), root=root, policy_path=policy_path), ("x86_64-linux", archive_path))
+        expect_equal(validate_policy_archive(archive_path, "x86_64-linux", policy_path=policy_path), ("present", None))
+        archive_path.write_bytes(b"zigux-archive-drift")
+        expect_equal(
+            validate_policy_archive(archive_path, "x86_64-linux", policy_path=policy_path),
+            ("mismatch", f"expected sha256 {expected_archive_sha} for x86_64-linux"),
+        )
+        expect_raises(
+            lambda: resolve_policy_archive(str(archive_path), "aarch64-linux", root=root, policy_path=policy_path),
+            "outside archive_target_scope",
+        )
+        expect_raises(lambda: validate_policy_archive(archive_path, "aarch64-linux", policy_path=policy_path), "is not pinned")
         policy_path.write_text('{"phase":"Phase 2","minimum_version":7,"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid minimum_version")
         policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":7,"archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
@@ -461,6 +586,9 @@ def main() -> int:
     )
     parser.add_argument("--allow-missing", action="store_true", help="Return success when zig is unavailable.")
     parser.add_argument("--policy-only", action="store_true", help="Validate and summarize the pinned Zig policy without probing a zig executable.")
+    parser.add_argument("--archive-only", action="store_true", help="Validate the pinned Zig archive artifact without probing a zig executable.")
+    parser.add_argument("--archive", help="Explicit Zig archive path for archive-integrity validation.")
+    parser.add_argument("--archive-target", help="Archive target key from scripts/zigux/zig-toolchain-policy.json.")
     parser.add_argument("--zig", help="Explicit zig executable path.")
     parser.add_argument("--self-test", action="store_true", help="Run built-in parser and ordering checks.")
     args = parser.parse_args()
@@ -475,6 +603,46 @@ def main() -> int:
             print("ZIG_TOOLCHAIN_POLICY_STATUS=invalid")
             print(f"ZIG_TOOLCHAIN_POLICY_PATH={TOOLCHAIN_POLICY}")
             print(f"ZIG_TOOLCHAIN_NOTE={exc}")
+            return 1
+        return 0
+
+    if args.archive_only:
+        archive_target: str | None = None
+        archive_path: Path | None = None
+        try:
+            archive_target, archive_path = resolve_policy_archive(args.archive, args.archive_target)
+        except ValueError as exc:
+            print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=invalid")
+            print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={args.archive or 'unresolved'}")
+            if args.archive_target is not None:
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={args.archive_target}")
+            print(f"ZIG_TOOLCHAIN_NOTE={exc}")
+            return 1
+
+        if archive_path is None:
+            message = "pinned Zig archive not found in repo-local search paths"
+            if args.allow_missing:
+                print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing")
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
+                print(f"ZIG_TOOLCHAIN_NOTE={message}")
+                return 0
+            print(message, file=sys.stderr)
+            return 1
+
+        try:
+            archive_status, note = validate_policy_archive(archive_path, archive_target or "unresolved")
+        except ValueError as exc:
+            print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=invalid")
+            print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}")
+            print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
+            print(f"ZIG_TOOLCHAIN_NOTE={exc}")
+            return 1
+
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_STATUS={archive_status}")
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}")
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
+        if note is not None:
+            print(f"ZIG_TOOLCHAIN_NOTE={note}")
             return 1
         return 0
 
