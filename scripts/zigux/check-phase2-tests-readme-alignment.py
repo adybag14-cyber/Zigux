@@ -7,7 +7,49 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
-TESTS_README_MARKERS = ('Phase 2 review packet', '`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`', '`Documentation/zigux/review-checklist.md`', '`scripts/zigux/README.md`', '`scripts/zigux/check-phase2-kbuild-routes.py`', '`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`', '`scripts/zigux/check-phase2-tests-readme-alignment.py`', '`scripts/zigux/check-phase2-toolchain-pinning.py`', '`scripts/zigux/kconfig/conf_bridge.zig`', '`scripts/zigux/kconfig/confdata_bridge.zig`', '`zigux/tests/fixtures/phase2_cross_targets.json`', '`zigux/tests/fixtures/phase2_tool_manifest.json`', '`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`', '`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`', '`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`', '`zigux/tests/fixtures/kconfig_bridge/cases.json`', 'the current directly readable Phase 2 packet is the scripts-root kbuild and toolchain reminder set', 'repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`', '`scripts/zigux/validate-phase2.py`', '`scripts/zigux/validate-phase2-closure.py`', '`zigux/Makefile`', '`scripts/zigux/install-zig.py`', '`scripts/zigux/check-zig-toolchain.py`', '`python3 scripts/zigux/install-zig.py --self-test`', '`python3 scripts/zigux/check-zig-toolchain.py --self-test`', '`python3 scripts/zigux/check-phase2-cross.py --self-test`', '`python3 scripts/zigux/check-phase2-cross.py`', '`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`', '`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`', '`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`', '`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`', '`make -C zigux phase2-toolchain`', '`make -C zigux phase2-validate`', '`make -C zigux phase2-tools`', '`make -C zigux phase2-kconfig`', '`make -C zigux phase2-cross`', '`make -C zigux phase2`', 'historical packet members rather than direct tests-root evidence', 'keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text')
+REQUIRED_TESTS_README_MARKERS = (
+    "Phase 2 review packet",
+    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "`Documentation/zigux/review-checklist.md`",
+    "`scripts/zigux/README.md`",
+    "`scripts/zigux/check-phase2-kbuild-routes.py`",
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/kconfig/conf_bridge.zig`",
+    "`scripts/zigux/kconfig/confdata_bridge.zig`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
+    "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild and toolchain reminder set",
+    "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
+    "`scripts/zigux/validate-phase2.py`",
+    "`scripts/zigux/validate-phase2-closure.py`",
+    "`zigux/Makefile`",
+    "`scripts/zigux/install-zig.py`",
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
+    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2`",
+    "historical packet members rather than direct tests-root evidence",
+    "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
+)
+FORBIDDEN_TESTS_README_MARKERS = (
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+)
 
 
 def read_text(path: Path) -> str:
@@ -29,17 +71,38 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
-    return collect_missing_markers(tests_readme_text, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS")
+    issues = collect_missing_markers(
+        tests_readme_text,
+        REQUIRED_TESTS_README_MARKERS,
+        "MISSING_TESTS_README_MARKERS",
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            tests_readme_text,
+            FORBIDDEN_TESTS_README_MARKERS,
+            "FORBIDDEN_TESTS_README_MARKERS",
+        )
+    )
+    return issues
 
 
 def emit_issues(issues: list[tuple[str, str]]) -> int:
+    grouped: dict[str, list[str]] = {}
+    for code, value in issues:
+        grouped.setdefault(code, []).append(value)
+
     print("PHASE2_TESTS_README_ALIGNMENT=fail")
-    print("MISSING_TESTS_README_MARKERS_START")
-    for _, value in issues:
-        print(value)
-    print("MISSING_TESTS_README_MARKERS_END")
+    for code, values in grouped.items():
+        print(f"{code}_START")
+        for value in values:
+            print(value)
+        print(f"{code}_END")
     return 1
 
 
@@ -49,7 +112,7 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, TESTS_README), "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -60,18 +123,25 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 1 + len(TESTS_README_MARKERS) + 1
+    expected_case_count = 1 + len(REQUIRED_TESTS_README_MARKERS) + len(FORBIDDEN_TESTS_README_MARKERS) + 1
     with tempfile.TemporaryDirectory(prefix="zigux_p2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
-        for marker in TESTS_README_MARKERS:
+        for marker in REQUIRED_TESTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_TESTS_README_MARKERS", marker) in issues
+            checks_run += 1
+        for marker in FORBIDDEN_TESTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
         build_self_test_root(root)
         resolve_path(root, TESTS_README).unlink()
@@ -99,7 +169,8 @@ def main() -> int:
     if issues:
         return emit_issues(issues)
     print("PHASE2_TESTS_README_ALIGNMENT=pass")
-    print(f"PHASE2_TESTS_README_ALIGNMENT_MARKER_COUNT={len(TESTS_README_MARKERS)}")
+    print(f"PHASE2_TESTS_README_ALIGNMENT_REQUIRED_MARKER_COUNT={len(REQUIRED_TESTS_README_MARKERS)}")
+    print(f"PHASE2_TESTS_README_ALIGNMENT_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_TESTS_README_MARKERS)}")
     return 0
 
 
