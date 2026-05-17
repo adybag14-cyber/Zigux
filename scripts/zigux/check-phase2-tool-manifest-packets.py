@@ -136,7 +136,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
     if manifest.get("phase") != "phase2":
         issues.append(("INVALID_MANIFEST_FIELD", "phase"))
-    if manifest.get("status") != "lane22_branch_closure_packet_restacked":
+    if manifest.get("status") != "lane24_branch_closure_packet_restacked":
         issues.append(("INVALID_MANIFEST_FIELD", "status"))
     if manifest.get("tool_manifest_checker") != CHECKER_PATH:
         issues.append(("INVALID_MANIFEST_FIELD", "tool_manifest_checker"))
@@ -183,7 +183,7 @@ def manifest_json(
     *,
     packet: str = "phase2_tool_manifest",
     phase: str = "phase2",
-    status: str = "lane22_branch_closure_packet_restacked",
+    status: str = "lane24_branch_closure_packet_restacked",
     tool_manifest_checker: str = CHECKER_PATH,
     present_files: list[str] | None = None,
     missing_files: list[str] | None = None,
@@ -340,7 +340,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the Lane 22 Phase 2 tool-manifest packet aligned with the branch-local closure surfaces."
+        description="Keep the Lane 24 Phase 2 tool-manifest packet aligned with the branch-local closure surfaces."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
