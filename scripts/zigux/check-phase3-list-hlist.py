@@ -248,7 +248,6 @@ def run_self_test() -> int:
             elif rel_path == SLICE_DOC_PATH:
                 path.write_text("\n".join(REQUIRED_DOC_MARKERS) + "\n", encoding="utf-8")
             elif rel_path == EXPECTED_PATH:
-                path.writeText = None
                 path.write_text("{}\n", encoding="utf-8")
             else:
                 path.write_text("// placeholder\n", encoding="utf-8")
