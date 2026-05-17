@@ -85,7 +85,7 @@ Keep the remaining shared-summary, validator-first, and direct-companion gaps ex
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 
-Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md` and the direct devres helper packet, so keep those surfaces aligned as shipped shared evidence while the missing validator-first checker packet, the absent notifier survey, the absent shared build companion, and the older missing notifier companions stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
+Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md` and the surviving bounded `devres` coordination packet, so keep those surfaces aligned as shipped shared evidence while the missing validator-first checker packet, the absent notifier survey, the absent shared build companion, and the older missing notifier companions stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
 
 ## Boundaries
 
