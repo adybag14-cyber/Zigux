@@ -132,6 +132,9 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     defer allocator.free(samples_readme);
     try expectContains(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:");
     try expectContains(samples_readme, "* `*string*`");
+    try expectContains(samples_readme, "* `*cmdline*`");
+    try expectContains(samples_readme, "* `*argv*`");
+    try expectContains(samples_readme, "* `*rbtree*`");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
