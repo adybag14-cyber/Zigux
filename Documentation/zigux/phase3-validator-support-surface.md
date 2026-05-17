@@ -2,7 +2,7 @@
 
 This note records the current validator-facing Phase 3 surface on this branch relative to live `master`.
 
-Live `master` still carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice with both starter-packet and fixture-backed parity coverage, and one focused helper-local policy slice. This branch adds one focused helper-local bitmap/cpumask interop slice with both starter-packet and fixture-backed parity coverage without widening into the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
+Live `master` still carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice with both starter-packet and fixture-backed parity coverage, and one focused helper-local policy slice. This branch adds one focused helper-local bitmap/cpumask interop slice with both starter-packet and fixture-backed parity coverage, and the only remaining same-lane reminder drift is the branch-local docs-root, tests-root, and review-checklist wording that still describe the older three-slice shared packet.
 
 ## Current starter packet present on live `master`
 
@@ -87,7 +87,7 @@ Live `master` still carries one bounded `dev_t` starter packet with paired `dev_
 
 ## Review boundary
 
-Keep the shared Phase 3 reminder packet anchored to those four bounded slices until additional validator, broader export/UAPI layout, or shared replay proof lands.
+Keep the shared Phase 3 reminder packet on this branch anchored to those four bounded slices until additional validator, broader export/UAPI layout, or shared replay proof lands.
 
 Do not treat the current `dev_t` starter packet, its manifest-backed replay guard, its direct Zig compile replay, the helper-local fixture-backed parity packets for `err_ptr` / `xarray` and bitmap/cpumask, plus the focused policy slice as evidence that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on live `master`.
 
@@ -110,13 +110,13 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still describe the narrower current-`master` three-slice posture and therefore need a separate same-lane wording refresh before this branch can claim a four-slice shared reminder packet.
+`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` are the only remaining same-lane reminder surfaces that still need the branch-local four-slice wording refresh.
 
 `Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for the current three-slice shared reminder state on live `master` and should stay separate from this branch-local interop slice replay.
 
 `scripts/zigux/README.md` remains parked on the older scripts-root absent-route wording around the broader inventory, so keep that shared scripts-root reminder follow-up separate from this validator-support note and refresh it only inside the scripts-root inventory lane.
 
-Keep any remaining follow-up focused on either the docs-root/tests-root/review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again. This note should not be used to imply that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
+Keep any remaining follow-up focused on the docs-root, tests-root, and review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again. This note should not be used to imply that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
 
 ## Scope
 
