@@ -10,197 +10,38 @@ import sys
 NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
 
 REQUIRED_MARKERS = (
-    "scripts/zigux/validate-phase3.py",
-    "scripts/zigux/validate_phase3_selftest.py",
-    "scripts/zigux/check-phase3-selftest-surface.py",
-    "scripts/zigux/check-phase3-readme-tooling-inventory.py",
-    "scripts/zigux/check-phase3-catalog-selftest.py",
-    "scripts/zigux/check-phase3-abi-dump-gate.py",
-    "scripts/zigux/check-phase3-abi.py",
-    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
-    "scripts/zigux/check-phase3-policy-byte-guards.py",
-    "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
-    "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
-    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
-    "scripts/zigux/validate-phase3-validator-support-surface.py",
-    "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-    "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
-    "scripts/zigux/survey-phase3-abi-constant-parity.py",
-    "scripts/zigux/phase3_catalog.py",
-    "scripts/zigux/phase3_check_lib.py",
-    "scripts/zigux/generate-phase3-check-wrappers.py",
-    "scripts/zigux/run-phase3-checks.py",
-    "Documentation/zigux/phase3-kernel-export-shim-governance.md",
-    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+    "Documentation/zigux/phase3-abi-slice.md",
+    "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/dev_t.zig",
+    "zigux/uapi/version.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/tests/phase3_dev_t_starter_packet.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_build.zig",
+    "include/zigux/abi.h",
     "zigux/tests/phase3_export_uapi_layout.zig",
-    "zigux/tests/phase3_export_uapi_layout_build.zig",
-    "zigux/tests/phase3_low_level_wrappers.zig",
-    "zigux/tests/phase3_low_level_wrappers_build.zig",
-    "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
-    "python3 scripts/zigux/run-phase3-checks.py --slug abi",
-    "make -C zigux phase3-validate",
-    "make -C zigux phase3-selftest",
-    "make -C zigux phase3-export-uapi-layout-test",
-    "make -C zigux phase3-low-level-wrappers-test",
-    "make -C zigux phase3",
-    "shipped helper entrypoints on current `master`",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "zigux/kernel/export_shim.zig",
+    "scripts/zigux/README.md still carries a broader Phase 3 packet summary and should be narrowed in a follow-on truthfulness repair",
+    "zigux/tests/README.md still carries a broader Phase 3 packet summary and should be narrowed in a follow-on truthfulness repair",
+    "Documentation/zigux/review-checklist.md still carries a broader Phase 3 packet prompt and should be narrowed in a follow-on truthfulness repair",
+    "keep the current starter `dev_t` packet explicit here instead of implying the broader exported UAPI and validator routes",
+    "future Phase 3 follow-up should land one directly readable validator, replay, or binding slice at a time",
 )
 
 SELF_TEST_CASES = (
-    (("scripts/zigux/validate-phase3.py",), "scripts/zigux/validate-phase3.py"),
+    (("Documentation/zigux/phase3-abi-slice.md",), "Documentation/zigux/phase3-abi-slice.md"),
+    (("include/linux/zigux.h",), "include/linux/zigux.h"),
+    (("zigux/tests/phase3_dev_t_starter_packet_build.zig",), "zigux/tests/phase3_dev_t_starter_packet_build.zig"),
+    (("scripts/zigux/validate-phase3-export-uapi-survey.py",), "scripts/zigux/validate-phase3-export-uapi-survey.py"),
+    (("zigux/kernel/export_shim.zig",), "zigux/kernel/export_shim.zig"),
     (
-        ("scripts/zigux/validate_phase3_selftest.py",),
-        "scripts/zigux/validate_phase3_selftest.py",
+        ("Documentation/zigux/review-checklist.md still carries a broader Phase 3 packet prompt and should be narrowed in a follow-on truthfulness repair",),
+        "Documentation/zigux/review-checklist.md still carries a broader Phase 3 packet prompt and should be narrowed in a follow-on truthfulness repair",
     ),
     (
-        ("scripts/zigux/validate-phase3-validator-support-surface.py",),
-        "scripts/zigux/validate-phase3-validator-support-surface.py",
-    ),
-    (
-        ("Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",),
-        "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
-    ),
-    (
-        ("scripts/zigux/validate-phase3-policy-unsafe-survey.py",),
-        "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
-    ),
-    (
-        ("scripts/zigux/check-phase3-readme-tooling-inventory.py",),
-        "scripts/zigux/check-phase3-readme-tooling-inventory.py",
-    ),
-    (
-        ("scripts/zigux/check-phase3-catalog-selftest.py",),
-        "scripts/zigux/check-phase3-catalog-selftest.py",
-    ),
-    (
-        ("scripts/zigux/check-phase3-abi-dump-gate.py",),
-        "scripts/zigux/check-phase3-abi-dump-gate.py",
-    ),
-    (
-        ("scripts/zigux/check-phase3-policy-byte-guards.py",),
-        "scripts/zigux/check-phase3-policy-byte-guards.py",
-    ),
-    (
-        ("scripts/zigux/validate-phase3-low-level-wrapper-survey.py",),
-        "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-    ),
-    (
-        ("scripts/zigux/validate-phase3-export-uapi-survey.py",),
-        "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    ),
-    (
-        ("scripts/zigux/validate-phase3-abi-bindings-syntax.py",),
-        "scripts/zigux/validate-phase3-abi-bindings-syntax.py",
-    ),
-    (
-        ("scripts/zigux/validate-phase3-abi-header-family-survey.py",),
-        "scripts/zigux/validate-phase3-abi-header-family-survey.py",
-    ),
-    (
-        ("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",),
-        "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
-    ),
-    (
-        ("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",),
-        "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
-    ),
-    (
-        ("scripts/zigux/check-phase3-abi.py",),
-        "scripts/zigux/check-phase3-abi.py",
-    ),
-    (
-        ("scripts/zigux/check-phase3-selftest-surface.py",),
-        "scripts/zigux/check-phase3-selftest-surface.py",
-    ),
-    (
-        ("scripts/zigux/validate-phase3-linux-zigux-header-governance.py",),
-        "scripts/zigux/validate-phase3-linux-zigux-header-governance.py",
-    ),
-    (
-        ("scripts/zigux/survey-phase3-abi-constant-parity.py",),
-        "scripts/zigux/survey-phase3-abi-constant-parity.py",
-    ),
-    (
-        (
-            "scripts/zigux/phase3_catalog.py",
-            "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
-        ),
-        "scripts/zigux/phase3_catalog.py",
-    ),
-    (
-        ("scripts/zigux/phase3_check_lib.py",),
-        "scripts/zigux/phase3_check_lib.py",
-    ),
-    (
-        ("scripts/zigux/generate-phase3-check-wrappers.py",),
-        "scripts/zigux/generate-phase3-check-wrappers.py",
-    ),
-    (
-        (
-            "scripts/zigux/run-phase3-checks.py",
-            "python3 scripts/zigux/run-phase3-checks.py --slug abi",
-        ),
-        "scripts/zigux/run-phase3-checks.py",
-    ),
-    (
-        ("Documentation/zigux/phase3-kernel-export-shim-governance.md",),
-        "Documentation/zigux/phase3-kernel-export-shim-governance.md",
-    ),
-    (
-        ("zigux/tests/phase3_export_uapi_layout.zig",),
-        "zigux/tests/phase3_export_uapi_layout.zig",
-    ),
-    (
-        ("zigux/tests/phase3_export_uapi_layout_build.zig",),
-        "zigux/tests/phase3_export_uapi_layout_build.zig",
-    ),
-    (
-        ("zigux/tests/phase3_low_level_wrappers.zig",),
-        "zigux/tests/phase3_low_level_wrappers.zig",
-    ),
-    (
-        ("zigux/tests/phase3_low_level_wrappers_build.zig",),
-        "zigux/tests/phase3_low_level_wrappers_build.zig",
-    ),
-    (
-        ("python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",),
-        "python3 scripts/zigux/phase3_catalog.py --audit-doc-sync",
-    ),
-    (
-        ("python3 scripts/zigux/run-phase3-checks.py --slug abi",),
-        "python3 scripts/zigux/run-phase3-checks.py --slug abi",
-    ),
-    (
-        ("make -C zigux phase3-validate",),
-        "make -C zigux phase3-validate",
-    ),
-    (
-        ("make -C zigux phase3-selftest",),
-        "make -C zigux phase3-selftest",
-    ),
-    (
-        ("make -C zigux phase3-export-uapi-layout-test",),
-        "make -C zigux phase3-export-uapi-layout-test",
-    ),
-    (
-        ("make -C zigux phase3-low-level-wrappers-test",),
-        "make -C zigux phase3-low-level-wrappers-test",
-    ),
-    (
-        (
-            "make -C zigux phase3",
-            "make -C zigux phase3-validate",
-            "make -C zigux phase3-selftest",
-            "make -C zigux phase3-export-uapi-layout-test",
-            "make -C zigux phase3-low-level-wrappers-test",
-        ),
-        "make -C zigux phase3",
-    ),
-    (
-        ("shipped helper entrypoints on current `master`",),
-        "shipped helper entrypoints on current `master`",
+        ("future Phase 3 follow-up should land one directly readable validator, replay, or binding slice at a time",),
+        "future Phase 3 follow-up should land one directly readable validator, replay, or binding slice at a time",
     ),
 )
 EXPECTED_SELF_TEST_CASE_COUNT = len(SELF_TEST_CASES) + 1
