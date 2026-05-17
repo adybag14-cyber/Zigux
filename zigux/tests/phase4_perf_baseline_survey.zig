@@ -25,6 +25,7 @@ test "phase4 perf baseline survey keeps exact local-only iteration and sample co
 
 test "phase4 perf baseline survey keeps dedicated local-only ownership and command evidence explicit" {
     try requireMarker("\"owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"benchmark_command\": \"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\"");
     try requireMarker("\"linux_style_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"");
     try requireMarker("\"checksum\": 5216946504564592253");
     try requireMarker("\"checksum\": 7942141539243507472");
