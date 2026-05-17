@@ -1,0 +1,32 @@
+{
+  "packet": "phase2_tool_manifest",
+  "phase": "phase2",
+  "status": "current_master_safe_closure_anchor",
+  "closure_validator": "scripts/zigux/validate-phase2-closure.py",
+  "closure_doc": "Documentation/zigux/phase2-closure.md",
+  "present_files": [
+    "Documentation/zigux/phase2-closure.md",
+    "scripts/zigux/validate-phase2-closure.py",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py"
+  ],
+  "missing_files": [
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+    "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/install-zig.py",
+    "zigux/Makefile"
+  ],
+  "workflow_surface": ".github/workflows/zigux-bootstrap.yml"
+}
