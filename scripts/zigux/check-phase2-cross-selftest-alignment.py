@@ -194,7 +194,6 @@ def run_self_test() -> int:
         for marker in SCRIPTS_README_FORBIDDEN_MARKERS:
             build_self_test_root(root)
             resolved = resolve_path(root, SCRIPTS_README)
-            resolved.writeText = None
             resolved.write_text(
                 resolved.read_text(encoding="utf-8") + marker + "\n",
                 encoding="utf-8",
