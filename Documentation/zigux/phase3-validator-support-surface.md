@@ -84,14 +84,15 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md` and `zigux/tests/README.md` now reflect that bounded three-slice posture and should stay aligned with `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
+`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture and should stay aligned with `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
 
-`Documentation/zigux/review-checklist.md` is the remaining shared reminder surface that still needs the same three-slice wording refresh, and `Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for that checklist-only follow-through.
+`zigux/tests/README.md` carries the bounded three-slice Phase 3 summary overall, but one shared follow-through sentence still over-groups the docs root and checklist with work that is already closed; keep the next reminder repair limited to that tests-root sentence.
+`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for that narrower tests-root follow-through.
 
-`scripts/zigux/README.md` remains parked on the older scripts-root absent-route wording around the broader inventory, so keep that shared scripts-root reminder follow-up separate from this validator-support note and refresh it only inside the scripts-root inventory lane.
+`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.
 
-Keep any remaining follow-up focused on either the review-checklist wording repair or the separate scripts-root inventory truthfulness packet if one of those broader surfaces drifts again. This note should not be used to imply that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
+Keep any remaining follow-up focused on that one tests-root sentence cleanup or on a separate scripts-root inventory drift if that broader surface changes again. This note should not be used to imply that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, the helper-local fixture-backed parity packet, and the focused policy slice explicit, marks representative broader validator and export-boundary routes as current gaps, records the now-aligned docs-root and tests-root reminder surfaces, and leaves the remaining review-checklist plus scripts-root follow-through explicit without claiming a wider shipped Phase 3 packet.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, the helper-local fixture-backed parity packet, and the focused policy slice explicit, marks representative broader validator and export-boundary routes as current gaps, records the now-aligned docs-root and checklist reminder surfaces, leaves the narrower tests-root sentence cleanup explicit, and keeps scripts-root follow-through separate. This note does not claim that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
