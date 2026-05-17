@@ -552,6 +552,25 @@ test "bitmap xor across a multiword tail still lets callers clamp the last word"
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0b01_0011, 0b00_0111 }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });
 }
 
+test "bitmap or keeps caller-selected bit window" {
+    const lhs = [_]Word{0b1_0011};
+    const rhs = [_]Word{0b1_1100};
+    var dst = [_]Word{0};
+
+    orBits(&dst, &lhs, &rhs, 4);
+    try std.testing.expectEqual(@as(Word, 0b1111), dst[0] & lastWordMask(4));
+}
+
+test "bitmap or across a multiword tail still lets callers clamp the last word" {
+    const nbits = bits_per_long + 5;
+    const lhs = [_]Word{ 0b10_0101, 0b10_0010 };
+    const rhs = [_]Word{ 0b01_1000, 0b01_0101 };
+    var dst = [_]Word{ 0, 0 };
+
+    orBits(&dst, &lhs, &rhs, nbits);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0b11_1101, 0b01_0111 }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });
+}
+
 test "bitmap scnprintf collapses contiguous ranges" {
     var map = [_]Word{ 0, 0 };
     setRange(&map, 1, 3);
