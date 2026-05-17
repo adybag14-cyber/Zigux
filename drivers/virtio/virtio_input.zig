@@ -287,6 +287,7 @@ pub const VirtioInputLab = struct {
 
     pub fn refillEventBuffers(self: *Self, available_count: u16) !RefillEventBuffersSummary {
         if (self.event_descriptor_count == 0) return error.EventQueueNotConfigured;
+        if (self.status_descriptor_count == 0) return error.StatusQueueNotConfigured;
         const before = self.queued_event_buffer_count;
         const after = @min(self.event_descriptor_count, before + available_count);
         self.queued_event_buffer_count = after;
