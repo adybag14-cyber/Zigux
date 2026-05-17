@@ -75,6 +75,7 @@ pub const PollExecutionSummary = struct {
     completed_ready_buffer_count: usize,
     processed_record_count: usize,
     first_process_error_index: ?usize,
+    first_process_error_ready_index: ?usize,
     first_process_error: ?i32,
 };
 
@@ -136,7 +137,8 @@ fn hasAnyBufferState(summary: ReadyBufferSummary) bool {
 }
 
 fn hasConsistentProcessFailure(summary: PollExecutionSummary) bool {
-    return (summary.first_process_error_index == null) == (summary.first_process_error == null);
+    return (summary.first_process_error_index == null) == (summary.first_process_error == null) and
+        (summary.first_process_error_index == null) == (summary.first_process_error_ready_index == null);
 }
 
 fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
@@ -145,6 +147,7 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
             summary.completed_ready_buffer_count == 0 and
             summary.processed_record_count == 0 and
             summary.first_process_error_index == null and
+            summary.first_process_error_ready_index == null and
             summary.first_process_error == null,
         .ready => blk: {
             if (summary.poll.ready_count == 0) break :blk false;
@@ -158,12 +161,14 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
 
             if (summary.first_process_error_index) |index| {
                 break :blk summary.first_process_error != null and
+                    summary.first_process_error_ready_index != null and
                     summary.completed_ready_buffer_count < summary.attempted_ready_buffer_count and
                     summary.attempted_ready_buffer_count == index + 1 and
                     index == summary.completed_ready_buffer_count;
             }
 
             break :blk summary.first_process_error == null and
+                summary.first_process_error_ready_index == null and
                 summary.completed_ready_buffer_count == summary.attempted_ready_buffer_count;
         },
     };
@@ -216,6 +221,24 @@ pub fn advanceReadyBufferCursor(
         .ready_index = null,
         .skipped_nonready_count = buffers.len - start_index,
     };
+}
+
+pub fn resolveReadyBufferAttemptIndex(
+    buffers: []const BufferObservation,
+    attempt_index: usize,
+) ?usize {
+    var next_scan_index: usize = 0;
+    var remaining = attempt_index;
+
+    while (next_scan_index < buffers.len) {
+        const cursor = advanceReadyBufferCursor(buffers, next_scan_index);
+        const ready_index = cursor.ready_index orelse return null;
+        if (remaining == 0) return ready_index;
+        remaining -= 1;
+        next_scan_index = cursor.next_scan_index;
+    }
+
+    return null;
 }
 
 pub fn summarizeReadyBuffers(buffers: []const BufferObservation) ReadyBufferSummary {
@@ -356,6 +379,10 @@ pub fn summarizePollExecution(
 ) PollError!PollExecutionSummary {
     const poll = try summarizePoll(timeout_ms, observation, buffers);
     const process = summarizeProcessRecords(process_observations);
+    const first_process_error_ready_index = if (process.first_error_index) |index|
+        resolveReadyBufferAttemptIndex(buffers, index)
+    else
+        null;
 
     switch (poll.outcome) {
         .ready => {
@@ -363,6 +390,9 @@ pub fn summarizePollExecution(
                 return PollError.ReadyBufferProcessingExceedsObservedEvents;
             }
             if (process.attempted_count > poll.ready_count) {
+                return PollError.ReadyBufferProcessingExceedsReadyCount;
+            }
+            if (process.first_error_index != null and first_process_error_ready_index == null) {
                 return PollError.ReadyBufferProcessingExceedsReadyCount;
             }
         },
@@ -379,6 +409,7 @@ pub fn summarizePollExecution(
         .completed_ready_buffer_count = process.completed_count,
         .processed_record_count = process.processed_record_count,
         .first_process_error_index = process.first_error_index,
+        .first_process_error_ready_index = first_process_error_ready_index,
         .first_process_error = process.first_error,
     };
 }
@@ -549,6 +580,20 @@ pub fn resolveBufferWindowLookupReturn(summary: BufferWindowLookupSummary) i32 {
     };
 }
 
+test "phase8 perf-buffer poll resolves ready-buffer attempt ordinals back to slot indexes" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+        .{},
+    };
+
+    try std.testing.expectEqual(@as(?usize, 1), resolveReadyBufferAttemptIndex(&buffers, 0));
+    try std.testing.expectEqual(@as(?usize, 3), resolveReadyBufferAttemptIndex(&buffers, 1));
+    try std.testing.expectEqual(@as(?usize, null), resolveReadyBufferAttemptIndex(&buffers, 2));
+}
+
 test "phase8 perf-buffer poll keeps ready-count return semantics and process totals separate" {
     const success = try summarizePollExecutionResultFromWaitResult(
         12,
@@ -566,6 +611,28 @@ test "phase8 perf-buffer poll keeps ready-count return semantics and process tot
     try std.testing.expectEqual(PollReturnDisposition.ready_count, success.disposition);
     try std.testing.expectEqual(@as(i32, 3), success.return_value);
     try std.testing.expectEqual(@as(usize, 6), success.execution.processed_record_count);
+}
+
+test "phase8 perf-buffer poll keeps the first processing failure tied to the ready-buffer slot" {
+    const failure = try summarizePollExecutionResultFromWaitResult(
+        12,
+        2,
+        &.{
+            .{},
+            .{ .ready = true },
+            .{},
+            .{ .ready = true },
+        },
+        &.{
+            .{ .records_processed = 4 },
+            .{ .result = -11 },
+        },
+    );
+
+    try std.testing.expectEqual(PollReturnDisposition.processing_failed, failure.disposition);
+    try std.testing.expectEqual(@as(?usize, 1), failure.execution.first_process_error_index);
+    try std.testing.expectEqual(@as(?usize, 3), failure.execution.first_process_error_ready_index);
+    try std.testing.expectEqual(@as(i32, -11), failure.return_value);
 }
 
 test "phase8 perf-buffer poll rejects ready waits without processing attempts" {
