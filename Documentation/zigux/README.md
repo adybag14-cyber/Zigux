@@ -38,6 +38,10 @@ Phase 2 notes
 - `scripts/zigux/check-phase2-tests-readme-alignment.py`
 - `scripts/zigux/check-phase2-toolchain-pinning.py`
 - `scripts/zigux/check-phase2-cross-selftest-alignment.py`
+- `scripts/zigux/check-phase2-toolchain-pin-scope.py`
+- `python3 scripts/zigux/check-zig-toolchain.py --self-test`
+- `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
+- current docs-root follow-through keeps the pinned Zig toolchain note explicit beside the repo-local `.zig-toolchain` fallback and the historical Linux-style `make -C zigux phase2-validate` plus `make -C zigux phase2` route names.
 - `scripts/zigux/kconfig/conf_bridge.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
 - `scripts/zigux/zig-toolchain-policy.json`
