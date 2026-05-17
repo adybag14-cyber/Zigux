@@ -22,6 +22,7 @@ FILES = [
     "drivers/virtio/virtio_input_verify.zig",
     "drivers/virtio/virtio_mmio.zig",
     "zigux/tests/phase10_build.zig",
+    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -65,6 +66,7 @@ BUILD_MARKERS = [
     "phase10_virtio_input_registration_preflight_module",
     "phase10_virtio_input_status_drain_module",
     "phase10_virtio_input_teardown_observation_module",
+    "phase10_virtio_ring_prepare_kick_idempotent_module",
     '"phase10-virtio-input-tests"',
     '"phase10-virtio-input-probe-preflight-tests"',
     '"phase10-virtio-input-queue-callback-preflight-tests"',
@@ -73,7 +75,8 @@ BUILD_MARKERS = [
     '"phase10-virtio-input-teardown-observation-tests"',
     '"phase10-virtio-input-verify-tests"',
     '"phase10-virtio-mmio-tests"',
-    "Run the live Phase 10 virtio input, verify, and MMIO lab validation tests",
+    '"phase10-virtio-ring-prepare-kick-idempotent-tests"',
+    "Run the live Phase 10 virtio input, MMIO, and virtqueue lab validation tests",
 ]
 
 REGISTRATION_HELPER_MARKERS = [
@@ -95,14 +98,20 @@ MMIO_MARKERS = [
     'test "phase10 virtio mmio disposition reports byte-level deltas without mutating config bytes" {',
 ]
 
+RING_PREPARE_KICK_MARKERS = [
+    'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
+]
+
 EXPECTED_COUNTS = {
     "Documentation/zigux/README.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
     "Documentation/zigux/review-checklist.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
     "zigux/tests/phase10_build.zig::virtio_input_verify_module": 1,
     "zigux/tests/phase10_build.zig::virtio_mmio_module": 1,
+    "zigux/tests/phase10_build.zig::phase10_virtio_ring_prepare_kick_idempotent_module": 1,
     'zigux/tests/phase10_build.zig::"phase10-virtio-input-verify-tests"': 1,
     'zigux/tests/phase10_build.zig::"phase10-virtio-mmio-tests"': 1,
+    'zigux/tests/phase10_build.zig::"phase10-virtio-ring-prepare-kick-idempotent-tests"': 1,
 }
 
 
@@ -143,6 +152,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     registration_helper = read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig")
     verify = read_text(root, "drivers/virtio/virtio_input_verify.zig")
     mmio = read_text(root, "drivers/virtio/virtio_mmio.zig")
+    ring_prepare_kick = read_text(root, "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig")
 
     check_markers(missing_markers, "docs_root", docs_root, DOCS_ROOT_MARKERS)
     check_markers(
@@ -161,6 +171,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     )
     check_markers(missing_markers, "virtio_input_verify", verify, VERIFY_MARKERS)
     check_markers(missing_markers, "virtio_mmio", mmio, MMIO_MARKERS)
+    check_markers(
+        missing_markers,
+        "phase10_virtio_ring_prepare_kick_idempotent",
+        ring_prepare_kick,
+        RING_PREPARE_KICK_MARKERS,
+    )
 
     check_counts(missing_markers, "Documentation/zigux/README.md", docs_root)
     check_counts(
@@ -192,6 +208,10 @@ def write_fixture(root: Path) -> None:
         + "\n",
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_MARKERS) + "\n",
         "drivers/virtio/virtio_mmio.zig": "\n".join(MMIO_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": "\n".join(
+            RING_PREPARE_KICK_MARKERS
+        )
+        + "\n",
     }
 
     for rel_path, content in fixture_contents.items():
@@ -339,6 +359,22 @@ def run_self_test() -> int:
         build_path.write_text(original_build, encoding="utf-8")
         case_count += 1
 
+        build_path.write_text(
+            original_build.replace(
+                "Run the live Phase 10 virtio input, MMIO, and virtqueue lab validation tests",
+                "Run the live Phase 10 virtio input, verify, and MMIO lab validation tests",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "phase10_build:Run the live Phase 10 virtio input, MMIO, and virtqueue lab validation tests",
+            "phase10-harness-coverage-self-test:build_test_step_summary",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+        case_count += 1
+
         registration_helper_path = root / "drivers/virtio/virtio_input_registration_preflight.zig"
         original_registration_helper = registration_helper_path.read_text(encoding="utf-8")
         registration_helper_path.write_text(
@@ -393,6 +429,24 @@ def run_self_test() -> int:
         mmio_path.write_text(original_mmio, encoding="utf-8")
         case_count += 1
 
+        ring_prepare_kick_path = root / "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig"
+        original_ring_prepare_kick = ring_prepare_kick_path.read_text(encoding="utf-8")
+        ring_prepare_kick_path.write_text(
+            original_ring_prepare_kick.replace(
+                'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
+                'test "phase10 virtio ring drift" {',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            'phase10_virtio_ring_prepare_kick_idempotent:test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
+            "phase10-harness-coverage-self-test:ring_prepare_kick_title",
+        )
+        ring_prepare_kick_path.write_text(original_ring_prepare_kick, encoding="utf-8")
+        case_count += 1
+
         docs_root_path.write_text(
             original_docs_root
             + "scripts/zigux/check-phase10-harness-coverage.py\n",
@@ -404,6 +458,15 @@ def run_self_test() -> int:
             "phase10-harness-coverage-self-test:docs_root_duplicate_checker_path",
         )
         docs_root_path.write_text(original_docs_root, encoding="utf-8")
+        case_count += 1
+
+        (root / "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig").unlink()
+        expect_missing_file(
+            root,
+            "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+            "phase10-harness-coverage-self-test:missing_ring_prepare_kick_replay",
+        )
+        write_fixture(root)
         case_count += 1
 
         (root / "drivers/virtio/virtio_mmio.zig").unlink()
@@ -454,7 +517,7 @@ def main() -> int:
     print(f"PHASE10_HARNESS_COVERAGE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(MMIO_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(MMIO_MARKERS) + len(RING_PREPARE_KICK_MARKERS)}"
     )
     return 0
 
