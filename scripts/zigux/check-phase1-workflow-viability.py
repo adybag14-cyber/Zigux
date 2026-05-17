@@ -204,7 +204,7 @@ def run_self_test() -> int:
 
     with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-missing-file-") as tmpdir:
         root = Path(tmpdir)
-        build_sampleRepo(root)
+        build_sample_repo(root)
         (root / "scripts/zigux/check-phase1-bench.py").unlink()
         failures = collect_failures(root)
         if "missing_file:scripts/zigux/check-phase1-bench.py" not in failures:
