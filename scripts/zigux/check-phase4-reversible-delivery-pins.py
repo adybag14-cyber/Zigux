@@ -92,15 +92,15 @@ DOCS_README_MARKERS = (
 )
 
 SCRIPTS_README_MARKERS = (
-    "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces while the broader validator, lab-matrix, and local-only perf packet is currently a repo-reality gap on `master`",
+    "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces while the broader validator, lab-matrix, dedicated local-only perf, bitmap-diff, and roadmap-backed `atomic64_diff` companions remain authenticated-readback repo-reality gaps on current `master`, so this note should stay aligned with that narrower direct-readback packet instead of treating public fallback visibility as the same thing as direct current-head proof",
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` still return missing on current `master`",
-    "keep those roadmap-backed differential-gate destinations parked as repo-reality gaps here too instead of treating older exact-readback pins as current scripts-root evidence",
-    "If future same-lane work republishes the broader validator, lab-matrix, and local-only perf packet or restores the roadmap-backed `atomic64_diff` pair, refresh this scripts-root reminder only after rereading `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `zigux/tests/README.md`, and the current direct-readback checker packet together on current `master`",
+    "`zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`",
+    "keep that broader validator, local-only perf, differential-gate, and helper-backed rollback packet in the missing-packet bucket here even when public current-`master` fallback rereads can still expose older companions",
+    "if future same-lane work restores the broader validator, lab-matrix, dedicated local-only perf, bitmap-diff, or roadmap-backed `atomic64_diff` packet to authenticated direct-readback status, refresh this scripts-root reminder only after rereading `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `zigux/tests/README.md`, and the current scripts-root checker packet together on current `master`",
     "Validation and Perf Team",
     "ABI and Runtime Team plus Shared Subsystems Pod",
 )
