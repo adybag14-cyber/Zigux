@@ -66,7 +66,7 @@ SMOKE_ZIG_MARKERS = [
     'try std.testing.expect(@hasDecl(bitmap, "setRange"));',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def repo_root(root: str | None) -> Path:
@@ -189,18 +189,24 @@ def run_self_test() -> int:
         ("missing_docs_historical_warning", "Documentation/zigux/README.md", "remove_docs_historical_warning"),
         ("missing_scripts_marker", "scripts/zigux/README.md", "remove_marker"),
         ("missing_scripts_bench_marker", "scripts/zigux/README.md", "remove_scripts_bench_marker"),
+        ("duplicate_scripts_bench_marker", "scripts/zigux/README.md", "duplicate_scripts_bench_marker"),
         ("missing_bench_checker", "scripts/zigux/check-phase1-bench.py", "remove_file"),
         ("missing_tests_marker", "zigux/tests/README.md", "remove_marker"),
         ("missing_tests_historical_warning", "zigux/tests/README.md", "remove_tests_historical_warning"),
+        ("duplicate_tests_historical_warning", "zigux/tests/README.md", "duplicate_tests_historical_warning"),
         ("missing_phase1_build", "zigux/tests/build.zig", "remove_file"),
         ("missing_phase1_host_tools_smoke", "zigux/tests/phase1_host_tools_smoke.zig", "remove_file"),
         ("missing_checklist_marker", "Documentation/zigux/review-checklist.md", "remove_marker"),
         ("missing_checklist_packet_alignment", "Documentation/zigux/review-checklist.md", "remove_checklist_packet_alignment"),
+        ("duplicate_checklist_packet_alignment", "Documentation/zigux/review-checklist.md", "duplicate_checklist_packet_alignment"),
         ("missing_build_marker", "zigux/tests/build.zig", "remove_build_marker"),
+        ("duplicate_build_marker", "zigux/tests/build.zig", "duplicate_build_marker"),
         ("missing_smoke_marker", "zigux/tests/phase1_host_tools_smoke.zig", "remove_smoke_marker"),
+        ("duplicate_smoke_marker", "zigux/tests/phase1_host_tools_smoke.zig", "duplicate_smoke_marker"),
         ("missing_workflow_bench_selftest", ".github/workflows/zigux-bootstrap.yml", "remove_bench_selftest"),
         ("missing_workflow_selftest", ".github/workflows/zigux-bootstrap.yml", "remove_selftest"),
         ("missing_workflow_live", ".github/workflows/zigux-bootstrap.yml", "remove_live"),
+        ("duplicate_workflow_live", ".github/workflows/zigux-bootstrap.yml", "duplicate_workflow_live"),
     ]
     if len(cases) != EXPECTED_SELF_TEST_CASE_COUNT:
         print(
@@ -245,22 +251,55 @@ def run_self_test() -> int:
                 )
             elif operation == "remove_scripts_bench_marker":
                 target.write_text(text.replace(bench_scripts_marker + "\n", "", 1), encoding="utf-8")
+            elif operation == "duplicate_scripts_bench_marker":
+                target.write_text(
+                    text.replace(bench_scripts_marker, bench_scripts_marker + "\n" + bench_scripts_marker, 1),
+                    encoding="utf-8",
+                )
             elif operation == "remove_tests_historical_warning":
                 target.write_text(
                     text.replace(tests_historical_warning_marker + "\n", "", 1),
                     encoding="utf-8",
                 )
+            elif operation == "duplicate_tests_historical_warning":
+                target.write_text(
+                    text.replace(
+                        tests_historical_warning_marker,
+                        tests_historical_warning_marker + "\n" + tests_historical_warning_marker,
+                        1,
+                    ),
+                    encoding="utf-8",
+                )
             elif operation == "duplicate_marker":
-                target.write_text(text.replace(first_docs_marker, first_docs_marker + "\n" + first_docs_marker, 1), encoding="utf-8")
+                target.writeText(text.replace(first_docs_marker, first_docs_marker + "\n" + first_docs_marker, 1), encoding="utf-8")
             elif operation == "remove_checklist_packet_alignment":
                 target.write_text(
                     text.replace(checklist_packet_alignment_marker + "\n", "", 1),
                     encoding="utf-8",
                 )
+            elif operation == "duplicate_checklist_packet_alignment":
+                target.write_text(
+                    text.replace(
+                        checklist_packet_alignment_marker,
+                        checklist_packet_alignment_marker + "\n" + checklist_packet_alignment_marker,
+                        1,
+                    ),
+                    encoding="utf-8",
+                )
             elif operation == "remove_build_marker":
                 target.write_text(text.replace(first_build_marker + "\n", "", 1), encoding="utf-8")
+            elif operation == "duplicate_build_marker":
+                target.write_text(
+                    text.replace(first_build_marker, first_build_marker + "\n" + first_build_marker, 1),
+                    encoding="utf-8",
+                )
             elif operation == "remove_smoke_marker":
                 target.write_text(text.replace(first_smoke_marker + "\n", "", 1), encoding="utf-8")
+            elif operation == "duplicate_smoke_marker":
+                target.write_text(
+                    text.replace(first_smoke_marker, first_smoke_marker + "\n" + first_smoke_marker, 1),
+                    encoding="utf-8",
+                )
             elif operation == "remove_bench_selftest":
                 target.write_text(
                     text.replace("        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n", "", 1),
@@ -274,6 +313,15 @@ def run_self_test() -> int:
             elif operation == "remove_live":
                 target.write_text(
                     text.replace("        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n", "", 1),
+                    encoding="utf-8",
+                )
+            elif operation == "duplicate_workflow_live":
+                target.write_text(
+                    text.replace(
+                        "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
+                        "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
+                        1,
+                    ),
                     encoding="utf-8",
                 )
 
