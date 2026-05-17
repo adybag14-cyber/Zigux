@@ -40,7 +40,9 @@ Current direct-readback packet members:
 
 The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`. The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.
 
-The tests-root guide should mirror this same current-head posture. The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, and local-only perf packet is directly readable again, so the next same-family follow-through is the smallest truthful reminder-surface or checker repair inside this live warning packet rather than a fresh exact-pin pass against missing companions.
+Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` also return missing on current `master`, so keep those roadmap-backed Phase 4 differential-gate destinations parked as repo-reality gaps instead of listing them as current direct-readback packet members.
+
+The tests-root guide should mirror this same current-head posture. The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, and local-only perf packet is directly readable again, and the roadmap-backed `atomic64_diff` pair should stay framed as missing current-head destinations until a same-family lane republishes them, so the next same-family follow-through is the smallest truthful reminder-surface or checker repair inside this live warning packet rather than a fresh exact-pin pass against missing companions.
 
 Historical broader validator and owner-map packet members:
   * `Documentation/zigux/artifact-diff.md`
@@ -66,7 +68,7 @@ Historical dedicated local-only perf packet members:
 Last-known anti-overlap boundary:
   * `Documentation/zigux/phase4-validation-lane-sequencing.md`
 
-Use this note as the bounded rollback-ownership handoff until the broader packet returns or is republished. The current direct readback now keeps the rollback-owner reminder, the review-checklist handoff, the tests-root route inventory, the repo-reality warning checker, and the dedicated pin checker explicit without pretending that the broader validator, lab-matrix, or local-only perf companions are presently readable on current `master`.
+Use this note as the bounded rollback-ownership handoff until the broader packet returns or is republished. The current direct readback now keeps the rollback-owner reminder, the review-checklist handoff, the tests-root route inventory, the repo-reality warning checker, and the dedicated pin checker explicit without pretending that the broader validator, lab-matrix, local-only perf companions, or the roadmap-backed `atomic64_diff` pair are presently readable on current `master`.
 
 The shared packet is still supposed to keep the host-side artifact-diff tooling contract, the rollback-owner map, the lab-matrix rows for the parked starter gaps and the local-only perf-threshold posture, and the validator-first replay routes explicit. The dedicated local-only perf checker, manifest, and survey still define the approved local benchmark commands, the approved local-only acceptable limits, and the still-pending shared-CI promotion posture, but this note should not claim current-head readability for those packet members until a same-family lane rereads or republishes them.
 ## Owner Split
@@ -82,10 +84,11 @@ Keep the parked starter-gap packets for `samples/zigux/kprobe_example.zig` and `
 When Phase 4 follow-through reopens, repair the smallest packet that drifted first.
   * If the directly readable repo-reality warning packet drifts, repair the directly readable packet member first and then refresh this note.
   * If the broader validator, lab-matrix, or local-only perf packet returns, refresh the exact pin after re-reading the current `master` copy. Until then, keep the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields historical rather than mixing them into current-head proof.
+  * If the roadmap-backed `atomic64_diff` pair returns, refresh the direct-readback posture only after re-reading those exact current `master` paths and only after the tests-root warning surface stops treating them as missing destinations.
   * If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first and then return here only after those packet members are directly readable again.
   * If a later lane needs both, land the packet-local repair first, then refresh this note only after the packet-local state is directly readable on current `master`.
   * Do not treat the dedicated local-only perf packet as shared CI perf approval until a later bounded Phase 4 lane intentionally widens that policy and names the decision directly.
   * Do not treat either parked starter-gap packet as shipped starter work while `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` remain absent on current `master`.
 ## Next Bounded Step
 
-Use this note only as a truthful current-head handoff for the directly readable reminder surfaces. The next honest same-family follow-through is to repair the smallest repo-reality-warning packet drift first or to republish one missing broader companion, so this handoff can eventually replace the current `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance with fresh current-head evidence.
+Use this note only as a truthful current-head handoff for the directly readable reminder surfaces. The next honest same-family follow-through is to repair the smallest repo-reality-warning packet drift first, republish one missing broader companion, or restore the roadmap-backed `zigux/tests/atomic64_diff.zig` pair, so this handoff can eventually replace the current `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance with fresh current-head evidence.
