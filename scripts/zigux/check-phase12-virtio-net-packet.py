@@ -16,6 +16,7 @@ MANIFEST_PATH = Path("zigux/tests/phase12_virtio_net_manifest.json")
 SURVEY_NOTE_PATH = Path("Documentation/zigux/phase12-virtio-net-survey.md")
 QUEUE_RESUME_PATH = Path("zigux/tests/phase12_virtio_net_queue_resume.zig")
 TRANSMIT_RECYCLE_PATH = Path("zigux/tests/phase12_virtio_net_transmit_recycle.zig")
+SYNTAX_LAB_PATH = Path("zigux/tests/phase12_virtio_net_syntax_lab.zig")
 BUILD_PATH = Path("zigux/tests/phase12_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
@@ -39,6 +40,12 @@ TRANSMIT_RECYCLE_MARKERS = (
     "wakes_transmit_queue",
 )
 
+SYNTAX_LAB_MARKERS = (
+    "phase12 virtio net syntax lab keeps fallback and base variants reachable",
+    "QueueResumeScope.data_queues_only",
+    "XdpConstraint.not_requested",
+)
+
 BUILD_MARKERS = (
     "phase12_virtio_net_queue_resume.zig",
     "virtio_net_queue_resume_root_module",
@@ -46,8 +53,13 @@ BUILD_MARKERS = (
     "phase12_virtio_net_transmit_recycle.zig",
     "virtio_net_transmit_recycle_root_module",
     "run_virtio_net_transmit_recycle_tests",
+    "phase12_virtio_net_syntax_lab.zig",
+    "phase12_virtio_net_syntax_lab_module",
+    "phase12_virtio_net_syntax_lab_tests",
+    "run_phase12_virtio_net_syntax_lab_tests",
     "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
     "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
+    "smoke_step.dependOn(&run_phase12_virtio_net_syntax_lab_tests.step);",
 )
 
 MAKEFILE_MARKERS = (
@@ -111,6 +123,7 @@ def check_manifest(root: Path) -> int:
         "phase12-virtio-net-receive-path-summary",
         "phase12-virtio-net-mergeable-refill-summary",
         "phase12-virtio-net-mergeable-buffer-length-summary",
+        "phase12-virtio-net-syntax-lab-gate",
         "phase12-virtio-net-runtime-data-path",
     )
     for gap_id in required_gap_ids:
@@ -134,6 +147,7 @@ def check_packet(root: Path) -> int:
         TRANSMIT_RECYCLE_PATH,
         TRANSMIT_RECYCLE_MARKERS,
     )
+    require_markers(read_text(root, SYNTAX_LAB_PATH), SYNTAX_LAB_PATH, SYNTAX_LAB_MARKERS)
     require_markers(read_text(root, BUILD_PATH), BUILD_PATH, BUILD_MARKERS)
     require_markers(read_text(root, MAKEFILE_PATH), MAKEFILE_PATH, MAKEFILE_MARKERS)
     return gap_count
@@ -158,6 +172,7 @@ def write_fixture(root: Path) -> None:
                         "id": "phase12-virtio-net-mergeable-buffer-length-summary",
                         "status": "starter_landed",
                     },
+                    {"id": "phase12-virtio-net-syntax-lab-gate", "status": "starter_landed"},
                     {
                         "id": "phase12-virtio-net-runtime-data-path",
                         "status": "blocked_on_dma_transport",
@@ -179,6 +194,7 @@ def write_fixture(root: Path) -> None:
         + "\n",
         QUEUE_RESUME_PATH: "\n".join(QUEUE_RESUME_MARKERS) + "\n",
         TRANSMIT_RECYCLE_PATH: "\n".join(TRANSMIT_RECYCLE_MARKERS) + "\n",
+        SYNTAX_LAB_PATH: "\n".join(SYNTAX_LAB_MARKERS) + "\n",
         BUILD_PATH: "\n".join(BUILD_MARKERS) + "\n",
         MAKEFILE_PATH: "\n".join(MAKEFILE_MARKERS) + "\n",
     }
@@ -222,6 +238,21 @@ def run_self_test() -> int:
             cases += 1
         else:
             raise AssertionError("expected queue-resume drift to fail")
+
+        write_fixture(root)
+        syntax_lab_path = root / SYNTAX_LAB_PATH
+        syntax_lab_path.write_text(
+            "phase12 virtio net syntax lab keeps fallback and base variants reachable\n",
+            encoding="utf-8",
+        )
+        try:
+            check_packet(root)
+        except CheckFailure as exc:
+            if "missing marker" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected syntax-lab drift to fail")
 
     print(f"{CHECK_NAME}_SELF_TEST=pass")
     print(f"{CHECK_NAME}_SELF_TEST_CASES={cases}")
