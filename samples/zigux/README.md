@@ -13,6 +13,7 @@ Fresh mixed readback on 2026-05-17 confirmed these current sample-root files on 
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+* `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
 The authenticated contents route used for this lane stayed flaky for part of the older Phase 5 packet during this reread, so the bytestream, kobject, kretprobe, and formatting-companion entries above were rechecked through the public-tree and raw-file fallback paths before this README was refreshed.
 
@@ -46,11 +47,13 @@ Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentati
 
 Keep the current direct runtime-module evidence explicit here too: `samples/zigux/runtime_trace_events.zig` still exposes `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking, so the separate runtime lane still has one shipped selftest-hook and lifecycle-parity sample-root proof on current `master`.
 
+Keep the companion boundaries explicit here too: `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps the same narrow packet's unregistered function-thread failures fail-closed, while `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` keeps balanced function-thread registration reusable before and after selftest.
+
 Keep saying clearly that current `master` does not currently expose the broader shared runtime-loader packet, so `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the older `samples/zigux/runtime_*_loader.zig` scaffolds stay backlog references unless a fresh repo reread proves they have returned.
 
 Keep older cross-phase non-owner boundaries explicit: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence.
 
-Treat `samples/zigux/runtime_trace_events_unregistered_gate.zig` as a companion reminder inside that same narrow runtime packet, not as proof that the broader shared loader family has returned.
+Treat `samples/zigux/runtime_trace_events_unregistered_gate.zig` and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as companion reminders inside that same narrow runtime packet, not as proof that the broader shared loader family has returned.
 
 ## No-extra-sample reminders
 
