@@ -15,35 +15,25 @@ The notifier or list packet stays adjacent to that tranche because the current r
 ## Current Repo Reality
 As of `2026-05-17`, current `master` can still materialize these adjacent notifier-facing surfaces:
 - `Documentation/zigux/phase13-notifier-list-survey.md`
-- `zigux/tests/phase13_notifier_list_manifest.json`
-- `zigux/tests/phase13_notifier_list_reviewability.zig`
-- `scripts/zigux/check-phase13-notifier-packet.py`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
-- `scripts/zigux/validate-phase13-release.py`
 - `zigux/bindings/notifier_abi.zig`
 - `zigux/helpers/notifier_chain_view.zig`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 - `include/zigux/abi.h`
-- `include/zigux/notifier_abi.h`
 - `drivers/tty/hvc/hvc_console.h`
-- `zigux/Makefile`
-- `make -C zigux phase13-validate`
-- `make -C zigux phase13`
 The shipped `zigux/helpers/notifier_chain_view.zig` helper stays read-only: it walks `NotifierBlock` links, checks nonincreasing priority ordering, and now reports the first priority increase witness without claiming callback execution, registration, SRCU, or blocking-notifier semantics.
 The shipped adjacent `include/zigux/abi.h` foothold now mirrors that same read-only ordering probe through `struct zigux_notifier_block` and `zigux_notifier_chain_has_nonincreasing_priority()` for C-side callers that only need notifier priority-order truthfulness.
-`include/zigux/notifier_abi.h` is now shipped as adjacent notifier interop evidence, `zigux/helpers/notifier_chain_view.zig` now provides the matching read-only notifier-chain summary helpers, and `scripts/zigux/check-phase13-notifier-packet.py` now fails closed on the adjacent notifier packet.
+Current direct readback in this lane still does not rematerialize `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/validate-phase13-release.py`, `include/zigux/notifier_abi.h`, `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13`, so keep those paths framed as repo-reality gaps instead of shipped adjacent notifier evidence until a fresh reread proves they returned on current `master`.
 The same current-`master` readback still keeps this packet adjacent rather than turning it into a broader list bridge: `zigux/tests/phase13_build.zig` is still intentionally absent, and the shared Phase 13 build intentionally omits this packet.
 ## Review Posture
 Keep this packet framed as adjacent Phase 13 evidence:
 - it supports the broader shared-helper release packet without becoming a fifth helper anchor
-- it keeps the shipped notifier priority-signal checker explicit
 - it keeps the shipped `zigux/helpers/notifier_chain_view.zig` traversal, priority-order view, and first-priority-increase witness explicit while staying read-only
-- it keeps the shipped `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, and `include/zigux/notifier_abi.h` ABI footholds explicit as adjacent notifier evidence
+- it keeps the shipped `zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` ABI footholds explicit as adjacent notifier evidence
 - it keeps the shipped `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helper surfaces explicit as bounded `list_head` or `hlist` interop evidence
 - it keeps the Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations explicit as adjacent evidence without claiming HVC runtime parity
-- it keeps the manifest, focused reviewability gate, focused packet checker, and shared release validator explicit as adjacent evidence instead of reopening helper behavior
-- it does not add extra shared replay steps beyond the current validator-first shared-helper release handle
+- it keeps the missing manifest, focused reviewability shard, focused packet checker, priority checker, shared release validator, notifier ABI header, and Makefile-backed route family framed as repo-reality gaps instead of reopening helper behavior
+- it does not add extra shared replay steps beyond the current contributor-facing reminder packet
 - it should not claim broader callback, registration, SRCU, blocking-notifier, or HVC runtime parity on top of these read-only adjacent surfaces
 ## Contributor Checks
 When the shared Phase 13 contributor packet changes, re-read these surfaces together:
@@ -60,7 +50,7 @@ When the shared Phase 13 contributor packet changes, re-read these surfaces toge
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
-Those summaries should keep this notifier survey, the shipped `check-phase13-notifier-priority-signal.py` helper, the shipped `check-phase13-notifier-packet.py` checker, the shipped `zigux/helpers/notifier_chain_view.zig` read-only traversal helper, the shipped priority-break witness, the shipped `zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` and `include/zigux/notifier_abi.h` ABI footholds, the shipped `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` list companions, the Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations, the shared release-notes, release-coordination-matrix, and roadmap-traceability packet, the paired Landlock ownership and syscall-governance notes, and the stable `phase13-validate` or `phase13` make routes visible while still keeping the packet adjacent to the named helper anchors.
+Those summaries should keep this notifier survey, the shipped `zigux/helpers/notifier_chain_view.zig` read-only traversal helper, the shipped priority-break witness, the shipped `zigux/bindings/notifier_abi.zig` plus `include/zigux/abi.h` ABI footholds, the shipped `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` list companions, and the Linux-side `drivers/tty/hvc/hvc_console.h` notifier declarations explicit as returned adjacent evidence without turning them into part of the stable shared replay handle. Keep the missing notifier manifest, focused reviewability shard, focused packet checker, priority checker, shared release validator, notifier ABI header, and Makefile-backed route family framed as repo-reality gaps until the same run can reread them on current `master`.
 ## Non-goals
 - This note does not claim a new shared-helper replay count.
 - This note does not claim broader HVC runtime parity.
