@@ -50,6 +50,9 @@ SEQUENCING_UNREGISTERED_GATE_MARKER = (
 )
 TESTS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 
+SAMPLE_DESCRIPTOR_NAME_MARKER = '.name = "runtime_trace_events"'
+SAMPLE_DESCRIPTOR_ANCHOR_MARKER = '.anchor = "samples/trace_events/trace-events-sample.c"'
+SAMPLE_DESCRIPTOR_RUNTIME_SUBSTRATE_MARKER = ".requires_runtime_substrate = true"
 SAMPLE_DESCRIPTOR_MARKER = ".provides_selftest_hook = true"
 SAMPLE_RUN_SELFTEST_MARKER = "pub fn runSelftest(self: *Self) !EmissionSummary {"
 SAMPLE_EXIT_MARKER = "pub fn exit(self: *Self) !void {"
@@ -248,6 +251,9 @@ SAMPLES_README_REQUIRED_MARKERS = [
 ]
 
 SAMPLE_REQUIRED_MARKERS = [
+    SAMPLE_DESCRIPTOR_NAME_MARKER,
+    SAMPLE_DESCRIPTOR_ANCHOR_MARKER,
+    SAMPLE_DESCRIPTOR_RUNTIME_SUBSTRATE_MARKER,
     SAMPLE_DESCRIPTOR_MARKER,
     SAMPLE_RUN_SELFTEST_MARKER,
     SAMPLE_EXIT_MARKER,
@@ -387,7 +393,6 @@ def build_samples_readme_fixture_text() -> str:
 * keep older cross-phase non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} remain Phase 2 config-surface bridge references, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} remain Phase 3 export-boundary references rather than runtime-pilot evidence
 """
 
-
 def build_sample_fixture_text() -> str:
     return f"""const std = @import(\"std\");
 
@@ -399,11 +404,19 @@ const EmissionSummary = struct {{
 }};
 
 pub const ModuleDescriptor = struct {{
+    name: []const u8,
+    anchor: []const u8,
+    requires_runtime_substrate: bool,
     provides_selftest_hook: bool,
 }};
 
 pub fn descriptor() ModuleDescriptor {{
-    return .{{ .provides_selftest_hook = true }};
+    return .{{
+        .name = \"runtime_trace_events\",
+        .anchor = \"samples/trace_events/trace-events-sample.c\",
+        .requires_runtime_substrate = true,
+        .provides_selftest_hook = true,
+    }};
 }}
 
 pub fn runSelftest(self: *Self) !EmissionSummary {{
@@ -473,7 +486,6 @@ test \"trace-events sample keeps rejected re-selftest rollback explicit\" {{
 }}
 """
 
-
 def build_unregistered_gate_fixture_text() -> str:
     return f"""const std = @import(\"std\");
 const trace_events = @import(\"runtime_trace_events.zig\");
@@ -519,7 +531,6 @@ test \"phase9 trace-events sample keeps unregistered function-thread failures fa
     try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);
 }}
 """
-
 
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
