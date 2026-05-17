@@ -45,6 +45,8 @@ EXPECTED_HELPERS = (
     "tools/lib/zalloc.zig",
 )
 
+EXPECTED_MANIFEST_STATUS = "closed"
+
 EXPECTED_FIXTURE_VALUES = {
     ("string", "strtobool_invalid"): 184,
     ("slab", "zero_after_kmalloc"): True,
@@ -138,6 +140,8 @@ def collect_issues(root: Path) -> list[str]:
     else:
         if manifest_payload.get("phase") != "Phase 1":
             issues.append(f"manifest_phase:{manifest_payload.get('phase')!r}")
+        if manifest_payload.get("status") != EXPECTED_MANIFEST_STATUS:
+            issues.append(f"manifest_status:{manifest_payload.get('status')!r}")
         if manifest_payload.get("helper_count") != len(EXPECTED_HELPERS):
             issues.append(
                 f"manifest_helper_count:{manifest_payload.get('helper_count')}"
@@ -191,7 +195,7 @@ def make_fixture_json() -> str:
 def make_manifest_json() -> str:
     payload = {
         "phase": "Phase 1",
-        "status": "closed",
+        "status": EXPECTED_MANIFEST_STATUS,
         "helper_count": len(EXPECTED_HELPERS),
         "helpers": list(EXPECTED_HELPERS),
     }
@@ -278,13 +282,29 @@ def run_self_test() -> int:
         )
         cases.append(("fixture_slab_drift", run_check(fixture_slab_drift_root) != 0))
 
+        manifest_status_drift_root = build_case_root(tmp_root / "manifest_status_drift")
+        write_file(
+            manifest_status_drift_root / MANIFEST_REL,
+            json.dumps(
+                {
+                    "phase": "Phase 1",
+                    "status": "open",
+                    "helper_count": len(EXPECTED_HELPERS),
+                    "helpers": list(EXPECTED_HELPERS),
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        cases.append(("manifest_status_drift", run_check(manifest_status_drift_root) != 0))
+
         manifest_drift_root = build_case_root(tmp_root / "manifest_drift")
         write_file(
             manifest_drift_root / MANIFEST_REL,
             json.dumps(
                 {
                     "phase": "Phase 1",
-                    "status": "closed",
+                    "status": EXPECTED_MANIFEST_STATUS,
                     "helper_count": len(EXPECTED_HELPERS),
                     "helpers": list(EXPECTED_HELPERS[:-1]),
                 },
