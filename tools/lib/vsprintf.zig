@@ -20,7 +20,7 @@ fn render(buffer: []u8, logical_size: usize, pad: bool, comptime fmt: []const u8
     if (pad and copied < limit) {
         @memset(buffer[copied..limit], ' ');
         buffer[limit] = 0;
-        return limit -| 1;
+        return limit;
     }
 
     buffer[copied] = 0;
@@ -46,9 +46,16 @@ test "scnprintf truncates to buffer minus terminator" {
     try std.testing.expectEqualStrings("zigux:7", buffer[0..written]);
 }
 
-test "scnprintfPad pads the remaining bytes with spaces" {
+test "scnprintfPad reports the visible padded width" {
     var buffer: [9]u8 = undefined;
     const written = scnprintfPad(&buffer, buffer.len - 1, "id={d}", .{7});
-    try std.testing.expectEqual(@as(usize, 7), written);
+    try std.testing.expectEqual(@as(usize, 8), written);
     try std.testing.expectEqualStrings("id=7    ", buffer[0 .. buffer.len - 1]);
+}
+
+test "scnprintfPad handles zero logical size" {
+    var buffer: [4]u8 = .{ 'x', 'x', 'x', 'x' };
+    const written = scnprintfPad(&buffer, 0, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 0), written);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
 }
