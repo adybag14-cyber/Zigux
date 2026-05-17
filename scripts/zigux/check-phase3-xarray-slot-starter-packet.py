@@ -26,13 +26,15 @@ REQUIRED_MARKERS = {
         "It is one helper-local xarray follow-on layered beside the existing `err_ptr` / `xarray` slice.",
     ),
     VALIDATOR_NOTE_PATH: (
-        "two focused helper-local slices: `err_ptr` / `xarray` value-tag interop and `xarray slot` classification",
+        "two focused helper-local interop slices (`err_ptr` / `xarray` value-tag interop and `xarray slot` classification), and one focused helper-local policy slice",
         "Documentation/zigux/phase3-xarray-slot-slice.md",
+        "Documentation/zigux/phase3-policy-slice.md",
         "zigux/helpers/xarray_slot_view.zig",
         "zigux/tests/phase3_xarray_slot_starter_packet.zig",
         "zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
         "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
-        "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` still carry broader shared Phase 3 reminder language",
+        "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still need one narrow truthfulness pass",
+        "Keep the remaining follow-up focused on those three shared reminder surfaces so they stop parking the policy slice and the xarray-slot slice as broader missing routes",
     ),
     HELPER_PATH: (
         'const err_ptr = @import("err_ptr");',
@@ -72,7 +74,7 @@ SAMPLE_FILES = {
 
 SELF_TEST_CASES = (
     (SLICE_PATH, "zigux/helpers/xarray_slot_view.zig"),
-    (VALIDATOR_NOTE_PATH, "Documentation/zigux/phase3-xarray-slot-slice.md"),
+    (VALIDATOR_NOTE_PATH, "Documentation/zigux/phase3-policy-slice.md"),
     (HELPER_PATH, "pub const SlotKind = enum {"),
     (TEST_PATH, 'test "xarray slot view keeps null slots explicit" {'),
     (BUILD_PATH, '"phase3-xarray-slot-starter-packet-test"'),
