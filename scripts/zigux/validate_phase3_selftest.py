@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Run the focused Phase 3 validator-support self-test packet."""
+"""Run the current bounded Phase 3 interop self-test packet."""
 
 from __future__ import annotations
 
@@ -11,26 +11,11 @@ import sys
 import tempfile
 
 SELFTEST_COMMANDS = (
-    (Path("scripts/zigux/validate-phase3.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-selftest-surface.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-abi-dump-gate.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-catalog-selftest.py"), ("--self-test",)),
-    (Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-policy-byte-guards.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-policy-unsafe-focused-replay.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py"), ("--self-test",)),
-    (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ("--self-test",)),
-    (Path("scripts/zigux/validate-phase3-export-uapi-survey.py"), ("--self-test",)),
-    (Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ("--self-test",)),
-    (Path("scripts/zigux/validate-phase3-abi-bindings-syntax.py"), ("--self-test",)),
-    (Path("scripts/zigux/validate-phase3-linux-zigux-header-governance.py"), ("--self-test",)),
-    (Path("scripts/zigux/survey-phase3-abi-constant-parity.py"), ("--self-test",)),
-    (Path("scripts/zigux/phase3_catalog.py"), ("--self-test",)),
-    (Path("scripts/zigux/phase3_check_lib.py"), ("--self-test",)),
-    (Path("scripts/zigux/generate-phase3-check-wrappers.py"), ("--self-test",)),
-    (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
+    (Path("scripts/zigux/check-phase3-selftest-surface.py"), ("--self-test",)),
 )
 
 
@@ -75,7 +60,7 @@ def run_self_test() -> int:
             path = root / rel_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(
-                "#!/usr/bin/env python3\n" 'raise SystemExit(0)\n',
+                "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
                 encoding="utf-8",
             )
         if validate_script_list(root):
@@ -96,7 +81,7 @@ def run_self_test() -> int:
             path = root / rel_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(
-                "#!/usr/bin/env python3\n" 'raise SystemExit(0)\n',
+                "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
                 encoding="utf-8",
             )
 
@@ -112,7 +97,7 @@ def run_self_test() -> int:
         path = root / last_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
-            "#!/usr/bin/env python3\n" 'raise SystemExit(0)\n',
+            "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
             encoding="utf-8",
         )
 
@@ -138,7 +123,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Run the focused Phase 3 validator-support self-test packet."
+        description="Run the current bounded Phase 3 interop self-test packet."
     )
     parser.add_argument(
         "--repo-root",
