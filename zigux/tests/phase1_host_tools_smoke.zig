@@ -123,6 +123,10 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(word_bits - 1, find_bit.findFirstBit(&map, nbits));
     try std.testing.expectEqual(word_bits - 1, find_bit.findNextBit(&map, nbits, word_bits - 1));
     try std.testing.expectEqual(word_bits, find_bit.findNextBit(&map, nbits, word_bits));
+    try std.testing.expectEqual(word_bits + 1, find_bit.findLastBit(&map, nbits));
+
+    const empty_last_map = [_]find_bit.Word{ 0, 0 };
+    try std.testing.expectEqual(nbits, find_bit.findLastBit(&empty_last_map, nbits));
 
     var rendered: [32]u8 = undefined;
     const rendered_len = bitmap.scnprintf(&map, nbits, &rendered);
