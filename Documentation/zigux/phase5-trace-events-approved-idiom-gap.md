@@ -14,17 +14,24 @@ Authenticated sample-root readback now directly exposes this bounded non-runtime
 
 But `samples/zigux/README.md` still keeps the older non-runtime `samples/zigux/trace_events_sample.zig` packet out of direct-proof wording for this authenticated route.
 
-Keep the approved formatting idiom bounded to the shared reminder packet:
+Keep the approved formatting idiom bounded to the current shared reminder packet:
 
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
-- `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
+- `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `zigux/tests/README.md`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest that the directly readable proof is the small companion sample plus reminder-surface guidance rather than the older full non-runtime sample-root packet.
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest that the directly readable proof is the small companion sample plus the shared reminder surfaces rather than the older full non-runtime sample-root packet.
+Treat the older direct trace-events sample-local packet as a repo-reality gap on this authenticated route until a fresh reread proves these paths returned on current `master`:
+
+- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+- `samples/zigux/trace_events_sample.zig`
+- `zigux/tests/phase5_trace_events_sample.zig`
+- `zigux/tests/phase5_trace_events_sample_manifest.json`
+- `zigux/tests/phase5_trace_events_sample_survey.zig`
 
 ## Review boundary
 
