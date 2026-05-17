@@ -349,7 +349,7 @@ def run_self_test() -> int:
                 if operation == "remove":
                     lane_note.write_text(text.replace(STRING_REVIEW_RULE_LINE + "\n", "", 1), encoding="utf-8")
                 elif operation == "duplicate":
-                    lane_note.writeText(
+                    lane_note.write_text(
                         text.replace(
                             STRING_REVIEW_RULE_LINE,
                             STRING_REVIEW_RULE_LINE + "\n" + STRING_REVIEW_RULE_LINE,
