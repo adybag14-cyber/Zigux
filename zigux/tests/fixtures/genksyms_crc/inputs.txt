@@ -5,3 +5,4 @@ VMLINUX_SYMBOL_STR(sample_symbol)
 const volatile unsigned long *
 quoted "symbol"	path\name
 unsigned int eof_tail
+ctrl end
