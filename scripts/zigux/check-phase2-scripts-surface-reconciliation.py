@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 NOTE = ROOT / "Documentation" / "zigux" / "phase2-scripts-surface-reconciliation.md"
+README = ROOT / "scripts" / "zigux" / "README.md"
 
 PRESENT_PATHS = (
     "scripts/zigux/README.md",
@@ -18,6 +19,7 @@ PRESENT_PATHS = (
     "scripts/zigux/check-phase2-toolchain-pinning.py",
     "scripts/zigux/fixdep.zig",
     "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
 )
 
 MISSING_PATHS = (
@@ -28,34 +30,51 @@ MISSING_PATHS = (
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-zig-toolchain.py",
     "scripts/zigux/install-zig.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/genksyms.zig",
     "scripts/zigux/genksyms_crc.zig",
     "scripts/zigux/mk_elfconfig.zig",
-    "scripts/zigux/kconfig/confdata_bridge.zig",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
 )
 
-README_DRIFT_MARKERS = (
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "make -C zigux phase2-validate",
-    "make -C zigux phase2-cross",
-    "`make -C zigux phase2` routes as current Phase 2 scripts-root evidence",
-)
-
 REQUIRED_NOTE_MARKERS = (
     "# Phase 2 Scripts Surface Reconciliation",
     "## Present scripts-root packet",
     "## Current repo-reality gaps",
-    "## Outstanding scripts-root README drift",
+    "## Shared reminder contract",
     "## Lane 25 boundary",
+    "These are the current directly readable Phase 2 scripts-root anchors on `master`.",
     "Treat those paths as active repo-reality gaps on current `master`, not as shipped scripts-root evidence.",
-    "Keep that README drift framed as the next bounded Lane 25 follow-up instead of folding it back into this note as if the scripts-root summary were already reconciled.",
+    "`scripts/zigux/README.md` should match the same present-versus-gap inventory tracked here, including `scripts/zigux/kconfig/confdata_bridge.zig` as a present anchor and the still-missing closure-side, cross-matrix, toolchain-helper, genksyms, and make-route surfaces as repo-reality gaps.",
+    "Keep the scripts-root reminder aligned with the live kconfig bridge packet and the surviving alignment guards instead of reintroducing the older closure-side validator stack before those direct paths return on `master`.",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 59
+REQUIRED_README_MARKERS = (
+    "the current scripts-root bridge packet stays reviewable through the live `conf_bridge` and `confdata_bridge` helper surfaces",
+    "`Documentation/zigux/phase2-scripts-surface-reconciliation.md`",
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-kbuild-routes.py`",
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/fixdep.zig`",
+    "`scripts/zigux/kconfig/conf_bridge.zig`",
+    "`scripts/zigux/kconfig/confdata_bridge.zig`",
+    "repeated authenticated reads on current `master` still return missing for",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`scripts/zigux/install-zig.py`",
+    "`scripts/zigux/genksyms.zig`",
+    "`scripts/zigux/genksyms_crc.zig`",
+    "`scripts/zigux/mk_elfconfig.zig`",
+    "`zigux/Makefile`",
+    "repo-reality gaps that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence",
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = 78
 
 
 def read_text(path: Path) -> str:
@@ -72,6 +91,7 @@ def resolve(root: Path, relative: str) -> Path:
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     note_text = read_text(root / NOTE.relative_to(ROOT))
+    readme_text = read_text(root / README.relative_to(ROOT))
 
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in note_text:
@@ -89,9 +109,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if resolve(root, relative).exists():
             issues.append(("UNEXPECTED_PRESENT_GAP_PATHS", relative))
 
-    for marker in README_DRIFT_MARKERS:
-        if marker not in note_text:
-            issues.append(("MISSING_README_DRIFT_MARKERS", marker))
+    for marker in REQUIRED_README_MARKERS:
+        if marker not in readme_text:
+            issues.append(("MISSING_README_MARKERS", marker))
 
     return issues
 
@@ -140,23 +160,43 @@ def build_note_text() -> str:
             "",
             "Treat those paths as active repo-reality gaps on current `master`, not as shipped scripts-root evidence.",
             "",
-            "## Outstanding scripts-root README drift",
+            "## Shared reminder contract",
             "",
-            "- `scripts/zigux/README.md` still presents `scripts/zigux/kconfig/confdata_bridge.zig`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/check-phase2-cross.py`, `zigux/Makefile`, and the Linux-style `make -C zigux phase2-validate`, `make -C zigux phase2-cross`, and `make -C zigux phase2` routes as current Phase 2 scripts-root evidence even though fresh current-master reads still miss those branch-local, closure-side, cross-matrix, and make-route surfaces.",
-            "- Keep that README drift framed as the next bounded Lane 25 follow-up instead of folding it back into this note as if the scripts-root summary were already reconciled.",
+            "- `scripts/zigux/README.md` should match the same present-versus-gap inventory tracked here, including `scripts/zigux/kconfig/confdata_bridge.zig` as a present anchor and the still-missing closure-side, cross-matrix, toolchain-helper, genksyms, and make-route surfaces as repo-reality gaps.",
+            "- Keep the scripts-root reminder aligned with the live kconfig bridge packet and the surviving alignment guards instead of reintroducing the older closure-side validator stack before those direct paths return on `master`.",
             "",
             "## Lane 25 boundary",
             "",
-            "Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure, cross-target, tool-restoration, and scripts-root README reconciliation lanes land.",
+            "Lane 25 should use this note to keep Phase 2 reminder work bounded to current-master truth until the separate closure, cross-target, tool-restoration, and scripts-root README follow-ups land.",
             "",
         ]
     )
     return "\n".join(lines)
 
 
+def build_readme_text() -> str:
+    return "\n".join(
+        [
+            "# scripts/zigux",
+            "",
+            "## Phase 2",
+            "",
+            "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live `conf_bridge` and `confdata_bridge` helper surfaces, the manifest-backed kconfig fixture roster, `Documentation/zigux/phase2-scripts-surface-reconciliation.md`, and the surviving Phase 2 alignment guards instead of rebuilding the older closure-side validator stack from paths that current `master` still does not serve",
+            "- `scripts/zigux/fixdep.zig`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` keep the current direct Zig tool anchor plus the conf-side and confdata-side bridge evidence packet explicit from the scripts root",
+            "- `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, and `scripts/zigux/check-phase2-toolchain-pinning.py` remain the shipped Phase 2 reminder and alignment guards that survive on current `master`",
+            "- repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/genksyms.zig`, `scripts/zigux/genksyms_crc.zig`, `scripts/zigux/mk_elfconfig.zig`, `zigux/Makefile`, `zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/tests/fixtures/phase2_tool_manifest.json`, and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, so treat those closure-side, validator-first, cross-matrix, toolchain-helper, genksyms, and make-route names as repo-reality gaps that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence",
+            "- keep future scripts-root reminder updates keyed to `Documentation/zigux/phase2-scripts-surface-reconciliation.md` and the live kconfig bridge fixture roster rather than the older closure-side packet",
+            "",
+        ]
+    )
+
+
 def build_self_test_root(root: Path) -> None:
     write_text(root / NOTE.relative_to(ROOT), build_note_text())
+    write_text(root / README.relative_to(ROOT), build_readme_text())
     for relative in PRESENT_PATHS:
+        if relative == README.relative_to(ROOT).as_posix():
+            continue
         write_text(resolve(root, relative), "# present\n")
 
 
@@ -198,6 +238,8 @@ def run_self_test() -> int:
             checks_run += 1
 
         for relative in PRESENT_PATHS:
+            if relative == README.relative_to(ROOT).as_posix():
+                continue
             build_self_test_root(root)
             resolve(root, relative).unlink()
             issues = collect_issues(root)
@@ -222,15 +264,15 @@ def run_self_test() -> int:
             assert ("UNEXPECTED_PRESENT_GAP_PATHS", relative) in issues
             checks_run += 1
 
-        for marker in README_DRIFT_MARKERS:
+        for marker in REQUIRED_README_MARKERS:
             build_self_test_root(root)
-            note_path = root / NOTE.relative_to(ROOT)
-            note_path.write_text(
-                replace_once(note_path.read_text(encoding="utf-8"), marker),
+            readme_path = root / README.relative_to(ROOT)
+            readme_path.write_text(
+                readme_path.read_text(encoding="utf-8").replace(marker, ""),
                 encoding="utf-8",
             )
             issues = collect_issues(root)
-            assert ("MISSING_README_DRIFT_MARKERS", marker) in issues
+            assert ("MISSING_README_MARKERS", marker) in issues
             checks_run += 1
 
         build_self_test_root(root)
@@ -242,6 +284,16 @@ def run_self_test() -> int:
             checks_run += 1
         else:
             raise AssertionError("missing note did not abort")
+
+        build_self_test_root(root)
+        (root / README.relative_to(ROOT)).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("missing readme did not abort")
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_SCRIPTS_SURFACE_RECONCILIATION_SELF_TEST=pass")
@@ -267,7 +319,7 @@ def main() -> int:
     print("PHASE2_SCRIPTS_SURFACE_RECONCILIATION=pass")
     print(f"PHASE2_SCRIPTS_SURFACE_PRESENT_COUNT={len(PRESENT_PATHS)}")
     print(f"PHASE2_SCRIPTS_SURFACE_GAP_COUNT={len(MISSING_PATHS)}")
-    print(f"PHASE2_SCRIPTS_SURFACE_README_DRIFT_COUNT={len(README_DRIFT_MARKERS)}")
+    print(f"PHASE2_SCRIPTS_SURFACE_README_MARKER_COUNT={len(REQUIRED_README_MARKERS)}")
     return 0
 
 
