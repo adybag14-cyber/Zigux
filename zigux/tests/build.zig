@@ -49,12 +49,18 @@ fn addPhase1HostToolsSmoke(
         .target = target,
         .optimize = optimize,
     });
+    const string_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/string.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     bitmap_module.addImport("find_bit", find_bit_module);
     root_module.addImport("argv_split", argv_split_module);
     root_module.addImport("cmdline", cmdline_module);
     root_module.addImport("find_bit", find_bit_module);
     root_module.addImport("bitmap", bitmap_module);
+    root_module.addImport("string", string_module);
 
     const tests = b.addTest(.{
         .name = "phase1-host-tools-smoke",
