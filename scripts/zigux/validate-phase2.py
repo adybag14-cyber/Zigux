@@ -21,6 +21,7 @@ CHECKERS = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
 )
