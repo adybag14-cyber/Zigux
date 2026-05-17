@@ -114,7 +114,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_policy.zig");
     try expectContains(policy_note, "phase15-indefinite-c-review-process-companion-sync");
 
-    try expectContains(review_process, "restored `Documentation/zigux/phase15-indefinite-c-policy.md` companion");
+    try expectContains(review_process, "`Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit");
     try expectContains(review_process, "indefinite-C policy link or explicit non-applicability note");
     try expectContains(review_process, "retired_from_active_discussion");
 
