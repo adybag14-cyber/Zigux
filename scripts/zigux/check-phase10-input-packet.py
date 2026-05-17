@@ -63,7 +63,7 @@ MODULE_MARKERS = [
 SURVEY_NOTE_MARKERS = [
     "# Phase 10 Virtio Input Survey",
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L22",
+    "PHASE10_LANE_KEY=P10-L13",
     "PHASE10_SURVEYED_COMMIT=",
     "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport",
     "drivers/virtio/virtio_input_verify.zig",
@@ -77,7 +77,7 @@ SURVEY_NOTE_MARKERS = [
 ]
 
 MANIFEST_MARKERS = [
-    '"lane_key": "P10-L22"',
+    '"lane_key": "P10-L13"',
     '"surveyed_commit": "',
     '"risky_transport_posture": "blocked_on_risky_transport"',
     '"id": "phase10-virtio-input-survey-gate"',
@@ -156,7 +156,7 @@ SURVEY_GATE_MARKERS = [
     'test "phase10 virtio input manifest keeps the restored replay ids and blocked lifecycle posture explicit" {',
     'test "phase10 virtio input slice companions keep the replay inventory and blocked lifecycle boundary explicit" {',
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L22",
+    "PHASE10_LANE_KEY=P10-L13",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     '"id": "phase10-virtio-input-survey-gate"',
