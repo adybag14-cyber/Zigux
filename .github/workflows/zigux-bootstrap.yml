@@ -1,0 +1,136 @@
+name: zigux-bootstrap
+# Keep this lane tied to files that the current checkout actually contains.
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'lib/**'
+      - 'zigux-alpha/**'
+      - 'Documentation/zigux/**'
+      - 'samples/zigux/**'
+      - 'kernel/**/*.zig'
+      - 'net/**/*.zig'
+      - 'drivers/**/*.zig'
+      - 'scripts/basic/fixdep.c'
+      - 'scripts/include/xalloc.h'
+      - 'scripts/kconfig/conf.c'
+      - 'scripts/kconfig/confdata.c'
+      - 'scripts/zigux/**'
+      - 'tools/lib/*.zig'
+      - 'tools/lib/**/*.zig'
+      - 'tools/lib/subcmd/exec-cmd.c'
+      - 'tools/lib/subcmd/help.c'
+      - 'tools/lib/symbol/kallsyms.c'
+      - 'zigux/**'
+      - 'include/linux/zigux.h'
+      - 'include/zigux/**'
+      - '.github/workflows/zigux-bootstrap.yml'
+  pull_request:
+    paths:
+      - 'lib/**'
+      - 'zigux-alpha/**'
+      - 'Documentation/zigux/**'
+      - 'samples/zigux/**'
+      - 'kernel/**/*.zig'
+      - 'net/**/*.zig'
+      - 'drivers/**/*.zig'
+      - 'scripts/basic/fixdep.c'
+      - 'scripts/include/xalloc.h'
+      - 'scripts/kconfig/conf.c'
+      - 'scripts/kconfig/confdata.c'
+      - 'scripts/zigux/**'
+      - 'tools/lib/*.zig'
+      - 'tools/lib/**/*.zig'
+      - 'tools/lib/subcmd/exec-cmd.c'
+      - 'tools/lib/subcmd/help.c'
+      - 'tools/lib/symbol/kallsyms.c'
+      - 'zigux/**'
+      - 'include/linux/zigux.h'
+      - 'include/zigux/**'
+      - '.github/workflows/zigux-bootstrap.yml'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 1
+
+      - name: Setup Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: '3.x'
+
+      - name: Compile current scripts
+        run: |
+          set -euxo pipefail
+          mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
+          if [ "${#scripts[@]}" -eq 0 ]; then
+            echo 'no Python scripts found under scripts/zigux' >&2
+            exit 1
+          fi
+          python3 -m py_compile "${scripts[@]}"
+
+      - name: Self-test current Phase 1 direct-owner checker
+        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
+
+      - name: Check current Phase 1 direct-owner markers
+        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py
+
+      - name: Self-test current Phase 1 string review checker
+        run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test
+
+      - name: Check current Phase 1 string review packet
+        run: python3 scripts/zigux/check-phase1-string-review-packet.py
+
+      - name: Self-test current Phase 12 build-only checker
+        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
+
+      - name: Self-test current Phase 9 checklist-boundary checker
+        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test
+
+      - name: Check current Phase 9 checklist-boundary packet
+        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
+
+      - name: Check current docs-root sanity markers
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          required_files = [
+              Path('.github/workflows/zigux-bootstrap.yml'),
+              Path('Documentation/zigux/README.md'),
+              Path('Documentation/zigux/phase12-release-readiness-survey.md'),
+              Path('zigux/tests/README.md'),
+              Path('scripts/zigux/check-build-only-phase12-surface.py'),
+          ]
+          missing = [str(path) for path in required_files if not path.exists()]
+          if missing:
+              raise SystemExit('missing required files: ' + ', '.join(missing))
+
+          survey = Path('Documentation/zigux/phase12-release-readiness-survey.md').read_text(encoding='utf-8')
+          markers = [
+              '`PHASE12_STATUS=active`',
+              '`PHASE12_RELEASE_CLOSED=no`',
+              'shared-summary lane owner: `pmo-release`',
+              'shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`',
+          ]
+          missing_markers = [marker for marker in markers if marker not in survey]
+          if missing_markers:
+              raise SystemExit('missing survey markers: ' + ', '.join(missing_markers))
+
+          print('ZIGUX_BOOTSTRAP_SANITY=pass')
+          print(f'ZIGUX_BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
+          print(f'ZIGUX_BOOTSTRAP_MARKER_COUNT={len(markers)}')
+          PY
