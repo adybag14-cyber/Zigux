@@ -285,7 +285,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve_path(root, SCRIPTS_README)
-        path.writeText(
+        path.write_text(
             replace_once(path.read_text(encoding="utf-8"), EXPECTED_SCRIPTS_README_MARKERS[0]),
             encoding="utf-8",
         )
