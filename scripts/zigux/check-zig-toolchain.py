@@ -197,27 +197,57 @@ def load_pinned_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
     return str(payload["channel"])
 
 
+def iter_zig_search_roots(root: Path = ROOT) -> list[Path]:
+    search_roots: list[Path] = []
+
+    def add_search_root(path: Path) -> None:
+        if path not in search_roots:
+            search_roots.append(path)
+
+    add_search_root(root / ".zig-toolchain")
+    add_search_root(root / "toolchains")
+    add_search_root(root / ".toolchains")
+
+    for parent in root.parents:
+        add_search_root(parent / ".toolchains")
+        add_search_root(parent / "toolchains")
+
+    return search_roots
+
+
 def iter_repo_local_zig_candidates(
     *,
     root: Path = ROOT,
     pinned_channel: str | None = None,
 ) -> list[Path]:
-    toolchain_root = root / ".zig-toolchain"
     candidates: list[Path] = []
 
     def add_candidate(path: Path) -> None:
         if path not in candidates:
             candidates.append(path)
 
-    if pinned_channel is not None:
-        pinned_root = toolchain_root / f"zig-x86_64-linux-{pinned_channel}"
-        add_candidate(pinned_root / "zig")
-        add_candidate(pinned_root / "bin" / "zig")
+    def add_candidate_roots(base: Path) -> None:
+        add_candidate(base / "zig")
+        add_candidate(base / "bin" / "zig")
 
-    if toolchain_root.exists():
-        for child in sorted(toolchain_root.iterdir()):
-            add_candidate(child / "zig")
-            add_candidate(child / "bin" / "zig")
+    zig_search_roots = iter_zig_search_roots(root)
+    if pinned_channel is not None:
+        pinned_dirname = f"zig-x86_64-linux-{pinned_channel}"
+        for base in zig_search_roots:
+            add_candidate_roots(base / pinned_dirname)
+            if not base.exists():
+                continue
+            for child in sorted(base.iterdir()):
+                if child.is_dir():
+                    add_candidate_roots(child / pinned_dirname)
+
+    for base in zig_search_roots:
+        if not base.exists():
+            continue
+        add_candidate_roots(base)
+        for child in sorted(base.iterdir()):
+            if child.is_dir():
+                add_candidate_roots(child)
     return candidates
 
 
@@ -557,6 +587,26 @@ def run_self_test() -> int:
             [pinned_zig, toolchain_dir / "bin" / "zig"],
         )
         expect_equal(
+            iter_zig_search_roots(root)[:7],
+            [
+                root / ".zig-toolchain",
+                root / "toolchains",
+                root / ".toolchains",
+                root.parent / ".toolchains",
+                root.parent / "toolchains",
+                root.parent.parent / ".toolchains",
+                root.parent.parent / "toolchains",
+            ],
+        )
+        parent_toolchain = root.parent / ".toolchains" / "lane03-followup"
+        parent_pinned_root = parent_toolchain / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        parent_pinned_root.mkdir(parents=True, exist_ok=True)
+        parent_pinned_zig = parent_pinned_root / "zig"
+        parent_pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        pinned_zig.unlink()
+        alt_zig.unlink()
+        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(parent_pinned_zig))
+        expect_equal(
             iter_archive_search_roots(root)[:8],
             [
                 root / ".zig-toolchain",
@@ -877,7 +927,7 @@ def main() -> int:
         return 1
 
     if zig is None:
-        message = "zig not found on PATH or in repo-local .zig-toolchain"
+        message = "zig not found on PATH or in repo-local toolchain search roots"
         if args.allow_missing:
             print("ZIG_TOOLCHAIN_STATUS=missing")
             print(f"ZIG_TOOLCHAIN_NOTE={message}")
