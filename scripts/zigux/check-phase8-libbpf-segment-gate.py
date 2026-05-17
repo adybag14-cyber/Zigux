@@ -330,7 +330,6 @@ def run_self_test() -> int:
 
         docs_readme_path = tmp_root / "Documentation/zigux/README.md"
         original_docs_readme = docs_readme_path.read_text(encoding="utf-8")
-        docs_readme_path.writeText = None
         docs_readme_path.write_text(
             original_docs_readme.replace(
                 "make -C zigux phase8-libbpf-segments-test",
