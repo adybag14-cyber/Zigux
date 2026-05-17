@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import tempfile
 from pathlib import Path
@@ -138,6 +139,119 @@ def _expected_blockers_payload() -> dict[str, object]:
     }
 
 
+def _load_artifact_diff_module(root: Path) -> object:
+    module_path = root / ARTIFACT_DIFF_REL
+    spec = importlib.util.spec_from_file_location(
+        "zigux_phase1_artifact_diff", module_path
+    )
+    if spec is None or spec.loader is None:
+        raise ImportError(f"unable to load artifact diff module from {module_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _artifact_diff_contract_issues(root: Path) -> list[str]:
+    issues: list[str] = []
+    try:
+        module = _load_artifact_diff_module(root)
+    except Exception as exc:  # pragma: no cover - surfaced as gate issue
+        return [f"artifact_diff_import:{exc}"]
+
+    compare = getattr(module, "compare_artifacts", None)
+    render = getattr(module, "render_result_lines", None)
+    if not callable(compare):
+        issues.append("artifact_diff_missing_callable:compare_artifacts")
+    if not callable(render):
+        issues.append("artifact_diff_missing_callable:render_result_lines")
+    if issues:
+        return issues
+
+    fixture = root / FIXTURE_REL
+    readme = root / README_REL
+    blockers = root / BLOCKERS_REL
+
+    with tempfile.TemporaryDirectory(prefix="zigux_phase1_parity_artifact_diff_") as tmp:
+        tmp_root = Path(tmp)
+
+        drift_fixture = tmp_root / "fixture_drift.json"
+        fixture_payload = _read_json(fixture)
+        assert isinstance(fixture_payload, dict)
+        fixture_payload["string"] = {"strtobool_invalid": 22}
+        drift_fixture.write_text(
+            json.dumps(fixture_payload, indent=2) + "\n", encoding="utf-8"
+        )
+
+        drift_readme = tmp_root / "README_drift.md"
+        drift_readme.write_text(
+            _read_text(readme) + "\nartifact drift\n", encoding="utf-8"
+        )
+
+        drift_blockers = tmp_root / "blockers_drift.json"
+        drift_blockers.write_text(_read_text(blockers) + "\n", encoding="utf-8")
+
+        pass_cases = (
+            ("json_fixture_pass", "json", fixture, fixture),
+            ("text_readme_pass", "text", readme, readme),
+            ("sha256_blockers_pass", "sha256", blockers, blockers),
+        )
+        for case_name, mode, expected_path, actual_path in pass_cases:
+            matched, details = compare(mode, expected_path, actual_path)
+            if matched is not True:
+                issues.append(f"artifact_diff_case:{case_name}:matched={matched!r}")
+                continue
+            lines = render(matched, details)
+            expected_prefix = [
+                "ARTIFACT_DIFF=pass",
+                f"MODE={mode}",
+                f"EXPECTED={expected_path}",
+                f"ACTUAL={actual_path}",
+            ]
+            if lines[:4] != expected_prefix:
+                issues.append(f"artifact_diff_case:{case_name}:lines")
+            if mode == "sha256":
+                if len(lines) != 5 or not lines[4].startswith("SHA256="):
+                    issues.append(f"artifact_diff_case:{case_name}:sha256")
+            elif len(lines) != 4:
+                issues.append(
+                    f"artifact_diff_case:{case_name}:line_count={len(lines)}"
+                )
+
+        fail_cases = (
+            ("json_fixture_drift", "json", fixture, drift_fixture),
+            ("text_readme_drift", "text", readme, drift_readme),
+            ("sha256_blockers_drift", "sha256", blockers, drift_blockers),
+        )
+        for case_name, mode, expected_path, actual_path in fail_cases:
+            matched, details = compare(mode, expected_path, actual_path)
+            if matched is not False:
+                issues.append(f"artifact_diff_case:{case_name}:matched={matched!r}")
+                continue
+            lines = render(matched, details)
+            expected_prefix = [
+                "ARTIFACT_DIFF=fail",
+                f"MODE={mode}",
+                f"EXPECTED={expected_path}",
+                f"ACTUAL={actual_path}",
+            ]
+            if lines[:4] != expected_prefix:
+                issues.append(f"artifact_diff_case:{case_name}:lines")
+            if mode == "sha256":
+                if (
+                    len(lines) != 6
+                    or not lines[4].startswith("EXPECTED_SHA256=")
+                    or not lines[5].startswith("ACTUAL_SHA256=")
+                    or lines[4] == lines[5]
+                ):
+                    issues.append(f"artifact_diff_case:{case_name}:sha256")
+            elif len(lines) != 4:
+                issues.append(
+                    f"artifact_diff_case:{case_name}:line_count={len(lines)}"
+                )
+
+    return issues
+
+
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
 
@@ -165,6 +279,7 @@ def collect_issues(root: Path) -> list[str]:
     for marker in ARTIFACT_DIFF_MARKERS:
         if marker not in artifact_diff_text:
             issues.append(f"artifact_diff_marker:{marker}")
+    issues.extend(_artifact_diff_contract_issues(root))
 
     readme_text = _read_text(readme)
     for marker in README_REQUIRED_MARKERS:
@@ -227,7 +342,9 @@ def collect_issues(root: Path) -> list[str]:
                 issues.append("blockers_replay:not_json_object")
             else:
                 if replay_blockers.get("path") != REPLAY_REL.as_posix():
-                    issues.append(f"blockers_replay_path:{replay_blockers.get('path')!r}")
+                    issues.append(
+                        f"blockers_replay_path:{replay_blockers.get('path')!r}"
+                    )
                 if replay_blockers.get("state") != "blocked":
                     issues.append(
                         f"blockers_replay_state:{replay_blockers.get('state')!r}"
@@ -357,15 +474,61 @@ def make_replay_text() -> str:
 
 
 def make_artifact_diff_text() -> str:
-    return "\n".join(
-        (
-            "#!/usr/bin/env python3",
-            "TEXT = 'MODE=text'",
-            "JSON = 'MODE=json'",
-            "SHA = 'MODE=sha256'",
-            "print_marker = 'ARTIFACT_DIFF_SELF_TEST=pass'",
-        )
-    ) + "\n"
+    return """#!/usr/bin/env python3
+import hashlib
+import json
+from pathlib import Path
+
+SELF_TEST_MARKER = "ARTIFACT_DIFF_SELF_TEST=pass"
+TEXT_MARKER = "MODE=text"
+JSON_MARKER = "MODE=json"
+SHA_MARKER = "MODE=sha256"
+
+def read_text(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
+
+def canonical_json(path: Path):
+    return json.loads(read_text(path))
+
+def sha256_digest(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def compare_artifacts(mode: str, expected: Path, actual: Path):
+    details = {"mode": mode, "expected": str(expected), "actual": str(actual)}
+    if not expected.exists() or not actual.exists():
+        details["expected_exists"] = expected.exists()
+        details["actual_exists"] = actual.exists()
+        return False, details
+    if mode == "text":
+        expected_value = read_text(expected)
+        actual_value = read_text(actual)
+    elif mode == "json":
+        expected_value = canonical_json(expected)
+        actual_value = canonical_json(actual)
+    elif mode == "sha256":
+        expected_value = sha256_digest(expected)
+        actual_value = sha256_digest(actual)
+        details["expected_sha256"] = expected_value
+        details["actual_sha256"] = actual_value
+    else:
+        raise ValueError(f"unsupported artifact diff mode: {mode}")
+    return expected_value == actual_value, details
+
+def render_result_lines(matched: bool, details: dict[str, object]) -> list[str]:
+    lines = ["ARTIFACT_DIFF=pass" if matched else "ARTIFACT_DIFF=fail"]
+    lines.append(f"MODE={details['mode']}")
+    lines.append(f"EXPECTED={details['expected']}")
+    lines.append(f"ACTUAL={details['actual']}")
+    if matched and "expected_sha256" in details:
+        lines.append(f"SHA256={details['expected_sha256']}")
+    elif not matched and "expected_sha256" in details:
+        lines.append(f"EXPECTED_SHA256={details['expected_sha256']}")
+        lines.append(f"ACTUAL_SHA256={details['actual_sha256']}")
+    elif not matched and "expected_exists" in details:
+        lines.append(f"EXPECTED_EXISTS={details['expected_exists']}")
+        lines.append(f"ACTUAL_EXISTS={details['actual_exists']}")
+    return lines
+"""
 
 
 def make_readme_text() -> str:
@@ -407,7 +570,20 @@ def run_self_test() -> int:
 
         missing_artifact_diff_root = build_case_root(tmp_root / "missing_artifact_diff")
         (missing_artifact_diff_root / ARTIFACT_DIFF_REL).unlink()
-        cases.append(("missing_artifact_diff", run_check(missing_artifact_diff_root) != 0))
+        cases.append(
+            ("missing_artifact_diff", run_check(missing_artifact_diff_root) != 0)
+        )
+
+        artifact_diff_contract_root = build_case_root(tmp_root / "artifact_diff_contract")
+        write_file(
+            artifact_diff_contract_root / ARTIFACT_DIFF_REL,
+            make_artifact_diff_text().replace(
+                "def render_result_lines", "def render_result_rows", 1
+            ),
+        )
+        cases.append(
+            ("artifact_diff_contract", run_check(artifact_diff_contract_root) != 0)
+        )
 
         fixture_drift_root = build_case_root(tmp_root / "fixture_drift")
         write_file(
@@ -428,7 +604,9 @@ def run_self_test() -> int:
             )
             + "\n",
         )
-        cases.append(("fixture_string_drift", run_check(fixture_string_drift_root) != 0))
+        cases.append(
+            ("fixture_string_drift", run_check(fixture_string_drift_root) != 0)
+        )
 
         fixture_slab_drift_root = build_case_root(tmp_root / "fixture_slab_drift")
         write_file(
