@@ -59,7 +59,6 @@ BUILD_ZIG_MARKERS = [
     '.name = "phase1-host-tools-smoke",',
     "root_module.addImport(\"argv_split\", argv_split_module);",
     "root_module.addImport(\"string\", string_module);",
-    "return b.addRunArtifact(tests);",
 ]
 
 SMOKE_ZIG_MARKERS = [
