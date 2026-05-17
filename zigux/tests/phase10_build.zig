@@ -38,6 +38,16 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    const virtio_ring_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_ring.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_ring_verify_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_ring_verify.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
 
     const phase10_virtio_input_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input.zig"),
@@ -99,6 +109,27 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const phase10_virtio_ring_prepare_kick_idempotent_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_ring_prepare_kick_idempotent.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_ring_prepare_kick_idempotent_module.addImport("virtio_ring", virtio_ring_module);
+
+    const phase10_virtio_ring_reset_reuse_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_ring_reset_reuse.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_ring_reset_reuse_module.addImport("virtio_ring", virtio_ring_module);
+
+    const phase10_virtio_ring_broken_queue_queue_discipline_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_ring_broken_queue_queue_discipline.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_ring_broken_queue_queue_discipline_module.addImport("virtio_ring", virtio_ring_module);
+
     const phase10_virtio_input_tests = b.addTest(.{
         .name = "phase10-virtio-input-tests",
         .root_module = phase10_virtio_input_module,
@@ -154,6 +185,34 @@ pub fn build(b: *std.Build) void {
     const run_phase10_virtio_input_verify_tests =
         b.addRunArtifact(phase10_virtio_input_verify_tests);
 
+    const phase10_virtio_ring_prepare_kick_idempotent_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-prepare-kick-idempotent-tests",
+        .root_module = phase10_virtio_ring_prepare_kick_idempotent_module,
+    });
+    const run_phase10_virtio_ring_prepare_kick_idempotent_tests =
+        b.addRunArtifact(phase10_virtio_ring_prepare_kick_idempotent_tests);
+
+    const phase10_virtio_ring_reset_reuse_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-reset-reuse-tests",
+        .root_module = phase10_virtio_ring_reset_reuse_module,
+    });
+    const run_phase10_virtio_ring_reset_reuse_tests =
+        b.addRunArtifact(phase10_virtio_ring_reset_reuse_tests);
+
+    const phase10_virtio_ring_broken_queue_queue_discipline_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-broken-queue-queue-discipline-tests",
+        .root_module = phase10_virtio_ring_broken_queue_queue_discipline_module,
+    });
+    const run_phase10_virtio_ring_broken_queue_queue_discipline_tests =
+        b.addRunArtifact(phase10_virtio_ring_broken_queue_queue_discipline_tests);
+
+    const phase10_virtio_ring_verify_tests = b.addTest(.{
+        .name = "phase10-virtio-ring-verify-tests",
+        .root_module = virtio_ring_verify_module,
+    });
+    const run_phase10_virtio_ring_verify_tests =
+        b.addRunArtifact(phase10_virtio_ring_verify_tests);
+
     const phase10_virtio_mmio_tests = b.addTest(.{
         .name = "phase10-virtio-mmio-tests",
         .root_module = virtio_mmio_module,
@@ -162,7 +221,7 @@ pub fn build(b: *std.Build) void {
 
     const test_step = b.step(
         "test",
-        "Run the live Phase 10 virtio input and MMIO lab validation tests",
+        "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
     );
     test_step.dependOn(&run_phase10_virtio_input_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_probe_preflight_tests.step);
@@ -172,5 +231,9 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_input_teardown_observation_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_survey_tests.step);
     test_step.dependOn(&run_phase10_virtio_input_verify_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);
+    test_step.dependOn(&run_phase10_virtio_ring_verify_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
 }
