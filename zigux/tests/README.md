@@ -110,8 +110,9 @@ Phase 3 review packet
   * keep `Documentation/zigux/phase3-shared-reminder-gap.md` limited to tracking any future shared-surface drift or separate scripts-root inventory follow-through, because `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` already carry the bounded three-slice posture and this tests-root packet should stay aligned with them
 
 Phase 7 review packet
-  * current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`
-  * repo-reality warning for the broader Phase 7 rbtree packet:
+  * current direct-readback Phase 7 anchors: `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, and `zigux/tests/phase7_rbtree_survey.zig`
+  * keep the current Phase 7 tests-root reminder aligned with the directly readable string_helpers helper-local packet plus the surviving direct `zigux/tests/phase7_rbtree_survey.zig` anchor instead of framing current `master` as if only the narrower rbtree reminder were still visible
+  * repo-reality warning for the broader remaining Phase 7 rbtree packet:
     `Documentation/zigux/phase7-helper-lane-sequencing.md`
     `Documentation/zigux/phase7-rbtree-slice.md`
     `scripts/zigux/check-phase7-rbtree-parity.py`
@@ -120,9 +121,8 @@ Phase 7 review packet
     `zigux/tests/fixtures/phase7_rbtree.json`
     `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
     `zigux/tests/phase7_build.zig`
-  * treat those paths plus the older `make -C zigux phase7-validate` and `make -C zigux phase7` route names as last-known packet members that need fresh reread or re-materialization before they are presented here as shipped direct evidence again
-  * keep the narrower current Phase 7 reminder surface tied to the directly readable `zigux/tests/phase7_rbtree_survey.zig` anchor instead of reconstructing the broader helper packet from older route names alone
-  * leave `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond rbtree, even if older helper packet references still mention `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`
+  * treat those broader rbtree paths plus the older `make -C zigux phase7-validate` and `make -C zigux phase7` route names as last-known packet members that still need fresh reread or re-materialization before they are presented here as shipped direct evidence again
+  * leave `cmdline` and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond the directly readable string_helpers packet and the surviving rbtree survey anchor
 
 Phase 8 review packet
   * current direct-readback Phase 8 anchors:
