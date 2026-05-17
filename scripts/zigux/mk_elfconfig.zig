@@ -133,6 +133,17 @@ test "classifies unsupported ELF class silently" {
     try std.testing.expectEqual(Outcome.invalid_class, classify(&header));
 }
 
+test "readHeader returns zero bytes on immediate EOF" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "empty.bin", .{ .read = true });
+    defer file.close(io);
+
+    const header = try readHeader(file.handle);
+    try std.testing.expectEqual(@as(usize, 0), header.len);
+}
+
 test "readHeader stops at the first ELF header" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
@@ -140,7 +151,7 @@ test "readHeader stops at the first ELF header" {
     const file = try temp_dir.dir.createFile(io, "header.bin", .{ .read = true });
     defer file.close(io);
     try file.writePositionalAll(io, &[_]u8{
-        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0x7f, 'E',  'L',  'F',  elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0xaa, 0xbb, 0xcc, 0xdd,
     }, 0);
 
