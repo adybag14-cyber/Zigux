@@ -1,0 +1,70 @@
+const std = @import("std");
+const testing = std.testing;
+
+const uapi_dev_t = @import("uapi_dev_t");
+const uapi_version = @import("uapi_version");
+const dev_t = @import("dev_t_binding");
+const version = @import("version_binding");
+const export_shim = @import("export_shim");
+
+test "export and uapi dev_t layouts stay aligned" {
+    const fields = dev_t.init(11, 29);
+    const uapi_fields = uapi_dev_t.init(11, 29);
+
+    try testing.expectEqual(@as(u32, 1), dev_t.abi_version);
+    try testing.expectEqual(uapi_dev_t.fields_size, dev_t.fields_size);
+    try testing.expectEqual(uapi_dev_t.fields_align, dev_t.fields_align);
+    try testing.expectEqual(uapi_dev_t.major_offset, dev_t.major_offset);
+    try testing.expectEqual(uapi_dev_t.minor_offset, dev_t.minor_offset);
+    try testing.expectEqual(@as(u32, fields.major), uapi_fields.major);
+    try testing.expectEqual(@as(u32, fields.minor), uapi_fields.minor);
+    try testing.expectEqual(@as(usize, 8), @sizeOf(export_shim.DevTFields));
+    try testing.expectEqual(@as(usize, 4), @alignOf(export_shim.DevTFields));
+}
+
+test "export and uapi version layouts stay aligned" {
+    const current = version.current();
+    const uapi_current = uapi_version.current();
+
+    try testing.expectEqual(@as(u32, 0), version.abi_major);
+    try testing.expectEqual(@as(u32, 1), version.abi_minor);
+    try testing.expectEqual(@as(u32, 1), version.header_family_revision);
+    try testing.expectEqual(uapi_version.version_size, version.version_size);
+    try testing.expectEqual(uapi_version.version_align, version.version_align);
+    try testing.expectEqual(uapi_version.abi_major_offset, version.abi_major_offset);
+    try testing.expectEqual(uapi_version.abi_minor_offset, version.abi_minor_offset);
+    try testing.expectEqual(uapi_version.header_family_revision_offset, version.header_family_revision_offset);
+    try testing.expect(version.eql(current, uapi_current));
+    try testing.expect(version.eql(current, export_shim.currentVersion()));
+}
+
+test "export shim reuses the canonical boundary header contract" {
+    const header = export_shim.canonicalHeader(0x41);
+
+    try testing.expectEqual(@as(u32, @sizeOf(export_shim.BoundaryHeader)), header.size);
+    try testing.expectEqual(@as(u16, 1), header.abi_version);
+    try testing.expectEqual(@as(u16, 0x41), header.flags);
+    try testing.expectEqual(@as(usize, 8), @sizeOf(export_shim.BoundaryHeader));
+    try testing.expectEqual(@as(usize, 4), @alignOf(export_shim.BoundaryHeader));
+    try testing.expectEqual(@as(usize, 0), @offsetOf(export_shim.BoundaryHeader, "size"));
+    try testing.expectEqual(@as(usize, 4), @offsetOf(export_shim.BoundaryHeader, "abi_version"));
+    try testing.expectEqual(@as(usize, 6), @offsetOf(export_shim.BoundaryHeader, "flags"));
+}
+
+test "export shim keeps facility tagged statuses explicit" {
+    const ok = export_shim.okStatus(.helpers);
+    const err = export_shim.errorStatus(-22, .kernel);
+    const positive = export_shim.errorStatus(7, .drivers);
+
+    try testing.expectEqual(@as(i32, 0), ok.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.helpers)), ok.facility);
+    try testing.expectEqual(@as(u16, 0), ok.flags);
+
+    try testing.expectEqual(@as(i32, -22), err.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), err.facility);
+    try testing.expectEqual(@as(u16, 1), err.flags);
+
+    try testing.expectEqual(@as(i32, 7), positive.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.drivers)), positive.facility);
+    try testing.expectEqual(@as(u16, 0), positive.flags);
+}
