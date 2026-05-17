@@ -53,7 +53,7 @@ This lane may:
 - keep `samples/zigux/runtime_trace_events_unregistered_gate.zig` explicit as the same packet's fail-closed companion
 - keep the shipped `scripts/zigux/check-phase9-trace-events-runtime-packet.py` guard explicit as part of the narrow current review packet
 - keep the roadmap target explicit without pretending the broader shared runtime-loader family is still shipped
-- keep the freeze-map study-only anchors explicit: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` still belong to `Documentation/zigux/freeze-map.md` as boundary-study-only anchors, so this lane may use them only as cautionary non-owner context rather than as proof of runtime-substrate or bridge readiness
+- keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness
 
 This lane should not reopen:
 
@@ -70,7 +70,7 @@ This lane should not reopen:
 4. Do not describe `zigux/tests/phase9_build.zig`, shared `zigux/tests/runtime_*` replays, shared runtime-loader kernel files, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds as shipped evidence unless a fresh repo reread proves they have returned.
 5. Treat the older `phase9-runtime-loader-gap-survey` note plus the `runtime_loader_gap_*` survey companions as historical blocked-boundary vocabulary, not as current shared-owner proof for the surviving narrow packet, unless a fresh repo reread proves the broader loader family returned.
 6. Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work.
-7. Keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` framed as freeze-map study-only anchors instead of letting the surviving runtime-pilot packet imply deeper runtime-substrate or bridge readiness across those boundaries.
+7. Keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` framed as freeze-map study-only anchors, and route that shared anchor inventory back through `Documentation/zigux/phase15-study-only-anchor-accounting.md`, instead of letting the surviving runtime-pilot packet imply deeper runtime-substrate or bridge readiness across those boundaries.
 8. Refresh one shared reminder surface at a time when the tree changes again.
 9. If the broader shared runtime-loader packet returns later, reread the exact file family before widening this note back out.
 
