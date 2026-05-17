@@ -64,6 +64,8 @@ REQUIRED_MARKERS = {
     STARTER_TEST_PATH: (
         'test "xarray slot view keeps null slots explicit" {',
         'test "safe inline limit still lands in the tagged-value lane" {',
+        'test "inline zero stays tagged without looking like a null slot" {',
+        'test "top err_ptr encoding stays tagged and never falls back to pointer-like" {',
     ),
     STARTER_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/xarray_slot_view.zig"),',
@@ -77,7 +79,9 @@ REQUIRED_MARKERS = {
         'const xarray_slot_view = @import("xarray_slot_view");',
         '.pointer => "pointer_like",',
         '\\"is_tagged_internal\\": {s}',
+        'try writeCase(writer, "inline_zero", inline_zero_raw, true);',
         'try writeCase(writer, "inline_limit", inline_limit_raw, true);',
+        'try writeCase(writer, "err_top", err_ptr.fromErrorCode(-1), true);',
         'try writeCase(writer, "err_max", err_ptr.fromErrorCode(-4095), false);',
     ),
     DUMP_BUILD_PATH: (
@@ -91,14 +95,17 @@ REQUIRED_MARKERS = {
         "#define MAX_ERRNO ((uintptr_t)4095)",
         "static const char *kind_name(uintptr_t raw) {",
         'return "pointer_like";',
-        'write_case("inline_limit", inline_limit_raw, 1);',
+        'write_case("inline_zero", make_value(0), 1);',
+        'write_case("err_top", (uintptr_t)(intptr_t)-1, 1);',
         'write_case("err_max", (uintptr_t)(intptr_t)-4095, 0);',
     ),
     EXPECTED_PATH: (
         '"word_bits": 64',
         '"safe_inline_limit_raw_hex": "0xffffffffffffefff"',
-        '"name": "inline_limit"',
-        '"decoded_value": 9223372036854773759',
+        '"name": "inline_zero"',
+        '"decoded_value": 0',
+        '"name": "err_top"',
+        '"decoded_error": -1',
         '"decoded_error": -4095',
     ),
     MANIFEST_PATH: (
@@ -269,7 +276,7 @@ def validate_repo(
                     "python3 scripts/zigux/check-phase3-xarray-slot.py --self-test",
                     "python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc",
                     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
-                    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
+                    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"
                 ):
                     if route not in replay_routes:
                         issues.append(
@@ -310,34 +317,34 @@ def _populate_repo(root: Path) -> None:
     _write(
         root / MANIFEST_PATH,
         """{
-  \"phase\": \"Phase 3\",
-  \"lane\": \"helper-interop\",
-  \"slug\": \"phase3-xarray-slot\",
-  \"status\": \"parity_packet_present\",
-  \"scope\": \"fixture-backed xarray slot classification parity dump\",
-  \"packet_files\": [
-    \"Documentation/zigux/phase3-xarray-slot-slice.md\",
-    \"Documentation/zigux/phase3-validator-support-surface.md\",
-    \"zigux/helpers/err_ptr.zig\",
-    \"zigux/helpers/xa_value.zig\",
-    \"zigux/helpers/xarray_slot_view.zig\",
-    \"zigux/tests/phase3_xarray_slot_starter_packet.zig\",
-    \"zigux/tests/phase3_xarray_slot_starter_packet_build.zig\",
-    \"scripts/zigux/check-phase3-xarray-slot-starter-packet.py\",
-    \"zigux/tests/phase3_xarray_slot_dump.zig\",
-    \"zigux/tests/phase3_xarray_slot_dump_build.zig\",
-    \"zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c\",
-    \"zigux/tests/fixtures/phase3_xarray_slot/expected.json\",
-    \"zigux/tests/fixtures/phase3_xarray_slot_manifest.json\",
-    \"scripts/zigux/check-phase3-xarray-slot.py\"
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-xarray-slot",
+  "status": "parity_packet_present",
+  "scope": "fixture-backed xarray slot classification parity dump",
+  "packet_files": [
+    "Documentation/zigux/phase3-xarray-slot-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/helpers/xarray_slot_view.zig",
+    "zigux/tests/phase3_xarray_slot_starter_packet.zig",
+    "zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
+    "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
+    "zigux/tests/phase3_xarray_slot_dump.zig",
+    "zigux/tests/phase3_xarray_slot_dump_build.zig",
+    "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c",
+    "zigux/tests/fixtures/phase3_xarray_slot/expected.json",
+    "zigux/tests/fixtures/phase3_xarray_slot_manifest.json",
+    "scripts/zigux/check-phase3-xarray-slot.py"
   ],
-  \"replay_routes\": [
-    \"python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test\",
-    \"python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --repo-root .\",
-    \"python3 scripts/zigux/check-phase3-xarray-slot.py --self-test\",
-    \"python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc\",
-    \"zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig\",
-    \"zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig\"
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --repo-root .",
+    "python3 scripts/zigux/check-phase3-xarray-slot.py --self-test",
+    "python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
+    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"
   ]
 }
 """,
@@ -347,7 +354,7 @@ def _populate_repo(root: Path) -> None:
 SELF_TEST_CASES = (
     (SLICE_PATH, "fixture-backed parity packet"),
     (VALIDATOR_NOTE_PATH, "zigux/tests/phase3_xarray_slot_dump.zig"),
-    (DUMP_PATH, '\\\"is_tagged_internal\\\": {s}'),
+    (DUMP_PATH, '\\"is_tagged_internal\\": {s}'),
     (C_HARNESS_PATH, 'write_case("err_max", (uintptr_t)(intptr_t)-4095, 0);'),
     (MANIFEST_PATH, '"status": "parity_packet_present"'),
 )
