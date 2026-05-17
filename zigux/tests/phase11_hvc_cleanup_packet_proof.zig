@@ -50,6 +50,7 @@ test "phase11 hvc cleanup packet proof keeps cleanup replay markers explicit" {
     try expectContains(cleanup_replay, "try std.testing.expect(hangup_cleanup.close_skipped);");
     try expectContains(cleanup_replay, "try std.testing.expect(hangup_cleanup.drops_tty_port_reference);");
     try expectContains(cleanup_companion, "phase11 hvc cleanup");
+    try expectContains(cleanup_companion, "CleanupTrigger.final_close_and_hangup");
 }
 
 test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the landed cleanup handoff" {
