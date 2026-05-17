@@ -273,8 +273,6 @@ pub fn build(b: *std.Build) void {
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
 
-    // Keep the shared tests root centered on anchors that are still present on
-    // current master while reintroducing a compact Phase 1 host-tools smoke path.
     const phase12_virtio_net_survey = addSurveyTest(
         b,
         "phase12-virtio-net-survey",
@@ -306,6 +304,13 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 3 err_ptr/xarray dump from zigux/tests",
     );
     phase3_errptr_xarray_dump_step.dependOn(&phase3_errptr_xarray_dump.step);
+
+    const phase3_errptr_xarray_slice_step = b.step(
+        "phase3-errptr-xarray",
+        "Run the shared Phase 3 err_ptr/xarray starter packet and dump from zigux/tests",
+    );
+    phase3_errptr_xarray_slice_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
+    phase3_errptr_xarray_slice_step.dependOn(&phase3_errptr_xarray_dump.step);
 
     const phase3_policy_step = b.step(
         "phase3-policy-starter-packet",
