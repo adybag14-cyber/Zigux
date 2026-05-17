@@ -63,7 +63,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_survey_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_module_note_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase11_validation_matrix_present);
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
 
     var starter_landed_count: usize = 0;
     var blocked_count: usize = 0;
@@ -72,6 +72,7 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
     var saw_doc_gate = false;
     var saw_test_gate = false;
     var saw_slice_note = false;
+    var saw_teardown_note = false;
     var saw_validation_matrix = false;
     var saw_stop_followup = false;
     var saw_handoff_followup = false;
@@ -122,6 +123,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
             saw_slice_note = true;
             try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-module-slice.md", gap.zigux_destination);
             try std.testing.expectEqualStrings("starter_landed", gap.status);
+        }
+
+        if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-teardown-note")) {
+            saw_teardown_note = true;
+            try std.testing.expectEqualStrings("Documentation/zigux/phase11-gpio-wdt-teardown-note.md", gap.zigux_destination);
+            try std.testing.expectEqualStrings("starter_landed", gap.status);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "teardown") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "drvdata ownership checkpoint") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase11-gpio-wdt-validation-matrix")) {
@@ -184,13 +193,14 @@ test "phase11 gpio_wdt survey manifest records the refreshed starter state and r
         }
     }
 
-    try std.testing.expectEqual(@as(usize, 13), starter_landed_count);
+    try std.testing.expectEqual(@as(usize, 14), starter_landed_count);
     try std.testing.expectEqual(@as(usize, 1), blocked_count);
     try std.testing.expect(saw_build_gate);
     try std.testing.expect(saw_doc_gate);
     try std.testing.expect(saw_driver_gap);
     try std.testing.expect(saw_test_gate);
     try std.testing.expect(saw_slice_note);
+    try std.testing.expect(saw_teardown_note);
     try std.testing.expect(saw_validation_matrix);
     try std.testing.expect(saw_stop_followup);
     try std.testing.expect(saw_handoff_followup);
@@ -220,17 +230,33 @@ test "phase11 gpio_wdt survey note and validation matrix stay aligned" {
     );
     defer std.testing.allocator.free(validation_matrix);
 
+    const teardown_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase11-gpio-wdt-teardown-note.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(teardown_note);
+
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-gpio-wdt-validation-matrix.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase11-gpio-wdt-teardown-note.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drvdataOwnershipCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live GPIO descriptor lookup") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "PHASE11_GPIO_WDT_STATUS=hardware_validation_matrix_landed") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11-gpio-wdt-teardown-note.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "drvdataOwnershipCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "phase11_gpio_wdt.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "teardown-facing handoff note") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "requestStop()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "drvdataOwnershipCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "registrationHandoffSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, teardown_note, "live reboot-hook, remove-hook, or shutdown execution") != null);
 }
 
 test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
@@ -257,6 +283,7 @@ test "phase11 gpio_wdt module-slice note stays wired into the review packet" {
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "descriptorPreflightSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "timeoutPropertyCheckpointSummary()") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "drvdataOwnershipCheckpointSummary()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, module_slice, "phase11-gpio-wdt-teardown-note.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, module_slice, "platform-driver registration") != null);
 
     try std.testing.expect(std.mem.indexOf(u8, validation_matrix, "Documentation/zigux/phase11-gpio-wdt-module-slice.md") != null);
