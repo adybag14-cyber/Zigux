@@ -25,7 +25,7 @@ fn expectSurveyedCommitAlignment(
     try expectContains(survey_note, note_marker);
 }
 
-test "phase10 virtio input survey note keeps the restored verifier and queue callback packet explicit" {
+test "phase10 virtio input survey note keeps the restored verifier, teardown parity, and queue callback packet explicit" {
     const allocator = std.testing.allocator;
     const survey_note = try readRepoRelative(
         allocator,
@@ -37,7 +37,7 @@ test "phase10 virtio input survey note keeps the restored verifier and queue cal
     defer allocator.free(manifest);
 
     try expectContains(survey_note, "PHASE10_STATUS=parked");
-    try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L22");
+    try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L13");
     try expectContains(survey_note, "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport");
     try expectContains(survey_note, "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`");
     try expectContains(survey_note, "lab-only driver validation");
@@ -52,6 +52,10 @@ test "phase10 virtio input survey note keeps the restored verifier and queue cal
         survey_note,
         "the direct input gate, the probe-preflight replay, the queue-callback-preflight replay, the registration-preflight replay, the status-drain replay, the teardown-observation replay, and the wrapper-facing verify replay into one bounded shared gate for the live input packet.",
     );
+    try expectContains(
+        survey_note,
+        "wrapper-facing teardown-reset verify parity stays explicit across reset",
+    );
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-local MMIO tests") == null);
 }
 
@@ -62,6 +66,10 @@ test "phase10 virtio input manifest keeps the restored replay ids and blocked li
 
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-verify-replay\"");
     try expectContains(manifest, "\"zigux_destination\": \"drivers/virtio/virtio_input_verify.zig\"");
+    try expectContains(
+        manifest,
+        "teardown-reset parity across reset explicit without widening into transport-backed queue execution or freeze, restore, or remove lifecycle claims",
+    );
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-queue-callback-preflight-replay\"");
     try expectContains(manifest, "\"zigux_destination\": \"zigux/tests/phase10_virtio_input_queue_callback_preflight.zig\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-registration-preflight-helper\"");
@@ -99,12 +107,14 @@ test "phase10 virtio input slice companions keep the replay inventory and blocke
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
     try expectContains(slice_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
+    try expectContains(slice_note, "teardown-reset parity explicit across reset");
 
     try expectContains(module_note, "drivers/virtio/virtio_input_registration_preflight.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_registration_preflight.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
     try expectContains(module_note, "zigux/tests/phase10_virtio_input_teardown_observation.zig");
+    try expectContains(module_note, "teardown-reset parity across reset");
     try expectContains(module_note, "the dedicated status-drain helper plus replay");
     try expectContains(module_note, "registration lifecycle closure, freeze, restore, remove, and broader transport-backed lifecycle work remain outside this module slice");
 }
