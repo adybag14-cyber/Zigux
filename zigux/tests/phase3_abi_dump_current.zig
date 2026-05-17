@@ -8,8 +8,14 @@ pub fn main(init: std.process.Init) !void {
     const stdout = &stdout_writer.interface;
 
     const default_header = abi.defaultHeader(0);
-    const policy = abi.defaultInteropPolicy();
-    const header_is_canonical = abi.headerIsCanonical(default_header);
+    const default_policy = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const header_is_canonical = default_header.size == @sizeOf(abi.BoundaryHeader) and
+        default_header.abi_version == abi.ABI_VERSION;
 
     try stdout.writeAll("{\n");
     try stdout.print("  \"abi_version\": {},\n", .{abi.ABI_VERSION});
@@ -49,10 +55,10 @@ pub fn main(init: std.process.Init) !void {
             @offsetOf(abi.InteropPolicy, "allocator_mode"),
             @offsetOf(abi.InteropPolicy, "unsafe_scope"),
             @offsetOf(abi.InteropPolicy, "reserved"),
-            policy.panic_mode,
-            policy.allocator_mode,
-            policy.unsafe_scope,
-            policy.reserved,
+            default_policy.panic_mode,
+            default_policy.allocator_mode,
+            default_policy.unsafe_scope,
+            default_policy.reserved,
         },
     );
     try stdout.print(
