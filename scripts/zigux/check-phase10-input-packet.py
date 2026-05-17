@@ -385,7 +385,6 @@ def run_self_test() -> int:
 
         input_helper_path = root / "drivers/virtio/virtio_input.zig"
         original_input_helper = input_helper_path.read_text(encoding="utf-8")
-        input_helper_path.writeText = input_helper_path.write_text
         input_helper_path.write_text(
             original_input_helper.replace(
                 "pub fn queueCallbackPreflightSummary(self: *const Self) QueueCallbackPreflightSummary {",
