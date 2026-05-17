@@ -291,6 +291,20 @@ test "runGenksymsCrc truncates each chunk at the first embedded NUL like fgets p
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "def") == null);
 }
 
+test "runGenksymsCrc skips a whole chunk when it begins with an embedded NUL" {
+    const nul_prefixed_input = [_]u8{ 0, 'd', 'e', 'f', '\n', 'x', '\n' };
+
+    var capture = try Capture(96).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(&nul_prefixed_input, &capture);
+
+    try std.testing.expectEqualStrings(
+        "{\"cases\":[{\"input\":\"x\",\"crc_hex\":\"0x8cdc1683\"}]}\n",
+        capture.list.items,
+    );
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "def") == null);
+}
+
 test "runGenksymsCrc trims repeated carriage returns before hashing" {
     var capture = try Capture(96).init(std.testing.allocator);
     defer capture.deinit();
