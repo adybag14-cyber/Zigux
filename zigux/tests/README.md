@@ -58,6 +58,7 @@ Phase 2 review packet
   * `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
   * `Documentation/zigux/review-checklist.md`
   * `scripts/zigux/README.md`
+  * `scripts/zigux/check-zig-toolchain.py`
   * `scripts/zigux/check-phase2-kbuild-routes.py`
   * `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
   * `scripts/zigux/check-phase2-tests-readme-alignment.py`
@@ -71,8 +72,9 @@ Phase 2 review packet
   * `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
   * `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
   * `zigux/tests/fixtures/kconfig_bridge/cases.json`
-  * the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, and toolchain reminder set plus the live kconfig bridge helpers and their fixture roster; keep this tests-root summary aligned to that narrower packet instead of rebuilding the older validator-first, cross-route, and make-route stack from missing current-`master` paths
-  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2`, so keep those route names framed as historical packet members rather than direct tests-root evidence until the files or wrappers return on current `master`
+  * `scripts/zigux/check-zig-toolchain.py` is directly readable on current `master` and keeps the pinned-channel probe, repo-local `.zig-toolchain` fallback, and archive-integrity validation surface explicit beside the scripts-root kbuild, cross-selftest, and toolchain reminder guards plus the live kconfig bridge helpers and fixture roster
+  * the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, toolchain reminder, and direct toolchain-checker set plus the live kconfig bridge helpers and their fixture roster; keep this tests-root summary aligned to that narrower packet instead of rebuilding the older validator-first, cross-route, and make-route stack from missing current-`master` paths
+  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2`, so keep those route names framed as historical packet members rather than direct tests-root evidence until the files or wrappers return on current `master`
   * keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
 
 Phase 3 review packet
@@ -110,9 +112,8 @@ Phase 3 review packet
   * keep `Documentation/zigux/phase3-shared-reminder-gap.md` limited to tracking any future shared-surface drift or separate scripts-root inventory follow-through, because `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` already carry the bounded three-slice posture and this tests-root packet should stay aligned with them
 
 Phase 7 review packet
-  * current direct-readback Phase 7 anchors: `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, and `zigux/tests/phase7_rbtree_survey.zig`
-  * keep the current Phase 7 tests-root reminder aligned with the directly readable string_helpers helper-local packet plus the surviving direct `zigux/tests/phase7_rbtree_survey.zig` anchor instead of framing current `master` as if only the narrower rbtree reminder were still visible
-  * repo-reality warning for the broader remaining Phase 7 rbtree packet:
+  * current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`
+  * repo-reality warning for the broader Phase 7 rbtree packet:
     `Documentation/zigux/phase7-helper-lane-sequencing.md`
     `Documentation/zigux/phase7-rbtree-slice.md`
     `scripts/zigux/check-phase7-rbtree-parity.py`
@@ -121,8 +122,9 @@ Phase 7 review packet
     `zigux/tests/fixtures/phase7_rbtree.json`
     `zigux/tests/fixtures/phase7_rbtree_c_harness.c`
     `zigux/tests/phase7_build.zig`
-  * treat those broader rbtree paths plus the older `make -C zigux phase7-validate` and `make -C zigux phase7` route names as last-known packet members that still need fresh reread or re-materialization before they are presented here as shipped direct evidence again
-  * leave `cmdline` and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond the directly readable string_helpers packet and the surviving rbtree survey anchor
+  * treat those paths plus the older `make -C zigux phase7-validate` and `make -C zigux phase7` route names as last-known packet members that need fresh reread or re-materialization before they are presented here as shipped direct evidence again
+  * keep the narrower current Phase 7 reminder surface tied to the directly readable `zigux/tests/phase7_rbtree_survey.zig` anchor instead of reconstructing the broader helper packet from older route names alone
+  * leave `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond rbtree, even if older helper packet references still mention `scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`
 
 Phase 8 review packet
   * current direct-readback Phase 8 anchors:
