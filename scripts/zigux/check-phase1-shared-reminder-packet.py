@@ -29,6 +29,7 @@ DOCS_ROOT_MARKERS = [
 SCRIPTS_README_MARKERS = [
     "- `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 reminder checks",
     "- `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped string-review and direct-owner marker packet explicit from the scripts root",
+    "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
 ]
 
 TESTS_README_MARKERS = [
@@ -62,7 +63,7 @@ SMOKE_ZIG_MARKERS = [
     'try std.testing.expect(@hasDecl(bitmap, "setRange"));',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 
 def repo_root(root: str | None) -> Path:
@@ -183,6 +184,7 @@ def run_self_test() -> int:
         ("missing_docs_marker", "Documentation/zigux/README.md", "remove_marker"),
         ("duplicate_docs_marker", "Documentation/zigux/README.md", "duplicate_marker"),
         ("missing_scripts_marker", "scripts/zigux/README.md", "remove_marker"),
+        ("missing_scripts_bench_marker", "scripts/zigux/README.md", "remove_scripts_bench_marker"),
         ("missing_bench_checker", "scripts/zigux/check-phase1-bench.py", "remove_file"),
         ("missing_tests_marker", "zigux/tests/README.md", "remove_marker"),
         ("missing_phase1_build", "zigux/tests/build.zig", "remove_file"),
@@ -203,6 +205,7 @@ def run_self_test() -> int:
 
     first_docs_marker = DOCS_ROOT_MARKERS[0]
     first_scripts_marker = SCRIPTS_README_MARKERS[0]
+    bench_scripts_marker = SCRIPTS_README_MARKERS[2]
     first_tests_marker = TESTS_README_MARKERS[0]
     first_checklist_marker = REVIEW_CHECKLIST_MARKERS[0]
     first_build_marker = BUILD_ZIG_MARKERS[0]
@@ -226,6 +229,8 @@ def run_self_test() -> int:
                     target.write_text(text.replace(first_tests_marker + "\n", "", 1), encoding="utf-8")
                 else:
                     target.write_text(text.replace(first_checklist_marker + "\n", "", 1), encoding="utf-8")
+            elif operation == "remove_scripts_bench_marker":
+                target.write_text(text.replace(bench_scripts_marker + "\n", "", 1), encoding="utf-8")
             elif operation == "duplicate_marker":
                 target.write_text(text.replace(first_docs_marker, first_docs_marker + "\n" + first_docs_marker, 1), encoding="utf-8")
             elif operation == "remove_build_marker":
