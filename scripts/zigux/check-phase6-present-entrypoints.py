@@ -319,6 +319,13 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
+        manifest["surveyed_head"] = "deadbeef"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "surveyed-head mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = json.loads(read_text(manifest_path))
         manifest["current_direct_readback_companions"] = manifest["current_direct_readback_companions"][:-1]
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "direct-readback companions mismatch")
@@ -364,6 +371,13 @@ def run_self_test() -> None:
         manifest["current_repo_reality_gaps"] = manifest["current_repo_reality_gaps"][:-1]
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "repo-reality gaps mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["last_known_shared_replay_inventory"] = manifest["last_known_shared_replay_inventory"][:-1]
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "shared replay inventory mismatch")
         cases_run += 1
         scaffold_repo(root)
 
