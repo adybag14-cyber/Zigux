@@ -71,10 +71,10 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/review-checklist.md` still carries broader shared Phase 3 reminder language than the directly readable slices on current `master`, while `Documentation/zigux/README.md` and `zigux/tests/README.md` now match the bounded starter-packet-plus-helper-slice posture.
+`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still lag the directly readable current Phase 3 surface after the policy slice landed. Those shared summaries still need one narrow truthfulness pass so they stop presenting `include/zigux/abi.h` and `zigux/bindings/abi.zig` as broader missing routes and instead describe the bounded three-slice posture on current `master`.
 
-Keep the remaining shared reminder follow-up focused on narrowing that broader review-checklist surface so it stays anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, this note, the manifest-backed starter packet, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
+Keep that remaining shared reminder follow-up focused on those three files so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, this note, the manifest-backed starter packets, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, its machine-readable manifest, and the two focused helper slices explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, and the two focused helper slices explicit, marks representative broader validator and export-boundary routes as current gaps, and records the remaining shared-reminder follow-up without claiming a wider shipped Phase 3 packet.
