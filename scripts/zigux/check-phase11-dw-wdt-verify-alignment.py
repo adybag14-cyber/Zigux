@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checker for the documented Phase 11 DesignWare verify-alignment gap."""
+"""Fail-closed checker for the resolved Phase 11 DesignWare verify-alignment packet."""
 
 from __future__ import annotations
 
@@ -13,28 +13,26 @@ FILES = {
     "note": "Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md",
     "matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
     "manifest": "zigux/tests/phase11_dw_wdt_manifest.json",
+    "verify": "drivers/watchdog/dw_wdt_verify.zig",
 }
 
 EXPECTED_MATRIX_LANE = "P11-L05"
 EXPECTED_MATRIX_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
-EXPECTED_MANIFEST_LANE = "P11-L10"
-EXPECTED_MANIFEST_PIN = "6726fdd9da4eef55498fb06c38815317a684bcbf"
+EXPECTED_MANIFEST_LANE = "P11-L05"
+EXPECTED_MANIFEST_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
 VERIFY_DESTINATION = "drivers/watchdog/dw_wdt_verify.zig"
 VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
 
 NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
     "- lane: `P11-L11`",
-    "- the shared `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` still names continuity `P11-L05` with surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
-    "- the current `zigux/tests/phase11_dw_wdt_manifest.json` instead records lane key `P11-L10` with surveyed commit `6726fdd9da4eef55498fb06c38815317a684bcbf`",
-    "- `drivers/watchdog/dw_wdt_verify.zig` now covers registration-blocking `drvdata` and timer-clock failure paths, imported-running handoff, reset-backed teardown and remove cleanup, continued-heartbeat teardown and remove behavior when reset control is absent, and idle no-op stop or teardown or remove behavior",
-    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the documented matrix-versus-manifest mismatch fail-closed until the shared DesignWare packet is refreshed together",
-    "- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-    "- `Documentation/zigux/phase11-dw-wdt-survey.md`",
-    "- `zigux/tests/phase11_dw_wdt_manifest.json`",
-    "- `zigux/tests/phase11_dw_wdt_survey.zig`",
-    "- `scripts/zigux/check-phase11-dw-wdt-packet.py`",
-    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`",
+    "- current `master` no longer has a matrix-versus-manifest continuity split for the DesignWare verify packet: both `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` and `zigux/tests/phase11_dw_wdt_manifest.json` now record continuity `P11-L05` with surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- `drivers/watchdog/dw_wdt_verify.zig` currently keeps stop-teardown ownership, inactive-versus-missing-`drvdata` teardown branching, and restart failure-mode coverage explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, PM behavior, or live MMIO validation",
+    "This note now exists as a closed-gap companion: it records that the shared validation matrix and manifest agree again, and it keeps a small fail-closed checker in place so future lane or surveyed-head drift reopens immediately instead of hiding inside Phase 11 reminder surfaces.",
+    "- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` describes the active continuity as `P11-L05` with surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` matches that same lane key and surveyed commit while still routing `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`",
+    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the resolved matrix-versus-manifest alignment and the current verify-helper scope fail-closed",
+    "- the next substantive non-doc move should remain one platform-backed acquisition scaffold only",
 ]
 
 MATRIX_MARKERS = [
@@ -42,6 +40,14 @@ MATRIX_MARKERS = [
     "current surveyed packet pin: `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "active watchdog continuity for this matrix and its coupled survey packet is `P11-L05`",
     "`drivers/watchdog/dw_wdt_verify.zig`",
+]
+
+VERIFY_MARKERS = [
+    "pub fn summarizeStopTeardown(request: StopTeardownRequest) StopTeardownSummary",
+    "pub fn summarizeRestartFailureMode(request: RestartFailureModeRequest) RestartFailureModeSummary",
+    'test "phase11 dw_wdt verify keeps stop teardown ownership explicit"',
+    'test "phase11 dw_wdt verify keeps inactive and missing-drvdata teardown paths distinct"',
+    'test "phase11 dw_wdt verify keeps restart failure modes explicit"',
 ]
 
 
@@ -108,15 +114,12 @@ def run_check(root: Path) -> None:
     note = read_text(root, FILES["note"])
     matrix = read_text(root, FILES["matrix"])
     manifest = read_manifest(root)
+    verify = read_text(root, FILES["verify"])
 
     expect_markers("note", note, NOTE_MARKERS)
     expect_markers("matrix", matrix, MATRIX_MARKERS)
+    expect_markers("verify", verify, VERIFY_MARKERS)
     expect_manifest_state(manifest)
-
-    if EXPECTED_MATRIX_LANE == EXPECTED_MANIFEST_LANE:
-        raise CheckError("expected documented lane mismatch collapsed unexpectedly")
-    if EXPECTED_MATRIX_PIN == EXPECTED_MANIFEST_PIN:
-        raise CheckError("expected documented surveyed-pin mismatch collapsed unexpectedly")
 
 
 def write(path: Path, text: str) -> None:
@@ -127,6 +130,7 @@ def write(path: Path, text: str) -> None:
 def build_fixture(root: Path) -> None:
     write(root / FILES["note"], "\n".join(NOTE_MARKERS) + "\n")
     write(root / FILES["matrix"], "\n".join(MATRIX_MARKERS) + "\n")
+    write(root / FILES["verify"], "\n".join(VERIFY_MARKERS) + "\n")
     write(
         root / FILES["manifest"],
         json.dumps(
@@ -169,6 +173,8 @@ def run_self_test() -> None:
             ("note", marker) for marker in NOTE_MARKERS
         ] + [
             ("matrix", marker) for marker in MATRIX_MARKERS
+        ] + [
+            ("verify", marker) for marker in VERIFY_MARKERS
         ]
         for idx, (label, marker) in enumerate(marker_cases, start=1):
             case_root = tmpdir / f"marker_{idx}"
@@ -181,7 +187,7 @@ def run_self_test() -> None:
         shutil.copytree(fixture, manifest_lane_case, dirs_exist_ok=True)
         manifest_path = manifest_lane_case / FILES["manifest"]
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        data["lane_key"] = "P11-L05"
+        data["lane_key"] = "P11-L10"
         write(manifest_path, json.dumps(data, indent=2) + "\n")
         expect_failure(manifest_lane_case, "manifest lane_key mismatch")
 
@@ -189,7 +195,7 @@ def run_self_test() -> None:
         shutil.copytree(fixture, manifest_pin_case, dirs_exist_ok=True)
         manifest_path = manifest_pin_case / FILES["manifest"]
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        data["surveyed_commit"] = EXPECTED_MATRIX_PIN
+        data["surveyed_commit"] = "6726fdd9da4eef55498fb06c38815317a684bcbf"
         write(manifest_path, json.dumps(data, indent=2) + "\n")
         expect_failure(manifest_pin_case, "manifest surveyed_commit mismatch")
 
