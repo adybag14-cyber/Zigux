@@ -81,6 +81,18 @@ EXPECTED_CASES = [
         "normalize_stderr": True,
     },
     {
+        "name": "unexpected_long_option_argument",
+        "argv": ["--help=extra"],
+        "mode": "process_json",
+        "expected": "unexpected_long_option_argument_expected.json",
+    },
+    {
+        "name": "version_before_invalid_short_option",
+        "argv": ["-Vx"],
+        "mode": "process_json",
+        "expected": "version_before_invalid_short_option_expected.json",
+    },
+    {
         "name": "quiet_overrides_warning",
         "argv": ["-w", "-q"],
         "mode": "stdout_json",
@@ -181,6 +193,16 @@ EXPECTED_OUTPUTS = {
         "stderr": "option '--d' is ambiguous\n",
         "exit_code": 1,
     },
+    "unexpected_long_option_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option '--help' doesn't allow an argument\n",
+        "exit_code": 1,
+    },
+    "version_before_invalid_short_option_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\ninvalid option -- 'x'\n",
+        "exit_code": 1,
+    },
     "quiet_overrides_warning_expected.json": {
         "tool": "scripts/genksyms/genksyms",
         "stdin": "cpp-stream",
@@ -203,6 +225,9 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge keeps version as a side effect while parsing later options"',
     'test "genksyms bridge accepts unambiguous abbreviated long options"',
     'test "parseArgs reports ambiguous abbreviated long options"',
+    'test "genksyms bridge canonicalizes unexpected long option argument failures"',
+    'test "genksyms bridge renders version side effect before invalid short option"',
+    'test "genksyms bridge renders canonical unexpected long option argument via parsed failure"',
     'test "genksyms bridge renders normalized invocation plan"',
     'test "genksyms bridge ignores positional args while still parsing later options"',
 ]
