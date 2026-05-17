@@ -10,7 +10,7 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
 - no Architecture Council approval is currently recorded for a freeze-map status change
-- this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory, the dedicated review-process manifest, the focused review-process handoff checker, and the focused Zig replay are landed, while the broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
+- this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, and the focused Zig replay are landed, while the broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
 
 ## Purpose
 
@@ -18,7 +18,7 @@ The Phase 15 roadmap keeps deep-core status changes under human governance, not 
 
 That means any request to move a freeze-in-C anchor out of its current blocked posture must arrive as an explicit Architecture Council review packet with named owners, named evidence, and an honest stay-in-C fallback when the evidence is incomplete.
 
-This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, and `Documentation/zigux/phase15-shared-summary-gap.md`.
+This note exists to keep that review-policy surface explicit beside `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`.
 
 ## Required review packet
 
@@ -93,6 +93,7 @@ The current honest packet is therefore docs-root governance plus gap tracking:
 - `Documentation/zigux/phase15-parity-scorecard.md` keeps the blocked-posture accounting explicit
 - `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit
 - `Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md` keeps the review record shape explicit for future Architecture Council requests
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json` keeps the dedicated review-packet field inventory machine-readable
 - `scripts/zigux/check-phase15-review-process-handoff.py` keeps the review-process packet, the maintenance handoff, and the shared-summary-gap dependency aligned
 - `zigux/tests/phase15_architecture_council_review_process.zig` keeps the focused review-process replay explicit beside the docs and manifest-backed packet
@@ -108,6 +109,7 @@ This packet should stay narrow.
 If a future lane reopens it, prefer one of these equally bounded follow-ups:
 
 - align one missing review field between this note and `Documentation/zigux/review-checklist.md`
+- keep `Documentation/zigux/phase15-architecture-council-decision-record-template.md` aligned with this note before widening into broader Phase 15 prose
 - keep the dedicated review-process manifest, the focused Zig replay, and the focused handoff checker aligned with this note before widening into broader Phase 15 prose
 - keep the restored dedicated indefinite-C policy companion aligned without widening into unrelated Phase 15 prose
 - if the broader validator-first packet truly lands later, align this note with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, and `zigux/tests/phase15_architecture_council_review_process_manifest.json` before claiming those broader surfaces as current evidence here
