@@ -21,67 +21,51 @@ fn readWorkspaceFile(
     );
 }
 
-test "phase 8 perf-buffer poll docs keep the bounded wait-result helper explicit" {
+test "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit" {
     const note = try readWorkspaceFile(
         std.testing.allocator,
-        "Documentation/zigux/phase8-perf-buffer-poll-slice.md",
+        "zigux/tests/README.md",
         32 * 1024,
     );
     defer std.testing.allocator.free(note);
 
-    try expectContains(note, "perf_buffer__poll(timeout_ms)");
-    try expectContains(note, "wait-result classification");
-    try expectContains(note, "normalized negative errno-or-ready-count wait results");
-    try expectContains(note, "ready-buffer bookkeeping");
-    try expectContains(note, "ordered `perf_buffer__process_records()` pass");
-    try expectContains(note, "cumulative processed-record count");
-    try expectContains(note, "first failing ready buffer");
+    try expectContains(note, "current direct-readback Phase 8 anchors:");
+    try expectContains(note, "`scripts/zigux/check-phase8-tests-readme-alignment.py`");
+    try expectContains(note, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`");
+    try expectContains(note, "`zigux/tests/phase8_perf_buffer_poll.zig`");
+    try expectContains(note, "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`");
+    try expectContains(note, "repo-reality warning for the broader Phase 8 tooling packet:");
+    try expectContains(note, "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`");
+    try expectContains(note, "`scripts/zigux/validate-phase8.py`");
+    try expectContains(note, "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`");
+    try expectContains(note, "`zigux/Makefile`");
     try expectContains(
         note,
-        "final return-path choice between a successful ready count and the first processing failure",
+        "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone",
     );
-    try expectContains(note, "bounded buffer-fd lookup and errno shaping");
-    try expectContains(note, "bounded buffer-window lookup and mapped-size passthrough");
-    try expectContains(
-        note,
-        "`perf_buffer__buffer_fd(buf_idx)` slot lookup classification",
-    );
-    try expectContains(
-        note,
-        "`perf_buffer__buffer(buf_idx, &buf, &buf_size)` slot lookup classification",
-    );
-    try expectContains(
-        note,
-        "ready-buffer processing attempts cannot exceed observed ready events",
-    );
-    try expectContains(note, "non-ready wait observations cannot claim record processing");
-    try expectContains(note, "reject impossible post-wait buffer state combinations");
-    try expectContains(note, "no standalone timer helper");
-    try expectContains(note, "no standalone clockevent helper");
 }
 
-test "phase 8 perf-buffer poll bridge survey keeps the bounded helper packet explicit" {
+test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet explicit" {
     const note = try readWorkspaceFile(
         std.testing.allocator,
-        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        "scripts/zigux/README.md",
         32 * 1024,
     );
     defer std.testing.allocator.free(note);
 
-    try expectContains(note, "Documentation/zigux/phase8-perf-buffer-poll-slice.md");
-    try expectContains(note, "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig");
-    try expectContains(note, "zigux/tests/phase8_perf_buffer_poll.zig");
-    try expectContains(note, "zigux/tests/phase8_perf_buffer_poll_only_build.zig");
-    try expectContains(note, "make -C zigux phase8-perf-buffer-poll-test");
     try expectContains(
         note,
-        "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+        "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves",
     );
-    try expectContains(note, "python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py");
-    try expectContains(note, "observed wait-result normalization");
-    try expectContains(note, "ready-buffer bookkeeping");
-    try expectContains(note, "bounded buffer-slot lookup");
-    try expectContains(note, "ordered record-processing summaries");
+    try expectContains(note, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`");
+    try expectContains(
+        note,
+        "`zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface",
+    );
+    try expectContains(
+        note,
+        "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone",
+    );
 }
 
 test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {
