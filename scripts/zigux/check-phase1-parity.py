@@ -50,6 +50,38 @@ EXPECTED_HELPERS = (
 
 EXPECTED_MANIFEST_STATUS = "closed"
 
+EXPECTED_SHARED_REPLAY_PARKED_HELPERS = (
+    "tools/lib/argv_split.zig",
+    "tools/lib/cmdline.zig",
+    "tools/lib/ctype.zig",
+    "tools/lib/hweight.zig",
+    "tools/lib/list_sort.zig",
+    "tools/lib/slab.zig",
+    "tools/lib/str_error_r.zig",
+    "tools/lib/vsprintf.zig",
+    "tools/lib/zalloc.zig",
+)
+
+EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = (
+    "tools/lib/bitmap.zig",
+    "tools/lib/find_bit.zig",
+    "tools/lib/rbtree.zig",
+    "tools/lib/string.zig",
+)
+
+EXPECTED_LANE_RULE_SUMMARY = (
+    "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, "
+    "while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local "
+    "follow-up anchors on current master."
+)
+
+EXPECTED_ANTI_OVERLAP_RULE = (
+    "Do not reopen Phase 1 by batching helpers across those two sets in one lane; "
+    "shared-replay parked helpers reopen only for packet drift, while direct-anchor "
+    "helpers reopen only for their existing helper-local anchors or already-committed "
+    "shared fixture keys."
+)
+
 EXPECTED_FIXTURE_VALUES = {
     ("string", "strtobool_invalid"): 184,
     ("slab", "zero_after_kmalloc"): True,
@@ -329,6 +361,28 @@ def collect_issues(root: Path) -> list[str]:
         if helpers != list(EXPECTED_HELPERS):
             issues.append("manifest_helpers")
 
+        lane_sequencing = manifest_payload.get("lane_sequencing")
+        if not isinstance(lane_sequencing, dict):
+            issues.append("manifest_lane_sequencing:not_json_object")
+        else:
+            parked_helpers = lane_sequencing.get("shared_replay_parked_helpers")
+            if parked_helpers != list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS):
+                issues.append("manifest_shared_replay_parked_helpers")
+
+            direct_helpers = lane_sequencing.get("direct_anchor_followup_helpers")
+            if direct_helpers != list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS):
+                issues.append("manifest_direct_anchor_followup_helpers")
+
+            if lane_sequencing.get("rule_summary") != EXPECTED_LANE_RULE_SUMMARY:
+                issues.append("manifest_lane_rule_summary")
+
+            if lane_sequencing.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
+                issues.append("manifest_lane_anti_overlap_rule")
+
+            if isinstance(parked_helpers, list) and isinstance(direct_helpers, list):
+                if sorted(parked_helpers + direct_helpers) != list(EXPECTED_HELPERS):
+                    issues.append("manifest_lane_helper_partition")
+
     blockers_payload = _read_json(blockers)
     expected_blockers = _expected_blockers_payload()
     if blockers_payload != expected_blockers:
@@ -452,6 +506,12 @@ def make_manifest_json() -> str:
         "status": EXPECTED_MANIFEST_STATUS,
         "helper_count": len(EXPECTED_HELPERS),
         "helpers": list(EXPECTED_HELPERS),
+        "lane_sequencing": {
+            "shared_replay_parked_helpers": list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS),
+            "direct_anchor_followup_helpers": list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS),
+            "rule_summary": EXPECTED_LANE_RULE_SUMMARY,
+            "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+        },
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -652,12 +712,44 @@ def run_self_test() -> int:
                     "status": EXPECTED_MANIFEST_STATUS,
                     "helper_count": len(EXPECTED_HELPERS),
                     "helpers": list(EXPECTED_HELPERS[:-1]),
+                    "lane_sequencing": {
+                        "shared_replay_parked_helpers": list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS),
+                        "direct_anchor_followup_helpers": list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS),
+                        "rule_summary": EXPECTED_LANE_RULE_SUMMARY,
+                        "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+                    },
                 },
                 indent=2,
             )
             + "\n",
         )
         cases.append(("manifest_drift", run_check(manifest_drift_root) != 0))
+
+        manifest_lane_split_drift_root = build_case_root(tmp_root / "manifest_lane_split_drift")
+        payload = json.loads(make_manifest_json())
+        payload["lane_sequencing"]["shared_replay_parked_helpers"] = payload["lane_sequencing"]["shared_replay_parked_helpers"][1:]
+        payload["lane_sequencing"]["direct_anchor_followup_helpers"] = [
+            EXPECTED_SHARED_REPLAY_PARKED_HELPERS[0],
+            *payload["lane_sequencing"]["direct_anchor_followup_helpers"],
+        ]
+        write_file(
+            manifest_lane_split_drift_root / MANIFEST_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            ("manifest_lane_split_drift", run_check(manifest_lane_split_drift_root) != 0)
+        )
+
+        manifest_lane_rule_drift_root = build_case_root(tmp_root / "manifest_lane_rule_drift")
+        payload = json.loads(make_manifest_json())
+        payload["lane_sequencing"]["anti_overlap_rule"] = "Do not reopen Phase 1 without rereading the helper split first."
+        write_file(
+            manifest_lane_rule_drift_root / MANIFEST_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            ("manifest_lane_rule_drift", run_check(manifest_lane_rule_drift_root) != 0)
+        )
 
         readme_marker_root = build_case_root(tmp_root / "readme_marker")
         write_file(
