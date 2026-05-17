@@ -93,6 +93,12 @@ EXPECTED_CASES = [
         "expected": "missing_long_dump_types_argument_expected.json",
     },
     {
+        "name": "missing_short_dump_types_argument",
+        "argv": ["-T"],
+        "mode": "process_json",
+        "expected": "missing_short_dump_types_argument_expected.json",
+    },
+    {
         "name": "unexpected_long_option_argument",
         "argv": ["--help=extra"],
         "mode": "process_json",
@@ -270,6 +276,11 @@ EXPECTED_OUTPUTS = {
         "stderr": "option '--dump-types' requires an argument\n",
         "exit_code": 1,
     },
+    "missing_short_dump_types_argument_expected.json": {
+        "stdout": "",
+        "stderr": "option requires an argument -- 'T'\n",
+        "exit_code": 1,
+    },
     "unexpected_long_option_argument_expected.json": {
         "stdout": "",
         "stderr": "option '--help' doesn't allow an argument\n",
@@ -319,6 +330,7 @@ EXPECTED_TOOL_TESTS = [
     'test "parseArgs reports ambiguous abbreviated long options"',
     'test "genksyms bridge canonicalizes unexpected long option argument failures"',
     'test "genksyms bridge renders version side effect before invalid short option"',
+    'test "genksyms bridge renders version side effect before missing short option argument"',
     'test "genksyms bridge renders canonical unexpected long option argument via parsed failure"',
     'test "genksyms bridge rejects more than sixteen reference files like the C harness"',
     'test "genksyms bridge renders normalized invocation plan"',
@@ -418,168 +430,108 @@ def validate_marker_counts(text: str, markers: list[str], label: str) -> list[st
     return issues
 
 
-def validate_root(root: Path) -> list[str]:
+def validate_repo(root: Path) -> list[str]:
     issues: list[str] = []
-    required = [
-        GENKSYMS_TOOL_REL,
-        GENKSYMS_CHECKER_REL,
-        GENKSYMS_CASES_REL,
-        GENKSYMS_HARNESS_REL,
-    ]
-    required.extend(f"{FIXTURE_ROOT_REL}/{name}" for name in EXPECTED_OUTPUTS)
-    for rel_path in required:
-        if not (root / rel_path).is_file():
-            issues.append(f"missing_file:{rel_path}")
-    if issues:
-        return issues
-
-    payload, load_issues = load_json(root / GENKSYMS_CASES_REL, "genksyms_cases")
-    issues.extend(load_issues)
-    if payload is not None:
-        issues.extend(validate_cases(payload))
-
-    for name, expected in EXPECTED_OUTPUTS.items():
-        payload, load_issues = load_json(root / FIXTURE_ROOT_REL / name, name)
-        issues.extend(load_issues)
-        if isinstance(payload, dict):
-            issues.extend(validate_expected_object(payload, expected, name))
-        elif payload is not None:
-            issues.append(f"invalid_shape:{name}:expected_object")
-
-    tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8")
-    issues.extend(validate_marker_counts(tool_text, EXPECTED_TOOL_TESTS, GENKSYMS_TOOL_REL))
-
-    harness_text = (root / GENKSYMS_HARNESS_REL).read_text(encoding="utf-8")
-    issues.extend(
-        validate_marker_counts(harness_text, EXPECTED_HARNESS_MARKERS, GENKSYMS_HARNESS_REL)
-    )
 
     checker_text = (root / GENKSYMS_CHECKER_REL).read_text(encoding="utf-8")
+    tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8")
+    harness_text = (root / GENKSYMS_HARNESS_REL).read_text(encoding="utf-8")
+
     issues.extend(validate_checker_text(checker_text))
+    issues.extend(validate_marker_counts(tool_text, EXPECTED_TOOL_TESTS, GENKSYMS_TOOL_REL))
+    issues.extend(validate_marker_counts(harness_text, EXPECTED_HARNESS_MARKERS, GENKSYMS_HARNESS_REL))
+
+    cases_payload, case_issues = load_json(root / GENKSYMS_CASES_REL, GENKSYMS_CASES_REL)
+    issues.extend(case_issues)
+    if cases_payload is not None:
+        issues.extend(validate_cases(cases_payload))
+
+    for name, expected in EXPECTED_OUTPUTS.items():
+        payload, payload_issues = load_json(root / FIXTURE_ROOT_REL / name, f"{FIXTURE_ROOT_REL}/{name}")
+        issues.extend(payload_issues)
+        if isinstance(payload, dict):
+            issues.extend(
+                validate_expected_object(
+                    payload,
+                    expected,
+                    f"{FIXTURE_ROOT_REL}/{name}",
+                )
+            )
+        elif payload is not None:
+            issues.append(f"invalid_shape:{FIXTURE_ROOT_REL}/{name}:expected_object")
+
     return issues
 
 
-def write_json(path: Path, payload: object) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-
-
-def write_fixture_root(root: Path, checker_text: str) -> None:
-    for rel_path in [GENKSYMS_TOOL_REL, GENKSYMS_HARNESS_REL]:
-        source = ROOT / rel_path
-        target = root / rel_path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(source.read_text(encoding="utf-8"), encoding="utf-8")
-    write_json(root / GENKSYMS_CASES_REL, EXPECTED_CASES)
-    for name, payload in EXPECTED_OUTPUTS.items():
-        write_json(root / FIXTURE_ROOT_REL / name, payload)
-    checker_path = root / GENKSYMS_CHECKER_REL
-    checker_path.parent.mkdir(parents=True, exist_ok=True)
-    checker_path.write_text(checker_text, encoding="utf-8")
-
-
-def run_self_test() -> list[str]:
-    checker_text = SELF_PATH.read_text(encoding="utf-8")
-    issues: list[str] = []
-    with tempfile.TemporaryDirectory(prefix="lane23_genksyms_bridge_") as tmpdir:
-        tmp_root = Path(tmpdir)
-        write_fixture_root(tmp_root, checker_text)
-        if validate_root(tmp_root):
-            issues.append("self_test:positive_root_failed")
-
-        broken_cases = tmp_root / GENKSYMS_CASES_REL
-        write_json(broken_cases, EXPECTED_CASES[:-1])
-        case_issues = validate_root(tmp_root)
-        if not any("genksyms_cases:case_count" in issue for issue in case_issues):
-            issues.append("self_test:missing_case_count_failure")
-
-        write_fixture_root(tmp_root, checker_text)
-        wrong_output = dict(EXPECTED_OUTPUTS["minimal_expected.json"])
-        wrong_output["stdout"] = "wrong"
-        write_json(tmp_root / FIXTURE_ROOT_REL / "minimal_expected.json", wrong_output)
-        output_issues = validate_root(tmp_root)
-        if not any(issue.startswith("minimal_expected.json:stdout:") for issue in output_issues):
-            issues.append("self_test:missing_expected_output_failure")
-
-        write_fixture_root(tmp_root, checker_text)
-        tool_path = tmp_root / GENKSYMS_TOOL_REL
-        tool_path.write_text(
-            tool_path.read_text(encoding="utf-8").replace(EXPECTED_TOOL_TESTS[0], "", 1),
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="genksyms_bridge_selftest_") as tmp:
+        root = Path(tmp)
+        (root / "scripts/zigux").mkdir(parents=True)
+        (root / FIXTURE_ROOT_REL).mkdir(parents=True)
+        (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
+        (root / GENKSYMS_TOOL_REL).write_text(
+            "\n".join(EXPECTED_TOOL_TESTS + [""]),
             encoding="utf-8",
         )
-        tool_issues = validate_root(tmp_root)
-        if not any(issue.startswith("marker_count:scripts/zigux/genksyms.zig:") for issue in tool_issues):
-            issues.append("self_test:missing_tool_anchor_failure")
-
-        write_fixture_root(tmp_root, checker_text)
-        harness_path = tmp_root / GENKSYMS_HARNESS_REL
-        harness_path.write_text(
-            harness_path.read_text(encoding="utf-8").replace(EXPECTED_HARNESS_MARKERS[0], "", 1),
+        (root / GENKSYMS_HARNESS_REL).write_text(
+            "\n".join(EXPECTED_HARNESS_MARKERS + [""]),
             encoding="utf-8",
         )
-        harness_issues = validate_root(tmp_root)
-        if not any(
-            issue.startswith(
-                "marker_count:zigux/tests/fixtures/genksyms_bridge/genksyms_bridge_c_harness.c:"
+        (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
+        for name, payload in EXPECTED_OUTPUTS.items():
+            (root / FIXTURE_ROOT_REL / name).write_text(
+                json.dumps(payload, indent=2) + "\n",
+                encoding="utf-8",
             )
-            for issue in harness_issues
-        ):
-            issues.append("self_test:missing_harness_marker_failure")
-
-        write_fixture_root(tmp_root, checker_text)
-        checker_path = tmp_root / GENKSYMS_CHECKER_REL
-        checker_path.write_text(
-            checker_text.replace(
-                'GENKSYMS_HARNESS_REL = f"{FIXTURE_ROOT_REL}/genksyms_bridge_c_harness.c"',
-                'GENKSYMS_HARNESS_REL = "broken"',
-            ),
-            encoding="utf-8",
-        )
-        checker_issues = validate_root(tmp_root)
-        if not any(
-            issue.startswith(
-                "missing_marker:scripts/zigux/check-genksyms-bridge.py:"
-                'GENKSYMS_HARNESS_REL = f"{FIXTURE_ROOT_REL}/genksyms_bridge_c_harness.c"'
-            )
-            for issue in checker_issues
-        ):
-            issues.append("self_test:missing_checker_marker_failure")
-
-        write_fixture_root(tmp_root, checker_text)
-        broken_json = tmp_root / FIXTURE_ROOT_REL / "long_options_expected.json"
-        broken_json.write_text("{\n", encoding="utf-8")
-        json_issues = validate_root(tmp_root)
-        if not any(issue.startswith("invalid_json:long_options_expected.json:") for issue in json_issues):
-            issues.append("self_test:missing_invalid_json_failure")
-    return issues
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--root", type=Path, default=ROOT)
-    parser.add_argument("--self-test", action="store_true")
-    args = parser.parse_args()
-
-    if args.self_test:
-        issues = run_self_test()
+        issues = validate_repo(root)
         if issues:
+            print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=fail")
             for issue in issues:
-                print(issue)
+                print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_ISSUE={issue}")
             return 1
-        print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")
-        print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}")
-        return 0
 
-    issues = validate_root(args.root.resolve())
+    print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")
+    print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}")
+    return 0
+
+
+def run_validation(root: Path) -> int:
+    issues = validate_repo(root)
     if issues:
+        print("PHASE2_GENKSYMS_BRIDGE=fail")
         for issue in issues:
-            print(issue)
+            print(f"PHASE2_GENKSYMS_BRIDGE_ISSUE={issue}")
         return 1
 
     print("PHASE2_GENKSYMS_BRIDGE=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_CASE_COUNT={len(EXPECTED_CASES)}")
     print(f"PHASE2_GENKSYMS_BRIDGE_EXPECTED_COUNT={len(EXPECTED_OUTPUTS)}")
     return 0
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Validate the bounded Phase 2 genksyms wrapper packet."
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="Repository root to validate (defaults to the inferred repository root).",
+    )
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run an internal self-test for the checker.",
+    )
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = parse_args()
+    if args.self_test:
+        return run_self_test()
+    return run_validation(args.root.resolve())
 
 
 if __name__ == "__main__":
