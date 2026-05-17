@@ -25,8 +25,8 @@ SCRIPTS_README_MARKERS = (
 TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
-    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, and toolchain reminder set",
+    "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
     "`make -C zigux phase2-cross`",
     "historical packet members rather than direct tests-root evidence",
 )
