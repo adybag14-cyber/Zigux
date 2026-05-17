@@ -113,10 +113,13 @@ SHARED_FREEZE_BOUNDARY_MARKERS = [
 
 CLOSURE_EVIDENCE_MARKERS = [
     "`PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`",
-    "directly re-readable docs and manifests now include `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
-    "directly re-readable driver anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`",
-    "directly re-readable lab-validation replays now include `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_core.zig`, and the focused input-side replay packet, while the broader risky transport bridge still stays blocked",
-    "the shared closure packet now keeps the queue-local helper ladder explicit through",
+    "shared packet direct-readback inventory is mixed on current `master`, and the directly re-readable set is narrower than the full shared reminder packet:",
+    "directly re-readable shared reminder surfaces now include `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
+    "directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_build.zig`",
+    "directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`",
+    "current contents reads still do not materialize `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core_manifest.json`",
+    "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.",
+    "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.",
     "`virtqueue_wrappers=starter_landed`",
     "`mmio_wrappers=starter_landed`",
     "`lab_only_driver_validation=starter_landed`",
@@ -274,16 +277,30 @@ def run_self_test() -> int:
         expect_missing_marker(
             root,
             "Documentation/zigux/phase10-closure-evidence.md",
-            "directly re-readable driver anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`",
-            "directly re-readable driver anchors now include `drivers/virtio/virtio_input.zig`",
-            "phase10_closure_evidence:directly re-readable driver anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`",
+            "directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_build.zig`",
+            "directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio_input.zig`",
+            "phase10_closure_evidence:directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_build.zig`",
         )
         expect_missing_marker(
             root,
             "Documentation/zigux/phase10-closure-evidence.md",
-            "the shared closure packet now keeps the queue-local helper ladder explicit through",
-            "the shared closure packet now keeps helper evidence explicit through",
-            "phase10_closure_evidence:the shared closure packet now keeps the queue-local helper ladder explicit through",
+            "directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`",
+            "directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json`",
+            "phase10_closure_evidence:directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`",
+        )
+        expect_missing_marker(
+            root,
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.",
+            "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md` only.",
+            "phase10_closure_evidence:The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.",
+        )
+        expect_missing_marker(
+            root,
+            "Documentation/zigux/phase10-closure-evidence.md",
+            "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.",
+            "The shared bootstrap-route guard remains optional.",
+            "phase10_closure_evidence:The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.",
         )
         expect_missing_marker(
             root,
