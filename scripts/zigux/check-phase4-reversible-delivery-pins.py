@@ -45,7 +45,7 @@ MISSING_BROADER_PACKET = (
 
 ATOMIC64_GAP_MARKERS = (
     "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` also return missing on current `master`",
-    "keep those roadmap-backed Phase 4 differential-gate destinations parked as repo-reality gaps",
+    "Keep that pair parked as authenticated-readback repo-reality gaps instead of listing them as current direct-readback packet members.",
     "If the roadmap-backed `atomic64_diff` pair returns, refresh the direct-readback posture only after re-reading those exact current `master` paths",
     "restore the roadmap-backed `zigux/tests/atomic64_diff.zig` pair",
 )
@@ -56,7 +56,7 @@ DOCS_BITMAP_GAP_MARKERS = (
 )
 
 NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + ATOMIC64_GAP_MARKERS + (
-    "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
 )
@@ -109,7 +109,7 @@ WARNING_MARKERS = (
     "MISSING_BROADER_PACKET = (",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
-    "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 4",
