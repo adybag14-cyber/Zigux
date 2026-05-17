@@ -27,18 +27,21 @@ DIRECT_READBACK_PACKET = (
 NOTE_REQ = (
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
-    "The tests-root guide should mirror this same current-head posture.",
-    "The next honest same-family follow-through is to refresh the stale repo-reality warning in `zigux/tests/README.md`",
+    "The stale Phase 4 repo-reality warning in `zigux/tests/README.md` is now closed",
+    "The next honest same-family follow-through is to run the dedicated exact-pin pass",
     "The live repo-reality gap in this note is therefore stale provenance, not path absence",
     "leaving the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields intact",
+    "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
+    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4`",
 )
 
 README_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
-    "repo-reality warning for the broader Phase 4 packet",
-    "last-known packet members",
+    "current broader Phase 4 packet reminder",
+    "check-phase4-reversible-delivery-pins.py",
+    "historical provenance that still needs one exact-pin refresh",
 )
 
 CHECKLIST_PENDING_REQ = (
@@ -93,19 +96,16 @@ def fixture_root(root: Path) -> None:
         "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, "
         f"and {direct} on current `master`. The live repo-reality gap in this note is therefore stale provenance, not path absence: "
         "the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines still record the older blob-pin packet and should stay framed as historical provenance until a separate exact-pin refresh rereads every companion blob value together.\n\n"
-        "The tests-root guide should mirror this same current-head posture.\n\n"
-        "The next honest same-family follow-through is to refresh the stale repo-reality warning in `zigux/tests/README.md`, "
-        "then run the dedicated exact-pin pass across the directly readable validator, lab-matrix, and local-only perf companions while leaving the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields intact until that broader blob refresh lands.\n",
+        "The stale Phase 4 repo-reality warning in `zigux/tests/README.md` is now closed.\n\n"
+        "The next honest same-family follow-through is to run the dedicated exact-pin pass while leaving the `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields intact until that broader blob refresh lands.\n\n"
+        "* `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`\n"
+        "* `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=4`\n",
     )
     write(
         root / README,
         "# zigux/tests\n\n"
-        "  * current direct-readback Phase 4 rollback packet:\n"
-        "    `Documentation/zigux/phase4-reversible-delivery-evidence.md`\n"
-        "    `Documentation/zigux/review-checklist.md`\n"
-        "    `zigux/tests/README.md`\n"
-        "  * repo-reality warning for the broader Phase 4 packet: keep the older validator, lab-matrix, and dedicated local-only perf inventory framed as last-known packet members until the tests-root wording is refreshed from the current-head note\n"
-        "  * Phase 4 follow-through should treat those paths as last-known packet members that require fresh reread or re-materialization before they are presented as shipped direct evidence again\n",
+        "  * current broader Phase 4 packet reminder: `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py`\n"
+        "  * Phase 4 follow-through should treat the stale `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines in `Documentation/zigux/phase4-reversible-delivery-evidence.md` as historical provenance that still needs one exact-pin refresh\n",
     )
     write(
         root / CHECKLIST,
