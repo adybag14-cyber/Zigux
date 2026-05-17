@@ -45,6 +45,13 @@ SAMPLE_DUPLICATE_REGISTRATION_ERROR_MARKER = "error.FunctionThreadAlreadyRegiste
 SAMPLE_CONTINUITY_TEST_MARKER = (
     'test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {'
 )
+SAMPLE_COLD_STAGE_MARKER = "try std.testing.expectEqual(ModuleStage.cold, module.stage());"
+SAMPLE_COLD_SELFTEST_REJECTION_MARKER = (
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());"
+)
+SAMPLE_COLD_EXIT_REJECTION_MARKER = (
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());"
+)
 SAMPLE_FAILED_EXIT_TEST_MARKER = (
     'test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {'
 )
@@ -89,6 +96,9 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_DUPLICATE_REGISTRATION_TEST_MARKER,
     SAMPLE_DUPLICATE_REGISTRATION_ERROR_MARKER,
     SAMPLE_CONTINUITY_TEST_MARKER,
+    SAMPLE_COLD_STAGE_MARKER,
+    SAMPLE_COLD_SELFTEST_REJECTION_MARKER,
+    SAMPLE_COLD_EXIT_REJECTION_MARKER,
     SAMPLE_FAILED_EXIT_TEST_MARKER,
     SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
     SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER,
@@ -188,6 +198,9 @@ test "trace-events sample rejects duplicate function-thread registration" {{
 }}
 
 test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {{
+    try std.testing.expectEqual(ModuleStage.cold, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expect(true);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
@@ -260,46 +273,34 @@ def run_self_test() -> int:
 
         shutil.rmtree(base / "samples", ignore_errors=True)
         expect_failure(base, f"missing_file:{SAMPLE_PATH}")
+
+        print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST_CASE_COUNT={len(SEQUENCING_REQUIRED_MARKERS) + len(TESTS_README_REQUIRED_MARKERS) + len(SAMPLE_REQUIRED_MARKERS) + 3}")
+        return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
-    print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(SEQUENCING_REQUIRED_MARKERS)}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(SAMPLE_REQUIRED_MARKERS)}")
-    return 0
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--root", type=Path, default=ROOT)
+    parser.add_argument("--self-test", action="store_true")
+    return parser.parse_args()
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Check that the surviving Phase 9 trace-events runtime packet stays aligned across the lane-sequencing note, the tests guide, and the sample lifecycle/selftest surface."
-    )
-    parser.add_argument(
-        "--repo-root",
-        type=Path,
-        default=ROOT,
-        help="repository root to inspect",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="run the built-in checker self-test and exit",
-    )
-    args = parser.parse_args()
-
+    args = parse_args()
     if args.self_test:
         return run_self_test()
 
-    failures = validate(args.repo_root)
+    failures = validate(args.root)
     if failures:
         for failure in failures:
-            print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_ERROR={failure}")
+            print(failure)
         return 1
 
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(SEQUENCING_REQUIRED_MARKERS)}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(SAMPLE_REQUIRED_MARKERS)}")
     print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET=pass")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_MARKER_COUNT={len(SEQUENCING_REQUIRED_MARKERS) + len(TESTS_README_REQUIRED_MARKERS) + len(SAMPLE_REQUIRED_MARKERS)}")
     return 0
 
 
