@@ -44,6 +44,11 @@ static inline int zigux_uapi_version_matches_current(struct zigux_uapi_version v
         zigux_uapi_version_has_current_header_family_revision(version.header_family_revision);
 }
 
+static inline int zigux_export_status_ok(struct zigux_export_status status)
+{
+    return status.code >= 0 && (status.flags & ZIGUX_STATUS_FLAG_ERROR) == 0;
+}
+
 static inline zigux_boundary_header zigux_uapi_boundary_header_current(uint16_t flags)
 {
     return zigux_default_header(flags);
@@ -80,6 +85,33 @@ static inline zigux_boundary_header zigux_uapi_boundary_header_canonicalize(zigu
     header.size = (uint32_t)sizeof(zigux_boundary_header);
     header.abi_version = (uint16_t)ZIGUX_ABI_VERSION;
     return header;
+}
+
+static inline zigux_boundary_header zigux_boundary_header_make(uint16_t flags)
+{
+    return zigux_uapi_boundary_header_current(flags);
+}
+
+static inline zigux_boundary_header zigux_boundary_header_make_compatible(
+    uint32_t size,
+    uint16_t flags)
+{
+    return zigux_uapi_boundary_header_compatible(size, flags);
+}
+
+static inline int zigux_boundary_header_is_current_abi_version(uint16_t abi_version)
+{
+    return zigux_uapi_boundary_header_has_current_abi_version(abi_version);
+}
+
+static inline int zigux_boundary_header_is_compatible_size(uint32_t size)
+{
+    return size >= (uint32_t)sizeof(zigux_boundary_header);
+}
+
+static inline int zigux_boundary_header_is_canonical_size(uint32_t size)
+{
+    return size == (uint32_t)sizeof(zigux_boundary_header);
 }
 
 #endif
