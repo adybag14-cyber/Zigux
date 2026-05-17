@@ -17,6 +17,8 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     const parsed = cmdline.memparse("64K tail");
     try std.testing.expectEqual(@as(u64, 64 << 10), parsed.value);
     try std.testing.expectEqualStrings(" tail", parsed.rest);
+    try std.testing.expect(cmdline.parseOptionStr("rootwait,quiet", "quiet"));
+    try std.testing.expect(!cmdline.parseOptionStr("rootwait,quiet", "debug"));
 
     const word_bits = find_bit.bits_per_long;
     const nbits = word_bits + 5;
