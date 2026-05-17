@@ -1,5 +1,5 @@
 const std = @import("std");
-const abi = @import("abi_bindings");
+const abi = @import("abi_bindings.zig");
 
 pub const AccessBoundary = enum {
     typed_safe,
@@ -23,6 +23,18 @@ pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {
 
 pub fn modeFromByte(mode: u8) ?abi.UnsafeScope {
     return modeFromInteropPolicyBytes(mode, 0);
+}
+
+pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {
+    return modeFromInteropPolicyBytes(scope, reserved);
+}
+
+pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {
+    return modeFromInteropPolicy(policy);
+}
+
+pub fn scopeFromByte(scope: u8) ?abi.UnsafeScope {
+    return modeFromByte(scope);
 }
 
 pub fn recognizesInteropPolicyBytes(mode: u8, reserved: u8) bool {
@@ -49,12 +61,24 @@ pub fn allowsTypedOnlyAccess(mode: abi.UnsafeScope) bool {
     return accessBoundaryFor(mode) == .typed_safe;
 }
 
+pub fn permitsNoUnsafe(mode: abi.UnsafeScope) bool {
+    return allowsTypedOnlyAccess(mode);
+}
+
 pub fn requiresVolatileMmioAccess(mode: abi.UnsafeScope) bool {
     return accessBoundaryFor(mode) == .volatile_mmio_window;
 }
 
+pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {
+    return requiresVolatileMmioAccess(mode);
+}
+
 pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {
     return accessBoundaryFor(mode) == .raw_pointer_bridge;
+}
+
+pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {
+    return requiresRawPointerBridge(mode);
 }
 
 pub fn allowsTypedOnlyAccessPolicyBytes(mode: u8, reserved: u8) bool {
@@ -69,6 +93,18 @@ pub fn allowsTypedOnlyAccessByte(mode: u8) bool {
     return allowsTypedOnlyAccessPolicyBytes(mode, 0);
 }
 
+pub fn permitsNoUnsafePolicyBytes(scope: u8, reserved: u8) bool {
+    return allowsTypedOnlyAccessPolicyBytes(scope, reserved);
+}
+
+pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
+    return allowsTypedOnlyAccessInteropPolicy(policy);
+}
+
+pub fn permitsNoUnsafeByte(scope: u8) bool {
+    return allowsTypedOnlyAccessByte(scope);
+}
+
 pub fn requiresVolatileMmioAccessPolicyBytes(mode: u8, reserved: u8) bool {
     return requiresVolatileMmioAccess(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
 }
@@ -79,6 +115,18 @@ pub fn requiresVolatileMmioAccessInteropPolicy(policy: abi.InteropPolicy) bool {
 
 pub fn requiresVolatileMmioAccessByte(mode: u8) bool {
     return requiresVolatileMmioAccessPolicyBytes(mode, 0);
+}
+
+pub fn permitsVolatileMmioPolicyBytes(scope: u8, reserved: u8) bool {
+    return requiresVolatileMmioAccessPolicyBytes(scope, reserved);
+}
+
+pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {
+    return requiresVolatileMmioAccessInteropPolicy(policy);
+}
+
+pub fn permitsVolatileMmioByte(scope: u8) bool {
+    return requiresVolatileMmioAccessByte(scope);
 }
 
 pub fn requiresRawPointerBridgePolicyBytes(mode: u8, reserved: u8) bool {
@@ -93,22 +141,43 @@ pub fn requiresRawPointerBridgeByte(mode: u8) bool {
     return requiresRawPointerBridgePolicyBytes(mode, 0);
 }
 
+pub fn permitsRawPointerBridgePolicyBytes(scope: u8, reserved: u8) bool {
+    return requiresRawPointerBridgePolicyBytes(scope, reserved);
+}
+
+pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
+    return requiresRawPointerBridgeInteropPolicy(policy);
+}
+
+pub fn permitsRawPointerBridgeByte(scope: u8) bool {
+    return requiresRawPointerBridgeByte(scope);
+}
+
 test "phase3 unsafe policy keeps access boundaries explicit" {
     try std.testing.expectEqual(AccessBoundary.typed_safe, accessBoundaryFor(.none));
     try std.testing.expectEqual(AccessBoundary.volatile_mmio_window, accessBoundaryFor(.volatile_mmio));
     try std.testing.expectEqual(AccessBoundary.raw_pointer_bridge, accessBoundaryFor(.raw_pointer_bridge));
 
     try std.testing.expect(allowsTypedOnlyAccess(.none));
+    try std.testing.expect(permitsNoUnsafe(.none));
     try std.testing.expect(!allowsTypedOnlyAccess(.volatile_mmio));
+    try std.testing.expect(!permitsNoUnsafe(.volatile_mmio));
     try std.testing.expect(!allowsTypedOnlyAccess(.raw_pointer_bridge));
+    try std.testing.expect(!permitsNoUnsafe(.raw_pointer_bridge));
 
     try std.testing.expect(!requiresVolatileMmioAccess(.none));
+    try std.testing.expect(!permitsVolatileMmio(.none));
     try std.testing.expect(requiresVolatileMmioAccess(.volatile_mmio));
+    try std.testing.expect(permitsVolatileMmio(.volatile_mmio));
     try std.testing.expect(!requiresVolatileMmioAccess(.raw_pointer_bridge));
+    try std.testing.expect(!permitsVolatileMmio(.raw_pointer_bridge));
 
     try std.testing.expect(!requiresRawPointerBridge(.none));
+    try std.testing.expect(!permitsRawPointerBridge(.none));
     try std.testing.expect(!requiresRawPointerBridge(.volatile_mmio));
+    try std.testing.expect(!permitsRawPointerBridge(.volatile_mmio));
     try std.testing.expect(requiresRawPointerBridge(.raw_pointer_bridge));
+    try std.testing.expect(permitsRawPointerBridge(.raw_pointer_bridge));
 }
 
 test "phase3 unsafe policy stays explicit" {
@@ -117,11 +186,22 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), modeFromByte(2));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), modeFromByte(9));
 
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), scopeFromByte(0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), scopeFromByte(1));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), scopeFromByte(2));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromByte(9));
+
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), modeFromInteropPolicyBytes(0, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), modeFromInteropPolicyBytes(1, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), modeFromInteropPolicyBytes(2, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), modeFromInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), modeFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), scopeFromInteropPolicyBytes(0, 0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), scopeFromInteropPolicyBytes(1, 0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), scopeFromInteropPolicyBytes(2, 0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicyBytes(9, 0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicyBytes(2, 1));
 
     try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
@@ -171,6 +251,12 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), modeFromInteropPolicy(reserved_policy));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), modeFromInteropPolicy(unknown_policy));
 
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), scopeFromInteropPolicy(safe_policy));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), scopeFromInteropPolicy(mmio_policy));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), scopeFromInteropPolicy(raw_pointer_policy));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicy(reserved_policy));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicy(unknown_policy));
+
     try std.testing.expect(recognizesInteropPolicy(safe_policy));
     try std.testing.expect(recognizesInteropPolicy(mmio_policy));
     try std.testing.expect(recognizesInteropPolicy(raw_pointer_policy));
@@ -178,44 +264,83 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expect(!recognizesInteropPolicy(unknown_policy));
 
     try std.testing.expect(allowsTypedOnlyAccessByte(0));
+    try std.testing.expect(permitsNoUnsafeByte(0));
     try std.testing.expect(!allowsTypedOnlyAccessByte(1));
+    try std.testing.expect(!permitsNoUnsafeByte(1));
     try std.testing.expect(!allowsTypedOnlyAccessByte(2));
+    try std.testing.expect(!permitsNoUnsafeByte(2));
     try std.testing.expect(!allowsTypedOnlyAccessByte(9));
+    try std.testing.expect(!permitsNoUnsafeByte(9));
     try std.testing.expect(allowsTypedOnlyAccessPolicyBytes(0, 0));
+    try std.testing.expect(permitsNoUnsafePolicyBytes(0, 0));
     try std.testing.expect(!allowsTypedOnlyAccessPolicyBytes(1, 0));
+    try std.testing.expect(!permitsNoUnsafePolicyBytes(1, 0));
     try std.testing.expect(!allowsTypedOnlyAccessPolicyBytes(2, 0));
+    try std.testing.expect(!permitsNoUnsafePolicyBytes(2, 0));
     try std.testing.expect(!allowsTypedOnlyAccessPolicyBytes(2, 1));
+    try std.testing.expect(!permitsNoUnsafePolicyBytes(2, 1));
     try std.testing.expect(allowsTypedOnlyAccessInteropPolicy(safe_policy));
+    try std.testing.expect(permitsNoUnsafeInteropPolicy(safe_policy));
     try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(mmio_policy));
+    try std.testing.expect(!permitsNoUnsafeInteropPolicy(mmio_policy));
     try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(raw_pointer_policy));
+    try std.testing.expect(!permitsNoUnsafeInteropPolicy(raw_pointer_policy));
     try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(reserved_policy));
+    try std.testing.expect(!permitsNoUnsafeInteropPolicy(reserved_policy));
     try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(unknown_policy));
+    try std.testing.expect(!permitsNoUnsafeInteropPolicy(unknown_policy));
 
     try std.testing.expect(!requiresVolatileMmioAccessByte(0));
+    try std.testing.expect(!permitsVolatileMmioByte(0));
     try std.testing.expect(requiresVolatileMmioAccessByte(1));
+    try std.testing.expect(permitsVolatileMmioByte(1));
     try std.testing.expect(!requiresVolatileMmioAccessByte(2));
+    try std.testing.expect(!permitsVolatileMmioByte(2));
     try std.testing.expect(!requiresVolatileMmioAccessByte(9));
+    try std.testing.expect(!permitsVolatileMmioByte(9));
     try std.testing.expect(!requiresVolatileMmioAccessPolicyBytes(0, 0));
+    try std.testing.expect(!permitsVolatileMmioPolicyBytes(0, 0));
     try std.testing.expect(requiresVolatileMmioAccessPolicyBytes(1, 0));
+    try std.testing.expect(permitsVolatileMmioPolicyBytes(1, 0));
     try std.testing.expect(!requiresVolatileMmioAccessPolicyBytes(2, 0));
+    try std.testing.expect(!permitsVolatileMmioPolicyBytes(2, 0));
     try std.testing.expect(!requiresVolatileMmioAccessPolicyBytes(2, 1));
+    try std.testing.expect(!permitsVolatileMmioPolicyBytes(2, 1));
     try std.testing.expect(!requiresVolatileMmioAccessInteropPolicy(safe_policy));
+    try std.testing.expect(!permitsVolatileMmioInteropPolicy(safe_policy));
     try std.testing.expect(requiresVolatileMmioAccessInteropPolicy(mmio_policy));
+    try std.testing.expect(permitsVolatileMmioInteropPolicy(mmio_policy));
     try std.testing.expect(!requiresVolatileMmioAccessInteropPolicy(raw_pointer_policy));
+    try std.testing.expect(!permitsVolatileMmioInteropPolicy(raw_pointer_policy));
     try std.testing.expect(!requiresVolatileMmioAccessInteropPolicy(reserved_policy));
+    try std.testing.expect(!permitsVolatileMmioInteropPolicy(reserved_policy));
     try std.testing.expect(!requiresVolatileMmioAccessInteropPolicy(unknown_policy));
+    try std.testing.expect(!permitsVolatileMmioInteropPolicy(unknown_policy));
 
     try std.testing.expect(!requiresRawPointerBridgeByte(0));
+    try std.testing.expect(!permitsRawPointerBridgeByte(0));
     try std.testing.expect(!requiresRawPointerBridgeByte(1));
+    try std.testing.expect(!permitsRawPointerBridgeByte(1));
     try std.testing.expect(requiresRawPointerBridgeByte(2));
+    try std.testing.expect(permitsRawPointerBridgeByte(2));
     try std.testing.expect(!requiresRawPointerBridgeByte(9));
+    try std.testing.expect(!permitsRawPointerBridgeByte(9));
     try std.testing.expect(!requiresRawPointerBridgePolicyBytes(0, 0));
+    try std.testing.expect(!permitsRawPointerBridgePolicyBytes(0, 0));
     try std.testing.expect(!requiresRawPointerBridgePolicyBytes(1, 0));
+    try std.testing.expect(!permitsRawPointerBridgePolicyBytes(1, 0));
     try std.testing.expect(requiresRawPointerBridgePolicyBytes(2, 0));
+    try std.testing.expect(permitsRawPointerBridgePolicyBytes(2, 0));
     try std.testing.expect(!requiresRawPointerBridgePolicyBytes(2, 1));
+    try std.testing.expect(!permitsRawPointerBridgePolicyBytes(2, 1));
     try std.testing.expect(!requiresRawPointerBridgeInteropPolicy(safe_policy));
+    try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(safe_policy));
     try std.testing.expect(!requiresRawPointerBridgeInteropPolicy(mmio_policy));
+    try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(mmio_policy));
     try std.testing.expect(requiresRawPointerBridgeInteropPolicy(raw_pointer_policy));
+    try std.testing.expect(permitsRawPointerBridgeInteropPolicy(raw_pointer_policy));
     try std.testing.expect(!requiresRawPointerBridgeInteropPolicy(reserved_policy));
+    try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));
     try std.testing.expect(!requiresRawPointerBridgeInteropPolicy(unknown_policy));
+    try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(unknown_policy));
 }
