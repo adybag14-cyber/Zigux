@@ -96,6 +96,12 @@ EXPECTED_STRING_ANCHORS = {
         'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
         'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
     ],
+    "sysfs_review_summary": (
+        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit "
+        "through the direct string tests because the shared Phase 1 replay still carries no "
+        "dedicated sysfs fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString "
+        "and sysfs_match_string remain review-visible at the helper surface"
+    ),
     "lookup_review_anchors": [
         'test "matchString finds C-string matches and preserves first-match order"',
         'test "match_string mirrors matchString for empty and matched lists"',
@@ -145,6 +151,7 @@ LIST_FIELDS = (
 )
 
 SCALAR_FIELDS = (
+    "sysfs_review_summary",
     "basename_review_anchor",
     "trim_nul_review_anchor",
     "memchr_moving_dirty_anchor",
@@ -152,7 +159,7 @@ SCALAR_FIELDS = (
     "next_safe_step_note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def repo_root(root: str | None) -> Path:
