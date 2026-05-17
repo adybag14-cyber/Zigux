@@ -20,6 +20,8 @@ REQUIRED_FILE_RELS = (
     Path("scripts/zigux/check-phase2-tests-readme-alignment.py"),
     Path("scripts/zigux/check-phase2-cross-selftest-alignment.py"),
     Path("scripts/zigux/check-phase2-toolchain-pinning.py"),
+    Path("scripts/zigux/check-phase2-toolchain-pin-scope.py"),
+    Path("scripts/zigux/check-phase2-required-make-routes.py"),
     Path("scripts/zigux/check-phase1-direct-owner-markers.py"),
     Path("scripts/zigux/check-phase1-string-review-packet.py"),
     Path("scripts/zigux/check-phase1-bench.py"),
@@ -48,9 +50,9 @@ REQUIRED_NOTE_LINES = (
     "- `PHASE1_WORKFLOW_STATUS=active`",
     "- `PHASE1_WORKFLOW_SCOPE=current bootstrap Phase 1 reminder checks only`",
     "- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-viability`",
-    "- `PHASE1_WORKFLOW_REQUIRED_FILES=.github/workflows/zigux-bootstrap.yml,scripts/zigux/check-zig-toolchain.py,scripts/zigux/check-phase2-kconfig-selftest-alignment.py,scripts/zigux/check-phase2-kbuild-routes.py,scripts/zigux/check-phase2-tests-readme-alignment.py,scripts/zigux/check-phase2-cross-selftest-alignment.py,scripts/zigux/check-phase2-toolchain-pinning.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/check-phase1-workflow-viability.py,scripts/zigux/check-phase4-repo-reality-warning.py,scripts/zigux/check-phase4-reversible-delivery-pins.py,scripts/zigux/check-phase4-tests-readme-packet.py,scripts/zigux/check-phase7-shared-control-gap.py,scripts/zigux/check-phase10-bootstrap-route.py,scripts/zigux/check-phase11-hvc-cleanup-current-head.py,scripts/zigux/check-phase11-build-inventory.py,scripts/zigux/check-phase11-matrix-gap-survey.py,scripts/zigux/check-build-only-phase12-surface.py,scripts/zigux/check-phase12-release-readiness-packet.py,Documentation/zigux/README.md,Documentation/zigux/phase12-release-readiness-survey.md,zigux/tests/README.md,zigux/Makefile,zigux/tests/phase12_build.zig,zigux/tests/phase8_libbpf_segments_only_build.zig,Documentation/zigux/phase1-workflow-viability.md`",
-    "- `PHASE1_WORKFLOW_NEIGHBOR_TOOLCHAIN_STEPS=Self-test current Zig toolchain checker,Check current Zig toolchain policy packet`",
-    "- `PHASE1_WORKFLOW_NEIGHBOR_PHASE2_STEPS=Self-test current Phase 2 kconfig bridge checker,Check current Phase 2 kconfig bridge packet,Self-test current Phase 2 kbuild routes checker,Check current Phase 2 kbuild packet,Self-test current Phase 2 tests README checker,Check current Phase 2 tests README packet,Self-test current Phase 2 cross selftest alignment checker,Check current Phase 2 cross alignment packet,Self-test current Phase 2 toolchain pinning checker,Check current Phase 2 toolchain pinning packet`",
+    "- `PHASE1_WORKFLOW_REQUIRED_FILES=.github/workflows/zigux-bootstrap.yml,scripts/zigux/check-zig-toolchain.py,scripts/zigux/check-phase2-kconfig-selftest-alignment.py,scripts/zigux/check-phase2-kbuild-routes.py,scripts/zigux/check-phase2-tests-readme-alignment.py,scripts/zigux/check-phase2-cross-selftest-alignment.py,scripts/zigux/check-phase2-toolchain-pinning.py,scripts/zigux/check-phase2-toolchain-pin-scope.py,scripts/zigux/check-phase2-required-make-routes.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/check-phase1-workflow-viability.py,scripts/zigux/check-phase4-repo-reality-warning.py,scripts/zigux/check-phase4-reversible-delivery-pins.py,scripts/zigux/check-phase4-tests-readme-packet.py,scripts/zigux/check-phase7-shared-control-gap.py,scripts/zigux/check-phase10-bootstrap-route.py,scripts/zigux/check-phase11-hvc-cleanup-current-head.py,scripts/zigux/check-phase11-build-inventory.py,scripts/zigux/check-phase11-matrix-gap-survey.py,scripts/zigux/check-build-only-phase12-surface.py,scripts/zigux/check-phase12-release-readiness-packet.py,Documentation/zigux/README.md,Documentation/zigux/phase12-release-readiness-survey.md,zigux/tests/README.md,zigux/Makefile,zigux/tests/phase12_build.zig,zigux/tests/phase8_libbpf_segments_only_build.zig,Documentation/zigux/phase1-workflow-viability.md`",
+    "- `PHASE1_WORKFLOW_NEIGHBOR_TOOLCHAIN_STEPS=Self-test current Zig toolchain checker,Check current Zig toolchain policy packet,Check current pinned Zig archive packet`",
+    "- `PHASE1_WORKFLOW_NEIGHBOR_PHASE2_STEPS=Self-test current Phase 2 kconfig bridge checker,Check current Phase 2 kconfig bridge packet,Self-test current Phase 2 kbuild routes checker,Check current Phase 2 kbuild packet,Self-test current Phase 2 tests README checker,Check current Phase 2 tests README packet,Self-test current Phase 2 cross selftest alignment checker,Check current Phase 2 cross alignment packet,Self-test current Phase 2 toolchain pinning checker,Check current Phase 2 toolchain pinning packet,Self-test current Phase 2 toolchain pin-scope checker,Check current Phase 2 toolchain pin-scope packet,Self-test current Phase 2 required make-routes checker,Check current Phase 2 required make routes`",
     "- `PHASE1_WORKFLOW_SELFTEST_STEPS=Self-test current Phase 1 direct-owner checker,Self-test current Phase 1 string review checker,Self-test current Phase 1 bench checker,Self-test current Phase 1 shared reminder checker,Self-test current Phase 1 workflow viability checker`",
     "- `PHASE1_WORKFLOW_LIVE_STEPS=Check current Phase 1 direct-owner markers,Check current Phase 1 string review packet,Check current Phase 1 shared reminder packet,Check current Phase 1 workflow viability`",
     "- `PHASE1_WORKFLOW_POST_PHASE1_STEPS=Self-test current Phase 4 repo-reality warning checker,Check current Phase 4 repo-reality warning packet,Self-test current Phase 4 reversible-delivery pin checker,Check current Phase 4 reversible-delivery pin packet,Self-test current Phase 4 tests README checker,Check current Phase 4 tests README packet,Self-test current Phase 7 shared-control gap checker,Check current Phase 7 shared-control gap packet,Self-test current Phase 10 bootstrap route checker,Check current Phase 10 bootstrap route,Validate Phase 10 checker-backed review packet,Run Phase 10 helper tests,Self-test current Phase 11 HVC cleanup current-head checker,Check current Phase 11 HVC cleanup current-head packet,Self-test current Phase 11 build inventory checker,Check current Phase 11 build inventory packet,Self-test current Phase 11 matrix-gap survey checker,Check current Phase 11 matrix-gap survey packet,Self-test current Phase 12 build-only surface checker,Check current Phase 12 build-only surface,Self-test current Phase 12 release-readiness packet checker,Validate Phase 12 degraded-workflow bundle,Check current Phase 12 release-readiness packet,Run focused Phase 12 smoke shard,Run Phase 12 complex driver tests,Validate Phase 8 tooling gates,Run focused Phase 8 libbpf segment survey tests,Check current docs-root sanity markers`",
@@ -58,13 +60,14 @@ REQUIRED_NOTE_LINES = (
     "- current `master` workflow viability stays bounded to the shipped Phase 1 reminder packet, so treat `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` as broader closure-side or make-route packet members until fresh rereads recover them on current `master`.",
     "- keep the bench checker self-test-only in the bootstrap workflow until `zigux/tests/fixtures/phase1_bench_expectations.json` returns on current `master`; a live `python3 scripts/zigux/check-phase1-bench.py` workflow step is still a workflow-viability regression in this narrower packet.",
     "- keep the shipped `scripts/zigux/check-phase1-shared-reminder-packet.py` pair explicit beside the direct-owner, string-review, bench, and workflow-viability checks so this lane does not silently regress the already-landed Phase 1 reminder packet while the workflow shape keeps moving.",
-    "- replay this packet on top of the current bootstrap workflow instead of reviving older neighbor names or dropping the newer ones; the active non-Phase-1 packet now keeps the Zig toolchain policy pair, the current Phase 2 checker packet, the current Phase 11 HVC cleanup/build-inventory/matrix-gap packet, the current Phase 12 build-only plus release-readiness packet, and the focused Phase 8 tail explicit around the narrower Phase 1 reminder slice.",
+    "- replay this packet on top of the current bootstrap workflow instead of reviving older neighbor names or dropping the newer ones; the active non-Phase-1 packet now keeps the Zig toolchain policy pair plus the pinned archive probe, the current full Phase 2 checker packet, the current Phase 11 HVC cleanup/build-inventory/matrix-gap packet, the current Phase 12 build-only plus release-readiness packet, and the focused Phase 8 tail explicit around the narrower Phase 1 reminder slice.",
     "- if this lane reopens, harden the same current workflow packet first instead of reconstructing the broader missing closure-side Phase 1 validator family from historical route names alone.",
 )
 
 WORKFLOW_STEPS = (
     ("Self-test current Zig toolchain checker", "python3 scripts/zigux/check-zig-toolchain.py --self-test"),
     ("Check current Zig toolchain policy packet", "python3 scripts/zigux/check-zig-toolchain.py --policy-only"),
+    ("Check current pinned Zig archive packet", "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing"),
     ("Self-test current Phase 2 kconfig bridge checker", "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"),
     ("Check current Phase 2 kconfig bridge packet", "python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py"),
     ("Self-test current Phase 2 kbuild routes checker", "python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test"),
@@ -75,6 +78,10 @@ WORKFLOW_STEPS = (
     ("Check current Phase 2 cross alignment packet", "python3 scripts/zigux/check-phase2-cross-selftest-alignment.py"),
     ("Self-test current Phase 2 toolchain pinning checker", "python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test"),
     ("Check current Phase 2 toolchain pinning packet", "python3 scripts/zigux/check-phase2-toolchain-pinning.py"),
+    ("Self-test current Phase 2 toolchain pin-scope checker", "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test"),
+    ("Check current Phase 2 toolchain pin-scope packet", "python3 scripts/zigux/check-phase2-toolchain-pin-scope.py"),
+    ("Self-test current Phase 2 required make-routes checker", "python3 scripts/zigux/check-phase2-required-make-routes.py --self-test"),
+    ("Check current Phase 2 required make routes", "python3 scripts/zigux/check-phase2-required-make-routes.py"),
     ("Self-test current Phase 1 direct-owner checker", "python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test"),
     ("Check current Phase 1 direct-owner markers", "python3 scripts/zigux/check-phase1-direct-owner-markers.py"),
     ("Self-test current Phase 1 string review checker", "python3 scripts/zigux/check-phase1-string-review-packet.py --self-test"),
@@ -120,7 +127,6 @@ FORBIDDEN_SNIPPETS = (
     "make -C zigux phase1-test",
     "make -C zigux phase1-bench",
     "scripts/zigux/check-kconfig-bridge.py --self-test",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
 )
 
 FORBIDDEN_LINES = (
@@ -236,10 +242,26 @@ def run_self_test() -> int:
 
         build_sample_repo(root)
         path = root / WORKFLOW_REL
-        text = read_text(path).replace("      - name: Self-test current Phase 11 build inventory checker\n", "", 1)
+        text = read_text(path).replace("      - name: Check current pinned Zig archive packet\n", "", 1)
         path.write_text(text, encoding="utf-8")
-        if not any(item.startswith("workflow:name:expected=1:actual=0:Self-test current Phase 11 build inventory checker") for item in collect_failures(root)):
-            print("self-test:missing-phase11-step")
+        if not any(item.startswith("workflow:name:expected=1:actual=0:Check current pinned Zig archive packet") for item in collect_failures(root)):
+            print("self-test:missing-archive-step")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        path = root / WORKFLOW_REL
+        text = read_text(path).replace("      - name: Self-test current Phase 2 required make-routes checker\n", "", 1)
+        path.write_text(text, encoding="utf-8")
+        if not any(item.startswith("workflow:name:expected=1:actual=0:Self-test current Phase 2 required make-routes checker") for item in collect_failures(root)):
+            print("self-test:missing-required-make-routes-step")
+            return 1
+        case_count += 1
+
+        build_sample_repo(root)
+        (root / "scripts/zigux/check-phase2-toolchain-pin-scope.py").unlink()
+        if "missing_file:scripts/zigux/check-phase2-toolchain-pin-scope.py" not in collect_failures(root):
+            print("self-test:missing-phase2-pin-scope-file")
             return 1
         case_count += 1
 
@@ -268,7 +290,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         path = root / WORKFLOW_REL
         path.write_text(read_text(path) + "      - name: Check current Phase 1 bench packet\n        run: python3 scripts/zigux/check-phase1-bench.py\n", encoding="utf-8")
         if "workflow:forbidden-line:        run: python3 scripts/zigux/check-phase1-bench.py" not in collect_failures(root):
