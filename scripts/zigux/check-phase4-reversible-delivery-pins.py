@@ -14,7 +14,7 @@ REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py"
 
 STATUS_MARKERS = (
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=",
+    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=`,",
 )
 
 DIRECT_MARKERS = (
@@ -35,7 +35,14 @@ MISSING_BROADER_PACKET = (
     "`zigux/tests/phase4_perf_baseline_survey.zig`",
 )
 
-NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + (
+ATOMIC64_GAP_MARKERS = (
+    "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` also return missing on current `master`",
+    "keep those roadmap-backed Phase 4 differential-gate destinations parked as repo-reality gaps",
+    "If the roadmap-backed `atomic64_diff` pair returns, refresh the direct-readback posture only after re-reading those exact current `master` paths",
+    "restore the roadmap-backed `zigux/tests/atomic64_diff.zig` pair",
+)
+
+NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + ATOMIC64_GAP_MARKERS + (
     "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
@@ -101,9 +108,12 @@ def fixture_root(root: Path) -> None:
         root / NOTE,
         "# Phase 4 Reversible Delivery Evidence\n\n"
         "Current direct readback in this run confirmed `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` on current `master`. The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run. The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.\n\n"
+        "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` also return missing on current `master`, so keep those roadmap-backed Phase 4 differential-gate destinations parked as repo-reality gaps instead of listing them as current direct-readback packet members.\n\n"
         "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader packet is directly readable again.\n\n"
         "* `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`\n"
         "* `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5`\n\n"
+        "If the roadmap-backed `atomic64_diff` pair returns, refresh the direct-readback posture only after re-reading those exact current `master` paths.\n\n"
+        "Use this note only as a truthful current-head handoff for the directly readable reminder surfaces. The next honest same-family follow-through is to repair the smallest repo-reality-warning packet drift first, republish one missing broader companion, or restore the roadmap-backed `zigux/tests/atomic64_diff.zig` pair.\n\n"
         f"{missing}\n",
     )
     write(
