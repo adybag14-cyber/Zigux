@@ -10,6 +10,7 @@ READINESS_NOTE_PATH = Path("Documentation/zigux/phase15-readiness-gate-survey.md
 MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
 SELF_PATH = Path("scripts/zigux/check-phase15-readiness-gate-packet.py")
 DOCS_CHECKER_PATH = Path("scripts/zigux/check-phase15-docs-readme-alignment.py")
+TESTS_CHECKER_PATH = Path("scripts/zigux/check-phase15-tests-readme-alignment.py")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 HANDOFF_MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
 BUILD_ZIG_PATH = Path("zigux/tests/phase15_build.zig")
@@ -71,6 +72,8 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("readiness manifest checker-present bool disagrees with repo reality")
     if repo_evidence["phase15_docs_readme_checker_present"] != (root / DOCS_CHECKER_PATH).exists():
         failures.append("readiness manifest docs-checker bool disagrees with repo reality")
+    if repo_evidence["phase15_tests_readme_checker_present"] != (root / TESTS_CHECKER_PATH).exists():
+        failures.append("readiness manifest tests-readme-checker bool disagrees with repo reality")
     if repo_evidence["phase15_validator_script_present"] != (root / VALIDATOR_PATH).exists():
         failures.append("readiness manifest validator-script bool disagrees with repo reality")
     if repo_evidence["phase15_handoff_manifest_present"] != (root / HANDOFF_MANIFEST_PATH).exists():
@@ -87,6 +90,7 @@ def collect_failures(root: Path) -> list[str]:
     expected_validate_checkers = [
         "scripts/zigux/check-phase15-docs-readme-alignment.py",
         "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+        "scripts/zigux/check-phase15-tests-readme-alignment.py",
         "scripts/zigux/check-phase15-review-process-handoff.py",
         "scripts/zigux/check-phase15-shared-summary-gap.py",
     ]
@@ -121,9 +125,11 @@ Current directly readable packet:
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
@@ -153,38 +159,42 @@ def _sample_manifest() -> str:
                 "Documentation/zigux/review-checklist.md",
                 "scripts/zigux/check-phase15-docs-readme-alignment.py",
                 "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+                "scripts/zigux/check-phase15-tests-readme-alignment.py",
                 "scripts/zigux/check-phase15-review-process-handoff.py",
                 "scripts/zigux/check-phase15-shared-summary-gap.py",
                 "scripts/zigux/check-phase15-readiness-gate-packet.py",
+                "zigux/tests/README.md",
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json",
-                "zigux/tests/phase15_readiness_gate_manifest.json",
+                "zigux/tests/phase15_readiness_gate_manifest.json"
             ],
             "still_missing_broader_paths": [
                 "scripts/zigux/validate-phase15.py",
                 "zigux/tests/phase15_handoff_next_steps_manifest.json",
                 "zigux/tests/phase15_build.zig",
                 "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-                "zigux/Makefile",
+                "zigux/Makefile"
             ],
             "repo_evidence": {
-                "phase15_readiness_packet_checker_present": True,
-                "phase15_validator_script_present": False,
-                "phase15_docs_readme_checker_present": True,
-                "phase15_handoff_manifest_present": False,
-                "phase15_build_zig_present": False,
-                "phase15_indefinite_c_lane_owner_alignment_present": False,
-                "phase15_makefile_present": False,
-                "phase15_validate_target_present": False,
-                "phase15_test_target_present": False,
-                "shared_ci_phase15_present": False,
-                "phase15_replay_green_on_current_master": False,
+                "phase15_readiness_packet_checker_present": true,
+                "phase15_validator_script_present": false,
+                "phase15_docs_readme_checker_present": true,
+                "phase15_tests_readme_checker_present": true,
+                "phase15_handoff_manifest_present": false,
+                "phase15_build_zig_present": false,
+                "phase15_indefinite_c_lane_owner_alignment_present": false,
+                "phase15_makefile_present": false,
+                "phase15_validate_target_present": false,
+                "phase15_test_target_present": false,
+                "shared_ci_phase15_present": false,
+                "phase15_replay_green_on_current_master": false
             },
             "phase15_validate_checkers": [
                 "scripts/zigux/check-phase15-docs-readme-alignment.py",
                 "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+                "scripts/zigux/check-phase15-tests-readme-alignment.py",
                 "scripts/zigux/check-phase15-review-process-handoff.py",
-                "scripts/zigux/check-phase15-shared-summary-gap.py",
-            ],
+                "scripts/zigux/check-phase15-shared-summary-gap.py"
+            ]
         },
         indent=2,
     ) + "\n"
@@ -202,9 +212,11 @@ def _seed_repo(root: Path) -> None:
         "Documentation/zigux/review-checklist.md",
         "scripts/zigux/check-phase15-docs-readme-alignment.py",
         "scripts/zigux/check-phase15-scripts-readme-alignment.py",
+        "scripts/zigux/check-phase15-tests-readme-alignment.py",
         "scripts/zigux/check-phase15-review-process-handoff.py",
         "scripts/zigux/check-phase15-shared-summary-gap.py",
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
+        "zigux/tests/README.md",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     ):
         _write(root / rel, "present\n")
@@ -263,6 +275,18 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected checker-list failure: {failures}")
+
+        tests_checker_root = root / "tests_checker"
+        _seed_repo(tests_checker_root)
+        manifest = json.loads((tests_checker_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+        manifest["repo_evidence"]["phase15_tests_readme_checker_present"] = False
+        _write(tests_checker_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        failures = collect_failures(tests_checker_root)
+        expected = [
+            "readiness manifest tests-readme-checker bool disagrees with repo reality"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected tests-checker failure: {failures}")
 
     print("PHASE15_READINESS_GATE_PACKET_SELF_TEST=pass")
     return 0
