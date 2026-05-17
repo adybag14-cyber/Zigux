@@ -20,7 +20,7 @@ Keep the current owner map explicit:
 - `libfs` owns the `fs/libfs.zig` foothold and its focused reviewability packet
 - `devres` owns the `lib/devres.zig` packet, including the boundary-evidence replay already visible on current `master`
 - `landlock/ruleset` owns the ruleset ownership, slice, survey, and focused manifest-backed replay
-- `landlock/syscalls` owns the syscall governance, slice, survey, and focused reviewability packet
+- `landlock/syscalls` owns the syscall governance and slice, while the survey and focused reviewability companions stay recorded as repo-reality gaps on current `master`
 - adjacent notifier evidence owns only release-surface truthfulness, not a fifth helper family
 
 ## Shared Packet Surfaces
