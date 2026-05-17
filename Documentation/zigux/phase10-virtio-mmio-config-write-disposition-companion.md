@@ -8,17 +8,17 @@ This note records the bounded current-head readback for the latest `drivers/virt
 - `PHASE10_FAMILY=virtio-mmio`
 - `PHASE10_SURFACE=config-write-disposition-observation`
 - `PHASE10_PROVENANCE_MODE=dated_master_readback`
-- surveyed against current `master` readback on `2026-05-16`
-- scope: document the helper-local disposition summary that now reports byte-level config-write deltas while keeping the broader MMIO lifecycle, IRQ, DMA, queue setup, and probe or remove packet blocked
-- role: current-head truthfulness companion for the Phase 10 MMIO packet after the helper moved ahead of the older slice-step wording
+- surveyed against current `master` readback on `2026-05-17`
+- scope: document the helper-local disposition summary that reports byte-level config-write deltas while keeping the broader MMIO lifecycle, IRQ, DMA, queue setup, and probe or remove packet blocked
+- role: packet-local current-head companion for the Phase 10 MMIO packet, aligned with the live MMIO survey while keeping the byte-level disposition rung explicit on its own terms
 
 ## Why this companion exists
 
 The Phase 10 roadmap still keeps `drivers/virtio/virtio_mmio.c` inside a risky transport family where honest progress is small, reviewable wrapper and validation surfaces rather than transport-backed queue setup, IRQ delivery, DMA, or lifecycle parity.
 
-Current `master` now includes a newer helper-local rung in `drivers/virtio/virtio_mmio.zig`: `ConfigWriteDispositionSummary` and `configWriteDispositionSummary()` expose the staged config-write window with `relative_end_offset`, `absolute_end_offset`, `previous_value`, `planned_value`, `changed_byte_mask`, and `has_changes` while leaving the underlying config bytes unchanged.
+Current `master` includes a newer helper-local rung in `drivers/virtio/virtio_mmio.zig`: `ConfigWriteDispositionSummary` and `configWriteDispositionSummary()` expose the staged config-write window with `relative_end_offset`, `absolute_end_offset`, `previous_value`, `planned_value`, `changed_byte_mask`, and `has_changes` while leaving the underlying config bytes unchanged.
 
-The recent master history that introduced this helper did not move the broader MMIO review packet alongside it. The smallest honest follow-up is therefore a companion note that captures the live helper surface and its still-blocked boundary without pretending the full MMIO survey packet has already been reworked.
+The broader MMIO survey packet now names that helper and keeps its blocked boundary explicit, so this companion no longer serves as a catch-up note for a stale survey. Instead, it stays as the packet-local detail surface for the byte-level disposition rung while the riskier lifecycle-and-IRQ transport work remains parked.
 
 ## Current Helper Surface
 
@@ -29,7 +29,7 @@ Current `master` readback shows the MMIO helper now includes:
 - `changed_byte_mask` so byte-level deltas are visible without replaying the full word manually
 - `has_changes` derived from the actual byte-delta mask rather than a blanket true result
 - generation-aware rejection through `error.ConfigWritePlanUnavailable` when no current staged plan is available
-- helper-local replay coverage proving a one-byte delta, a no-op plan, stale-plan rejection after generation bump, and non-mutation of the config window
+- helper-local replay coverage proving a one-byte delta, a no-op plan, stale-plan rejection after generation bump, stale-plan rejection after config-byte restaging, and non-mutation of the config window
 
 ## Boundary Kept Honest
 
@@ -47,16 +47,18 @@ The helper remains planning-only and observation-only. It surfaces what a staged
 
 The current MMIO family is still best read as a bounded lab helper packet:
 
-- `drivers/virtio/virtio_mmio.zig` now carries the richer config-write disposition observation helper
-- the broader MMIO packet still needs a later packet-wide review refresh before it can claim fully aligned survey, closure, or lifecycle evidence for this rung
-- the remaining roadmap-backed blocker in this family is still the larger lifecycle-and-IRQ transport surface, which is materially riskier than this helper-local observation step
+- `drivers/virtio/virtio_mmio.zig` carries the richer config-write disposition observation helper
+- `drivers/virtio/virtio_mmio_verify.zig` keeps the changed-byte-count and queue-readiness wrapper proof explicit beside the helper
+- `Documentation/zigux/phase10-virtio-mmio-survey.md` now names the disposition helper and the same blocked lifecycle-and-IRQ boundary
+- `zigux/tests/phase10_build.zig` still imports `drivers/virtio/virtio_mmio.zig` into the shared Phase 10 build gate for helper-local MMIO coverage
+- repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json`, so keep those adjacent MMIO packet members framed as repo-reality gaps until a fresh reread proves they materialize again
 
 ## Safe Reading
 
-Use this companion as the current-head explanation for the MMIO config-write disposition helper until the broader Phase 10 MMIO packet is refreshed in one coupled pass.
+Use this companion as the packet-local explanation for the MMIO config-write disposition helper together with the live MMIO survey, the direct helper file, the verify wrapper, and the shared Phase 10 build gate.
 
-It should be read together with the existing MMIO slice and survey notes, not as a claim that those older packet surfaces have already been fully renumbered or rewritten.
+It should not be read as a claim that the MMIO lane has crossed into transport-backed writes, queue execution, IRQ delivery, DMA, or lifecycle closure.
 
 ## Next bounded step
 
-Refresh one directly coupled Phase 10 MMIO review surface next so the packet catches up with the landed helper. The smallest honest follow-up is a survey or slice-note repair that names the disposition helper explicitly while keeping lifecycle-and-IRQ work blocked.
+Keep the broader Phase 10 MMIO lane parked unless fresh repo inspection finds one directly coupled follow-through. The next honest same-lane step is one additional packet-local or shared reminder surface repair around the already-landed MMIO helper packet while lifecycle-and-IRQ transport work stays blocked.
