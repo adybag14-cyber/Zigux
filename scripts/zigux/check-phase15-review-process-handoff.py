@@ -150,6 +150,7 @@ def _sample_manifest() -> str:
             "shared_gap_expected_missing_paths": [
                 "`scripts/zigux/validate-phase15.py`",
                 "`zigux/tests/phase15_build.zig`",
+                "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
             ],
         },
         indent=2,
@@ -225,13 +226,14 @@ def _sample_gap_note() -> str:
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
+- `zigux/tests/phase15_handoff_next_steps_manifest.json`
 """
 
 
 def _sample_test_file() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
-test \"placeholder focused review-process replay exists\" {
+test "placeholder focused review-process replay exists" {
     try std.testing.expect(true);
 }
 """
