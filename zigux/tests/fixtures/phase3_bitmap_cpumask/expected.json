@@ -30,6 +30,20 @@
       "probe_present": true,
       "probe_absent_index": 1,
       "probe_absent": false
+    },
+    {
+      "name": "cpumask_cross_word_window",
+      "kind": "cpumask",
+      "nbits": 75,
+      "nr_cpu_ids": 75,
+      "word_count": 2,
+      "first_set": 5,
+      "first_zero": 0,
+      "weight": 5,
+      "probe_present_index": 74,
+      "probe_present": true,
+      "probe_absent_index": 75,
+      "probe_absent": false
     }
   ]
 }
