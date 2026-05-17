@@ -24,6 +24,9 @@
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/genksyms.zig",
+    "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    "zigux/tests/fixtures/genksyms_bridge/manifest.json",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/install-zig.py",
     "zigux/Makefile"
