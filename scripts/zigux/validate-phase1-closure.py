@@ -234,6 +234,30 @@ def run_self_test() -> int:
             False,
         ),
         (
+            "build_missing_marker",
+            lambda root: write_text(
+                root / "zigux/tests/build.zig",
+                replace_once(
+                    read_text(root / "zigux/tests/build.zig"),
+                    '"phase1_host_tools_smoke.zig"',
+                    '"phase1_host_tools_smoke_missing.zig"',
+                ),
+            ),
+            False,
+        ),
+        (
+            "smoke_missing_marker",
+            lambda root: write_text(
+                root / "zigux/tests/phase1_host_tools_smoke.zig",
+                replace_once(
+                    read_text(root / "zigux/tests/phase1_host_tools_smoke.zig"),
+                    '@hasDecl(bitmap, "setRange")',
+                    '@hasDecl(bitmap, "setBits")',
+                ),
+            ),
+            False,
+        ),
+        (
             "manifest_bad_phase",
             lambda root: write_text(
                 root / "zigux/tests/fixtures/phase1_helper_manifest.json",
