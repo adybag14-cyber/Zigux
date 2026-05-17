@@ -97,6 +97,8 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 `Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback tracker for that docs-root, tests-root, and review-checklist four-slice cleanup.
 
+`python3 scripts/zigux/check-phase3-shared-reminder-gap.py --self-test` now fail-closes on this note, `Documentation/zigux/phase3-shared-reminder-gap.md`, and `scripts/zigux/check-phase3-xarray-slot-starter-packet.py` agreeing on the same three remaining shared reminder surfaces.
+
 Keep the remaining follow-up focused on those three shared reminder surfaces so they stop parking the policy slice and the xarray-slot slice as broader missing routes, and instead record any residual reminder drift directly until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
