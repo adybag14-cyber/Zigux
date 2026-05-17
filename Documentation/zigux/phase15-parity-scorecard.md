@@ -9,7 +9,7 @@ This note records the bounded Phase 15 parity-accounting surface for the freeze-
 - `PHASE15_SLICE=parity-scorecard-baseline`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `PHASE15_SCORECARD_ROLE=blocked_posture_accounting_not_port_readiness`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-16`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the scorecard remains an honest blocker-accounting packet, not a port-readiness claim
 
@@ -21,11 +21,9 @@ This scorecard does not claim that a deep-core anchor is ready for a direct Zigu
 
 The scorecard now also carries the same phase, status-bucket, required-approver-set, and validation-gate summary fields that the freeze-map governance packet expects from reviewable Phase 15 records, so the human-readable scorecard no longer underreports those core Architecture Council handoff fields.
 
-The paired freeze-map governance gate now cross-checks this scorecard's dated readback marker plus the active-freeze and blocked-anchor aggregate counts against the live freeze-map manifest, so the metrics below are reviewable governance accounting rather than note-only summary prose.
-
 For `net/core/skbuff.c`, that evidence bundle now keeps both the packet-local Phase 14 survey note and the shared Phase 14 traceability note explicit, because the live freeze-map governance packet uses both surfaces to keep the blocked ownership posture reviewable.
 
-That means the current parity-tracking gap is narrower and maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, validator-first gate wording, roadmap wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
+That means the current parity-tracking gap is maintenance-only: keep the scorecard's lane identity, surveyed-master provenance, current reminder-route wording, and replay-backed evidence packet current so the roadmap requirement stays explicitly satisfied instead of drifting into stale metadata.
 
 ## Aggregate Metrics
 
@@ -37,11 +35,11 @@ That means the current parity-tracking gap is narrower and maintenance-only: kee
 - study-only anchors tracked outside this scorecard: `2`
 - Architecture Council approvals recorded for status change: `0`
 
-## Validator-first route
+## Current reminder route
 
-- the shared validator-first route exists through `python3 scripts/zigux/validate-phase15.py`, `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `make -C zigux phase15-validate`
-- the dedicated Phase 15 build replay exists through `zig build test --build-file zigux/tests/phase15_build.zig`
-- the convenience replay exists through `make -C zigux phase15`
+- the current directly materialized reminder route exists through `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`, `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`, `python3 scripts/zigux/check-phase15-review-process-handoff.py`, `python3 scripts/zigux/check-phase15-shared-summary-gap.py`, and `zig test zigux/tests/phase15_parity_scorecard.zig`
+- anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`
+- the broader validator-first and shared-build route wording through `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` remains repo-reality gap vocabulary on current `master`, not shipped evidence
 
 ## Anchor Scorecard
 
@@ -56,7 +54,7 @@ That means the current parity-tracking gap is narrower and maintenance-only: kee
 - decision record path: `Documentation/zigux/phase15-evidence-archives/kernel-sched-core.md`
 - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`
 - benchmark-notes status: `pending_until_bounded_scheduler_seam_exists`
-- replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+- replay command: `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - next honest posture: keep the anchor frozen until a bounded scheduler seam exists and a reopen trigger is recorded
 
 ### `mm/page_alloc.c`
@@ -70,7 +68,7 @@ That means the current parity-tracking gap is narrower and maintenance-only: kee
 - decision record path: `Documentation/zigux/phase15-evidence-archives/mm-page-alloc.md`
 - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`
 - benchmark-notes status: `pending_until_bounded_allocator_seam_exists`
-- replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+- replay command: `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - next honest posture: keep the anchor frozen until a bounded allocator seam exists and a reopen trigger is recorded
 
 ### `kernel/rcu/tree.c`
@@ -84,7 +82,7 @@ That means the current parity-tracking gap is narrower and maintenance-only: kee
 - decision record path: `Documentation/zigux/phase15-evidence-archives/kernel-rcu-tree.md`
 - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase14-rcu-tree-survey.md`
 - benchmark-notes status: `pending_until_rcu_followup_is_narrower_than_freeze_boundary`
-- replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+- replay command: `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - next honest posture: keep the anchor frozen until a narrower-than-freeze RCU follow-up exists and a reopen trigger is recorded
 
 ### `net/core/skbuff.c`
@@ -98,7 +96,7 @@ That means the current parity-tracking gap is narrower and maintenance-only: kee
 - decision record path: `Documentation/zigux/phase15-evidence-archives/net-core-skbuff.md`
 - linked evidence: `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`
 - benchmark-notes status: `pending_until_skbuff_followup_is_narrower_than_lifetime_boundary`
-- replay command: `zig build test --build-file zigux/tests/phase15_build.zig`
+- replay command: `zig test zigux/tests/phase15_freeze_map_governance.zig`
 - next honest posture: keep the anchor frozen until a narrower-than-lifetime skbuff follow-up exists and a reopen trigger is recorded
 
 ## Accounting Rules
@@ -118,18 +116,20 @@ This scorecard does not claim:
 
 ## Gates
 
-1. run the shared validator-first gate
-   - `python3 scripts/zigux/validate-phase15.py`
+1. run the current directly materialized reminder route
    - `python3 scripts/zigux/check-phase15-docs-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-scripts-readme-alignment.py`
    - `python3 scripts/zigux/check-phase15-review-process-handoff.py`
    - `python3 scripts/zigux/check-phase15-shared-summary-gap.py`
+2. run the dedicated parity scorecard replay
+   - `zig test zigux/tests/phase15_parity_scorecard.zig`
+3. keep the broader validator-first and shared-build wording gap-tracked until direct reads recover it
+   - `scripts/zigux/validate-phase15.py`
+   - `zigux/tests/phase15_build.zig`
    - `make -C zigux phase15-validate`
-2. run the dedicated Phase 15 build
-   - `zig build test --build-file zigux/tests/phase15_build.zig`
-3. run the convenience target
+   - `make -C zigux phase15-test`
    - `make -C zigux phase15`
 
 ## Next bounded step
 
-Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the shared Phase 15 validator-first packet drifts enough that the aggregate metrics or anchor records need another truthfulness refresh.
+Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording drifts enough that the aggregate metrics or anchor records need another truthfulness refresh.
