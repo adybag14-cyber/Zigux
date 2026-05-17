@@ -13,6 +13,7 @@ SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
@@ -27,11 +28,14 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
 )
 
 README_PRESENT_MARKERS = (
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
@@ -50,7 +54,7 @@ README_WARNING_MARKERS = (
     "historical packet members",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 35
+EXPECTED_SELF_TEST_CASE_COUNT = 41
 
 
 def read_text(path: Path) -> str:
