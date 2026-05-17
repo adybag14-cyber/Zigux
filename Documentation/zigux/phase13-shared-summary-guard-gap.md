@@ -28,6 +28,8 @@ That gap is now closed through these shipped surfaces:
 
 The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.
 
+Fresh authenticated file checks in this run keep that follow-up narrower than the older reminder packet. `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` now materialize on current `master`, so they should stay recorded as returned adjacent notifier evidence rather than as repo-reality gaps.
+
 Keep these paths recorded as repo-reality gaps until current `master` rematerializes them:
 
 - `zigux/Makefile`
@@ -36,15 +38,20 @@ Keep these paths recorded as repo-reality gaps until current `master` rematerial
 - `scripts/zigux/validate-phase13-release.py`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+- `scripts/zigux/check-phase13-notifier-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
+- `zigux/tests/phase13_build.zig`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `include/zigux/notifier_abi.h`
 
 ## Review Use
 
 1. Run `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.
 2. Run `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`.
-3. Keep the Makefile-backed route family recorded as repo-reality gaps rather than promoting it into shipped contributor workflow evidence.
-4. Treat broader docs-root, scripts-root, and tests-root refresh as a separate same-lane follow-up step.
+3. Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned adjacent notifier evidence without turning them into part of the stable shared replay handle.
+4. Keep the Makefile-backed route family and the still-missing notifier and build companions recorded as repo-reality gaps rather than promoting them into shipped contributor workflow evidence.
+5. Treat broader docs-root, scripts-root, and tests-root refresh as a separate same-lane follow-up step.
 
 ## Boundaries
 
