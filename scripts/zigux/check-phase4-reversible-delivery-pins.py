@@ -228,7 +228,7 @@ def main() -> int:
 
             note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
             readme_path = root / README
-            readme_path.writeText(
+            readme_path.write_text(
                 readme_path.read_text(encoding="utf-8").replace(
                     README_OWNER_MARKERS[1],
                     "historical route handoff drifted",
