@@ -192,6 +192,88 @@ fn addPhase3ErrPtrXarrayDump(
     return b.addRunArtifact(exe);
 }
 
+fn addPhase3XarraySlotStarterPacket(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const err_ptr = b.createModule(.{
+        .root_source_file = b.path("../helpers/err_ptr.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const xa_value = b.createModule(.{
+        .root_source_file = b.path("../helpers/xa_value.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    xa_value.addImport("err_ptr", err_ptr);
+
+    const xarray_slot_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/xarray_slot_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    xarray_slot_view.addImport("err_ptr", err_ptr);
+    xarray_slot_view.addImport("xa_value", xa_value);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_xarray_slot_starter_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("err_ptr", err_ptr);
+    root_module.addImport("xa_value", xa_value);
+    root_module.addImport("xarray_slot_view", xarray_slot_view);
+
+    const tests = b.addTest(.{
+        .name = "phase3-xarray-slot-starter-packet",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
+fn addPhase3XarraySlotDump(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const err_ptr = b.createModule(.{
+        .root_source_file = b.path("../helpers/err_ptr.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const xa_value = b.createModule(.{
+        .root_source_file = b.path("../helpers/xa_value.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    xa_value.addImport("err_ptr", err_ptr);
+
+    const xarray_slot_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/xarray_slot_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    xarray_slot_view.addImport("err_ptr", err_ptr);
+    xarray_slot_view.addImport("xa_value", xa_value);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_xarray_slot_dump.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("err_ptr", err_ptr);
+    root_module.addImport("xa_value", xa_value);
+    root_module.addImport("xarray_slot_view", xarray_slot_view);
+
+    const exe = b.addExecutable(.{
+        .name = "phase3-xarray-slot-dump",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(exe);
+}
+
 fn addPhase3PolicyStarterPacket(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -270,6 +352,8 @@ pub fn build(b: *std.Build) void {
     const phase3_dev_t_starter_packet = addPhase3DevTStarterPacket(b, target, optimize);
     const phase3_errptr_xarray_starter_packet = addPhase3ErrPtrXarrayStarterPacket(b, target, optimize);
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
+    const phase3_xarray_slot_starter_packet = addPhase3XarraySlotStarterPacket(b, target, optimize);
+    const phase3_xarray_slot_dump = addPhase3XarraySlotDump(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
 
@@ -307,6 +391,18 @@ pub fn build(b: *std.Build) void {
     );
     phase3_errptr_xarray_dump_step.dependOn(&phase3_errptr_xarray_dump.step);
 
+    const phase3_xarray_slot_step = b.step(
+        "phase3-xarray-slot-starter-packet",
+        "Run the shared Phase 3 xarray-slot starter packet from zigux/tests",
+    );
+    phase3_xarray_slot_step.dependOn(&phase3_xarray_slot_starter_packet.step);
+
+    const phase3_xarray_slot_dump_step = b.step(
+        "phase3-xarray-slot-dump",
+        "Run the shared Phase 3 xarray-slot dump from zigux/tests",
+    );
+    phase3_xarray_slot_dump_step.dependOn(&phase3_xarray_slot_dump.step);
+
     const phase3_policy_step = b.step(
         "phase3-policy-starter-packet",
         "Run the shared Phase 3 policy starter packet from zigux/tests",
@@ -319,6 +415,7 @@ pub fn build(b: *std.Build) void {
     );
     phase3_test_step.dependOn(&phase3_dev_t_starter_packet.step);
     phase3_test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
+    phase3_test_step.dependOn(&phase3_xarray_slot_starter_packet.step);
     phase3_test_step.dependOn(&phase3_policy_starter_packet.step);
 
     const phase3_dump_step = b.step(
@@ -326,6 +423,8 @@ pub fn build(b: *std.Build) void {
         "Dump the current shared Phase 3 ABI snapshot from zigux/tests",
     );
     phase3_dump_step.dependOn(&phase3_abi_dump.step);
+    phase3_dump_step.dependOn(&phase3_errptr_xarray_dump.step);
+    phase3_dump_step.dependOn(&phase3_xarray_slot_dump.step);
 
     const phase12_step = b.step(
         "phase12-virtio-net-survey",
