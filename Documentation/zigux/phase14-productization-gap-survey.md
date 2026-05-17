@@ -29,31 +29,42 @@ The roadmap also keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in 
 
 ## Current Direct-Readback Evidence
 
-Fresh GitHub contents reads on 2026-05-16 recovered these Phase 14-adjacent summary surfaces on current `master`:
+Fresh GitHub contents reads on 2026-05-17 now recover a broader Phase 14 documentation packet on current `master` than this note recorded on 2026-05-16.
+
+The current directly readable Phase 14 summary and companion surfaces are:
 
 - `Documentation/zigux/README.md`
-- `zigux/tests/README.md`
-
-Those summary surfaces still describe a broader Phase 14 packet, but the same read pass did not recover the named Phase 14 packet members below.
-
-## Current Readback Gaps
-
-Direct GitHub contents reads returned missing-path results for these currently claimed Phase 14 packet members:
-
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase14-productization-gap-survey.md`
+- `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`
+- `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`
 - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
 - `Documentation/zigux/phase14-core-boundary-traceability.md`
 - `Documentation/zigux/phase14-release-boundary-survey.md`
 - `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase14-skbuff-bridge-survey.md`
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+
+That means the current productization gap is no longer a docs-level absence of the shared smoke packet.
+Current `master` does expose the shared smoke note, the cross-anchor traceability note, the release-boundary note, and the freeze map through the exact contents path available in this lane.
+
+## Current Readback Gaps
+
+Direct GitHub contents reads still return missing-path results for these executable or machine-readable Phase 14 packet members:
+
 - `scripts/zigux/validate-phase14.py`
 - `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
 - `zigux/tests/phase14_build.zig`
+- `zigux/tests/phase14_end_to_end_smoke_manifest.json`
+- `zigux/tests/phase14_end_to_end_smoke_survey.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
 - `zigux/tests/phase14_skbuff_bridge.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
 - `zigux/tests/phase14_rcu_tree_survey.zig`
+- `net/core/skbuff_bridge.zig`
 
-This means the current productization gap is not the absence of one more Phase 14 wrapper.
-It is that the docs-root summary surfaces currently overstate which Phase 14 boundary, survey, validation, and smoke artifacts are directly recoverable from current `master`.
+This means the current productization gap is narrower and more specific than the older note claimed.
+The remaining drift is the split between directly readable shared-smoke documentation surfaces and still-unrecovered validator, build, manifest, survey, and bridge files on the same packet.
 
 ## Product Judgment
 
@@ -61,11 +72,12 @@ Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-f
 
 Given current repo readback, the next honest delivery move should be one of these narrow options:
 
-1. re-materialize the missing Phase 14 survey, validator, and build packet on current `master`, or
-2. tighten the docs-root and tests-root Phase 14 summaries so they only claim directly recoverable evidence
+1. re-materialize the missing Phase 14 validator, build, manifest, survey, and bridge packet members on current `master`, or
+2. tighten the docs-root, checklist, and tests-root Phase 14 summaries so they distinguish the recovered documentation packet from the still-missing executable packet members
 
-Until one of those happens, reviewers should not treat the broader Phase 14 bridge-and-smoke packet as shipped direct evidence.
+Reviewers should therefore treat the shared smoke documentation packet as directly readable current evidence again, while still treating the validator-first and build-backed companions above as repo-reality gaps until they return through the same exact read path.
 
 ## Recommended Next Bounded Step
 
-Tighten the docs-root Phase 14 summary so it points at this gap survey and stops presenting the missing bridge-and-smoke packet as directly recoverable current-`master` evidence.
+Tighten the broader Phase 14 reminder surfaces so they stop presenting the entire shared smoke packet as unreadable current-`master` evidence.
+The smallest honest follow-up is to update the docs-root, checklist, and tests-root Phase 14 summaries so they name the recovered shared-smoke notes and freeze-map anchors directly, while keeping the still-missing validator, build, manifest, survey, and bridge members explicit as the remaining gap.
