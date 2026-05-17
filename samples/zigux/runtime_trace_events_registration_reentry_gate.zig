@@ -11,6 +11,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     const initialized_before = module.summary();
     try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);
     try std.testing.expectEqual(@as(usize, 0), initialized_before.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), initialized_before.main_iterations);
     try std.testing.expectEqual(@as(usize, 0), initialized_before.fn_iterations);
     try std.testing.expectEqual(@as(usize, 0), initialized_before.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 0), initialized_before.total_events);
@@ -23,6 +24,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     const initialized_after = module.summary();
     try std.testing.expectEqual(ModuleStage.initialized, initialized_after.stage);
     try std.testing.expectEqual(@as(usize, 0), initialized_after.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), initialized_after.main_iterations);
     try std.testing.expectEqual(@as(usize, 1), initialized_after.fn_iterations);
     try std.testing.expectEqual(@as(usize, 2), initialized_after.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 2), initialized_after.total_events);
@@ -36,6 +38,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     const selftest_before = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_before.stage);
     try std.testing.expectEqual(@as(usize, 0), selftest_before.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), selftest_before.main_iterations);
     try std.testing.expectEqual(@as(usize, 2), selftest_before.fn_iterations);
     try std.testing.expectEqual(@as(usize, 4), selftest_before.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 10), selftest_before.total_events);
@@ -50,6 +53,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     const selftest_after = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_after.stage);
     try std.testing.expectEqual(@as(usize, 0), selftest_after.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), selftest_after.main_iterations);
     try std.testing.expectEqual(@as(usize, 3), selftest_after.fn_iterations);
     try std.testing.expectEqual(@as(usize, 6), selftest_after.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 12), selftest_after.total_events);
@@ -58,4 +62,42 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(i32, 11), selftest_after.last_fn_count);
     try std.testing.expectEqualStrings("foo_bar_reg", selftest_after.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings("foo_bar_unreg", selftest_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+
+    const before_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_exit.stage);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.main_iterations);
+    try std.testing.expectEqual(@as(usize, 3), before_exit.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 6), before_exit.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 12), before_exit.total_events);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
+    try std.testing.expectEqual(@as(?usize, 2), before_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(i32, 11), before_exit.last_fn_count);
+    try std.testing.expectEqualStrings("foo_bar_reg", before_exit.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqualStrings("foo_bar_unreg", before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);
+    try std.testing.expectEqual(before_exit.main_iterations, after_exit.main_iterations);
+    try std.testing.expectEqual(before_exit.fn_iterations, after_exit.fn_iterations);
+    try std.testing.expectEqual(before_exit.fn_thread_events, after_exit.fn_thread_events);
+    try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);
+    try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(before_exit.last_fn_count, after_exit.last_fn_count);
+    try std.testing.expectEqualStrings(before_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_exit.last_register_label orelse return error.ExpectedRegisterLabel, after_exit.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqualStrings(before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel, after_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
