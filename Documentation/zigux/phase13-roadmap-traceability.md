@@ -29,9 +29,8 @@ When shared Phase 13 wording changes, keep these current shared surfaces aligned
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/review-checklist.md`
 - `zigux/tests/README.md`
-- `zigux/Makefile`
-- stable `make -C zigux phase13-validate`
-- blocked convenience route `make -C zigux phase13`
+
+Keep the broader Makefile-backed handle explicit as repo-reality-gap vocabulary instead of a materialized shared surface while current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`.
 
 ## Anchor Map
 
@@ -54,14 +53,16 @@ Current `master` still does not materialize `Documentation/zigux/phase13-notifie
 - `zigux/helpers/notifier_chain_view.zig`
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
-- `zigux/Makefile`
-- stable `make -C zigux phase13-validate`
-- blocked convenience route `make -C zigux phase13`
+
+Keep `zigux/Makefile`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13` framed as repo-reality gaps here too while the missing shared build companion and notifier survey keep the broader make-route handle from qualifying as current adjacent evidence.
 
 ## Repo-Reality Gaps
 
 Keep the remaining shared-summary, validator-first, and direct-companion gaps explicit until current `master` materializes them again:
 
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
 - `scripts/zigux/validate-phase13-release.py`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
