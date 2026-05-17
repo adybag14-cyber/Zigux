@@ -40,6 +40,7 @@ SLICE_MARKERS = [
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "queued status completions are reclaimed only in memory",
+    "teardown-reset parity explicit across reset",
 ]
 
 MODULE_MARKERS = [
@@ -55,15 +56,15 @@ MODULE_MARKERS = [
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
-    "queued status completions are still reclaimed in memory",
-    "wrapper-facing verify coverage still proves queue-callback ordering and registration prerequisites without widening into transport-backed queue execution",
+    "queued status completions are only reclaimed in memory",
+    "wrapper-facing verify coverage still proves queue-callback ordering, registration prerequisites, and teardown-reset parity across reset without widening into transport-backed queue execution or freeze, restore, or remove lifecycle claims",
     "registration lifecycle closure, freeze, restore, remove, and broader transport-backed lifecycle work remain outside this module slice",
 ]
 
 SURVEY_NOTE_MARKERS = [
     "# Phase 10 Virtio Input Survey",
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L22",
+    "PHASE10_LANE_KEY=P10-L13",
     "PHASE10_SURVEYED_COMMIT=",
     "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport",
     "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
@@ -75,26 +76,28 @@ SURVEY_NOTE_MARKERS = [
     "zigux/tests/phase10_virtio_input_survey.zig",
     "Current `master` keeps this input lane reviewable through the bounded helper packet:",
     "Do not claim a transport-backed Phase 10 input compile or lifecycle replay from this survey until the risky transport bridge itself changes.",
+    "wrapper-facing teardown-reset verify parity stays explicit across reset",
 ]
 
 MANIFEST_MARKERS = [
-    '"lane_key": "P10-L22"',
-    '"surveyed_commit": "',
-    '"roadmap_destinations": [',
-    '"drivers/virtio/*.zig"',
-    '"zigux/kernel/"',
-    '"zigux/helpers/"',
-    '"risky_transport_posture": "blocked_on_risky_transport"',
-    '"id": "phase10-virtio-input-survey-gate"',
-    '"zigux_destination": "zigux/tests/phase10_virtio_input_survey.zig"',
-    '"id": "phase10-virtio-input-verify-replay"',
-    '"zigux_destination": "drivers/virtio/virtio_input_verify.zig"',
-    '"id": "phase10-virtio-input-registration-preflight-helper"',
-    '"zigux_destination": "drivers/virtio/virtio_input_registration_preflight.zig"',
-    '"id": "phase10-virtio-input-status-drain-helper"',
-    '"zigux_destination": "drivers/virtio/virtio_input_status_drain.zig"',
-    '"id": "phase10-virtio-input-registration-lifecycle"',
-    '"status": "blocked_on_risky_transport"',
+    "\"lane_key\": \"P10-L13\"",
+    "\"surveyed_commit\": \"",
+    "\"roadmap_destinations\": [",
+    "\"drivers/virtio/*.zig\"",
+    "\"zigux/kernel/\"",
+    "\"zigux/helpers/\"",
+    "\"risky_transport_posture\": \"blocked_on_risky_transport\"",
+    "\"id\": \"phase10-virtio-input-survey-gate\"",
+    "\"zigux_destination\": \"zigux/tests/phase10_virtio_input_survey.zig\"",
+    "\"id\": \"phase10-virtio-input-verify-replay\"",
+    "\"zigux_destination\": \"drivers/virtio/virtio_input_verify.zig\"",
+    "teardown-reset parity across reset explicit without widening into transport-backed queue execution or freeze, restore, or remove lifecycle claims",
+    "\"id\": \"phase10-virtio-input-registration-preflight-helper\"",
+    "\"zigux_destination\": \"drivers/virtio/virtio_input_registration_preflight.zig\"",
+    "\"id\": \"phase10-virtio-input-status-drain-helper\"",
+    "\"zigux_destination\": \"drivers/virtio/virtio_input_status_drain.zig\"",
+    "\"id\": \"phase10-virtio-input-registration-lifecycle\"",
+    "\"status\": \"blocked_on_risky_transport\"",
 ]
 
 INPUT_HELPER_MARKERS = [
@@ -135,6 +138,7 @@ STATUS_DRAIN_HELPER_MARKERS = [
 VERIFY_HELPER_MARKERS = [
     'test "phase10 virtio input verify keeps wrapper-facing queue preflight ordering explicit" {',
     'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
+    'test "phase10 virtio input verify keeps teardown wrapper parity explicit across reset" {',
 ]
 
 BUILD_MARKERS = [
@@ -146,28 +150,29 @@ BUILD_MARKERS = [
     "phase10_virtio_input_status_drain_module",
     "phase10_virtio_input_teardown_observation_module",
     "phase10_virtio_input_survey_module",
-    '"phase10-virtio-input-tests"',
-    '"phase10-virtio-input-probe-preflight-tests"',
-    '"phase10-virtio-input-queue-callback-preflight-tests"',
-    '"phase10-virtio-input-registration-preflight-tests"',
-    '"phase10-virtio-input-status-drain-tests"',
-    '"phase10-virtio-input-teardown-observation-tests"',
-    '"phase10-virtio-input-survey-tests"',
-    '"phase10-virtio-input-verify-tests"',
+    '\"phase10-virtio-input-tests\"',
+    '\"phase10-virtio-input-probe-preflight-tests\"',
+    '\"phase10-virtio-input-queue-callback-preflight-tests\"',
+    '\"phase10-virtio-input-registration-preflight-tests\"',
+    '\"phase10-virtio-input-status-drain-tests\"',
+    '\"phase10-virtio-input-teardown-observation-tests\"',
+    '\"phase10-virtio-input-survey-tests\"',
+    '\"phase10-virtio-input-verify-tests\"',
 ]
 
 SURVEY_GATE_MARKERS = [
-    'test "phase10 virtio input survey note keeps the restored verifier and queue callback packet explicit" {',
+    'test "phase10 virtio input survey note keeps the restored verifier, teardown parity, and queue callback packet explicit" {',
     'test "phase10 virtio input manifest keeps the restored replay ids and blocked lifecycle posture explicit" {',
     'test "phase10 virtio input slice companions keep the replay inventory and blocked lifecycle boundary explicit" {',
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L22",
+    "PHASE10_LANE_KEY=P10-L13",
     "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
-    '"id": "phase10-virtio-input-survey-gate"',
-    '"status": "blocked_on_risky_transport"',
+    "\"id\": \"phase10-virtio-input-survey-gate\"",
+    "\"status\": \"blocked_on_risky_transport\"",
     "the dedicated status-drain helper plus replay",
+    "teardown-reset parity across reset",
 ]
 
 TEST_MARKERS = {
@@ -192,7 +197,7 @@ TEST_MARKERS = {
     ],
 }
 
-MANIFEST_SURVEYED_COMMIT_MARKER = '"surveyed_commit": "'
+MANIFEST_SURVEYED_COMMIT_MARKER = '\"surveyed_commit\": \"'
 SURVEY_NOTE_COMMIT_MARKER = "PHASE10_SURVEYED_COMMIT="
 
 
@@ -345,7 +350,7 @@ def write_fixture(root: Path) -> None:
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_manifest.json": "\n".join(
             [
-                marker if marker != '"surveyed_commit": "' else f'"surveyed_commit": "{manifest_commit}"'
+                marker if marker != '\"surveyed_commit\": \"' else f'\"surveyed_commit\": \"{manifest_commit}\"'
                 for marker in MANIFEST_MARKERS
             ]
         )
