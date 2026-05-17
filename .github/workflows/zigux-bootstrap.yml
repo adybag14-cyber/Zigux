@@ -181,6 +181,18 @@ jobs:
       - name: Check current Phase 11 HVC cleanup current-head packet
         run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py
 
+      - name: Self-test current Phase 11 build inventory checker
+        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
+
+      - name: Check current Phase 11 build inventory packet
+        run: python3 scripts/zigux/check-phase11-build-inventory.py
+
+      - name: Self-test current Phase 11 matrix-gap survey checker
+        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test
+
+      - name: Check current Phase 11 matrix-gap survey packet
+        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py
+
       - name: Self-test current Phase 12 build-only surface checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
 
