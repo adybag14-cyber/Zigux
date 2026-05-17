@@ -29,6 +29,7 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_readiness_gate_manifest.json`, which records the current dated readback of the smaller readiness packet without implying that the broader validator-first route has fully landed
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`, which together keep one focused review-process checker plus the shared-summary gap checker materialized on current `master`
 - the overclaiming `Documentation/zigux/README.md` Phase 15 summary, which still needs to be treated as a gap source rather than as shipped proof
@@ -45,7 +46,7 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 
 1. either narrow `Documentation/zigux/README.md` to only the live Phase 15 surfaces or land the remaining docs, scripts, manifests, and tests that summary still names
 2. add a `Phase 15 review packet` section to `zigux/tests/README.md` only when that section can point to real current-`master` evidence instead of route names alone
-3. keep the landed `Documentation/zigux/phase15-architecture-council-review-process.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `Documentation/zigux/phase15-indefinite-c-policy.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion
+3. keep the landed `Documentation/zigux/phase15-architecture-council-review-process.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `Documentation/zigux/phase15-indefinite-c-policy.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion
 4. if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet
 
 ## Handoff rules
