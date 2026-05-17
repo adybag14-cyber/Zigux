@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
-"""Check that the Phase 2 toolchain policy routes exist in zigux/Makefile."""
+"""Guard the current directly readable Phase 2 required-make-routes packet."""
 
 from __future__ import annotations
 
 import argparse
 import json
-import re
 import tempfile
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
+WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
+TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
-EXPECTED_SELF_TEST_CASE_COUNT = 9
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -57,7 +60,6 @@ def require_route_list(payload: object, policy_path: Path) -> list[str]:
             raise ValueError(f"duplicate required_make_routes entry in {policy_path}: {route}")
         normalized.append(route)
         seen.add(route)
-
     return normalized
 
 
@@ -69,29 +71,67 @@ def load_required_make_routes(policy_path: Path = TOOLCHAIN_POLICY) -> list[str]
     return require_route_list(payload, policy_path)
 
 
-def count_route_targets(makefile_text: str, route: str) -> int:
-    pattern = re.compile(rf"^{re.escape(route)}:(?:\s|$)", re.MULTILINE)
-    return len(pattern.findall(makefile_text))
+def format_route_marker(route: str) -> str:
+    return f"`make -C zigux {route}`"
 
 
-def collect_route_issues(makefile_text: str, required_routes: list[str]) -> list[tuple[str, str]]:
+def workflow_lines() -> tuple[str, str]:
+    return (
+        "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
+        "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    )
+
+
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def collect_route_marker_issues(text: str, required_routes: list[str], code: str) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for route in required_routes:
-        count = count_route_targets(makefile_text, route)
-        if count == 0:
-            issues.append(("MISSING_REQUIRED_ROUTE", route))
-        elif count != 1:
-            issues.append(("DUPLICATE_REQUIRED_ROUTE", f"{route}:count={count}"))
+        marker = format_route_marker(route)
+        if marker not in text:
+            issues.append((code, marker))
     return issues
 
 
-def emit_issues(issues: list[tuple[str, str]], makefile_path: Path, required_routes: list[str]) -> int:
+def collect_issues(root: Path) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+    required_routes = load_required_make_routes(policy_path)
+
+    workflow_text = read_text(resolve_path(root, WORKFLOW))
+    for line in workflow_lines():
+        if count_exact_lines(workflow_text, line) != 1:
+            issues.append(("MISSING_WORKFLOW_LINES", line))
+
+    bootstrap_notes_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
+    review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
+    tests_readme_text = read_text(resolve_path(root, TESTS_README))
+
+    for text, marker_code, route_code in (
+        (bootstrap_notes_text, "MISSING_BOOTSTRAP_GAP_MARKERS", "MISSING_BOOTSTRAP_ROUTE_MARKERS"),
+        (review_checklist_text, "MISSING_REVIEW_GAP_MARKERS", "MISSING_REVIEW_ROUTE_MARKERS"),
+        (tests_readme_text, "MISSING_TESTS_GAP_MARKERS", "MISSING_TESTS_ROUTE_MARKERS"),
+    ):
+        if "`zigux/Makefile`" not in text:
+            issues.append((marker_code, "`zigux/Makefile`"))
+        issues.extend(collect_route_marker_issues(text, required_routes, route_code))
+
+    if resolve_path(root, MAKEFILE).exists():
+        issues.append(("UNEXPECTED_PRESENT_PATHS", MAKEFILE.relative_to(ROOT).as_posix()))
+
+    return issues
+
+
+def emit_issues(issues: list[tuple[str, str]], root: Path, required_routes: list[str]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
         grouped.setdefault(code, []).append(value)
 
     print("PHASE2_REQUIRED_MAKE_ROUTES=fail")
-    print(f"PHASE2_REQUIRED_MAKEFILE_PATH={makefile_path}")
+    print(f"PHASE2_REQUIRED_POLICY_PATH={resolve_path(root, TOOLCHAIN_POLICY)}")
+    print(f"PHASE2_REQUIRED_MAKEFILE_PATH={resolve_path(root, MAKEFILE)}")
     print("PHASE2_REQUIRED_ROUTE_LIST=" + ",".join(required_routes))
     for code, values in grouped.items():
         print(f"{code}_START")
@@ -101,9 +141,8 @@ def emit_issues(issues: list[tuple[str, str]], makefile_path: Path, required_rou
     return 1
 
 
-def build_self_test_root(root: Path) -> tuple[Path, Path]:
+def build_self_test_root(root: Path) -> Path:
     policy_path = resolve_path(root, TOOLCHAIN_POLICY)
-    makefile_path = resolve_path(root, MAKEFILE)
     write_text(
         policy_path,
         json.dumps(
@@ -123,50 +162,80 @@ def build_self_test_root(root: Path) -> tuple[Path, Path]:
         + "\n",
     )
     write_text(
-        makefile_path,
-        "\n".join(
-            (
-                "PHONY += phase2-toolchain phase2-validate phase2",
-                "phase2-toolchain:",
-                "\t@true",
-                "phase2-validate: phase2-toolchain",
-                "\t@true",
-                "phase2: phase2-validate",
-                "\t@true",
-            )
-        )
-        + "\n",
+        resolve_path(root, WORKFLOW),
+        "\n".join(workflow_lines()) + "\n",
     )
-    return policy_path, makefile_path
+    route_markers = "\n".join(
+        (
+            "`zigux/Makefile`",
+            *[format_route_marker(route) for route in ["phase2-toolchain", "phase2-validate"]],
+        )
+    )
+    for path in (BOOTSTRAP_NOTES, REVIEW_CHECKLIST, TESTS_README):
+        write_text(resolve_path(root, path), route_markers + "\n")
+    return policy_path
+
+
+def replace_once(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement, 1)
+
+
+def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
 
 
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_required_make_routes_") as tmp_dir:
         root = Path(tmp_dir)
-        policy_path, makefile_path = build_self_test_root(root)
+        policy_path = build_self_test_root(root)
 
-        required_routes = load_required_make_routes(policy_path)
+        required_routes = load_required_make_routes(resolve_path(root, TOOLCHAIN_POLICY))
         assert required_routes == ["phase2-toolchain", "phase2-validate"]
-        assert collect_route_issues(read_text(makefile_path), required_routes) == []
+        assert collect_issues(root) == []
         checks_run += 1
 
-        makefile_path.write_text("phase2-validate:\n\t@true\n", encoding="utf-8")
-        assert ("MISSING_REQUIRED_ROUTE", "phase2-toolchain") in collect_route_issues(
-            read_text(makefile_path), required_routes
-        )
-        checks_run += 1
-
-        _, makefile_path = build_self_test_root(root)
-        makefile_path.write_text(
-            read_text(makefile_path) + "phase2-toolchain:\n\t@true\n",
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            replace_exact_line(workflow_path.read_text(encoding="utf-8"), workflow_lines()[0]),
             encoding="utf-8",
         )
-        assert ("DUPLICATE_REQUIRED_ROUTE", "phase2-toolchain:count=2") in collect_route_issues(
-            read_text(makefile_path), required_routes
-        )
+        assert ("MISSING_WORKFLOW_LINES", workflow_lines()[0]) in collect_issues(root)
         checks_run += 1
 
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            replace_exact_line(workflow_path.read_text(encoding="utf-8"), workflow_lines()[1]),
+            encoding="utf-8",
+        )
+        assert ("MISSING_WORKFLOW_LINES", workflow_lines()[1]) in collect_issues(root)
+        checks_run += 1
+
+        for path, code, marker in (
+            (BOOTSTRAP_NOTES, "MISSING_BOOTSTRAP_ROUTE_MARKERS", format_route_marker("phase2-toolchain")),
+            (REVIEW_CHECKLIST, "MISSING_REVIEW_ROUTE_MARKERS", format_route_marker("phase2-validate")),
+            (TESTS_README, "MISSING_TESTS_GAP_MARKERS", "`zigux/Makefile`"),
+        ):
+            build_self_test_root(root)
+            resolved = resolve_path(root, path)
+            resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert (code, marker) in collect_issues(root)
+            checks_run += 1
+
+        build_self_test_root(root)
+        write_text(resolve_path(root, MAKEFILE), "phase2-toolchain:\n\t@true\n")
+        assert ("UNEXPECTED_PRESENT_PATHS", "zigux/Makefile") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         policy_path.write_text("{not-json}\n", encoding="utf-8")
         try:
             load_required_make_routes(policy_path)
@@ -176,61 +245,37 @@ def run_self_test() -> int:
         else:
             raise AssertionError("invalid JSON did not fail")
 
-        _, _ = build_self_test_root(root)
-        payload = json.loads(read_text(policy_path))
-        payload["upgrade_policy"]["required_make_routes"] = []
-        write_text(policy_path, json.dumps(payload, indent=2) + "\n")
-        try:
-            load_required_make_routes(policy_path)
-        except ValueError as exc:
-            assert "invalid required_make_routes" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("empty route list did not fail")
+        for payload, expected in (
+            ({"upgrade_policy": {"required_make_routes": []}}, "invalid required_make_routes"),
+            ({"upgrade_policy": {"required_make_routes": ["phase2-toolchain", "phase2-toolchain"]}}, "duplicate required_make_routes entry"),
+            ({"upgrade_policy": "bad"}, "invalid upgrade_policy"),
+            ([], "invalid toolchain policy payload"),
+        ):
+            build_self_test_root(root)
+            if isinstance(payload, list):
+                policy_path.write_text(json.dumps(payload) + "\n", encoding="utf-8")
+            else:
+                base = json.loads(read_text(policy_path))
+                base["upgrade_policy"] = payload["upgrade_policy"]
+                policy_path.write_text(json.dumps(base, indent=2) + "\n", encoding="utf-8")
+            try:
+                load_required_make_routes(policy_path)
+            except ValueError as exc:
+                assert expected in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"{expected} did not fail")
 
-        _, _ = build_self_test_root(root)
-        payload = json.loads(read_text(policy_path))
-        payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-toolchain"]
-        write_text(policy_path, json.dumps(payload, indent=2) + "\n")
-        try:
-            load_required_make_routes(policy_path)
-        except ValueError as exc:
-            assert "duplicate required_make_routes entry" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("duplicate route list did not fail")
-
-        _, makefile_path = build_self_test_root(root)
-        makefile_path.unlink()
-        try:
-            read_text(makefile_path)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("missing makefile did not abort")
-
-        policy_path, makefile_path = build_self_test_root(root)
-        policy_path.unlink()
-        try:
-            load_required_make_routes(policy_path)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("missing policy did not abort")
-
-        policy_path, makefile_path = build_self_test_root(root)
-        payload = json.loads(read_text(policy_path))
-        payload["upgrade_policy"] = "bad"
-        write_text(policy_path, json.dumps(payload, indent=2) + "\n")
-        try:
-            load_required_make_routes(policy_path)
-        except ValueError as exc:
-            assert "invalid upgrade_policy" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("invalid upgrade_policy did not fail")
+        for path in (TOOLCHAIN_POLICY, WORKFLOW, BOOTSTRAP_NOTES, REVIEW_CHECKLIST, TESTS_README):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"missing file did not abort: {path}")
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_REQUIRED_MAKE_ROUTES_SELF_TEST=pass")
@@ -240,7 +285,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 2 toolchain policy routes exist in zigux/Makefile."
+        description="Check that the current Phase 2 required-make-routes packet stays aligned with repo reality."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
@@ -251,24 +296,25 @@ def main() -> int:
 
     root = args.root.resolve()
     policy_path = resolve_path(root, TOOLCHAIN_POLICY)
-    makefile_path = resolve_path(root, MAKEFILE)
     try:
         required_routes = load_required_make_routes(policy_path)
     except ValueError as exc:
         print("PHASE2_REQUIRED_MAKE_ROUTES=invalid")
-        print(f"PHASE2_REQUIRED_MAKEFILE_PATH={makefile_path}")
         print(f"PHASE2_REQUIRED_POLICY_PATH={policy_path}")
+        print(f"PHASE2_REQUIRED_MAKEFILE_PATH={resolve_path(root, MAKEFILE)}")
         print(f"PHASE2_REQUIRED_MAKE_ROUTES_NOTE={exc}")
         return 1
 
-    issues = collect_route_issues(read_text(makefile_path), required_routes)
+    issues = collect_issues(root)
     if issues:
-        return emit_issues(issues, makefile_path, required_routes)
+        return emit_issues(issues, root, required_routes)
 
     print("PHASE2_REQUIRED_MAKE_ROUTES=pass")
-    print(f"PHASE2_REQUIRED_MAKEFILE_PATH={makefile_path}")
+    print(f"PHASE2_REQUIRED_POLICY_PATH={policy_path}")
+    print(f"PHASE2_REQUIRED_MAKEFILE_PATH={resolve_path(root, MAKEFILE)}")
     print("PHASE2_REQUIRED_ROUTE_LIST=" + ",".join(required_routes))
     print(f"PHASE2_REQUIRED_ROUTE_COUNT={len(required_routes)}")
+    print("PHASE2_REQUIRED_ROUTE_STATUS=historical-gap-tracked")
     return 0
 
 
