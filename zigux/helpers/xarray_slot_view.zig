@@ -97,3 +97,31 @@ test "gap below err floor stays pointer-like and leaves tagged decoders closed" 
     try std.testing.expectEqual(@as(?usize, raw), slot.pointerValue());
     try std.testing.expect(!isTaggedInternalEntry(raw));
 }
+
+test "inline zero stays a tagged value and keeps other decoders closed" {
+    const raw = try xa_value.makeValue(0);
+    const slot = fromRaw(raw);
+
+    try std.testing.expect(!slot.isNull());
+    try std.testing.expect(slot.isValue());
+    try std.testing.expect(!slot.isErr());
+    try std.testing.expect(!slot.isPointer());
+    try std.testing.expectEqual(@as(?usize, 0), slot.value());
+    try std.testing.expectEqual(@as(?isize, null), slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(raw));
+}
+
+test "top err_ptr encoding stays tagged and keeps value and pointer decoders closed" {
+    const raw = err_ptr.fromErrorCode(-1);
+    const slot = fromRaw(raw);
+
+    try std.testing.expect(!slot.isNull());
+    try std.testing.expect(!slot.isValue());
+    try std.testing.expect(slot.isErr());
+    try std.testing.expect(!slot.isPointer());
+    try std.testing.expectEqual(@as(?usize, null), slot.value());
+    try std.testing.expectEqual(@as(?isize, -1), slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(raw));
+}
