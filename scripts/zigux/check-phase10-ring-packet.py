@@ -395,6 +395,14 @@ def run_self_test() -> int:
             "manifest:allowed_evidence_kinds",
         )
         mutate_manifest(
+            lambda manifest: manifest.__setitem__("freeze_boundary_owner_lane", "P10-L09"),
+            "manifest:freeze_boundary_owner_lane='P10-L09'",
+        )
+        mutate_manifest(
+            lambda manifest: manifest.__setitem__("study_only_anchors", ["kernel/workqueue.c"]),
+            "manifest:study_only_anchors",
+        )
+        mutate_manifest(
             lambda manifest: manifest["survey_summary"].__setitem__(
                 "preexisting_phase10_test_files", 6
             ),
