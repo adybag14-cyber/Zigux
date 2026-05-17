@@ -1,0 +1,27 @@
+{
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-list-hlist",
+  "status": "parity_packet_present",
+  "scope": "fixture-backed list_head and hlist traversal parity dump",
+  "packet_files": [
+    "Documentation/zigux/phase3-list-hlist-slice.md",
+    "include/zigux/list_hlist.h",
+    "zigux/uapi/list_hlist.zig",
+    "zigux/bindings/list_hlist.zig",
+    "zigux/helpers/list_view.zig",
+    "zigux/helpers/hlist_view.zig",
+    "zigux/tests/phase3_list_hlist_dump.zig",
+    "zigux/tests/phase3_list_hlist_dump_build.zig",
+    "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
+    "zigux/tests/fixtures/phase3_list_hlist/expected.json",
+    "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
+    "scripts/zigux/check-phase3-list-hlist.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
+    "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"
+  ],
+  "next_safe_step": "keep any follow-up on shared tests-root wiring or reminder-surface wording separate from this parity packet"
+}
