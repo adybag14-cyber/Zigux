@@ -16,12 +16,13 @@ MMIO_PATH = Path("zigux/helpers/mmio.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 WRAPPER_REPLAY_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
 WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
+WRAPPER_BUILD_COMMAND = "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
 
 REQUIRED_MARKERS = {
     NOTE_PATH: (
         "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
         "PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback on 2026-05-17 reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig, while broader shared Phase 3 validator and export-or-UAPI replay routes remain separate current-master gaps",
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the dedicated build companion and shared tests-root wiring until current master materializes the broader Phase 3 validator and export-or-UAPI replay routes beside this wrapper packet",
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and shared tests-root wiring until current master materializes the broader Phase 3 validator and export-or-UAPI replay routes beside this wrapper packet",
         "`zigux/helpers/atomic.zig`",
         "`zigux/helpers/barrier.zig`",
         "`zigux/helpers/mmio.zig`",
@@ -29,8 +30,9 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
         "`zigux/tests/phase3_low_level_wrappers.zig`",
         "`zigux/tests/phase3_low_level_wrappers_build.zig`",
-        "It also now exposes one dedicated shared build companion through `zigux/tests/phase3_low_level_wrappers_build.zig`, which keeps the focused replay shard runnable without widening the low-level wrapper packet into a broader Phase 3 completion claim.",
-        "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion are directly readable, while the broader shared Phase 3 validator and export-or-UAPI replay routes remain separate gaps.",
+        "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "It also now exposes one dedicated shared build companion through `zigux/tests/phase3_low_level_wrappers_build.zig`, which keeps the focused replay shard runnable through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without widening the low-level wrapper packet into a broader Phase 3 completion claim.",
+        "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, and one direct replay command are directly readable, while the broader shared Phase 3 validator and export-or-UAPI replay routes remain separate gaps.",
     ),
     ABI_SLICE_PATH: (
         "one adjacent low-level-wrapper reminder surface built around the surviving atomic helper shard, one directly readable barrier helper companion, one directly readable MMIO helper companion, the shared unsafe-scope decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
@@ -38,8 +40,9 @@ REQUIRED_MARKERS = {
         "and it separately reaches one adjacent low-level-wrapper reminder surface through Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig, while representative broader Phase 3 paths still remain absent, including scripts/zigux/check-phase3-abi.py, scripts/zigux/validate-phase3.py, and zigux/tests/phase3_export_uapi_layout.zig",
         "`zigux/helpers/mmio.zig`",
         "Current `master` also separately exposes a bounded low-level-wrapper reminder surface through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`.",
-        "one directly readable MMIO helper companion",
-        "the bounded low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, the dedicated survey note, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion;",
+        "That reminder surface keeps one directly readable MMIO helper companion, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion explicit through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without implying that the broader shared validator stack or export-or-UAPI replay routes already ship.",
+        "the bounded low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, the dedicated survey note, the dedicated survey validator, the focused replay shard, the dedicated shared build companion, and the direct replay command; should stay explicit until broader Phase 3 routes materialize.",
+        "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
     ),
     ATOMIC_PATH: (
         "pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {",
@@ -74,10 +77,9 @@ REQUIRED_MARKERS = {
 }
 
 SELF_TEST_CASES = (
-    (NOTE_PATH, "It also now exposes one dedicated shared build companion through `zigux/tests/phase3_low_level_wrappers_build.zig`, which keeps the focused replay shard runnable without widening the low-level wrapper packet into a broader Phase 3 completion claim."),
-    (NOTE_PATH, "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion are directly readable, while the broader shared Phase 3 validator and export-or-UAPI replay routes remain separate gaps."),
-    (ABI_SLICE_PATH, "Current `master` also separately exposes a bounded low-level-wrapper reminder surface through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`."),
-    (ABI_SLICE_PATH, "the bounded low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, the dedicated survey note, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion;"),
+    (NOTE_PATH, "It also now exposes one dedicated shared build companion through `zigux/tests/phase3_low_level_wrappers_build.zig`, which keeps the focused replay shard runnable through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without widening the low-level wrapper packet into a broader Phase 3 completion claim."),
+    (NOTE_PATH, "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`"),
+    (ABI_SLICE_PATH, "That reminder surface keeps one directly readable MMIO helper companion, the dedicated survey validator, the focused replay shard, and the dedicated shared build companion explicit through `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig` without implying that the broader shared validator stack or export-or-UAPI replay routes already ship."),
     (BARRIER_PATH, "pub fn acquire() void {"),
     (BARRIER_PATH, "pub fn fullFence() void {"),
     (MMIO_PATH, "pub fn read(comptime T: type, ptr: *const volatile T) T {"),
