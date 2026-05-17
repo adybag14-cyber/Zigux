@@ -35,3 +35,21 @@ test "safe inline limit stays the highest tagged value below the err_ptr floor" 
     try testing.expectEqual(xa_value.safe_inline_limit, xa_value.toValue(raw));
     try testing.expectEqual(err_ptr.err_floor, raw + 2);
 }
+
+test "inline zero stays the smallest xa_value without entering the err_ptr band" {
+    const raw = try xa_value.makeValue(0);
+
+    try testing.expectEqual(xa_value.value_tag_mask, raw);
+    try testing.expect(xa_value.isValue(raw));
+    try testing.expect(!err_ptr.isErrValue(raw));
+    try testing.expectEqual(@as(usize, 0), xa_value.toValue(raw));
+}
+
+test "top-of-band err_ptr encodings stay err_ptr values even with the low tag bit set" {
+    const raw = err_ptr.fromErrorCode(-1);
+
+    try testing.expect((raw & xa_value.value_tag_mask) == xa_value.value_tag_mask);
+    try testing.expect(err_ptr.isErrValue(raw));
+    try testing.expectEqual(@as(isize, -1), err_ptr.toErrorCode(raw));
+    try testing.expect(!xa_value.isValue(raw));
+}
