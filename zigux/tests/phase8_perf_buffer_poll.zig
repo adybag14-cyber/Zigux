@@ -86,7 +86,7 @@ test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet 
     );
     try expectContains(
         note,
-        "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build and make routes instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone",
+        "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build evidence instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone",
     );
 }
 
