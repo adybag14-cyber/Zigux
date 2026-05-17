@@ -208,7 +208,6 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").writeText = None
         (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
             json.dumps(
                 {
