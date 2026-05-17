@@ -40,11 +40,12 @@ When shared Phase 13 wording changes, reread these contributor-facing surfaces t
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
 If current `master` still does not materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, keep that checker recorded as a repo-reality gap rather than a rereadable shared surface.
+
+Current `master` also still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note recorded as an adjacent repo-reality gap rather than a rereadable shared surface.
 
 If one of those broad reminder surfaces changes, refresh the others before widening helper-local claims.
 
@@ -108,9 +109,8 @@ Keep Landlock framed as shipped helper-local evidence, not as docs-only governan
 
 ### Adjacent Notifier Evidence
 
-Keep adjacent notifier evidence explicit through:
+Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that survey note recorded as an adjacent repo-reality gap while keeping the shipped notifier support packet explicit through:
 
-- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `zigux/bindings/notifier_abi.zig`
 - `zigux/helpers/notifier_chain_view.zig`
@@ -132,6 +132,7 @@ Use the owner split from `Documentation/zigux/phase13-shared-helper-lane-sequenc
 When contributor wording references absent direct companions, keep the absence explicit instead of presenting those paths as shipped evidence:
 
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/tests/phase13_build.zig`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `zigux/tests/phase13_libfs_addressability.zig`
