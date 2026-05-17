@@ -239,7 +239,7 @@ def run_self_test() -> int:
                 if relative_path == "Documentation/zigux/README.md":
                     target.write_text(text.replace(first_docs_marker + "\n", "", 1), encoding="utf-8")
                 elif relative_path == "scripts/zigux/README.md":
-                    target.writeText(text.replace(first_scripts_marker + "\n", "", 1), encoding="utf-8")
+                    target.write_text(text.replace(first_scripts_marker + "\n", "", 1), encoding="utf-8")
                 elif relative_path == "zigux/tests/README.md":
                     target.write_text(text.replace(first_tests_marker + "\n", "", 1), encoding="utf-8")
                 else:
