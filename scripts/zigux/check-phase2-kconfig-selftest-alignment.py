@@ -31,14 +31,14 @@ VALIDATOR_MARKERS = (
     'ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"',
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"',
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19",
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25",
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
 )
 VALIDATOR_EXACT_COUNTS = {
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test"': 1,
     '"scripts/zigux/check-phase2-kconfig-selftest-alignment.py"': 2,
-    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19": 1,
-    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25": 1,
+    "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28": 1,
+    "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37": 1,
 }
 
 CLOSURE_VALIDATOR_MARKERS = (
@@ -298,7 +298,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 19",
+            "PHASE2_VALIDATION_EXPECTED_COMMAND_COUNT = 28",
         ) in issues
         checks_run += 1
 
@@ -315,7 +315,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert (
             "MISSING_VALIDATOR_MARKERS",
-            "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 25",
+            "PHASE2_VALIDATION_EXPECTED_REQUIRED_FILE_COUNT = 37",
         ) in issues
         checks_run += 1
 
