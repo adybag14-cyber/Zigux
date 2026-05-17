@@ -23,8 +23,10 @@ REQUIRED_FILES = [
 
 DOCS_ROOT_MARKERS = [
     "  * the current docs-root Phase 1 reminder packet should stay parked on the live owner-map and string-review guards: `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` are the shipped direct checks, while `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around them.",
-    "  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, closure-side, validator-first, bench, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence.",
+    "  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, closure-side, validator-first, bench, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence.",
+    "  * current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so the remaining shared reminder follow-through is limited to keeping the broader docs-root, checklist, and tests-root bench wording truthful instead of treating the bench checker itself as a repo-reality gap.",
     "  * keep the helper-family split explicit here too: the nine shared-replay parked helpers reopen only for packet drift, while bitmap, find_bit, rbtree, and string keep the only bounded direct-anchor follow-up anchors on current master.",
+    "  * `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the bounded current reminder checks, while the live checker routes guard the shipped Phase 1 packet without widening it back into the older closure-side or installer-companion stack.",
 ]
 
 SCRIPTS_README_MARKERS = [
@@ -66,7 +68,7 @@ SMOKE_ZIG_MARKERS = [
     'try std.testing.expect(@hasDecl(bitmap, "setRange"));',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def repo_root(root: str | None) -> Path:
@@ -187,6 +189,8 @@ def run_self_test() -> int:
         ("missing_docs_marker", "Documentation/zigux/README.md", "remove_marker"),
         ("duplicate_docs_marker", "Documentation/zigux/README.md", "duplicate_marker"),
         ("missing_docs_historical_warning", "Documentation/zigux/README.md", "remove_docs_historical_warning"),
+        ("missing_docs_bench_marker", "Documentation/zigux/README.md", "remove_docs_bench_marker"),
+        ("missing_docs_selftest_marker", "Documentation/zigux/README.md", "remove_docs_selftest_marker"),
         ("missing_scripts_marker", "scripts/zigux/README.md", "remove_marker"),
         ("missing_scripts_bench_marker", "scripts/zigux/README.md", "remove_scripts_bench_marker"),
         ("missing_bench_checker", "scripts/zigux/check-phase1-bench.py", "remove_file"),
@@ -211,12 +215,14 @@ def run_self_test() -> int:
 
     first_docs_marker = DOCS_ROOT_MARKERS[0]
     docs_historical_warning_marker = DOCS_ROOT_MARKERS[1]
+    docs_bench_marker = DOCS_ROOT_MARKERS[2]
+    docs_selftest_marker = DOCS_ROOT_MARKERS[4]
     first_scripts_marker = SCRIPTS_README_MARKERS[0]
     bench_scripts_marker = SCRIPTS_README_MARKERS[2]
     first_tests_marker = TESTS_README_MARKERS[0]
     tests_historical_warning_marker = TESTS_README_MARKERS[1]
     first_checklist_marker = REVIEW_CHECKLIST_MARKERS[0]
-    checklist_packet_alignment_marker = REVIEW_CHECKLIST_MARKERS[0]
+    checklist_packet_alignment_marker = REVIEW_CHECKLIST_MARKERS[1]
     first_build_marker = BUILD_ZIG_MARKERS[0]
     first_smoke_marker = SMOKE_ZIG_MARKERS[0]
 
@@ -233,7 +239,7 @@ def run_self_test() -> int:
                 if relative_path == "Documentation/zigux/README.md":
                     target.write_text(text.replace(first_docs_marker + "\n", "", 1), encoding="utf-8")
                 elif relative_path == "scripts/zigux/README.md":
-                    target.write_text(text.replace(first_scripts_marker + "\n", "", 1), encoding="utf-8")
+                    target.writeText(text.replace(first_scripts_marker + "\n", "", 1), encoding="utf-8")
                 elif relative_path == "zigux/tests/README.md":
                     target.write_text(text.replace(first_tests_marker + "\n", "", 1), encoding="utf-8")
                 else:
@@ -241,6 +247,16 @@ def run_self_test() -> int:
             elif operation == "remove_docs_historical_warning":
                 target.write_text(
                     text.replace(docs_historical_warning_marker + "\n", "", 1),
+                    encoding="utf-8",
+                )
+            elif operation == "remove_docs_bench_marker":
+                target.write_text(
+                    text.replace(docs_bench_marker + "\n", "", 1),
+                    encoding="utf-8",
+                )
+            elif operation == "remove_docs_selftest_marker":
+                target.write_text(
+                    text.replace(docs_selftest_marker + "\n", "", 1),
                     encoding="utf-8",
                 )
             elif operation == "remove_scripts_bench_marker":
