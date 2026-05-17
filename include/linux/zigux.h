@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 
+#include <zigux/abi.h>
 #include <zigux/dev_t.h>
 
 #define ZIGUX_UAPI_ABI_MAJOR 0u
@@ -41,6 +42,44 @@ static inline int zigux_uapi_version_matches_current(struct zigux_uapi_version v
     return zigux_uapi_version_has_current_abi_major(version.abi_major) &&
         zigux_uapi_version_has_current_abi_minor(version.abi_minor) &&
         zigux_uapi_version_has_current_header_family_revision(version.header_family_revision);
+}
+
+static inline zigux_boundary_header zigux_uapi_boundary_header_current(uint16_t flags)
+{
+    return zigux_default_header(flags);
+}
+
+static inline zigux_boundary_header zigux_uapi_boundary_header_compatible(
+    uint32_t size,
+    uint16_t flags)
+{
+    zigux_boundary_header header = zigux_uapi_boundary_header_current(flags);
+    header.size = size;
+    return header;
+}
+
+static inline int zigux_uapi_boundary_header_has_current_abi_version(uint16_t abi_version)
+{
+    return abi_version == (uint16_t)ZIGUX_ABI_VERSION;
+}
+
+static inline int zigux_uapi_boundary_header_is_canonical(zigux_boundary_header header)
+{
+    return header.size == (uint32_t)sizeof(zigux_boundary_header) &&
+        zigux_uapi_boundary_header_has_current_abi_version(header.abi_version);
+}
+
+static inline int zigux_uapi_boundary_header_is_compatible(zigux_boundary_header header)
+{
+    return header.size >= (uint32_t)sizeof(zigux_boundary_header) &&
+        zigux_uapi_boundary_header_has_current_abi_version(header.abi_version);
+}
+
+static inline zigux_boundary_header zigux_uapi_boundary_header_canonicalize(zigux_boundary_header header)
+{
+    header.size = (uint32_t)sizeof(zigux_boundary_header);
+    header.abi_version = (uint16_t)ZIGUX_ABI_VERSION;
+    return header;
 }
 
 #endif
