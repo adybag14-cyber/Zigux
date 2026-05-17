@@ -25,7 +25,7 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=2e16726fec8500136f25afae73e415dbc977faa7`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`
   * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4`
-  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5`
+  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`
 ## Current Packet
 
 Treat this note as the current shared handoff for the Phase 4 rollback-readiness packet, not as proof that every older companion pin in the status block has already been refreshed from live exact blob capture.
@@ -39,7 +39,7 @@ Current direct-readback packet members:
   * `scripts/zigux/check-phase4-repo-reality-warning.py`
   * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 
-The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=5` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
+The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
 
 The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`. Public current-`master` fallback readback still exposes those broader companions, so keep the shared owner map narrow until authenticated exact reads recover instead of treating public fallback visibility as current direct-readback proof. The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.
 
