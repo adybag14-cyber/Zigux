@@ -18,6 +18,7 @@ The currently reviewable Phase 1 packet is:
 - `Documentation/zigux/phase1-closure.md`
 - `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
 - `scripts/zigux/check-phase1-string-review-packet.py`
 - `scripts/zigux/check-phase1-direct-owner-markers.py`
@@ -27,8 +28,8 @@ The currently reviewable Phase 1 packet is:
 - `zigux/tests/phase1_host_tools_smoke.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
-- `PHASE1_SHARED_REMINDER_SYNC_STATE=checklist_pending`
+- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
+- `PHASE1_SHARED_REMINDER_SYNC_STATE=aligned`
 
 ## Current Repo-Reality Gaps
 
@@ -53,13 +54,13 @@ The current Lane 15 validation step stays narrow on purpose:
 - `python3 scripts/zigux/validate-phase1-closure.py`
 - `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
 
-The validator checks this note against the committed helper manifest, the synced tests-root reminder surface, and the already-landed shared tests-root smoke anchor without pretending the older parity, bench, build, or make routes have returned.
+The validator checks this note against the committed helper manifest, the synced docs-root, checklist, scripts-root, and tests-root reminder surfaces, and the already-landed shared tests-root smoke anchor without pretending the older parity, bench, build, or make routes have returned.
 
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
 - `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
 
 ## Next Step
 
-The next same-lane follow-up is to realign `Documentation/zigux/review-checklist.md` around this restored closure anchor before widening back into replay-side helper or bench claims.
+The next same-lane follow-up is to rematerialize one replay-side helper or bench companion on current `master` instead of widening reminder wording again.
 
-- `PHASE1_NEXT_SAFE_STEP=sync Documentation/zigux/review-checklist.md to this restored closure anchor before widening into zigux/tests/phase1_helpers.zig or bench claims`
+- `PHASE1_NEXT_SAFE_STEP=rematerialize one replay-side helper or bench companion on current master before widening reminder wording again`
