@@ -67,6 +67,8 @@ README_WARNING_MARKERS = (
 BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`scripts/zigux/check-zig-toolchain.py`",
+    "`.github/workflows/zigux-bootstrap.yml`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
@@ -101,7 +103,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 77
+EXPECTED_SELF_TEST_CASE_COUNT = 79
 
 
 def read_text(path: Path) -> str:
