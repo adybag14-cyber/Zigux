@@ -12,10 +12,13 @@ from typing import Any
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[2]
 CLOSURE_NOTE_REL = Path("Documentation/zigux/phase1-closure.md")
+DOCS_README_REL = Path("Documentation/zigux/README.md")
+REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 BUILD_FILE_REL = Path("zigux/tests/build.zig")
 SMOKE_FILE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+TESTS_README_REL = Path("zigux/tests/README.md")
 
 EXPECTED_HELPERS = [
     "tools/lib/argv_split.zig",
@@ -39,11 +42,11 @@ REQUIRED_NOTE_MARKERS = {
     "helper_count": "`PHASE1_HELPER_COUNT=13`",
     "manifest": "manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`",
     "current_packet": "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
+    "shared_sync_complete": "`PHASE1_SHARED_REMINDER_SYNC_STATE=complete`",
     "gap_packet": "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,scripts/zigux/check-phase1-bench.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`",
-    "shared_sync_pending": "`PHASE1_SHARED_REMINDER_SYNC_PENDING=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md`",
     "validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-    "next_step": "`PHASE1_NEXT_SAFE_STEP=realign Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, and zigux/tests/README.md with the restored closure packet before widening into zigux/tests/phase1_helpers.zig or bench claims`",
+    "next_step": "`PHASE1_NEXT_SAFE_STEP=refresh draft PR 364 summary so it matches the synced Phase 1 reminder packet before widening into zigux/tests/phase1_helpers.zig or bench claims`",
 }
 
 REQUIRED_BUILD_MARKERS = {
@@ -67,8 +70,26 @@ REQUIRED_SCRIPTS_README_MARKERS = {
     "narrow_route": "`python3 scripts/zigux/validate-phase1-closure.py` and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` now replay the narrow closure-side validation route that current `master` honestly supports without claiming the older parity, bench, or Makefile wrappers have returned",
 }
 
-FORBIDDEN_SCRIPTS_README_MARKERS = {
-    "stale_missing_closure": "`Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1-closure.py`",
+REQUIRED_DOCS_README_MARKERS = {
+    "phase1_notes": "- `scripts/zigux/validate-phase1-closure.py` keep the closure note, the live owner map, the narrow closure validator, the shared host-tools smoke route, and the parked shared-replay-versus-direct-anchor split explicit from the docs root without rebuilding the broader host-tools closure stack from older missing validator and replay surfaces.",
+    "gap_list": "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`",
+    "closure_route": "the current docs-root Phase 1 reminder packet now keeps `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1-closure.py`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` explicit beside the live owner-map and string-review guards so the shared reminder packet stays aligned around the same current-master-safe closure route.",
+}
+
+REQUIRED_REVIEW_CHECKLIST_MARKERS = {
+    "phase1_packet": "`Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/README.md`, `zigux/tests/build.zig`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py`",
+    "phase1_gaps": "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`",
+    "phase1_validation": "`python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/validate-phase1-closure.py` replay the bounded live reminder checks",
+}
+
+REQUIRED_TESTS_README_MARKERS = {
+    "phase1_packet": "current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/validate-phase1-closure.py`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+    "gap_list": "repo-reality warning for the broader Phase 1 closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
+    "closure_route": "the restored closure note plus `python3 scripts/zigux/validate-phase1-closure.py` and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` now keep the current closure-side validation route explicit in the tests root instead of leaving that narrower packet implied through docs-root wording alone",
+}
+
+FORBIDDEN_DOCS_README_MARKERS = {
+    "stale_missing_closure": "still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`",
 }
 
 
@@ -99,42 +120,53 @@ def require_absent(text: str, label: str, marker: str) -> list[str]:
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-    closure_path = root / CLOSURE_NOTE_REL
-    manifest_path = root / MANIFEST_REL
-    build_path = root / BUILD_FILE_REL
-    smoke_path = root / SMOKE_FILE_REL
-    scripts_readme_path = root / SCRIPTS_README_REL
+    file_map = {
+        CLOSURE_NOTE_REL: root / CLOSURE_NOTE_REL,
+        DOCS_README_REL: root / DOCS_README_REL,
+        REVIEW_CHECKLIST_REL: root / REVIEW_CHECKLIST_REL,
+        MANIFEST_REL: root / MANIFEST_REL,
+        BUILD_FILE_REL: root / BUILD_FILE_REL,
+        SMOKE_FILE_REL: root / SMOKE_FILE_REL,
+        SCRIPTS_README_REL: root / SCRIPTS_README_REL,
+        TESTS_README_REL: root / TESTS_README_REL,
+    }
 
-    for relpath, path in (
-        (CLOSURE_NOTE_REL, closure_path),
-        (MANIFEST_REL, manifest_path),
-        (BUILD_FILE_REL, build_path),
-        (SMOKE_FILE_REL, smoke_path),
-        (SCRIPTS_README_REL, scripts_readme_path),
-    ):
+    for relpath, path in file_map.items():
         if not path.exists():
             failures.append(f"missing_file:{relpath.as_posix()}")
             return failures
 
-    closure_text = load_text(closure_path)
+    closure_text = load_text(file_map[CLOSURE_NOTE_REL])
     for label, marker in REQUIRED_NOTE_MARKERS.items():
         failures.extend(require_exact_occurrence(closure_text, f"closure_note:{label}", marker))
 
-    build_text = load_text(build_path)
+    build_text = load_text(file_map[BUILD_FILE_REL])
     for label, marker in REQUIRED_BUILD_MARKERS.items():
         failures.extend(require_exact_occurrence(build_text, f"build_zig:{label}", marker))
 
-    smoke_text = load_text(smoke_path)
+    smoke_text = load_text(file_map[SMOKE_FILE_REL])
     for label, marker in REQUIRED_SMOKE_MARKERS.items():
         failures.extend(require_exact_occurrence(smoke_text, f"phase1_host_tools_smoke:{label}", marker))
 
-    scripts_readme_text = load_text(scripts_readme_path)
+    scripts_readme_text = load_text(file_map[SCRIPTS_README_REL])
     for label, marker in REQUIRED_SCRIPTS_README_MARKERS.items():
         failures.extend(require_exact_occurrence(scripts_readme_text, f"scripts_readme:{label}", marker))
-    for label, marker in FORBIDDEN_SCRIPTS_README_MARKERS.items():
-        failures.extend(require_absent(scripts_readme_text, f"scripts_readme:{label}", marker))
 
-    manifest = load_json(manifest_path)
+    docs_readme_text = load_text(file_map[DOCS_README_REL])
+    for label, marker in REQUIRED_DOCS_README_MARKERS.items():
+        failures.extend(require_exact_occurrence(docs_readme_text, f"docs_readme:{label}", marker))
+    for label, marker in FORBIDDEN_DOCS_README_MARKERS.items():
+        failures.extend(require_absent(docs_readme_text, f"docs_readme:{label}", marker))
+
+    review_checklist_text = load_text(file_map[REVIEW_CHECKLIST_REL])
+    for label, marker in REQUIRED_REVIEW_CHECKLIST_MARKERS.items():
+        failures.extend(require_exact_occurrence(review_checklist_text, f"review_checklist:{label}", marker))
+
+    tests_readme_text = load_text(file_map[TESTS_README_REL])
+    for label, marker in REQUIRED_TESTS_README_MARKERS.items():
+        failures.extend(require_exact_occurrence(tests_readme_text, f"tests_readme:{label}", marker))
+
+    manifest = load_json(file_map[MANIFEST_REL])
     if not isinstance(manifest, dict):
         failures.append("manifest:expected_json_object")
         return failures
@@ -157,172 +189,54 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
     destination.write_text(text, encoding="utf-8")
 
 
-def sample_note_text() -> str:
-    return "\n".join(
-        [
-            "# Phase 1 Closure",
-            "",
-            "This note restores the Lane 15 closure anchor in a current-master-safe form.",
-            "",
-            "## Status",
-            "",
-            "- `PHASE1_STATUS=parked`",
-            "- `PHASE1_CLOSURE_RESTORE_STATE=partial`",
-            "- `PHASE1_HELPER_COUNT=13`",
-            "- manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`",
-            "",
-            "## Current Reminder Packet",
-            "",
-            "- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
-            "",
-            "## Current Repo-Reality Gaps",
-            "",
-            "- `PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,scripts/zigux/check-phase1-bench.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`",
-            "- `PHASE1_SHARED_REMINDER_SYNC_PENDING=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md`",
-            "",
-            "## Closure Validation",
-            "",
-            "- `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
-            "- `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
-            "",
-            "## Next Step",
-            "",
-            "- `PHASE1_NEXT_SAFE_STEP=realign Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, and zigux/tests/README.md with the restored closure packet before widening into zigux/tests/phase1_helpers.zig or bench claims`",
-            "",
-        ]
-    )
-
-
-def sample_scripts_readme_text() -> str:
-    return "\n".join(
-        [
-            "# scripts/zigux",
-            "",
-            "## Phase 1",
-            "",
-            "- the restored closure note, the live owner-map and string-review guards, the narrow closure validator, and the shared tests-root smoke anchor",
-            "- `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner marker, and current-master-safe closure packet explicit from the scripts root",
-            "- `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/build.zig`, and `zigux/tests/fixtures/phase1_helper_manifest.json` remain the current reminder-surface companions for that packet",
-            "- `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
-            "- `python3 scripts/zigux/validate-phase1-closure.py` and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` now replay the narrow closure-side validation route that current `master` honestly supports without claiming the older parity, bench, or Makefile wrappers have returned",
-            "",
-        ]
-    )
-
-
-def sample_build_text() -> str:
-    return "\n".join(
-        [
-            'const std = @import("std");',
-            "",
-            "pub fn build(b: *std.Build) void {",
-            '    _ = b.path("phase1_host_tools_smoke.zig");',
-            '    const phase1_step = b.step("phase1-host-tools-smoke", "Run the shared Phase 1 host-tools smoke anchor from zigux/tests");',
-            "    _ = phase1_step;",
-            "}",
-            "",
-        ]
-    )
-
-
-def sample_manifest() -> dict[str, Any]:
-    return {
-        "phase": "Phase 1",
-        "status": "closed",
-        "helper_count": 13,
-        "helpers": EXPECTED_HELPERS,
-    }
-
-
 def build_sample_repo(root: Path) -> None:
-    write_file(root, CLOSURE_NOTE_REL, sample_note_text())
-    write_file(root, SCRIPTS_README_REL, sample_scripts_readme_text())
-    write_file(root, BUILD_FILE_REL, sample_build_text())
-    write_file(
-        root,
+    source_root = DEFAULT_ROOT
+    for relpath in (
+        CLOSURE_NOTE_REL,
+        DOCS_README_REL,
+        REVIEW_CHECKLIST_REL,
+        MANIFEST_REL,
+        BUILD_FILE_REL,
         SMOKE_FILE_REL,
-        "\n".join(
-            [
-                'const std = @import("std");',
-                'const argv_split = @import("argv_split");',
-                'const cmdline = @import("cmdline");',
-                'const find_bit = @import("find_bit");',
-                'const bitmap = @import("bitmap");',
-                'test "phase1 host-tools smoke imports the live helper modules" {',
-                '    try std.testing.expect(@hasDecl(argv_split, "argvSplit"));',
-                '    try std.testing.expect(@hasDecl(cmdline, "memparse"));',
-                '    try std.testing.expect(@hasDecl(find_bit, "findFirstBit"));',
-                '    try std.testing.expect(@hasDecl(bitmap, "setRange"));',
-                "}",
-                "",
-            ]
-        ),
-    )
-    write_file(root, MANIFEST_REL, json.dumps(sample_manifest(), indent=2) + "\n")
+        SCRIPTS_README_REL,
+        TESTS_README_REL,
+    ):
+        write_file(root, relpath, load_text(source_root / relpath))
 
 
 def run_self_test() -> int:
     cases = [("success", None, None)]
-    cases.extend((f"remove_{label}", "note", marker) for label, marker in REQUIRED_NOTE_MARKERS.items())
-    cases.extend((f"remove_build_{label}", "build", marker) for label, marker in REQUIRED_BUILD_MARKERS.items())
-    cases.extend((f"remove_smoke_{label}", "smoke", marker) for label, marker in REQUIRED_SMOKE_MARKERS.items())
-    cases.extend((f"remove_scripts_{label}", "scripts", marker) for label, marker in REQUIRED_SCRIPTS_README_MARKERS.items())
-    cases.extend(
-        [
-            ("scripts_forbidden_marker", "scripts_forbidden", next(iter(FORBIDDEN_SCRIPTS_README_MARKERS.values()))),
-            ("manifest_wrong_phase", "manifest_phase", None),
-            ("manifest_wrong_status", "manifest_status", None),
-            ("manifest_wrong_helper_count", "manifest_count", None),
-            ("manifest_wrong_helpers", "manifest_helpers", None),
-        ]
-    )
+    cases.extend((f"remove_note_{label}", CLOSURE_NOTE_REL, marker) for label, marker in REQUIRED_NOTE_MARKERS.items())
+    cases.extend((f"remove_build_{label}", BUILD_FILE_REL, marker) for label, marker in REQUIRED_BUILD_MARKERS.items())
+    cases.extend((f"remove_smoke_{label}", SMOKE_FILE_REL, marker) for label, marker in REQUIRED_SMOKE_MARKERS.items())
+    cases.extend((f"remove_scripts_{label}", SCRIPTS_README_REL, marker) for label, marker in REQUIRED_SCRIPTS_README_MARKERS.items())
+    cases.extend((f"remove_docs_{label}", DOCS_README_REL, marker) for label, marker in REQUIRED_DOCS_README_MARKERS.items())
+    cases.extend((f"remove_review_{label}", REVIEW_CHECKLIST_REL, marker) for label, marker in REQUIRED_REVIEW_CHECKLIST_MARKERS.items())
+    cases.extend((f"remove_tests_{label}", TESTS_README_REL, marker) for label, marker in REQUIRED_TESTS_README_MARKERS.items())
+    cases.append(("docs_forbidden_marker", DOCS_README_REL, next(iter(FORBIDDEN_DOCS_README_MARKERS.values()))))
 
-    for name, mode, marker in cases:
+    for name, relpath, marker in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-closure-{name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
 
-            if mode == "note" and marker:
-                note_path = root / CLOSURE_NOTE_REL
-                text = note_path.read_text(encoding="utf-8")
-                note_path.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
-            elif mode == "build" and marker:
-                build_path = root / BUILD_FILE_REL
-                text = build_path.read_text(encoding="utf-8")
-                build_path.write_text(text.replace(marker, "", 1), encoding="utf-8")
-            elif mode == "smoke" and marker:
-                smoke_path = root / SMOKE_FILE_REL
-                text = smoke_path.read_text(encoding="utf-8")
-                smoke_path.write_text(text.replace(marker, "", 1), encoding="utf-8")
-            elif mode == "scripts" and marker:
-                scripts_path = root / SCRIPTS_README_REL
-                text = scripts_path.read_text(encoding="utf-8")
-                scripts_path.write_text(text.replace(marker, "", 1), encoding="utf-8")
-            elif mode == "scripts_forbidden" and marker:
-                scripts_path = root / SCRIPTS_README_REL
-                text = scripts_path.read_text(encoding="utf-8")
-                scripts_path.write_text(text + marker + "\n", encoding="utf-8")
-            elif mode and mode.startswith("manifest_"):
-                manifest_path = root / MANIFEST_REL
-                manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                if mode == "manifest_phase":
-                    manifest["phase"] = "Phase X"
-                elif mode == "manifest_status":
-                    manifest["status"] = "parked"
-                elif mode == "manifest_count":
-                    manifest["helper_count"] = 12
-                elif mode == "manifest_helpers":
-                    manifest["helpers"] = manifest["helpers"][:-1]
-                manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-
-            failures = collect_failures(root)
             if name == "success":
+                failures = collect_failures(root)
                 if failures:
                     print("self-test:success:unexpected_failures")
                     for item in failures:
                         print(item)
                     return 1
                 continue
+
+            file_path = root / relpath
+            text = file_path.read_text(encoding="utf-8")
+            if name == "docs_forbidden_marker":
+                file_path.write_text(text + marker + "\n", encoding="utf-8")
+            else:
+                file_path.write_text(text.replace(marker, "", 1), encoding="utf-8")
+
+            failures = collect_failures(root)
             if not failures:
                 print(f"self-test:{name}:expected_failure")
                 return 1
