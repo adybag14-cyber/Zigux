@@ -54,6 +54,7 @@ REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER = "unless a fresh repo reread prov
 
 LANE_SEQUENCING_SAMPLE_MARKER = "surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`"
 LANE_SEQUENCING_SELFTEST_MARKER = "`.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking"
+LANE_SEQUENCING_UNREGISTERED_GATE_MARKER = "surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 LANE_SEQUENCING_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
 
 TESTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
@@ -115,6 +116,7 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     TRACE_EVENTS_PACKET_CHECKER_MARKER,
     LANE_SEQUENCING_SAMPLE_MARKER,
     LANE_SEQUENCING_SELFTEST_MARKER,
+    LANE_SEQUENCING_UNREGISTERED_GATE_MARKER,
     LANE_SEQUENCING_BACKLOG_MARKER,
 ]
 
@@ -263,6 +265,7 @@ def build_lane_sequencing_fixture_text() -> str:
 - surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, {PHASE9_BOUNDARY_CHECKER_MARKER}, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, and `zigux/tests/README.md`
 - {LANE_SEQUENCING_SAMPLE_MARKER}
 - surviving runtime-module evidence inside that sample: {LANE_SEQUENCING_SELFTEST_MARKER}
+- {LANE_SEQUENCING_UNREGISTERED_GATE_MARKER}
 
 Current `master` {LANE_SEQUENCING_BACKLOG_MARKER} that earlier reminder surfaces described.
 """
