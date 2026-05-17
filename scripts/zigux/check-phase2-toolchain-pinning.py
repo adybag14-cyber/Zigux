@@ -67,7 +67,7 @@ CHECK_ZIG_REQUIRED_MARKERS = [
     "version",
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 6
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def write_text(path: Path, content: str) -> None:
@@ -216,6 +216,12 @@ version = minimum
     )
 
 
+def remove_all(text: str, marker: str) -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, "")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_toolchain_pinning_") as tmp_dir_str:
@@ -239,33 +245,34 @@ def run_self_test() -> int:
         assert ("WORKFLOW_DISALLOWED_MARKER", "--channel master") in issues
         checks_run += 1
 
-        build_self_test_root(root)
-        workflow = root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        write_text(
-            workflow,
-            workflow.read_text(encoding="utf-8").replace(
-                "run: python3 scripts/zigux/check-zig-toolchain.py --self-test\n",
-                "",
-                1,
-            ),
-        )
-        issues = collect_issues(root)
-        assert any(
-            block == "WORKFLOW_RUN_COUNT"
-            and value == "python3 scripts/zigux/check-zig-toolchain.py --self-test:count=0:expected=1"
-            for block, value in issues
-        )
-        checks_run += 1
+        for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
+            build_self_test_root(root)
+            workflow = root / ".github" / "workflows" / "zigux-bootstrap.yml"
+            write_text(
+                workflow,
+                workflow.read_text(encoding="utf-8").replace(
+                    f"        run: {command}\n",
+                    "",
+                    1,
+                ),
+            )
+            issues = collect_issues(root)
+            assert (
+                "WORKFLOW_RUN_COUNT",
+                f"{command}:count={expected_count - 1}:expected={expected_count}",
+            ) in issues
+            checks_run += 1
 
-        build_self_test_root(root)
-        readme = root / "scripts" / "zigux" / "README.md"
-        write_text(
-            readme,
-            readme.read_text(encoding="utf-8").replace("minimum version", "required release", 1),
-        )
-        issues = collect_issues(root)
-        assert ("README_MARKER", "minimum version") in issues
-        checks_run += 1
+        for marker in REQUIRED_README_MARKERS:
+            build_self_test_root(root)
+            readme = root / "scripts" / "zigux" / "README.md"
+            write_text(
+                readme,
+                remove_all(readme.read_text(encoding="utf-8"), marker),
+            )
+            issues = collect_issues(root)
+            assert ("README_MARKER", marker) in issues
+            checks_run += 1
 
         build_self_test_root(root)
         makefile = root / "zigux" / "Makefile"
@@ -277,15 +284,38 @@ def run_self_test() -> int:
         assert ("MAKEFILE_DISALLOWED_MARKER", ".zig-toolchain/zig") in issues
         checks_run += 1
 
-        build_self_test_root(root)
-        check_zig = root / "scripts" / "zigux" / "check-zig-toolchain.py"
-        write_text(
-            check_zig,
-            check_zig.read_text(encoding="utf-8").replace('parser.add_argument("--self-test", action="store_true")\n', ""),
-        )
-        issues = collect_issues(root)
-        assert ("CHECK_ZIG_TOOLCHAIN_MARKER", "--self-test") in issues
-        checks_run += 1
+        for marker in REQUIRED_MAKEFILE_MARKERS:
+            build_self_test_root(root)
+            makefile = root / "zigux" / "Makefile"
+            write_text(
+                makefile,
+                remove_all(makefile.read_text(encoding="utf-8"), marker),
+            )
+            issues = collect_issues(root)
+            assert ("MAKEFILE_MARKER", marker) in issues
+            checks_run += 1
+
+        for marker in INSTALL_ZIG_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            install_zig = root / "scripts" / "zigux" / "install-zig.py"
+            write_text(
+                install_zig,
+                remove_all(install_zig.read_text(encoding="utf-8"), marker),
+            )
+            issues = collect_issues(root)
+            assert ("INSTALL_ZIG_MARKER", marker) in issues
+            checks_run += 1
+
+        for marker in CHECK_ZIG_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            check_zig = root / "scripts" / "zigux" / "check-zig-toolchain.py"
+            write_text(
+                check_zig,
+                remove_all(check_zig.read_text(encoding="utf-8"), marker),
+            )
+            issues = collect_issues(root)
+            assert ("CHECK_ZIG_TOOLCHAIN_MARKER", marker) in issues
+            checks_run += 1
 
     if checks_run != EXPECTED_SELF_TEST_CASE_COUNT:
         print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=fail")
