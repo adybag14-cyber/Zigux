@@ -12,6 +12,7 @@ SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
+UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
 
 
 def infer_repo_root() -> Path:
@@ -24,6 +25,7 @@ def infer_repo_root() -> Path:
 ROOT = infer_repo_root()
 
 TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
+UNREGISTERED_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
@@ -112,6 +114,28 @@ SAMPLE_REJECTED_EXIT_SELFTEST_EXIT_RUNS_MARKER = (
 )
 SAMPLE_OUTSTANDING_REGISTRATION_MARKER = "error.OutstandingRegistration"
 
+UNREGISTERED_GATE_TEST_MARKER = (
+    'test "phase9 trace-events sample keeps unregistered function-thread failures fail-closed" {'
+)
+UNREGISTERED_GATE_INITIALIZED_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);"
+)
+UNREGISTERED_GATE_INITIAL_FN_REJECTION_MARKER = (
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));"
+)
+UNREGISTERED_GATE_INITIAL_UNREGISTER_REJECTION_MARKER = (
+    "try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
+)
+UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER = (
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);"
+)
+UNREGISTERED_GATE_POST_SELFTEST_FN_REJECTION_MARKER = (
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));"
+)
+UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER = (
+    "try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);"
+)
+
 SEQUENCING_REQUIRED_MARKERS = [
     TRACE_EVENTS_SAMPLE_MARKER,
     SELFTEST_HOOK_MARKER,
@@ -131,6 +155,7 @@ TESTS_README_REQUIRED_MARKERS = [
 
 SAMPLES_README_REQUIRED_MARKERS = [
     TRACE_EVENTS_SAMPLE_MARKER,
+    UNREGISTERED_GATE_SAMPLE_MARKER,
     TRACE_EVENTS_PACKET_CHECKER_MARKER,
     SELFTEST_HOOK_MARKER,
     LIFECYCLE_MARKER,
@@ -179,6 +204,16 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_OUTSTANDING_REGISTRATION_MARKER,
 ]
 
+UNREGISTERED_GATE_REQUIRED_MARKERS = [
+    UNREGISTERED_GATE_TEST_MARKER,
+    UNREGISTERED_GATE_INITIALIZED_STAGE_MARKER,
+    UNREGISTERED_GATE_INITIAL_FN_REJECTION_MARKER,
+    UNREGISTERED_GATE_INITIAL_UNREGISTER_REJECTION_MARKER,
+    UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER,
+    UNREGISTERED_GATE_POST_SELFTEST_FN_REJECTION_MARKER,
+    UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER,
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -191,7 +226,13 @@ def write_text(path: Path, content: str) -> None:
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    required = [SEQUENCING_PATH, TESTS_README_PATH, SAMPLES_README_PATH, SAMPLE_PATH]
+    required = [
+        SEQUENCING_PATH,
+        TESTS_README_PATH,
+        SAMPLES_README_PATH,
+        SAMPLE_PATH,
+        UNREGISTERED_GATE_SAMPLE_PATH,
+    ]
     for rel_path in required:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
@@ -203,6 +244,7 @@ def validate(root: Path) -> list[str]:
         (TESTS_README_PATH, TESTS_README_REQUIRED_MARKERS),
         (SAMPLES_README_PATH, SAMPLES_README_REQUIRED_MARKERS),
         (SAMPLE_PATH, SAMPLE_REQUIRED_MARKERS),
+        (UNREGISTERED_GATE_SAMPLE_PATH, UNREGISTERED_GATE_REQUIRED_MARKERS),
     ]:
         text = read_text(root, rel_path)
         for marker in markers:
@@ -239,6 +281,7 @@ def build_samples_readme_fixture_text() -> str:
 ## Separate Phase 9 runtime pilot family
 * keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, and `zigux/tests/README.md` aligned with the surviving direct runtime-module sample {TRACE_EVENTS_SAMPLE_MARKER}
 * keep the current direct runtime-module evidence explicit: {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER}
+* keep the shipped fail-closed companion explicit too: {UNREGISTERED_GATE_SAMPLE_MARKER}
 * keep saying clearly that current `master` {ABSENT_SHARED_LOADER_MARKER}, so {ABSENT_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {ABSENT_RUNTIME_LOADER_KERNEL_MARKER}, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, {ABSENT_WORKFLOW_MARKER}, and the older {ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER} stay backlog references unless a fresh repo reread proves they have returned
 * keep older cross-phase non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} remain Phase 2 config-surface bridge references, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} remain Phase 3 export-boundary references rather than runtime-pilot evidence
 """
@@ -317,6 +360,36 @@ test \"trace-events sample keeps rejected re-selftest rollback explicit\" {{
 """
 
 
+def build_unregistered_gate_fixture_text() -> str:
+    return f"""const std = @import(\"std\");
+const trace_events = @import(\"runtime_trace_events.zig\");
+
+const ModuleStage = trace_events.ModuleStage;
+const RuntimeTraceEventsSample = trace_events.RuntimeTraceEventsSample;
+
+test \"phase9 trace-events sample keeps unregistered function-thread failures fail-closed\" {{
+    var module = RuntimeTraceEventsSample{{}};
+    try module.init();
+
+    const initialized_before = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);
+    try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));
+    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
+
+    _ = try module.runSelftest();
+    _ = try module.emitMainIteration(5);
+
+    const selftest_complete_before = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);
+    try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));
+    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
+
+    const selftest_complete_after = module.summary();
+    try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+}}
+"""
+
+
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
@@ -330,6 +403,7 @@ def run_self_test() -> int:
         write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
         write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
         write_text(base / SAMPLE_PATH, build_sample_fixture_text())
+        write_text(base / UNREGISTERED_GATE_SAMPLE_PATH, build_unregistered_gate_fixture_text())
 
         failures = validate(base)
         if failures:
@@ -340,20 +414,29 @@ def run_self_test() -> int:
             (TESTS_README_PATH, build_tests_readme_fixture_text, TESTS_README_REQUIRED_MARKERS),
             (SAMPLES_README_PATH, build_samples_readme_fixture_text, SAMPLES_README_REQUIRED_MARKERS),
             (SAMPLE_PATH, build_sample_fixture_text, SAMPLE_REQUIRED_MARKERS),
+            (UNREGISTERED_GATE_SAMPLE_PATH, build_unregistered_gate_fixture_text, UNREGISTERED_GATE_REQUIRED_MARKERS),
         ]:
             for marker in markers:
                 write_text(base / SEQUENCING_PATH, build_sequencing_fixture_text())
                 write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
                 write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
                 write_text(base / SAMPLE_PATH, build_sample_fixture_text())
+                write_text(base / UNREGISTERED_GATE_SAMPLE_PATH, build_unregistered_gate_fixture_text())
                 write_text(base / rel_path, builder().replace(marker, "", 1))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
-        for rel_path in [SEQUENCING_PATH, TESTS_README_PATH, SAMPLES_README_PATH, SAMPLE_PATH]:
+        for rel_path in [
+            SEQUENCING_PATH,
+            TESTS_README_PATH,
+            SAMPLES_README_PATH,
+            SAMPLE_PATH,
+            UNREGISTERED_GATE_SAMPLE_PATH,
+        ]:
             write_text(base / SEQUENCING_PATH, build_sequencing_fixture_text())
             write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
             write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
             write_text(base / SAMPLE_PATH, build_sample_fixture_text())
+            write_text(base / UNREGISTERED_GATE_SAMPLE_PATH, build_unregistered_gate_fixture_text())
             (base / rel_path).unlink()
             expect_failure(base, f"missing_file:{rel_path}")
 
@@ -362,6 +445,7 @@ def run_self_test() -> int:
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(SAMPLE_REQUIRED_MARKERS)}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(UNREGISTERED_GATE_REQUIRED_MARKERS)}")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -390,6 +474,7 @@ def main() -> int:
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(SAMPLE_REQUIRED_MARKERS)}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(UNREGISTERED_GATE_REQUIRED_MARKERS)}")
     return 0
 
 
