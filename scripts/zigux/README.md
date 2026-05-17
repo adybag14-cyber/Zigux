@@ -7,7 +7,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - Phase 1 flow - the current host-tools reminder packet keeps the closed helper tranche reviewable through the live owner-map and string-review guards instead of rebuilding the broader installer-backed closure packet from older missing routes
 - `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test` and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 reminder checks
 - `scripts/zigux/check-phase1-string-review-packet.py` and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped string-review and direct-owner marker packet explicit from the scripts root
-- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `zigux/tests/fixtures/phase1_helper_manifest.json` remain the current reminder-surface companions for that packet
+- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` remain the current reminder-surface companions for that packet
 - repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, closure-side, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence
 - current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here
 - the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, rbtree, and string reopen only inside their existing helper-local anchors or already-committed shared fixture keys, while the other nine closed helpers stay parked unless the shared replay or reminder packet drifts
@@ -99,14 +99,16 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 
 ## Phase 12
 
-- Phase 12 flow - `validate-phase12.py` checks that the current complex-driver packet stays aligned
+- Phase 12 flow - `P12-Y07` owns the shared scripts-root closure-note retell for the active Phase 12 PMO packet, and `validate-phase12.py` checks that the current complex-driver packet stays aligned
 - `scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `make -C zigux phase12-validate` keep the degraded-workflow support bundle explicit
 - `check-build-only-phase12-surface.py` validates the segmented Phase 12 release packet for the release coordination matrix, release-closure checklist, readiness survey, sequencing note, raw-GitHub survey, complex-driver lane note, libbpf-heavy lane note, tests guide, review checklist, and both libbpf snapshot fixtures
+- keep the scripts-root summary aligned with the shared release sequencing, readiness, closure, and coordination quartet instead of collapsing the active Phase 12 PMO packet back to readiness-only shorthand
 - keeps the Phase 12 packet limited to build-only helper evidence for complex drivers and other heavy helper consumers without reopening queue ownership, DMA routing, recovery, or throughput semantics
 - `check-build-only-phase12-surface.py`
 - `Documentation/zigux/phase12-release-sequencing.md`
 - `scripts/zigux/check-phase12-release-readiness-packet.py`
 - `Documentation/zigux/phase12-release-readiness-survey.md`
+- `Documentation/zigux/phase12-release-closure-checklist.md`
 - `Documentation/zigux/phase12-release-coordination-matrix.md`
 - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
