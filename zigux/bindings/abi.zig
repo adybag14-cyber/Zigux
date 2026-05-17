@@ -239,3 +239,36 @@ test "abi binding notifier helper matches the dedicated notifier binding" {
         chainHasNonincreasingPriority(&increasing_head),
     );
 }
+
+test "abi binding notifier block preserves pointer-width chain links" {
+    const tail = NotifierBlock{
+        .notifier_call = 0x33,
+        .next = 0,
+        .priority = -2,
+    };
+    const middle = NotifierBlock{
+        .notifier_call = 0x22,
+        .next = @intFromPtr(&tail),
+        .priority = 7,
+    };
+    const head = NotifierBlock{
+        .notifier_call = 0x11,
+        .next = @intFromPtr(&middle),
+        .priority = 12,
+    };
+
+    const middle_ptr: *const NotifierBlock = @ptrFromInt(head.next);
+    const tail_ptr: *const NotifierBlock = @ptrFromInt(middle_ptr.next);
+
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&middle)), head.next);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&tail)), middle_ptr.next);
+    try std.testing.expectEqual(@as(usize, 0), tail_ptr.next);
+
+    try std.testing.expectEqual(@as(usize, 0x11), head.notifier_call);
+    try std.testing.expectEqual(@as(usize, 0x22), middle_ptr.notifier_call);
+    try std.testing.expectEqual(@as(usize, 0x33), tail_ptr.notifier_call);
+
+    try std.testing.expectEqual(@as(i32, 12), head.priority);
+    try std.testing.expectEqual(@as(i32, 7), middle_ptr.priority);
+    try std.testing.expectEqual(@as(i32, -2), tail_ptr.priority);
+}
