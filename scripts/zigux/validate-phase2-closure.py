@@ -18,7 +18,7 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 
 EXPECTED_DOC_MARKERS = (
-    "`PHASE2_STATUS=lane22-branch-restacked`",
+    "`PHASE2_STATUS=lane24-branch-restacked`",
     "`PHASE2_CLOSURE_ROUTE_STATUS=branch-closure-packet-restacked-on-current-master`",
     "`PHASE2_CLOSURE_VALIDATOR_SELF_TEST=python3 scripts/zigux/validate-phase2-closure.py --self-test`",
     "`PHASE2_CLOSURE_VALIDATOR_GATE=python3 scripts/zigux/validate-phase2-closure.py`",
@@ -41,7 +41,7 @@ EXPECTED_DOC_MARKERS = (
 )
 
 EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
-    "`PHASE2_TOOLCHAIN_BOOTSTRAP_STATUS=lane22-branch-restacked`",
+    "`PHASE2_TOOLCHAIN_BOOTSTRAP_STATUS=lane24-branch-restacked`",
     "`PHASE2_TOOLCHAIN_SURVIVING_GUARD=scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`PHASE2_TOOLCHAIN_PIN_SCOPE_GUARD=scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`PHASE2_TOOLCHAIN_ZIG_VERSION_GUARD=scripts/zigux/check-zig-toolchain.py`",
@@ -175,7 +175,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
     if manifest.get("phase") != "phase2":
         issues.append(("INVALID_MANIFEST_FIELD", "phase"))
-    if manifest.get("status") != "lane22_branch_closure_packet_restacked":
+    if manifest.get("status") != "lane24_branch_closure_packet_restacked":
         issues.append(("INVALID_MANIFEST_FIELD", "status"))
     if manifest.get("toolchain_bootstrap_doc") != "Documentation/zigux/phase2-toolchain-bootstrap-notes.md":
         issues.append(("INVALID_MANIFEST_FIELD", "toolchain_bootstrap_doc"))
@@ -225,7 +225,7 @@ def manifest_json(
     *,
     packet: str = "phase2_tool_manifest",
     phase: str = "phase2",
-    status: str = "lane22_branch_closure_packet_restacked",
+    status: str = "lane24_branch_closure_packet_restacked",
     toolchain_bootstrap_doc: str = "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     closure_validator: str = "scripts/zigux/validate-phase2-closure.py",
     closure_doc: str = "Documentation/zigux/phase2-closure.md",
@@ -349,7 +349,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check the Lane 22 Phase 2 closure packet.")
+    parser = argparse.ArgumentParser(description="Check the Lane 24 Phase 2 closure packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
