@@ -30,7 +30,6 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
-- `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - `zigux/tests/phase6_checksum.zig`
 - `zigux/tests/phase6_checksum_perf.zig`
@@ -64,10 +63,11 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - roadmap anchor: `lib/bsearch.c`
 - Zig helper: `lib/bsearch.zig`
 - focused helper replay: `zigux/tests/phase6_bsearch.zig`
+- focused C ABI lower-bound replay: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
-- last-known companion packet members still needing fresh direct reads: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, and `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
-- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`, while the bounds-focused C ABI companions and dedicated corpus checker still need fresh direct reads before they are presented as current shipped evidence
+- last-known companion packet members still needing fresh direct reads: `zigux/tests/phase6_bsearch_c_abi_budget.zig` and `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
+- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`, while the comparison-budget companion and dedicated corpus checker still need fresh direct reads before they are presented as current shipped evidence
 
 ### checksum
 
