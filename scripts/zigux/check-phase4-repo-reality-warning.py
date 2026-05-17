@@ -261,7 +261,6 @@ def main() -> int:
 
             build_baseline_tree(root)
             drifted = root / NOTE
-            drifted.writeText = None
             drifted.write_text(
                 drifted.read_text(encoding="utf-8").replace(
                     "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=8`",
