@@ -18,37 +18,64 @@ SELFTEST_DRIVER_PATH = Path("scripts/zigux/validate_phase3_selftest.py")
 README_MARKERS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
+    "include/zigux/abi.h",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
+    "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
+    "zigux/bindings/version.zig",
+    "zigux/kernel/export_shim.zig",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/unsafe_policy.zig",
     "zigux/tests/phase3_dev_t_starter_packet.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_build.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
     "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
+    "zigux/tests/phase3_policy_starter_packet.zig",
+    "zigux/tests/phase3_policy_starter_packet_build.zig",
+    "zigux/tests/phase3_policy_starter_packet_manifest.json",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "scripts/zigux/check-phase3-policy-starter-packet.py",
 )
 
 TESTS_README_MARKERS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-errptr-xarray-slice.md",
+    "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
+    "include/zigux/abi.h",
     "zigux/uapi/version.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/bindings/dev_t.zig",
+    "zigux/bindings/abi.zig",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/unsafe_policy.zig",
+    "zigux/tests/phase3_dev_t_starter_packet.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_build.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
+    "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
+    "zigux/tests/phase3_policy_starter_packet.zig",
+    "zigux/tests/phase3_policy_starter_packet_build.zig",
+    "zigux/tests/phase3_policy_starter_packet_manifest.json",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
-    "Documentation/zigux/phase3-abi-header-family-survey.md",
-    "zigux/kernel/export_shim.zig",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "scripts/zigux/check-phase3-policy-starter-packet.py",
+    "instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
@@ -68,7 +95,8 @@ REVIEW_CHECKLIST_MARKERS = (
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
-    "repo-reality gaps rather than shipped current-`master` evidence",
+    "Documentation/zigux/phase3-shared-reminder-gap.md",
+    "wider validator, export/UAPI layout, low-level-wrapper, catalog, IDR, and IDA routes stay explicit as repo-reality gaps",
 )
 
 VALIDATOR_SUPPORT_MARKERS = (
@@ -78,14 +106,17 @@ VALIDATOR_SUPPORT_MARKERS = (
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
+    "zigux/bindings/version.zig",
+    "zigux/kernel/export_shim.zig",
+    "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
-    "zigux/kernel/export_shim.zig",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
+    "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
 )
 
 SCRIPTS_README_MARKERS = (
@@ -100,15 +131,28 @@ SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-phase3-policy-byte-guards.py",
     "scripts/zigux/check-phase3-policy-unsafe-focused-replay.py",
     "scripts/zigux/check-phase3-policy-unsafe-mmio-consumer.py",
+    "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
-    "zigux/uapi/version.zig",
-    "zigux/uapi/dev_t.zig",
-    "zigux/helpers/err_ptr.zig",
-    "zigux/helpers/xa_value.zig",
+    "include/zigux/abi.h",
     "zigux/kernel/export_shim.zig",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/bindings/version.zig",
+    "zigux/bindings/abi.zig",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/unsafe_policy.zig",
+    "zigux/helpers/atomic.zig",
+    "zigux/unsafe/narrow.zig",
+    "zigux/uapi/dev_t.zig",
+    "zigux/uapi/version.zig",
+    ".github/workflows/zigux-bootstrap.yml",
+    "the shipped compatibility wrappers generated from the Phase 3 catalog",
 )
 
 SELFTEST_DRIVER_MARKERS = (
@@ -153,9 +197,7 @@ def validate_repo(repo_root: Path) -> list[str]:
             "validator-support note",
         )
     )
-    issues.extend(
-        _check_markers(repo_root / SCRIPTS_README_PATH, SCRIPTS_README_MARKERS, "scripts README")
-    )
+    issues.extend(_check_markers(repo_root / SCRIPTS_README_PATH, SCRIPTS_README_MARKERS, "scripts README"))
     issues.extend(
         _check_markers(repo_root / SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS, "selftest driver")
     )
@@ -177,12 +219,14 @@ def _expect_issue(issues: list[str], expected: str) -> bool:
 
 def run_self_test() -> int:
     cases = (
-        (README_PATH, README_MARKERS[0], "docs README"),
+        (README_PATH, README_MARKERS[2], "docs README"),
         (TESTS_README_PATH, TESTS_README_MARKERS[-1], "tests README"),
-        (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[2], "review checklist"),
         (REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS[-1], "review checklist"),
+        (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[7], "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, VALIDATOR_SUPPORT_MARKERS[-1], "validator-support note"),
-        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[0], "scripts README"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[11], "scripts README"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[28], "scripts README"),
+        (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[-1], "scripts README"),
         (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[3], "selftest driver"),
         (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[5], "selftest driver"),
     )
@@ -209,7 +253,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
