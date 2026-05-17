@@ -309,6 +309,17 @@ def describe_missing_archive(
     return "pinned Zig archive not found in archive search roots", format_search_roots(search_roots)
 
 
+def describe_missing_zig(
+    *,
+    pinned_channel: str | None,
+    search_roots: list[Path],
+) -> tuple[str, str]:
+    message = "zig not found on PATH or in repo-local toolchain search roots"
+    if pinned_channel is not None:
+        message += f" for pinned channel {pinned_channel}"
+    return message, format_search_roots(search_roots)
+
+
 def iter_repo_local_archive_candidates(
     *,
     root: Path = ROOT,
@@ -606,6 +617,26 @@ def run_self_test() -> int:
         pinned_zig.unlink()
         alt_zig.unlink()
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(parent_pinned_zig))
+        expect_equal(
+            describe_missing_zig(
+                pinned_channel="0.17.0-dev.87+9b177a7d2",
+                search_roots=iter_zig_search_roots(root),
+            ),
+            (
+                "zig not found on PATH or in repo-local toolchain search roots for pinned channel 0.17.0-dev.87+9b177a7d2",
+                format_search_roots(iter_zig_search_roots(root)),
+            ),
+        )
+        expect_equal(
+            describe_missing_zig(
+                pinned_channel=None,
+                search_roots=iter_zig_search_roots(root),
+            ),
+            (
+                "zig not found on PATH or in repo-local toolchain search roots",
+                format_search_roots(iter_zig_search_roots(root)),
+            ),
+        )
         expect_equal(
             iter_archive_search_roots(root)[:8],
             [
@@ -927,13 +958,22 @@ def main() -> int:
         return 1
 
     if zig is None:
-        message = "zig not found on PATH or in repo-local toolchain search roots"
-        if args.allow_missing:
-            print("ZIG_TOOLCHAIN_STATUS=missing")
-            print(f"ZIG_TOOLCHAIN_NOTE={message}")
-            return 0
-        print(message, file=sys.stderr)
-        return 1
+        search_roots = iter_zig_search_roots()
+        message, search_roots_summary = describe_missing_zig(
+            pinned_channel=expected_channel_raw,
+            search_roots=search_roots,
+        )
+        print("ZIG_TOOLCHAIN_STATUS=missing")
+        print("ZIG_TOOLCHAIN_PATH=unresolved")
+        print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={min_version_raw}")
+        if expected_channel_raw is not None:
+            print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={expected_channel_raw}")
+            print("ZIG_TOOLCHAIN_PIN_POLICY=exact")
+        else:
+            print("ZIG_TOOLCHAIN_PIN_POLICY=minimum_only")
+        print(f"ZIG_TOOLCHAIN_SEARCH_ROOTS={search_roots_summary}")
+        print(f"ZIG_TOOLCHAIN_NOTE={message}")
+        return 0 if args.allow_missing else 1
 
     try:
         version = read_zig_version(zig)
