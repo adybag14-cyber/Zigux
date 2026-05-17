@@ -17,6 +17,7 @@ SELFTEST_COMMANDS = (
     (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ("--self-test",)),
     (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-selftest-surface.py"), ("--self-test",)),
 )
 
@@ -104,13 +105,30 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
 
-        validator_support_path = SELFTEST_COMMANDS[-2][0]
+        validator_support_path = SELFTEST_COMMANDS[5][0]
         (root / validator_support_path).unlink()
         missing = validate_script_list(root)
         expected = f"missing selftest script: {validator_support_path.as_posix()}"
         if expected not in missing:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected validator-support script omission was not reported")
+            return 1
+
+        for rel_path, _args in SELFTEST_COMMANDS:
+            path = root / rel_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
+                encoding="utf-8",
+            )
+
+        low_level_wrapper_path = SELFTEST_COMMANDS[6][0]
+        (root / low_level_wrapper_path).unlink()
+        missing = validate_script_list(root)
+        expected = f"missing selftest script: {low_level_wrapper_path.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected low-level-wrapper script omission was not reported")
             return 1
 
         for rel_path, _args in SELFTEST_COMMANDS:
@@ -137,11 +155,11 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
 
-        failing_path = SELFTEST_COMMANDS[-2][0]
+        failing_path = SELFTEST_COMMANDS[6][0]
         (root / failing_path).write_text(
             "#!/usr/bin/env python3\n"
             "import sys\n"
-            "print('synthetic validator failure')\n"
+            "print('synthetic low-level-wrapper failure')\n"
             "print('synthetic stderr detail', file=sys.stderr)\n"
             "raise SystemExit(7)\n",
             encoding="utf-8",
@@ -153,7 +171,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
-        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=6")
+        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=7")
         return 0
 
 
