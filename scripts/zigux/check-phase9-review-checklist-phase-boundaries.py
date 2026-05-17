@@ -25,7 +25,7 @@ TESTS_README_PATH = "zigux/tests/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 
-PHASE9_SHARED_PACKET_MARKER = "if the change touches the shared Phase 9 runtime-loader packet"
+PHASE9_SHARED_PACKET_MARKER = "if the change touches the shared Phase 9 runtime-pilot packet"
 PHASE9_SCRIPTS_PACKET_MARKER = "Phase 9 flow - the current shared runtime-pilot packet is narrow and review-first"
 TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 PHASE9_BOUNDARY_CHECKER_MARKER = "`scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`"
