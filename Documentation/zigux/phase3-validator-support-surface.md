@@ -84,11 +84,11 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture and should stay aligned with `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
+`Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now reflect that bounded three-slice posture and should stay aligned with `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
 
 `Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for the earlier docs-root cleanup and should reopen only if one of those shared reminder surfaces drifts again or if additional current-tree-backed validator or export-boundary proof lands.
 
-`scripts/zigux/README.md` is still parked on the older absent-route wording for `zigux/kernel/export_shim.zig`, so keep that broader scripts-root reminder follow-up separate from this validator-support note and refresh it only inside the shared reminder lane.
+`scripts/zigux/check-phase3-readme-tooling-inventory.py` keeps the scripts-root inventory aligned with the current starter export shim companion, the landed helper-local fixture-backed parity packet, and the focused policy slice.
 
 Keep any remaining follow-up focused on shared reminder or scripts-root inventory truthfulness if one of those broader surfaces drifts again. This note should not be used to imply that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
 
