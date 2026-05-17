@@ -127,11 +127,18 @@ def load_configured_lists(root: Path) -> tuple[list[str], list[str]] | tuple[Non
 
 def replay_target(root: Path, target: str, zig: str, zig_test_files: list[str]) -> int:
     for rel_path in zig_test_files:
-        completed = subprocess.run(
-            [zig, "test", rel_path, "-target", target, "--test-no-exec"],
-            cwd=root,
-            check=False,
-        )
+        try:
+            completed = subprocess.run(
+                [zig, "test", rel_path, "-target", target, "--test-no-exec"],
+                cwd=root,
+                check=False,
+            )
+        except OSError as exc:
+            print("PHASE2_CROSS=fail")
+            print(f"PHASE2_CROSS_TARGET={target}")
+            print(f"PHASE2_CROSS_FAILED_FILE={rel_path}")
+            print(f"PHASE2_CROSS_NOTE=failed to execute zig: {exc}")
+            return 1
         if completed.returncode != 0:
             print("PHASE2_CROSS=fail")
             print(f"PHASE2_CROSS_TARGET={target}")
@@ -400,6 +407,18 @@ def run_self_test() -> int:
         )
         assert missing_zig_code == 1
         assert "PHASE2_CROSS_NOTE=zig not found on PATH" in missing_zig_output
+        case_count += 1
+
+        build_self_test_root(root)
+        invalid_exec = root / "not-executable-zig"
+        invalid_exec.write_text("not executable\n", encoding="utf-8")
+        invalid_exec_code, invalid_exec_output = run_main(
+            ["--root", str(root), "--target", EXPECTED_TARGETS[0], "--zig", str(invalid_exec)]
+        )
+        assert invalid_exec_code == 1
+        assert "PHASE2_CROSS_NOTE=failed to execute zig:" in invalid_exec_output
+        assert f"PHASE2_CROSS_TARGET={EXPECTED_TARGETS[0]}" in invalid_exec_output
+        assert f"PHASE2_CROSS_FAILED_FILE={EXPECTED_ZIG_TEST_FILES[0]}" in invalid_exec_output
         case_count += 1
 
         build_self_test_root(root)
