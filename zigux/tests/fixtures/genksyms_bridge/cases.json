@@ -77,6 +77,14 @@
     "expected": "missing_long_dump_types_argument_expected.json"
   },
   {
+    "name": "missing_short_dump_types_argument",
+    "argv": [
+      "-T"
+    ],
+    "mode": "process_json",
+    "expected": "missing_short_dump_types_argument_expected.json"
+  },
+  {
     "name": "unexpected_long_option_argument",
     "argv": [
       "--help=extra"
