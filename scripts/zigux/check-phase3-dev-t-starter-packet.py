@@ -16,6 +16,7 @@ DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 BINDING_PATH = Path("zigux/bindings/dev_t.zig")
+VERSION_BINDING_PATH = Path("zigux/bindings/version.zig")
 TEST_PATH = Path("zigux/tests/phase3_dev_t_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_dev_t_starter_packet_build.zig")
 MANIFEST_PATH = Path("zigux/tests/phase3_dev_t_starter_packet_manifest.json")
@@ -27,6 +28,7 @@ COMPILE_ROUTE = (
 
 REQUIRED_MARKERS = {
     ABI_SLICE_PATH: (
+        "zigux/bindings/version.zig",
         "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
         "scripts/zigux/check-phase3-dev-t-starter-packet.py",
         "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
@@ -36,12 +38,13 @@ REQUIRED_MARKERS = {
         "zigux/kernel/export_shim.zig",
     ),
     VALIDATOR_NOTE_PATH: (
+        "zigux/bindings/version.zig",
         "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
         "scripts/zigux/check-phase3-dev-t-starter-packet.py",
         "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
         COMPILE_ROUTE,
-        "the new manifest-backed starter packet",
+        "the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
     ),
     LINUX_HEADER_PATH: (
         "#define ZIGUX_UAPI_ABI_MAJOR 0u",
@@ -85,21 +88,39 @@ REQUIRED_MARKERS = {
         "std.debug.assert(major_offset == 0);",
         "std.debug.assert(minor_offset == 4);",
     ),
+    VERSION_BINDING_PATH: (
+        "pub const abi_major = uapi.abi_major;",
+        "pub const abi_minor = uapi.abi_minor;",
+        "pub const header_family_revision = uapi.header_family_revision;",
+        "pub const version_size: usize = @sizeOf(uapi.Version);",
+        "pub const version_align: usize = @alignOf(uapi.Version);",
+        'pub const abi_major_offset: usize = @offsetOf(uapi.Version, "abi_major");',
+        'pub const abi_minor_offset: usize = @offsetOf(uapi.Version, "abi_minor");',
+        'pub const header_family_revision_offset: usize = @offsetOf(uapi.Version, "header_family_revision");',
+        "pub fn current() Version {",
+        "pub fn eql(left: Version, right: Version) bool {",
+        "std.debug.assert(header_family_revision_offset == 8);",
+    ),
     TEST_PATH: (
         'test "dev_t starter binding preserves the current ABI layout" {',
-        'test "starter packet version stays aligned with the Linux-facing header family" {',
+        'test "starter packet version binding preserves the Linux-facing header family layout" {',
         'test "dev_t binding equality stays field based" {',
+        'test "version binding equality stays field based" {',
         "try testing.expectEqual(@as(u32, 1), dev_t.abi_version);",
         "try testing.expectEqual(@as(u32, 1), version.header_family_revision);",
         "try testing.expect(dev_t.eql(left, same));",
+        "try testing.expect(version.eql(current, same));",
     ),
     BUILD_PATH: (
         '.root_source_file = b.path("../uapi/dev_t.zig"),',
         '.root_source_file = b.path("../uapi/version.zig"),',
         '.root_source_file = b.path("../bindings/dev_t.zig"),',
+        '.root_source_file = b.path("../bindings/version.zig"),',
         '.root_source_file = b.path("phase3_dev_t_starter_packet.zig"),',
         'dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);',
+        'version_binding.addImport("uapi_version", uapi_version);',
         'root_module.addImport("dev_t_binding", dev_t_binding);',
+        'root_module.addImport("version_binding", version_binding);',
         '"phase3-dev-t-starter-packet-test"',
         '"Run the Phase 3 dev_t starter-packet ABI self-check"',
     ),
@@ -108,6 +129,7 @@ REQUIRED_MARKERS = {
         '"status": "starter_packet_present"',
         '"Documentation/zigux/phase3-abi-slice.md"',
         '"Documentation/zigux/phase3-validator-support-surface.md"',
+        '"zigux/bindings/version.zig"',
         '"zigux/tests/phase3_dev_t_starter_packet_manifest.json"',
         '"python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test"',
         '"python3 scripts/zigux/check-phase3-dev-t-starter-packet.py"',
@@ -119,6 +141,7 @@ REQUIRED_MARKERS = {
 SAMPLE_FILES = {
     ABI_SLICE_PATH: f"""# Phase 3 ABI Slice
 
+zigux/bindings/version.zig
 zigux/tests/phase3_dev_t_starter_packet_manifest.json
 scripts/zigux/check-phase3-dev-t-starter-packet.py
 python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test
@@ -129,18 +152,20 @@ zigux/kernel/export_shim.zig
 """,
     VALIDATOR_NOTE_PATH: f"""# Phase 3 Validator Support Surface
 
+zigux/bindings/version.zig
 zigux/tests/phase3_dev_t_starter_packet_manifest.json
 scripts/zigux/check-phase3-dev-t-starter-packet.py
 python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test
 python3 scripts/zigux/check-phase3-dev-t-starter-packet.py
 {COMPILE_ROUTE}
-the new manifest-backed starter packet
+the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet
 """,
     LINUX_HEADER_PATH: "\n".join(REQUIRED_MARKERS[LINUX_HEADER_PATH]) + "\n",
     DEV_T_HEADER_PATH: "\n".join(REQUIRED_MARKERS[DEV_T_HEADER_PATH]) + "\n",
     UAPI_DEV_T_PATH: "\n".join(REQUIRED_MARKERS[UAPI_DEV_T_PATH]) + "\n",
     UAPI_VERSION_PATH: "\n".join(REQUIRED_MARKERS[UAPI_VERSION_PATH]) + "\n",
     BINDING_PATH: "\n".join(REQUIRED_MARKERS[BINDING_PATH]) + "\n",
+    VERSION_BINDING_PATH: "\n".join(REQUIRED_MARKERS[VERSION_BINDING_PATH]) + "\n",
     TEST_PATH: "\n".join(REQUIRED_MARKERS[TEST_PATH]) + "\n",
     BUILD_PATH: "\n".join(REQUIRED_MARKERS[BUILD_PATH]) + "\n",
     MANIFEST_PATH: f"""{{
@@ -154,6 +179,7 @@ the new manifest-backed starter packet
     \"zigux/uapi/version.zig\",
     \"zigux/uapi/dev_t.zig\",
     \"zigux/bindings/dev_t.zig\",
+    \"zigux/bindings/version.zig\",
     \"zigux/tests/phase3_dev_t_starter_packet.zig\",
     \"zigux/tests/phase3_dev_t_starter_packet_build.zig\",
     \"zigux/tests/phase3_dev_t_starter_packet_manifest.json\",
@@ -170,16 +196,17 @@ the new manifest-backed starter packet
 }
 
 SELF_TEST_CASES = (
-    (ABI_SLICE_PATH, "zigux/tests/phase3_dev_t_starter_packet_manifest.json"),
-    (VALIDATOR_NOTE_PATH, "the new manifest-backed starter packet"),
+    (ABI_SLICE_PATH, "zigux/bindings/version.zig"),
+    (VALIDATOR_NOTE_PATH, "zigux/bindings/version.zig"),
     (LINUX_HEADER_PATH, "#define ZIGUX_UAPI_DEV_T_PACKET_PRESENT 1u"),
     (DEV_T_HEADER_PATH, "#define ZIGUX_DEV_T_FIELDS_ALIGN 4u"),
     (UAPI_DEV_T_PATH, "std.debug.assert(@sizeOf(Fields) == 8);"),
     (UAPI_VERSION_PATH, "pub const header_family_revision: u32 = 1;"),
     (BINDING_PATH, 'pub const major_offset: usize = @offsetOf(uapi.Fields, "major");'),
-    (TEST_PATH, 'test "starter packet version stays aligned with the Linux-facing header family" {'),
-    (BUILD_PATH, '"phase3-dev-t-starter-packet-test"'),
-    (MANIFEST_PATH, f'"{COMPILE_ROUTE}"'),
+    (VERSION_BINDING_PATH, "pub const version_size: usize = @sizeOf(uapi.Version);"),
+    (TEST_PATH, 'test "starter packet version binding preserves the Linux-facing header family layout" {'),
+    (BUILD_PATH, '.root_source_file = b.path("../bindings/version.zig"),'),
+    (MANIFEST_PATH, '"zigux/bindings/version.zig"'),
 )
 
 
@@ -227,6 +254,7 @@ def validate_repo(repo_root: Path) -> list[str]:
                     "zigux/uapi/version.zig",
                     "zigux/uapi/dev_t.zig",
                     "zigux/bindings/dev_t.zig",
+                    "zigux/bindings/version.zig",
                     "zigux/tests/phase3_dev_t_starter_packet.zig",
                     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
                     "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
