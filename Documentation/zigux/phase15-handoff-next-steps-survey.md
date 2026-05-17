@@ -15,7 +15,7 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 
 The roadmap's Phase 15 work is about governance discipline and honest handoff, not one more deep-core implementation push.
 
-Current `master` already carries the freeze-map, the freeze-map governance note, the Architecture Council review-process note, the Architecture Council decision-record template, the indefinite-C policy note, the parity scorecard, the parity-scorecard survey, the readiness-gate survey, the governance-lane-sequencing note, the study-only anchor accounting note, and the shared-summary gap note. The older handoff target that treated the docs root as the next automatic Phase 15 follow-through was no longer precise enough for the current packet: the dedicated governance notes and shared-gap guard now define the tighter same-lane boundaries, while the broad reminder surfaces should only reopen when fresh drift actually appears.
+Current `master` already carries the freeze-map, the freeze-map governance note, the Architecture Council review-process note, the Architecture Council decision-record template, the indefinite-C policy note, the parity scorecard, the readiness-gate survey, the governance-lane-sequencing note, the study-only anchor accounting note, and the shared-summary gap note. The older handoff target that treated the docs root as the next automatic Phase 15 follow-through was no longer precise enough for the current packet: the dedicated governance notes and shared-gap guard now define the tighter same-lane boundaries, while the broad reminder surfaces should only reopen when fresh drift actually appears.
 
 That made future-target prep stale. Reviewers had to reconcile this note against the newer landed Phase 15 policy packet by hand.
 
@@ -28,7 +28,6 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 - `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
-- `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
@@ -39,6 +38,7 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 - `scripts/zigux/check-phase15-shared-summary-gap.py`, which together keep one focused review-process checker plus the shared-summary gap checker materialized on current `master`
 - the broad docs-root reminder surface `Documentation/zigux/README.md`, which should be treated as a shared-summary gap source only when fresh Phase 15 wording actually appears there
 - the broad `zigux/tests/README.md` reminder surface, which should be reread with the shared-summary gap note and the dedicated Phase 15 checkers instead of being carried here as an unlanded future target by default
+- `Documentation/zigux/phase15-parity-scorecard-survey.md` remains a shared-summary gap, not a landed handoff packet member, until a direct current-master readback materializes it beside the parity scorecard
 
 ## Current governance posture to preserve
 
@@ -52,7 +52,7 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 1. reread `Documentation/zigux/review-checklist.md` together with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and the current manifest-backed governance packet whenever the shared Architecture Council prompts drift
 2. reread `zigux/tests/README.md` together with `Documentation/zigux/phase15-shared-summary-gap.md`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, and the current manifest-backed governance packet whenever the tests-root reminder drifts, rather than treating a dedicated Phase 15 review section as still-unlanded by default
 3. refresh the broad docs-root reminder surface `Documentation/zigux/README.md` only if fresh repo inspection actually materializes dedicated Phase 15 wording there or another shared-summary drift forces it back into scope
-4. keep the landed `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `Documentation/zigux/phase15-indefinite-c-policy.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion
+4. keep the landed `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `Documentation/zigux/phase15-indefinite-c-policy.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion, and keep `Documentation/zigux/phase15-parity-scorecard-survey.md` gap-tracked until direct readback materializes it
 5. if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet
 
 ## Handoff rules
@@ -71,4 +71,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this note parked until one broad Phase 15 reminder surface drifts away from the materialized governance packet above or one existing governance packet changes enough that the future-target inventory above becomes stale.
+Keep this note parked until one broad Phase 15 reminder surface drifts away from the materialized governance packet above, the missing parity-scorecard survey companion lands, or one existing governance packet changes enough that the future-target inventory above becomes stale.
