@@ -1,0 +1,38 @@
+{
+  "phase": "Phase 3",
+  "lane": "helper-interop",
+  "slug": "phase3-xarray-slot",
+  "status": "parity_packet_present",
+  "scope": "fixture-backed xarray slot classification parity dump",
+  "packet_files": [
+    "Documentation/zigux/phase3-xarray-slot-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "zigux/helpers/err_ptr.zig",
+    "zigux/helpers/xa_value.zig",
+    "zigux/helpers/xarray_slot_view.zig",
+    "zigux/tests/phase3_xarray_slot_starter_packet.zig",
+    "zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
+    "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
+    "zigux/tests/phase3_xarray_slot_dump.zig",
+    "zigux/tests/phase3_xarray_slot_dump_build.zig",
+    "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c",
+    "zigux/tests/fixtures/phase3_xarray_slot/expected.json",
+    "zigux/tests/fixtures/phase3_xarray_slot_manifest.json",
+    "scripts/zigux/check-phase3-xarray-slot.py"
+  ],
+  "replay_routes": [
+    "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-xarray-slot-starter-packet.py --repo-root .",
+    "python3 scripts/zigux/check-phase3-xarray-slot.py --self-test",
+    "python3 scripts/zigux/check-phase3-xarray-slot.py --repo-root . --zig zig --cc gcc",
+    "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
+    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"
+  ],
+  "repo_reality_gaps": [
+    "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
+    "zigux/kernel/export_shim.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig"
+  ],
+  "next_safe_step": "keep the xarray-slot packet helper-local and fixture-backed until the separate shared tests-root and reminder-surface lanes are clear"
+}
