@@ -1,8 +1,7 @@
 # Phase 12 Bootstrap Lane Contract
 
-This note records the current Phase 12 portion of the bootstrap workflow without
-rewriting the broader reminder packet or reopening the live workflow file in this
-lane.
+This note records the shipped Lane 05 bootstrap posture on current `master`
+without reopening the live workflow file in the same change.
 
 ## Status
 
@@ -13,16 +12,15 @@ lane.
 
 ## Current Bootstrap Contract
 
-- the current bootstrap workflow still begins with `Compile current scripts`
-- the current Phase 12 slice is a tail contract, not the whole workflow
-- current upstream bootstrap steps ahead of that tail include the current Zig toolchain checker pair, the Phase 2 kconfig, kbuild, and toolchain-pinning pairs, the Phase 1 direct-owner and string-review pairs plus the bench and shared-reminder checks, the Phase 4 repo-reality, reversible-delivery, and tests-readme pairs, and the Phase 7 shared-control gap pair
-- the current Phase 12 bootstrap tail is limited to `Self-test current Phase 12 build-only checker` followed by `Check current docs-root sanity markers`
-- the current workflow reruns `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
-- `make -C zigux phase12-validate`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `make -C zigux phase12-smoke`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` are broader Phase 12 routes, not current bootstrap-lane evidence
-- `Check current Phase 12 build-only surface`, `Self-test current Phase 12 bootstrap docs sanity checker`, `Check current Phase 12 docs-root sanity markers`, `Self-test current Phase 12 bootstrap lane checker`, and `Check current Phase 12 bootstrap lane shape` belong to the older branch-only Lane 05 packet, not current `master`
-- until the workflow widens again, Lane 05 should keep reminder notes and fail-closed checks aligned to this smaller Phase 12 tail instead of treating the broader Phase 12 packet or the older branch-only lane packet as shipped bootstrap behavior
+- the current shipped bootstrap lane still compiles `scripts/zigux/*.py` before any lane checks run
+- the current shipped lane still keeps the pinned Zig archive check and the Phase 11 build-inventory plus matrix-gap survey checks
+- the current shipped Phase 12 slice still includes the build-only surface pair, the release-readiness pair, `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+- the current shipped lane still runs `make -C zigux phase8-validate` and the focused Phase 8 libbpf segment survey after the Phase 12 complex driver tests
+- the current shipped bootstrap lane still ends with the inline `Check current docs-root sanity markers` block
+- the inline docs-root sanity block still checks `Documentation/zigux/README.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `zigux/tests/README.md`, and `scripts/zigux/check-build-only-phase12-surface.py`
+- dedicated `check-phase12-bootstrap-docs-sanity.py` and `check-phase12-bootstrap-lane-shape.py` guards remain review-only Lane 05 work, not shipped `master` behavior
 
 ## Next Bounded Step
 
-If later Lane 05 work changes the live bootstrap tail again, refresh this note
-and its checker in the same change.
+If the shipped workflow replaces the inline docs-root sanity block later, refresh
+this note and its checker in the same lane change.
