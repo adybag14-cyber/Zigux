@@ -40,7 +40,7 @@ MISSING_BITMAP_DIFF_PACKET = (
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 4
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 8
 EXPECTED_PIN_SELF_TEST_CASES = 7
 
 NOTE_REQ = (
@@ -54,7 +54,7 @@ NOTE_REQ = (
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=8` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
 )
 
 DOCS_README_PENDING_REQ = (
@@ -222,7 +222,7 @@ def main() -> int:
             drifted.write_text(note_text, encoding="utf-8")
             drifted.write_text(
                 note_text.replace(
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=4`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=8`",
                     "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=99`",
                 ),
                 encoding="utf-8",
@@ -253,6 +253,41 @@ def main() -> int:
                 raise AssertionError("expected docs README repo-reality drift to fail")
 
             (root / DOCS_README).write_text(docs_readme_text, encoding="utf-8")
+
+            readme_text = (args.root.resolve() / README).read_text(encoding="utf-8")
+            (root / README).write_text(
+                readme_text.replace(
+                    README_OWNER_MARKERS[1],
+                    "historical route handoff drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected tests README route drift to fail")
+
+            (root / README).write_text(readme_text, encoding="utf-8")
+
+            checklist_text = (args.root.resolve() / CHECKLIST).read_text(encoding="utf-8")
+            (root / CHECKLIST).write_text(
+                checklist_text.replace(
+                    CHECKLIST_PENDING_REQ[-1],
+                    "shared CI posture drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected review checklist drift to fail")
+
+            (root / CHECKLIST).write_text(checklist_text, encoding="utf-8")
+
             direct_packet_checker_source = (
                 args.root.resolve() / "scripts/zigux/check-phase4-reversible-delivery-pins.py"
             ).read_text(encoding="utf-8")
@@ -261,7 +296,7 @@ def main() -> int:
             try:
                 check(root)
             except RuntimeError:
-                pass
+                cases += 1
             else:
                 raise AssertionError("expected missing direct packet member to fail")
 
@@ -275,7 +310,7 @@ def main() -> int:
             try:
                 check(root)
             except RuntimeError:
-                pass
+                cases += 1
             else:
                 raise AssertionError("expected restored broader packet member to fail")
 
