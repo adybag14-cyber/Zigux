@@ -426,6 +426,45 @@ test "config parsing trims _MODULE and deduplicates symbols" {
     );
 }
 
+test "config parsing ignores prefixed CONFIG tokens for C parity" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 8),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn flush(_: *@This()) !void {}
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseConfigFile(
+        &capture,
+        "UML_CONFIG_ZIGUX_CORE HELLO_CONFIG_ZIGUX_DEBUG_MODULE",
+    );
+
+    try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
+}
+
 test "config parsing stops at the first embedded NUL" {
     const Capture = struct {
         list: std.ArrayList(u8),
@@ -932,8 +971,7 @@ test "runFixdep matches multi-target parity packet with escaped hash and deduped
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_module/sample2.o := {s}\n\n" ++
-            "source_module/sample2.o := {s}\n\n" ++
-            "deps_module/sample2.o := \\\n" ++
+            "source_module/sample2.o := {s}\n\ndeps_module/sample2.o := \\\n" ++
             "    $(wildcard include/config/ZIGUX_MULTI) \\\n" ++
             "  {s} \\\n" ++
             "    $(wildcard include/config/ZIGUX_HASH) \\\n" ++
@@ -1055,8 +1093,7 @@ test "runFixdep reads escaped-space dependency paths and emits config deps" {
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_sample_escaped_space.o := {s}\n\n" ++
-            "source_sample_escaped_space.o := {s}\n\n" ++
-            "deps_sample_escaped_space.o := \\\n" ++
+            "source_sample_escaped_space.o := {s}\n\ndeps_sample_escaped_space.o := \\\n" ++
             "  {s} \\\n" ++
             "    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \\\n" ++
             "\n" ++
@@ -1173,8 +1210,7 @@ test "runFixdep reads escaped-colon dependency paths and trims shared _MODULE co
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_sample_escaped_colon.o := {s}\n\n" ++
-            "source_sample_escaped_colon.o := {s}\n\n" ++
-            "deps_sample_escaped_colon.o := \\\n" ++
+            "source_sample_escaped_colon.o := {s}\n\ndeps_sample_escaped_colon.o := \\\n" ++
             "  {s} \\\n" ++
             "    $(wildcard include/config/ZIGUX_COLON) \\\n" ++
             "    $(wildcard include/config/ZIGUX_SHARED_COLON) \\\n" ++
