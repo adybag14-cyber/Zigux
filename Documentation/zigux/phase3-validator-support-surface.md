@@ -63,9 +63,9 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md` still carries broader shared Phase 3 reminder language than the directly readable slices on current `master`, while `Documentation/zigux/review-checklist.md` and `zigux/tests/README.md` now match the bounded starter-packet-plus-helper-slice posture.
+`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` still carry broader shared Phase 3 reminder language than the directly readable slices on current `master`.
 
-Keep the remaining shared reminder follow-up focused on narrowing that broader docs-root surface so it stays anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, this note, the manifest-backed starter packet, the new xarray-slot slice, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
+Keep the remaining shared reminder follow-up focused on narrowing those docs-root, checklist, and tests-root surfaces so they stay anchored to `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-xarray-slot-slice.md`, this note, the manifest-backed starter packet, and the dedicated replay routes until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
