@@ -39,7 +39,6 @@ WORKFLOW_LINES = (
 README_PRESENT_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -94,7 +93,11 @@ BOOTSTRAP_WARNING_MARKERS = (
     "Treat the absent validator-first, cross-route, installer, and Linux-style make replay names as historical packet members",
 )
 
-README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
+README_FORBIDDEN_MARKERS = (
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+)
 
 EXPECTED_POLICY = {
     "phase": "Phase 2",
@@ -103,7 +106,7 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 79
+EXPECTED_SELF_TEST_CASE_COUNT = 81
 
 
 def read_text(path: Path) -> str:
@@ -113,6 +116,7 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+
 def resolve_path(root: Path, path: Path) -> Path:
     try:
         return root / path.relative_to(ROOT)
@@ -120,20 +124,25 @@ def resolve_path(root: Path, path: Path) -> Path:
         return root / path
 
 
+
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
 
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
 
 
+
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker in text]
 
 
+
 def load_policy(root: Path) -> object:
     return json.loads(read_text(resolve_path(root, POLICY_PATH)))
+
 
 
 def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
@@ -185,6 +194,7 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     return issues
 
 
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
@@ -221,6 +231,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     return issues
 
 
+
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
@@ -235,9 +246,11 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 
 def build_self_test_root(root: Path) -> None:
@@ -290,10 +303,12 @@ def build_self_test_root(root: Path) -> None:
             write_text(resolve_path(root, path), "present\n")
 
 
+
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
+
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
@@ -305,6 +320,7 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+
 def duplicate_exact_line(text: str, marker: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -312,6 +328,7 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
+
 
 
 def run_self_test() -> int:
@@ -451,6 +468,7 @@ def run_self_test() -> int:
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
     print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
+
 
 
 def main() -> int:
