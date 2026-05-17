@@ -180,7 +180,7 @@ FORBIDDEN_WORKFLOW_LINES = (
 )
 
 
-def load_text(root: Path) -> str:
+def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
@@ -274,7 +274,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-workflow-viability-") as tmpdir:
         root = Path(tmpdir)
 
-        build_sample_repo(root)
+        build_sampleRepo(root)
         if collect_failures(root):
             print("self-test:unexpected_failures")
             return 1
