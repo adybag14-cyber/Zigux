@@ -79,7 +79,7 @@ SAMPLE_CONTINUITY_TEST_MARKER = (
 )
 SAMPLE_COLD_STAGE_MARKER = "try std.testing.expectEqual(ModuleStage.cold, module.stage());"
 SAMPLE_COLD_SELFTEST_REJECTION_MARKER = (
-    "try std.testing.expectEqual(ModuleStage.cold, module.stage());\n"
+    "try std.testing.expectEqual(ModuleStage.cold, module.stage());\\n"
     "    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());"
 )
 SAMPLE_COLD_EXIT_REJECTION_MARKER = (
@@ -114,6 +114,15 @@ SAMPLE_FAILED_EXIT_FINAL_STAGE_MARKER = (
 )
 SAMPLE_FAILED_EXIT_FINAL_EXIT_RUNS_MARKER = (
     "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);"
+)
+SAMPLE_EXITED_INIT_RUNS_STABLE_MARKER = (
+    "try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);"
+)
+SAMPLE_EXITED_SELFTEST_RUNS_STABLE_MARKER = (
+    "try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);"
+)
+SAMPLE_EXITED_REGISTRATION_DEPTH_STABLE_MARKER = (
+    "try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);"
 )
 SAMPLE_REJECTED_SELFTEST_TEST_MARKER = (
     'test "trace-events sample keeps rejected re-selftest rollback explicit" {'
@@ -190,7 +199,7 @@ UNREGISTERED_GATE_SELFTEST_LAST_FN_COUNT_MARKER = (
     "try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);"
 )
 UNREGISTERED_GATE_INITIAL_FAIL_CLOSED_PAIR_MARKER = (
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\n"
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\\n"
     "    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
 )
 UNREGISTERED_GATE_INITIAL_SUMMARY_STABLE_MARKER = (
@@ -203,7 +212,7 @@ UNREGISTERED_GATE_TOTAL_EVENTS_MARKER = (
     "try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);"
 )
 UNREGISTERED_GATE_POST_SELFTEST_FAIL_CLOSED_PAIR_MARKER = (
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));\n"
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));\\n"
     "    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());"
 )
 UNREGISTERED_GATE_SELFTEST_SUMMARY_STABLE_MARKER = (
@@ -279,6 +288,9 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_FAILED_EXIT_PRESERVED_STAGE_MARKER,
     SAMPLE_FAILED_EXIT_FINAL_STAGE_MARKER,
     SAMPLE_FAILED_EXIT_FINAL_EXIT_RUNS_MARKER,
+    SAMPLE_EXITED_INIT_RUNS_STABLE_MARKER,
+    SAMPLE_EXITED_SELFTEST_RUNS_STABLE_MARKER,
+    SAMPLE_EXITED_REGISTRATION_DEPTH_STABLE_MARKER,
     SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
     SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER,
     SAMPLE_EXITED_REGISTRATION_REJECTION_MARKER,
@@ -470,9 +482,13 @@ test \"trace-events sample keeps failed-exit rollback explicit after selftest-re
     try std.testing.expectError(error.OutstandingRegistration, module.exit());
     const after_failed_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, after_failed_exit.stage);
+    const before_exit = module.summary();
     const after_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
+    try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);
 }}
 
 test \"trace-events sample keeps rejected re-selftest rollback explicit\" {{
@@ -535,7 +551,7 @@ test \"phase9 trace-events sample keeps unregistered function-thread failures fa
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
-        raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
+        raise SystemExit(f"expected failure not found: {expected}\\nactual={failures!r}")
 
 
 def run_self_test() -> int:
