@@ -67,3 +67,12 @@ test "scnprintfPad clamps oversized logical sizes to the buffer" {
     try std.testing.expectEqualStrings("ab   ", buffer[0 .. buffer.len - 1]);
     try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
 }
+
+test "scnprintfPad truncates long rendered text without padding" {
+    var buffer: [6]u8 = .{ 'x', 'x', 'x', 'x', 'x', 'x' };
+    const written = scnprintfPad(&buffer, 4, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 4), written);
+    try std.testing.expectEqualStrings("zigu", buffer[0..4]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[4]);
+    try std.testing.expectEqual(@as(u8, 'x'), buffer[5]);
+}
