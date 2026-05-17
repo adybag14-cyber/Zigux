@@ -35,7 +35,7 @@
         "scripts/zigux/check-phase6-base64-c-parity.py"
       ],
       "slice_note": "Documentation/zigux/phase6-base64-slice.md",
-      "current_review_posture": "direct-readback-limited"
+      "current_review_posture": "helper-local-direct-readback-confirmed"
     },
     {
       "key": "bsearch",
