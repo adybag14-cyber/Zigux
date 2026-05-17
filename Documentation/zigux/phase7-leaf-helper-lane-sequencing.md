@@ -27,7 +27,7 @@ Fresh repo-first inspection shows the roadmap-backed Phase 7 family is only part
 That means the honest current lane split is helper-local and direct-readback-aware rather than a four-helper landed batch:
 
 - `lib/string_helpers.zig` plus its helper-local survey, manifest, and no-string-sample boundary packet are directly readable and remain the clearest same-lane reopen surface
-- `lib/argv_split.zig` is directly readable, but the older helper-local slice and checker companions are not directly readable in the same reread, so treat it as a narrower helper-only surface until those companion reminders return
+- `lib/argv_split.zig` is directly readable, but the older helper-local slice and checker companions are not directly readable in the same reread, so treat it as a narrower helper-only surface until those companion reminders return; if a shared tests-root or scripts-root reminder still omits that directly readable helper, fix the reminder one file at a time instead of reconstructing the missing companion packet
 - `lib/cmdline.zig` is not directly readable on current `master` during this reread
 - `lib/rbtree.zig` and the older broader rbtree companion packet are not directly readable on current `master` during this reread
 
@@ -68,7 +68,7 @@ It only means these runtime-safe leaf helpers may continue to evolve inside thei
 Start from one directly readable helper family only and pick the smallest truthful follow-up:
 
 - `lib/string_helpers.zig`: helper-local boundary or ownership drift in string, sysfs, or counted-search behavior
-- `lib/argv_split.zig`: helper-local drift in empty-view reuse, copied-storage tokenization, or null-terminated argv export
+- `lib/argv_split.zig`: helper-local drift in empty-view reuse, copied-storage tokenization, or null-terminated argv export, or one shared reminder-surface truthfulness repair that explicitly names the helper-only `lib/argv_split.zig` anchor plus its `zig test lib/argv_split.zig` replay without recreating the missing slice or checker packet
 - `lib/cmdline.zig`: reopen only after a fresh reread proves `lib/cmdline.zig` and at least one current helper-local companion surface have returned on `master`
 - `lib/rbtree.zig`: reopen only after a fresh reread proves `lib/rbtree.zig` or a current helper-local companion packet has returned on `master`
 
