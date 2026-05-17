@@ -98,6 +98,11 @@ pub const BufferFdLookupSummary = struct {
     disposition: BufferFdLookupDisposition,
 };
 
+pub const BufferFdLookupError = error{
+    InvalidIndex,
+    MissingFd,
+};
+
 pub const BufferWindowObservation = struct {
     mapped_size: usize = 0,
 };
@@ -563,6 +568,14 @@ pub fn summarizeBufferFdLookup(
     };
 }
 
+pub fn resolveBufferFd(summary: BufferFdLookupSummary) BufferFdLookupError!i32 {
+    return switch (summary.disposition) {
+        .found_fd => summary.fd.?,
+        .invalid_index => error.InvalidIndex,
+        .missing_fd => error.MissingFd,
+    };
+}
+
 pub fn resolveBufferFdLookupReturn(summary: BufferFdLookupSummary) i32 {
     return switch (summary.disposition) {
         .found_fd => summary.fd.?,
@@ -781,6 +794,28 @@ test "phase8 perf-buffer poll keeps buffer lookup returns errno-shaped" {
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         resolveBufferWindowLookupReturn(summarizeBufferWindowLookup(&buffer_windows, 4)),
+    );
+}
+
+test "phase8 perf-buffer poll exposes typed fd resolution beside errno-shaped fd returns" {
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+
+    const found = summarizeBufferFdLookup(&buffer_fds, 2);
+    try std.testing.expectEqual(@as(i32, 21), try resolveBufferFd(found));
+    try std.testing.expectEqual(@as(i32, 21), resolveBufferFdLookupReturn(found));
+
+    const missing = summarizeBufferFdLookup(&buffer_fds, 1);
+    try std.testing.expectError(error.MissingFd, resolveBufferFd(missing));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveBufferFdLookupReturn(missing),
+    );
+
+    const invalid = summarizeBufferFdLookup(&buffer_fds, 4);
+    try std.testing.expectError(error.InvalidIndex, resolveBufferFd(invalid));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveBufferFdLookupReturn(invalid),
     );
 }
 
