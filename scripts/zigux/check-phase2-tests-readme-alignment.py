@@ -13,6 +13,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`scripts/zigux/README.md`",
+    "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -34,9 +35,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`make -C zigux phase2-toolchain`",
@@ -51,6 +50,8 @@ REQUIRED_TESTS_README_MARKERS = (
     "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
 FORBIDDEN_TESTS_README_MARKERS = (
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
+    "`python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
