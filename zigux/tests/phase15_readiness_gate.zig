@@ -3,6 +3,10 @@ const std = @import("std");
 const RepoEvidence = struct {
     phase15_validator_script_present: bool,
     phase15_docs_readme_checker_present: bool,
+    phase15_handoff_manifest_present: bool,
+    phase15_build_zig_present: bool,
+    phase15_indefinite_c_lane_owner_alignment_present: bool,
+    phase15_makefile_present: bool,
     phase15_validate_target_present: bool,
     phase15_test_target_present: bool,
     shared_ci_phase15_present: bool,
@@ -40,6 +44,10 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
     try std.testing.expectEqualStrings("current-master-readback-2026-05-17", manifest.surveyed_commit);
     try std.testing.expect(!manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
+    try std.testing.expect(!manifest.repo_evidence.phase15_handoff_manifest_present);
+    try std.testing.expect(!manifest.repo_evidence.phase15_build_zig_present);
+    try std.testing.expect(!manifest.repo_evidence.phase15_indefinite_c_lane_owner_alignment_present);
+    try std.testing.expect(!manifest.repo_evidence.phase15_makefile_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(!manifest.repo_evidence.shared_ci_phase15_present);
@@ -81,6 +89,7 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "`zigux/tests/phase15_build.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectContains(readiness_note, "`zigux/Makefile`");
+    try expectContains(readiness_note, "The dedicated readiness manifest exact-pins those broader companions as absent repo evidence");
     try expectContains(readiness_note, "`make -C zigux phase15-validate` remains blocked route vocabulary");
     try expectContains(readiness_note, "`make -C zigux phase15-test` remains blocked route vocabulary");
     try expectContains(readiness_note, "`make -C zigux phase15` remains blocked route vocabulary");
