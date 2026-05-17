@@ -87,7 +87,7 @@ Because current `master` keeps the restored direct kretprobe packet reviewable b
 
 * one trace-events reminder-surface truthfulness repair at a time
 * one trace-events approved-idiom-gap repair at a time
-* one trace-events sample-root, tests-root, survey, manifest, or shared-build reminder alignment repair at a time
+* one trace-events sample-root, tests-root, approved-idiom-gap, or shared-build reminder alignment repair at a time
 
 Avoid:
 
@@ -106,7 +106,7 @@ Keep later runtime-facing sample work under the separate Phase 9 lane.
 Keep these no-extra-sample reminders explicit too:
 
 * `samples/zigux/trace_events_string_formatting_sample.zig` is a bounded trace-events formatting companion, not a fifth Phase 5 anchor and not a standalone helper packet
-* there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master` outside the bounded trace-events packet, its formatting companion, and the shared reminder packet
+* there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master` outside the bounded trace-events formatting companion and the shared reminder packet
 * there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`
 * there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`
 * there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`
