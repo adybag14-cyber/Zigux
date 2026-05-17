@@ -26,16 +26,21 @@ Treat those four anchors as the full Phase 5 destination set unless the roadmap 
 
 ## Current shared packet on `master`
 
-Fresh repo-first inspection in this run confirmed that current `master` still keeps the shared Phase 5 reminder packet reviewable through these surfaces:
+Fresh repo-first inspection in this run confirmed that current `master` still keeps the shared Phase 5 reminder packet reviewable through these directly readable surfaces:
 
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
-- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
-- `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `zigux/tests/README.md`
+
+The same reread also confirmed that authenticated contents reads now return missing for these older dedicated survey notes:
+
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+
+Keep the shared packet truthful about that direct-readback gap instead of repeating those survey files as current `master` proof.
 
 ## Current sample-root reality
 
@@ -51,10 +56,9 @@ Treat the four roadmap-backed anchors as approved targets and reminder surfaces 
 
 ## Tracing and probe packet
 
-For the tracing and probe lane, keep follow-through aligned with these bounded reminder surfaces:
+For the tracing and probe lane, keep follow-through aligned with these bounded directly readable reminder surfaces:
 
-- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
-- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+- `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
@@ -66,6 +70,7 @@ Those files should describe:
 - the current sample-root gap on `master`
 - the approved selected-string plus `iter=%d` formatting idiom cue
 - the rule that Phase 9 runtime trace-events files are not extra Phase 5 sample proof
+- the direct-readback gap for the older dedicated kretprobe and trace-events survey notes until they return
 
 ## Sequencing rules
 
