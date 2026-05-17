@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+import tempfile
+
+
+def repo_root_from(script_path: Path, explicit: str | None) -> Path:
+    if explicit:
+        return Path(explicit).resolve()
+    return script_path.resolve().parents[2]
+
+
+def fixture_paths(root: Path) -> tuple[Path, Path, Path, Path]:
+    fixture_dir = root / "zigux" / "tests" / "fixtures" / "genksyms_crc"
+    return (
+        root / "scripts" / "zigux" / "genksyms_crc.zig",
+        fixture_dir / "genksyms_crc_c_harness.c",
+        fixture_dir / "inputs.txt",
+        fixture_dir / "expected.json",
+    )
+
+
+def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(cmd, check=True, text=True, **kwargs)
+
+
+def find_compiler(explicit: str | None) -> str:
+    if explicit:
+        return explicit
+    compiler = os.environ.get("CC")
+    if compiler:
+        return compiler
+    detected = shutil.which("cc") or shutil.which("gcc") or shutil.which("clang")
+    if detected:
+        return detected
+    raise SystemExit("C compiler not found; pass --cc or install cc/gcc/clang")
+
+
+def find_zig(explicit: str | None, root: Path) -> str:
+    if explicit:
+        return explicit
+    env = os.environ.get("ZIG")
+    if env:
+        return env
+    detected = shutil.which("zig")
+    if detected:
+        return detected
+    fallback = root.parent / ".toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "zig"
+    if fallback.exists():
+        return str(fallback)
+    raise SystemExit("zig not found; pass --zig, set ZIG, or extract the attached toolchain")
+
+
+def canonicalize_json(text: str) -> str:
+    data = json.loads(text)
+    return json.dumps(data, sort_keys=True, separators=(",", ":"))
+
+
+def compare_json(label: str, left: Path, right: Path) -> None:
+    left_text = left.read_text(encoding="utf-8")
+    right_text = right.read_text(encoding="utf-8")
+    if canonicalize_json(left_text) != canonicalize_json(right_text):
+        raise SystemExit(f"{label} mismatch: {left} != {right}")
+
+
+def compile_run_c(root: Path, tmp_dir: Path, harness: Path, inputs: Path, actual: Path, compiler: str) -> None:
+    exe = tmp_dir / "genksyms-crc-c"
+    run([compiler, "-std=c11", "-Wall", "-Wextra", "-o", str(exe), str(harness)], cwd=str(root))
+    result = run([str(exe), str(inputs)], cwd=str(root), capture_output=True)
+    actual.write_text(result.stdout, encoding="utf-8", newline="\n")
+
+
+def compile_run_zig(root: Path, tmp_dir: Path, zig_tool: Path, inputs: Path, actual: Path, zig: str) -> None:
+    exe = tmp_dir / "genksyms-crc-zig"
+    run([zig, "build-exe", str(zig_tool), "-femit-bin=" + str(exe)], cwd=str(root))
+    result = run([str(exe), str(inputs)], cwd=str(root), capture_output=True)
+    actual.write_text(result.stdout, encoding="utf-8", newline="\n")
+
+
+def run_self_test() -> int:
+    sample_a = canonicalize_json('{"cases":[{"crc_hex":"0x1451dab1","input":"int"}]}')
+    sample_b = canonicalize_json('{\n  "cases": [ { "input": "int", "crc_hex": "0x1451dab1" } ]\n}')
+    if sample_a != sample_b:
+        raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+    print("GENKSYMS_CRC_SELF_TEST=pass")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=2")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Compare bounded genksyms CRC C and Zig outputs.")
+    parser.add_argument("--cc", help="C compiler to use")
+    parser.add_argument("--zig", help="Path to Zig executable")
+    parser.add_argument("--repo-root", help="Repository root containing scripts/zigux and zigux/tests")
+    parser.add_argument("--refresh", action="store_true", help="Refresh expected.json from the current C harness output")
+    parser.add_argument("--self-test", action="store_true", help="Run fast checker self-tests without compiling tools")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    root = repo_root_from(Path(__file__), args.repo_root)
+    zig_tool, harness, inputs, expected = fixture_paths(root)
+    for path in (zig_tool, harness, inputs, expected):
+        if not path.exists():
+            raise SystemExit(f"missing required file: {path}")
+
+    compiler = find_compiler(args.cc)
+    zig = find_zig(args.zig, root)
+
+    with tempfile.TemporaryDirectory(prefix="zigux_genksyms_crc_") as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        c_actual = tmp_dir / "genksyms_crc.c.actual.json"
+        c_repeat = tmp_dir / "genksyms_crc.c.repeat.json"
+        zig_actual = tmp_dir / "genksyms_crc.zig.actual.json"
+        zig_repeat = tmp_dir / "genksyms_crc.zig.repeat.json"
+
+        compile_run_c(root, tmp_dir, harness, inputs, c_actual, compiler)
+        compile_run_zig(root, tmp_dir, zig_tool, inputs, zig_actual, zig)
+
+        if args.refresh:
+            expected.write_text(c_actual.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
+            print("GENKSYMS_CRC_REFRESH=pass")
+            print(f"FIXTURE={expected}")
+            return 0
+
+        compare_json("expected-vs-c", expected, c_actual)
+        compare_json("expected-vs-zig", expected, zig_actual)
+        compare_json("c-vs-zig", c_actual, zig_actual)
+
+        compile_run_c(root, tmp_dir, harness, inputs, c_repeat, compiler)
+        compile_run_zig(root, tmp_dir, zig_tool, inputs, zig_repeat, zig)
+        compare_json("c-determinism", c_actual, c_repeat)
+        compare_json("zig-determinism", zig_actual, zig_repeat)
+
+    print("GENKSYMS_CRC_DIFF=pass")
+    print("GENKSYMS_CRC_DETERMINISM=pass")
+    print(f"FIXTURE={expected}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
