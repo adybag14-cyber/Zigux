@@ -1,0 +1,1 @@
+{"tool":"scripts/kconfig/conf","mode":"mod2yesconfig","argv":["scripts/kconfig/conf","--mod2yesconfig","Kconfig"],"env":{"ARCH":"x86","KCONFIG_CONFIG":"promote/.config"}}
