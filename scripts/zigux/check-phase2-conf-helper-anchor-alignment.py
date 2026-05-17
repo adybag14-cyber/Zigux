@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 2 conf_bridge helper-anchor and allconfig packet contract."""
+"""Guard the Phase 2 conf_bridge helper-anchor packet against live fixture drift."""
 
 from __future__ import annotations
 
@@ -9,27 +9,31 @@ import re
 import tempfile
 from pathlib import Path
 
+
 ROOT = Path(__file__).resolve().parent
 CONF_BRIDGE = Path("scripts/zigux/kconfig/conf_bridge.zig")
 CASES = Path("zigux/tests/fixtures/kconfig_bridge/cases.json")
-MANIFEST = Path("zigux/tests/fixtures/kconfig_bridge/conf_manifest.json")
-
-HELPER_PREFIXES = (
-    "conf bridge ",
-    "bridge options parser ",
-    "mode argument validation ",
-)
-MODE_ARG_MODES = ("defconfig", "savedefconfig")
-SILENT_REQUEST_CASES = ("helpnewconfig_expected.json",)
-SYNCCONFIG_ENV_CASES = ("syncconfig_expected.json",)
-ALLCONFIG_SENTINEL_MODES = {
-    "allnoconfig",
-    "allyesconfig",
-    "allmodconfig",
-    "alldefconfig",
-}
 
 TEST_PATTERN = re.compile(r'^test "([^"]+)" \{$')
+MODE_ENUM_PATTERN = re.compile(r"pub const Mode = enum \{(.*?)\n\};", re.S)
+MODE_FIELD_PATTERN = re.compile(r"^\s*([a-z0-9_]+),\s*$", re.M)
+
+GENERAL_ANCHORS = {
+    "mode surface": "conf bridge mode surface stays aligned with conf.c long options",
+    "silent argv": "conf bridge emits silent flag before mode flag",
+    "mode arg rejects option": "mode argument validation rejects bridge option shaped defconfig payload",
+    "syncconfig nosilentupdate": "bridge options parser accepts syncconfig nosilentupdate",
+    "unexpected option rejection": "bridge options parser rejects unexpected options for mode",
+}
+
+MODE_SPECIFIC_ANCHORS = {
+    "defconfig": "conf bridge emits defconfig mode argument before kconfig",
+    "savedefconfig": "conf bridge emits savedefconfig mode argument before kconfig",
+    "randconfig override": "conf bridge emits explicit randconfig allconfig override when present",
+    "randconfig sentinel omission": "conf bridge omits randconfig allconfig sentinel without explicit override",
+    "allconfig sentinel": "conf bridge emits alldefconfig argv and env",
+    "allconfig explicit override": "conf bridge emits explicit empty allconfig override for allmodconfig",
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -54,87 +58,108 @@ def read_json(root: Path, rel: Path) -> object:
         raise RuntimeError(f"invalid JSON in {rel.as_posix()}: {exc}") from exc
 
 
-def collect_helper_anchors(source: str) -> list[str]:
-    anchors: list[str] = []
+def collect_test_anchors(source: str) -> set[str]:
+    anchors: set[str] = set()
     for line in source.splitlines():
         match = TEST_PATTERN.match(line.strip())
-        if not match:
-            continue
-        test_name = match.group(1)
-        if test_name.startswith(HELPER_PREFIXES):
-            anchors.append(test_name)
+        if match:
+            anchors.add(match.group(1))
     return anchors
 
 
-def expected_stdout_packet(cases: list[dict[str, object]]) -> list[str]:
-    return [str(case["expected"]) for case in cases]
+def collect_mode_enum(source: str) -> list[str]:
+    match = MODE_ENUM_PATTERN.search(source)
+    if not match:
+        raise RuntimeError(f"unable to locate Mode enum in {CONF_BRIDGE.as_posix()}")
+    return MODE_FIELD_PATTERN.findall(match.group(1))
 
 
-def expected_case_modes(cases: list[dict[str, object]]) -> list[str]:
-    return [str(case["mode"]) for case in cases]
+def collect_conf_cases(root: Path) -> list[dict[str, object]]:
+    payload = read_json(root, CASES)
+    if not isinstance(payload, dict):
+        raise RuntimeError(f"{CASES.as_posix()}: expected object root")
+    conf_cases = payload.get("conf_cases")
+    if not isinstance(conf_cases, list):
+        raise RuntimeError(f"{CASES.as_posix()}: expected conf_cases array")
+
+    typed_cases: list[dict[str, object]] = []
+    for index, case in enumerate(conf_cases):
+        if not isinstance(case, dict):
+            raise RuntimeError(f"{CASES.as_posix()}[{index}]: expected object case")
+        typed_cases.append(case)
+    return typed_cases
 
 
-def expected_mode_arg_cases(cases: list[dict[str, object]]) -> list[str]:
-    return [str(case["mode"]) for case in cases if case["mode"] in MODE_ARG_MODES]
-
-
-def expected_allconfig_sentinel_packet(cases: list[dict[str, object]]) -> list[str]:
-    packet: list[str] = []
-    for case in cases:
-        if case["mode"] in ALLCONFIG_SENTINEL_MODES and "allconfig" not in case:
-            packet.append(str(case["expected"]))
-    return packet
-
-
-def expected_allconfig_override_packet(cases: list[dict[str, object]]) -> list[str]:
-    return [str(case["expected"]) for case in cases if "allconfig" in case]
-
-
-def expect_equal(issues: list[str], key: str, actual: object, expected: object) -> None:
-    if actual != expected:
-        issues.append(f"{key}: expected {expected!r}, got {actual!r}")
+def expect_anchor(issues: list[str], anchors: set[str], key: str, anchor: str) -> None:
+    if anchor not in anchors:
+        issues.append(f"{key}: missing helper anchor {anchor!r}")
 
 
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
-    manifest = read_json(root, MANIFEST)
-    if not isinstance(manifest, dict):
-        return [f"{MANIFEST.as_posix()}: expected object root"]
-    cases = read_json(root, CASES)
-    if not isinstance(cases, list):
-        return [f"{CASES.as_posix()}: expected array root"]
-
-    typed_cases: list[dict[str, object]] = []
-    for index, case in enumerate(cases):
-        if not isinstance(case, dict):
-            issues.append(f"{CASES.as_posix()}[{index}]: expected object case")
-            continue
-        typed_cases.append(case)
-
     source = read_text(root, CONF_BRIDGE)
-    helper_anchors = collect_helper_anchors(source)
+    anchors = collect_test_anchors(source)
+    enum_modes = collect_mode_enum(source)
+    conf_cases = collect_conf_cases(root)
 
-    expect_equal(issues, "tool", manifest.get("tool"), "scripts/zigux/kconfig/conf_bridge.zig")
-    expect_equal(issues, "fixture_case_source", manifest.get("fixture_case_source"), CASES.as_posix())
-    expect_equal(issues, "case_count", manifest.get("case_count"), len(typed_cases))
-    expect_equal(issues, "cases", manifest.get("cases"), expected_case_modes(typed_cases))
-    expect_equal(issues, "stdout_packet", manifest.get("stdout_packet"), expected_stdout_packet(typed_cases))
-    expect_equal(issues, "mode_arg_cases", manifest.get("mode_arg_cases"), list(expected_mode_arg_cases(typed_cases)))
-    expect_equal(issues, "silent_request_packet", manifest.get("silent_request_packet"), list(SILENT_REQUEST_CASES))
-    expect_equal(issues, "syncconfig_env_packet", manifest.get("syncconfig_env_packet"), list(SYNCCONFIG_ENV_CASES))
-    expect_equal(
-        issues,
-        "allconfig_sentinel_packet",
-        manifest.get("allconfig_sentinel_packet"),
-        expected_allconfig_sentinel_packet(typed_cases),
-    )
-    expect_equal(
-        issues,
-        "allconfig_override_packet",
-        manifest.get("allconfig_override_packet"),
-        expected_allconfig_override_packet(typed_cases),
-    )
-    expect_equal(issues, "helper_local_anchors", manifest.get("helper_local_anchors"), helper_anchors)
+    case_modes: list[str] = []
+    silent_case_count = 0
+    mode_arg_case_count = 0
+    randconfig_override_case_count = 0
+    randconfig_plain_case_count = 0
+    allconfig_sentinel_case_count = 0
+    allconfig_override_case_count = 0
+    syncconfig_nosilent_case_count = 0
+
+    for index, case in enumerate(conf_cases):
+        mode = case.get("mode")
+        expected = case.get("expected")
+        if not isinstance(mode, str):
+            issues.append(f"conf_cases[{index}]: missing string mode")
+            continue
+        if not isinstance(expected, str):
+            issues.append(f"conf_cases[{index}]: missing string expected")
+            continue
+
+        case_modes.append(mode)
+        if case.get("silent") is True:
+            silent_case_count += 1
+        if "mode_arg" in case:
+            mode_arg_case_count += 1
+        if mode == "syncconfig" and "nosilentupdate" in case:
+            syncconfig_nosilent_case_count += 1
+        if mode == "randconfig" and "allconfig" in case:
+            randconfig_override_case_count += 1
+        if mode == "randconfig" and "allconfig" not in case:
+            randconfig_plain_case_count += 1
+        if mode in {"allnoconfig", "allyesconfig", "allmodconfig", "alldefconfig"} and "allconfig" not in case:
+            allconfig_sentinel_case_count += 1
+        if mode in {"allnoconfig", "allyesconfig", "allmodconfig", "alldefconfig"} and "allconfig" in case:
+            allconfig_override_case_count += 1
+
+    if case_modes != enum_modes:
+        issues.append(f"conf case modes drift from Mode enum: expected {enum_modes!r}, got {case_modes!r}")
+
+    expect_anchor(issues, anchors, "mode surface", GENERAL_ANCHORS["mode surface"])
+
+    if silent_case_count > 0:
+        expect_anchor(issues, anchors, "silent packet", GENERAL_ANCHORS["silent argv"])
+    if mode_arg_case_count > 0:
+        expect_anchor(issues, anchors, "mode arg rejection packet", GENERAL_ANCHORS["mode arg rejects option"])
+        expect_anchor(issues, anchors, "defconfig mode arg anchor", MODE_SPECIFIC_ANCHORS["defconfig"])
+        expect_anchor(issues, anchors, "savedefconfig mode arg anchor", MODE_SPECIFIC_ANCHORS["savedefconfig"])
+    if syncconfig_nosilent_case_count > 0:
+        expect_anchor(issues, anchors, "syncconfig nosilent packet", GENERAL_ANCHORS["syncconfig nosilentupdate"])
+    if randconfig_override_case_count > 0:
+        expect_anchor(issues, anchors, "randconfig allconfig override packet", MODE_SPECIFIC_ANCHORS["randconfig override"])
+    if randconfig_plain_case_count > 0:
+        expect_anchor(issues, anchors, "randconfig no-sentinel packet", MODE_SPECIFIC_ANCHORS["randconfig sentinel omission"])
+    if allconfig_sentinel_case_count > 0:
+        expect_anchor(issues, anchors, "allconfig sentinel packet", MODE_SPECIFIC_ANCHORS["allconfig sentinel"])
+    if allconfig_override_case_count > 0:
+        expect_anchor(issues, anchors, "allconfig explicit override packet", MODE_SPECIFIC_ANCHORS["allconfig explicit override"])
+
+    expect_anchor(issues, anchors, "unexpected-option packet", GENERAL_ANCHORS["unexpected option rejection"])
     return issues
 
 
@@ -146,116 +171,149 @@ def write_text(path: Path, content: str) -> None:
 def build_self_test_root(root: Path) -> None:
     write_text(
         root / CONF_BRIDGE,
-        "\n".join(
-            (
-                'test "conf bridge emits syncconfig auto files" {',
-                "}",
-                'test "conf bridge emits explicit empty allconfig override for allmodconfig" {',
-                "}",
-                'test "mode argument validation rejects bridge option shaped defconfig payload" {',
-                "}",
-                'test "bridge options parser accepts syncconfig nosilentupdate" {',
-                "}",
-                'test "bridge options parser rejects unexpected options for mode" {',
-                "}",
-                'test "helper outside scope is ignored" {',
-                "}",
-            )
+        """const std = @import("std");
+
+pub const Mode = enum {
+    oldaskconfig,
+    syncconfig,
+    oldconfig,
+    allnoconfig,
+    allyesconfig,
+    allmodconfig,
+    alldefconfig,
+    randconfig,
+    defconfig,
+    savedefconfig,
+    listnewconfig,
+    helpnewconfig,
+    olddefconfig,
+    yes2modconfig,
+    mod2yesconfig,
+    mod2noconfig,
+};
+
+test "conf bridge mode surface stays aligned with conf.c long options" {
+}
+test "conf bridge emits silent flag before mode flag" {
+}
+test "mode argument validation rejects bridge option shaped defconfig payload" {
+}
+test "bridge options parser accepts syncconfig nosilentupdate" {
+}
+test "bridge options parser rejects unexpected options for mode" {
+}
+test "conf bridge emits defconfig mode argument before kconfig" {
+}
+test "conf bridge emits savedefconfig mode argument before kconfig" {
+}
+test "conf bridge emits explicit randconfig allconfig override when present" {
+}
+test "conf bridge omits randconfig allconfig sentinel without explicit override" {
+}
+test "conf bridge emits alldefconfig argv and env" {
+}
+test "conf bridge emits explicit empty allconfig override for allmodconfig" {
+}
+""",
+    )
+    write_text(
+        root / CASES,
+        json.dumps(
+            {
+                "conf_cases": [
+                    {"mode": "oldaskconfig", "expected": "oldaskconfig_expected.json"},
+                    {"mode": "syncconfig", "nosilentupdate": "1", "expected": "syncconfig_expected.json"},
+                    {"mode": "oldconfig", "expected": "oldconfig_expected.json"},
+                    {"mode": "allnoconfig", "expected": "allnoconfig_expected.json"},
+                    {"mode": "allyesconfig", "expected": "allyesconfig_expected.json"},
+                    {"mode": "allmodconfig", "allconfig": "", "expected": "allmodconfig_expected.json"},
+                    {"mode": "alldefconfig", "expected": "alldefconfig_expected.json"},
+                    {
+                        "mode": "randconfig",
+                        "allconfig": "allrandom.config",
+                        "expected": "randconfig_expected.json",
+                    },
+                    {"mode": "defconfig", "mode_arg": "mini_defconfig", "expected": "defconfig_expected.json"},
+                    {"mode": "savedefconfig", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
+                    {"mode": "listnewconfig", "silent": true, "expected": "listnewconfig_expected.json"},
+                    {"mode": "helpnewconfig", "silent": true, "expected": "helpnewconfig_expected.json"},
+                    {"mode": "olddefconfig", "expected": "olddefconfig_expected.json"},
+                    {"mode": "yes2modconfig", "expected": "yes2modconfig_expected.json"},
+                    {"mode": "mod2yesconfig", "expected": "mod2yesconfig_expected.json"},
+                    {"mode": "mod2noconfig", "expected": "mod2noconfig_expected.json"},
+                ]
+            },
+            indent=2,
         )
         + "\n",
     )
-    cases = [
-        {
-            "mode": "syncconfig",
-            "expected": "syncconfig_expected.json",
-        },
-        {
-            "mode": "allmodconfig",
-            "expected": "allmodconfig_expected.json",
-        },
-        {
-            "mode": "randconfig",
-            "expected": "randconfig_expected.json",
-            "allconfig": "allrandom.config",
-        },
-        {
-            "mode": "defconfig",
-            "expected": "defconfig_expected.json",
-            "mode_arg": "arch/x86/configs/tiny_defconfig",
-        },
-    ]
-    write_text(root / CASES, json.dumps(cases, indent=2) + "\n")
-    manifest = {
-        "tool": "scripts/zigux/kconfig/conf_bridge.zig",
-        "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
-        "case_count": 4,
-        "cases": ["syncconfig", "allmodconfig", "randconfig", "defconfig"],
-        "stdout_packet": [
-            "syncconfig_expected.json",
-            "allmodconfig_expected.json",
-            "randconfig_expected.json",
-            "defconfig_expected.json",
-        ],
-        "mode_arg_cases": ["defconfig"],
-        "silent_request_packet": ["helpnewconfig_expected.json"],
-        "syncconfig_env_packet": ["syncconfig_expected.json"],
-        "allconfig_sentinel_packet": ["allmodconfig_expected.json"],
-        "allconfig_override_packet": ["randconfig_expected.json"],
-        "helper_local_anchors": [
-            "conf bridge emits syncconfig auto files",
-            "conf bridge emits explicit empty allconfig override for allmodconfig",
-            "mode argument validation rejects bridge option shaped defconfig payload",
-            "bridge options parser accepts syncconfig nosilentupdate",
-            "bridge options parser rejects unexpected options for mode",
-        ],
-    }
-    write_text(root / MANIFEST, json.dumps(manifest, indent=2) + "\n")
 
 
 def run_self_test() -> int:
-    cases = 0
-    with tempfile.TemporaryDirectory(prefix="phase2-conf-helper-alignment-") as tmp_dir:
+    checks_run = 0
+    with tempfile.TemporaryDirectory(prefix="phase2_conf_helper_anchor_") as tmp_dir:
         root = Path(tmp_dir)
+
         build_self_test_root(root)
         assert collect_issues(root) == []
-        cases += 1
+        checks_run += 1
 
         build_self_test_root(root)
-        manifest = read_json(root, MANIFEST)
-        manifest["allconfig_sentinel_packet"] = []  # type: ignore[index]
-        write_text(root / MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        source = (root / CONF_BRIDGE).read_text(encoding="utf-8")
+        source = source.replace(
+            'test "conf bridge emits explicit randconfig allconfig override when present" {\n}\n',
+            "",
+            1,
+        )
+        (root / CONF_BRIDGE).writeText = None
+        (root / CONF_BRIDGE).write_text(source, encoding="utf-8")
         issues = collect_issues(root)
-        assert any(issue.startswith("allconfig_sentinel_packet:") for issue in issues)
-        cases += 1
+        assert any(issue.startswith("randconfig allconfig override packet:") for issue in issues)
+        checks_run += 1
 
         build_self_test_root(root)
-        manifest = read_json(root, MANIFEST)
-        manifest["helper_local_anchors"] = manifest["helper_local_anchors"][:-1]  # type: ignore[index]
-        write_text(root / MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        source = (root / CONF_BRIDGE).read_text(encoding="utf-8")
+        source = source.replace(
+            'test "conf bridge emits defconfig mode argument before kconfig" {\n}\n',
+            "",
+            1,
+        )
+        (root / CONF_BRIDGE).write_text(source, encoding="utf-8")
         issues = collect_issues(root)
-        assert any(issue.startswith("helper_local_anchors:") for issue in issues)
-        cases += 1
+        assert any(issue.startswith("defconfig mode arg anchor:") for issue in issues)
+        checks_run += 1
 
         build_self_test_root(root)
-        manifest = read_json(root, MANIFEST)
-        manifest["case_count"] = 3  # type: ignore[index]
-        write_text(root / MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        source = (root / CONF_BRIDGE).read_text(encoding="utf-8")
+        source = source.replace(
+            'test "conf bridge emits silent flag before mode flag" {\n}\n',
+            "",
+            1,
+        )
+        (root / CONF_BRIDGE).write_text(source, encoding="utf-8")
         issues = collect_issues(root)
-        assert any(issue.startswith("case_count:") for issue in issues)
-        cases += 1
+        assert any(issue.startswith("silent packet:") for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        cases = json.loads((root / CASES).read_text(encoding="utf-8"))
+        cases["conf_cases"] = list(reversed(cases["conf_cases"]))
+        (root / CASES).write_text(json.dumps(cases, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert any(issue.startswith("conf case modes drift from Mode enum:") for issue in issues)
+        checks_run += 1
 
     print("PHASE2_CONF_HELPER_ALIGNMENT_SELF_TEST=pass")
-    print(f"PHASE2_CONF_HELPER_ALIGNMENT_SELF_TEST_CASE_COUNT={cases}")
+    print(f"PHASE2_CONF_HELPER_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
 
 
 def main() -> int:
     args = parse_args()
-    root = args.root.resolve()
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(root)
+    issues = collect_issues(args.root.resolve())
     if issues:
         print("PHASE2_CONF_HELPER_ALIGNMENT=fail")
         for issue in issues:
