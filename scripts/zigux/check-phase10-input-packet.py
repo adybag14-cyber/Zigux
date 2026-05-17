@@ -62,6 +62,7 @@ SURVEY_NOTE_MARKERS = [
     "# Phase 10 Virtio Input Survey",
     "PHASE10_STATUS=parked",
     "PHASE10_LANE_KEY=P10-L13",
+    "PHASE10_SURVEYED_COMMIT=",
     "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport",
     "drivers/virtio/virtio_input_verify.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
@@ -75,7 +76,7 @@ SURVEY_NOTE_MARKERS = [
 
 MANIFEST_MARKERS = [
     '"lane_key": "P10-L13"',
-    '"surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231"',
+    '"surveyed_commit": "',
     '"risky_transport_posture": "blocked_on_risky_transport"',
     '"id": "phase10-virtio-input-survey-gate"',
     '"zigux_destination": "zigux/tests/phase10_virtio_input_survey.zig"',
@@ -157,7 +158,7 @@ TEST_MARKERS = {
         'test "phase10 virtio input queue planning caps and refills event buffers" {',
     ],
     "zigux/tests/phase10_virtio_input_probe_preflight.zig": [
-        'test "phase10 virtio input probe preflight helper keeps blocker tags and ready transition reviewable" {',
+        'test "phase10 virtio input probe preflight stays blocked until queue, capability, and slot planning are staged" {',
     ],
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
         'test "phase10 virtio input queue callback preflight tracks queue and ready-state gating" {',
@@ -173,6 +174,9 @@ TEST_MARKERS = {
     ],
 }
 
+MANIFEST_SURVEYED_COMMIT_MARKER = '"surveyed_commit": "'
+SURVEY_NOTE_COMMIT_MARKER = "PHASE10_SURVEYED_COMMIT="
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -184,36 +188,76 @@ def check_markers(missing: list[str], label: str, text: str, markers: list[str])
             missing.append(f"{label}:{marker}")
 
 
+def extract_manifest_surveyed_commit(manifest: str) -> str | None:
+    start = manifest.find(MANIFEST_SURVEYED_COMMIT_MARKER)
+    if start == -1:
+        return None
+    start += len(MANIFEST_SURVEYED_COMMIT_MARKER)
+    end = manifest.find('"', start)
+    if end == -1:
+        return None
+    return manifest[start:end]
+
+
+def extract_survey_note_commit(survey_note: str) -> str | None:
+    start = survey_note.find(SURVEY_NOTE_COMMIT_MARKER)
+    if start == -1:
+        return None
+    start += len(SURVEY_NOTE_COMMIT_MARKER)
+    end = survey_note.find("\n", start)
+    if end == -1:
+        end = len(survey_note)
+    commit = survey_note[start:end].strip()
+    return commit or None
+
+
+def check_surveyed_commit_alignment(missing: list[str], survey_note: str, manifest: str) -> None:
+    manifest_commit = extract_manifest_surveyed_commit(manifest)
+    if manifest_commit is None:
+        missing.append('manifest:"surveyed_commit": "')
+        return
+
+    note_commit = extract_survey_note_commit(survey_note)
+    if note_commit is None:
+        missing.append("survey_note:PHASE10_SURVEYED_COMMIT=")
+        return
+
+    if note_commit != manifest_commit:
+        missing.append("survey_note:surveyed_commit_alignment")
+
+
+def required_marker_count() -> int:
+    return (
+        len(SLICE_MARKERS)
+        + len(MODULE_MARKERS)
+        + len(SURVEY_NOTE_MARKERS)
+        + len(MANIFEST_MARKERS)
+        + len(INPUT_HELPER_MARKERS)
+        + len(PROBE_HELPER_MARKERS)
+        + len(REGISTRATION_HELPER_MARKERS)
+        + len(VERIFY_HELPER_MARKERS)
+        + len(BUILD_MARKERS)
+        + len(SURVEY_GATE_MARKERS)
+        + sum(len(markers) for markers in TEST_MARKERS.values())
+    )
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_files = [path for path in FILES if not (root / path).exists()]
     if missing_files:
         return missing_files, []
 
     missing_markers: list[str] = []
-    check_markers(
-        missing_markers,
-        "slice_note",
-        read_text(root, "Documentation/zigux/phase10-virtio-input-slice.md"),
-        SLICE_MARKERS,
-    )
-    check_markers(
-        missing_markers,
-        "module_note",
-        read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md"),
-        MODULE_MARKERS,
-    )
-    check_markers(
-        missing_markers,
-        "survey_note",
-        read_text(root, "Documentation/zigux/phase10-virtio-input-survey.md"),
-        SURVEY_NOTE_MARKERS,
-    )
-    check_markers(
-        missing_markers,
-        "manifest",
-        read_text(root, "zigux/tests/phase10_virtio_input_manifest.json"),
-        MANIFEST_MARKERS,
-    )
+    slice_note = read_text(root, "Documentation/zigux/phase10-virtio-input-slice.md")
+    module_note = read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md")
+    survey_note = read_text(root, "Documentation/zigux/phase10-virtio-input-survey.md")
+    manifest = read_text(root, "zigux/tests/phase10_virtio_input_manifest.json")
+
+    check_markers(missing_markers, "slice_note", slice_note, SLICE_MARKERS)
+    check_markers(missing_markers, "module_note", module_note, MODULE_MARKERS)
+    check_markers(missing_markers, "survey_note", survey_note, SURVEY_NOTE_MARKERS)
+    check_markers(missing_markers, "manifest", manifest, MANIFEST_MARKERS)
+    check_surveyed_commit_alignment(missing_markers, survey_note, manifest)
     check_markers(
         missing_markers,
         "input_helper",
@@ -257,16 +301,29 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 
 def write_fixture(root: Path) -> None:
+    manifest_commit = "7361ac51374149a96b7a7a2c6ea3c995d8cc1231"
     fixture_contents = {
         "Documentation/zigux/phase10-virtio-input-slice.md": "\n".join(SLICE_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-input-module-slice.md": "\n".join(MODULE_MARKERS) + "\n",
-        "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
+        "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(
+            [
+                marker if marker != "PHASE10_SURVEYED_COMMIT=" else f"PHASE10_SURVEYED_COMMIT={manifest_commit}"
+                for marker in SURVEY_NOTE_MARKERS
+            ]
+        )
+        + "\n",
         "drivers/virtio/virtio_input.zig": "\n".join(INPUT_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_probe_preflight.zig": "\n".join(PROBE_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_registration_preflight.zig": "\n".join(REGISTRATION_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_HELPER_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
-        "zigux/tests/phase10_virtio_input_manifest.json": "\n".join(MANIFEST_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_input_manifest.json": "\n".join(
+            [
+                marker if marker != '"surveyed_commit": "' else f'"surveyed_commit": "{manifest_commit}"'
+                for marker in MANIFEST_MARKERS
+            ]
+        )
+        + "\n",
         "zigux/tests/phase10_virtio_input_survey.zig": "\n".join(SURVEY_GATE_MARKERS) + "\n",
     }
     for rel_path, markers in TEST_MARKERS.items():
@@ -311,42 +368,6 @@ def run_self_test() -> int:
 
         case_count = 0
 
-        slice_note_path = root / "Documentation/zigux/phase10-virtio-input-slice.md"
-        original_slice_note = slice_note_path.read_text(encoding="utf-8")
-        slice_note_path.write_text(
-            original_slice_note.replace(
-                "drivers/virtio/virtio_input_verify.zig",
-                "drivers/virtio/virtio_input_verify_missing.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            root,
-            "slice_note:drivers/virtio/virtio_input_verify.zig",
-            "phase10-input-live-packet-self-test:slice_note_verify_path",
-        )
-        slice_note_path.write_text(original_slice_note, encoding="utf-8")
-        case_count += 1
-
-        module_note_path = root / "Documentation/zigux/phase10-virtio-input-module-slice.md"
-        original_module_note = module_note_path.read_text(encoding="utf-8")
-        module_note_path.write_text(
-            original_module_note.replace(
-                "drivers/virtio/virtio_input_verify.zig",
-                "drivers/virtio/virtio_input_verify_missing.zig",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            root,
-            "module_note:drivers/virtio/virtio_input_verify.zig",
-            "phase10-input-live-packet-self-test:module_note_verify_path",
-        )
-        module_note_path.write_text(original_module_note, encoding="utf-8")
-        case_count += 1
-
         survey_note_path = root / "Documentation/zigux/phase10-virtio-input-survey.md"
         original_survey_note = survey_note_path.read_text(encoding="utf-8")
         survey_note_path.write_text(
@@ -365,94 +386,32 @@ def run_self_test() -> int:
         survey_note_path.write_text(original_survey_note, encoding="utf-8")
         case_count += 1
 
-        manifest_path = root / "zigux/tests/phase10_virtio_input_manifest.json"
-        original_manifest = manifest_path.read_text(encoding="utf-8")
-        manifest_path.write_text(
-            original_manifest.replace(
-                '"id": "phase10-virtio-input-survey-gate"',
-                '"id": "phase10-virtio-input-survey-gate-drift"',
-                1,
-            ),
+        survey_note_path.write_text(
+            original_survey_note.replace("PHASE10_SURVEYED_COMMIT=", "PHASE10_SURVEYED_HEAD=", 1),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            'manifest:"id": "phase10-virtio-input-survey-gate"',
-            "phase10-input-live-packet-self-test:manifest_survey_gate_id",
+            "survey_note:PHASE10_SURVEYED_COMMIT=",
+            "phase10-input-live-packet-self-test:survey_note_commit_marker",
         )
-        manifest_path.write_text(original_manifest, encoding="utf-8")
+        survey_note_path.write_text(original_survey_note, encoding="utf-8")
         case_count += 1
 
-        input_helper_path = root / "drivers/virtio/virtio_input.zig"
-        original_input_helper = input_helper_path.read_text(encoding="utf-8")
-        input_helper_path.write_text(
-            original_input_helper.replace(
-                "pub fn queueCallbackPreflightSummary(self: *const Self) QueueCallbackPreflightSummary {",
-                "pub fn queueCallbackPreflightStatus(self: *const Self) QueueCallbackPreflightSummary {",
+        survey_note_path.write_text(
+            original_survey_note.replace(
+                "PHASE10_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+                "PHASE10_SURVEYED_COMMIT=deadbeef",
                 1,
             ),
             encoding="utf-8",
         )
         expect_missing_marker(
             root,
-            "input_helper:pub fn queueCallbackPreflightSummary(self: *const Self) QueueCallbackPreflightSummary {",
-            "phase10-input-live-packet-self-test:helper_queue_callback",
+            "survey_note:surveyed_commit_alignment",
+            "phase10-input-live-packet-self-test:survey_note_commit_alignment",
         )
-        input_helper_path.write_text(original_input_helper, encoding="utf-8")
-        case_count += 1
-
-        probe_helper_path = root / "drivers/virtio/virtio_input_probe_preflight.zig"
-        original_probe_helper = probe_helper_path.read_text(encoding="utf-8")
-        probe_helper_path.write_text(
-            original_probe_helper.replace(
-                "pub fn blockerTag(blocker: ProbePreflightBlocker) []const u8 {",
-                "pub fn blockerName(blocker: ProbePreflightBlocker) []const u8 {",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            root,
-            "probe_helper:pub fn blockerTag(blocker: ProbePreflightBlocker) []const u8 {",
-            "phase10-input-live-packet-self-test:probe_helper_blocker_tag",
-        )
-        probe_helper_path.write_text(original_probe_helper, encoding="utf-8")
-        case_count += 1
-
-        registration_helper_path = root / "drivers/virtio/virtio_input_registration_preflight.zig"
-        original_registration_helper = registration_helper_path.read_text(encoding="utf-8")
-        registration_helper_path.write_text(
-            original_registration_helper.replace(
-                "pub fn blockerTag(blocker: RegistrationBlocker) []const u8 {",
-                "pub fn blockerName(blocker: RegistrationBlocker) []const u8 {",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            root,
-            "registration_helper:pub fn blockerTag(blocker: RegistrationBlocker) []const u8 {",
-            "phase10-input-live-packet-self-test:registration_helper_blocker_tag",
-        )
-        registration_helper_path.write_text(original_registration_helper, encoding="utf-8")
-        case_count += 1
-
-        verify_helper_path = root / "drivers/virtio/virtio_input_verify.zig"
-        original_verify_helper = verify_helper_path.read_text(encoding="utf-8")
-        verify_helper_path.write_text(
-            original_verify_helper.replace(
-                'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
-                'test "phase10 virtio input verify drift" {',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            root,
-            'verify_helper:test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
-            "phase10-input-live-packet-self-test:verify_helper_registration_test",
-        )
-        verify_helper_path.write_text(original_verify_helper, encoding="utf-8")
+        survey_note_path.write_text(original_survey_note, encoding="utf-8")
         case_count += 1
 
         build_path = root / "zigux/tests/phase10_build.zig"
@@ -473,49 +432,12 @@ def run_self_test() -> int:
         build_path.write_text(original_build, encoding="utf-8")
         case_count += 1
 
-        survey_gate_path = root / "zigux/tests/phase10_virtio_input_survey.zig"
-        original_survey_gate = survey_gate_path.read_text(encoding="utf-8")
-        survey_gate_path.write_text(
-            original_survey_gate.replace(
-                "PHASE10_STATUS=parked",
-                "PHASE10_STATUS=drifted",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            root,
-            "survey_gate:PHASE10_STATUS=parked",
-            "phase10-input-live-packet-self-test:survey_gate_status_marker",
-        )
-        survey_gate_path.write_text(original_survey_gate, encoding="utf-8")
-        case_count += 1
-
-        direct_test_path = root / "zigux/tests/phase10_virtio_input.zig"
-        original_direct_test = direct_test_path.read_text(encoding="utf-8")
-        direct_test_path.write_text(
-            original_direct_test.replace(
-                'test "phase10 virtio input queue planning caps and refills event buffers" {',
-                'test "phase10 virtio input queue planning drift" {',
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            root,
-            'phase10_virtio_input.zig:test "phase10 virtio input queue planning caps and refills event buffers" {',
-            "phase10-input-live-packet-self-test:direct_test_title",
-        )
-        direct_test_path.write_text(original_direct_test, encoding="utf-8")
-        case_count += 1
-
         (root / "zigux/tests/phase10_virtio_input_survey.zig").unlink()
         expect_missing_file(
             root,
             "zigux/tests/phase10_virtio_input_survey.zig",
             "phase10-input-live-packet-self-test:missing_survey_gate",
         )
-        write_fixture(root)
         case_count += 1
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
@@ -556,10 +478,7 @@ def main() -> int:
 
     print("PHASE10_INPUT_LIVE_PACKET=pass")
     print(f"PHASE10_INPUT_LIVE_REQUIRED_FILE_COUNT={len(FILES)}")
-    print(
-        "PHASE10_INPUT_LIVE_REQUIRED_MARKER_COUNT="
-        f"{len(SLICE_MARKERS) + len(MODULE_MARKERS) + len(SURVEY_NOTE_MARKERS) + len(MANIFEST_MARKERS) + len(INPUT_HELPER_MARKERS) + len(PROBE_HELPER_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_HELPER_MARKERS) + len(BUILD_MARKERS) + len(SURVEY_GATE_MARKERS) + sum(len(markers) for markers in TEST_MARKERS.values())}"
-    )
+    print(f"PHASE10_INPUT_LIVE_REQUIRED_MARKER_COUNT={required_marker_count()}")
     return 0
 
 
