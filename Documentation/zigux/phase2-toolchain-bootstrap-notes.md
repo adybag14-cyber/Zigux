@@ -2,12 +2,13 @@
 
 This note tracks the dedicated Phase 2 toolchain bootstrap companion on the active Lane 22 branch.
 
-It stays branch-scoped: live `master` still lacks parts of the broader toolchain packet, but this lane branch now carries the shared validator, the manifest-packet checker, the dedicated Zig-version guard, and Linux-style `zigux/Makefile` routes beside the surviving toolchain pinning guard, this bootstrap companion, the closure note, and the compact manifest.
+It stays branch-scoped: live `master` still lacks parts of the broader toolchain packet, but this lane branch now carries the shared validator, the manifest-packet checker, the dedicated Zig-version guard, the dedicated pin-scope helper, and Linux-style `zigux/Makefile` routes beside the surviving toolchain pinning guard, this bootstrap companion, the closure note, and the compact manifest.
 
 ## Status
 
 - `PHASE2_TOOLCHAIN_BOOTSTRAP_STATUS=lane22-branch-restacked`
 - `PHASE2_TOOLCHAIN_SURVIVING_GUARD=scripts/zigux/check-phase2-toolchain-pinning.py`
+- `PHASE2_TOOLCHAIN_PIN_SCOPE_GUARD=scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - `PHASE2_TOOLCHAIN_ZIG_VERSION_GUARD=scripts/zigux/check-zig-toolchain.py`
 - `PHASE2_TOOLCHAIN_WORKFLOW_SURFACE=.github/workflows/zigux-bootstrap.yml`
 - `PHASE2_CLOSURE_COMPANION=Documentation/zigux/phase2-closure.md`
@@ -20,6 +21,7 @@ It stays branch-scoped: live `master` still lacks parts of the broader toolchain
 
 - dedicated bootstrap companion: `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
 - surviving toolchain guard: `scripts/zigux/check-phase2-toolchain-pinning.py`
+- dedicated toolchain pin-scope guard: `scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - direct Zig-version guard: `scripts/zigux/check-zig-toolchain.py`
 - shared Phase 2 validator: `scripts/zigux/validate-phase2.py`
 - manifest-packet checker: `scripts/zigux/check-phase2-tool-manifest-packets.py`
@@ -40,15 +42,14 @@ It stays branch-scoped: live `master` still lacks parts of the broader toolchain
 
 - repeated authenticated current-branch reads still returned missing for:
   - `scripts/zigux/install-zig.py`
-  - `scripts/zigux/check-phase2-toolchain-pin-scope.py`
-- `scripts/zigux/check-phase2-toolchain-pin-scope.py` already landed on current `master`, so the remaining branch-side toolchain gap is a replay gap rather than a still-missing shared helper on the base repo
-- treat the installer-backed helper as the remaining current-master toolchain gap, and treat the dedicated pin-scope helper as the current-master-ahead branch gap, until those files are re-materialized together on this branch too
+- `scripts/zigux/check-phase2-toolchain-pin-scope.py` is now present on this lane branch as well as current `master`, so the remaining branch-side toolchain gap is the installer-backed helper rather than the direct pin-scope guard
+- treat the installer-backed helper as the remaining current-master toolchain gap until that file is re-materialized on this branch too
 
 ## Review Notes
 
-- `scripts/zigux/check-phase2-toolchain-pinning.py` remains the surviving direct toolchain guard on the branch; keep this note aligned with that checker while the dedicated pin-scope helper stays absent from the branch itself
+- `scripts/zigux/check-phase2-toolchain-pinning.py` remains the surviving direct toolchain guard on the branch; keep this note aligned with that checker while the dedicated pin-scope helper now travels with the same branch-local packet
 - `scripts/zigux/check-zig-toolchain.py` is now directly readable on current `master`; keep this note aligned with that shared Zig-version guard while `scripts/zigux/install-zig.py` remains the missing installer-backed companion
-- `scripts/zigux/check-phase2-toolchain-pin-scope.py` already landed on current `master`, so keep this note explicit that the helper is now base-repo evidence even though the Lane 22 branch still has not replayed it
-- `scripts/zigux/check-phase2-tool-manifest-packets.py` keeps the branch-local manifest packet aligned with this note, the closure note, and the shared validators without implying that the installer-backed or pin-scope helpers are already back on this branch
+- `scripts/zigux/check-phase2-toolchain-pin-scope.py` is now directly readable on the lane branch too, so keep this note explicit that the helper is part of the current branch-local toolchain evidence rather than a pending replay gap
+- `scripts/zigux/check-phase2-tool-manifest-packets.py` keeps the branch-local manifest packet aligned with this note, the closure note, and the shared validators without implying that the installer-backed helper is already back on this branch
 - `scripts/zigux/validate-phase2.py` and `zigux/Makefile` are now part of the branch-local shared toolchain packet, so this note should stop treating them as still-missing closure-side work
-- `PHASE2_TOOLCHAIN_NEXT_STEP=restore one remaining installer-backed or dedicated pin-scope helper at a time now that the shared validator, direct Zig-version guard, and Linux-style Makefile routes are back on the lane branch`
+- `PHASE2_TOOLCHAIN_NEXT_STEP=restore the remaining installer-backed helper now that the shared validator, direct Zig-version guard, dedicated pin-scope helper, and Linux-style Makefile routes are back on the lane branch`
