@@ -25,6 +25,43 @@ MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
 HEADER_TYPEDEF_ALIAS_RE = re.compile(r"^\s*}\s*([A-Za-z_][A-Za-z0-9_]*)\s*;")
 ZIG_PUB_FN_RE = re.compile(r"^\s*pub fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
+REQUIRED_PACKET_FILES = (
+    "Documentation/zigux/phase3-policy-slice.md",
+    "Documentation/zigux/phase3-validator-support-surface.md",
+    "include/zigux/abi.h",
+    "zigux/bindings/abi.zig",
+    "zigux/helpers/panic_policy.zig",
+    "zigux/helpers/allocator_policy.zig",
+    "zigux/helpers/unsafe_policy.zig",
+    "zigux/tests/phase3_policy_starter_packet.zig",
+    "zigux/tests/phase3_policy_starter_packet_build.zig",
+    "zigux/tests/phase3_policy_starter_packet_manifest.json",
+    "scripts/zigux/check-phase3-policy-starter-packet.py",
+)
+
+REQUIRED_REPLAY_ROUTES = (
+    "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
+    "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+    "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
+)
+
+REQUIRED_REPO_REALITY_GAPS = (
+    "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
+    "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/validate-phase3.py",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+)
+
+EXPECTED_MANIFEST_FIELDS = {
+    "phase": "Phase 3",
+    "lane": "abi-runtime",
+    "slug": "phase3-policy-starter-packet",
+    "status": "policy_slice_present",
+    "scope": "panic, allocator, and unsafe interop policy decoding replay",
+    "next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families",
+}
+
 REQUIRED_MARKERS = {
     POLICY_NOTE_PATH: (
         "PHASE3_POLICY_SLICE_FILE_COUNT=",
@@ -138,6 +175,8 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
         '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
         '"next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"',
+        '"repo_reality_gaps": [',
+        '"scripts/zigux/validate-phase3.py"',
     ),
 }
 
@@ -193,10 +232,10 @@ pub fn defaultHeader(flags: u16) BoundaryHeader {
 """
 SAMPLE_FILES[MANIFEST_PATH] = """{
   "phase": "Phase 3",
-  "lane": "helper-interop",
+  "lane": "abi-runtime",
   "slug": "phase3-policy-starter-packet",
   "status": "policy_slice_present",
-  "scope": "helper-local panic, allocator, and unsafe interop policy replay",
+  "scope": "panic, allocator, and unsafe interop policy decoding replay",
   "packet_files": [
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
@@ -214,6 +253,13 @@ SAMPLE_FILES[MANIFEST_PATH] = """{
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"
+  ],
+  "repo_reality_gaps": [
+    "zigux/tests/phase3_abi.zig",
+    "zigux/tests/phase3_abi_dump.zig",
+    "scripts/zigux/check-phase3-abi.py",
+    "scripts/zigux/validate-phase3.py",
+    "zigux/tests/phase3_export_uapi_layout.zig"
   ],
   "next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
@@ -252,6 +298,25 @@ def _append_duplicate_declaration_issues(
         )
 
 
+def _append_duplicate_list_entry_issues(
+    manifest_name: str,
+    field_name: str,
+    values: list[object],
+    issues: list[str],
+) -> None:
+    seen: dict[str, int] = {}
+    for index, value in enumerate(values):
+        key = repr(value)
+        first_index = seen.get(key)
+        if first_index is None:
+            seen[key] = index
+            continue
+        issues.append(
+            f"{manifest_name} duplicate {field_name} entry: "
+            f"{value!r} (first index {first_index}, duplicate index {index})"
+        )
+
+
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
     for relative_path, markers in REQUIRED_MARKERS.items():
@@ -274,41 +339,63 @@ def validate_repo(repo_root: Path) -> list[str]:
         except json.JSONDecodeError as exc:
             issues.append(f"invalid JSON in {MANIFEST_PATH.as_posix()}: {exc}")
         else:
+            for field, expected in EXPECTED_MANIFEST_FIELDS.items():
+                actual = manifest.get(field)
+                if actual != expected:
+                    issues.append(
+                        "phase3_policy_starter_packet_manifest.json wrong "
+                        f"{field}: {actual!r} != {expected!r}"
+                    )
+
             packet_files = manifest.get("packet_files")
             replay_routes = manifest.get("replay_routes")
+            repo_reality_gaps = manifest.get("repo_reality_gaps")
             if not isinstance(packet_files, list):
                 issues.append("phase3_policy_starter_packet_manifest.json packet_files is not a list")
             if not isinstance(replay_routes, list):
                 issues.append("phase3_policy_starter_packet_manifest.json replay_routes is not a list")
+            if not isinstance(repo_reality_gaps, list):
+                issues.append(
+                    "phase3_policy_starter_packet_manifest.json repo_reality_gaps is not a list"
+                )
             if isinstance(packet_files, list):
-                for required_path in (
-                    "Documentation/zigux/phase3-policy-slice.md",
-                    "Documentation/zigux/phase3-validator-support-surface.md",
-                    "include/zigux/abi.h",
-                    "zigux/bindings/abi.zig",
-                    "zigux/helpers/panic_policy.zig",
-                    "zigux/helpers/allocator_policy.zig",
-                    "zigux/helpers/unsafe_policy.zig",
-                    "zigux/tests/phase3_policy_starter_packet.zig",
-                    "zigux/tests/phase3_policy_starter_packet_build.zig",
-                    "zigux/tests/phase3_policy_starter_packet_manifest.json",
-                    "scripts/zigux/check-phase3-policy-starter-packet.py",
-                ):
+                _append_duplicate_list_entry_issues(
+                    "phase3_policy_starter_packet_manifest.json",
+                    "packet_files",
+                    packet_files,
+                    issues,
+                )
+                for required_path in REQUIRED_PACKET_FILES:
                     if required_path not in packet_files:
                         issues.append(
                             "phase3_policy_starter_packet_manifest.json missing packet_files entry: "
                             f"{required_path}"
                         )
             if isinstance(replay_routes, list):
-                for route in (
-                    "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
-                    "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
-                    "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
-                ):
+                _append_duplicate_list_entry_issues(
+                    "phase3_policy_starter_packet_manifest.json",
+                    "replay_routes",
+                    replay_routes,
+                    issues,
+                )
+                for route in REQUIRED_REPLAY_ROUTES:
                     if route not in replay_routes:
                         issues.append(
                             "phase3_policy_starter_packet_manifest.json missing replay route: "
                             f"{route}"
+                        )
+            if isinstance(repo_reality_gaps, list):
+                _append_duplicate_list_entry_issues(
+                    "phase3_policy_starter_packet_manifest.json",
+                    "repo_reality_gaps",
+                    repo_reality_gaps,
+                    issues,
+                )
+                for gap in REQUIRED_REPO_REALITY_GAPS:
+                    if gap not in repo_reality_gaps:
+                        issues.append(
+                            "phase3_policy_starter_packet_manifest.json missing repo_reality_gaps entry: "
+                            f"{gap}"
                         )
     return issues
 
@@ -342,6 +429,7 @@ def run_self_test() -> int:
 
         _populate_repo(root)
         header_path = root / ABI_HEADER_PATH
+        header_path.writeText = None
         header_path.write_text(
             _read(header_path)
             + "\ntypedef struct zigux_alias_probe {\n"
@@ -372,8 +460,38 @@ def run_self_test() -> int:
             print(f"expected duplicate pub-fn guard was not reported: {expected_duplicate_pub_fn}")
             return 1
 
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(_read(manifest_path))
+        manifest["replay_routes"].append(REQUIRED_REPLAY_ROUTES[0])
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_duplicate_replay = (
+            "phase3_policy_starter_packet_manifest.json duplicate replay_routes entry: "
+            "'python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test' "
+        )
+        if not any(issue.startswith(expected_duplicate_replay) for issue in issues):
+            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
+            print(f"expected duplicate replay-route guard was not reported: {expected_duplicate_replay}")
+            return 1
+
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"].remove(REQUIRED_REPO_REALITY_GAPS[3])
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_missing_gap = (
+            "phase3_policy_starter_packet_manifest.json missing repo_reality_gaps entry: "
+            "scripts/zigux/validate-phase3.py"
+        )
+        if expected_missing_gap not in issues:
+            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
+            print(f"expected repo-reality-gap guard was not reported: {expected_missing_gap}")
+            return 1
+
     print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 2}")
+    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 4}")
     return 0
 
 
