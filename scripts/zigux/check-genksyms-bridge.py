@@ -484,7 +484,7 @@ def run_self_test() -> int:
             "\n".join(EXPECTED_TOOL_TESTS + [""]),
             encoding="utf-8",
         )
-        (root / GENKSYMS_HARNESS_REL).writeText(
+        (root / GENKSYMS_HARNESS_REL).write_text(
             "\n".join(EXPECTED_HARNESS_MARKERS + [""]),
             encoding="utf-8",
         )
