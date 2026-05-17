@@ -121,6 +121,25 @@ def run_self_test() -> int:
                 assert_missing_case(case_root, rel_path, marker)
                 cases += 1
 
+        missing_tests_readme_root = Path(tmp) / f"case_{cases}"
+        shutil.copytree(baseline_root, missing_tests_readme_root)
+        (missing_tests_readme_root / TESTS_README_PATH).unlink()
+        missing_tests_readme_result = run_validator(missing_tests_readme_root)
+        expected_missing_tests_readme = f"missing-file:{TESTS_README_PATH}"
+        missing_tests_readme_output = (
+            missing_tests_readme_result.stdout.strip()
+            or missing_tests_readme_result.stderr.strip()
+            or "no_output"
+        )
+        if missing_tests_readme_result.returncode == 0:
+            raise SystemExit(f"self-test-unexpected-pass:{expected_missing_tests_readme}")
+        if expected_missing_tests_readme not in missing_tests_readme_output:
+            raise SystemExit(
+                "self-test-mismatch:"
+                f"{expected_missing_tests_readme}:{missing_tests_readme_output}"
+            )
+        cases += 1
+
         missing_file_root = Path(tmp) / f"case_{cases}"
         shutil.copytree(baseline_root, missing_file_root)
         (missing_file_root / SCRIPT_PATH).unlink()
