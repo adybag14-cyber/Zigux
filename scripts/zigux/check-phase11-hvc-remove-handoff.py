@@ -50,32 +50,44 @@ def validate_repo_root(repo_root: Path) -> list[str]:
     return missing
 
 
+def expect_case(root: Path, expected_fragment: str) -> bool:
+    missing = validate_repo_root(root)
+    return bool(missing) and any(expected_fragment in item for item in missing)
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
         verify_path = root / VERIFY_FILE
         verify_path.parent.mkdir(parents=True, exist_ok=True)
-        verify_path.write_text("\n".join(ORDERED_MARKERS) + "\n", encoding="utf-8")
+        baseline_text = "\n".join(ORDERED_MARKERS) + "\n"
+        verify_path.write_text(baseline_text, encoding="utf-8")
 
         if validate_repo_root(root):
             print("PHASE11_HVC_REMOVE_HANDOFF_SELF_TEST=fail")
             return 1
 
-        verify_path.write_text(
-            verify_path.read_text(encoding="utf-8").replace(
-                "try std.testing.expect(!tty_gone_remove.host_io_pending);",
-                "",
-            ),
-            encoding="utf-8",
-        )
+        for marker in ORDERED_MARKERS:
+            verify_path.write_text(
+                baseline_text.replace(marker, "", 1),
+                encoding="utf-8",
+            )
+            if not expect_case(root, marker):
+                print("PHASE11_HVC_REMOVE_HANDOFF_SELF_TEST=fail")
+                return 1
 
-        missing = validate_repo_root(root)
-        if not missing or not any("host_io_pending" in item for item in missing):
+        swapped_markers = ORDERED_MARKERS.copy()
+        swapped_markers[0], swapped_markers[1] = swapped_markers[1], swapped_markers[0]
+        verify_path.write_text("\n".join(swapped_markers) + "\n", encoding="utf-8")
+        if not expect_case(root, f"{VERIFY_FILE}:out_of_order:"):
             print("PHASE11_HVC_REMOVE_HANDOFF_SELF_TEST=fail")
             return 1
 
     print("PHASE11_HVC_REMOVE_HANDOFF_SELF_TEST=pass")
-    print(f"PHASE11_HVC_REMOVE_HANDOFF_SELF_TEST_CASE_COUNT={len(ORDERED_MARKERS) + 1}")
+    print(
+        "PHASE11_HVC_REMOVE_HANDOFF_SELF_TEST_CASE_COUNT="
+        f"{len(ORDERED_MARKERS) + 2}"
+    )
     return 0
 
 
