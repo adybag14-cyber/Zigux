@@ -325,6 +325,49 @@ fn expectedDecodeValueForTest(ch: u8, variant: Variant) ?u8 {
     };
 }
 
+fn expectShortTailRoundTripCase(payload: []const u8, padding: bool, variant: Variant) !void {
+    var encoded_buf: [5]u8 = [_]u8{0xaa} ** 5;
+    const encoded_len = try encode(encoded_buf[0..], payload, padding, variant);
+    try std.testing.expectEqual(chars(payload.len, padding), encoded_len);
+
+    if (payload.len == 1) {
+        try std.testing.expectEqual(@as(usize, if (padding) 4 else 2), encoded_len);
+        if (padding) {
+            try std.testing.expectEqual(@as(u8, '='), encoded_buf[2]);
+            try std.testing.expectEqual(@as(u8, '='), encoded_buf[3]);
+        }
+    } else {
+        try std.testing.expectEqual(@as(usize, if (padding) 4 else 3), encoded_len);
+        if (padding) {
+            try std.testing.expectEqual(@as(u8, '='), encoded_buf[3]);
+        }
+    }
+    try std.testing.expectEqual(@as(u8, 0xaa), encoded_buf[encoded_len]);
+
+    const encoded = encoded_buf[0..encoded_len];
+    try std.testing.expectEqual(payload.len, try bytes(encoded, padding, variant));
+
+    var decoded_buf: [3]u8 = [_]u8{0xbb} ** 3;
+    const decoded_len = try decode(decoded_buf[0..], encoded, padding, variant);
+    try std.testing.expectEqual(payload.len, decoded_len);
+    try std.testing.expectEqualSlices(u8, payload, decoded_buf[0..decoded_len]);
+    try std.testing.expectEqual(@as(u8, 0xbb), decoded_buf[decoded_len]);
+}
+
+fn expectShortTailRoundTripSweep(variant: Variant, padding: bool) !void {
+    for (0..256) |first_raw| {
+        const first: u8 = @intCast(first_raw);
+        const one = [_]u8{first};
+        try expectShortTailRoundTripCase(one[0..], padding, variant);
+
+        for (0..256) |second_raw| {
+            const second: u8 = @intCast(second_raw);
+            const two = [_]u8{ first, second };
+            try expectShortTailRoundTripCase(two[0..], padding, variant);
+        }
+    }
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -464,6 +507,14 @@ test "decode and bytes cover one-byte and two-byte variant tails" {
     try std.testing.expectEqualSlices(u8, &urlsafe_two, out[0..2]);
     try std.testing.expectEqual(@as(usize, 2), try decode(out[0..], ",,A=", true, .imap));
     try std.testing.expectEqualSlices(u8, &urlsafe_two, out[0..2]);
+}
+
+test "encode and decode sweep every one-byte and two-byte tail across variants and padding modes" {
+    inline for ([_]Variant{ .std, .urlsafe, .imap }) |variant| {
+        inline for ([_]bool{ false, true }) |padding| {
+            try expectShortTailRoundTripSweep(variant, padding);
+        }
+    }
 }
 
 test "decode accepts exact-fit buffers and rejects one-byte-short buffers" {
