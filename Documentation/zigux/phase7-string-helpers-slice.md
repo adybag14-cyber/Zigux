@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=P7-L04`
 - lane-key note: `P7-L04` remains the packet-local helper marker for the expanded string-helpers starter packet; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with the separate Phase 7 shared-control lanes
 - scope: keep the Phase 7 string-helpers lane limited to the expanded starter packet and the no-sample review boundary
-- lane state: current `master` now carries both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`, while the dedicated survey, dedicated no-string-sample boundary replay, dedicated manifest packet, shared build-wiring checker, shared validator, make-wrapper alignment note, shared build route, and Linux-style `make -C zigux phase7` replay keep that expanded starter packet reviewable without claiming the broader parked family is fully landed
+- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
 
 ## Why This Slice Exists
 
@@ -21,30 +21,27 @@ This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Curr
 
 ## Gates
 
-1. keep the expanded starter tests explicit
-- `zig build test --build-file zigux/tests/phase7_build.zig --summary all`
+1. keep the expanded starter helper pair explicit
+- `lib/string_helpers.zig`
 - `zigux/tests/phase7_string_helpers.zig`
 
-2. keep the shared validator-first packet explicit
-- `python3 scripts/zigux/validate-phase7.py`
-- `python3 scripts/zigux/check-phase7-make-wrapper.py`
-- `python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
-- `python3 scripts/zigux/check-phase7-build-wiring.py`
-- `make -C zigux phase7-validate`
-
-3. keep the helper wired through the shared Phase 7 convenience route
-- `make -C zigux phase7`
-
-4. keep the dedicated survey gate reviewable
+2. keep the helper-local survey packet explicit
 - `zigux/tests/phase7_string_helpers_survey.zig`
+- `zigux/tests/phase7_string_helpers_manifest.json`
 
-5. keep the dedicated no-string-sample boundary guard reviewable
+3. keep the dedicated no-string-sample boundary guard reviewable
 - `samples/zigux/README.md`
 - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
-- `make -C zigux phase7-string-helpers-sample-boundary`
 
-6. keep the dedicated manifest packet explicit
-- `zigux/tests/phase7_string_helpers_manifest.json`
+4. keep shared-control drift out of this helper-local slice unless it rematerializes on current `master`
+- do not count `scripts/zigux/validate-phase7.py`
+- do not count `scripts/zigux/check-phase7-make-wrapper.py`
+- do not count `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`
+- do not count `scripts/zigux/check-phase7-build-wiring.py`
+- do not count `zigux/tests/phase7_build.zig`
+- do not count `make -C zigux phase7-validate`
+- do not count `make -C zigux phase7`
+unless a fresh same-family reread proves those broader shared-control reminders are directly readable again on current `master`.
 
 ## Current Parity Surface
 
@@ -85,7 +82,7 @@ The current starter replay keeps these proofs explicit:
 - quoted-log-safe duplication that hex-escapes special logging hazards and double quotes while still stopping at the exported C-string prefix
 - bounded memcpy-and-pad behavior that truncates long copies, pads short ones, and stays inside the provided source slice
 - in-place replacement behavior that stops at the first NUL
-- the dedicated survey gate, manifest packet, no-sample boundary replay, shared validator route, shared build route, and Linux-style `make -C zigux phase7` replay
+- the dedicated survey gate, helper-local manifest packet, and no-sample boundary replay
 
 The current starter replay also keeps these ownership-focused boundaries explicit:
 
@@ -103,10 +100,11 @@ The current starter replay also keeps these ownership-focused boundaries explici
 This expanded starter slice does not yet claim:
 
 - the older parked missing-helper gap
+- the broader shared-control packet that earlier runs described through validator, Makefile, workflow, or shared-build-route reminders
 - the broader full-family packet that still leaves `parse_int_array()`, `kstrdup_quotable_cmdline()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()` outside the current `master` helper packet
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next Bounded Step
 
-The next bounded follow-through should keep the quotable helper packet truthful across the survey, manifest, boundary replay, and slice note.
-Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes before deciding whether `kstrdup_quotable_cmdline()` can join the same helper-local packet.
+The next bounded follow-through should keep the quotable helper packet truthful across the helper-local survey, manifest, boundary replay, and slice note.
+Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes only after a fresh same-family reread proves those broader reminders are directly readable again on current `master` before deciding whether `kstrdup_quotable_cmdline()` can join the same helper-local packet.
