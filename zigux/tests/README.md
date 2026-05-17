@@ -105,7 +105,7 @@ Phase 3 review packet
   * `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
   * keep the current shared Phase 3 reminder anchored to the bounded `dev_t` starter packet, the helper-local `err_ptr` / `xarray` slice, and the focused policy slice already described in `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, and `Documentation/zigux/phase3-policy-slice.md`, instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence
   * treat broader routes such as `Documentation/zigux/phase3-abi-header-family-survey.md`, `Documentation/zigux/phase3-abi-h-boundary-next-step.md`, `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `scripts/zigux/validate-phase3.py`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `scripts/zigux/phase3_catalog.py` as repo-reality gaps until fresh current-tree proof lands
-  * keep the remaining broader shared-summary follow-up in `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` separate, because those two shared reminder surfaces still need the same three-slice narrowing pass after this tests-root packet is truthful again
+  * keep `Documentation/zigux/phase3-shared-reminder-gap.md` limited to tracking any future shared-surface drift or separate scripts-root inventory follow-through, because `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` already carry the bounded three-slice posture and this tests-root packet should stay aligned with them
 
 Phase 7 review packet
   * current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`
@@ -168,7 +168,6 @@ Phase 12 review packet
   * `Documentation/zigux/phase12-virtio-net-survey.md`
   * `Documentation/zigux/phase12-libbpf-segment-survey.md`
   * `zigux/tests/fixtures/phase12_libbpf_snapshot.json`
-  * `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`
   * `scripts/zigux/check-phase12-release-readiness-packet.py`
   * while the direct `virtio_net` starter packet now stays explicit through `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig`
   * `drivers/net/virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_queue_resume.zig`, and `zigux/tests/phase12_virtio_net_queue_resume.zig` keep the bounded `virtio_net` transmit-disposition and queue-resume follow-up replays explicit inside the shared Phase 12 smoke-and-test packet without promoting them into live DMA or queue-restart parity
