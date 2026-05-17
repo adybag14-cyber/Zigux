@@ -49,7 +49,7 @@ test "phase3 abi keeps version and dev_t starter helpers aligned" {
     try testing.expectEqual(@as(u32, version.abi_major), current.abi_major);
     try testing.expectEqual(@as(u32, version.abi_minor), current.abi_minor);
     try testing.expectEqual(@as(u32, version.header_family_revision), current.header_family_revision);
-    try testing.expectEqual(version.current(), current);
+    try testing.expect(version.eql(version.current(), current));
 
     try testing.expectEqual(@as(usize, 8), @sizeOf(export_shim.DevTFields));
     try testing.expectEqual(@as(usize, 4), @alignOf(export_shim.DevTFields));
