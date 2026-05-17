@@ -62,6 +62,26 @@ test "cpumask view helpers keep cpu windows reviewable" {
     try std.testing.expectEqual(@as(u32, 3), summary.weight);
 }
 
+test "cpumask helpers track cross-word cpu windows without leaking tail bits" {
+    var backing = [_]Word{
+        (@as(Word, 1) << 5) | (@as(Word, 1) << 63),
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 6) | (@as(Word, 1) << 10),
+    };
+    const view = viewFromWords(backing[0..], bitmap.bits_per_word + 11);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(cpuIsSet(view, 5));
+    try std.testing.expect(cpuIsSet(view, bitmap.bits_per_word + 10));
+    try std.testing.expect(!cpuIsSet(view, bitmap.bits_per_word + 11));
+    try std.testing.expectEqual(@as(u32, 5), firstCpu(view));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(view));
+    try std.testing.expectEqual(@as(u32, 5), weight(view));
+    try std.testing.expectEqual(@as(u32, 5), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 5), summary.weight);
+}
+
 test "cpumask validity requires nr_cpu_ids to match the bounded bit count" {
     const invalid = binding.initCpumaskView(0, 4, 0, 3);
 
