@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 VERSION_RE = re.compile(r"^(?P<major>\d+)\.(?P<minor>\d+)\.(?P<patch>\d+)(?:-dev\.(?P<dev>\d+)(?:\+[0-9A-Za-z.-]+)?)?$")
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 FALLBACK_MIN_VERSION = "0.16.0"
@@ -38,6 +39,93 @@ def parse_zig_version(raw: str) -> ZigVersion:
     )
 
 
+def require_non_empty_string(value: object, field_name: str, policy_path: Path) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"invalid {field_name} in {policy_path}")
+    return value.strip()
+
+
+def require_string_list(value: object, field_name: str, policy_path: Path) -> list[str]:
+    if not isinstance(value, list) or not value:
+        raise ValueError(f"invalid {field_name} in {policy_path}")
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for entry in value:
+        normalized_entry = require_non_empty_string(entry, field_name, policy_path)
+        if normalized_entry not in seen:
+            normalized.append(normalized_entry)
+            seen.add(normalized_entry)
+    if not normalized:
+        raise ValueError(f"invalid {field_name} in {policy_path}")
+    return normalized
+
+
+def validate_policy_payload(payload: dict[str, object], policy_path: Path) -> dict[str, object]:
+    phase = require_non_empty_string(payload.get("phase"), "phase", policy_path)
+    channel = require_non_empty_string(payload.get("channel"), "channel", policy_path)
+    minimum_version = require_non_empty_string(payload.get("minimum_version"), "minimum_version", policy_path)
+    parse_zig_version(channel)
+    parse_zig_version(minimum_version)
+
+    archive_sha256 = payload.get("archive_sha256")
+    if not isinstance(archive_sha256, dict) or not archive_sha256:
+        raise ValueError(f"invalid archive_sha256 in {policy_path}")
+    normalized_archives: dict[str, str] = {}
+    for target, digest in archive_sha256.items():
+        normalized_target = require_non_empty_string(target, "archive_sha256 target", policy_path)
+        normalized_digest = require_non_empty_string(digest, f"archive_sha256[{normalized_target}]", policy_path)
+        if SHA256_RE.fullmatch(normalized_digest) is None:
+            raise ValueError(f"invalid archive_sha256[{normalized_target}] in {policy_path}")
+        normalized_archives[normalized_target] = normalized_digest
+
+    upgrade_policy = payload.get("upgrade_policy")
+    if not isinstance(upgrade_policy, dict):
+        raise ValueError(f"invalid upgrade_policy in {policy_path}")
+    lockstep = upgrade_policy.get("channel_minimum_lockstep")
+    if not isinstance(lockstep, bool):
+        raise ValueError(f"invalid channel_minimum_lockstep in {policy_path}")
+    archive_target_scope = require_string_list(
+        upgrade_policy.get("archive_target_scope"),
+        "archive_target_scope",
+        policy_path,
+    )
+    required_make_routes = require_string_list(
+        upgrade_policy.get("required_make_routes"),
+        "required_make_routes",
+        policy_path,
+    )
+
+    missing_archive_targets = [target for target in archive_target_scope if target not in normalized_archives]
+    if missing_archive_targets:
+        raise ValueError(
+            f"archive_target_scope references missing archive_sha256 entries in {policy_path}: "
+            + ", ".join(missing_archive_targets)
+        )
+
+    extra_archive_targets = [target for target in normalized_archives if target not in archive_target_scope]
+    if extra_archive_targets:
+        raise ValueError(
+            f"archive_sha256 contains targets outside archive_target_scope in {policy_path}: "
+            + ", ".join(extra_archive_targets)
+        )
+
+    if lockstep and minimum_version != channel:
+        raise ValueError(f"minimum_version must match channel when channel_minimum_lockstep is true in {policy_path}")
+
+    return {
+        "phase": phase,
+        "channel": channel,
+        "minimum_version": minimum_version,
+        "archive_sha256": normalized_archives,
+        "upgrade_policy": {
+            "channel_minimum_lockstep": lockstep,
+            "archive_target_scope": archive_target_scope,
+            "required_make_routes": required_make_routes,
+        },
+    }
+
+
 def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | None:
     if not policy_path.exists():
         return None
@@ -47,27 +135,21 @@ def load_policy(policy_path: Path = TOOLCHAIN_POLICY) -> dict[str, object] | Non
         raise ValueError(f"invalid toolchain policy JSON in {policy_path}: {exc.msg}") from exc
     if not isinstance(payload, dict):
         raise ValueError(f"invalid toolchain policy payload in {policy_path}: expected object")
-    return payload
+    return validate_policy_payload(payload, policy_path)
 
 
 def load_min_version(policy_path: Path = TOOLCHAIN_POLICY, fallback: str = FALLBACK_MIN_VERSION) -> str:
     payload = load_policy(policy_path)
     if payload is None:
         return fallback
-    min_version = payload.get("minimum_version")
-    if not isinstance(min_version, str) or not min_version.strip():
-        raise ValueError(f"invalid minimum_version in {policy_path}")
-    return min_version.strip()
+    return str(payload["minimum_version"])
 
 
 def load_pinned_channel(policy_path: Path = TOOLCHAIN_POLICY) -> str | None:
     payload = load_policy(policy_path)
     if payload is None:
         return None
-    channel = payload.get("channel")
-    if not isinstance(channel, str) or not channel.strip():
-        raise ValueError(f"invalid channel in {policy_path}")
-    return channel.strip()
+    return str(payload["channel"])
 
 
 def iter_repo_local_zig_candidates(
@@ -146,6 +228,35 @@ def evaluate_toolchain_version(
     return "present", None
 
 
+def emit_policy_summary(policy_path: Path = TOOLCHAIN_POLICY) -> None:
+    payload = load_policy(policy_path)
+    if payload is None:
+        print("ZIG_TOOLCHAIN_POLICY_STATUS=missing")
+        print(f"ZIG_TOOLCHAIN_POLICY_PATH={policy_path}")
+        return
+
+    archive_sha256 = payload["archive_sha256"]
+    upgrade_policy = payload["upgrade_policy"]
+    print("ZIG_TOOLCHAIN_POLICY_STATUS=present")
+    print(f"ZIG_TOOLCHAIN_POLICY_PATH={policy_path}")
+    print(f"ZIG_TOOLCHAIN_PHASE={payload['phase']}")
+    print(f"ZIG_TOOLCHAIN_PINNED_CHANNEL={payload['channel']}")
+    print(f"ZIG_TOOLCHAIN_MIN_SUPPORTED={payload['minimum_version']}")
+    print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET_COUNT={len(archive_sha256)}")
+    print(
+        "ZIG_TOOLCHAIN_ARCHIVE_TARGETS="
+        + ",".join(str(target) for target in upgrade_policy["archive_target_scope"])
+    )
+    print(
+        "ZIG_TOOLCHAIN_REQUIRED_MAKE_ROUTES="
+        + ",".join(str(route) for route in upgrade_policy["required_make_routes"])
+    )
+    print(
+        "ZIG_TOOLCHAIN_PIN_POLICY="
+        + ("exact" if upgrade_policy["channel_minimum_lockstep"] else "minimum_only")
+    )
+
+
 def run_self_test() -> int:
     case_count = 0
 
@@ -220,7 +331,20 @@ def run_self_test() -> int:
         expect_equal(load_min_version(policy_path, "0.15.0"), "0.15.0")
         expect_equal(load_pinned_channel(policy_path), None)
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2"}\n',
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": "3" * 64},
+                    "upgrade_policy": {
+                        "channel_minimum_lockstep": True,
+                        "archive_target_scope": ["x86_64-linux"],
+                        "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    },
+                }
+            )
+            + "\n",
             encoding="utf-8",
         )
         expect_equal(load_min_version(policy_path, "0.15.0"), "0.17.0-dev.87+9b177a7d2")
@@ -242,12 +366,19 @@ def run_self_test() -> int:
             iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:2],
             [pinned_zig, toolchain_dir / "bin" / "zig"],
         )
-        policy_path.write_text('{"minimum_version":7,"channel":"0.17.0-dev.87+9b177a7d2"}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":7,"channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid minimum_version")
-        policy_path.write_text('{"minimum_version":"0.17.0-dev.87+9b177a7d2","channel":7}\n', encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":7,"archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
         expect_raises(lambda: load_pinned_channel(policy_path), "invalid channel")
-        expect_raises(lambda: resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: None), "invalid channel")
-        policy_path.write_text("{not-json}\n", encoding="utf-8")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"oops"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid archive_sha256[x86_64-linux]")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["aarch64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "archive_target_scope references missing archive_sha256 entries")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":[]}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid required_make_routes")
+        policy_path.write_text('{"phase":"Phase 2","minimum_version":"0.17.0-dev.87+9b177a7d2","channel":"0.17.0-dev.90+abcdef","archive_sha256":{"x86_64-linux":"' + ("3" * 64) + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain"]}}\n', encoding="utf-8")
+        expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "minimum_version must match channel")
+        policy_path.write_text('{not-json}\n', encoding="utf-8")
         expect_raises(lambda: load_min_version(policy_path, "0.15.0"), "invalid toolchain policy JSON")
         expect_raises(lambda: parse_zig_version("master"))
 
@@ -255,7 +386,20 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
         policy_path = root / "zig-toolchain-policy.json"
         policy_path.write_text(
-            '{"channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2"}\n',
+            json.dumps(
+                {
+                    "phase": "Phase 2",
+                    "channel": "0.17.0-dev.87+9b177a7d2",
+                    "minimum_version": "0.17.0-dev.87+9b177a7d2",
+                    "archive_sha256": {"x86_64-linux": "3" * 64},
+                    "upgrade_policy": {
+                        "channel_minimum_lockstep": True,
+                        "archive_target_scope": ["x86_64-linux"],
+                        "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    },
+                }
+            )
+            + "\n",
             encoding="utf-8",
         )
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), "/usr/bin/zig")
@@ -316,12 +460,23 @@ def main() -> int:
         help="Minimum supported Zig version string. Defaults to scripts/zigux/zig-toolchain-policy.json when available.",
     )
     parser.add_argument("--allow-missing", action="store_true", help="Return success when zig is unavailable.")
+    parser.add_argument("--policy-only", action="store_true", help="Validate and summarize the pinned Zig policy without probing a zig executable.")
     parser.add_argument("--zig", help="Explicit zig executable path.")
     parser.add_argument("--self-test", action="store_true", help="Run built-in parser and ordering checks.")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
+
+    if args.policy_only:
+        try:
+            emit_policy_summary()
+        except ValueError as exc:
+            print("ZIG_TOOLCHAIN_POLICY_STATUS=invalid")
+            print(f"ZIG_TOOLCHAIN_POLICY_PATH={TOOLCHAIN_POLICY}")
+            print(f"ZIG_TOOLCHAIN_NOTE={exc}")
+            return 1
+        return 0
 
     zig: str | None = None
     min_version_raw: str | None = args.min_version
