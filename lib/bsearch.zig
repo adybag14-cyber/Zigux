@@ -266,6 +266,12 @@ fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
     return compareInt(item, key);
 }
 
+fn compareCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return @as(CComparatorResult, compareInt(typed_key, typed_item));
+}
+
 fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
     const typed_key: *const i32 = @ptrCast(@alignCast(key));
     const typed_item: *const i32 = @ptrCast(@alignCast(item));
@@ -276,6 +282,25 @@ fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const i32 = @ptrCast(@alignCast(key));
     const typed_item: *const i32 = @ptrCast(@alignCast(item));
     return compareInt(typed_key, typed_item);
+}
+
+fn expectRawCAbiRange(items: []const i32, key: i32, expected: IndexRange, compare: CRawComparator) !void {
+    const base: [*]const u8 = @ptrCast(items.ptr);
+    const lower = bsearchLowerBoundIndex(&key, base, items.len, @sizeOf(i32), compare);
+    const upper = bsearchUpperBoundIndex(&key, base, items.len, @sizeOf(i32), compare);
+    const range = bsearchEqualRangeIndex(&key, base, items.len, @sizeOf(i32), compare);
+    const bytes = bsearchEqualRange(&key, base, items.len, @sizeOf(i32), compare);
+
+    try std.testing.expectEqual(expected.lower, lower);
+    try std.testing.expectEqual(expected.upper, upper);
+    try std.testing.expectEqual(expected, range);
+    try std.testing.expectEqual(expected.len() * @sizeOf(i32), bytes.len);
+
+    if (!expected.isEmpty()) {
+        const typed_bytes: [*]const i32 = @ptrCast(@alignCast(bytes.ptr));
+        try std.testing.expectEqual(key, typed_bytes[0]);
+        try std.testing.expectEqual(key, typed_bytes[expected.len() - 1]);
+    }
 }
 
 test "typed and raw searches support duplicate spans and descending C ABI pointers" {
@@ -294,6 +319,16 @@ test "typed and raw searches support duplicate spans and descending C ABI pointe
     const found = bsearch(&key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
     const typed_found: *const i32 = @ptrCast(@alignCast(found));
     try std.testing.expectEqual(@as(i32, 4), typed_found.*);
+}
+
+test "raw c abi bounds keep duplicate spans and insertion points aligned" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+
+    try expectRawCAbiRange(ascending[0..], 4, .{ .lower = 1, .upper = 4 }, compareCOpaqueInt);
+    try expectRawCAbiRange(ascending[0..], 3, .{ .lower = 1, .upper = 1 }, compareCOpaqueInt);
+    try expectRawCAbiRange(descending[0..], 4, .{ .lower = 2, .upper = 5 }, compareCOpaqueDescendingInt);
+    try expectRawCAbiRange(descending[0..], 5, .{ .lower = 2, .upper = 2 }, compareCOpaqueDescendingInt);
 }
 
 test "mutable wrappers keep write-through aliases" {
