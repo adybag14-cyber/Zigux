@@ -140,12 +140,14 @@ BUILD_MARKERS = [
     "phase10_virtio_input_registration_preflight_module",
     "phase10_virtio_input_status_drain_module",
     "phase10_virtio_input_teardown_observation_module",
+    "phase10_virtio_input_survey_module",
     '"phase10-virtio-input-tests"',
     '"phase10-virtio-input-probe-preflight-tests"',
     '"phase10-virtio-input-queue-callback-preflight-tests"',
     '"phase10-virtio-input-registration-preflight-tests"',
     '"phase10-virtio-input-status-drain-tests"',
     '"phase10-virtio-input-teardown-observation-tests"',
+    '"phase10-virtio-input-survey-tests"',
     '"phase10-virtio-input-verify-tests"',
 ]
 
@@ -446,6 +448,22 @@ def run_self_test() -> int:
             root,
             'phase10_build:"phase10-virtio-input-verify-tests"',
             "phase10-input-live-packet-self-test:build_verify_test",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+        case_count += 1
+
+        build_path.write_text(
+            original_build.replace(
+                '"phase10-virtio-input-survey-tests"',
+                '"phase10-virtio-input-survey-drift"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            'phase10_build:"phase10-virtio-input-survey-tests"',
+            "phase10-input-live-packet-self-test:build_survey_test",
         )
         build_path.write_text(original_build, encoding="utf-8")
         case_count += 1
