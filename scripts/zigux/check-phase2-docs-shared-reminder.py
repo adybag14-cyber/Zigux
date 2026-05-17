@@ -23,6 +23,7 @@ DOCS_README_MARKERS = (
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
@@ -34,8 +35,11 @@ DOCS_README_MARKERS = (
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "historical packet members until same-lane work rematerializes them on `master`",
+)
+
+FORBIDDEN_DOCS_README_MARKERS = (
+    "`zigux/tests/fixtures/phase2_cross_targets.json`, and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "without reviving missing closure, cross-target, artifact-tools, installer, or make-wrapper proof text",
 )
 
@@ -54,6 +58,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
@@ -65,7 +70,6 @@ REVIEW_CHECKLIST_MARKERS = (
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
@@ -76,6 +80,11 @@ REVIEW_CHECKLIST_MARKERS = (
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2`",
     "historical packet members rather than shipped current-`master` evidence",
+)
+
+FORBIDDEN_REVIEW_CHECKLIST_MARKERS = (
+    "`zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `python3 scripts/zigux/install-zig.py --self-test`",
 )
 
 
@@ -97,20 +106,40 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
+    docs_text = read_text(resolve_path(root, DOCS_README))
+    review_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
     issues.extend(
         collect_missing_markers(
-            read_text(resolve_path(root, DOCS_README)),
+            docs_text,
             DOCS_README_MARKERS,
             "MISSING_DOCS_README_MARKERS",
         )
     )
     issues.extend(
+        collect_forbidden_markers(
+            docs_text,
+            FORBIDDEN_DOCS_README_MARKERS,
+            "FORBIDDEN_DOCS_README_MARKERS",
+        )
+    )
+    issues.extend(
         collect_missing_markers(
-            read_text(resolve_path(root, REVIEW_CHECKLIST)),
+            review_text,
             REVIEW_CHECKLIST_MARKERS,
             "MISSING_REVIEW_CHECKLIST_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            review_text,
+            FORBIDDEN_REVIEW_CHECKLIST_MARKERS,
+            "FORBIDDEN_REVIEW_CHECKLIST_MARKERS",
         )
     )
     return issues
@@ -147,7 +176,14 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 1 + len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + 2
+    expected_case_count = (
+        1
+        + len(DOCS_README_MARKERS)
+        + len(FORBIDDEN_DOCS_README_MARKERS)
+        + len(REVIEW_CHECKLIST_MARKERS)
+        + len(FORBIDDEN_REVIEW_CHECKLIST_MARKERS)
+        + 2
+    )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_docs_shared_reminder_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -162,12 +198,28 @@ def run_self_test() -> int:
             assert (("MISSING_DOCS_README_MARKERS", marker) in issues)
             checks_run += 1
 
+        for marker in FORBIDDEN_DOCS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, DOCS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert (("FORBIDDEN_DOCS_README_MARKERS", marker) in issues)
+            checks_run += 1
+
         for marker in REVIEW_CHECKLIST_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, REVIEW_CHECKLIST)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert (("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in issues)
+            checks_run += 1
+
+        for marker in FORBIDDEN_REVIEW_CHECKLIST_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert (("FORBIDDEN_REVIEW_CHECKLIST_MARKERS", marker) in issues)
             checks_run += 1
 
         for rel_path in (DOCS_README, REVIEW_CHECKLIST):
@@ -205,7 +257,7 @@ def main() -> int:
     print("PHASE2_DOCS_SHARED_REMINDER=pass")
     print(
         "PHASE2_DOCS_SHARED_REMINDER_MARKER_COUNT="
-        f"{len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS)}"
+        f"{len(DOCS_README_MARKERS) + len(FORBIDDEN_DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(FORBIDDEN_REVIEW_CHECKLIST_MARKERS)}"
     )
     return 0
 
