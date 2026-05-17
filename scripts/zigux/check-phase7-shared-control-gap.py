@@ -63,12 +63,10 @@ def require_absent(repo_root: Path, relpaths: list[str]) -> None:
         )
 
 
-
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / README_PATH, README_REQUIRED_SNIPPETS)
     require_present(repo_root / SURVIVING_GUARD_PATH)
     require_absent(repo_root, MISSING_SHARED_CONTROL_PATHS)
-
 
 
 def write(path: Path, content: str) -> None:
@@ -76,11 +74,9 @@ def write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-
 def scaffold_repo(root: Path) -> None:
     write(root / README_PATH, "\n".join(README_REQUIRED_SNIPPETS) + "\n")
     write(root / SURVIVING_GUARD_PATH, "# parked phase7 build-wiring guard\n")
-
 
 
 def expect_failure(root: Path, path: Path, snippet: str) -> None:
@@ -99,7 +95,6 @@ def expect_failure(root: Path, path: Path, snippet: str) -> None:
         write(path, original)
 
 
-
 def expect_unexpected_presence(root: Path, relpath: str) -> None:
     write(root / relpath, "# unexpected rematerialized file\n")
     try:
@@ -113,7 +108,6 @@ def expect_unexpected_presence(root: Path, relpath: str) -> None:
         raise AssertionError("expected validation failure")
     finally:
         (root / relpath).unlink()
-
 
 
 def run_self_test() -> None:
@@ -156,7 +150,6 @@ def run_self_test() -> None:
     print(f"PHASE7_SHARED_CONTROL_GAP_SELF_TEST_CASE_COUNT={cases_run}")
 
 
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -173,10 +166,9 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-
 def main() -> int:
     args = parse_args()
-    if args.self-test:
+    if args.self_test:
         run_self_test()
         return 0
 
