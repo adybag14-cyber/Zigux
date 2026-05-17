@@ -43,7 +43,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "`stringEscapeMemAnyNp()`, `stringEscapeStr()`, and `stringEscapeStrAnyNp()` keep any-NP and first-NUL-bounded string-wrapper escaping inside caller-owned storage");
     try expectContains(slice_note, "`kstrdupAndReplace()` returns caller-owned duplicated storage, applies replacements only inside the duplicated exported prefix, and leaves the source slice unchanged");
     try expectContains(slice_note, "`kstrdupQuotable()` returns caller-owned duplicated storage, hex-escapes special logging hazards, and still stops at the exported C-string prefix");
-    try expectContains(slice_note, "The next bounded follow-through should keep the quotable helper packet truthful across the survey, manifest, boundary replay, and slice note.");
+    try expectContains(slice_note, "The next bounded follow-through should leave the current quotable helper packet parked unless a fresh reread finds helper-local drift across the survey, manifest, boundary replay, and slice note.");
     try expectContains(slice_note, "`kstrdup_quotable_cmdline()` can join the same helper-local packet");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
@@ -86,7 +86,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
     try expectContains(manifest, "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix");
     try expectContains(manifest, "in-place replacement inside the exported C-string prefix");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the quotable helper packet truthful across the slice note, helper-local manifest, dedicated survey, and dedicated no-string-sample boundary replay, then decide whether `kstrdup_quotable_cmdline()` can join the same helper-local packet without widening into shared-control or file-path semantics.\"");
+    try expectContains(manifest, "\"next_bounded_step\": \"Leave the current quotable helper packet parked unless a fresh reread finds helper-local drift across the slice note, helper-local manifest, dedicated survey, or dedicated no-string-sample boundary replay; if that packet stays aligned, the next same-lane reopen can decide whether `kstrdup_quotable_cmdline()` belongs in the same helper-local packet without widening into shared-control or file-path semantics.\"");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 
