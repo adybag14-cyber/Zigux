@@ -24,6 +24,7 @@ LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing
 TESTS_README_PATH = "zigux/tests/README.md"
 
 PHASE9_SHARED_PACKET_MARKER = "if the change touches the shared Phase 9 runtime-loader packet"
+TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
 PHASE2_CONFDATA_BRIDGE_MARKER = "`scripts/zigux/kconfig/confdata_bridge.zig`"
 PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
@@ -57,6 +58,7 @@ DOCS_README_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references 
 
 CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
+    TRACE_EVENTS_PACKET_CHECKER_MARKER,
     REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER,
     REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER,
     REVIEW_CHECKLIST_LIFECYCLE_MARKER,
@@ -75,6 +77,7 @@ CHECKLIST_REQUIRED_MARKERS = [
 ]
 
 LANE_SEQUENCING_REQUIRED_MARKERS = [
+    TRACE_EVENTS_PACKET_CHECKER_MARKER,
     LANE_SEQUENCING_SAMPLE_MARKER,
     LANE_SEQUENCING_SELFTEST_MARKER,
     LANE_SEQUENCING_BACKLOG_MARKER,
@@ -88,6 +91,7 @@ TESTS_README_REQUIRED_MARKERS = [
 
 DOCS_README_REQUIRED_MARKERS = [
     DOCS_README_PHASE9_NOTES_MARKER,
+    TRACE_EVENTS_PACKET_CHECKER_MARKER,
     DOCS_README_TRACE_EVENTS_SAMPLE_MARKER,
     DOCS_README_SELFTEST_HOOK_MARKER,
     DOCS_README_LIFECYCLE_MARKER,
@@ -149,7 +153,7 @@ def validate(root: Path) -> list[str]:
 def build_docs_readme_fixture_text() -> str:
     return f"""# Zigux Documentation
 
-{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while current `master` {DOCS_README_BACKLOG_MARKER}.
+{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` - {TRACE_EVENTS_PACKET_CHECKER_MARKER} - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while current `master` {DOCS_README_BACKLOG_MARKER}.
 - the same shared Phase 9 summary should keep the older non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {DOCS_README_PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {DOCS_README_PHASE3_BOUNDARY_MARKER}.
 """
 
@@ -158,7 +162,7 @@ def build_fixture_text() -> str:
     return f"""# Zigux Review Checklist
 
 - {PHASE9_SHARED_PACKET_MARKER}
-- the shared Phase 9 reminder should keep the surviving runtime packet explicit through {REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER}, {REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER}, and {REVIEW_CHECKLIST_LIFECYCLE_MARKER}
+- the shared Phase 9 reminder should keep the surviving runtime packet explicit through {TRACE_EVENTS_PACKET_CHECKER_MARKER}, {REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER}, {REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER}, and {REVIEW_CHECKLIST_LIFECYCLE_MARKER}
 - the same reminder should keep the backlog posture explicit: current `master` {REVIEW_CHECKLIST_BACKLOG_MARKER}, so {REVIEW_CHECKLIST_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {REVIEW_CHECKLIST_RUNTIME_LOADER_MARKER}, {REVIEW_CHECKLIST_RUNTIME_LOADER_CONTRACT_MARKER}, `zigux/Makefile`, {REVIEW_CHECKLIST_WORKFLOW_MARKER}, and the older {REVIEW_CHECKLIST_RUNTIME_LOADER_SCAFFOLD_MARKER} stay absent backlog references unless a fresh repo reread proves they have returned
 - the shared Phase 9 reminder should also keep the older cross-phase non-owner boundaries explicit:
   {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while
@@ -169,7 +173,7 @@ def build_fixture_text() -> str:
 def build_lane_sequencing_fixture_text() -> str:
     return f"""# Phase 9 Runtime Pilot Lane Sequencing
 
-- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, and `zigux/tests/README.md`
+- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, and `zigux/tests/README.md`
 - surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`
 - surviving runtime-module evidence inside that sample: {LANE_SEQUENCING_SELFTEST_MARKER}
 
