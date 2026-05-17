@@ -61,7 +61,7 @@ REQUIRED_MANIFEST_SNIPPETS = [
     '"make -C zigux phase6-hexdump-perf"',
 ]
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 26
 
 
 class ValidationError(RuntimeError):
@@ -205,6 +205,10 @@ def run_self_test() -> None:
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
                 '"scripts/zigux/check-phase6-shared-surface.py"',
+            ),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-present-entrypoints.py"',
             ),
             (root / HELPER_EVIDENCE_MANIFEST_PATH, '"key": "base64"'),
             (root / HELPER_EVIDENCE_MANIFEST_PATH, '"key": "hexdump"'),
