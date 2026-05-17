@@ -30,6 +30,7 @@
       ],
       "checker_surfaces": [
         "zigux/tests/phase6_base64_c_parity.zig",
+        "zigux/tests/phase6_base64_c_casegen.zig",
         "zigux/tests/fixtures/phase6_base64_c_harness.c",
         "scripts/zigux/check-phase6-base64-c-parity.py"
       ],
