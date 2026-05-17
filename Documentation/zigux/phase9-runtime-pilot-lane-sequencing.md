@@ -25,7 +25,7 @@ That roadmap boundary still matters, but repo reality matters more than stale re
 
 Current `master` keeps a narrow Phase 9 runtime-pilot packet.
 
-- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, and `zigux/tests/README.md`
+- surviving review surfaces: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and `zigux/tests/README.md`
 - surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`
 - surviving runtime-module evidence inside that sample: `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking
 
@@ -35,9 +35,9 @@ Current `master` does not currently expose the broader shared runtime-loader pac
 
 The newest obvious Phase 9 docs-root drift has already been retired.
 
-- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `zigux/tests/README.md`, and the surviving `samples/zigux/runtime_trace_events.zig` packet already center the narrow trace-events selftest-hook evidence rather than the removed shared runtime-loader family
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `zigux/tests/README.md`, and the surviving `samples/zigux/runtime_trace_events.zig` packet already center the narrow trace-events selftest-hook evidence rather than the removed shared runtime-loader family
 - `Documentation/zigux/README.md` has now been tightened so the docs-root Phase 9 summary matches that narrow trace-events packet instead of presenting the removed shared runtime-loader inventory as shipped current-`master` evidence
-- the next honest shared Phase 9 move is to reread the remaining companion reminder surfaces one at a time and only trim another file if it still overclaims removed loader files
+- the next honest shared Phase 9 move is to reread the remaining companion reminder surfaces one at a time and only trim another file if it still overclaims removed loader files or omits the shipped trace-events packet guard
 
 ## Governance rule for this lane
 
@@ -46,6 +46,7 @@ This lane may:
 - refresh `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` when current repo reality changes
 - tighten one stale reminder surface at a time when it overclaims removed runtime-loader, build, kernel, or sample owners
 - keep the surviving trace-events runtime sample explicit as real Phase 9 selftest-hook and lifecycle evidence
+- keep the shipped `scripts/zigux/check-phase9-trace-events-runtime-packet.py` guard explicit as part of the narrow current review packet
 - keep the roadmap target explicit without pretending the broader shared runtime-loader family is still shipped
 
 This lane should not reopen:
@@ -57,14 +58,15 @@ This lane should not reopen:
 ## Shared reminder packet rules
 
 1. Keep the roadmap-versus-repo relationship explicit: Phase 9 still targets runtime modules, selftest hooks, and lifecycle parity, but current `master` now shows only a narrow surviving trace-events packet rather than the older shared runtime-loader family.
-2. Do not describe `zigux/tests/phase9_build.zig`, shared `zigux/tests/runtime_*` replays, shared runtime-loader kernel files, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds as shipped evidence unless a fresh repo reread proves they have returned.
-3. Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work.
-4. Refresh one shared reminder surface at a time when the tree changes again.
-5. If the broader shared runtime-loader packet returns later, reread the exact file family before widening this note back out.
+2. Keep the shipped `scripts/zigux/check-phase9-trace-events-runtime-packet.py` guard visible whenever this note names the surviving direct runtime sample packet.
+3. Do not describe `zigux/tests/phase9_build.zig`, shared `zigux/tests/runtime_*` replays, shared runtime-loader kernel files, `zigux/Makefile`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds as shipped evidence unless a fresh repo reread proves they have returned.
+4. Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work.
+5. Refresh one shared reminder surface at a time when the tree changes again.
+6. If the broader shared runtime-loader packet returns later, reread the exact file family before widening this note back out.
 
 ## Recommended next-step order
 
-1. Re-read any remaining Phase 9 companion reminder surfaces against `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `zigux/tests/README.md`, and `samples/zigux/runtime_trace_events.zig`, then trim a file only if it still overclaims removed loader surfaces.
+1. Re-read any remaining Phase 9 companion reminder surfaces against `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `zigux/tests/README.md`, and `samples/zigux/runtime_trace_events.zig`, then trim a file only if it still overclaims removed loader surfaces or omits the shipped trace-events packet guard.
 2. If no stale reminder remains, decide whether the next bounded step is another reminder repair elsewhere or a new direct runtime sample or tests slice.
 3. If the broader shared runtime-loader packet returns later, widen this note only after an exact file reread proves it.
 
