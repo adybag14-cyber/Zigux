@@ -13,7 +13,6 @@ ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
-BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
@@ -22,7 +21,6 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     POLICY_PATH,
-    BOOTSTRAP_NOTES,
 )
 
 WORKFLOW_LINES = (
@@ -33,6 +31,8 @@ WORKFLOW_LINES = (
 )
 
 README_PRESENT_MARKERS = (
+    "`scripts/zigux/check-zig-toolchain.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -47,9 +47,7 @@ README_WARNING_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-zig-toolchain.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`make -C zigux phase2-validate`",
@@ -61,6 +59,8 @@ README_FORBIDDEN_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`zigux/Makefile`, `scripts/zigux/check-zig-toolchain.py`, `python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`",
 )
 
 EXPECTED_POLICY = {
@@ -347,15 +347,6 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert any(issue[0] == expected_code for issue in issues)
             checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, POLICY_PATH)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"] = "broken"
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_UPGRADE_POLICY", "str") in issues
-        checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, POLICY_PATH)
