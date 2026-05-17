@@ -19,7 +19,7 @@ MATERIALIZED_GOVERNANCE_PATHS = (
     "zigux/tests/phase15_indefinite_c_policy.zig",
 )
 
-MISSING_FOCUSED_COMPANIONS = (
+MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
@@ -47,6 +47,7 @@ REQUIRED_NOTE_MARKERS = (
 )
 
 STALE_TEXT_MARKERS = (
+    "## Still-missing focused companions on current master",
     "The current shared-summary drift is anchored to these still-missing paths:",
     "previously treated as missing",
 )
@@ -72,11 +73,11 @@ def collect_failures(root: Path) -> list[str]:
         if f"`{rel}`" not in gap_note:
             failures.append(f"gap note missing materialized path marker: `{rel}`")
 
-    for rel in MISSING_FOCUSED_COMPANIONS:
-        if (root / rel).exists():
-            failures.append(f"expected missing focused companion unexpectedly materialized: {rel}")
+    for rel in MATERIALIZED_FOCUSED_COMPANIONS:
+        if not (root / rel).exists():
+            failures.append(f"expected materialized focused companion missing: {rel}")
         if f"`{rel}`" not in gap_note:
-            failures.append(f"gap note missing focused-companion gap marker: `{rel}`")
+            failures.append(f"gap note missing focused-companion marker: `{rel}`")
 
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in gap_note:
@@ -99,7 +100,7 @@ def _write(path: Path, text: str) -> None:
 
 def _sample_gap_note() -> str:
     materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_GOVERNANCE_PATHS)
-    missing = "\n".join(f"- `{rel}`" for rel in MISSING_FOCUSED_COMPANIONS)
+    focused = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_FOCUSED_COMPANIONS)
     required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS)
     return f"""# Phase 15 Shared Summary Gap
 
@@ -107,9 +108,9 @@ def _sample_gap_note() -> str:
 
 {materialized}
 
-## Still-missing focused companions on current master
+## Materialized focused companions on current master
 
-{missing}
+{focused}
 
 ## Current shared-summary watchpoints
 
@@ -124,7 +125,7 @@ def _sample_handoff_note() -> str:
 def _seed_repo(root: Path) -> None:
     _write(root / GAP_NOTE_PATH, _sample_gap_note())
     _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-    for rel in MATERIALIZED_GOVERNANCE_PATHS:
+    for rel in MATERIALIZED_GOVERNANCE_PATHS + MATERIALIZED_FOCUSED_COMPANIONS:
         _write(root / rel, "present\n")
 
 
@@ -143,23 +144,20 @@ def run_self_test() -> int:
         if failures != [f"expected materialized Phase 15 path missing: {MATERIALIZED_GOVERNANCE_PATHS[0]}"]:
             raise AssertionError(f"unexpected missing-path failure: {failures}")
 
-        note_root = root / "note"
-        _seed_repo(note_root)
-        _write(
-            note_root / GAP_NOTE_PATH,
-            _sample_gap_note().replace(f"- `{MATERIALIZED_GOVERNANCE_PATHS[1]}`\n", "", 1),
-        )
-        failures = collect_failures(note_root)
-        expected = [f"gap note missing materialized path marker: `{MATERIALIZED_GOVERNANCE_PATHS[1]}`"]
+        focused_root = root / "focused"
+        _seed_repo(focused_root)
+        (focused_root / MATERIALIZED_FOCUSED_COMPANIONS[0]).unlink()
+        failures = collect_failures(focused_root)
+        expected = [f"expected materialized focused companion missing: {MATERIALIZED_FOCUSED_COMPANIONS[0]}"]
         if failures != expected:
-            raise AssertionError(f"unexpected note-marker failure: {failures}")
+            raise AssertionError(f"unexpected focused-companion failure: {failures}")
 
         stale_root = root / "stale"
         _seed_repo(stale_root)
-        _write(stale_root / GAP_NOTE_PATH, _sample_gap_note() + "\nThe current shared-summary drift is anchored to these still-missing paths:\n")
+        _write(stale_root / GAP_NOTE_PATH, _sample_gap_note() + "\n## Still-missing focused companions on current master\n")
         failures = collect_failures(stale_root)
         expected = [
-            "gap note still carries stale missing-path wording: The current shared-summary drift is anchored to these still-missing paths:"
+            "gap note still carries stale missing-path wording: ## Still-missing focused companions on current master"
         ]
         if failures != expected:
             raise AssertionError(f"unexpected stale-wording failure: {failures}")
@@ -171,16 +169,6 @@ def run_self_test() -> int:
         expected = [f"handoff note missing landed status marker: {HANDOFF_STATUS_MARKER}"]
         if failures != expected:
             raise AssertionError(f"unexpected handoff failure: {failures}")
-
-        focused_root = root / "focused"
-        _seed_repo(focused_root)
-        _write(focused_root / MISSING_FOCUSED_COMPANIONS[0], "unexpected\n")
-        failures = collect_failures(focused_root)
-        expected = [
-            f"expected missing focused companion unexpectedly materialized: {MISSING_FOCUSED_COMPANIONS[0]}"
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected focused-companion failure: {failures}")
 
     print("PHASE15_SHARED_SUMMARY_GAP_SELF_TEST=pass")
     return 0
