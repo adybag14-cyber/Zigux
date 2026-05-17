@@ -30,9 +30,8 @@ Key entrypoints
   * `zigux/tests/phase5_kobject_example.zig`
   * `zigux/tests/phase5_kobject_example_manifest.json`
   * current public-tree-backed Phase 5 kobject survey companion: `zigux/tests/phase5_kobject_example_survey.zig`
-  * `Documentation/zigux/phase5-kretprobe-sample-survey.md`
-  * current repo-reality warning for the remaining kretprobe sample-local companions: authenticated contents reads on current `master` now return missing for `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`
-  * keep this tests-root reminder aligned with that survey note and the shared Phase 5 review packet instead of treating those four kretprobe sample-local paths as direct tests-root proof until a fresh reread shows they returned
+  * current repo-reality warning for the kretprobe reminder and remaining sample-local companions: authenticated contents reads on current `master` now return missing for `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`
+  * keep this tests-root reminder aligned with the shared Phase 5 review packet instead of treating those five kretprobe paths as direct tests-root proof until a fresh reread shows they returned
   * `Documentation/zigux/phase5-trace-events-sample-survey.md`
   * `samples/zigux/trace_events_sample.zig`
   * `zigux/tests/phase5_trace_events_sample.zig`
