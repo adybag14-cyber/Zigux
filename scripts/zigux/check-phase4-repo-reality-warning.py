@@ -51,6 +51,8 @@ README_PENDING_REQ = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
     "historical provenance for that missing broader packet",
+    "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
+    "historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again",
 )
 
 CHECKLIST_PENDING_REQ = (
@@ -135,7 +137,9 @@ def fixture_root(root: Path) -> None:
         "# zigux/tests\n\n"
         "  * current direct-readback Phase 4 rollback packet: `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py`\n"
         f"  * repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet: authenticated contents reads still return missing for {missing}\n"
-        "  * Phase 4 follow-through should treat the stale `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines in `Documentation/zigux/phase4-reversible-delivery-evidence.md` as historical provenance for that missing broader packet\n",
+        "  * Phase 4 follow-through should treat the stale `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines in `Documentation/zigux/phase4-reversible-delivery-evidence.md` as historical provenance for that missing broader packet\n"
+        "  * current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone\n"
+        "  * historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again\n",
     )
     write(
         root / CHECKLIST,
@@ -170,6 +174,24 @@ def self_test() -> None:
             cases += 1
         else:
             raise AssertionError("expected README marker drift to fail")
+
+        fixture_root(root)
+        write(root / README, read(root, README).replace(README_PENDING_REQ[7], "current shared ownership reminder drifted"))
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected README ownership reminder drift to fail")
+
+        fixture_root(root)
+        write(root / README, read(root, README).replace(README_PENDING_REQ[8], "historical route handoff drifted"))
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected README historical route drift to fail")
 
         fixture_root(root)
         write(root / CHECKLIST, read(root, CHECKLIST).replace(CHECKLIST_PENDING_REQ[3], "different owner wording"))
