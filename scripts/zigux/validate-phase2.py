@@ -143,7 +143,6 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, CLOSURE_VALIDATOR, "# present\n")
     write_text(root, WORKFLOW, "name: zigux-bootstrap\n")
     write_text(root, FIXDEP, "// present\n")
-    writeText = None
     write_text(root, CONF_BRIDGE, "// present\n")
     write_text(
         root,
