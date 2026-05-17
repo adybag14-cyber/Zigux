@@ -33,11 +33,11 @@ Current `master` does not currently expose the broader shared runtime-loader pac
 
 ## Current shared-owner state
 
-The newest obvious Phase 9 docs-root drift has already been retired.
+The newest obvious Phase 9 docs-root drift has narrowed, but it is not fully retired yet.
 
-- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `zigux/tests/README.md`, and the surviving `samples/zigux/runtime_trace_events.zig` packet already center the narrow trace-events selftest-hook evidence rather than the removed shared runtime-loader family
-- `Documentation/zigux/README.md` has now been tightened so the docs-root Phase 9 summary matches that narrow trace-events packet instead of presenting the removed shared runtime-loader inventory as shipped current-`master` evidence
-- the next honest shared Phase 9 move is to reread the remaining companion reminder surfaces one at a time and only trim another file if it still overclaims removed loader files or omits the shipped trace-events packet guard
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and the surviving `samples/zigux/runtime_trace_events.zig` packet already center the narrow trace-events selftest-hook evidence rather than the removed shared runtime-loader family
+- `Documentation/zigux/README.md` now avoids presenting the removed shared runtime-loader inventory as shipped current-`master` evidence, but it still undercounts the narrow surviving packet because it does not yet list the shipped `scripts/zigux/check-phase9-trace-events-runtime-packet.py` companion beside the phase-boundary checker and the direct trace-events sample
+- the next honest shared Phase 9 move is the smallest one-file reminder repair that restores that omitted trace-events checker to the docs-root or checklist surfaces before widening into new runtime behavior or another larger shared-summary rewrite
 
 ## Governance rule for this lane
 
@@ -66,7 +66,7 @@ This lane should not reopen:
 
 ## Recommended next-step order
 
-1. Re-read any remaining Phase 9 companion reminder surfaces against `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `zigux/tests/README.md`, and `samples/zigux/runtime_trace_events.zig`, then trim a file only if it still overclaims removed loader surfaces or omits the shipped trace-events packet guard.
+1. Re-read `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` against `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `scripts/zigux/README.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `zigux/tests/README.md`, and `samples/zigux/runtime_trace_events.zig`, then trim only the smallest one-file reminder surface that still omits the shipped trace-events packet checker or overclaims removed loader surfaces.
 2. If no stale reminder remains, decide whether the next bounded step is another reminder repair elsewhere or a new direct runtime sample or tests slice.
 3. If the broader shared runtime-loader packet returns later, widen this note only after an exact file reread proves it.
 
