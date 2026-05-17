@@ -17,6 +17,7 @@ It keeps the starter-present network packet and the storage-facing reminder surf
 - shared libbpf anti-overlap companion: `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 - driver-local NVMe reopen companion: `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
 - build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`
+- readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`
 
 ## Lane Scope
 
