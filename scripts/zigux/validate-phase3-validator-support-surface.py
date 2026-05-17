@@ -58,11 +58,10 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
-    "`zigux/tests/README.md` carries the bounded three-slice Phase 3 summary overall, but one shared follow-through sentence still over-groups the docs root and checklist with work that is already closed; keep the next reminder repair limited to that tests-root sentence.",
-    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback record for that narrower tests-root follow-through.",
+    "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now all reflect that bounded three-slice posture",
+    "`Documentation/zigux/phase3-shared-reminder-gap.md` now records that the earlier shared-reminder sentence drift is closed on current `master`.",
     "`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.",
-    "Keep any remaining follow-up focused on that one tests-root sentence cleanup or on a separate scripts-root inventory drift if that broader surface changes again.",
+    "Keep any remaining follow-up focused on separate scripts-root inventory drift if that broader surface changes again.",
     "This note is limited to the current validator-support posture for Phase 3.",
 )
 
@@ -76,20 +75,20 @@ SELF_TEST_CASES = (
         "scripts/zigux/validate-phase3.py",
     ),
     (
-        "`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
-        "`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` now reflect that bounded three-slice posture",
+        "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now all reflect that bounded three-slice posture",
+        "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now all reflect that bounded three-slice posture",
     ),
     (
-        "`zigux/tests/README.md` carries the bounded three-slice Phase 3 summary overall, but one shared follow-through sentence still over-groups the docs root and checklist with work that is already closed; keep the next reminder repair limited to that tests-root sentence.",
-        "`zigux/tests/README.md` carries the bounded three-slice Phase 3 summary overall, but one shared follow-through sentence still over-groups the docs root and checklist with work that is already closed; keep the next reminder repair limited to that tests-root sentence.",
+        "`Documentation/zigux/phase3-shared-reminder-gap.md` now records that the earlier shared-reminder sentence drift is closed on current `master`.",
+        "`Documentation/zigux/phase3-shared-reminder-gap.md` now records that the earlier shared-reminder sentence drift is closed on current `master`.",
     ),
     (
         "`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.",
         "`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.",
     ),
     (
-        "Keep any remaining follow-up focused on that one tests-root sentence cleanup or on a separate scripts-root inventory drift if that broader surface changes again.",
-        "Keep any remaining follow-up focused on that one tests-root sentence cleanup or on a separate scripts-root inventory drift if that broader surface changes again.",
+        "Keep any remaining follow-up focused on separate scripts-root inventory drift if that broader surface changes again.",
+        "Keep any remaining follow-up focused on separate scripts-root inventory drift if that broader surface changes again.",
     ),
 )
 EXPECTED_SELF_TEST_CASE_COUNT = len(SELF_TEST_CASES) + 1
