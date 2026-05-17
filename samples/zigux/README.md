@@ -10,12 +10,11 @@ Fresh mixed readback on 2026-05-17 confirmed these current sample-root files on 
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kobject_example.zig`
 * `samples/zigux/kretprobe_example.zig`
-* `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 
-The authenticated contents route used for this lane stayed flaky for part of the older Phase 5 packet during this reread, so the bytestream, kobject, trace-events, and formatting-companion entries above were rechecked through the public-tree and raw-file fallback paths before this README was refreshed.
+The authenticated contents route used for this lane stayed flaky for part of the older Phase 5 packet during this reread, so the bytestream, kobject, kretprobe, and formatting-companion entries above were rechecked through the public-tree and raw-file fallback paths before this README was refreshed.
 
 The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux anchors:
 
@@ -24,12 +23,14 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
-Current `master` keeps all four roadmap-backed non-runtime Phase 5 sample-root ports directly readable in `samples/zigux/` through `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kobject_example.zig`, `samples/zigux/kretprobe_example.zig`, and `samples/zigux/trace_events_sample.zig`.
-Keep shared contributor guidance honest about that restored packet instead of repeating the older one-file kretprobe-only split.
+Current `master` keeps the bytestream, kobject, and kretprobe sample-root ports directly readable in `samples/zigux/` through `samples/zigux/bytestream_fifo.zig`, `samples/zigux/kobject_example.zig`, and `samples/zigux/kretprobe_example.zig`.
+For the trace-events anchor, keep shared contributor guidance grounded in the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` plus the shared reminder packet until a fresh reread proves `samples/zigux/trace_events_sample.zig` has returned on current `master`.
+Keep shared contributor guidance honest about that narrower packet instead of repeating the older four-direct-sample split.
 
 ## Phase 5 reminder
 
-When a shared Phase 5 guide, checklist, or README mentions the bytestream, kobject, kretprobe, or trace-events anchors, treat those four `.zig` files as the current direct sample-root proof for the roadmap-backed non-runtime lane.
+When a shared Phase 5 guide, checklist, or README mentions the bytestream, kobject, or kretprobe anchors, treat those three `.zig` files as the current direct sample-root proof for the roadmap-backed non-runtime lane.
+For the trace-events anchor, keep `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, and the paired shared reminder surfaces explicit instead of treating the older direct `samples/zigux/trace_events_sample.zig` path as current proof before a fresh reread restores it.
 
 Keep `samples/zigux/trace_events_string_formatting_sample.zig` tied to the same non-runtime trace-events anchor as a bounded formatting companion.
 Do not count it as a fifth approved Phase 5 anchor, standalone string-helper delivery, standalone `printf` parity, or standalone `vsprintf` parity.
@@ -61,5 +62,4 @@ Current `master` still ships no standalone Phase 5 sample-root files here for:
 * `*rbtree*`
 * `*bitmap*`
 
-Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets instead of treating this directory as proof that dedicated cmdline, argv, rbtree, bitmap, `printf`, or `vsprintf` sample families landed here as standalone samples.
-current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample;
+Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets instead of treating this directory as proof that dedicated string, cmdline, argv, rbtree, bitmap, `printf`, or `vsprintf` sample families landed here as standalone samples.
