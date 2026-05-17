@@ -118,6 +118,25 @@ test "bitmap view helpers stay bounded and predictable" {
     try std.testing.expectEqual(@as(u32, 4), summary.weight);
 }
 
+test "bitmap tail masking keeps a full bounded bitmap from leaking zero bits" {
+    var backing = [_]Word{
+        ~@as(Word, 0),
+        lastWordMask(bits_per_word + 11),
+    };
+    const view = viewFromWords(backing[0..], bits_per_word + 11);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(testBit(view, bits_per_word + 10));
+    try std.testing.expect(!testBit(view, bits_per_word + 11));
+    try std.testing.expectEqual(@as(u32, 0), firstSet(view));
+    try std.testing.expectEqual(bits_per_word + 11, firstZero(view));
+    try std.testing.expectEqual(bits_per_word + 11, weight(view));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(bits_per_word + 11, summary.first_zero);
+    try std.testing.expectEqual(bits_per_word + 11, summary.weight);
+}
+
 test "bitmap view empty sentinel behavior stays explicit" {
     const empty = viewFromWords(&.{}, 0);
     const summary = summarize(empty);
