@@ -1,9 +1,10 @@
 # Phase 15 Readiness Route Exactness Gap
 
-This note records one bounded Architecture Council governance gap in the parked
-Phase 15 packet: the shipped `phase15-validate` route, the validator-side route
-inventory, and the readiness manifest do not currently describe the same checker
-set.
+This note records one bounded Architecture Council governance truthfulness gap in
+the parked Phase 15 packet: older readiness-route exactness wording still talks
+as if the shared `phase15-validate` route is directly materialized and split
+across route, validator, and manifest packets, but current `master` has already
+moved to a blocked-route readiness posture.
 
 ## Scope
 
@@ -11,55 +12,65 @@ set.
 - phase: `Phase 15`
 - target family: review boundaries, freeze-map compliance, and architecture
   decisions
-- bounded subject: the exact checker inventory for the shared `phase15-validate`
-  governance route
+- bounded subject: keep the parked Phase 15 readiness-route note aligned with
+  the current blocked-route governance packet
 
 ## Current repo reality
 
-Current dated `master` readback for this gap shows three different packets for
-the same route:
+Current dated `master` readback for this gap now shows a different bounded
+packet than the older validator-route story:
 
-- `zigux/Makefile` runs four checker surfaces before `phase15-test`:
+- `Documentation/zigux/phase15-readiness-gate-survey.md` already treats
+  `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and
+  `make -C zigux phase15` as blocked route vocabulary rather than directly
+  readable shipped replay paths.
+- `zigux/Makefile` and `scripts/zigux/validate-phase15.py` still return missing
+  on direct current-`master` reads, so there is no directly materialized shared
+  `phase15-validate` route packet to compare against a validator-side route
+  inventory.
+- `zigux/tests/phase15_readiness_gate_manifest.json` now carries the
+  four-checker inventory:
   - `scripts/zigux/check-phase15-docs-readme-alignment.py`
   - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
   - `scripts/zigux/check-phase15-review-process-handoff.py`
   - `scripts/zigux/check-phase15-shared-summary-gap.py`
-- `scripts/zigux/validate-phase15.py` keeps the Make-route markers aligned with
-  the docs, scripts, review-process, and shared-summary guards, but its
-  `READINESS_CHECKERS` packet still undercounts the route by omitting the docs
-  alignment checker.
-- `zigux/tests/phase15_readiness_gate_manifest.json` is narrower again and still
-  records only the scripts-readme and review-process checkers.
 
-That leaves one exactness gap inside the same governance family: the route that
-reviewers are supposed to trust is broader than the validator inventory, and the
-machine-readable readiness manifest is narrower than both.
+That means the older three-packet route-mismatch story is no longer the honest
+current gap. The real bounded task is to keep this note from restating a retired
+validator-route mismatch after the broader readiness packet moved to blocked
+route vocabulary.
 
 ## Why this belongs in Architecture Council lane work
 
 This is not a helper-port or driver-delivery task.
 
-It changes the truthfulness of the governance packet that reviewers use when a
-freeze-map-adjacent status discussion needs replayable evidence. If the route
-inventory is inconsistent, the parked no-approval posture is harder to review and
-future Architecture Council follow-through can inherit stale route claims.
+It protects review boundaries and freeze-map-adjacent reminder surfaces from
+quietly inheriting an outdated route story. If this note keeps implying a live
+shared validator route after the current governance packet has parked that route
+as blocked vocabulary, later Architecture Council rereads can make approval or
+replay assumptions that the current tree no longer supports.
 
 ## Machine-checkable guard
 
-`scripts/zigux/check-phase15-readiness-route-exactness.py` keeps this gap
-explicit and fail-closed.
+`scripts/zigux/check-phase15-readiness-route-exactness.py` keeps this parked
+blocked-route posture explicit and fail-closed.
 
 The checker currently passes only when repo reality still matches the bounded
-exactness gap described here:
+truthfulness state described here:
 
-- Make route: four checkers
-- validator readiness inventory: three checkers, missing only the docs
-  alignment checker
-- readiness manifest: two checkers, missing the docs alignment checker and the
-  shared-summary gap checker
+- current `master` no longer materializes the shared `phase15-validate` route
+  packet directly
+- `zigux/Makefile` and `scripts/zigux/validate-phase15.py` still return missing
+  on direct current-`master` reads
+- `zigux/tests/phase15_readiness_gate_manifest.json` now carries the
+  four-checker inventory
+- `Documentation/zigux/phase15-readiness-gate-survey.md` already treats
+  `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and
+  `make -C zigux phase15` as blocked route vocabulary rather than a directly
+  replayable shipped route
 
-If any of those packets move, the checker fails so the note can be updated or
-retired instead of silently drifting.
+If any of those facts move, the checker fails so this note can be tightened,
+retired, or replaced instead of silently drifting.
 
 ## Non-goals
 
@@ -67,8 +78,10 @@ This note does not claim:
 
 - any Architecture Council approval for a freeze-map status change
 - a change to the freeze-in-C or study-only anchor sets
-- a repair to `scripts/zigux/validate-phase15.py`,
-  `zigux/tests/phase15_readiness_gate_manifest.json`, or `zigux/Makefile`
+- that `zigux/Makefile` or `scripts/zigux/validate-phase15.py` have been
+  rematerialized on current `master`
+- a repair to the broader missing Phase 15 build, validator, or lane-owner
+  companion packet
 
 ## Replay
 
@@ -77,7 +90,11 @@ This note does not claim:
 
 ## Next bounded step
 
-When a publish-capable runtime can safely rewrite the live validator packet, fix
-the exactness drift in `scripts/zigux/validate-phase15.py` and
-`zigux/tests/phase15_readiness_gate_manifest.json`, then retire this gap note
-instead of widening the lane.
+Keep this note parked until one of two things happens:
+
+- direct current-`master` reads recover `zigux/Makefile` plus
+  `scripts/zigux/validate-phase15.py`, which would justify replacing this
+  blocked-route posture with a smaller live route exactness reread
+- one of the broad reminder surfaces drifts away from the blocked-route
+  readiness posture already recorded by
+  `Documentation/zigux/phase15-readiness-gate-survey.md`
