@@ -35,7 +35,7 @@ REQUIRED_MARKERS = (
     "zigux/kernel/export_shim.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
-    "`scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md`",
+    "`Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md`",
     "This note is limited to the current validator-support posture for Phase 3.",
 )
 
