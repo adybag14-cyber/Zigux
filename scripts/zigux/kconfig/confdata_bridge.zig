@@ -167,6 +167,8 @@ fn findEntryIndex(entries: []Entry, name: []const u8) ?usize {
 
 pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
     var entries = std.ArrayList(Entry).empty;
+    var entry_indexes = std.StringHashMap(usize).init(allocator);
+    defer entry_indexes.deinit();
     errdefer {
         deinitEntries(allocator, entries.items);
         entries.deinit(allocator);
@@ -180,7 +182,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         if (line.len == 0) continue;
 
         if (parseUnsetSymbol(line)) |name| {
-            if (findEntryIndex(entries.items, name)) |existing_index| {
+            if (entry_indexes.get(name)) |existing_index| {
                 const existing = &entries.items[existing_index];
                 if (existing.kind == .unset) {
                     unset_count -= 1;
@@ -200,6 +202,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
                     .kind = .unset,
                     .value = owned_value,
                 });
+                try entry_indexes.put(owned_name, entries.items.len - 1);
             }
             unset_count += 1;
             continue;
@@ -227,7 +230,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
         else
             try allocator.dupe(u8, raw_value);
 
-        if (findEntryIndex(entries.items, name)) |existing_index| {
+        if (entry_indexes.get(name)) |existing_index| {
             const existing = &entries.items[existing_index];
             if (existing.kind == .unset) {
                 unset_count -= 1;
@@ -246,6 +249,7 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
                 .kind = kind,
                 .value = cooked_value,
             });
+            try entry_indexes.put(owned_name, entries.items.len - 1);
         }
         set_count += 1;
     }
