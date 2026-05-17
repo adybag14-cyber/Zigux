@@ -46,10 +46,11 @@ Do not treat this note as proof of:
 - standalone `vsprintf` parity
 - standalone string-helper delivery
 - a fifth approved Phase 5 sample
+- direct proof that `Documentation/zigux/phase5-trace-events-sample-survey.md` is currently present on `master`
 - direct proof that `samples/zigux/trace_events_sample.zig` is currently present on `master`
 
 Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.
 
 ## Next bounded step
 
-Leave this note parked unless a fresh reread shows that the shared trace-events reminder packet drifted away from the same selected-string plus `iter=%d` cue or the sample root once again directly exposes the older non-runtime trace-events sample port.
+Leave this note parked unless a fresh reread shows that the shared trace-events reminder packet drifted away from the same selected-string plus `iter=%d` cue, the sample root once again directly exposes the older non-runtime trace-events sample port, or the missing survey note returns on current `master`.
