@@ -106,28 +106,12 @@ def run_self_test() -> int:
             details = baseline.stdout.strip() or baseline.stderr.strip() or "no_output"
             raise SystemExit(f"self-test-baseline-failed:{details}")
 
-        mutations = (
-            (TESTS_README_PATH, "current direct-readback Phase 8 anchors:"),
-            (TESTS_README_PATH, "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`"),
-            (TESTS_README_PATH, "`zigux/tests/phase8_perf_buffer_poll.zig`"),
-            (TESTS_README_PATH, "`tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`"),
-            (TESTS_README_PATH, "repo-reality warning for the broader Phase 8 tooling packet:"),
-            (TESTS_README_PATH, "`scripts/zigux/validate-phase8.py`"),
-            (TESTS_README_PATH, "`zigux/tests/phase8_libbpf_segments.zig`"),
-            (
-                TESTS_README_PATH,
-                "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet instead of reconstructing the broader shared tooling packet from older route names alone",
-            ),
-            (
-                TESTS_README_PATH,
-                "if future same-lane work rematerializes the missing docs, validator, focused build shard, libbpf segment test, or Makefile routes, refresh this tests-root summary only after rereading the current direct-readback anchors together on current `master`",
-            ),
-        )
-        for rel_path, marker in mutations:
-            case_root = Path(tmp) / f"case_{cases}"
-            shutil.copytree(baseline_root, case_root)
-            assert_missing_case(case_root, rel_path, marker)
-            cases += 1
+        for rel_path, markers in REQUIRED_MARKERS.items():
+            for marker in markers:
+                case_root = Path(tmp) / f"case_{cases}"
+                shutil.copytree(baseline_root, case_root)
+                assert_missing_case(case_root, rel_path, marker)
+                cases += 1
 
         missing_file_root = Path(tmp) / f"case_{cases}"
         shutil.copytree(baseline_root, missing_file_root)
