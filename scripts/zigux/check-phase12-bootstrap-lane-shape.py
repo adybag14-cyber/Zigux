@@ -38,6 +38,7 @@ WORKFLOW_STEP_NAMES = [
     "Setup Python",
     "Compile current scripts",
     "Self-test current Phase 12 build-only checker",
+    "Check current Phase 12 build-only surface",
     "Self-test current Phase 12 bootstrap docs sanity checker",
     "Check current Phase 12 docs-root sanity markers",
     "Self-test current Phase 12 bootstrap lane checker",
@@ -61,6 +62,10 @@ WORKFLOW_COMMAND_MARKERS = [
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py",
 ]
 
+WORKFLOW_EXACT_LINES = [
+    "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
+]
+
 SURVEY_MARKERS = [
     "`PHASE12_STATUS=active`",
     "`PHASE12_RELEASE_CLOSED=no`",
@@ -72,6 +77,7 @@ SURVEY_MARKERS = [
 def validate_workflow(workflow_text: str) -> list[str]:
     failures: list[str] = []
     positions: list[int] = []
+    workflow_lines = workflow_text.splitlines()
 
     for step_name in WORKFLOW_STEP_NAMES:
         marker = f"- name: {step_name}"
@@ -87,6 +93,13 @@ def validate_workflow(workflow_text: str) -> list[str]:
     for marker in WORKFLOW_COMMAND_MARKERS:
         if marker not in workflow_text:
             failures.append(f"workflow_marker:{marker}")
+
+    for line in WORKFLOW_EXACT_LINES:
+        actual = workflow_lines.count(line)
+        if actual != 1:
+            failures.append(
+                f"workflow_exact_line:{line.strip()}:expected=1:actual={actual}"
+            )
 
     return failures
 
@@ -143,6 +156,8 @@ jobs:
           python3 -m py_compile \"${scripts[@]}\"
       - name: Self-test current Phase 12 build-only checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
+      - name: Check current Phase 12 build-only surface
+        run: python3 scripts/zigux/check-build-only-phase12-surface.py
       - name: Self-test current Phase 12 bootstrap docs sanity checker
         run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test
       - name: Check current Phase 12 docs-root sanity markers
@@ -190,6 +205,34 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         (base / DOCS_SANITY_CHECKER_PATH).unlink()
         expect_failure(base, f"missing_file:{DOCS_SANITY_CHECKER_PATH}")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "- name: Check current Phase 12 build-only surface\n"
+                "        run: python3 scripts/zigux/check-build-only-phase12-surface.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Check current Phase 12 build-only surface")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/check-build-only-phase12-surface.py\n",
+                "        run: echo skip-build-only\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_exact_line:run: python3 scripts/zigux/check-build-only-phase12-surface.py:expected=1:actual=0",
+        )
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
@@ -265,7 +308,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=6")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -305,7 +348,7 @@ def main() -> int:
     print(f"PHASE12_BOOTSTRAP_LANE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE12_BOOTSTRAP_LANE_MARKER_COUNT="
-        f"{len(WORKFLOW_STEP_NAMES) + len(WORKFLOW_COMMAND_MARKERS) + len(SURVEY_MARKERS)}"
+        f"{len(WORKFLOW_STEP_NAMES) + len(WORKFLOW_COMMAND_MARKERS) + len(WORKFLOW_EXACT_LINES) + len(SURVEY_MARKERS)}"
     )
     return 0
 
