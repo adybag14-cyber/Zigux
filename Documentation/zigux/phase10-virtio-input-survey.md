@@ -5,7 +5,7 @@ This document records the bounded Phase 10 survey lane around `drivers/virtio/vi
 ## Status
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-input-survey`
-- `PHASE10_LANE_KEY=P10-L22`
+- `PHASE10_LANE_KEY=P10-L13`
 - `PHASE10_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
 - `PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
