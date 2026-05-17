@@ -150,8 +150,8 @@ UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER = (
 UNREGISTERED_GATE_POST_SELFTEST_FN_REJECTION_MARKER = (
     "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));"
 )
-UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER = (
-    "try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);"
+UNREGISTERED_GATE_SUMMARY_STABILITY_MARKER = (
+    "try expectSummaryStable(selftest_complete_before, selftest_complete_after);"
 )
 
 SEQUENCING_REQUIRED_MARKERS = [
@@ -235,7 +235,7 @@ UNREGISTERED_GATE_REQUIRED_MARKERS = [
     UNREGISTERED_GATE_INITIAL_UNREGISTER_REJECTION_MARKER,
     UNREGISTERED_GATE_SELFTEST_COMPLETE_STAGE_MARKER,
     UNREGISTERED_GATE_POST_SELFTEST_FN_REJECTION_MARKER,
-    UNREGISTERED_GATE_SELFTEST_AFTER_UNREGISTER_LABEL_MARKER,
+    UNREGISTERED_GATE_SUMMARY_STABILITY_MARKER,
 ]
 
 
@@ -400,6 +400,10 @@ const trace_events = @import(\"runtime_trace_events.zig\");
 const ModuleStage = trace_events.ModuleStage;
 const RuntimeTraceEventsSample = trace_events.RuntimeTraceEventsSample;
 
+fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {{
+    try std.testing.expect(std.meta.eql(before, after));
+}}
+
 test \"phase9 trace-events sample keeps unregistered function-thread failures fail-closed\" {{
     var module = RuntimeTraceEventsSample{{}};
     try module.init();
@@ -418,7 +422,7 @@ test \"phase9 trace-events sample keeps unregistered function-thread failures fa
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 
     const selftest_complete_after = module.summary();
-    try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+    try expectSummaryStable(selftest_complete_before, selftest_complete_after);
 }}
 """
 
