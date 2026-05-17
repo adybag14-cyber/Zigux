@@ -59,6 +59,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
         "make -C zigux phase12-validate",
         "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root",
+        "keep the bounded driver-local NVMe foothold explicit too: `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` remain the bounded driver-local packet outside the shared smoke-first route",
     ],
     TESTS_README_PATH: [
         "scripts/zigux/check-phase12-release-readiness-packet.py",
@@ -150,7 +151,7 @@ def build_self_test_cases() -> list[tuple[str, int]]:
 
 
 SELF_TEST_CASES = build_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 45
+EXPECTED_SELF_TEST_CASE_COUNT = 46
 
 
 def write_fixture_tree(root: Path) -> None:
