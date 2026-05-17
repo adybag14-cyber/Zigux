@@ -376,7 +376,7 @@ test "phase12 virtio net survey note stays aligned with the bounded transmit-rec
 
 }
 
-test "phase12 virtio net survey gate keeps present lane files explicit" {
+test "phase12 virtio net survey gate keeps present lane files explicit including queue-resume replay" {
 
  try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_manifest.json"));
 
@@ -386,10 +386,12 @@ test "phase12 virtio net survey gate keeps present lane files explicit" {
  try std.testing.expect(try pathExists("drivers/net/virtio_net.zig"));
 
  try std.testing.expect(try pathExists("drivers/net/virtio_net_transmit_recycle.zig"));
+ try std.testing.expect(try pathExists("drivers/net/virtio_net_queue_resume.zig"));
 
  try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net.zig"));
 
  try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_transmit_recycle.zig"));
+ try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_queue_resume.zig"));
  try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
 
 }
