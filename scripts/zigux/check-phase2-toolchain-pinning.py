@@ -18,6 +18,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
+    ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json",
 )
 
 WORKFLOW_LINES = (
@@ -56,7 +57,7 @@ README_FORBIDDEN_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 37
+EXPECTED_SELF_TEST_CASE_COUNT = 38
 
 
 def read_text(path: Path) -> str:
