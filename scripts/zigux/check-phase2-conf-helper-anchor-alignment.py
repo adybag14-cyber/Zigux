@@ -265,7 +265,6 @@ def run_self_test() -> int:
             "",
             1,
         )
-        (root / CONF_BRIDGE).writeText = None
         (root / CONF_BRIDGE).write_text(source, encoding="utf-8")
         issues = collect_issues(root)
         assert any(issue.startswith("randconfig allconfig override packet:") for issue in issues)
