@@ -75,6 +75,7 @@ MODULE_SLICE_MARKERS = [
 
 BUILD_MARKERS = [
     "virtio_input_verify_module",
+    "virtio_mmio_module",
     "phase10_virtio_input_module",
     "phase10_virtio_input_probe_preflight_module",
     "phase10_virtio_input_queue_callback_preflight_module",
@@ -88,7 +89,8 @@ BUILD_MARKERS = [
     '"phase10-virtio-input-status-drain-tests"',
     '"phase10-virtio-input-teardown-observation-tests"',
     '"phase10-virtio-input-verify-tests"',
-    "Run the live Phase 10 virtio input lab validation tests",
+    '"phase10-virtio-mmio-tests"',
+    "Run the live Phase 10 virtio input and MMIO lab validation tests",
 ]
 
 REGISTRATION_HELPER_MARKERS = [
@@ -136,7 +138,9 @@ EXPECTED_COUNTS = {
     "Documentation/zigux/review-checklist.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
     "zigux/tests/phase10_build.zig::virtio_input_verify_module": 1,
+    "zigux/tests/phase10_build.zig::virtio_mmio_module": 1,
     'zigux/tests/phase10_build.zig::"phase10-virtio-input-verify-tests"': 1,
+    'zigux/tests/phase10_build.zig::"phase10-virtio-mmio-tests"': 1,
     "scripts/zigux/README.md::Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": 1,
     "scripts/zigux/README.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
 }
@@ -467,7 +471,7 @@ def run_self_test() -> int:
 
         build_path.write_text(
             original_build.replace(
-                "Run the live Phase 10 virtio input lab validation tests",
+                "Run the live Phase 10 virtio input and MMIO lab validation tests",
                 "Run the live Phase 10 virtio queue validation tests",
                 1,
             ),
@@ -475,8 +479,24 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             root,
-            "phase10_build:Run the live Phase 10 virtio input lab validation tests",
+            "phase10_build:Run the live Phase 10 virtio input and MMIO lab validation tests",
             "phase10-harness-coverage-self-test:build_test_step_summary",
+        )
+        build_path.write_text(original_build, encoding="utf-8")
+        case_count += 1
+
+        build_path.write_text(
+            original_build.replace(
+                '"phase10-virtio-mmio-tests"',
+                '"phase10-virtio-mmio-drift"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            'phase10_build:"phase10-virtio-mmio-tests"',
+            "phase10-harness-coverage-self-test:build_mmio_test_name",
         )
         build_path.write_text(original_build, encoding="utf-8")
         case_count += 1
