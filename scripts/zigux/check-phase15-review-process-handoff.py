@@ -7,10 +7,12 @@ import tempfile
 from pathlib import Path
 
 REVIEW_PROCESS_PATH = Path("Documentation/zigux/phase15-architecture-council-review-process.md")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 TEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process.zig")
+CHECKLIST_ENTRY_REVIEW_PROMPT = "if a freeze-map anchor is entering Architecture Council status review"
 
 
 def _read_text(path: Path) -> str:
@@ -27,8 +29,16 @@ def _marker_to_repo_path(marker: str) -> Path | None:
     return None
 
 
+def _line_containing(text: str, marker: str) -> str | None:
+    for line in text.splitlines():
+        if marker in line:
+            return line
+    return None
+
+
 def collect_failures(root: Path) -> list[str]:
     review_process = _read_text(root / REVIEW_PROCESS_PATH)
+    review_checklist = _read_text(root / REVIEW_CHECKLIST_PATH)
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
     gap_note = _read_text(root / SHARED_GAP_NOTE_PATH)
     manifest = _read_manifest(root / MANIFEST_PATH)
@@ -52,6 +62,16 @@ def collect_failures(root: Path) -> list[str]:
     for field in manifest["required_review_fields"]:
         if field not in review_process:
             failures.append(f"review-process note is missing required review field: {field}")
+
+    checklist_entry_prompt = _line_containing(review_checklist, CHECKLIST_ENTRY_REVIEW_PROMPT)
+    if checklist_entry_prompt is None:
+        failures.append(
+            "review checklist is missing the Phase 15 Architecture Council entry-review prompt"
+        )
+    else:
+        for field in manifest["required_review_fields"]:
+            if field not in checklist_entry_prompt:
+                failures.append(f"review checklist prompt is missing required review field: {field}")
 
     for field in manifest["stay_in_c_closeout_fields"]:
         if field not in review_process:
@@ -208,6 +228,13 @@ A later reopen request must not rely on generic intent alone. It must cite:
 """
 
 
+def _sample_review_checklist() -> str:
+    return """# Zigux Review Checklist
+
+  * if a freeze-map anchor is entering Architecture Council status review, are the exact Linux anchor path, roadmap phase, decision record ID, lane owner, current status bucket, requested decision bucket, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, automatic return-to-blocked trigger, retained discussion state, reopen triggers, trigger-specific evidence refresh, parity scorecard link or blocker record, indefinite-C policy link or explicit non-applicability note, explicit non-goals, and written rationale explicit?
+"""
+
+
 def _sample_handoff_note() -> str:
     return """# Phase 15 Handoff Next Steps Survey
 
@@ -247,6 +274,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase15_review_process_") as tmp_dir:
         root = Path(tmp_dir)
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
         _write(root / MANIFEST_PATH, _sample_manifest())
@@ -266,6 +294,15 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected roadmap-phase failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("exact Linux anchor path, ", "", 1),
+        )
+        failures = collect_failures(root)
+        if failures != ["review checklist prompt is missing required review field: exact Linux anchor path"]:
+            raise AssertionError(f"unexpected checklist failure: {failures}")
+
+        _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(
             root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
