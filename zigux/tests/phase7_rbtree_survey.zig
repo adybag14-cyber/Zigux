@@ -6,7 +6,7 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning aligned" {
+test "phase 7 rbtree survey keeps the direct anchor, repo-reality warning, and helper ownership markers aligned" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -18,6 +18,14 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
     );
     defer std.testing.allocator.free(tests_root);
 
+    const helper_impl = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "lib/rbtree.zig",
+        std.testing.allocator,
+        .limited(128 * 1024),
+    );
+    defer std.testing.allocator.free(helper_impl);
+
     const broader_packet_paths = [_][]const u8{
         "`Documentation/zigux/phase7-helper-lane-sequencing.md`",
         "`Documentation/zigux/phase7-rbtree-slice.md`",
@@ -27,6 +35,21 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
         "`zigux/tests/phase7_build.zig`",
+    };
+
+    const helper_ownership_markers = [_][]const u8{
+        "pub const NodeLinked",
+        "pub const RootLinked",
+        "pub fn findFirst",
+        "pub fn nextMatch",
+        "pub fn eraseLinked",
+        "pub fn clearNode",
+        "pub fn eraseInit",
+        "pub fn eraseInitCached",
+        "pub fn replaceNode",
+        "pub fn replaceNodeCached",
+        "pub fn firstPostorder",
+        "pub fn nextPostorder",
     };
 
     try std.testing.expectEqualStrings("P7-L13", active_lane_key);
@@ -57,4 +80,8 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
         tests_root,
         "`scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`",
     );
+
+    for (helper_ownership_markers) |marker| {
+        try expectContains(helper_impl, marker);
+    }
 }
