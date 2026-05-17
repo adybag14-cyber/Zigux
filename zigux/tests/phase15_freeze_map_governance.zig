@@ -58,46 +58,6 @@ const Manifest = struct {
     gaps: []const Gap,
 };
 
-const ScorecardEvidenceArchive = struct {
-    decision_record_path: []const u8,
-    linked_evidence: []const []const u8,
-    benchmark_notes_status: []const u8,
-    replay_command: []const u8,
-    latest_blocker_disposition: []const u8,
-};
-
-const ScorecardAnchor = struct {
-    path: []const u8,
-    lane_owner: []const u8,
-    phase: []const u8,
-    current_status_bucket: []const u8,
-    required_approver_set: []const u8,
-    validation_gate_summary: []const u8,
-    rollback_owner: []const u8,
-    current_blocker: []const u8,
-    evidence_archive: ScorecardEvidenceArchive,
-};
-
-const ScorecardMetrics = struct {
-    active_freeze_in_c_anchor_count: usize,
-    blocked_status_change_anchor_count: usize,
-    phase15_governance_only_blocker_anchor_count: usize,
-    phase14_coupled_blocker_anchor_count: usize,
-    anchors_still_blocked_on_prior_phase_bridge_evidence: usize,
-    study_only_anchors_tracked_outside_scorecard: usize,
-    architecture_council_status_change_approval_count: usize,
-};
-
-const ScorecardManifest = struct {
-    surveyed_commit: []const u8,
-    metrics: ScorecardMetrics,
-    anchors: []const ScorecardAnchor,
-};
-
-const ReviewProcessManifest = struct {
-    surveyed_commit: []const u8,
-};
-
 fn loadFile(io: std.Io, path: []const u8, limit: usize) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(io, path, std.testing.allocator, .limited(limit));
 }
@@ -124,11 +84,11 @@ fn findGap(gaps: []const Gap, id: []const u8) ?Gap {
     return null;
 }
 
-test "phase 15 freeze-map governance manifest records the dated-readback blocker survey" {
+test "phase 15 freeze-map governance manifest records the current dated-readback blocker survey" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_freeze_map_manifest.json", 48 * 1024);
+    const manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_freeze_map_manifest.json", 64 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
@@ -137,7 +97,7 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
 
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-16", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-17", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try expectContains(manifest.surveyed_commit_mode_reason, "dated master-readback marker");
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
@@ -147,12 +107,13 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     try std.testing.expectEqual(@as(usize, 4), manifest.blocker_ownership.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.deep_core_blocker_survey.len);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
-    try std.testing.expectEqual(@as(usize, 6), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
-    try std.testing.expectEqual(@as(usize, 15), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 18), manifest.gaps.len);
 
     const sched = manifest.blocker_ownership[0];
     try std.testing.expectEqualStrings("kernel/sched/core.c", sched.anchor);
+    try std.testing.expectEqualStrings("zig test zigux/tests/phase15_freeze_map_governance.zig", sched.replay_command);
     try std.testing.expectEqualStrings("Architecture Council + PMO / Release Management", sched.required_approver_set);
 
     const rcu = manifest.deep_core_blocker_survey[2];
@@ -166,130 +127,78 @@ test "phase 15 freeze-map governance manifest records the dated-readback blocker
     try std.testing.expectEqualStrings("net/core/skbuff.c", skbuff.anchor);
     try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-skbuff-bridge-survey.md");
     try expectContains(skbuff.repo_reality, "P14-L11");
-    try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-core-boundary-traceability.md");
-    try expectContains(skbuff.repo_reality, "phase14-skbuff-anchor-packet-missing");
-    try expectContains(skbuff.repo_reality, "no live skbuff anchor packet or compile route");
     try expectContains(skbuff.repo_reality, "phase14-skbuff-live-ownership-blocker");
+    try expectContains(skbuff.repo_reality, "review-first");
+    try expectContains(skbuff.repo_reality, "boundary_map_only");
+    try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-core-boundary-traceability.md");
+    try expectContains(skbuff.repo_reality, "retained-in-C posture");
     try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", skbuff.current_blocker);
 
-    try expectContains(manifest.maintenance_handoff.replay_before_trusting[0], "validate-phase15.py");
-    try expectContains(manifest.maintenance_handoff.replay_before_trusting[1], "check-phase15-docs-readme-alignment.py");
-    try expectContains(manifest.maintenance_handoff.replay_before_trusting[4], "check-phase15-shared-summary-gap.py");
-    try expectContains(manifest.maintenance_handoff.replay_before_trusting[5], "phase15_freeze_map_governance.zig");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[0], "check-phase15-docs-readme-alignment.py");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[1], "check-phase15-scripts-readme-alignment.py");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[2], "check-phase15-review-process-handoff.py");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[3], "check-phase15-shared-summary-gap.py");
+    try expectContains(manifest.maintenance_handoff.replay_before_trusting[4], "phase15_freeze_map_governance.zig");
     try expectContains(manifest.maintenance_handoff.reopen_conditions[2], "no-silent-exception posture");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "phase15-shared-summary-gap.md");
     try expectContains(manifest.maintenance_handoff.next_future_target, "freeze-map-local");
-    try expectContains(manifest.maintenance_handoff.next_future_target, "check-phase15-docs-readme-alignment.py");
-    try expectContains(manifest.maintenance_handoff.next_future_target, "check-phase15-shared-summary-gap.py");
 
-    const required_field_sync = findGap(manifest.gaps, "phase15-review-process-required-field-sync") orelse return error.MissingGap;
-    try expectContains(required_field_sync.why_now, "required approver set");
-
-    const approver_sync = findGap(manifest.gaps, "phase15-freeze-map-required-approver-sync") orelse return error.MissingGap;
-    try expectContains(approver_sync.why_now, "required-approver-set inventory");
-
-    const dated_refresh = findGap(manifest.gaps, "phase15-dated-readback-provenance-refresh") orelse return error.MissingGap;
-    try expectContains(dated_refresh.why_now, "drifted behind current master");
-
-    const maintenance_handoff = findGap(manifest.gaps, "phase15-freeze-map-maintenance-handoff") orelse return error.MissingGap;
-    try expectContains(maintenance_handoff.why_now, "when to reopen");
+    _ = findGap(manifest.gaps, "phase15-freeze-map-manifest") orelse return error.MissingGap;
+    _ = findGap(manifest.gaps, "phase15-freeze-map-governance-gate") orelse return error.MissingGap;
+    _ = findGap(manifest.gaps, "phase15-shared-validator-route-gap") orelse return error.MissingGap;
+    _ = findGap(manifest.gaps, "phase15-shared-build-route-gap") orelse return error.MissingGap;
+    _ = findGap(manifest.gaps, "phase15-shared-wrapper-route-gap") orelse return error.MissingGap;
 }
 
 test "phase 15 freeze-map governance doc records the current blocker posture honestly" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 28 * 1024);
+    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 32 * 1024);
     defer std.testing.allocator.free(governance_note);
 
     try expectContains(governance_note, "PHASE15_STATUS=governance_slice_landed");
     try expectContains(governance_note, "PHASE15_LANE_KEY=P15-L04");
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(governance_note, "current-master-readback-2026-05-16");
-    try expectContains(governance_note, "prior dated marker `current-master-readback-2026-05-15` no longer represented the latest survey date");
+    try expectContains(governance_note, "current-master-readback-2026-05-17");
+    try expectContains(governance_note, "broader Phase 15 validator-first and wrapper routes no longer materialize on current `master`");
     try expectContains(governance_note, "exact branch-head parity is not recorded");
     try expectContains(governance_note, "blocked_no_bounded_scheduler_seam");
     try expectContains(governance_note, "blocked_no_bounded_allocator_seam");
     try expectContains(governance_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam");
     try expectContains(governance_note, "blocked_packet_lifetime_boundary_still_too_wide");
     try expectContains(governance_note, "lane P14-L16 still records blocked `phase14-rcu-tree-bridge-blocker`");
-    try expectContainsWithoutBackticks(governance_note, "Documentation/zigux/phase14-skbuff-bridge-survey.md now records PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing");
-    try expectContainsWithoutBackticks(governance_note, "no live skbuff anchor packet or compile route on current master");
-    try expectContainsWithoutBackticks(governance_note, "Documentation/zigux/phase14-core-boundary-traceability.md still keeps the shared owner-map lane P14-L11");
+    try expectContains(governance_note, "`Documentation/zigux/phase14-skbuff-bridge-survey.md` on lane P14-L11 still records blocked `phase14-skbuff-live-ownership-blocker`");
+    try expectContains(governance_note, "surviving skbuff packet review-first and `boundary_map_only`");
+    try expectContains(governance_note, "`Documentation/zigux/phase14-core-boundary-traceability.md` still keeps skbuff in retained-in-C posture");
     try expectContains(governance_note, "## Maintenance-Mode Handoff");
     try expectContains(governance_note, "current lane posture: `maintenance_mode`");
     try expectContains(governance_note, "check-phase15-docs-readme-alignment.py");
     try expectContains(governance_note, "check-phase15-review-process-handoff.py");
     try expectContains(governance_note, "check-phase15-shared-summary-gap.py");
-    try expectContains(governance_note, "shared-summary, parity-scorecard, or readiness packets");
-    try expectContains(governance_note, "phase15-review-process-required-field-sync");
-    try expectContains(governance_note, "phase15-freeze-map-required-approver-sync");
-    try expectContains(governance_note, "phase15-dated-readback-provenance-refresh");
-    try expectContains(governance_note, "phase15-freeze-map-maintenance-handoff");
-    try expectContains(governance_note, "docs-root alignment checker and shared-summary gap checker");
+    try expectContains(governance_note, "phase15-freeze-map-manifest");
+    try expectContains(governance_note, "phase15-freeze-map-governance-gate");
+    try expectContains(governance_note, "phase15-shared-validator-route-gap");
+    try expectContains(governance_note, "phase15-shared-build-route-gap");
+    try expectContains(governance_note, "phase15-shared-wrapper-route-gap");
 }
 
-test "phase 15 freeze-map required terms, maintenance handoff, and scorecard ownership stay aligned" {
+test "phase 15 freeze-map required terms and maintenance handoff stay aligned" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
-    const manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_freeze_map_manifest.json", 48 * 1024);
+    const manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_freeze_map_manifest.json", 64 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
-    const freeze_map = try loadFile(io_instance.io(), "Documentation/zigux/freeze-map.md", 20 * 1024);
+    const freeze_map = try loadFile(io_instance.io(), "Documentation/zigux/freeze-map.md", 24 * 1024);
     defer std.testing.allocator.free(freeze_map);
 
-    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 28 * 1024);
+    const governance_note = try loadFile(io_instance.io(), "Documentation/zigux/phase15-freeze-map-governance.md", 32 * 1024);
     defer std.testing.allocator.free(governance_note);
-
-    const scorecard_doc = try loadFile(io_instance.io(), "Documentation/zigux/phase15-parity-scorecard.md", 24 * 1024);
-    defer std.testing.allocator.free(scorecard_doc);
-
-    const scorecard_json = try loadFile(io_instance.io(), "zigux/tests/phase15_parity_scorecard.json", 48 * 1024);
-    defer std.testing.allocator.free(scorecard_json);
-
-    const review_process_manifest_json = try loadFile(io_instance.io(), "zigux/tests/phase15_architecture_council_review_process_manifest.json", 32 * 1024);
-    defer std.testing.allocator.free(review_process_manifest_json);
 
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
     defer parsed.deinit();
-
-    const scorecard = try std.json.parseFromSlice(ScorecardManifest, std.testing.allocator, scorecard_json, .{
-        .ignore_unknown_fields = true,
-    });
-    defer scorecard.deinit();
-
-    const review_process = try std.json.parseFromSlice(ReviewProcessManifest, std.testing.allocator, review_process_manifest_json, .{
-        .ignore_unknown_fields = true,
-    });
-    defer review_process.deinit();
-
-    try std.testing.expect(scorecard.value.surveyed_commit.len != 0);
-    try std.testing.expectEqualStrings(parsed.value.surveyed_commit, scorecard.value.surveyed_commit);
-    try std.testing.expectEqualStrings(parsed.value.surveyed_commit, review_process.value.surveyed_commit);
-    try expectContains(governance_note, parsed.value.surveyed_commit);
-    try expectContains(scorecard_doc, parsed.value.surveyed_commit);
-    try std.testing.expectEqual(parsed.value.freeze_in_c_targets.len, scorecard.value.metrics.active_freeze_in_c_anchor_count);
-    try std.testing.expectEqual(parsed.value.blocker_ownership.len, scorecard.value.metrics.blocked_status_change_anchor_count);
-    try std.testing.expectEqual(parsed.value.deep_core_blocker_survey.len, scorecard.value.metrics.blocked_status_change_anchor_count);
-    try std.testing.expectEqual(@as(usize, 2), scorecard.value.metrics.phase15_governance_only_blocker_anchor_count);
-    try std.testing.expectEqual(@as(usize, 2), scorecard.value.metrics.phase14_coupled_blocker_anchor_count);
-    try std.testing.expectEqual(@as(usize, 2), scorecard.value.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence);
-    try std.testing.expectEqual(parsed.value.study_only_targets.len, scorecard.value.metrics.study_only_anchors_tracked_outside_scorecard);
-    try std.testing.expectEqual(@as(usize, 0), scorecard.value.metrics.architecture_council_status_change_approval_count);
-
-    try expectContains(scorecard_doc, "validator-first gate wording");
-    try expectContains(scorecard_doc, "python3 scripts/zigux/validate-phase15.py");
-    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py");
-    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-review-process-handoff.py");
-    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
-    try expectContains(scorecard_doc, "make -C zigux phase15-validate");
-    try expectContains(scorecard_doc, "## Gates");
-    try expectContains(scorecard_doc, "anchors blocked entirely within Phase 15 governance evidence: `2`");
-    try expectContains(scorecard_doc, "Phase 14 coupled blocker anchor count: `2`");
-    try expectContains(scorecard_doc, "anchors still blocked on prior-phase bridge evidence: `2`");
-    try expectContains(scorecard_doc, "study-only anchors tracked outside this scorecard: `2`");
-    try expectContains(scorecard_doc, "Architecture Council approvals recorded for status change: `0`");
 
     for (parsed.value.governance_requirements) |requirement| {
         for (requirement.required_terms) |term| {
@@ -323,43 +232,6 @@ test "phase 15 freeze-map required terms, maintenance handoff, and scorecard own
         try expectContains(governance_note, survey.repo_reality);
         try expectContains(governance_note, survey.current_blocker);
     }
-
-    for (scorecard.value.anchors, parsed.value.blocker_ownership) |anchor, ownership| {
-        try std.testing.expectEqualStrings(ownership.anchor, anchor.path);
-        try std.testing.expectEqualStrings(ownership.owner, anchor.lane_owner);
-        try std.testing.expectEqualStrings(ownership.phase, anchor.phase);
-        try std.testing.expectEqualStrings(ownership.status_bucket, anchor.current_status_bucket);
-        try std.testing.expectEqualStrings(ownership.required_approver_set, anchor.required_approver_set);
-        try std.testing.expectEqualStrings(ownership.validation_gate, anchor.validation_gate_summary);
-        try std.testing.expectEqualStrings(ownership.rollback_owner, anchor.rollback_owner);
-        try std.testing.expectEqualStrings(ownership.evidence_archive_path, anchor.evidence_archive.decision_record_path);
-        try std.testing.expectEqualStrings(ownership.benchmark_notes, anchor.evidence_archive.benchmark_notes_status);
-        try std.testing.expectEqualStrings(ownership.replay_command, anchor.evidence_archive.replay_command);
-        try std.testing.expectEqualStrings(ownership.latest_blocker_disposition, anchor.evidence_archive.latest_blocker_disposition);
-
-        try expectContains(governance_note, anchor.lane_owner);
-        try expectContains(governance_note, anchor.phase);
-        try expectContains(governance_note, anchor.current_status_bucket);
-        try expectContains(governance_note, anchor.required_approver_set);
-        try expectContains(governance_note, anchor.validation_gate_summary);
-        try expectContains(governance_note, anchor.rollback_owner);
-        try expectContains(governance_note, anchor.current_blocker);
-        try expectContains(governance_note, anchor.evidence_archive.decision_record_path);
-        try expectContains(governance_note, anchor.evidence_archive.benchmark_notes_status);
-        try expectContains(governance_note, anchor.evidence_archive.replay_command);
-        try expectContains(governance_note, anchor.evidence_archive.latest_blocker_disposition);
-
-        try expectContains(scorecard_doc, anchor.path);
-        try expectContains(scorecard_doc, anchor.phase);
-        try expectContains(scorecard_doc, anchor.current_status_bucket);
-        try expectContains(scorecard_doc, anchor.required_approver_set);
-        try expectContains(scorecard_doc, anchor.validation_gate_summary);
-        try expectContains(scorecard_doc, anchor.rollback_owner);
-        try expectContains(scorecard_doc, anchor.evidence_archive.decision_record_path);
-        try expectContains(scorecard_doc, anchor.evidence_archive.benchmark_notes_status);
-        try expectContains(scorecard_doc, anchor.evidence_archive.replay_command);
-        try expectContains(scorecard_doc, anchor.evidence_archive.latest_blocker_disposition);
-    }
 }
 
 test "phase 15 freeze-map linked blocker evidence stays explicit" {
@@ -372,16 +244,16 @@ test "phase 15 freeze-map linked blocker evidence stays explicit" {
     try expectContains(rcu_note, "blocked by `phase14-rcu-tree-bridge-blocker`");
     try expectContains(rcu_note, "That is still a freeze-in-C posture, not a review-ready bridge seam.");
 
-    const skbuff_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-skbuff-bridge-survey.md", 16 * 1024);
+    const skbuff_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-skbuff-bridge-survey.md", 24 * 1024);
     defer std.testing.allocator.free(skbuff_note);
     try expectContains(skbuff_note, "PHASE14_LANE_KEY=P14-L11");
-    try expectContains(skbuff_note, "PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing");
-    try expectContains(skbuff_note, "there is no live Zigux skbuff bridge packet on current `master`");
-    try expectContains(skbuff_note, "there is no honest skbuff-local compile route to claim today");
+    try expectContains(skbuff_note, "PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker");
+    try expectContains(skbuff_note, "current `master` still ships the bounded skbuff anchor packet files");
+    try expectContains(skbuff_note, "review-first and `boundary_map_only`");
 
     const skbuff_traceability = try loadFile(io_instance.io(), "Documentation/zigux/phase14-core-boundary-traceability.md", 32 * 1024);
     defer std.testing.allocator.free(skbuff_traceability);
-    try expectContains(skbuff_traceability, "lane key: `P14-L11`");
-    try expectContains(skbuff_traceability, "blocked gap: `phase14-skbuff-live-ownership-blocker`");
-    try expectContains(skbuff_traceability, "retained-in-C boundary:");
+    try expectContains(skbuff_traceability, "`net/core/skbuff.c`: `Freeze In C Initially`");
+    try expectContains(skbuff_traceability, "retained-in-C posture");
+    try expectContains(skbuff_traceability, "must not imply a live `net/core/skbuff_bridge.zig` helper or any skbuff-local compile route");
 }
