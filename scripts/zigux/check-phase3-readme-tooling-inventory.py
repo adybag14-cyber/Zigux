@@ -20,8 +20,15 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate_phase3_selftest.py"),
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
+    Path("scripts/zigux/check-phase3-errptr-xarray.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
+    Path("zigux/kernel/export_shim.zig"),
     Path("zigux/helpers/unsafe_policy.zig"),
+    Path("zigux/tests/phase3_errptr_xarray_dump.zig"),
+    Path("zigux/tests/phase3_errptr_xarray_dump_build.zig"),
+    Path("zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c"),
+    Path("zigux/tests/fixtures/phase3_errptr_xarray/expected.json"),
+    Path("zigux/tests/fixtures/phase3_errptr_xarray_manifest.json"),
     Path("zigux/tests/phase3_policy_starter_packet.zig"),
 )
 
@@ -37,13 +44,23 @@ REQUIRED_MARKERS = (
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "scripts/zigux/check-phase3-errptr-xarray.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
     "zigux/helpers/unsafe_policy.zig",
     "zigux/kernel/export_shim.zig",
+    "zigux/tests/phase3_errptr_xarray_dump.zig",
+    "zigux/tests/phase3_errptr_xarray_dump_build.zig",
+    "zigux/tests/fixtures/phase3_errptr_xarray/phase3_errptr_xarray_c_harness.c",
+    "zigux/tests/fixtures/phase3_errptr_xarray/expected.json",
+    "zigux/tests/fixtures/phase3_errptr_xarray_manifest.json",
     "zigux/tests/phase3_policy_starter_packet.zig",
+)
+
+FORBIDDEN_MARKERS = (
+    "still return missing for `zigux/kernel/export_shim.zig`",
 )
 
 
@@ -71,6 +88,9 @@ def validate_repo(repo_root: Path) -> list[str]:
     for marker in REQUIRED_MARKERS:
         if marker not in readme_text:
             issues.append(f"missing scripts README marker: {marker}")
+    for marker in FORBIDDEN_MARKERS:
+        if marker in readme_text:
+            issues.append(f"forbidden scripts README marker: {marker}")
     return issues
 
 
@@ -110,8 +130,17 @@ def run_self_test() -> int:
             print("expected missing repo file was not reported")
             return 1
 
+        _populate_repo(root)
+        readme.write_text(_read(readme) + FORBIDDEN_MARKERS[0] + "\n", encoding="utf-8")
+        issues = validate_repo(root)
+        expected = f"forbidden scripts README marker: {FORBIDDEN_MARKERS[0]}"
+        if expected not in issues:
+            print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=fail")
+            print("expected forbidden README marker was not reported")
+            return 1
+
     print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
