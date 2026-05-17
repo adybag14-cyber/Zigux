@@ -21,6 +21,7 @@ TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
 
 REQUIRED_FILES = (
     PHASE1_CLOSURE_REL,
@@ -32,6 +33,7 @@ REQUIRED_FILES = (
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
     MANIFEST_REL,
+    FIND_BIT_HELPER_REL,
 )
 
 EXPECTED_HELPERS = [
@@ -68,6 +70,75 @@ EXPECTED_BITMAP_HELPER_TEST_ANCHORS = [
     'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
     'test "bitmap allocation helpers size zero fill and reset optionals"',
 ]
+
+EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS = [
+    'test "find first and next set bits across words"',
+    'test "find zero bits respects the declared bit count"',
+    'test "find and bit returns the first shared set bit"',
+    'test "underscore entry points reuse the public helper behavior"',
+    'test "single-word next scans honor start masks"',
+    'test "single-word first scans clamp to the declared bit window"',
+    'test "single-word next scans clamp partial windows before returning nbits"',
+    'test "word-boundary next scans start fresh on the next word"',
+    'test "zero-bit windows return without reading bitmap words"',
+    'test "zero-sized scans ignore populated backing words"',
+    'test "next scans past nbits return without reading bitmap words"',
+    'test "tail mask ignores set bits beyond nbits"',
+    'test "tail mask ignores zero bits beyond nbits"',
+    'test "tail mask ignores shared bits beyond nbits"',
+    'test "tail-word next set scans skip earlier in-range matches before clamping"',
+    'test "clump8 scans align to the containing byte and return its value"',
+    'test "clump8 scans keep tail bytes reachable from partial final words"',
+    'test "clump8 scans mask tail bits beyond nbits"',
+    'test "clump8 scans leave the caller byte untouched when no set bit remains"',
+    'test "getValue8 reads aligned bytes from bitmap words"',
+    'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    'test "find last bit scans backward across words"',
+    'test "find last bit ignores storage beyond an exact word boundary"',
+    'test "find last bit clamps tail words to nbits"',
+    'test "find last bit returns nbits when no set bits remain"',
+    'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
+    'test "low-level underscore aliases mirror the primary find helpers"',
+    'test "Linux-style aliases mirror the primary find helpers"',
+]
+
+EXPECTED_FIND_BIT_REVIEW_FIELDS = {
+    "same_word_start_masks": 'test "single-word next scans honor start masks"',
+    "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "tail_word_inclusive_boundary_anchor": 'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
+    "zero_bit_window": 'test "zero-bit windows return without reading bitmap words"',
+    "zero_sized_short_circuit_anchor": 'test "zero-sized scans ignore populated backing words"',
+    "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
+    "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
+    "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers"',
+    "tail_word_set_skip_anchor": 'test "tail-word next set scans skip earlier in-range matches before clamping"',
+    "tail_word_skip_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
+    "tail_clamp_fixture_keys": [
+        "tail_clamped_first",
+        "tail_clamped_next",
+        "tail_zero_clamped_first",
+        "tail_zero_clamped_next",
+        "tail_and_clamped_first",
+        "tail_and_clamped_next",
+        "tail_clamped_last",
+        "tail_clamped_empty_last",
+    ],
+    "review_packet_summary": (
+        "shared Phase 1 fixture keys own the exact tail-clamped find_bit replay, while "
+        "helper-local anchors keep same-word start-mask, head-word and tail-word "
+        "inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, "
+        "tail-word set or zero or shared skip, underscore-alias, and Linux-style alias "
+        "behavior review-visible on current master"
+    ),
+    "next_safe_step_note": (
+        "If this helper lane reopens, keep find_bit parked unless a fresh reread finds "
+        "direct-anchor drift inside same-word start-mask, inclusive-boundary, "
+        "zero-window, zero-sized short-circuit, past-nbits, underscore-alias, "
+        "Linux-style alias, or tail-word skip anchors, or committed tail-clamped replay "
+        "drift; do not reopen older saved validator cues or neighboring helper families."
+    ),
+}
 
 EXPECTED_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
@@ -206,6 +277,40 @@ def collect_failures(root: Path) -> list[str]:
         )
     )
 
+    find_bit_review = review_anchors.get("tools/lib/find_bit.zig")
+    if not isinstance(find_bit_review, dict):
+        failures.append(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/find_bit.zig:expected=dict:actual={type(find_bit_review).__name__}"
+        )
+        return failures
+
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/find_bit.zig:helper_test_anchors",
+            find_bit_review.get("helper_test_anchors"),
+            EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+        )
+    )
+
+    for key, expected in EXPECTED_FIND_BIT_REVIEW_FIELDS.items():
+        failures.extend(
+            require_exact_value(
+                f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/find_bit.zig:{key}",
+                find_bit_review.get(key),
+                expected,
+            )
+        )
+
+    find_bit_text = load_text(root, FIND_BIT_HELPER_REL)
+    for anchor in EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS:
+        failures.extend(
+            require_exact_occurrence(
+                find_bit_text,
+                f"{FIND_BIT_HELPER_REL.as_posix()}:helper_test_anchor",
+                anchor,
+            )
+        )
+
     return failures
 
 
@@ -254,13 +359,18 @@ def make_fixture_tree(root: Path) -> None:
                 "review_anchors": {
                     "tools/lib/bitmap.zig": {
                         "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                    }
+                    },
+                    "tools/lib/find_bit.zig": {
+                        "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                        **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                    },
                 },
             },
             indent=2,
         )
         + "\n",
     )
+    write_text(root / FIND_BIT_HELPER_REL, "\n".join(EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS) + "\n")
 
 
 def run_self_test() -> int:
@@ -308,7 +418,11 @@ def run_self_test() -> int:
                         "review_anchors": {
                             "tools/lib/bitmap.zig": {
                                 "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            }
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
                         },
                     },
                     indent=2,
@@ -330,7 +444,11 @@ def run_self_test() -> int:
                         "review_anchors": {
                             "tools/lib/bitmap.zig": {
                                 "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            }
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
                         },
                     },
                     indent=2,
@@ -352,7 +470,11 @@ def run_self_test() -> int:
                         "review_anchors": {
                             "tools/lib/bitmap.zig": {
                                 "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            }
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
                         },
                     },
                     indent=2,
@@ -374,12 +496,80 @@ def run_self_test() -> int:
                         "review_anchors": {
                             "tools/lib/bitmap.zig": {
                                 "helper_test_anchors": ["drift"],
-                            }
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
                         },
                     },
                     indent=2,
                 )
                 + "\n",
+            ),
+            False,
+        ),
+        (
+            "bad_find_bit_helper_anchors",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        "phase": "Phase 1",
+                        "status": "closed",
+                        "helper_count": len(EXPECTED_HELPERS),
+                        "helpers": EXPECTED_HELPERS,
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": ["drift"],
+                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+            False,
+        ),
+        (
+            "bad_find_bit_review_field",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        "phase": "Phase 1",
+                        "status": "closed",
+                        "helper_count": len(EXPECTED_HELPERS),
+                        "helpers": EXPECTED_HELPERS,
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                                **(EXPECTED_FIND_BIT_REVIEW_FIELDS | {"same_word_start_masks": "drift"}),
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+            False,
+        ),
+        (
+            "missing_find_bit_source_anchor",
+            lambda root: write_text(
+                root / FIND_BIT_HELPER_REL,
+                replace_once(
+                    load_text(root, FIND_BIT_HELPER_REL),
+                    EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS[4] + "\n",
+                    "",
+                ),
             ),
             False,
         ),
