@@ -45,6 +45,19 @@ test "bitmap starter helpers keep first set first zero and weight aligned" {
     try testing.expectEqual(@as(u32, 4), summary.weight);
 }
 
+test "bitmap starter helpers keep an all-clear bounded window distinct from the empty sentinel" {
+    var backing = [_]usize{0};
+    const view = bitmap_view.viewFromWords(backing[0..], 16);
+    const summary = bitmap_view.summarize(view);
+
+    try testing.expect(bitmap_view.isValid(view));
+    try testing.expect(!bitmap_view.testBit(view, 0));
+    try testing.expect(!bitmap_view.testBit(view, 15));
+    try testing.expectEqual(@as(u32, 16), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap starter helpers keep a full bounded bitmap from leaking tail zeros" {
     var backing = [_]usize{
         ~@as(usize, 0),
@@ -89,6 +102,22 @@ test "cpumask starter helpers keep cpu membership reviewable" {
     try testing.expectEqual(@as(u32, 0), summary.first_set);
     try testing.expectEqual(@as(u32, 1), summary.first_zero);
     try testing.expectEqual(@as(u32, 3), summary.weight);
+}
+
+test "cpumask starter helpers keep an all-clear bounded window distinct from the empty sentinel" {
+    var backing = [_]usize{0};
+    const view = cpumask_view.viewFromWords(backing[0..], 16);
+    const summary = cpumask_view.summarize(view);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expect(!cpumask_view.cpuIsSet(view, 0));
+    try testing.expect(!cpumask_view.cpuIsSet(view, 15));
+    try testing.expectEqual(@as(u32, 16), cpumask_view.firstCpu(view));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(view));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(view));
+    try testing.expectEqual(@as(u32, 16), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
 test "cpumask starter helpers cover cross-word windows and tail masking" {
