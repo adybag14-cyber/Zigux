@@ -28,6 +28,9 @@ SURVEY_MARKERS = [
     "helper-first MMIO safety survey lane around `lib/devres.c`",
     "keeps `devm_iounmap()` pointer matching exact through the dedicated `planManagedIounmap()` planner",
     "`devm_ioremap()`, `devm_ioremap_uc()`, `devm_ioremap_wc()`, and `devm_ioremap_np()` wrapper planners",
+    "zigux/tests/phase13_devres_manifest.json",
+    "zigux/tests/phase13_devres_boundary_evidence.zig",
+    "helper-only DMA/scatterlist boundary",
     ".provides_iounmap_call_planning = true",
     ".provides_ioremap_plain_wrapper_planning = true",
     ".provides_ioremap_uc_wrapper_planning = true",
@@ -72,6 +75,9 @@ TEST_MARKERS = [
     'test "phase13 devres non-posted ioremap wrapper forces the NP lifetime path" {',
     'test "phase13 devres non-posted ioremap wrapper frees the release record on map failure" {',
     'test "device tree iomap success preserves reported size and mapping plan" {',
+    'test "phase13 devres preserves translated size when devm_of_iomap hits downstream remap failure" {',
+    'test "phase13 devres preserves translated size when devm_of_iomap hits downstream region busy" {',
+    'test "phase13 devres propagates pretty-name allocation failure through devm_of_iomap planning" {',
 ]
 
 MANIFEST_MARKERS = [
@@ -83,6 +89,15 @@ MANIFEST_MARKERS = [
     '"phase13-devres-boundary-evidence-gate"',
     '"phase13-devres-live-region-reservation"',
     '"phase13-devres-live-release-region-mutation"',
+    '"phase13-devres-live-device-tree-walk"',
+    '"phase13-devres-live-arch-memtype-state"',
+    '"phase13-devres-live-dma-mappings"',
+    '"phase13-devres-live-scatterlist-ownership"',
+    '"status": "blocked_on_live_mmio_state"',
+    '"status": "blocked_on_live_device_tree_state"',
+    '"status": "blocked_on_live_arch_memtype_state"',
+    '"status": "blocked_on_live_dma_state"',
+    '"status": "blocked_on_live_scatterlist_state"',
 ]
 
 REVIEWABILITY_MARKERS = [
@@ -104,6 +119,8 @@ BOUNDARY_REPLAY_MARKERS = [
     "live release-region mutation",
     "live device-tree walking",
     "live arch memtype state transitions",
+    "phase13 devres helper stays planner-only across region, device-tree, and arch memtype boundaries",
+    "phase13 devres planners keep blocked region and translated-resource boundaries in planning-only form",
     "phase13 devres planners keep blocked arch memtype boundaries in detach-bookkeeping form",
 ]
 
@@ -217,12 +234,12 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         write_text(
             root / "zigux/tests/phase13_devres_manifest.json",
-            "\n".join(marker for marker in MANIFEST_MARKERS if marker != '"phase13-devres-boundary-evidence-gate"') + "\n",
+            "\n".join(marker for marker in MANIFEST_MARKERS if marker != '"phase13-devres-live-dma-mappings"') + "\n",
         )
         assert_only(
             validate(root),
-            ['manifest:missing_marker:"phase13-devres-boundary-evidence-gate"'],
-            "manifest_missing_boundary_gate_failed",
+            ['manifest:missing_marker:"phase13-devres-live-dma-mappings"'],
+            "manifest_missing_dma_gap_failed",
         )
         case_count += 1
 
@@ -251,14 +268,14 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in BOUNDARY_REPLAY_MARKERS
-                if marker != "live arch memtype state transitions"
+                if marker != "phase13 devres planners keep blocked region and translated-resource boundaries in planning-only form"
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ["boundary:missing_marker:live arch memtype state transitions"],
-            "boundary_missing_arch_memtype_failed",
+            ["boundary:missing_marker:phase13 devres planners keep blocked region and translated-resource boundaries in planning-only form"],
+            "boundary_missing_region_planning_failed",
         )
         case_count += 1
 
