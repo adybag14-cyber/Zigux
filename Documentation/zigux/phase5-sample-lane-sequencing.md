@@ -34,6 +34,7 @@ Fresh repo-first inspection in this run confirmed that current `master` keeps th
 - `Documentation/zigux/phase5-kobject-sample-survey.md`
 - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
+- `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
@@ -99,12 +100,13 @@ Keep `zigux/tests/phase5_build.zig` explicit as current public-tree-backed compa
 Keep the trace-events anchor aligned with:
 
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
+- `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `samples/zigux/trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-Keep `zigux/tests/phase5_build.zig` explicit as current public-tree-backed companion evidence rather than direct authenticated-contents proof.
+Keep `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` explicit as the shared reminder for the selected-string plus `iter=%d` formatting cue, and keep `zigux/tests/phase5_build.zig` explicit as current public-tree-backed companion evidence rather than direct authenticated-contents proof.
 
 ## Sequencing rules
 
@@ -132,7 +134,7 @@ Keep the no-extra-sample helper-family boundaries explicit too:
 - there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`
 - there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`
 - there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample on current `master`
-- there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`
+- there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`; keep that formatting boundary tied to `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` and `Documentation/zigux/phase5-trace-events-sample-survey.md` instead of implying a fifth Phase 5 sample
 
 Keep those helper families under their existing Phase 1, Phase 4, Phase 7, or Phase 9 owner packets instead of implying a fifth or sixth Phase 5 sample.
 
