@@ -1,0 +1,59 @@
+{
+  "lane_key": "P5-L18",
+  "phase": "Phase 5",
+  "surveyed_commit": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
+  "anchor": "samples/kprobes/kretprobe_example.c",
+  "sample_path": "samples/zigux/kretprobe_example.zig",
+  "validation_entrypoint": "zig test samples/zigux/kretprobe_example.zig && zig test --dep kretprobe_example_sample -Mroot=zigux/tests/phase5_kretprobe_example.zig -Mkretprobe_example_sample=samples/zigux/kretprobe_example.zig && zig test zigux/tests/phase5_kretprobe_example_survey.zig",
+  "review_prompts": [
+    "descriptor keeps the Linux anchor path explicit and leaves requires_runtime_substrate false while provides_selfcheck stays true",
+    "the manifest and survey test still describe the exact skip, return-value, duration, and missed-summary contract run through the focused kretprobe sample checks",
+    "the sample keeps the Linux my_data-style private entry timestamp explicit and reviewable instead of burying it in unstructured state",
+    "symbol retargeting stays a pre-init in-memory choice instead of implying module_param or runtime registration parity",
+    "sample-behavior changes update the manifest-backed replay and teardown contract instead of leaving reviewers to infer it from code alone",
+    "docs and tests still keep register_kretprobe, unregister_kretprobe, pt_regs return extraction, and loadable module wiring out of scope for this Phase 5 sample"
+  ],
+  "exact_checks": [
+    {
+      "id": "default-symbol",
+      "kind": "anchor_shape",
+      "expected": "the in-memory sample keeps kernel_clone as the default symbol name while allowing pre-init retargeting"
+    },
+    {
+      "id": "skip-kernel-thread",
+      "kind": "bounded_handler_path",
+      "expected": "runAnchorReplay checks that an entry with no current mm is skipped instead of arming a tracked instance"
+    },
+    {
+      "id": "private-data-shape",
+      "kind": "anchor_shape",
+      "expected": "the in-memory sample keeps a single entry-timestamp private-data record so the Linux my_data shape remains explicit as one i64-sized word"
+    },
+    {
+      "id": "return-duration",
+      "kind": "bounded_handler_path",
+      "expected": "the replay records retval 42 and duration 75 ns after an entry timestamp of 100 and a return timestamp of 175"
+    },
+    {
+      "id": "missed-summary",
+      "kind": "bounded_summary",
+      "expected": "the replay records one missed instance so the exit-side nmissed summary remains reviewable without claiming register_kretprobe pressure parity"
+    },
+    {
+      "id": "outstanding-instance-boundary",
+      "kind": "ownership_lifetime",
+      "expected": "exit rejects an armed sample until retHandler clears the outstanding tracked instance"
+    },
+    {
+      "id": "post-exit-rejection",
+      "kind": "ownership_lifetime",
+      "expected": "after exit the sample rejects later recordMissedInstance or handler calls"
+    }
+  ],
+  "non_goals": [
+    "register_kretprobe parity",
+    "unregister_kretprobe parity",
+    "pt_regs or regs_return_value parity",
+    "loadable module wiring"
+  ]
+}
