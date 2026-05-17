@@ -18,6 +18,24 @@ DEFAULT_ROOT = (
 
 BUILD_FILE_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
+DRIVER_LANE_SEQUENCING_PATH = Path("Documentation/zigux/phase11-driver-lane-sequencing.md")
+
+REQUIRED_DRIVER_LANE_MARKERS = (
+    "`Documentation/zigux/phase11-validation-matrix-gap-survey.md`",
+    "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
+    "`scripts/zigux/check-phase11-build-inventory.py`",
+    "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
+    "`zigux/tests/fixtures/phase11_build_inventory.json`",
+    "`Documentation/zigux/phase11-hvc-console-survey.md`",
+    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+    "`Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
+    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+    "`zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
+    "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
+    "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "must not recreate missing shared-contract or make-route claims from historical wording alone",
+    "did not rematerialize `Documentation/zigux/phase11-shared-replay-contract.md`",
+)
 
 REQUIRED_BUILD_TEXT_MARKERS = (
     'phase11_hvc_cleanup_packet_proof.zig',
@@ -133,6 +151,13 @@ def expect_exact_string_list(label: str, actual: object, expected: tuple[str, ..
         raise CheckError(f"{label} does not match the current-head Phase 11 packet")
 
 
+def require_text_markers(path: Path, markers: tuple[str, ...]) -> None:
+    text = read_text(path)
+    for marker in markers:
+        if marker not in text:
+            raise CheckError(f"missing marker in {path}: {marker}")
+
+
 def run_check(root: Path) -> None:
     build_text = read_text(root / BUILD_FILE_PATH)
     for marker in REQUIRED_BUILD_TEXT_MARKERS:
@@ -201,6 +226,8 @@ def run_check(root: Path) -> None:
     if replay_pairs != REQUIRED_REPLAY_MARKERS:
         raise CheckError("shared_replay_markers does not match the current-head HVC packet")
 
+    require_text_markers(root / DRIVER_LANE_SEQUENCING_PATH, REQUIRED_DRIVER_LANE_MARKERS)
+
 
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -254,9 +281,29 @@ pub fn build(b: *std.Build) void {
 """
 
 
+FIXTURE_DRIVER_LANE_TEXT = """# Phase 11 Driver Lane Sequencing
+
+- `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+- `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-matrix-gap-survey.py`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
+- `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- must not recreate missing shared-contract or make-route claims from historical wording alone
+- did not rematerialize `Documentation/zigux/phase11-shared-replay-contract.md`
+"""
+
+
 def build_fixture(root: Path) -> None:
     write(root / BUILD_FILE_PATH, FIXTURE_BUILD_TEXT)
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
+    write(root / DRIVER_LANE_SEQUENCING_PATH, FIXTURE_DRIVER_LANE_TEXT)
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -328,6 +375,19 @@ def run_self_test() -> int:
         inventory["shared_replay_markers"] = inventory["shared_replay_markers"][:-1]
         write(wrong_replay_marker / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_replay_marker, "shared_replay_markers does not match")
+        case_count += 1
+
+        missing_driver_marker = tmpdir / "missing_driver_marker"
+        shutil.copytree(fixture, missing_driver_marker, dirs_exist_ok=True)
+        write(
+            missing_driver_marker / DRIVER_LANE_SEQUENCING_PATH,
+            read_text(missing_driver_marker / DRIVER_LANE_SEQUENCING_PATH).replace(
+                "- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_driver_marker, "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`")
         case_count += 1
 
         print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
