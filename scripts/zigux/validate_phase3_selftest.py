@@ -86,6 +86,23 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
 
+        validator_support_path = SELFTEST_COMMANDS[-2][0]
+        (root / validator_support_path).unlink()
+        missing = validate_script_list(root)
+        expected = f"missing selftest script: {validator_support_path.as_posix()}"
+        if expected not in missing:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected validator-support script omission was not reported")
+            return 1
+
+        for rel_path, _args in SELFTEST_COMMANDS:
+            path = root / rel_path
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(
+                "#!/usr/bin/env python3\n" "raise SystemExit(0)\n",
+                encoding="utf-8",
+            )
+
         last_path = SELFTEST_COMMANDS[-1][0]
         (root / last_path).unlink()
         missing = validate_script_list(root)
@@ -118,7 +135,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
-        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=4")
+        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=5")
         return 0
 
 
