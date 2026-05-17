@@ -516,6 +516,15 @@ def run_self_test() -> int:
         lambda: assert_contract_summary(bad_contract_base_order),
     )
 
+    bad_contract_base_duplicate = contract_lines.copy()
+    bad_contract_base_duplicate[2] = "ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(
+        ["helper_self_test", "helper_self_test", *EXPECTED_BASE_CONTRACT_CASES[2:]]
+    )
+    expect_assertion(
+        "contract_summary_case_order_drift",
+        lambda: assert_contract_summary(bad_contract_base_duplicate),
+    )
+
     bad_contract_repeat_count = contract_lines.copy()
     bad_contract_repeat_count[3] = (
         f"ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(EXPECTED_REPEAT_CONTRACT_CASES) - 1}"
@@ -534,6 +543,15 @@ def run_self_test() -> int:
         lambda: assert_contract_summary(bad_contract_repeat_order),
     )
 
+    bad_contract_repeat_duplicate = contract_lines.copy()
+    bad_contract_repeat_duplicate[4] = "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(
+        ["helper_self_test_repeat", "helper_self_test_repeat", *EXPECTED_REPEAT_CONTRACT_CASES[2:]]
+    )
+    expect_assertion(
+        "contract_summary_case_order_drift",
+        lambda: assert_contract_summary(bad_contract_repeat_duplicate),
+    )
+
     bad_contract_count = contract_lines.copy()
     bad_contract_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27"
     expect_assertion(
@@ -541,6 +559,15 @@ def run_self_test() -> int:
         lambda: assert_contract_summary(bad_contract_count),
     )
     covered_cases.append("contract_summary_case_count_drift")
+
+    bad_contract_duplicate = contract_lines.copy()
+    bad_contract_duplicate[6] = "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(
+        ["helper_self_test", "helper_self_test", *EXPECTED_CONTRACT_CASES[2:]]
+    )
+    expect_assertion(
+        "contract_summary_case_order_drift",
+        lambda: assert_contract_summary(bad_contract_duplicate),
+    )
 
     bad_contract_order = contract_lines.copy()
     bad_contract_order[6] = "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(
