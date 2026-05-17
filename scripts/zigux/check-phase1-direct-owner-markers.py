@@ -71,6 +71,34 @@ EXPECTED_ANTI_OVERLAP_RULE = (
     "helpers reopen only for their existing helper-local anchors or already-committed "
     "shared fixture keys."
 )
+EXPECTED_NEXT_SAFE_STEP_NOTES = {
+    "tools/lib/bitmap.zig": (
+        "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
+        "direct-anchor drift inside the current helper-local packet or committed shared "
+        "replay drift in the bitmap parity fields; do not restate bitmap alias, fill-tail, "
+        "cross-word scnprintf, or zero-bit helper anchors that current master no longer "
+        "ships directly."
+    ),
+    "tools/lib/find_bit.zig": (
+        "If this helper lane reopens, keep find_bit parked unless a fresh reread finds "
+        "direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, "
+        "zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or "
+        "tail-word skip anchors, or committed tail-clamped replay drift; do not reopen "
+        "older saved validator cues or neighboring helper families."
+    ),
+    "tools/lib/rbtree.zig": (
+        "If this helper lane reopens, keep the already-landed shared-replay promotion for "
+        "`cached_leftmost_return_serials` aligned across the committed fixture, shared "
+        "replay, and direct cached-root anchors; until another committed cached-root field "
+        "lands, insert-miss, leftmost-sync, cached-root alias, singleton-erase, "
+        "replacement, detach, and reseed behavior stay owned by direct helper-local anchors."
+    ),
+    "tools/lib/string.zig": (
+        "If this helper lane reopens, keep the helper-local sysfs review anchors aligned "
+        "across the string review packet and this lane note unless dedicated shared sysfs "
+        "fixture keys land; do not reopen missing closure-side validator names by default."
+    ),
+}
 
 REQUIRED_EXACT_LINES = {
     LANE_NOTE_REL: {
@@ -79,7 +107,7 @@ REQUIRED_EXACT_LINES = {
         "find_bit_direct_owner": "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, and tail-word skip anchors plus the committed tail-clamped find_bit replay fields already emitted by the shared C harness and consumed by the shared fixture`",
         "rbtree_direct_owner": "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed shared replay already owns duplicate-search parity through find(), findFirst(), nextMatch(), and matchIterator() plus the parked cached_leftmost_return_serials witness`",
         "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
-        "find_bit_or_packet_note": "- current `master` also carries the newer direct `test \"find or bit returns the next set bit from either bitmap\"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it",
+        "find_bit_or_packet_note": "- current `master` also carries the newer direct `test \\\"find or bit returns the next set bit from either bitmap\\\"` proof inside `tools/lib/find_bit.zig`, so notes-only rereads should treat the OR-path as part of the existing helper-local `find_bit` anchor family instead of inventing a new shared replay packet for it",
         "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
         "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
         "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; treat the older `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` names as historical packet members until current `master` exposes them again`",
@@ -90,10 +118,10 @@ REQUIRED_EXACT_LINES = {
         "shared_reminder_next_step": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=leave the already-aligned shared reminder packet parked and reopen helper-local follow-through only from the helper-specific next-safe-step markers below unless Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, scripts/zigux/README.md, scripts/zigux/check-phase1-string-review-packet.py, or scripts/zigux/check-phase1-direct-owner-markers.py drifts`",
         "bitmap_next_safe_step": "- `PHASE1_BITMAP_NEXT_SAFE_STEP=bitmap stays parked unless a fresh reread finds new direct-anchor drift or committed shared replay drift; do not reopen older closure-side or validator-route cue names by default`",
         "find_bit_next_safe_step": "- `PHASE1_FIND_BIT_NEXT_SAFE_STEP=find_bit reopens only for direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias, Linux-style alias, or tail-word skip anchors, or for committed tail-clamped replay drift; do not reopen older saved validator cues or neighboring helper families`",
-        "find_bit_or_next_step_note": "- the already-landed OR-path proof in `test \"find or bit returns the next set bit from either bitmap\"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership",
+        "find_bit_or_next_step_note": "- the already-landed OR-path proof in `test \\\"find or bit returns the next set bit from either bitmap\\\"` belongs to that same `find_bit` direct-anchor packet, so if it drifts, refresh the existing helper-family notes instead of widening shared replay ownership",
         "find_bit_clump_next_step_note": "- the existing byte-clump and `findLastBit()` proofs belong to that same `find_bit` direct-anchor packet too, so if one of those helper-local anchors drifts, refresh the current helper-family note before widening shared replay ownership",
         "rbtree_next_safe_step": "- `PHASE1_RBTREE_NEXT_SAFE_STEP=rbtree reopens only to keep the already-landed cached_leftmost_return_serials shared replay aligned across the manifest, direct-owner note, and any shared parity gates, or for drift inside the still-helper-local cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors; do not batch a second widening into the same run`",
-        "manifest_tie_breaker_note": "- `zigux/tests/fixtures/phase1_helper_manifest.json` now records helper-local `next_safe_step_note` entries for `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`; treat those helper-specific manifest notes plus the `PHASE1_*_NEXT_SAFE_STEP` lines below as the authoritative tie-breakers instead of reopening a helper family from older saved cues or missing shared-validator paths.",
+        "manifest_tie_breaker_note": "- `zigux/tests/fixtures/phase1_helper_manifest.json` now records helper-local `next_safe_step_note` entries for `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig`; treat those helper-specific manifest notes plus the `PHASE1_*_NEXT_SAFE_STEP` lines below as the authoritative tie-breakers instead of reopening a helper family from older saved cues or missing shared-validator paths.`",
         "string_next_safe_step": "- `PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture drift; keep the helper-local sysfs review anchors aligned across the string review packet and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing closure-side validator names by default`",
     },
     DOCS_ROOT_REL: {
@@ -235,6 +263,28 @@ def collect_direct_owner_failures(root: Path) -> list[str]:
         )
     )
 
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        failures.append(
+            f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"
+        )
+        return failures
+
+    for helper_path, expected_note in EXPECTED_NEXT_SAFE_STEP_NOTES.items():
+        review_anchor = review_anchors.get(helper_path)
+        if not isinstance(review_anchor, dict):
+            failures.append(
+                f"{MANIFEST_REL.as_posix()}:review_anchors.{helper_path}:expected=dict:actual={type(review_anchor).__name__}"
+            )
+            continue
+        failures.extend(
+            require_exact_value(
+                f"{MANIFEST_REL.as_posix()}:review_anchors.{helper_path}.next_safe_step_note",
+                review_anchor.get("next_safe_step_note"),
+                expected_note,
+            )
+        )
+
     return failures
 
 
@@ -250,6 +300,10 @@ def sample_text(relative_path: Path) -> str:
 
 
 def sample_manifest() -> str:
+    review_anchors = {
+        helper_path: {"next_safe_step_note": note}
+        for helper_path, note in EXPECTED_NEXT_SAFE_STEP_NOTES.items()
+    }
     return (
         json.dumps(
             {
@@ -263,6 +317,7 @@ def sample_manifest() -> str:
                     "rule_summary": EXPECTED_RULE_SUMMARY,
                     "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
                 },
+                "review_anchors": review_anchors,
             },
             indent=2,
         )
@@ -317,6 +372,15 @@ def run_self_test() -> int:
                 "manifest",
             ),
         ]
+    )
+    cases.extend(
+        (
+            f"manifest_{helper_path.split('/')[-1].replace('.zig', '')}_next_safe_step",
+            MANIFEST_REL,
+            ("review_anchors", helper_path, "next_safe_step_note"),
+            "manifest",
+        )
+        for helper_path in EXPECTED_NEXT_SAFE_STEP_NOTES
     )
 
     for name, relative_path, needle, operation in cases:
