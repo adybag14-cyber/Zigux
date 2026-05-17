@@ -327,6 +327,13 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
+        manifest["current_direct_readback_companions"][4] = "zigux/tests/phase6_helper_parity_manifest.json"
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "direct-readback companions mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = json.loads(read_text(manifest_path))
         manifest["lane_scope"] = "shared helper-evidence rows only"
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "lane-scope marker mismatch")
@@ -342,6 +349,13 @@ def run_self_test() -> None:
 
         manifest = json.loads(read_text(manifest_path))
         manifest["helpers"][0]["checker_surfaces"] = manifest["helpers"][0]["checker_surfaces"][1:]
+        write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "helper packet mismatch")
+        cases_run += 1
+        scaffold_repo(root)
+
+        manifest = json.loads(read_text(manifest_path))
+        manifest["helpers"][2]["current_review_posture"] = "direct-helper-readback-restored"
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "helper packet mismatch")
         cases_run += 1
