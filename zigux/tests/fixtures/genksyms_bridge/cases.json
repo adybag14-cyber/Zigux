@@ -117,6 +117,14 @@
     "expected": "version_before_short_help_expected.json"
   },
   {
+    "name": "repeated_version",
+    "argv": [
+      "-VV"
+    ],
+    "mode": "process_json",
+    "expected": "repeated_version_expected.json"
+  },
+  {
     "name": "unsupported_long_option",
     "argv": [
       "--unknown"
