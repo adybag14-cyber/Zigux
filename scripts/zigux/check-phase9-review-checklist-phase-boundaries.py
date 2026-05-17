@@ -18,6 +18,7 @@ def infer_repo_root() -> Path:
 
 
 ROOT = infer_repo_root()
+DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -35,6 +36,13 @@ LANE_SEQUENCING_BACKLOG_MARKER = "does not currently expose the broader shared r
 TESTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 TESTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 TESTS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
+DOCS_README_PHASE9_NOTES_MARKER = "Phase 9 notes - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`"
+DOCS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
+DOCS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
+DOCS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
+DOCS_README_BACKLOG_MARKER = "does not currently expose the older shared runtime-loader packet that earlier reminder surfaces described"
+DOCS_README_PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
+DOCS_README_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
 
 CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
@@ -58,6 +66,16 @@ TESTS_README_REQUIRED_MARKERS = [
     TESTS_README_LIFECYCLE_MARKER,
 ]
 
+DOCS_README_REQUIRED_MARKERS = [
+    DOCS_README_PHASE9_NOTES_MARKER,
+    DOCS_README_TRACE_EVENTS_SAMPLE_MARKER,
+    DOCS_README_SELFTEST_HOOK_MARKER,
+    DOCS_README_LIFECYCLE_MARKER,
+    DOCS_README_BACKLOG_MARKER,
+    DOCS_README_PHASE2_BOUNDARY_MARKER,
+    DOCS_README_PHASE3_BOUNDARY_MARKER,
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -70,9 +88,12 @@ def write_text(path: Path, content: str) -> None:
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
+    docs_readme_path = root / DOCS_README_PATH
     checklist_path = root / REVIEW_CHECKLIST_PATH
     lane_sequencing_path = root / LANE_SEQUENCING_PATH
     tests_readme_path = root / TESTS_README_PATH
+    if not docs_readme_path.exists():
+        failures.append(f"missing_file:{DOCS_README_PATH}")
     if not checklist_path.exists():
         failures.append(f"missing_file:{REVIEW_CHECKLIST_PATH}")
     if not lane_sequencing_path.exists():
@@ -81,6 +102,11 @@ def validate(root: Path) -> list[str]:
         failures.append(f"missing_file:{TESTS_README_PATH}")
     if failures:
         return failures
+
+    docs_readme = read_text(root, DOCS_README_PATH)
+    for marker in DOCS_README_REQUIRED_MARKERS:
+        if marker not in docs_readme:
+            failures.append(f"missing_marker:{DOCS_README_PATH}:{marker}")
 
     checklist = read_text(root, REVIEW_CHECKLIST_PATH)
     for marker in CHECKLIST_REQUIRED_MARKERS:
@@ -98,6 +124,14 @@ def validate(root: Path) -> list[str]:
             failures.append(f"missing_marker:{TESTS_README_PATH}:{marker}")
 
     return failures
+
+
+def build_docs_readme_fixture_text() -> str:
+    return f"""# Zigux Documentation
+
+{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py` - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while current `master` {DOCS_README_BACKLOG_MARKER}.
+- the same shared Phase 9 summary should keep the older non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {DOCS_README_PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {DOCS_README_PHASE3_BOUNDARY_MARKER}.
+"""
 
 
 def build_fixture_text() -> str:
@@ -138,9 +172,11 @@ def expect_failure(root: Path, expected: str) -> None:
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase9-review-checklist-boundaries-"))
     try:
+        docs_readme_path = base / DOCS_README_PATH
         fixture_path = base / REVIEW_CHECKLIST_PATH
         lane_sequencing_path = base / LANE_SEQUENCING_PATH
         tests_readme_path = base / TESTS_README_PATH
+        write_text(docs_readme_path, build_docs_readme_fixture_text())
         write_text(fixture_path, build_fixture_text())
         write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
         write_text(tests_readme_path, build_tests_readme_fixture_text())
@@ -148,7 +184,16 @@ def run_self_test() -> int:
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
+        for marker in DOCS_README_REQUIRED_MARKERS:
+            write_text(docs_readme_path, build_docs_readme_fixture_text().replace(marker, "", 1))
+            write_text(fixture_path, build_fixture_text())
+            write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
+            write_text(tests_readme_path, build_tests_readme_fixture_text())
+            expect_failure(base, f"missing_marker:{DOCS_README_PATH}:{marker}")
+            write_text(docs_readme_path, build_docs_readme_fixture_text())
+
         for marker in CHECKLIST_REQUIRED_MARKERS:
+            write_text(docs_readme_path, build_docs_readme_fixture_text())
             write_text(fixture_path, build_fixture_text().replace(marker, "", 1))
             write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
             write_text(tests_readme_path, build_tests_readme_fixture_text())
@@ -156,6 +201,7 @@ def run_self_test() -> int:
             write_text(fixture_path, build_fixture_text())
 
         for marker in LANE_SEQUENCING_REQUIRED_MARKERS:
+            write_text(docs_readme_path, build_docs_readme_fixture_text())
             write_text(fixture_path, build_fixture_text())
             write_text(lane_sequencing_path, build_lane_sequencing_fixture_text().replace(marker, "", 1))
             write_text(tests_readme_path, build_tests_readme_fixture_text())
@@ -163,20 +209,30 @@ def run_self_test() -> int:
             write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
 
         for marker in TESTS_README_REQUIRED_MARKERS:
+            write_text(docs_readme_path, build_docs_readme_fixture_text())
             write_text(fixture_path, build_fixture_text())
             write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
             write_text(tests_readme_path, build_tests_readme_fixture_text().replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{TESTS_README_PATH}:{marker}")
             write_text(tests_readme_path, build_tests_readme_fixture_text())
 
+        (base / DOCS_README_PATH).unlink()
+        expect_failure(base, f"missing_file:{DOCS_README_PATH}")
+        write_text(docs_readme_path, build_docs_readme_fixture_text())
+        write_text(fixture_path, build_fixture_text())
+        write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
+        write_text(tests_readme_path, build_tests_readme_fixture_text())
+
         (base / REVIEW_CHECKLIST_PATH).unlink()
         expect_failure(base, f"missing_file:{REVIEW_CHECKLIST_PATH}")
+        write_text(docs_readme_path, build_docs_readme_fixture_text())
         write_text(fixture_path, build_fixture_text())
         write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
         write_text(tests_readme_path, build_tests_readme_fixture_text())
 
         (base / LANE_SEQUENCING_PATH).unlink()
         expect_failure(base, f"missing_file:{LANE_SEQUENCING_PATH}")
+        write_text(docs_readme_path, build_docs_readme_fixture_text())
         write_text(fixture_path, build_fixture_text())
         write_text(lane_sequencing_path, build_lane_sequencing_fixture_text())
         write_text(tests_readme_path, build_tests_readme_fixture_text())
@@ -187,6 +243,8 @@ def run_self_test() -> int:
         shutil.rmtree(base, ignore_errors=True)
 
     print("PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SELF_TEST=pass")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_DOCS_README_MARKER_COUNT={len(DOCS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     return 0
@@ -194,7 +252,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist keeps older Phase 2 and Phase 3 non-owner boundaries explicit, that the lane-sequencing note keeps the surviving trace-events packet explicit, and that the tests guide keeps the same selftest-hook lifecycle evidence visible."
+        description="Check that the Phase 9 review checklist keeps older Phase 2 and Phase 3 non-owner boundaries explicit, that the docs-root and lane-sequencing summaries keep the surviving trace-events packet explicit, and that the tests guide keeps the same selftest-hook lifecycle evidence visible."
     )
     parser.add_argument(
         "--repo-root",
@@ -218,6 +276,7 @@ def main() -> int:
             print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_ERROR={failure}")
         return 1
 
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_DOCS_README_MARKER_COUNT={len(DOCS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
