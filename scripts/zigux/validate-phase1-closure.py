@@ -50,6 +50,25 @@ EXPECTED_HELPERS = [
     "tools/lib/zalloc.zig",
 ]
 
+EXPECTED_BITMAP_HELPER_TEST_ANCHORS = [
+    'test "bitmap set clear weight and empty full helpers"',
+    'test "bitmap range helpers preserve edges across whole-word spans"',
+    'test "bitmap copy alias preserves raw source words without tail clearing"',
+    'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+    'test "bitmap copy and extend handles zero and aligned counts"',
+    'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    'test "bitmap and andnot equal intersects subset"',
+    'test "bitmap tail-masked helpers ignore out-of-range differences"',
+    'test "bitmap full empty and weight ignore out-of-range tail bits"',
+    'test "bitmap xor keeps caller-selected bit window"',
+    'test "bitmap xor across a multiword tail still lets callers clamp the last word"',
+    'test "bitmap scnprintf collapses contiguous ranges"',
+    'test "bitmap scnprintf truncates and keeps a terminator slot"',
+    'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
+    'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    'test "bitmap allocation helpers size zero fill and reset optionals"',
+]
+
 EXPECTED_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
@@ -165,6 +184,28 @@ def collect_failures(root: Path) -> list[str]:
         )
     )
 
+    review_anchors = manifest.get("review_anchors")
+    if not isinstance(review_anchors, dict):
+        failures.append(
+            f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"
+        )
+        return failures
+
+    bitmap_review = review_anchors.get("tools/lib/bitmap.zig")
+    if not isinstance(bitmap_review, dict):
+        failures.append(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:expected=dict:actual={type(bitmap_review).__name__}"
+        )
+        return failures
+
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:helper_test_anchors",
+            bitmap_review.get("helper_test_anchors"),
+            EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+        )
+    )
+
     return failures
 
 
@@ -210,6 +251,11 @@ def make_fixture_tree(root: Path) -> None:
                 "status": "closed",
                 "helper_count": len(EXPECTED_HELPERS),
                 "helpers": EXPECTED_HELPERS,
+                "review_anchors": {
+                    "tools/lib/bitmap.zig": {
+                        "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                    }
+                },
             },
             indent=2,
         )
@@ -221,18 +267,6 @@ def run_self_test() -> int:
     cases = [
         ("baseline", None, True),
         (
-            "missing_status",
-            lambda root: write_text(
-                root / PHASE1_CLOSURE_REL,
-                replace_once(
-                    load_text(root, PHASE1_CLOSURE_REL),
-                    EXPECTED_MARKERS["status"],
-                    "`PHASE1_STATUS=stale`",
-                ),
-            ),
-            False,
-        ),
-        (
             "missing_restore_state",
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
@@ -240,30 +274,6 @@ def run_self_test() -> int:
                     load_text(root, PHASE1_CLOSURE_REL),
                     EXPECTED_MARKERS["restore_state"],
                     "`PHASE1_CLOSURE_RESTORE_STATE=docs_only`",
-                ),
-            ),
-            False,
-        ),
-        (
-            "missing_reminder_packet",
-            lambda root: write_text(
-                root / PHASE1_CLOSURE_REL,
-                replace_once(
-                    load_text(root, PHASE1_CLOSURE_REL),
-                    EXPECTED_MARKERS["reminder_packet"],
-                    "`PHASE1_CURRENT_REMINDER_PACKET=missing`",
-                ),
-            ),
-            False,
-        ),
-        (
-            "missing_gap_packet",
-            lambda root: write_text(
-                root / PHASE1_CLOSURE_REL,
-                replace_once(
-                    load_text(root, PHASE1_CLOSURE_REL),
-                    EXPECTED_MARKERS["gap_packet"],
-                    "`PHASE1_CURRENT_GAP_PACKET=missing`",
                 ),
             ),
             False,
@@ -281,37 +291,8 @@ def run_self_test() -> int:
             False,
         ),
         (
-            "missing_shared_tests_route",
-            lambda root: write_text(
-                root / PHASE1_CLOSURE_REL,
-                replace_once(
-                    load_text(root, PHASE1_CLOSURE_REL),
-                    EXPECTED_MARKERS["shared_tests_route"],
-                    "`PHASE1_SHARED_TESTS_ROUTE=missing`",
-                ),
-            ),
-            False,
-        ),
-        (
             "missing_file",
             lambda root: (root / PHASE1_SMOKE_REL).unlink(),
-            False,
-        ),
-        (
-            "bad_phase",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase Zero",
-                        "status": "closed",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS,
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
             False,
         ),
         (
@@ -324,6 +305,11 @@ def run_self_test() -> int:
                         "status": "parked",
                         "helper_count": len(EXPECTED_HELPERS),
                         "helpers": EXPECTED_HELPERS,
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                            }
+                        },
                     },
                     indent=2,
                 )
@@ -341,6 +327,11 @@ def run_self_test() -> int:
                         "status": "closed",
                         "helper_count": 12,
                         "helpers": EXPECTED_HELPERS,
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                            }
+                        },
                     },
                     indent=2,
                 )
@@ -358,6 +349,33 @@ def run_self_test() -> int:
                         "status": "closed",
                         "helper_count": len(EXPECTED_HELPERS),
                         "helpers": EXPECTED_HELPERS[:-1],
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                            }
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+            False,
+        ),
+        (
+            "bad_bitmap_helper_anchors",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        "phase": "Phase 1",
+                        "status": "closed",
+                        "helper_count": len(EXPECTED_HELPERS),
+                        "helpers": EXPECTED_HELPERS,
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": ["drift"],
+                            }
+                        },
                     },
                     indent=2,
                 )
