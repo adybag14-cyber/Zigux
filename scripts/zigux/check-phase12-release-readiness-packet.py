@@ -68,6 +68,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase12-validate",
         "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root",
         "keep the bounded driver-local NVMe foothold explicit too: `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` remain the bounded driver-local packet outside the shared smoke-first route",
+        "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, so the shipped validator-first support bundle stays ahead of the smoke-first reruns.",
     ],
     TESTS_README_PATH: [
         "scripts/zigux/check-phase12-release-readiness-packet.py",
@@ -118,6 +119,7 @@ REQUIRED_EXACT_COUNT_MARKERS = {
     },
     SCRIPTS_README_PATH: {
         "scripts/zigux/check-phase12-release-readiness-packet.py --self-test": 1,
+        "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, so the shipped validator-first support bundle stays ahead of the smoke-first reruns.": 1,
     },
     TESTS_README_PATH: {
         "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`": 1,
@@ -195,7 +197,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 58
+EXPECTED_SELF_TEST_CASE_COUNT = 60
 
 
 def write_fixture_tree(root: Path) -> None:
