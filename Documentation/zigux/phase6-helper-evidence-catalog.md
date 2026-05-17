@@ -30,6 +30,7 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
+- `zigux/tests/phase6_base64_perf.zig`
 - `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`
 - `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - `zigux/tests/phase6_checksum.zig`
