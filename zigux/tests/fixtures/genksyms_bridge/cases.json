@@ -1,0 +1,49 @@
+[
+  {
+    "name": "minimal",
+    "argv": [],
+    "mode": "stdout_json",
+    "expected": "minimal_expected.json"
+  },
+  {
+    "name": "debug_reference_types",
+    "argv": [
+      "-d",
+      "-d",
+      "-D",
+      "-w",
+      "-p",
+      "-r",
+      "foo.symref",
+      "-r",
+      "bar.symref",
+      "-T",
+      "out.symtypes"
+    ],
+    "mode": "stdout_json",
+    "expected": "debug_reference_types_expected.json"
+  },
+  {
+    "name": "long_options",
+    "argv": [
+      "--debug",
+      "--warnings",
+      "--quiet",
+      "--reference=foo.symref",
+      "--dump-types",
+      "types.symtypes",
+      "--preserve"
+    ],
+    "mode": "stdout_json",
+    "expected": "long_options_expected.json"
+  },
+  {
+    "name": "quiet_overrides_warning",
+    "argv": [
+      "-w",
+      "-q"
+    ],
+    "mode": "stdout_json",
+    "expected": "quiet_overrides_warning_expected.json"
+  }
+]
