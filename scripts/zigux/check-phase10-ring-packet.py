@@ -79,7 +79,7 @@ MARKERS = {
         "Documentation/zigux/phase10-virtio-ring-survey.md",
         "Documentation/zigux/phase10-virtio-ring-slice.md",
         "closure-manifest-backed ring packet vocabulary",
-        "do not restate the helper and replay paths as freshly direct re-reads unless a fresh reread proves they materialize again",
+        "Keep `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `Documentation/zigux/phase10-virtio-ring-survey.md` explicit as closure-manifest-backed ring packet vocabulary when broader shared summaries refresh, with `Documentation/zigux/phase10-virtio-ring-slice.md` still named separately as the directly re-readable packet-local companion; do not restate the helper and replay paths as freshly direct re-reads unless a fresh reread proves they materialize again.",
     ],
 }
 
@@ -154,7 +154,7 @@ EXPECTED_GAP_WHY_NOW = {
     "phase10-virtio-core-lab-starter": "Fresh direct contents reads now return missing for the broader core foothold, so the ring packet must treat that path as absent repo reality rather than as current direct evidence.",
     "phase10-virtio-ring-survey-gate": "The dedicated ring survey replay no longer materializes through current master contents reads, so the ring packet should keep that gate explicit as a missing direct surface instead of a landed replay.",
     "phase10-virtio-ring-survey-note": "The survey note itself is still directly readable and is the narrowest place to record the current ring packet truthfully.",
-    "phase10-virtqueue-shape-helper": "The queue-shape helper path is currently missing on master, so the ring packet must treat it as a repo-reality gap until a fresh reread materializes the file again.",
+    "phase10-virtqueue-shape-helper": "The queue-shape helper path is currently missing on master, so the ring packet must treat that path as a repo-reality gap until a fresh reread materializes the file again.",
     "phase10-used-buffer-polling-helper": "The used-buffer polling helper remains part of the bounded ring vocabulary, but its direct helper file is currently absent on master.",
     "phase10-callback-enable-helper": "The callback re-enable helper is still a ring-lane destination, yet current direct readback does not materialize the owning helper file.",
     "phase10-callback-delay-helper": "The delayed-callback helper should stay explicit as a ring packet destination, but it is not currently backed by a readable direct helper file on master.",
@@ -349,6 +349,12 @@ def run_self_test() -> int:
             "shared closure evidence and the current ring survey agree that `virtqueue_wrappers=repo_reality_gap` while risky transport stays blocked on the MMIO-owned bridge",
             "shared closure evidence and the current ring survey agree that `virtqueue_wrappers=starter_landed` while risky transport stays blocked on the MMIO-owned bridge",
             "phase10-virtio-ring-freeze-boundary-survey.md:shared closure evidence and the current ring survey agree that `virtqueue_wrappers=repo_reality_gap` while risky transport stays blocked on the MMIO-owned bridge",
+        )
+        replace_once(
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "Keep `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `Documentation/zigux/phase10-virtio-ring-survey.md` explicit as closure-manifest-backed ring packet vocabulary when broader shared summaries refresh, with `Documentation/zigux/phase10-virtio-ring-slice.md` still named separately as the directly re-readable packet-local companion; do not restate the helper and replay paths as freshly direct re-reads unless a fresh reread proves they materialize again.",
+            "Keep `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `Documentation/zigux/phase10-virtio-ring-survey.md` explicit as closure-manifest-backed ring packet vocabulary when broader shared summaries refresh, with `Documentation/zigux/phase10-virtio-ring-slice.md` still named separately as the directly re-readable packet-local companion; do not restate the helper and replay paths as freshly direct re-reads unless a fresh reread proves they materialize again.",
+            "phase10-phase11-phase13-tests-root-review-companion.md:Keep `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `Documentation/zigux/phase10-virtio-ring-survey.md` explicit as closure-manifest-backed ring packet vocabulary when broader shared summaries refresh, with `Documentation/zigux/phase10-virtio-ring-slice.md` still named separately as the directly re-readable packet-local companion; do not restate the helper and replay paths as freshly direct re-reads unless a fresh reread proves they materialize again.",
         )
         mutate_manifest(
             lambda manifest: manifest["survey_summary"].__setitem__("preexisting_virtio_ring_zig_present", True),
