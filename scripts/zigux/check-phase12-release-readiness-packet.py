@@ -118,6 +118,9 @@ REQUIRED_EXACT_COUNT_MARKERS = {
     RELEASE_SEQUENCING_PATH: {
         "readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
     },
+    REVIEW_CHECKLIST_PATH: {
+        "if `zig` is unavailable on `PATH`, keep the repo-local `.zig-toolchain` fallback plus the attached-Zig degraded rerun explicit by naming `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of implying a focused libbpf-only replay, a cross-build replay, or another unshipped support route?": 1,
+    },
     SCRIPTS_README_PATH: {
         "scripts/zigux/check-phase12-release-readiness-packet.py --self-test": 1,
         "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, so the shipped validator-first support bundle stays ahead of the smoke-first reruns.": 1,
@@ -198,7 +201,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 59
+EXPECTED_SELF_TEST_CASE_COUNT = 60
 
 
 def write_fixture_tree(root: Path) -> None:
