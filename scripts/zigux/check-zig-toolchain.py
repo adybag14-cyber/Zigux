@@ -357,7 +357,15 @@ def expected_archive_metadata(
 
 
 def validate_policy_archive(path: Path, archive_target: str, *, policy_path: Path = TOOLCHAIN_POLICY) -> tuple[str, str | None, str, str]:
-    expected_sha, _ = expected_archive_metadata(archive_target, policy_path=policy_path)
+    expected_sha, expected_filename = expected_archive_metadata(archive_target, policy_path=policy_path)
+    if path.name != expected_filename:
+        actual_sha = compute_sha256(path)
+        return (
+            "mismatch",
+            f"expected archive filename {expected_filename} for {archive_target}, got {path.name}",
+            expected_sha,
+            actual_sha,
+        )
     actual_sha = compute_sha256(path)
     if actual_sha != expected_sha:
         return (
@@ -582,6 +590,17 @@ def run_self_test() -> int:
         expect_equal(
             validate_policy_archive(workspace_archive_path, "x86_64-linux", policy_path=policy_path),
             ("present", None, expected_archive_sha, expected_archive_sha),
+        )
+        renamed_archive_path = workspace_archive_path.with_name("renamed-zig.tar.xz")
+        renamed_archive_path.write_bytes(b"zigux-archive")
+        expect_equal(
+            validate_policy_archive(renamed_archive_path, "x86_64-linux", policy_path=policy_path),
+            (
+                "mismatch",
+                "expected archive filename zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz for x86_64-linux, got renamed-zig.tar.xz",
+                expected_archive_sha,
+                expected_archive_sha,
+            ),
         )
         missing_explicit_path = root / "missing.tar.xz"
         expect_equal(
