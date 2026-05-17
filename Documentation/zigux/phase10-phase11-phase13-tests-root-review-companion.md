@@ -6,79 +6,25 @@ Keep `Documentation/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zi
 
 ## Phase 10 tests-root packet
 
-Keep the current bounded virtio closure packet explicit through these shared surfaces and closure-manifest-backed packet-local inventory claims:
-- `Documentation/zigux/phase10-closure-evidence.md`
-- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
-- `Documentation/zigux/phase10-virtio-core-survey.md`
-- `Documentation/zigux/phase10-virtio-core-slice.md`
-- `Documentation/zigux/phase10-virtio-ring-survey.md`
-- `Documentation/zigux/phase10-virtio-ring-slice.md`
-- `Documentation/zigux/phase10-virtio-input-survey.md`
-- `Documentation/zigux/phase10-virtio-input-slice.md`
-- `Documentation/zigux/phase10-virtio-input-module-slice.md`
-- `Documentation/zigux/phase10-virtio-mmio-survey.md`
-- `Documentation/zigux/phase10-virtio-mmio-slice.md`
-- `scripts/zigux/check-phase10-core-packet.py`
-- `scripts/zigux/check-phase10-ring-packet.py`
-- `scripts/zigux/check-phase10-input-packet.py`
-- `scripts/zigux/check-phase10-mmio-packet.py`
-- `scripts/zigux/check-phase10-mmio-freeze-boundary.py`
-- `scripts/zigux/check-phase10-harness-coverage.py`
-- `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-- `scripts/zigux/validate-phase10.py`
-- `scripts/zigux/validate-phase10-closure.py`
-- `zigux/tests/phase10_build.zig`
-- `zigux/tests/phase10_closure_manifest.json`
-- `zigux/tests/phase10_virtio_core.zig`
-- `zigux/tests/phase10_virtio_core_reset_queue.zig`
-- `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`
-- `drivers/virtio/virtio_driver_id.zig`
-- `drivers/virtio/virtio.zig`
-- `drivers/virtio/virtio_verify.zig`
-- `zigux/tests/phase10_virtio_core_manifest.json`
-- `zigux/tests/phase10_virtio_core_survey.zig`
-- `zigux/tests/phase10_virtio_ring.zig`
-- `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
-- `drivers/virtio/virtio_ring.zig`
-- `drivers/virtio/virtio_ring_verify.zig`
-- `zigux/tests/phase10_virtio_ring_manifest.json`
-- `zigux/tests/phase10_virtio_ring_survey.zig`
-- `zigux/tests/phase10_virtio_input.zig`
-- `drivers/virtio/virtio_input.zig`
-- `drivers/virtio/virtio_input_probe_preflight.zig`
-- `drivers/virtio/virtio_input_registration_preflight.zig`
-- `drivers/virtio/virtio_input_verify.zig`
-- `zigux/tests/phase10_virtio_input_probe_preflight.zig`
-- `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
-- `zigux/tests/phase10_virtio_input_registration_preflight.zig`
-- `zigux/tests/phase10_virtio_input_teardown_observation.zig`
-- `zigux/tests/phase10_virtio_input_status_drain.zig`
-- `zigux/tests/phase10_virtio_input_manifest.json`
-- `zigux/tests/phase10_virtio_input_survey.zig`
-- `zigux/tests/phase10_virtio_mmio.zig`
-- `drivers/virtio/virtio_mmio.zig`
-- `drivers/virtio/virtio_mmio_verify.zig`
-- `zigux/tests/phase10_virtio_mmio_manifest.json`
-- `zigux/tests/phase10_virtio_mmio_survey.zig`
-- `zigux/Makefile`
-- `.github/workflows/zigux-bootstrap.yml`
-- `make -C zigux phase10-validate`
-- `zig build test --build-file zigux/tests/phase10_build.zig`
-- `make -C zigux phase10-test`
-- `make -C zigux phase10`
+Keep the current bounded virtio closure packet explicit through the shared reminder surfaces, the directly re-readable ring packet anchors, the directly re-readable input packet, the helper-local MMIO packet, and the shared build gate:
+- shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/check-phase10-core-packet.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-mmio-freeze-boundary.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml`
+- directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig`
+- directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `zigux/tests/phase10_virtio_input.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, and `zigux/tests/phase10_virtio_input_survey.zig`
+- directly re-readable MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig`
+- current `master` still does not materialize `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig` through the direct readback available in this lane, so keep them framed as last-known packet members or manifest-backed vocabulary rather than direct current-`master` evidence.
 
-Treat the shared reminder notes and Linux-style make routes above together with the directly readable `zigux/tests/phase10_closure_manifest.json`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` as the currently re-readable Phase 10 anchors.
+Treat `zigux/tests/phase10_closure_manifest.json`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, and `zigux/tests/phase10_build.zig` as the current directly re-readable Phase 10 anchors in this reminder surface.
 
 Keep `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `Documentation/zigux/phase10-virtio-ring-survey.md` explicit as closure-manifest-backed ring packet vocabulary when broader shared summaries refresh, with `Documentation/zigux/phase10-virtio-ring-slice.md` still named separately as the directly re-readable packet-local companion; do not restate the helper and replay paths as freshly direct re-reads unless a fresh reread proves they materialize again.
 
-Keep the input-lane helper names `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, and `drivers/virtio/virtio_input_verify.zig` explicit beside the queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays as the same closure-manifest-backed packet vocabulary, and keep the MMIO helper names `drivers/virtio/virtio_mmio.zig` and `drivers/virtio/virtio_mmio_verify.zig` explicit beside `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` on the same narrower basis.
+Keep the input-lane helper names `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, and `drivers/virtio/virtio_input_verify.zig` explicit beside the queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays as the same closure-manifest-backed packet vocabulary. Keep the MMIO helper names `drivers/virtio/virtio_mmio.zig` and `drivers/virtio/virtio_mmio_verify.zig` explicit beside `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and the shared `zigux/tests/phase10_build.zig` gate on the same narrower basis; treat `Documentation/zigux/phase10-virtio-mmio-slice.md` and any dedicated MMIO replay step as last-known packet members until a fresh reread rematerializes them.
 
-Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning, so transport-facing queue and registration-lifecycle work stays parked outside the input lane.
+Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning, so transport-facing queue work, registration lifecycle, IRQ delivery, DMA behavior, and broader probe or remove follow-through stay parked outside this tests-root reminder.
 
-Current `master` now materializes the full packet-local slice set; keep `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md` explicit as restored shared-review evidence instead of framing any packet-local slice companion as a repo-reality gap.
+Current `master` does not materialize the full packet-local slice set. Keep `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md` explicit as directly re-readable evidence, while treating `Documentation/zigux/phase10-virtio-core-slice.md` and `Documentation/zigux/phase10-virtio-mmio-slice.md` as missing direct-readback companions until a fresh reread proves they returned on current `master`.
 
 Tests-root reviewer prompt:
-- Do the docs-root notes, scripts-root guards, tests-root packet, the bootstrap workflow replay of `make -C zigux phase10-validate`, and Linux-style make routes still describe the same bounded virtio core, ring, input, and MMIO closure packet, the focused core reset-queue replay, the direct `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig` interrupt-compound-ack replay, plus the restored `Documentation/zigux/phase10-virtio-core-slice.md` companion, ring drained-reset reuse replay, the closure-manifest-backed `drivers/virtio/virtio_ring.zig` ring packet vocabulary beside `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-ring-slice.md`, the closure-manifest-backed `drivers/virtio/virtio_input.zig` helper vocabulary beside `drivers/virtio/virtio_input_probe_preflight.zig`, `drivers/virtio/virtio_input_registration_preflight.zig`, `drivers/virtio/virtio_input_verify.zig`, and the input queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the closure-manifest-backed `drivers/virtio/virtio_mmio.zig` helper vocabulary beside `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-slice.md`, the input-lane wrapper split where `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning, the blocked risky-transport posture, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the separate `reference_samples` and `runtime_starters` boundary carried through `zigux/tests/phase10_closure_manifest.json`, the already-shipped `samples/zigux/runtime_trace_events_loader.zig` scaffold as adjacent Phase 9 evidence rather than Phase 10 closure progress, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit, and do the restored core, ring, input, input-module, and MMIO slice-note companions stay explicit as directly re-readable evidence instead of leaving any packet-local slice companion framed as a repo-reality gap?
+- Do the docs-root notes, scripts-root guards, tests-root packet, the shared closure note, the lane-sequencing note, the ring survey and slice notes, the ring manifest, the shared `zigux/tests/phase10_build.zig` gate, the input slice, input module slice, input survey, direct input helpers, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the helper-local MMIO survey plus `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig`, the closure-manifest-backed ring packet vocabulary beside `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, the input-lane wrapper split where `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning, the blocked risky-transport posture, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the separate `reference_samples` and `runtime_starters` boundary carried through `zigux/tests/phase10_closure_manifest.json`, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay aligned on the same bounded virtio story while keeping `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, the core-side packet, the ring helper and replay files, and the missing MMIO slice companion framed as last-known packet members or repo-reality gaps instead of direct current-head evidence?
 
 ## Phase 11 tests-root packet
 
