@@ -55,7 +55,7 @@ SURVEY_MARKERS = (
 )
 
 EXPECTED_FINAL_FIRST_ZERO_COUNT = 2
-EXPECTED_SELF_TEST_CASES = 5
+EXPECTED_SELF_TEST_CASES = 7
 
 
 def parse_args() -> argparse.Namespace:
@@ -161,6 +161,36 @@ def run_self_test() -> int:
         if not expect_failure(root, 'manifest_count:"final_first_zero": 109:expected=2:actual=1'):
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print("manifest replay-count drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
+                '"sample_count_note": "seven monotonic samples"',
+                '"sample_count_note": "eight monotonic samples"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"sample_count_note": "seven monotonic samples"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest sample-count note drift case did not fail closed")
+            return 1
+        cases += 1
+
+        build_fixture_tree(root)
+        write_text(
+            manifest,
+            replace_once(
+                read_text(manifest),
+                '"status": "shared CI perf promotion pending"',
+                '"status": "shared CI perf promotion approved"',
+            ),
+        )
+        if not expect_failure(root, 'manifest_marker:"status": "shared CI perf promotion pending"'):
+            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+            print("manifest promotion-status drift case did not fail closed")
             return 1
         cases += 1
 
