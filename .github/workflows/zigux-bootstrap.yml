@@ -85,7 +85,7 @@ jobs:
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
 
-      - name: Check current Zig toolchain policy packet
+      - name: Check current Zig toolchain policy surface
         run: python3 scripts/zigux/check-zig-toolchain.py --policy-only
 
       - name: Self-test current Phase 2 kconfig bridge checker
@@ -138,6 +138,12 @@ jobs:
 
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
+
+      - name: Self-test current Phase 1 workflow viability checker
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test
+
+      - name: Check current Phase 1 workflow viability
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py
 
       - name: Self-test current Phase 4 repo-reality warning checker
         run: python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test
