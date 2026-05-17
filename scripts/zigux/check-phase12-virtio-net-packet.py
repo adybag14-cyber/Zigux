@@ -58,12 +58,21 @@ SURVEY_GATE_MARKERS = [
     "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
 ]
 
+SYNTAX_LAB_MARKERS = [
+    "phase12 virtio net syntax lab keeps fallback and base variants reachable",
+    "QueueResumeScope.data_queues_only",
+    "XdpConstraint.not_requested",
+]
+
 BUILD_MARKERS = [
     "../../drivers/net/virtio_net.zig",
     '"phase12_virtio_net.zig"',
     '"phase12_virtio_net_syntax_lab.zig"',
+    "phase12_virtio_net_syntax_lab_module",
+    "phase12_virtio_net_syntax_lab_tests",
     "phase12-virtio-net-tests",
     "phase12-virtio-net-syntax-lab-tests",
+    "run_phase12_virtio_net_syntax_lab_tests.step",
     'run_virtio_net_contract_tests.setCwd(b.path("../.."));',
     'run_virtio_net_syntax_tests.setCwd(b.path("../.."));',
     "../../drivers/net/virtio_net_transmit_recycle.zig",
@@ -118,6 +127,9 @@ def run_check(root: Path) -> None:
     survey_gate = read_text(root, "zigux/tests/phase12_virtio_net_survey.zig")
     require_markers(survey_gate, "zigux/tests/phase12_virtio_net_survey.zig", SURVEY_GATE_MARKERS)
 
+    syntax_lab = read_text(root, "zigux/tests/phase12_virtio_net_syntax_lab.zig")
+    require_markers(syntax_lab, "zigux/tests/phase12_virtio_net_syntax_lab.zig", SYNTAX_LAB_MARKERS)
+
     build_text = read_text(root, "zigux/tests/phase12_build.zig")
     require_markers(build_text, "zigux/tests/phase12_build.zig", BUILD_MARKERS)
 
@@ -132,7 +144,7 @@ def make_fixture_tree(root: Path) -> None:
         "drivers/net/virtio_net_transmit_recycle.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_transmit_recycle.zig": "// fixture\n",
-        "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_syntax_lab.zig": "\n".join(SYNTAX_LAB_MARKERS) + "\n",
         "zigux/tests/phase12_virtio_net_survey.zig": "\n".join(f"// {marker}" for marker in SURVEY_GATE_MARKERS) + "\n",
         "zigux/tests/phase12_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
@@ -221,6 +233,18 @@ def run_self_test() -> None:
                 raise
         else:
             raise AssertionError("expected survey-gate marker failure")
+        case_count += 1
+
+        make_fixture_tree(root)
+        broken_syntax_lab = root / "zigux/tests/phase12_virtio_net_syntax_lab.zig"
+        broken_syntax_lab.write_text("broken\n", encoding="utf-8")
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "phase12_virtio_net_syntax_lab.zig" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected syntax-lab marker failure")
         case_count += 1
 
     print("PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass")
