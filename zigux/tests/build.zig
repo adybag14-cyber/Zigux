@@ -287,9 +287,7 @@ pub fn build(b: *std.Build) void {
         "Run the currently live shared survey anchors from zigux/tests",
     );
     smoke_step.dependOn(&phase1_host_tools_smoke.step);
-    smoke_step.dependOn(&phase3_dev_t_starter_packet.step);
-    smoke_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
-    smoke_step.dependOn(&phase3_policy_starter_packet.step);
+    smoke_step.dependOn(phase3_test_step);
     smoke_step.dependOn(&phase12_virtio_net_survey.step);
 
     const test_step = b.step(
@@ -297,8 +295,6 @@ pub fn build(b: *std.Build) void {
         "Run the shared Zigux tests-root survey smoke",
     );
     test_step.dependOn(&phase1_host_tools_smoke.step);
-    test_step.dependOn(&phase3_dev_t_starter_packet.step);
-    test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
-    test_step.dependOn(&phase3_policy_starter_packet.step);
+    test_step.dependOn(phase3_test_step);
     test_step.dependOn(&phase12_virtio_net_survey.step);
 }
