@@ -36,7 +36,7 @@ When an anchor is recorded under this policy, the reviewable record must keep al
 - the Linux anchor path, roadmap phase, current status bucket, and requested decision bucket
 - the decision record ID, lane owner, required approver set, and rollback owner
 - the validation gate summary, benchmark-notes status, replay command, latest blocker disposition, and evidence archive path
-- the automatic return-to-blocked trigger, retained discussion state, reopen triggers, and trigger-specific evidence refresh
+- the automatic return-to-blocked trigger, retained `retired_from_active_discussion` state, reopen triggers, and trigger-specific evidence refresh
 - the parity scorecard link or blocker record, explicit non-goals, and written rationale for why the anchor remains in C
 
 ## Allowed work after an indefinite-C outcome
