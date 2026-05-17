@@ -648,6 +648,25 @@ test "phase8 perf-buffer poll keeps the first processing failure tied to the rea
     try std.testing.expectEqual(@as(i32, -11), failure.return_value);
 }
 
+test "phase8 perf-buffer poll turns error-only ready-event observations into buffer-state failures" {
+    const failure = try summarizePollExecutionResultFromWaitResult(
+        12,
+        2,
+        &.{
+            .{ .error_code = -105 },
+            .{},
+        },
+        &.{},
+    );
+
+    try std.testing.expectEqual(PollReturnDisposition.buffer_state_failed, failure.disposition);
+    try std.testing.expectEqual(@as(i32, -105), failure.return_value);
+    try std.testing.expectEqual(PollOutcome.failed, failure.execution.poll.outcome);
+    try std.testing.expectEqual(@as(usize, 2), failure.execution.poll.observed_ready_events);
+    try std.testing.expectEqual(@as(?i32, -105), failure.execution.poll.first_error);
+    try std.testing.expectEqual(@as(usize, 0), failure.execution.attempted_ready_buffer_count);
+}
+
 test "phase8 perf-buffer poll rejects ready waits without processing attempts" {
     try std.testing.expectError(
         PollError.InconsistentProcessingAccountingSummary,
