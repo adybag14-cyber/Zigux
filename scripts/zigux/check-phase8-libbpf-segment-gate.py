@@ -345,6 +345,36 @@ def run_self_test() -> int:
         )
         makefile_path.write_text(original_makefile, encoding="utf-8")
 
+        checker_path = tmp_root / "scripts/zigux/check-phase8-libbpf-segment-gate.py"
+        original_checker = checker_path.read_text(encoding="utf-8")
+        checker_path.write_text(
+            original_checker.replace(
+                "PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass",
+                "PHASE8_LIBBPF_SEGMENT_GATE_SELFTEST=pass",
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "checker_self_test_pass_marker",
+            tmp_root,
+            "scripts/zigux/check-phase8-libbpf-segment-gate.py:PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass",
+        )
+        checker_path.write_text(original_checker, encoding="utf-8")
+
+        checker_path.write_text(
+            original_checker.replace(
+                "phase8-libbpf-segment-tests",
+                "phase8-libbpf-tests",
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "checker_focused_artifact_name",
+            tmp_root,
+            "scripts/zigux/check-phase8-libbpf-segment-gate.py:phase8-libbpf-segment-tests",
+        )
+        checker_path.write_text(original_checker, encoding="utf-8")
+
         workflow_path = tmp_root / ".github/workflows/zigux-bootstrap.yml"
         original_workflow = workflow_path.read_text(encoding="utf-8")
         workflow_path.write_text(
@@ -438,7 +468,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST=pass")
-    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=8")
+    print("PHASE8_LIBBPF_SEGMENT_GATE_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
