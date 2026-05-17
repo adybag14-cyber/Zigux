@@ -62,6 +62,12 @@ SAMPLE_COLD_EXIT_REJECTION_MARKER = (
 SAMPLE_SELFTEST_COMPLETE_MODULE_STAGE_MARKER = (
     "try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());"
 )
+SAMPLE_SELFTEST_CONDITIONAL_PATHS_MARKER = (
+    "try std.testing.expect(selftest.conditional_paths_checked);"
+)
+SAMPLE_SELFTEST_REGISTRATION_PATHS_MARKER = (
+    "try std.testing.expect(selftest.registration_paths_checked);"
+)
 SAMPLE_FAILED_EXIT_TEST_MARKER = (
     'test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {'
 )
@@ -148,6 +154,8 @@ SAMPLE_REQUIRED_MARKERS = [
     SAMPLE_COLD_SELFTEST_REJECTION_MARKER,
     SAMPLE_COLD_EXIT_REJECTION_MARKER,
     SAMPLE_SELFTEST_COMPLETE_MODULE_STAGE_MARKER,
+    SAMPLE_SELFTEST_CONDITIONAL_PATHS_MARKER,
+    SAMPLE_SELFTEST_REGISTRATION_PATHS_MARKER,
     SAMPLE_FAILED_EXIT_TEST_MARKER,
     SAMPLE_REJECTED_SELFTEST_TEST_MARKER,
     SAMPLE_EXITED_MAIN_REPLAY_REJECTION_MARKER,
@@ -237,7 +245,10 @@ def build_sample_fixture_text() -> str:
 
 const Self = @This();
 const ModuleStage = enum {{ cold, initialized, selftest_complete, exited }};
-const EmissionSummary = struct {{}};
+const EmissionSummary = struct {{
+    conditional_paths_checked: bool = true,
+    registration_paths_checked: bool = true,
+}};
 
 pub const ModuleDescriptor = struct {{
     provides_selftest_hook: bool,
@@ -266,6 +277,8 @@ test \"trace-events sample keeps selftest replay-summary continuity explicit aft
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
     try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());
+    try std.testing.expect(selftest.conditional_paths_checked);
+    try std.testing.expect(selftest.registration_paths_checked);
     try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);
     try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));
