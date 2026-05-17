@@ -44,3 +44,35 @@ test "phase10 virtio input probe preflight helper keeps blocker tags and ready t
     try std.testing.expectEqual(@as(?virtio_input.ProbePreflightBlocker, null), summary.blocker);
     try std.testing.expect(summary.ready_for_probe_handoff);
 }
+
+test "phase10 virtio input probe preflight keeps identity blockers ahead of queue staging" {
+    var device = try virtio_input.VirtioInputLab.init("", "serial-identity", 9, null);
+
+    var summary = probe_preflight.summarize(&device);
+    try std.testing.expect(!summary.identity_ready);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.identity_incomplete, summary.blocker.?);
+    try std.testing.expectEqualStrings("identity_incomplete", probe_preflight.blockerTag(summary.blocker.?));
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+    try std.testing.expect(!summary.queue_plan_ready);
+    try std.testing.expect(!summary.device_ready);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    try device.configureConfigBitmap(.ev_bits, virtio_input.ev_abs, &[_]u16{virtio_input.abs_mt_slot});
+    try device.configureAbsInfo(virtio_input.abs_mt_slot, .{
+        .minimum = 0,
+        .maximum = 1,
+    });
+    _ = try device.planMultitouchSlots();
+
+    summary = probe_preflight.summarize(&device);
+    try std.testing.expect(!summary.identity_ready);
+    try std.testing.expect(summary.queue_plan_ready);
+    try std.testing.expect(summary.device_ready);
+    try std.testing.expect(summary.capability_setup_ready);
+    try std.testing.expect(summary.multitouch_slots_ready);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.identity_incomplete, summary.blocker.?);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+}
