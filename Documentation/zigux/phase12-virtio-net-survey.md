@@ -7,7 +7,7 @@ This note records the current-master verification result for the bounded Phase 1
 - `PHASE12_STATUS=starter-present-transmit-recycle-followup`
 - `PHASE12_SLICE=virtio-net-survey`
 - lane owner: `P12-L04`
-- scope: keep the mergeable-buffer starter packet and its directly coupled review surfaces truthful without reopening live runtime data-path work
+- scope: keep the bounded queue-topology, refill-order, control-queue, queue-reset, and transmit-recycle review packet truthful without reopening live runtime data-path work
 - verified head: `bb423a0308879c18054c720bbccb67a3de3e0951`
 - repo-truth boundary:
   - `Documentation/zigux/phase12-virtio-net-survey.md`
@@ -57,11 +57,11 @@ The truthful current boundary is still intentionally narrow:
 
 ## Ownership and overlap
 
-`P12-L04` owns only stale starter-local scaffold cleanup, perf-drift wording cleanup, and risk-note truthfulness for this mergeable-buffer starter packet.
+`P12-L04` owns only stale packet-local scaffold cleanup, perf-drift wording cleanup, and risk-note truthfulness for this bounded queueing and throughput review packet.
 
 That means this lane may:
 
-1. restate the truthful current-master starter boundary
+1. restate the truthful current-master packet boundary
 2. keep the bounded direct test, syntax lab, survey gate, and manifest packet aligned
 3. close another exact reviewability refresh if one of those directly coupled surfaces drifts again
 
@@ -84,5 +84,5 @@ If this lane reopens, keep the follow-through inside the same packet.
 The next bounded step is:
 
 1. reread `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig` together
-2. fix only the next starter-local stale scaffold, perf-drift note, or exact reviewability refresh
+2. fix only the next packet-local stale scaffold, perf-drift note, or exact reviewability refresh
 3. leave queue-execution, throughput, and broader recovery expansion to their own later Phase 12 follow-up lanes
