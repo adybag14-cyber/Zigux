@@ -323,6 +323,39 @@ test "runGenksymsCrc truncates a split continuation at the first embedded NUL" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
 }
 
+test "runGenksymsCrc trims carriage returns before an embedded NUL in a split continuation" {
+    var split_then_cr_then_nul = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 10);
+    defer split_then_cr_then_nul.deinit(std.testing.allocator);
+    try split_then_cr_then_nul.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try split_then_cr_then_nul.append(std.testing.allocator, 'b');
+    try split_then_cr_then_nul.append(std.testing.allocator, '\r');
+    try split_then_cr_then_nul.append(std.testing.allocator, '\r');
+    try split_then_cr_then_nul.append(std.testing.allocator, 0);
+    try split_then_cr_then_nul.append(std.testing.allocator, 'c');
+    try split_then_cr_then_nul.append(std.testing.allocator, '\n');
+    try split_then_cr_then_nul.appendSlice(std.testing.allocator, "x\n");
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(split_then_cr_then_nul.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(split_then_cr_then_nul.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(exact_crc);
+    const trimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("b")});
+    defer std.testing.allocator.free(trimmed_crc);
+    const untrimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("b\r\r")});
+    defer std.testing.allocator.free(untrimmed_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trimmed_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, untrimmed_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 3);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\\r") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"c\"") == null);
+}
+
 test "runGenksymsCrc skips a carriage-return-only EOF tail after an exact-buffer split" {
     var exact_then_cr = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 1);
     defer exact_then_cr.deinit(std.testing.allocator);
