@@ -17,61 +17,68 @@ NOTE_MARKERS = [
     "lane owner: `Lane 05`",
     "workflow anchor: `.github/workflows/zigux-bootstrap.yml`",
     "checker anchor: `scripts/zigux/check-phase12-bootstrap-contract.py`",
-    "the current bootstrap workflow still begins with `Compile current scripts`",
-    "the current Phase 12 slice is a tail contract, not the whole workflow",
-    "current upstream bootstrap steps ahead of that tail include the current Zig toolchain checker pair, the Phase 2 kconfig, kbuild, and toolchain-pinning pairs, the Phase 1 direct-owner and string-review pairs plus the bench and shared-reminder checks, the Phase 4 repo-reality, reversible-delivery, and tests-readme pairs, and the Phase 7 shared-control gap pair",
-    "the current Phase 12 bootstrap tail is limited to `Self-test current Phase 12 build-only checker` followed by `Check current docs-root sanity markers`",
-    "the current workflow reruns `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`",
-    "`make -C zigux phase12-validate`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `make -C zigux phase12-smoke`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` are broader Phase 12 routes, not current bootstrap-lane evidence",
-    "`Check current Phase 12 build-only surface`, `Self-test current Phase 12 bootstrap docs sanity checker`, `Check current Phase 12 docs-root sanity markers`, `Self-test current Phase 12 bootstrap lane checker`, and `Check current Phase 12 bootstrap lane shape` belong to the older branch-only Lane 05 packet, not current `master`",
+    "the current shipped bootstrap lane still compiles `scripts/zigux/*.py` before any lane checks run",
+    "the current shipped lane still keeps the pinned Zig archive check and the Phase 11 build-inventory plus matrix-gap survey checks",
+    "the current shipped Phase 12 slice still includes the build-only surface pair, the release-readiness pair, `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+    "the current shipped lane still runs `make -C zigux phase8-validate` and the focused Phase 8 libbpf segment survey after the Phase 12 complex driver tests",
+    "the current shipped bootstrap lane still ends with the inline `Check current docs-root sanity markers` block",
+    "the inline docs-root sanity block still checks `Documentation/zigux/README.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `zigux/tests/README.md`, and `scripts/zigux/check-build-only-phase12-surface.py`",
+    "dedicated `check-phase12-bootstrap-docs-sanity.py` and `check-phase12-bootstrap-lane-shape.py` guards remain review-only Lane 05 work, not shipped `master` behavior",
 ]
 
 REQUIRED_STEP_ORDER = [
     "Compile current scripts",
     "Self-test current Zig toolchain checker",
-    "Check current Zig toolchain policy surface",
+    "Check current Zig toolchain policy packet",
+    "Check current pinned Zig archive packet",
     "Self-test current Phase 2 kconfig bridge checker",
-    "Check current Phase 2 kconfig bridge packet",
-    "Self-test current Phase 2 kbuild routes checker",
-    "Check current Phase 2 kbuild packet",
-    "Self-test current Phase 2 toolchain pinning checker",
-    "Check current Phase 2 toolchain pinning packet",
-    "Self-test current Phase 1 direct-owner checker",
-    "Check current Phase 1 direct-owner markers",
-    "Self-test current Phase 1 string review checker",
-    "Check current Phase 1 string review packet",
-    "Self-test current Phase 1 bench checker",
-    "Self-test current Phase 1 shared reminder checker",
-    "Check current Phase 1 shared reminder packet",
-    "Self-test current Phase 4 repo-reality warning checker",
-    "Check current Phase 4 repo-reality warning packet",
-    "Self-test current Phase 4 reversible-delivery pin checker",
-    "Check current Phase 4 reversible-delivery pin packet",
-    "Self-test current Phase 4 tests README checker",
-    "Check current Phase 4 tests README packet",
-    "Self-test current Phase 7 shared-control gap checker",
-    "Check current Phase 7 shared-control gap packet",
-    "Self-test current Phase 12 build-only checker",
+    "Check current Phase 2 shared reminder packet",
+    "Self-test current Phase 10 bootstrap route checker",
+    "Validate Phase 10 checker-backed review packet",
+    "Run Phase 10 helper tests",
+    "Self-test current Phase 11 HVC cleanup current-head checker",
+    "Check current Phase 11 build inventory packet",
+    "Check current Phase 11 matrix-gap survey packet",
+    "Self-test current Phase 12 build-only surface checker",
+    "Check current Phase 12 build-only surface",
+    "Self-test current Phase 12 release-readiness packet checker",
+    "Validate Phase 12 degraded-workflow bundle",
+    "Check current Phase 12 release-readiness packet",
+    "Run focused Phase 12 smoke shard",
+    "Run Phase 12 complex driver tests",
+    "Validate Phase 8 tooling gates",
+    "Run focused Phase 8 libbpf segment survey tests",
     "Check current docs-root sanity markers",
 ]
 
 WORKFLOW_REQUIRED_MARKERS = [
+    "workflow_dispatch:",
+    "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
+    "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+    "python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+    "make -C zigux phase12-validate",
+    "make -C zigux phase12-smoke",
+    "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+    "make -C zigux phase8-validate",
+    "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+    "python3 - <<'PY2'",
+    "Path('Documentation/zigux/README.md')",
+    "Path('Documentation/zigux/phase12-release-readiness-survey.md')",
+    "Path('zigux/tests/README.md')",
+    "Path('scripts/zigux/check-build-only-phase12-surface.py')",
+    "ZIGUX_BOOTSTRAP_SANITY=pass",
+    "ZIGUX_BOOTSTRAP_REQUIRED_FILE_COUNT=",
+    "ZIGUX_BOOTSTRAP_MARKER_COUNT=",
 ]
 
 WORKFLOW_FORBIDDEN_MARKERS = [
-    "make -C zigux phase12-validate",
-    "python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
-    "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
-    "make -C zigux phase12-smoke",
-    "zig build smoke --build-file zigux/tests/phase12_build.zig --summary all",
-    "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
-    "make -C zigux phase12",
-    "Check current Phase 12 build-only surface",
     "Self-test current Phase 12 bootstrap docs sanity checker",
     "Check current Phase 12 docs-root sanity markers",
     "Self-test current Phase 12 bootstrap lane checker",
     "Check current Phase 12 bootstrap lane shape",
+    "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
+    "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py",
 ]
 
 
@@ -110,7 +117,7 @@ def validate(root: Path) -> list[str]:
     workflow_text = read_text(root, WORKFLOW_PATH)
     last_index = -1
     for step in REQUIRED_STEP_ORDER:
-        current_index = workflow_text.find(step)
+        current_index = workflow_text.find(f"- name: {step}")
         if current_index == -1:
             failures.append(f"workflow_missing:{step}")
             continue
@@ -137,9 +144,8 @@ def write_text(path: Path, content: str) -> None:
 def fixture_note() -> str:
     return """# Phase 12 Bootstrap Lane Contract
 
-This note records the current Phase 12 portion of the bootstrap workflow without
-rewriting the broader reminder packet or reopening the live workflow file in this
-lane.
+This note records the shipped Lane 05 bootstrap posture on current `master`
+without reopening the live workflow file in the same change.
 
 ## Status
 
@@ -150,28 +156,55 @@ lane.
 
 ## Current Bootstrap Contract
 
-- the current bootstrap workflow still begins with `Compile current scripts`
-- the current Phase 12 slice is a tail contract, not the whole workflow
-- current upstream bootstrap steps ahead of that tail include the current Zig toolchain checker pair, the Phase 2 kconfig, kbuild, and toolchain-pinning pairs, the Phase 1 direct-owner and string-review pairs plus the bench and shared-reminder checks, the Phase 4 repo-reality, reversible-delivery, and tests-readme pairs, and the Phase 7 shared-control gap pair
-- the current Phase 12 bootstrap tail is limited to `Self-test current Phase 12 build-only checker` followed by `Check current docs-root sanity markers`
-- the current workflow reruns `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
-- `make -C zigux phase12-validate`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `make -C zigux phase12-smoke`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` are broader Phase 12 routes, not current bootstrap-lane evidence
-- `Check current Phase 12 build-only surface`, `Self-test current Phase 12 bootstrap docs sanity checker`, `Check current Phase 12 docs-root sanity markers`, `Self-test current Phase 12 bootstrap lane checker`, and `Check current Phase 12 bootstrap lane shape` belong to the older branch-only Lane 05 packet, not current `master`
+- the current shipped bootstrap lane still compiles `scripts/zigux/*.py` before any lane checks run
+- the current shipped lane still keeps the pinned Zig archive check and the Phase 11 build-inventory plus matrix-gap survey checks
+- the current shipped Phase 12 slice still includes the build-only surface pair, the release-readiness pair, `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+- the current shipped lane still runs `make -C zigux phase8-validate` and the focused Phase 8 libbpf segment survey after the Phase 12 complex driver tests
+- the current shipped bootstrap lane still ends with the inline `Check current docs-root sanity markers` block
+- the inline docs-root sanity block still checks `Documentation/zigux/README.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `zigux/tests/README.md`, and `scripts/zigux/check-build-only-phase12-surface.py`
+- dedicated `check-phase12-bootstrap-docs-sanity.py` and `check-phase12-bootstrap-lane-shape.py` guards remain review-only Lane 05 work, not shipped `master` behavior
 """
 
 
 def fixture_workflow() -> str:
-    steps = "\n".join(
-        f"      - name: {step}\n        run: echo {index}"
+    ordered_steps = "\n".join(
+        f"      - name: {step}\n        run: echo step-{index}"
         for index, step in enumerate(REQUIRED_STEP_ORDER, start=1)
     )
-    return (
-        "name: zigux-bootstrap\n\njobs:\n  bootstrap:\n    runs-on: ubuntu-latest\n"
-        "    steps:\n"
-        f"{steps}\n"
-        "      - name: Phase12 self-test command\n"
-        "        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test\n"
-    )
+    return f"""name: zigux-bootstrap
+on:
+  workflow_dispatch:
+
+concurrency:
+  cancel-in-progress: ${{{{ github.ref != 'refs/heads/master' }}}}
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+{ordered_steps}
+      - name: Required markers
+        run: |
+          python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
+          python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
+          python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
+          make -C zigux phase12-validate
+          make -C zigux phase12-smoke
+          zig build test --build-file zigux/tests/phase12_build.zig --summary all
+          make -C zigux phase8-validate
+          zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
+          python3 - <<'PY2'
+          required_files = [
+              Path('Documentation/zigux/README.md'),
+              Path('Documentation/zigux/phase12-release-readiness-survey.md'),
+              Path('zigux/tests/README.md'),
+              Path('scripts/zigux/check-build-only-phase12-surface.py'),
+          ]
+          print('ZIGUX_BOOTSTRAP_SANITY=pass')
+          print('ZIGUX_BOOTSTRAP_REQUIRED_FILE_COUNT=5')
+          print('ZIGUX_BOOTSTRAP_MARKER_COUNT=4')
+          PY2
+"""
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -199,38 +232,46 @@ def run_self_test() -> int:
         write_text(
             base / WORKFLOW_PATH,
             fixture_workflow().replace(
-                "Check current Phase 7 shared-control gap packet",
-                "Check current Phase 7 shared-control packet",
+                "      - name: Check current Phase 11 matrix-gap survey packet\n"
+                "        run: echo step-12\n",
+                "",
                 1,
             ),
         )
-        expect_failure(base, "workflow_missing:Check current Phase 7 shared-control gap packet")
+        expect_failure(base, "workflow_missing:Check current Phase 11 matrix-gap survey packet")
 
         write_text(
             base / WORKFLOW_PATH,
-            fixture_workflow()
-            + "\n      - name: Validate Phase 12 degraded-workflow bundle\n        run: make -C zigux phase12-validate\n",
+            fixture_workflow().replace(
+                "      - name: Validate Phase 12 degraded-workflow bundle\n"
+                "        run: echo step-16\n"
+                "      - name: Check current Phase 12 release-readiness packet\n"
+                "        run: echo step-17\n",
+                "      - name: Check current Phase 12 release-readiness packet\n"
+                "        run: echo step-17\n"
+                "      - name: Validate Phase 12 degraded-workflow bundle\n"
+                "        run: echo step-16\n",
+                1,
+            ),
         )
-        expect_failure(base, "workflow_forbidden:make -C zigux phase12-validate")
+        expect_failure(base, "workflow_order:Check current Phase 12 release-readiness packet")
 
         write_text(
             base / WORKFLOW_PATH,
             fixture_workflow()
-            + "\n      - name: Self-test current Phase 12 bootstrap docs sanity checker\n        run: echo stale\n",
+            + "      - name: Self-test current Phase 12 bootstrap docs sanity checker\n"
+            + "        run: echo stale\n",
         )
         expect_failure(
             base,
             "workflow_forbidden:Self-test current Phase 12 bootstrap docs sanity checker",
         )
 
-        write_text(base / WORKFLOW_PATH, fixture_workflow())
-        swapped = read_text(base, WORKFLOW_PATH).replace(
-            "      - name: Self-test current Phase 2 kbuild routes checker\n        run: echo 6\n      - name: Check current Phase 2 kbuild packet\n        run: echo 7\n",
-            "      - name: Check current Phase 2 kbuild packet\n        run: echo 7\n      - name: Self-test current Phase 2 kbuild routes checker\n        run: echo 6\n",
-            1,
+        write_text(
+            base / WORKFLOW_PATH,
+            fixture_workflow().replace("ZIGUX_BOOTSTRAP_SANITY=pass", "BOOTSTRAP_SANITY=pass", 1),
         )
-        write_text(base / WORKFLOW_PATH, swapped)
-        expect_failure(base, "workflow_order:Check current Phase 2 kbuild packet")
+        expect_failure(base, "workflow_required:ZIGUX_BOOTSTRAP_SANITY=pass")
 
         print("PHASE12_BOOTSTRAP_CONTRACT_SELF_TEST=pass")
         print("PHASE12_BOOTSTRAP_CONTRACT_SELF_TEST_CASE_COUNT=5")
@@ -241,7 +282,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current Phase 12 bootstrap contract companion."
+        description="Validate the shipped Lane 05 bootstrap contract on current master."
     )
     parser.add_argument(
         "--root",
