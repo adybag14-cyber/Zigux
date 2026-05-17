@@ -9,6 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path(__file__).resolve().parent
 
 FILES = [
+    "Documentation/zigux/phase10-virtio-input-slice.md",
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "drivers/virtio/virtio_input.zig",
@@ -24,6 +25,20 @@ FILES = [
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
     "zigux/tests/phase10_build.zig",
+]
+
+SLICE_MARKERS = [
+    "# Phase 10 Virtio Input Slice",
+    "scripts/zigux/check-phase10-input-packet.py",
+    "drivers/virtio/virtio_input.zig",
+    "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "queued status completions are reclaimed only in memory",
 ]
 
 MODULE_MARKERS = [
@@ -177,6 +192,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     missing_markers: list[str] = []
     check_markers(
         missing_markers,
+        "slice_note",
+        read_text(root, "Documentation/zigux/phase10-virtio-input-slice.md"),
+        SLICE_MARKERS,
+    )
+    check_markers(
+        missing_markers,
         "module_note",
         read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md"),
         MODULE_MARKERS,
@@ -237,6 +258,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 def write_fixture(root: Path) -> None:
     fixture_contents = {
+        "Documentation/zigux/phase10-virtio-input-slice.md": "\n".join(SLICE_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-input-module-slice.md": "\n".join(MODULE_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-input-survey.md": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "drivers/virtio/virtio_input.zig": "\n".join(INPUT_HELPER_MARKERS) + "\n",
@@ -288,6 +310,24 @@ def run_self_test() -> int:
             )
 
         case_count = 0
+
+        slice_note_path = root / "Documentation/zigux/phase10-virtio-input-slice.md"
+        original_slice_note = slice_note_path.read_text(encoding="utf-8")
+        slice_note_path.write_text(
+            original_slice_note.replace(
+                "drivers/virtio/virtio_input_verify.zig",
+                "drivers/virtio/virtio_input_verify_missing.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "slice_note:drivers/virtio/virtio_input_verify.zig",
+            "phase10-input-live-packet-self-test:slice_note_verify_path",
+        )
+        slice_note_path.write_text(original_slice_note, encoding="utf-8")
+        case_count += 1
 
         module_note_path = root / "Documentation/zigux/phase10-virtio-input-module-slice.md"
         original_module_note = module_note_path.read_text(encoding="utf-8")
@@ -518,7 +558,7 @@ def main() -> int:
     print(f"PHASE10_INPUT_LIVE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE10_INPUT_LIVE_REQUIRED_MARKER_COUNT="
-        f"{len(MODULE_MARKERS) + len(SURVEY_NOTE_MARKERS) + len(MANIFEST_MARKERS) + len(INPUT_HELPER_MARKERS) + len(PROBE_HELPER_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_HELPER_MARKERS) + len(BUILD_MARKERS) + len(SURVEY_GATE_MARKERS) + sum(len(markers) for markers in TEST_MARKERS.values())}"
+        f"{len(SLICE_MARKERS) + len(MODULE_MARKERS) + len(SURVEY_NOTE_MARKERS) + len(MANIFEST_MARKERS) + len(INPUT_HELPER_MARKERS) + len(PROBE_HELPER_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_HELPER_MARKERS) + len(BUILD_MARKERS) + len(SURVEY_GATE_MARKERS) + sum(len(markers) for markers in TEST_MARKERS.values())}"
     )
     return 0
 
