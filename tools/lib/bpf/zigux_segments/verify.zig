@@ -33,6 +33,8 @@ test "helper-first tools/lib/bpf Zigux segments keep the landed bounded entrypoi
     try expectHasDecl(cpu_mask, "countPossibleCpus");
     try expectHasDecl(type_names, "libbpfBpfAttachTypeStr");
     try expectHasDecl(type_names, "libbpfBpfMapTypeStr");
+    try expectHasDecl(type_names, "libbpfBpfLinkTypeStr");
+    try expectHasDecl(type_names, "libbpfBpfProgTypeStr");
     try expectHasDecl(file_path_handle_bridge, "buildProcFdinfoPath");
     try expectHasDecl(file_path_handle_bridge, "parseFdinfoLine");
     try expectHasDecl(file_path_handle_bridge, "applyFdinfoMapInfoLine");
