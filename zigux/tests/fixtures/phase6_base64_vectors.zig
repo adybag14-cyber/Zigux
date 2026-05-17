@@ -26,6 +26,16 @@ pub const InvalidDecodeCase = struct {
     variant_name: []const u8,
 };
 
+pub const PerfCase = struct {
+    label: []const u8,
+    payload: []const u8,
+    padding: bool,
+    variant_name: []const u8,
+    iterations: usize,
+    max_encode_slowdown_pct: u64,
+    max_decode_slowdown_pct: u64,
+};
+
 pub const standard_cases = [_]EncodeCase{
     .{ .input = "", .expected = "", .padding = true },
     .{ .input = "f", .expected = "Zg==", .padding = true },
@@ -136,3 +146,106 @@ pub const variant_decode_cases = [_]DecodeCase{
     .{ .input = ",,A", .expected = &variant_two_byte_sample, .padding = false, .variant_name = "imap" },
     .{ .input = ",,A=", .expected = &variant_two_byte_sample, .padding = true, .variant_name = "imap" },
 };
+
+pub const perf_payload =
+    "Phase 6 base64 perf gate payload keeps the helper wired to a real throughput check. " ++
+    "This packet stays helper-local, avoids widening into neighboring leaf helpers, and " ++
+    "exercises repeated encode and decode work over a stable review fixture. " ++
+    "Zigux uses the same payload for padded and unpadded standard and urlsafe runs.";
+
+pub const perf_cases = [_]PerfCase{
+    .{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "STD_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "URLSAFE_PAD", .payload = perf_payload, .padding = true, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+};
+
+pub const perf_payload_buf_size = perf_payload.len;
+pub const perf_encoded_buf_size = 512;
+
+fn encodedChars(nbytes: usize, padding: bool) usize {
+    const full_groups = (nbytes / 3) * 4;
+    if (padding) {
+        return full_groups + (if (nbytes % 3 == 0) @as(usize, 0) else @as(usize, 4));
+    }
+
+    return full_groups + switch (nbytes % 3) {
+        0 => @as(usize, 0),
+        1 => @as(usize, 2),
+        2 => @as(usize, 3),
+        else => unreachable,
+    };
+}
+
+test "phase 6 base64 perf fixture packet stays bounded to the documented matrix" {
+    const expected = [_]struct {
+        label: []const u8,
+        variant_name: []const u8,
+        padding: bool,
+        iterations: usize,
+        max_encode_slowdown_pct: u64,
+        max_decode_slowdown_pct: u64,
+    }{
+        .{ .label = "STD_PAD", .variant_name = "std", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "STD_NO_PAD", .variant_name = "std", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    };
+
+    var saw_std_pad = false;
+    var saw_std_no_pad = false;
+    var saw_urlsafe_pad = false;
+    var saw_urlsafe_no_pad = false;
+
+    try std.testing.expectEqual(expected.len, perf_cases.len);
+    try std.testing.expectEqual(perf_payload.len, perf_payload_buf_size);
+
+    for (expected, 0..) |want, idx| {
+        const actual = perf_cases[idx];
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqualStrings(want.variant_name, actual.variant_name);
+        try std.testing.expectEqual(want.padding, actual.padding);
+        try std.testing.expectEqual(want.iterations, actual.iterations);
+        try std.testing.expectEqual(want.max_encode_slowdown_pct, actual.max_encode_slowdown_pct);
+        try std.testing.expectEqual(want.max_decode_slowdown_pct, actual.max_decode_slowdown_pct);
+    }
+
+    for (perf_cases, 0..) |case, idx| {
+        try std.testing.expectEqualStrings(perf_payload, case.payload);
+        try std.testing.expect(case.iterations > 0);
+        try std.testing.expect(case.max_encode_slowdown_pct > 0);
+        try std.testing.expect(case.max_decode_slowdown_pct > 0);
+        try std.testing.expect(perf_payload_buf_size >= case.payload.len);
+        try std.testing.expect(perf_encoded_buf_size >= encodedChars(case.payload.len, case.padding));
+        try std.testing.expect(
+            std.mem.eql(u8, case.variant_name, "std") or std.mem.eql(u8, case.variant_name, "urlsafe"),
+        );
+
+        if (std.mem.eql(u8, case.variant_name, "std")) {
+            if (case.padding) {
+                try std.testing.expect(!saw_std_pad);
+                saw_std_pad = true;
+            } else {
+                try std.testing.expect(!saw_std_no_pad);
+                saw_std_no_pad = true;
+            }
+        } else {
+            if (case.padding) {
+                try std.testing.expect(!saw_urlsafe_pad);
+                saw_urlsafe_pad = true;
+            } else {
+                try std.testing.expect(!saw_urlsafe_no_pad);
+                saw_urlsafe_no_pad = true;
+            }
+        }
+
+        for (perf_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
+        }
+    }
+
+    try std.testing.expect(saw_std_pad);
+    try std.testing.expect(saw_std_no_pad);
+    try std.testing.expect(saw_urlsafe_pad);
+    try std.testing.expect(saw_urlsafe_no_pad);
+}
