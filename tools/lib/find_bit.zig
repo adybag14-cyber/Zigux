@@ -549,6 +549,14 @@ test "word-boundary next scans start fresh on the next word" {
         (@as(Word, 1) << 0) | (@as(Word, 1) << 5),
     };
     const and_rhs = and_lhs;
+    const andnot_lhs = [_]Word{
+        @as(Word, 1) << @intCast(bits_per_long - 1),
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 5),
+    };
+    const andnot_rhs = [_]Word{
+        @as(Word, 1) << @intCast(bits_per_long - 1),
+        0,
+    };
 
     try std.testing.expectEqual(boundary, findNextBit(&set_map, nbits, boundary));
     try std.testing.expectEqual(boundary + 5, findNextBit(&set_map, nbits, boundary + 1));
@@ -556,6 +564,8 @@ test "word-boundary next scans start fresh on the next word" {
     try std.testing.expectEqual(boundary + 5, findNextZeroBit(&zero_map, nbits, boundary + 1));
     try std.testing.expectEqual(boundary, findNextAndBit(&and_lhs, &and_rhs, nbits, boundary));
     try std.testing.expectEqual(boundary + 5, findNextAndBit(&and_lhs, &and_rhs, nbits, boundary + 1));
+    try std.testing.expectEqual(boundary, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary));
+    try std.testing.expectEqual(boundary + 5, findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, boundary + 1));
 }
 
 test "zero-bit windows return without reading bitmap words" {
