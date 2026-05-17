@@ -133,6 +133,8 @@ def run_self_test() -> int:
         mutations = (
             (TESTS_README_PATH, "`Documentation/zigux/phase8-libbpf-segment-survey.md`"),
             (TESTS_README_PATH, "`scripts/zigux/check-phase8-libbpf-segment-gate.py`"),
+            (TESTS_README_PATH, "`scripts/zigux/check-phase8-libbpf-shard-routes.py`"),
+            (TESTS_README_PATH, "`zigux/tests/phase8_libbpf_segments.zig`"),
             (TESTS_README_PATH, "`zigux/tests/phase8_libbpf_segments_only_build.zig`"),
             (TESTS_README_PATH, "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`"),
             (TESTS_README_PATH, "`make -C zigux phase8-libbpf-segments-test`"),
