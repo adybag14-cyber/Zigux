@@ -113,6 +113,42 @@ pub fn defaultHeader(flags: u16) BoundaryHeader {
     };
 }
 
+pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {
+    var header = defaultHeader(flags);
+    header.size = size;
+    return header;
+}
+
+pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {
+    return abi_version == ABI_VERSION;
+}
+
+pub fn headerIsCanonical(header: BoundaryHeader) bool {
+    return header.size == @sizeOf(BoundaryHeader) and
+        headerHasCurrentAbiVersion(header.abi_version);
+}
+
+pub fn headerIsCompatible(header: BoundaryHeader) bool {
+    return header.size >= @sizeOf(BoundaryHeader) and
+        headerHasCurrentAbiVersion(header.abi_version);
+}
+
+pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
+    var canonical = header;
+    canonical.size = @sizeOf(BoundaryHeader);
+    canonical.abi_version = ABI_VERSION;
+    return canonical;
+}
+
+pub fn defaultInteropPolicy() InteropPolicy {
+    return .{
+        .panic_mode = @intFromEnum(PanicMode.abort),
+        .allocator_mode = @intFromEnum(AllocatorMode.caller_provided),
+        .unsafe_scope = @intFromEnum(UnsafeScope.none),
+        .reserved = 0,
+    };
+}
+
 test "abi binding default header stays canonical" {
     const header = defaultHeader(0x41);
 
@@ -125,6 +161,49 @@ test "abi binding default header stays canonical" {
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(BoundaryHeader, "size"));
     try std.testing.expectEqual(@as(usize, 4), @offsetOf(BoundaryHeader, "abi_version"));
     try std.testing.expectEqual(@as(usize, 6), @offsetOf(BoundaryHeader, "flags"));
+}
+
+test "abi binding boundary header helpers keep compatibility explicit" {
+    const default_header = defaultHeader(0x15);
+    const expanded = compatibleHeader(@sizeOf(BoundaryHeader) + 8, 0x15);
+    const future = BoundaryHeader{
+        .size = @sizeOf(BoundaryHeader) + 16,
+        .abi_version = ABI_VERSION,
+        .flags = 0xA1,
+    };
+    const stale = BoundaryHeader{
+        .size = @sizeOf(BoundaryHeader),
+        .abi_version = ABI_VERSION + 1,
+        .flags = 0,
+    };
+    const canonicalized = canonicalizeHeader(future);
+
+    try std.testing.expect(headerHasCurrentAbiVersion(default_header.abi_version));
+    try std.testing.expect(headerIsCanonical(default_header));
+    try std.testing.expect(headerIsCompatible(default_header));
+
+    try std.testing.expect(!headerIsCanonical(expanded));
+    try std.testing.expect(headerIsCompatible(expanded));
+    try std.testing.expect(!headerIsCanonical(future));
+    try std.testing.expect(headerIsCompatible(future));
+
+    try std.testing.expect(!headerHasCurrentAbiVersion(stale.abi_version));
+    try std.testing.expect(!headerIsCanonical(stale));
+    try std.testing.expect(!headerIsCompatible(stale));
+
+    try std.testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), canonicalized.size);
+    try std.testing.expectEqual(@as(u16, ABI_VERSION), canonicalized.abi_version);
+    try std.testing.expectEqual(future.flags, canonicalized.flags);
+    try std.testing.expect(headerIsCanonical(canonicalized));
+}
+
+test "abi binding default interop policy stays safe by default" {
+    const policy = defaultInteropPolicy();
+
+    try std.testing.expectEqual(@as(u8, @intFromEnum(PanicMode.abort)), policy.panic_mode);
+    try std.testing.expectEqual(@as(u8, @intFromEnum(AllocatorMode.caller_provided)), policy.allocator_mode);
+    try std.testing.expectEqual(@as(u8, @intFromEnum(UnsafeScope.none)), policy.unsafe_scope);
+    try std.testing.expectEqual(@as(u8, 0), policy.reserved);
 }
 
 test "abi binding enums stay aligned with exported constants" {
