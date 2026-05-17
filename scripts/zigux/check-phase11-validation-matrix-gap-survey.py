@@ -28,12 +28,16 @@ MARKERS = {
         "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
         "matrix packet is once again an honest four-matrix direct-readback claim",
         "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains",
-        "`zigux/tests/fixtures/phase11_build_inventory.json` still records 14 build test",
-        "13 shared depend steps, and one dedicated survey replay",
-        "`phase11-bcm2835-wdt-tests`",
-        "`phase11-gpio-wdt-tests`",
+        "`zigux/tests/fixtures/phase11_build_inventory.json` now records the narrower current-head HVC continuity packet",
+        "4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays",
+        "the shared build inventory no longer stands in for a whole-Phase-11 replay roster",
+        "the shared build inventory has narrowed away from the older bcm2835 replay roster",
+        "the shared build inventory has narrowed away from the older gpio replay roster",
         "`phase11-hvc-console-tests`",
-        "`phase11-dw-wdt-tests`",
+        "`phase11-hvc-console-verify-tests`",
+        "`phase11-hvc-cleanup-tests`",
+        "`phase11-hvc-console-survey-tests`",
+        "the shared build inventory has narrowed away from the older DesignWare replay roster",
     ],
 }
 
@@ -42,40 +46,31 @@ FORBIDDEN_MARKERS = {
         "`PHASE11_MATRIX_GAP_STATUS=driver_local_matrix_docs_absent_shared_header_matrix_only`",
         "shared matrix packet is no longer an honest four-matrix direct-readback claim",
         "The only directly readable Phase 11 matrix note on current `master` is",
+        "`zigux/tests/fixtures/phase11_build_inventory.json` still records 14 build test",
+        "13 shared depend steps, and one dedicated survey replay",
     ],
 }
 
 REQUIRED_BUILD_TEST_NAMES = (
-    "phase11-gpio-wdt-tests",
-    "phase11-gpio-wdt-survey-tests",
-    "phase11-bcm2835-wdt-tests",
-    "phase11-bcm2835-wdt-verify-tests",
-    "phase11-bcm2835-wdt-survey-tests",
-    "phase11-dw-wdt-tests",
-    "phase11-dw-wdt-registration-scaffold-tests",
-    "phase11-dw-wdt-verify-tests",
-    "phase11-dw-wdt-survey-tests",
     "phase11-hvc-console-tests",
     "phase11-hvc-console-verify-tests",
     "phase11-hvc-cleanup-tests",
     "phase11-hvc-console-survey-tests",
-    "phase11-uapi-header-parity-survey-tests",
 )
 
 REQUIRED_SHARED_DEPEND_STEPS = (
-    "run_phase11_gpio_wdt_tests",
-    "run_phase11_gpio_wdt_survey_tests",
-    "run_phase11_bcm2835_wdt_tests",
-    "run_bcm2835_wdt_verify_tests",
-    "run_phase11_bcm2835_wdt_survey_tests",
-    "run_phase11_dw_wdt_tests",
-    "run_phase11_dw_wdt_registration_scaffold_tests",
-    "run_dw_wdt_verify_tests",
-    "run_phase11_dw_wdt_survey_tests",
-    "run_phase11_uapi_header_parity_survey_tests",
     "run_phase11_hvc_console_tests",
     "run_hvc_console_verify_tests",
     "run_phase11_hvc_cleanup_tests",
+)
+
+REQUIRED_DEDICATED_SURVEY_REPLAYS = (
+    "zigux/tests/phase11_hvc_console_survey.zig",
+)
+
+REQUIRED_SHARED_ADJUNCT_REPLAYS = (
+    "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
 )
 
 
@@ -110,6 +105,11 @@ def expect_string_list(label: str, value: object) -> list[str]:
     return list(value)
 
 
+def expect_exact_string_list(label: str, actual: object, expected: tuple[str, ...]) -> None:
+    if expect_string_list(label, actual) != list(expected):
+        raise CheckError(f"{label} does not match the current-head HVC continuity packet")
+
+
 def run_check(root: Path) -> None:
     survey_text = read_text(root, FILES["matrix_gap_note"])
     expect_markers("matrix_gap_note", survey_text, MARKERS["matrix_gap_note"])
@@ -119,28 +119,26 @@ def run_check(root: Path) -> None:
     if not isinstance(inventory, dict):
         raise CheckError("expected object in inventory")
 
-    build_test_names = expect_string_list("build_test_names", inventory.get("build_test_names"))
-    if len(build_test_names) != 14:
-        raise CheckError("expected 14 build_test_names entries")
-    for name in REQUIRED_BUILD_TEST_NAMES:
-        if name not in build_test_names:
-            raise CheckError(f"missing build_test_names entry: {name}")
-
-    shared_steps = expect_string_list("shared_test_depend_steps", inventory.get("shared_test_depend_steps"))
-    if len(shared_steps) != 13:
-        raise CheckError("expected 13 shared_test_depend_steps entries")
-    for step in REQUIRED_SHARED_DEPEND_STEPS:
-        if step not in shared_steps:
-            raise CheckError(f"missing shared_test_depend_steps entry: {step}")
-    if "run_phase11_hvc_console_survey_tests" in shared_steps:
-        raise CheckError("expected HVC survey replay to stay dedicated")
-
-    dedicated_survey_replays = expect_string_list(
+    expect_exact_string_list(
+        "build_test_names",
+        inventory.get("build_test_names"),
+        REQUIRED_BUILD_TEST_NAMES,
+    )
+    expect_exact_string_list(
+        "shared_test_depend_steps",
+        inventory.get("shared_test_depend_steps"),
+        REQUIRED_SHARED_DEPEND_STEPS,
+    )
+    expect_exact_string_list(
         "dedicated_survey_replays",
         inventory.get("dedicated_survey_replays"),
+        REQUIRED_DEDICATED_SURVEY_REPLAYS,
     )
-    if dedicated_survey_replays != ["zigux/tests/phase11_hvc_console_survey.zig"]:
-        raise CheckError("unexpected dedicated_survey_replays packet")
+    expect_exact_string_list(
+        "shared_adjunct_replays",
+        inventory.get("shared_adjunct_replays"),
+        REQUIRED_SHARED_ADJUNCT_REPLAYS,
+    )
 
 
 def write(path: Path, text: str) -> None:
@@ -162,11 +160,16 @@ def build_self_test_fixture(root: Path) -> None:
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - shared matrix packet is once again an honest four-matrix direct-readback claim
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains
-- `zigux/tests/fixtures/phase11_build_inventory.json` still records 14 build test names, 13 shared depend steps, and one dedicated survey replay
-- `phase11-bcm2835-wdt-tests`
-- `phase11-gpio-wdt-tests`
+- `zigux/tests/fixtures/phase11_build_inventory.json` now records the narrower current-head HVC continuity packet
+- 4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays
+- the shared build inventory no longer stands in for a whole-Phase-11 replay roster
+- the shared build inventory has narrowed away from the older bcm2835 replay roster
+- the shared build inventory has narrowed away from the older gpio replay roster
 - `phase11-hvc-console-tests`
-- `phase11-dw-wdt-tests`
+- `phase11-hvc-console-verify-tests`
+- `phase11-hvc-cleanup-tests`
+- `phase11-hvc-console-survey-tests`
+- the shared build inventory has narrowed away from the older DesignWare replay roster
 """,
     )
     write(
@@ -175,7 +178,8 @@ def build_self_test_fixture(root: Path) -> None:
             {
                 "build_test_names": list(REQUIRED_BUILD_TEST_NAMES),
                 "shared_test_depend_steps": list(REQUIRED_SHARED_DEPEND_STEPS),
-                "dedicated_survey_replays": ["zigux/tests/phase11_hvc_console_survey.zig"],
+                "dedicated_survey_replays": list(REQUIRED_DEDICATED_SURVEY_REPLAYS),
+                "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
             },
             indent=2,
         )
@@ -231,14 +235,14 @@ def run_self_test() -> None:
         inventory = json.loads((wrong_count_root / FILES["inventory"]).read_text(encoding="utf-8"))
         inventory["shared_test_depend_steps"] = inventory["shared_test_depend_steps"][:-1]
         write(wrong_count_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
-        expect_failure(wrong_count_root, "expected 13 shared_test_depend_steps entries")
+        expect_failure(wrong_count_root, "shared_test_depend_steps does not match")
 
-        wrong_dedicated_root = tmpdir / "wrong_dedicated"
-        shutil.copytree(fixture_root, wrong_dedicated_root, dirs_exist_ok=True)
-        inventory = json.loads((wrong_dedicated_root / FILES["inventory"]).read_text(encoding="utf-8"))
-        inventory["dedicated_survey_replays"] = []
-        write(wrong_dedicated_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
-        expect_failure(wrong_dedicated_root, "unexpected dedicated_survey_replays packet")
+        wrong_adjunct_root = tmpdir / "wrong_adjunct"
+        shutil.copytree(fixture_root, wrong_adjunct_root, dirs_exist_ok=True)
+        inventory = json.loads((wrong_adjunct_root / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["shared_adjunct_replays"] = []
+        write(wrong_adjunct_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_adjunct_root, "shared_adjunct_replays does not match")
 
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=4")
