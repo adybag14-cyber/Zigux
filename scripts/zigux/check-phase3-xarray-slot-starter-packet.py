@@ -65,6 +65,8 @@ REQUIRED_MARKERS = {
         'test "xarray slot view keeps xa_value entries out of the err_ptr band" {',
         'test "xarray slot view preserves err_ptr encodings as tagged error entries" {',
         'test "xarray slot view keeps ordinary pointer-like slots separate from tagged entries" {',
+        'test "inline zero stays tagged without looking like a null slot" {',
+        'test "top err_ptr encoding stays tagged and never falls back to pointer-like" {',
         "try testing.expect(xarray_slot_view.isTaggedInternalEntry(raw));",
     ),
     BUILD_PATH: (
