@@ -9,13 +9,13 @@ This note records the current bounded Phase 15 shared-summary drift between the 
 - `PHASE15_SLICE=materialized-governance-packet-truthfulness-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
-- role: keep the current Phase 15 governance packet honest now that several previously claimed-missing governance assets are materialized, while broader shared-summary wording and a smaller set of still-missing focused companions still need disciplined rereads instead of stale present-path carryover
+- role: keep the current Phase 15 governance packet honest now that both the broader governance notes and the previously parked focused companions are materialized, while the remaining work stays narrowed to shared-summary truthfulness rather than stale missing-path carryover or implied approval
 
 ## Why this note exists
 
 Phase 15 is supposed to govern the mixed-language steady state honestly. Current `master` now carries a materially larger governance packet than this note and its checker were still admitting.
 
-The current same-lane truthfulness task is no longer to keep listing landed governance assets as missing. It is to keep the broad reminder surfaces aligned with the now-materialized packet, while also refusing to overclaim focused companions that direct current-`master` reads still return as missing.
+The current same-lane truthfulness task is no longer to treat the previously parked focused companions as missing. It is to keep the broad reminder surfaces aligned with the now-materialized packet while still refusing to imply Architecture Council approval or direct deep-core delivery just because more review companions are landed.
 
 ## Materialized Phase 15 governance assets
 
@@ -30,9 +30,9 @@ The following paths were previously treated as missing in this shared-gap packet
 - `zigux/tests/phase15_indefinite_c_policy.json`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
 
-## Still-missing focused companions on current master
+## Materialized focused companions on current master
 
-Direct current-`master` reads still return missing for these focused companions, so the shared-gap packet must keep them framed as gaps instead of landed evidence:
+Direct current-`master` reads now materialize these focused companions too, so the shared-gap packet must keep them visible as present governance evidence instead of carrying them as missing-path reminders:
 
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_build.zig`
@@ -41,7 +41,7 @@ Direct current-`master` reads still return missing for these focused companions,
 
 ## Current shared-summary watchpoints
 
-The remaining Phase 15 discipline work is broad-summary truthfulness plus focused-companion exactness, not missing-file recovery by wishful thinking:
+The remaining Phase 15 discipline work is broad-summary truthfulness and route wording exactness, not missing-file recovery by wishful thinking:
 
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
@@ -64,9 +64,9 @@ These are the surfaces that should be reread together before claiming any new Ph
 
 Treat the current Phase 15 shared-summary state as a wording-and-alignment check:
 
-- do not reintroduce stale missing-path claims for materialized governance assets
-- do not promote a still-missing focused companion into the materialized packet until a direct current-`master` read confirms it
-- if a materialized Phase 15 governance asset disappears, tighten this note and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately
+- do not reintroduce stale missing-path claims for materialized governance assets or the now-materialized focused companions
+- if a materialized Phase 15 governance asset or materialized focused companion disappears, tighten this note and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately
+- do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves
 - if docs-root, checklist, scripts-root, or tests-root wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 - keep tests-root follow-through separate from review-process and parity-scorecard packet maintenance unless the same direct evidence forces them back together
 
@@ -81,4 +81,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above, one of the still-missing focused companions lands, or one of the materialized assets disappears and forces the shared-gap packet to narrow again.
+Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above or one of the materialized focused companions disappears and forces the shared-gap packet to narrow again.
