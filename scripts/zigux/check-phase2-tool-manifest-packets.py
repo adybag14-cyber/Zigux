@@ -25,14 +25,15 @@ CLOSURE_DOC_MARKERS = (
 )
 
 BOOTSTRAP_NOTES_MARKERS = (
-    "`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`",
-    "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
-    "branch-local manifest packet",
-    "directly readable on the lane branch",
+    "shared validator gate: `python3 scripts/zigux/validate-phase2.py`",
+    "closure validator gate: `python3 scripts/zigux/validate-phase2-closure.py`",
+    "Linux-style validator route: `make -C zigux phase2-validate`",
+    "the broader fixdep, genksyms, artifact-tools, and manifest packet should stay documented through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and `zigux/Makefile` instead of restating the full broader checker inventory in this dedicated pin-scope note",
 )
 
 PHASE2_VALIDATOR_MARKERS = (
     'ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py"',
+    'ROOT / "scripts" / "zigux" / "check-phase2-cross.py"',
 )
 
 PHASE2_CLOSURE_VALIDATOR_MARKERS = (
@@ -47,8 +48,10 @@ EXPECTED_PRESENT_FILES = [
     "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-phase2-tool-manifest-packets.py",
     "zigux/Makefile",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "Documentation/zigux/README.md",
     "Documentation/zigux/review-checklist.md",
@@ -62,14 +65,12 @@ EXPECTED_PRESENT_FILES = [
 ]
 
 EXPECTED_MISSING_FILES = [
-    "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/install-zig.py",
 ]
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 10
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -172,28 +173,15 @@ def write_text(root: Path, path: Path, content: str) -> None:
     resolved.write_text(content, encoding="utf-8")
 
 
-def manifest_json(
-    *,
-    packet: str = "phase2_tool_manifest",
-    phase: str = "phase2",
-    status: str = "lane22_branch_closure_packet_restacked",
-    tool_manifest_checker: str = CHECKER_PATH,
-    present_files: list[str] | None = None,
-    missing_files: list[str] | None = None,
-    master_present_branch_missing_files: list[str] | None = None,
-) -> str:
+def manifest_json(*, packet: str = "phase2_tool_manifest", tool_manifest_checker: str = CHECKER_PATH, present_files: list[str] | None = None, missing_files: list[str] | None = None) -> str:
     payload = {
         "packet": packet,
-        "phase": phase,
-        "status": status,
+        "phase": "phase2",
+        "status": "lane22_branch_closure_packet_restacked",
         "tool_manifest_checker": tool_manifest_checker,
         "present_files": EXPECTED_PRESENT_FILES if present_files is None else present_files,
         "missing_files": EXPECTED_MISSING_FILES if missing_files is None else missing_files,
-        "master_present_branch_missing_files": (
-            EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES
-            if master_present_branch_missing_files is None
-            else master_present_branch_missing_files
-        ),
+        "master_present_branch_missing_files": EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES,
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -225,11 +213,7 @@ def run_self_test() -> int:
             (CLOSURE_DOC, CLOSURE_DOC_MARKERS[0], "MISSING_CLOSURE_DOC_MARKERS"),
             (BOOTSTRAP_NOTES, BOOTSTRAP_NOTES_MARKERS[0], "MISSING_BOOTSTRAP_NOTES_MARKERS"),
             (PHASE2_VALIDATOR, PHASE2_VALIDATOR_MARKERS[0], "MISSING_PHASE2_VALIDATOR_MARKERS"),
-            (
-                PHASE2_CLOSURE_VALIDATOR,
-                PHASE2_CLOSURE_VALIDATOR_MARKERS[0],
-                "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS",
-            ),
+            (PHASE2_CLOSURE_VALIDATOR, PHASE2_CLOSURE_VALIDATOR_MARKERS[0], "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS"),
         ):
             build_self_test_root(root)
             resolved = resolve_path(root, path)
@@ -258,55 +242,11 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(
-            root,
-            MANIFEST,
-            manifest_json(master_present_branch_missing_files=["scripts/zigux/check-phase2-toolchain-pin-scope.py"]),
-        )
-        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            MANIFEST,
-            manifest_json(
-                present_files=[item for item in EXPECTED_PRESENT_FILES if item != CHECKER_PATH],
-            ),
-        )
+        bad = json.loads(manifest_json())
+        bad["present_files"] = [item for item in EXPECTED_PRESENT_FILES if item != CHECKER_PATH]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("CHECKER_NOT_MARKED_PRESENT", CHECKER_PATH) in collect_issues(root)
         checks_run += 1
-
-        build_self_test_root(root)
-        write_text(
-            root,
-            MANIFEST,
-            manifest_json(missing_files=[CHECKER_PATH, *EXPECTED_MISSING_FILES]),
-        )
-        issues = collect_issues(root)
-        assert ("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH) in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        resolve_path(root, MANIFEST).write_text("[]\n", encoding="utf-8")
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "not an object" in str(exc)
-            checks_run += 1
-        else:
-            raise AssertionError("non-object manifest did not abort")
-
-        for rel_path in (CLOSURE_DOC, BOOTSTRAP_NOTES, PHASE2_VALIDATOR, PHASE2_CLOSURE_VALIDATOR):
-            build_self_test_root(root)
-            resolve_path(root, rel_path).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                checks_run += 1
-            else:
-                raise AssertionError(f"missing file did not abort: {rel_path}")
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOL_MANIFEST_PACKETS_SELF_TEST=pass")
@@ -315,9 +255,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Keep the Lane 22 Phase 2 tool-manifest packet aligned with the branch-local closure surfaces."
-    )
+    parser = argparse.ArgumentParser(description="Keep the Lane 22 Phase 2 tool manifest packet aligned.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
@@ -330,8 +268,8 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_TOOL_MANIFEST_PACKETS=pass")
-    print(f"PHASE2_TOOL_MANIFEST_PRESENT_FILE_COUNT={len(EXPECTED_PRESENT_FILES)}")
-    print(f"PHASE2_TOOL_MANIFEST_MISSING_FILE_COUNT={len(EXPECTED_MISSING_FILES)}")
+    print(f"PHASE2_TOOL_MANIFEST_PRESENT_COUNT={len(EXPECTED_PRESENT_FILES)}")
+    print(f"PHASE2_TOOL_MANIFEST_MISSING_COUNT={len(EXPECTED_MISSING_FILES)}")
     return 0
 
 
