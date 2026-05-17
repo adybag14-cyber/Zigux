@@ -47,7 +47,7 @@ EXPECTED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 14
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -179,7 +179,7 @@ def run_self_test() -> int:
             assert ("MISSING_REQUIRED_FILE", path.relative_to(ROOT).as_posix()) in collect_issues(root)
             checks_run += 1
 
-        for path in CHECKERS[:4]:
+        for path in CHECKERS:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             assert ("MISSING_CHECKER", path.relative_to(ROOT).as_posix()) in collect_issues(root)
