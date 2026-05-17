@@ -28,7 +28,11 @@ Direct current-`master` readback in this run materialized these shared reminder 
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
@@ -37,7 +41,7 @@ Those files keep the shared Phase 13 packet active, helper-backed, and still not
 Current `master` also keeps the helper-local packet split visible from the release surface:
 
 - `libfs` stays anchored through `Documentation/zigux/phase13-libfs-survey.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`
-- `devres` stays anchored through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `zigux/tests/phase13_devres_manifest.json`
+- `devres` stays anchored through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, and `zigux/tests/phase13_devres_boundary_evidence.zig`, and `zigux/tests/phase13_devres_manifest.json`
 - `landlock/ruleset` and `landlock/syscalls` stay helper-local through their ownership, slice, survey, source, and manifest-backed replay surfaces rather than collapsing into docs-only governance metadata
 - adjacent notifier evidence remains support material rather than a fifth roadmap anchor
 
@@ -91,7 +95,10 @@ When this survey changes, reread these shared reminder surfaces together first:
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
