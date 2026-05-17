@@ -90,8 +90,9 @@ fn addPhase3DevTStarterPacket(
         .target = target,
         .optimize = optimize,
     });
+    root_module.addImport("uapi_dev_t", uapi_dev_t);
     root_module.addImport("dev_t_binding", dev_t_binding);
-    root_module.addImport("uapi_version", uapi_version);
+    root_module.addImport("version_binding", uapi_version);
 
     const tests = b.addTest(.{
         .name = "phase3-dev-t-starter-packet",
@@ -146,6 +147,30 @@ fn addPhase3PolicyStarterPacket(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3AbiDump(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const abi_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_abi_dump_current.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("abi_bindings", abi_bindings);
+
+    const exe = b.addExecutable(.{
+        .name = "phase3-abi-dump",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(exe);
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -153,6 +178,7 @@ pub fn build(b: *std.Build) void {
     const phase1_host_tools_smoke = addPhase1HostToolsSmoke(b, target, optimize);
     const phase3_dev_t_starter_packet = addPhase3DevTStarterPacket(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
+    const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
 
     // Keep the shared tests root centered on anchors that are still present on
     // current master while reintroducing a compact Phase 1 host-tools smoke path.
@@ -181,6 +207,18 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 3 policy starter packet from zigux/tests",
     );
     phase3_policy_step.dependOn(&phase3_policy_starter_packet.step);
+
+    const phase3_test_step = b.step(
+        "phase3-test",
+        "Run the current shared Phase 3 starter packet from zigux/tests",
+    );
+    phase3_test_step.dependOn(&phase3_dev_t_starter_packet.step);
+
+    const phase3_dump_step = b.step(
+        "phase3-dump",
+        "Dump the current shared Phase 3 ABI snapshot from zigux/tests",
+    );
+    phase3_dump_step.dependOn(&phase3_abi_dump.step);
 
     const phase12_step = b.step(
         "phase12-virtio-net-survey",
