@@ -18,6 +18,7 @@ UAPI_PATH = Path("zigux/uapi/list_hlist.zig")
 BINDINGS_PATH = Path("zigux/bindings/list_hlist.zig")
 LIST_VIEW_PATH = Path("zigux/helpers/list_view.zig")
 HLIST_VIEW_PATH = Path("zigux/helpers/hlist_view.zig")
+BUILD_TESTS_PATH = Path("zigux/tests/build.zig")
 DUMP_PATH = Path("zigux/tests/phase3_list_hlist_dump.zig")
 DUMP_BUILD_PATH = Path("zigux/tests/phase3_list_hlist_dump_build.zig")
 HARNESS_PATH = Path("zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c")
@@ -26,10 +27,10 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_list_hlist_manifest.json")
 
 REQUIRED_MARKERS = {
     SLICE_PATH: (
+        "zigux/tests/build.zig",
         "zigux/tests/phase3_list_hlist_dump.zig",
-        "zigux/tests/phase3_list_hlist_dump_build.zig",
-        "zigux/tests/fixtures/phase3_list_hlist_manifest.json",
-        "shared dump, expected fixture, C harness, and checker route",
+        "zig build phase3-list-hlist --build-file zigux/tests/build.zig",
+        "shared dump, expected fixture, C harness, checker route, and shared tests-root hook",
     ),
     HEADER_PATH: (
         "ZIGUX_LIST_HLIST_ABI_VERSION 1u",
@@ -59,6 +60,12 @@ REQUIRED_MARKERS = {
         "pub fn firstPprevMatchesHead(self: HListView) bool {",
         "pub fn firstBrokenPrevLink(self: HListView) ?PrevLinkBreak {",
     ),
+    BUILD_TESTS_PATH: (
+        "fn addPhase3ListHListDump(",
+        'const phase3_list_hlist_step = b.step(',
+        '"phase3-list-hlist"',
+        "phase3_list_hlist_step.dependOn(&phase3_list_hlist_dump.step);",
+    ),
     DUMP_PATH: (
         'const list_hlist = @import("list_hlist_bindings");',
         'try writeListScenario(writer, "list_pair", &list_head);',
@@ -74,7 +81,7 @@ REQUIRED_MARKERS = {
         '#include "../../../../include/zigux/list_hlist.h"',
         "static int zigux_list_is_circular(const struct zigux_list_head *head)",
         "static int zigux_hlist_tail_next_null(const struct zigux_hlist_head *head)",
-        '\"hlist_pair\":{\"empty\":%s,\"len\":%zu,\"head_links_match\":%s,\"tail_next_null\":%s}',
+        '\\"hlist_pair\\":{\\"empty\\":%s,\\"len\\":%zu,\\"head_links_match\\":%s,\\"tail_next_null\\":%s}',
     ),
     EXPECTED_PATH: (
         '"list_empty": {',
@@ -85,8 +92,8 @@ REQUIRED_MARKERS = {
     MANIFEST_PATH: (
         '"slug": "phase3-list-hlist"',
         '"status": "parity_packet_present"',
-        '"zigux/tests/phase3_list_hlist_dump.zig"',
-        '"zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"',
+        '"zigux/tests/build.zig"',
+        '"zig build phase3-list-hlist --build-file zigux/tests/build.zig"',
     ),
 }
 
@@ -130,8 +137,8 @@ def _diff(label: str, expected: object, actual: object) -> str:
             fromfile=f"{label}-expected",
             tofile=f"{label}-actual",
         )
-    ).strip()
-    return diff or f"{label} JSON differed without a textual diff"
+    )
+    return diff.strip() or f"{label} JSON differed without a textual diff"
 
 
 def _run_zig_dump(repo_root: Path, zig: str) -> object:
@@ -227,6 +234,7 @@ def validate_repo(
                     "zigux/bindings/list_hlist.zig",
                     "zigux/helpers/list_view.zig",
                     "zigux/helpers/hlist_view.zig",
+                    "zigux/tests/build.zig",
                     "zigux/tests/phase3_list_hlist_dump.zig",
                     "zigux/tests/phase3_list_hlist_dump_build.zig",
                     "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
@@ -244,6 +252,7 @@ def validate_repo(
                     "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
                     "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
                     "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+                    "zig build phase3-list-hlist --build-file zigux/tests/build.zig",
                 ):
                     if route not in replay_routes:
                         issues.append(
@@ -293,6 +302,7 @@ def _populate_repo(root: Path) -> None:
     "zigux/bindings/list_hlist.zig",
     "zigux/helpers/list_view.zig",
     "zigux/helpers/hlist_view.zig",
+    "zigux/tests/build.zig",
     "zigux/tests/phase3_list_hlist_dump.zig",
     "zigux/tests/phase3_list_hlist_dump_build.zig",
     "zigux/tests/fixtures/phase3_list_hlist/phase3_list_hlist_c_harness.c",
@@ -303,7 +313,8 @@ def _populate_repo(root: Path) -> None:
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-list-hlist.py --self-test",
     "python3 scripts/zigux/check-phase3-list-hlist.py --repo-root . --zig zig --cc gcc",
-    "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig"
+    "zig build phase3-list-hlist-dump --build-file zigux/tests/phase3_list_hlist_dump_build.zig",
+    "zig build phase3-list-hlist --build-file zigux/tests/build.zig"
   ]
 }
 """,
@@ -311,11 +322,12 @@ def _populate_repo(root: Path) -> None:
 
 
 SELF_TEST_CASES = (
-    (SLICE_PATH, "shared dump, expected fixture, C harness, and checker route"),
+    (SLICE_PATH, "shared dump, expected fixture, C harness, checker route, and shared tests-root hook"),
     (HEADER_PATH, "struct zigux_hlist_node"),
+    (BUILD_TESTS_PATH, "phase3_list_hlist_step.dependOn(&phase3_list_hlist_dump.step);"),
     (DUMP_PATH, 'try writeHListScenario(writer, "hlist_pair", &hlist_head);'),
     (HARNESS_PATH, "static int zigux_hlist_tail_next_null(const struct zigux_hlist_head *head)"),
-    (MANIFEST_PATH, '"status": "parity_packet_present"'),
+    (MANIFEST_PATH, '"zig build phase3-list-hlist --build-file zigux/tests/build.zig"'),
 )
 
 
