@@ -43,6 +43,14 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - keep the older non-owner boundaries explicit here too: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence
 - keep future same-lane follow-through inside one reminder surface at a time unless fresh repo reality restores the broader shared runtime-loader packet
 
+## Phase 10
+
+- Phase 10 flow - the current shared virtio lab packet stays reviewable from the scripts root through the directly readable checker-backed closure note and the compact tests-readme guard rather than through the older validator-first closure family that current `master` no longer materializes
+- `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase10-harness-coverage.py`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` are the current shared reminder companions for that Phase 10 packet
+- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, and `zigux/Makefile`, so treat those lane-note, validator-first, closure-manifest, and make-route paths as closure-packet vocabulary or last-known packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence
+- keep the broader core, ring, input, and MMIO helper and replay names aligned with `Documentation/zigux/phase10-closure-evidence.md` and the tests-root companion as closure-manifest-backed packet vocabulary rather than fresh direct scripts-root proof unless a fresh reread confirms those adjacent surfaces again
+- keep the risky-transport freeze posture explicit: Phase 10 remains bounded to virtqueue-wrapper, MMIO-wrapper, and VM-friendly lab-validation reviewability under `drivers/virtio/*.zig` plus justified helper bridges, without widening into IRQ parity, DMA paths, queue-reset execution, or registration or remove lifecycle claims from this shared scripts-root note
+
 ## Phase 11
 
 - Phase 11 flow - the shared replay contract, summary-surface guard, build-inventory guard, and dedicated packet checks keep the current simple-driver packet aligned
