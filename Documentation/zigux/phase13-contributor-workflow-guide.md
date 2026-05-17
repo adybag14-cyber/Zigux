@@ -88,13 +88,12 @@ Keep notifier evidence explicit as adjacent release-surface support through:
 
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `zigux/bindings/notifier_abi.zig`
-- `zigux/helpers/notifier_chain_view.zig`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 
-Keep `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `include/zigux/notifier_abi.h`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` recorded as repo-reality gaps until they rematerialize on current `master`.
+Keep `zigux/helpers/notifier_chain_view.zig`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `include/zigux/notifier_abi.h`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` recorded as repo-reality gaps until they rematerialize on current `master`.
 
 ## Reviewer Prompt
 
@@ -105,7 +104,7 @@ Before landing a broad Phase 13 reminder change, check that:
 - helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
 - adjacent notifier evidence stays adjacent rather than becoming a fifth helper family
 - the returned notifier survey plus `list_view` and `hlist_view` helpers stay explicit as adjacent evidence without being promoted into the shared helper handle
-- the Makefile-backed route family stays recorded as repo-reality gaps rather than being promoted into shipped current-`master` evidence
+- `zigux/helpers/notifier_chain_view.zig` plus the Makefile-backed route family stay recorded as repo-reality gaps rather than being promoted into shipped current-`master` evidence
 
 ## Non-Goals
 
