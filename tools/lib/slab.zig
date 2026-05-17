@@ -90,3 +90,9 @@ test "kmallocArray fail paths keep allocation counters unchanged" {
     try std.testing.expect(kmallocArray(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
+
+test "kfree ignores null slices without changing counters" {
+    kmalloc_nr_allocated = 0;
+    kfree(null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
