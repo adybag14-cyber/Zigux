@@ -65,10 +65,16 @@ REQUIRED_MARKERS = {
 SELF_TEST_CASES = (
     (NOTE_PATH, "It now also exposes one directly readable MMIO helper companion through `zigux/helpers/mmio.zig`, which keeps volatile register reads, writes, exchange-style updates, and masked register writes reviewable before the focused replay route lands."),
     (NOTE_PATH, "Reviewers should treat the low-level wrapper family as materially but not fully materialized on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, the shared narrow-unsafe decoder, and the dedicated survey validator are directly readable, while the focused replay companions remain current repo-reality gaps."),
+    (NOTE_PATH, "`zigux/helpers/barrier.zig`"),
+    (NOTE_PATH, "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`"),
     (ABI_SLICE_PATH, "Current `master` also separately exposes a bounded low-level-wrapper reminder surface through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, and `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`."),
     (ABI_SLICE_PATH, "the bounded low-level-wrapper reminder surface built around `zigux/helpers/atomic.zig`, `zigux/helpers/barrier.zig`, `zigux/helpers/mmio.zig`, `zigux/unsafe/narrow.zig`, the dedicated survey note, and the dedicated survey validator;"),
+    (BARRIER_PATH, "pub fn acquire() void {"),
+    (BARRIER_PATH, 'test "phase3 barrier wrappers compile" {'),
     (MMIO_PATH, "pub fn read(comptime T: type, ptr: *volatile const T) T {"),
     (MMIO_PATH, 'test "phase3 mmio helper keeps volatile register reads and writes reviewable" {'),
+    (NARROW_PATH, "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {"),
+    (NARROW_PATH, 'test "phase3 narrow unsafe surface keeps the capability split explicit" {'),
 )
 
 
