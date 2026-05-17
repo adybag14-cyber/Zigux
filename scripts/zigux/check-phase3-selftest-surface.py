@@ -165,6 +165,7 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
     'Path("scripts/zigux/run-phase3-checks.py")',
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
+    'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
@@ -246,6 +247,7 @@ def run_self_test() -> int:
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[34], "scripts README"),
         (SCRIPTS_README_PATH, SCRIPTS_README_MARKERS[-1], "scripts README"),
         (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[4], "selftest driver"),
+        (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[6], "selftest driver"),
         (SELFTEST_DRIVER_PATH, SELFTEST_DRIVER_MARKERS[-1], "selftest driver"),
     )
 
@@ -271,7 +273,7 @@ def run_self_test() -> int:
                 return 1
 
     print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=14")
+    print("PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
