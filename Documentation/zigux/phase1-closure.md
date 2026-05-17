@@ -44,7 +44,7 @@ Current `master` still does not directly materialize the older validator-first a
 - `zigux/Makefile`
 
 - `PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,scripts/zigux/check-phase1-bench.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`
-- `PHASE1_SHARED_REMINDER_SYNC_PENDING=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,zigux/tests/README.md`
+- `PHASE1_SHARED_REMINDER_SYNC_PENDING=Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md`
 
 Restoring this note does not claim that those broader replay routes are back. It makes the Lane 15 closure anchor directly readable, records the exact repo-reality gap that still separates the closed helper tranche from the older full closure stack, and keeps the already-landed shared tests-root smoke route visible as part of the narrower packet that current `master` can honestly support.
 
@@ -55,13 +55,13 @@ The current Lane 15 validation step is narrow on purpose:
 - `python3 scripts/zigux/validate-phase1-closure.py`
 - `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
 
-That validator checks this note's current-master-safe markers against the committed thirteen-helper manifest and the shared tests-root smoke anchor instead of pretending the older parity, bench, build, and make routes have all returned.
+That validator checks this note's current-master-safe markers against the committed thirteen-helper manifest, the shared tests-root smoke anchor, and the scripts-root reminder wording instead of pretending the older parity, bench, build, and make routes have all returned.
 
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
 - `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
 
 ## Next Step
 
-The next bounded same-lane restore step is to realign the shared reminder surfaces with the restored closure packet before widening back into replay-side helper or bench claims.
+The next bounded same-lane restore step is to realign the remaining shared reminder surfaces with the restored closure packet before widening back into replay-side helper or bench claims.
 
-- `PHASE1_NEXT_SAFE_STEP=realign Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, scripts/zigux/README.md, and zigux/tests/README.md with the restored closure packet before widening into zigux/tests/phase1_helpers.zig or bench claims`
+- `PHASE1_NEXT_SAFE_STEP=realign Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, and zigux/tests/README.md with the restored closure packet before widening into zigux/tests/phase1_helpers.zig or bench claims`
