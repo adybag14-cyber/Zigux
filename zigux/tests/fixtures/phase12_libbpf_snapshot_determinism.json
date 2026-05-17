@@ -1,0 +1,9 @@
+{
+  "lane_key": "P12-L17",
+  "phase": "Phase 12",
+  "surveyed_commit": "5ccb94e1380d1f2e236c98d09bc52b2b5f6948c7",
+  "tracked_file_count": 1,
+  "tracked_paths": [
+    "tools/lib/bpf/zigux_segments/pin_path.zig"
+  ]
+}
