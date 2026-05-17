@@ -33,7 +33,6 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - `zigux/tests/phase6_hexdump.zig`
 - `zigux/tests/fixtures/phase6_hexdump_vectors.zig`
-- `scripts/zigux/check-phase6-base64-c-parity.py`
 - `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
 - `scripts/zigux/check-phase6-hexdump-packet.py`
@@ -51,7 +50,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - committed fixture surfaces: `zigux/tests/fixtures/phase6_base64_vectors.zig` and `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`
 - direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 - slice note: `Documentation/zigux/phase6-base64-slice.md`
-- current review posture: the roadmap-backed base64 packet now has directly readable helper-local evidence through `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, and `Documentation/zigux/phase6-base64-slice.md`, while the dedicated slowdown and C-parity companions still need fresh direct reads before they are presented as current shipped evidence
+- current review posture: fresh direct reads now confirm the helper-local base64 replay, fixture, slowdown, and C-parity companions named above, while the broader shared parity and perf reminder routes outside those directly readable base64-local surfaces still stay limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders
 
 ### bsearch
 
