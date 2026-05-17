@@ -88,6 +88,9 @@ jobs:
       - name: Check current Zig toolchain policy surface
         run: python3 scripts/zigux/check-zig-toolchain.py --policy-only
 
+      - name: Check current Zig toolchain archive route
+        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing --archive-target x86_64-linux
+
       - name: Self-test current Phase 2 kconfig bridge checker
         run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
 
