@@ -26,11 +26,12 @@ Treat those four anchors as the approved Phase 5 destination set unless the road
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-17 found that `samples/zigux/README.md` now says the current sample root directly exposes only:
+Fresh repo-first inspection on 2026-05-17 found that `samples/zigux/README.md` now says the current sample root directly exposes these files:
 
 * `samples/zigux/README.md`
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+* `samples/zigux/trace_events_string_formatting_sample.zig`
 
 That means the four non-runtime Phase 5 sample-root ports are not current direct sample-root proof on `master`, even though the roadmap-backed anchors remain approved.
 
@@ -59,7 +60,7 @@ Use the shared docs to preserve these bounded cues:
 
 ## Approved idiom gap
 
-Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample.
+Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample, and it still ships no standalone `*format*` reference sample beyond the bounded trace-events formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig`.
 
 Keep the approved formatting idiom bounded to the selected-string plus `iter=%d` reminder carried by the trace-events review packet:
 
@@ -90,12 +91,13 @@ Keep later runtime-facing sample work under the separate Phase 9 lane.
 
 Keep these no-extra-sample reminders explicit too:
 
-* there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master`
+* `samples/zigux/trace_events_string_formatting_sample.zig` is a bounded trace-events formatting companion, not a fifth Phase 5 anchor and not a standalone helper packet
+* there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master` outside that trace-events-bound companion
 * there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`
 * there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`
 * there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`
 * there is no standalone `samples/zigux/*bitmap*` Phase 5 reference sample on current `master`
-* there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or `*format*` Phase 5 reference sample on current `master`
+* there is no standalone `samples/zigux/*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`
 
 Respect the freeze map too.
 Do not widen Phase 5 work toward `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
