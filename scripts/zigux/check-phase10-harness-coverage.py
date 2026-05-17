@@ -23,6 +23,7 @@ FILES = [
     "Documentation/zigux/phase10-virtio-input-module-slice.md",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_build.zig",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "scripts/zigux/README.md",
@@ -74,16 +75,19 @@ MODULE_SLICE_MARKERS = [
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_survey.zig",
     "queued status completions reclaimable in memory",
     "registration lifecycle closure, freeze, restore, remove, and broader transport-backed lifecycle work remain outside this module slice",
 ]
 
 BUILD_MARKERS = [
+    "phase10_virtio_input_survey_module",
     "virtio_input_verify_module",
     "virtio_mmio_module",
     "virtio_ring_module",
     "phase10_virtio_ring_prepare_kick_idempotent_module",
     "phase10_virtio_ring_broken_queue_queue_discipline_module",
+    '"phase10-virtio-input-survey-tests"',
     '"phase10-virtio-input-verify-tests"',
     '"phase10-virtio-ring-prepare-kick-idempotent-tests"',
     '"phase10-virtio-ring-broken-queue-queue-discipline-tests"',
@@ -166,13 +170,9 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
     docs_root = read_text(root, "Documentation/zigux/README.md")
     review_checklist = read_text(root, "Documentation/zigux/review-checklist.md")
-    companion = read_text(
-        root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md"
-    )
+    companion = read_text(root, "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
     closure_evidence = read_text(root, "Documentation/zigux/phase10-closure-evidence.md")
-    lane_sequencing = read_text(
-        root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md"
-    )
+    lane_sequencing = read_text(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md")
     module_slice = read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md")
     build = read_text(root, "zigux/tests/phase10_build.zig")
     registration_helper = read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig")
@@ -187,26 +187,11 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     check_markers(missing_markers, "phase10_lane_sequencing", lane_sequencing, LANE_SEQUENCING_MARKERS)
     check_markers(missing_markers, "phase10_input_module_slice", module_slice, MODULE_SLICE_MARKERS)
     check_markers(missing_markers, "phase10_build", build, BUILD_MARKERS)
-    check_markers(
-        missing_markers,
-        "virtio_input_registration_preflight",
-        registration_helper,
-        REGISTRATION_HELPER_MARKERS,
-    )
+    check_markers(missing_markers, "virtio_input_registration_preflight", registration_helper, REGISTRATION_HELPER_MARKERS)
     check_markers(missing_markers, "virtio_input_verify", verify, VERIFY_MARKERS)
-    check_markers(
-        missing_markers,
-        "phase10_shared_freeze_boundary",
-        shared_freeze_boundary,
-        SHARED_FREEZE_BOUNDARY_MARKERS,
-    )
+    check_markers(missing_markers, "phase10_shared_freeze_boundary", shared_freeze_boundary, SHARED_FREEZE_BOUNDARY_MARKERS)
     check_markers(missing_markers, "scripts_readme", scripts_readme, SCRIPTS_README_MARKERS)
-    check_absent_markers(
-        missing_markers,
-        "scripts_readme",
-        scripts_readme,
-        SCRIPTS_README_FORBIDDEN_MARKERS,
-    )
+    check_absent_markers(missing_markers, "scripts_readme", scripts_readme, SCRIPTS_README_FORBIDDEN_MARKERS)
 
     return [], missing_markers
 
@@ -219,9 +204,10 @@ def write_fixture(root: Path) -> None:
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_EVIDENCE_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_SEQUENCING_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-input-module-slice.md": "\n".join(MODULE_SLICE_MARKERS) + "\n",
-        "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "drivers/virtio/virtio_input_registration_preflight.zig": "\n".join(REGISTRATION_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_MARKERS) + "\n",
+        "zigux/tests/phase10_virtio_input_survey.zig": "phase10 survey gate placeholder\n",
+        "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "scripts/zigux/check-phase10-shared-freeze-boundary.py": "\n".join(SHARED_FREEZE_BOUNDARY_MARKERS) + "\n",
         "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
     }
@@ -267,116 +253,33 @@ def run_self_test() -> int:
                 f"markers={','.join(missing_markers) if missing_markers else 'none'}"
             )
 
-        expect_missing_marker(
-            root,
-            "Documentation/zigux/phase10-closure-evidence.md",
-            "`virtqueue_wrappers=starter_landed`",
-            "`virtqueue_wrappers=repo_reality_gap`",
-            "phase10_closure_evidence:`virtqueue_wrappers=starter_landed`",
-        )
-        expect_missing_marker(
-            root,
-            "Documentation/zigux/phase10-closure-evidence.md",
-            "directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_build.zig`",
-            "directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio_input.zig`",
-            "phase10_closure_evidence:directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_build.zig`",
-        )
-        expect_missing_marker(
-            root,
-            "Documentation/zigux/phase10-closure-evidence.md",
-            "directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`",
-            "directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json`",
-            "phase10_closure_evidence:directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`",
-        )
-        expect_missing_marker(
-            root,
-            "Documentation/zigux/phase10-closure-evidence.md",
-            "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.",
-            "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md` only.",
-            "phase10_closure_evidence:The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.",
-        )
-        expect_missing_marker(
-            root,
-            "Documentation/zigux/phase10-closure-evidence.md",
-            "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.",
-            "The shared bootstrap-route guard remains optional.",
-            "phase10_closure_evidence:The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.",
-        )
-        expect_missing_marker(
-            root,
-            "zigux/tests/phase10_build.zig",
-            "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
-            "Run the live Phase 10 virtio input and MMIO lab validation tests",
-            "phase10_build:Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
-        )
-        expect_missing_marker(
-            root,
-            "zigux/tests/phase10_build.zig",
-            '"phase10-virtio-ring-prepare-kick-idempotent-tests"',
-            '"phase10-virtio-ring-drift-tests"',
-            'phase10_build:"phase10-virtio-ring-prepare-kick-idempotent-tests"',
-        )
-        expect_missing_marker(
-            root,
-            "Documentation/zigux/phase10-virtio-input-module-slice.md",
-            "queued status completions reclaimable in memory",
-            "queued status completions drain directly to the transport",
-            "phase10_input_module_slice:queued status completions reclaimable in memory",
-        )
-        expect_missing_marker(
-            root,
-            "scripts/zigux/README.md",
-            "shared closure-packet vocabulary and public-tree-backed companions rather than as absent current-`master` scripts-root evidence",
-            "absent scripts-root evidence",
-            "scripts_readme:shared closure-packet vocabulary and public-tree-backed companions rather than as absent current-`master` scripts-root evidence",
-        )
-        expect_missing_marker(
-            root,
-            "scripts/zigux/README.md",
-            "scripts/zigux/check-phase10-harness-coverage.py",
-            "scripts/zigux/check-phase10-harness-coverage-missing.py",
-            "scripts_readme:scripts/zigux/check-phase10-harness-coverage.py",
-        )
-        expect_missing_marker(
-            root,
-            "drivers/virtio/virtio_input_registration_preflight.zig",
-            "pub const RegistrationBlocker = virtio_input.RegistrationBlocker;",
-            "pub const RegistrationGate = virtio_input.RegistrationBlocker;",
-            "virtio_input_registration_preflight:pub const RegistrationBlocker = virtio_input.RegistrationBlocker;",
-        )
-        expect_missing_marker(
-            root,
-            "drivers/virtio/virtio_input_verify.zig",
-            'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
-            'test "phase10 virtio input verify drift" {',
-            'virtio_input_verify:test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
-        )
-        expect_missing_marker(
-            root,
-            "scripts/zigux/check-phase10-shared-freeze-boundary.py",
-            '"kernel/trace/ring_buffer.c"',
-            '"kernel/trace/ring_buffer.zig"',
-            'phase10_shared_freeze_boundary:"kernel/trace/ring_buffer.c"',
-        )
+        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "`virtqueue_wrappers=starter_landed`", "`virtqueue_wrappers=repo_reality_gap`", "phase10_closure_evidence:`virtqueue_wrappers=starter_landed`")
+        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_build.zig`", "directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio_input.zig`", "phase10_closure_evidence:directly re-readable helper, verify, and build anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, and `zigux/tests/phase10_build.zig`")
+        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`", "directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json`", "phase10_closure_evidence:directly re-readable packet manifests in this lane currently include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`")
+        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.", "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md` only.", "phase10_closure_evidence:The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.")
+        expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.", "The shared bootstrap-route guard remains optional.", "phase10_closure_evidence:The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.")
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests", "Run the live Phase 10 virtio input and MMIO lab validation tests", "phase10_build:Run the live Phase 10 virtio input, ring, and MMIO lab validation tests")
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-prepare-kick-idempotent-tests"', '"phase10-virtio-ring-drift-tests"', 'phase10_build:"phase10-virtio-ring-prepare-kick-idempotent-tests"')
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-input-module-slice.md", "zigux/tests/phase10_virtio_input_survey.zig", "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig", "phase10_input_module_slice:zigux/tests/phase10_virtio_input_survey.zig")
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-input-module-slice.md", "queued status completions reclaimable in memory", "queued status completions drain directly to the transport", "phase10_input_module_slice:queued status completions reclaimable in memory")
+        expect_missing_marker(root, "scripts/zigux/README.md", "shared closure-packet vocabulary and public-tree-backed companions rather than as absent current-`master` scripts-root evidence", "absent scripts-root evidence", "scripts_readme:shared closure-packet vocabulary and public-tree-backed companions rather than as absent current-`master` scripts-root evidence")
+        expect_missing_marker(root, "scripts/zigux/README.md", "scripts/zigux/check-phase10-harness-coverage.py", "scripts/zigux/check-phase10-harness-coverage-missing.py", "scripts_readme:scripts/zigux/check-phase10-harness-coverage.py")
+        expect_missing_marker(root, "drivers/virtio/virtio_input_registration_preflight.zig", "pub const RegistrationBlocker = virtio_input.RegistrationBlocker;", "pub const RegistrationGate = virtio_input.RegistrationBlocker;", "virtio_input_registration_preflight:pub const RegistrationBlocker = virtio_input.RegistrationBlocker;")
+        expect_missing_marker(root, "drivers/virtio/virtio_input_verify.zig", 'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {', 'test "phase10 virtio input verify drift" {', 'virtio_input_verify:test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {')
+        expect_missing_marker(root, "scripts/zigux/check-phase10-shared-freeze-boundary.py", '"kernel/trace/ring_buffer.c"', '"kernel/trace/ring_buffer.zig"', 'phase10_shared_freeze_boundary:"kernel/trace/ring_buffer.c"')
 
         (root / "Documentation/zigux/phase10-closure-evidence.md").unlink()
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
         write_fixture(root)
 
         print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=12")
+        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=13")
         return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Validate the current Phase 10 harness-coverage reminder packet."
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="run the checker's built-in synthetic drift tests",
-    )
+    parser = argparse.ArgumentParser(description="Validate the current Phase 10 harness-coverage reminder packet.")
+    parser.add_argument("--self-test", action="store_true", help="run the checker's built-in synthetic drift tests")
     args = parser.parse_args()
 
     if args.self_test:
@@ -401,14 +304,8 @@ def main() -> int:
 
     print("PHASE10_HARNESS_COVERAGE=pass")
     print(f"PHASE10_HARNESS_COVERAGE_REQUIRED_FILE_COUNT={len(FILES)}")
-    print(
-        "PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(LANE_SEQUENCING_MARKERS) + len(CLOSURE_EVIDENCE_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(SHARED_FREEZE_BOUNDARY_MARKERS) + len(SCRIPTS_README_MARKERS)}"
-    )
-    print(
-        "PHASE10_HARNESS_COVERAGE_FORBIDDEN_MARKER_COUNT="
-        f"{len(SCRIPTS_README_FORBIDDEN_MARKERS)}"
-    )
+    print("PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT=" f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(LANE_SEQUENCING_MARKERS) + len(CLOSURE_EVIDENCE_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(SHARED_FREEZE_BOUNDARY_MARKERS) + len(SCRIPTS_README_MARKERS)}")
+    print("PHASE10_HARNESS_COVERAGE_FORBIDDEN_MARKER_COUNT=" f"{len(SCRIPTS_README_FORBIDDEN_MARKERS)}")
     return 0
 
 
