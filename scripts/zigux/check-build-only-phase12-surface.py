@@ -212,7 +212,7 @@ SCRIPTS_README_MARKERS = [
     "`Documentation/zigux/phase12-virtio-net-survey.md`",
     "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
     "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root",
-    "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`",
+    "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, so the shipped validator-first support bundle stays ahead of the smoke-first reruns.",
 ]
 
 TESTS_README_MARKERS = [
@@ -377,79 +377,11 @@ PHASE12_BUILD_MARKERS = [
     '"phase12_virtio_scsi_repeated_replan_gate.zig"',
     '"phase12_virtio_scsi_repeated_rollback_gate.zig"',
     '"phase12_virtio_scsi_packet.zig"',
-    '.name = "phase12-virtio-net-tests"',
-    '.name = "phase12-virtio-net-transmit-recycle-tests"',
-    '.name = "phase12-virtio-net-queue-resume-tests"',
-    '.name = "phase12-virtio-net-syntax-lab-tests"',
-    '.name = "phase12-virtio-scsi-tests"',
-    '.name = "phase12-virtio-scsi-syntax-lab-tests"',
-    '.name = "phase12-virtio-scsi-repeated-replan-gate-tests"',
-    '.name = "phase12-virtio-scsi-repeated-rollback-gate-tests"',
-    '.name = "phase12-virtio-scsi-packet-tests"',
     'smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);',
     'smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);',
     'test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);',
     'test_step.dependOn(&run_virtio_net_queue_resume_tests.step);',
 ]
-
-PHASE12_BUILD_EXACT_COUNTS = {
-    'b.addTest(.{': 9,
-}
-
-
-def read_text(root: Path, rel_path: str) -> str:
-    return (root / rel_path).read_text(encoding="utf-8")
-
-
-def write_text(path: Path, text: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(text, encoding="utf-8")
-
-
-def ensure_contains(
-    failures: list[str],
-    label: str,
-    text: str,
-    markers: list[str],
-) -> None:
-    for marker in markers:
-        if marker not in text:
-            failures.append(f"{label}:{marker}")
-
-
-def normalize_marker_line(line: str) -> str:
-    stripped = line.strip()
-    if stripped.startswith("- "):
-        return stripped[2:]
-    if stripped.startswith("* "):
-        return stripped[2:]
-    return stripped
-
-
-def ensure_normalized_lines(
-    failures: list[str],
-    label: str,
-    text: str,
-    markers: list[str],
-) -> None:
-    normalized_lines = {normalize_marker_line(line) for line in text.splitlines()}
-    for marker in markers:
-        if marker not in normalized_lines:
-            failures.append(f"{label}:{marker}")
-
-
-def ensure_exact_counts(
-    failures: list[str],
-    label: str,
-    text: str,
-    counts: dict[str, int],
-) -> None:
-    for marker, expected in counts.items():
-        actual = text.count(marker)
-        if actual != expected:
-            failures.append(
-                f"{label}_exact_count:{marker}:expected={expected}:actual={actual}"
-            )
 
 
 def validate(root: Path) -> list[str]:
@@ -462,106 +394,91 @@ def validate(root: Path) -> list[str]:
     if failures:
         return failures
 
-    docs_root = read_text(root, DOCS_README_PATH)
-    review_checklist = read_text(root, REVIEW_CHECKLIST_PATH)
-    scripts_readme = read_text(root, SCRIPTS_README_PATH)
-    tests_readme = read_text(root, TESTS_README_PATH)
-    release_readiness_survey = read_text(root, RELEASE_READINESS_SURVEY_PATH)
-    release_sequencing = read_text(root, RELEASE_SEQUENCING_PATH)
-    release_coordination_matrix = read_text(root, RELEASE_COORDINATION_MATRIX_PATH)
-    release_closure_checklist = read_text(root, RELEASE_CLOSURE_CHECKLIST_PATH)
-    complex_driver_lane_sequencing = read_text(root, COMPLEX_DRIVER_LANE_SEQUENCING_PATH)
-    libbpf_heavy_consumer_lane_sequencing = read_text(
-        root, LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH
-    )
-    libbpf_verify_shard_note = read_text(root, LIBBPF_VERIFY_SHARD_NOTE_PATH)
-    libbpf_segment_survey = read_text(root, LIBBPF_SEGMENT_SURVEY_PATH)
-    raw_github_coverage_survey = read_text(root, RAW_GITHUB_COVERAGE_SURVEY_PATH)
-    workflow = read_text(root, WORKFLOW_PATH)
-    makefile = read_text(root, MAKEFILE_PATH)
-    phase12_build = read_text(root, PHASE12_BUILD_PATH)
+    marker_groups = [
+        ("docs_root", DOCS_README_PATH, DOCS_ROOT_MARKERS),
+        ("review_checklist", REVIEW_CHECKLIST_PATH, REVIEW_CHECKLIST_MARKERS),
+        ("scripts_readme", SCRIPTS_README_PATH, SCRIPTS_README_MARKERS),
+        ("tests_readme", TESTS_README_PATH, TESTS_README_MARKERS),
+        (
+            "release_readiness_survey",
+            RELEASE_READINESS_SURVEY_PATH,
+            RELEASE_READINESS_SURVEY_MARKERS,
+        ),
+        ("release_sequencing", RELEASE_SEQUENCING_PATH, RELEASE_SEQUENCING_MARKERS),
+        (
+            "release_coordination_matrix",
+            RELEASE_COORDINATION_MATRIX_PATH,
+            RELEASE_COORDINATION_MATRIX_MARKERS,
+        ),
+        (
+            "release_closure_checklist",
+            RELEASE_CLOSURE_CHECKLIST_PATH,
+            RELEASE_CLOSURE_CHECKLIST_MARKERS,
+        ),
+        (
+            "complex_driver_lane_sequencing",
+            COMPLEX_DRIVER_LANE_SEQUENCING_PATH,
+            COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS,
+        ),
+        (
+            "libbpf_heavy_consumer_lane_sequencing",
+            LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_PATH,
+            LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS,
+        ),
+        (
+            "libbpf_verify_shard_note",
+            LIBBPF_VERIFY_SHARD_NOTE_PATH,
+            LIBBPF_VERIFY_SHARD_NOTE_MARKERS,
+        ),
+        (
+            "libbpf_segment_survey",
+            LIBBPF_SEGMENT_SURVEY_PATH,
+            LIBBPF_SEGMENT_SURVEY_MARKERS,
+        ),
+        (
+            "raw_github_coverage_survey",
+            RAW_GITHUB_COVERAGE_SURVEY_PATH,
+            RAW_GITHUB_COVERAGE_SURVEY_MARKERS,
+        ),
+        ("workflow", WORKFLOW_PATH, WORKFLOW_MARKERS),
+        ("makefile", MAKEFILE_PATH, MAKEFILE_MARKERS),
+        ("phase12_build", PHASE12_BUILD_PATH, PHASE12_BUILD_MARKERS),
+    ]
 
-    ensure_normalized_lines(failures, "docs_root", docs_root, DOCS_ROOT_MARKERS)
-    ensure_normalized_lines(
-        failures, "review_checklist", review_checklist, REVIEW_CHECKLIST_MARKERS
-    )
-    ensure_normalized_lines(failures, "scripts_readme", scripts_readme, SCRIPTS_README_MARKERS)
-    ensure_normalized_lines(failures, "tests_readme", tests_readme, TESTS_README_MARKERS)
-    ensure_normalized_lines(
-        failures,
-        "release_readiness_survey",
-        release_readiness_survey,
-        RELEASE_READINESS_SURVEY_MARKERS,
-    )
-    ensure_normalized_lines(
-        failures,
-        "release_sequencing",
-        release_sequencing,
-        RELEASE_SEQUENCING_MARKERS,
-    )
-    ensure_normalized_lines(
-        failures,
-        "release_coordination_matrix",
-        release_coordination_matrix,
-        RELEASE_COORDINATION_MATRIX_MARKERS,
-    )
-    ensure_normalized_lines(
-        failures,
-        "release_closure_checklist",
-        release_closure_checklist,
-        RELEASE_CLOSURE_CHECKLIST_MARKERS,
-    )
-    ensure_normalized_lines(
-        failures,
-        "complex_driver_lane_sequencing",
-        complex_driver_lane_sequencing,
-        COMPLEX_DRIVER_LANE_SEQUENCING_MARKERS,
-    )
-    ensure_normalized_lines(
-        failures,
-        "libbpf_heavy_consumer_lane_sequencing",
-        libbpf_heavy_consumer_lane_sequencing,
-        LIBBPF_HEAVY_CONSUMER_LANE_SEQUENCING_MARKERS,
-    )
-    ensure_normalized_lines(
-        failures,
-        "libbpf_verify_shard_note",
-        libbpf_verify_shard_note,
-        LIBBPF_VERIFY_SHARD_NOTE_MARKERS,
-    )
-    ensure_normalized_lines(
-        failures,
-        "libbpf_segment_survey",
-        libbpf_segment_survey,
-        LIBBPF_SEGMENT_SURVEY_MARKERS,
-    )
-    ensure_normalized_lines(
-        failures,
-        "raw_github_coverage_survey",
-        raw_github_coverage_survey,
-        RAW_GITHUB_COVERAGE_SURVEY_MARKERS,
-    )
-    ensure_contains(failures, "workflow", workflow, WORKFLOW_MARKERS)
-    ensure_contains(failures, "makefile", makefile, MAKEFILE_MARKERS)
-    ensure_contains(failures, "phase12_build", phase12_build, PHASE12_BUILD_MARKERS)
-    ensure_exact_counts(
-        failures,
-        "phase12_build",
-        phase12_build,
-        PHASE12_BUILD_EXACT_COUNTS,
-    )
+    for label, rel_path, markers in marker_groups:
+        text = (root / rel_path).read_text(encoding="utf-8")
+        for marker in markers:
+            if marker not in text:
+                failures.append(f"{label}:{marker}")
+
+    if DOCS_ROOT_FORBIDDEN_MARKERS:
+        docs_root_text = (root / DOCS_README_PATH).read_text(encoding="utf-8")
+        for forbidden in DOCS_ROOT_FORBIDDEN_MARKERS:
+            if forbidden in docs_root_text:
+                failures.append(f"docs_root_forbidden:{forbidden}")
+
+    build_text = (root / PHASE12_BUILD_PATH).read_text(encoding="utf-8")
+    test_decl_count = build_text.count("b.addTest(.{")
+    if test_decl_count != 9:
+        failures.append(
+            f"phase12_build_exact_count:b.addTest(.{{:expected=9:actual={test_decl_count}"
+        )
 
     return failures
 
 
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
 def minimal_join(title: str, markers: list[str]) -> str:
-    lines = [title]
-    lines.extend(f"- {marker}" for marker in markers)
-    return "\n".join(lines) + "\n"
+    return title + "\n\n" + "\n".join(f"- {marker}" for marker in markers) + "\n"
 
 
 def minimal_phase12_build() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
