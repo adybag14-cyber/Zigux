@@ -15,7 +15,7 @@ REQUIRED_MARKERS = {
         "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
         "`Documentation/zigux/phase13-release-coordination-matrix.md`",
         "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
-        "`python3 scripts/zigux/validate-phase13-release.py`",
+        "`python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`",
         "blocked convenience route `make -C zigux phase13`",
     ],
     "Documentation/zigux/phase13-contributor-workflow-guide.md": [
