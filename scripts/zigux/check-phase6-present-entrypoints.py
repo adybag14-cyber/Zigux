@@ -10,6 +10,9 @@ from pathlib import Path
 HELPER_EVIDENCE_CATALOG_PATH = Path(
     "Documentation/zigux/phase6-helper-evidence-catalog.md"
 )
+HELPER_EVIDENCE_MANIFEST_PATH = Path(
+    "zigux/tests/phase6_helper_evidence_manifest.json"
+)
 BASE64_HELPER_PATH = Path("lib/base64.zig")
 BSEARCH_HELPER_PATH = Path("lib/bsearch.zig")
 CHECKSUM_HELPER_PATH = Path("lib/checksum.zig")
@@ -46,14 +49,15 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- Zig helper: `lib/bsearch.zig`",
     "- Zig helper: `lib/checksum.zig`",
     "- Zig helper: `lib/hexdump.zig`",
+    "- shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`",
     "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     "- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
     "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
-    "- current review posture: the roadmap-backed base64 packet remains the intended bounded helper surface, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
-    "- current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replays and corpus checker again",
-    "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
-    "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again",
+    "- current review posture: the roadmap-backed base64 packet remains the intended bounded helper surface, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
+    "- current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replays and corpus checker again",
+    "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
+    "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again",
     "## Last-known shared replay inventory",
     "- `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
     "- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
@@ -69,7 +73,23 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 49
+REQUIRED_MANIFEST_SNIPPETS = [
+    '"packet": "phase6-helper-evidence"',
+    '"phase": "Phase 6"',
+    '"surveyed_head": "840f388"',
+    '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
+    '"lib/base64.zig"',
+    '"lib/bsearch.zig"',
+    '"lib/checksum.zig"',
+    '"lib/hexdump.zig"',
+    '"Documentation/zigux/phase6-helper-parity-catalog.md"',
+    '"Documentation/zigux/phase6-perf-gate-survey.md"',
+    '"zigux/tests/phase6_helper_parity_manifest.json"',
+    '"make -C zigux phase6-base64-perf"',
+    '"make -C zigux phase6-hexdump-perf"',
+]
+
+SELF_TEST_CASE_COUNT = 63
 
 
 class ValidationError(RuntimeError):
@@ -94,6 +114,7 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
 
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_MANIFEST_SNIPPETS)
     for helper_path in REQUIRED_HELPER_PATHS:
         if not (repo_root / helper_path).is_file():
             raise ValidationError(
@@ -110,6 +131,10 @@ def scaffold_repo(root: Path) -> None:
     write(
         root / HELPER_EVIDENCE_CATALOG_PATH,
         "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n",
+    )
+    write(
+        root / HELPER_EVIDENCE_MANIFEST_PATH,
+        "\n".join(REQUIRED_MANIFEST_SNIPPETS) + "\n",
     )
     for helper_path in REQUIRED_HELPER_PATHS:
         write(root / helper_path, "// stub\n")
@@ -136,6 +161,7 @@ def run_self_test() -> None:
 
         cases_run = 0
         catalog_path = root / HELPER_EVIDENCE_CATALOG_PATH
+        manifest_path = root / HELPER_EVIDENCE_MANIFEST_PATH
 
         for snippet in [
             "## Current direct-readback warning",
@@ -162,14 +188,15 @@ def run_self_test() -> None:
             "- Zig helper: `lib/bsearch.zig`",
             "- Zig helper: `lib/checksum.zig`",
             "- Zig helper: `lib/hexdump.zig`",
+            "- shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`",
             "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
             "- direct corpus evidence checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
             "- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
             "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
-            "- current review posture: the roadmap-backed base64 packet remains the intended bounded helper surface, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
-            "- current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replays and corpus checker again",
-            "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
-            "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again",
+            "- current review posture: the roadmap-backed base64 packet remains the intended bounded helper surface, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
+            "- current review posture: the roadmap-backed bsearch packet still names the right parity and comparison-budget surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replays and corpus checker again",
+            "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay and parity members again",
+            "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, checker, and perf companions again",
             "## Last-known shared replay inventory",
             "- `python3 scripts/zigux/check-phase6-base64-c-parity.py`",
             "- `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`",
@@ -188,6 +215,17 @@ def run_self_test() -> None:
             expect_failure(root, snippet)
             cases_run += 1
             scaffold_repo(root)
+
+        for snippet in REQUIRED_MANIFEST_SNIPPETS:
+            write(manifest_path, read_text(manifest_path).replace(snippet + "\n", "", 1))
+            expect_failure(root, snippet)
+            cases_run += 1
+            scaffold_repo(root)
+
+        (root / HELPER_EVIDENCE_MANIFEST_PATH).unlink()
+        expect_failure(root, HELPER_EVIDENCE_MANIFEST_PATH.as_posix())
+        cases_run += 1
+        scaffold_repo(root)
 
         for helper_path in REQUIRED_HELPER_PATHS:
             (root / helper_path).unlink()
