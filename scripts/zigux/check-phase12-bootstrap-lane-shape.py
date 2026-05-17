@@ -37,6 +37,11 @@ WORKFLOW_STEP_NAMES = [
     "Checkout",
     "Setup Python",
     "Compile current scripts",
+    "Check current pinned Zig archive packet",
+    "Self-test current Phase 11 build inventory checker",
+    "Check current Phase 11 build inventory packet",
+    "Self-test current Phase 11 matrix-gap survey checker",
+    "Check current Phase 11 matrix-gap survey packet",
     "Self-test current Phase 12 build-only surface checker",
     "Check current Phase 12 build-only surface",
     "Self-test current Phase 12 bootstrap docs sanity checker",
@@ -60,6 +65,11 @@ WORKFLOW_COMMAND_MARKERS = [
     "python-version: '3.x'",
     "set -euxo pipefail",
     "find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort",
+    "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase11-build-inventory.py",
+    "python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test",
+    "python3 scripts/zigux/check-phase11-matrix-gap-survey.py",
     "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
     "python3 scripts/zigux/check-build-only-phase12-surface.py",
     "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test",
@@ -74,6 +84,7 @@ WORKFLOW_COMMAND_MARKERS = [
 ]
 
 WORKFLOW_EXACT_LINES = [
+    "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
     "        run: make -C zigux phase12-validate",
 ]
@@ -178,6 +189,16 @@ jobs:
           set -euxo pipefail
           mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
           python3 -m py_compile "${scripts[@]}"
+      - name: Check current pinned Zig archive packet
+        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
+      - name: Self-test current Phase 11 build inventory checker
+        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
+      - name: Check current Phase 11 build inventory packet
+        run: python3 scripts/zigux/check-phase11-build-inventory.py
+      - name: Self-test current Phase 11 matrix-gap survey checker
+        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test
+      - name: Check current Phase 11 matrix-gap survey packet
+        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py
       - name: Self-test current Phase 12 build-only surface checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
       - name: Check current Phase 12 build-only surface
@@ -244,16 +265,45 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Check current Phase 12 build-only surface\n"
-                "        run: python3 scripts/zigux/check-build-only-phase12-surface.py\n",
+                "- name: Check current pinned Zig archive packet\n"
+                "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing\n",
                 "",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(base, "workflow_step:Check current Phase 12 build-only surface")
+        expect_failure(base, "workflow_step:Check current pinned Zig archive packet")
 
         write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "- name: Self-test current Phase 11 build inventory checker\n"
+                "        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base, "workflow_step:Self-test current Phase 11 build inventory checker"
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "- name: Check current Phase 11 matrix-gap survey packet\n"
+                "        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Check current Phase 11 matrix-gap survey packet")
+
+        write_fixtureTree = write_fixture_tree
+        write_fixtureTree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -268,7 +318,22 @@ def run_self_test() -> int:
             "workflow_exact_line:run: python3 scripts/zigux/check-build-only-phase12-surface.py:expected=1:actual=0",
         )
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing\n",
+                "        run: echo skip-archive\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_exact_line:run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:expected=1:actual=0",
+        )
+
+        write_fixtureTree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -283,7 +348,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_step:Setup Python")
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_text = workflow_path.read_text(encoding="utf-8")
         docs_block = (
@@ -304,7 +369,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_order:bootstrap-step-order")
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -316,7 +381,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_marker:workflow_dispatch:")
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -331,7 +396,7 @@ def run_self_test() -> int:
             "workflow_marker:cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
         )
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -347,7 +412,7 @@ def run_self_test() -> int:
             "workflow_step:Self-test current Phase 12 release-readiness packet checker",
         )
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -360,7 +425,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_step:Validate Phase 12 degraded-workflow bundle")
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8")
@@ -373,7 +438,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_forbidden_marker:Check current docs-root sanity markers")
 
-        write_fixture_tree(base)
+        write_fixtureTree(base)
         survey_path = base / SURVEY_PATH
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
@@ -384,7 +449,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=10")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=13")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -394,9 +459,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the "
-            "workflow keeps the shipped build-only and release-readiness bundle "
-            "intact while layering the dedicated docs-sanity and lane-shape guards "
-            "on top."
+            "workflow keeps the shipped Zig archive, current Phase 11 checks, "
+            "and the Phase 12 build-only plus release-readiness bundle intact "
+            "while layering the dedicated docs-sanity and lane-shape guards on top."
         )
     )
     parser.add_argument(
