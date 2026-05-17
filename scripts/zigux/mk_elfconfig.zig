@@ -199,6 +199,18 @@ test "readHeader combines split reads into one ELF header" {
     }, header.bytes[0..header.len]);
 }
 
+test "readHeader preserves truncated byte count across split reads" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
+        .chunk_sizes = &[_]usize{ 3, 2, 3 },
+    };
+
+    const header = try readHeaderFrom(&reader, SplitReader.read);
+    try std.testing.expectEqual(@as(usize, 8), header.len);
+    try std.testing.expectEqual(@as(usize, 4), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
+}
+
 test "readHeader stops at the first ELF header" {
     var temp_dir = std.testing.tmpDir(.{});
     defer temp_dir.cleanup();
