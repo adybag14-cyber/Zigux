@@ -21,11 +21,9 @@ MISSING_PATHS = (
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
-    "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
-    "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
@@ -36,8 +34,10 @@ MISSING_PATHS = (
 )
 
 REQUIRED_PRESENT_PATHS = (
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
 )
 
 REQUIRED_NOTE_MARKERS = (
@@ -47,6 +47,8 @@ REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+    "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
+    "`zigux/tests/phase15_readiness_gate_manifest.json`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
@@ -139,6 +141,8 @@ def _sample_gap_note() -> str:
 `Documentation/zigux/phase15-parity-scorecard.md`
 `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+`scripts/zigux/check-phase15-docs-readme-alignment.py`
+`zigux/tests/phase15_readiness_gate_manifest.json`
 `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 `scripts/zigux/check-phase15-review-process-handoff.py`
 `scripts/zigux/check-phase15-shared-summary-gap.py`
@@ -162,8 +166,10 @@ def _seed_missing_layout(root: Path) -> None:
     _write(root / "Documentation/zigux/phase15-freeze-map-governance.md", "freeze-map packet\n")
     _write(root / "Documentation/zigux/phase15-parity-scorecard.md", "scorecard packet\n")
     _write(root / "Documentation/zigux/phase15-study-only-anchor-accounting.md", "study-only packet\n")
+    _write(root / "scripts/zigux/check-phase15-docs-readme-alignment.py", "#!/usr/bin/env python3\n")
     _write(root / "scripts/zigux/check-phase15-review-process-handoff.py", "#!/usr/bin/env python3\n")
     _write(root / "zigux/tests/phase15_architecture_council_review_process_manifest.json", "{}\n")
+    _write(root / "zigux/tests/phase15_readiness_gate_manifest.json", "{}\n")
 
 
 def run_self_test() -> int:
