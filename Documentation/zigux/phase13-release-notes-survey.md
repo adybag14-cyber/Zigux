@@ -36,7 +36,13 @@ Direct current-`master` readback in this run materialized these shared reminder 
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Those files keep the shared Phase 13 packet active, helper-backed, and still not closed, while the reminder surface stays broader than any one helper-local packet.
+Those files keep the shared Phase 13 packet active and still not closed, but current `master` no longer keeps every reminder surface aligned on the same `devres` packet.
+
+Direct current-`master` rereads in this run show that `Documentation/zigux/phase13-release-coordination-matrix.md`, this survey, and `Documentation/zigux/phase13-roadmap-traceability.md` keep the current `devres` packet narrowed to `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`.
+
+At the same time, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` still describe missing direct companions such as `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `zigux/tests/phase13_devres_manifest.json` as if they were shipped reminder evidence.
+
+Keep this survey truthful about that split instead of presenting the broader reminder packet as fully aligned.
 
 Current `master` also keeps the helper-local packet split visible from the release surface:
 
@@ -55,7 +61,7 @@ The release-planning handle that is directly supportable from this run stays anc
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 
-Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build wrapper surfaces remain explicit repo-reality gaps.
+Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build wrapper surfaces remain explicit repo-reality gaps, and while the stale direct-`devres` reminder wording in the broader docs-root, scripts-root, tests-root, and contributor-guide packet stays recorded as a shared-summary gap rather than implied shipped evidence.
 
 ## Repo-Reality Gaps
 
@@ -71,6 +77,10 @@ Direct current-`master` readback in this run still returned missing for:
 
 Keep those paths framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle.
 
+Current `master` also keeps a release-note-side documentation gap open across the broader reminder packet: `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` still overstate the missing direct `devres` survey, starter, and replay companions as shipped evidence even though the directly reread release packet keeps them in the repo-reality-gap bucket.
+
+Keep those broader reminder surfaces framed as still-open survey drift until a same-lane follow-through updates them or the missing direct `devres` packet actually rematerializes.
+
 Keep older or still-missing direct companions explicit too instead of promoting them into shipped current-`master` evidence when they are not freshly reread in the same run.
 
 ## Release-Surface Posture
@@ -79,6 +89,7 @@ Keep Phase 13 release wording inside these boundaries:
 
 - the Phase 13 packet is active and roadmap-backed, not closed
 - the shared packet is helper-local and reminder-surface backed rather than validator-first in the current direct-readback posture
+- the release-note packet should keep the broader reminder drift around the missing direct `devres` companions explicit until the shared reminder surfaces are reconciled again
 - the shared release handle is the materialized docs-root, scripts-root, and tests-root reminder packet listed above
 - the missing validator-first helpers, shared build companion, and shared wrapper surfaces stay explicit as repo-reality gaps
 - adjacent notifier evidence may still matter for release truthfulness, but it does not become a fifth roadmap anchor
