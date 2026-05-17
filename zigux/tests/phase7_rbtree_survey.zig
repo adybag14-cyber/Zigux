@@ -18,6 +18,14 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
     );
     defer std.testing.allocator.free(tests_root);
 
+    const direct_anchor_note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase7-rbtree-direct-anchor-note.md",
+        std.testing.allocator,
+        .limited(256 * 1024),
+    );
+    defer std.testing.allocator.free(direct_anchor_note);
+
     const broader_packet_paths = [_][]const u8{
         "`Documentation/zigux/phase7-helper-lane-sequencing.md`",
         "`Documentation/zigux/phase7-rbtree-slice.md`",
@@ -39,6 +47,7 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
 
     for (broader_packet_paths) |path| {
         try expectContains(tests_root, path);
+        try expectContains(direct_anchor_note, path);
     }
 
     try expectContains(
@@ -56,5 +65,22 @@ test "phase 7 rbtree survey keeps the direct anchor and repo-reality warning ali
     try expectContains(
         tests_root,
         "`scripts/zigux/check-phase7-rbtree-parity.py`, `zigux/tests/phase7_rbtree.zig`, `zigux/tests/phase7_rbtree_manifest.json`",
+    );
+
+    try expectContains(
+        direct_anchor_note,
+        "Current direct-readback Phase 7 anchor: `zigux/tests/phase7_rbtree_survey.zig`",
+    );
+    try expectContains(
+        direct_anchor_note,
+        "Broader Phase 7 rbtree packet currently missing on `master`:",
+    );
+    try expectContains(
+        direct_anchor_note,
+        "Treat those paths plus the older `make -C zigux phase7-validate` and `make -C zigux phase7` route names as last-known packet members that need fresh reread or re-materialization before they are presented as shipped direct evidence.",
+    );
+    try expectContains(
+        direct_anchor_note,
+        "Leave `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond the surviving rbtree anchor.",
     );
 }
