@@ -163,8 +163,26 @@ jobs:
       - name: Check current Phase 7 shared-control gap packet
         run: python3 scripts/zigux/check-phase7-shared-control-gap.py
 
-      - name: Self-test current Phase 12 build-only checker
+      - name: Self-test current Phase 12 build-only surface checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
+
+      - name: Check current Phase 12 build-only surface
+        run: python3 scripts/zigux/check-build-only-phase12-surface.py
+
+      - name: Self-test current Phase 12 release-readiness packet checker
+        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
+
+      - name: Validate Phase 12 degraded-workflow bundle
+        run: make -C zigux phase12-validate
+
+      - name: Check current Phase 12 release-readiness packet
+        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
+
+      - name: Run focused Phase 12 smoke shard
+        run: make -C zigux phase12-smoke
+
+      - name: Run Phase 12 complex driver tests
+        run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
 
       - name: Validate Phase 8 tooling gates
         run: make -C zigux phase8-validate
