@@ -38,11 +38,11 @@ SURVEY_MARKERS = (
 
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
-    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
-    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
-    "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
-    "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
-    "Keep those paths framed as archival packet vocabulary rather than current-head direct-readback evidence until a future reread proves they returned.",
+    "`PHASE11_FAMILY=hvc-console-cleanup-alignment`",
+    "Current `master` keeps the bounded HVC continuity packet reviewable through these live surfaces:",
+    "Current `master` also keeps the returned direct HVC starter-depth packet explicit through these live surfaces:",
+    "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.",
+    "Until then, keep both the smaller inventory-backed continuity packet and the returned direct HVC starter-depth packet explicit across the broad Phase 11 reminder surfaces without promoting the missing survey checker as live current-head evidence.",
 )
 
 VERIFY_HELPER_MARKERS = (
@@ -345,11 +345,11 @@ def fixture_companion() -> str:
             "# Phase 11 HVC Cleanup Alignment Current-Head Companion",
             "",
             "- `PHASE11_STATUS=current_head_companion_landed`",
-            "- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
-            "- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
-            "- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
-            "- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
-            "Keep those paths framed as archival packet vocabulary rather than current-head direct-readback evidence until a future reread proves they returned.",
+            "- `PHASE11_FAMILY=hvc-console-cleanup-alignment`",
+            "Current `master` keeps the bounded HVC continuity packet reviewable through these live surfaces:",
+            "Current `master` also keeps the returned direct HVC starter-depth packet explicit through these live surfaces:",
+            "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.",
+            "Until then, keep both the smaller inventory-backed continuity packet and the returned direct HVC starter-depth packet explicit across the broad Phase 11 reminder surfaces without promoting the missing survey checker as live current-head evidence.",
             "",
         ]
     )
