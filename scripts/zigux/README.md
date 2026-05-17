@@ -54,6 +54,15 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - authenticated contents reads on current `master` now return missing for the older shared-control wrapper packet members `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `zigux/tests/phase7_build.zig`, `Documentation/zigux/phase7-argv-split-slice.md`, and `Documentation/zigux/phase7-rbtree-slice.md`
 - leave broader shared-control validator or make-wrapper follow-up parked until those missing wrapper files rematerialize on current `master`
 
+## Phase 8
+
+- Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll bridge packet instead of reconstructing the older shared bridge bundle from paths that current `master` no longer serves
+- `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py --self-test` replays the shipped bounded Phase 8 reminder check
+- `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `scripts/zigux/check-phase8-tests-readme-alignment.py`, `zigux/tests/README.md`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` keep the directly readable checker, tests-root reminder, helper, and focused test packet explicit from the scripts root
+- `zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface and still keeps the bounded wait-result, ready-buffer, and errno-shaped lookup packet below broader route-management or online-CPU parity claims
+- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase8-tooling-lane-sequencing.md`, `Documentation/zigux/phase8-help-slice.md`, `Documentation/zigux/phase8-kallsyms-slice.md`, `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `Documentation/zigux/phase8-libbpf-segment-survey.md`, `scripts/zigux/validate-phase8.py`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/Makefile`, so keep those broader doc, validator, focused-build, segment-test, and make-route names framed as repo-reality gaps or historical packet members until a same-lane reread proves they returned on current `master`
+- keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the helper implementation, and the focused replay instead of widening back into exec-cmd, help, kallsyms, file-path-handle, or broader libbpf segment wording from older route names alone
+
 ## Phase 9
 
 - Phase 9 flow - the current shared runtime-pilot packet is narrow and review-first: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `zigux/tests/README.md`, and the surviving direct sample `samples/zigux/runtime_trace_events.zig` keep the live reminder surface honest from the scripts root
