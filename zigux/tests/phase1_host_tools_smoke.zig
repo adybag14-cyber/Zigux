@@ -4,7 +4,11 @@ const cmdline = @import("cmdline");
 pub const find_bit = @import("find_bit");
 const bitmap = @import("bitmap");
 const rbtree = @import("rbtree");
+const slab = @import("slab");
+const str_error_r = @import("str_error_r");
 const string = @import("string");
+const vsprintf = @import("vsprintf");
+const zalloc = @import("zalloc");
 
 const RbtreeSmokeEntry = struct {
     key: i32,
@@ -36,7 +40,11 @@ test "phase1 host-tools smoke imports the live helper modules" {
     try std.testing.expect(@hasDecl(bitmap, "setRange"));
     try std.testing.expect(@hasDecl(rbtree, "find"));
     try std.testing.expect(@hasDecl(rbtree, "matchIterator"));
+    try std.testing.expect(@hasDecl(slab, "kmallocBytes"));
+    try std.testing.expect(@hasDecl(str_error_r, "strErrorR"));
     try std.testing.expect(@hasDecl(string, "strtobool"));
+    try std.testing.expect(@hasDecl(vsprintf, "scnprintf"));
+    try std.testing.expect(@hasDecl(zalloc, "zallocBytes"));
 }
 
 test "phase1 host-tools smoke exercises live helper behavior" {
@@ -117,4 +125,48 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(?*rbtree.Node, null), rbtree.addCached(&cached_entries[2].node, &cached_root, RbtreeSmokeEntry.less));
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.eraseCached(&cached_entries[1].node, &cached_root));
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.firstCached(&cached_root));
+
+    var strerror_buffer: [64]u8 = undefined;
+    try std.testing.expectEqualStrings("No such file or directory", str_error_r.strErrorR(2, &strerror_buffer));
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", str_error_r.strErrorR(4096, &strerror_buffer));
+
+    slab.kmalloc_nr_allocated = 0;
+    try std.testing.expect(slab.kmallocBytes(8, 0) == null);
+    const slab_plain = slab.kmallocBytes(8, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    for (slab_plain) |value| {
+        try std.testing.expectEqual(@as(u8, 0), value);
+    }
+    slab.kfree(slab_plain);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+    try std.testing.expect(slab.slabIsAvailable());
+
+    var vsprintf_buffer: [16]u8 = undefined;
+    const scnprintf_len = vsprintf.scnprintf(&vsprintf_buffer, "{s}:{d}", .{ "zigux", 7 });
+    try std.testing.expectEqualStrings("zigux:7", vsprintf_buffer[0..scnprintf_len]);
+
+    var vsprintf_pad_buffer: [9]u8 = undefined;
+    const scnprintf_pad_len = vsprintf.scnprintfPad(&vsprintf_pad_buffer, vsprintf_pad_buffer.len - 1, "id={d}", .{7});
+    try std.testing.expect(scnprintf_pad_len <= vsprintf_pad_buffer.len - 1);
+    try std.testing.expectEqualStrings("id=7    ", vsprintf_pad_buffer[0 .. vsprintf_pad_buffer.len - 1]);
+
+    const allocator = std.testing.allocator;
+    var zalloc_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 8);
+    defer zalloc.zfreeBytes(allocator, &zalloc_bytes);
+    for (zalloc_bytes.?) |value| {
+        try std.testing.expectEqual(@as(u8, 0), value);
+    }
+    zalloc.zfreeBytes(allocator, &zalloc_bytes);
+    try std.testing.expect(zalloc_bytes == null);
+
+    const ZallocValue = struct {
+        a: u32,
+        b: bool,
+    };
+    var zalloc_value: ?*ZallocValue = try zalloc.zallocValue(allocator, ZallocValue);
+    defer zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
+    try std.testing.expectEqual(@as(u32, 0), zalloc_value.?.a);
+    try std.testing.expectEqual(false, zalloc_value.?.b);
+    zalloc.zfreeValue(allocator, ZallocValue, &zalloc_value);
+    try std.testing.expect(zalloc_value == null);
 }
