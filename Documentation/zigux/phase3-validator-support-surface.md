@@ -84,15 +84,15 @@ The following representative Phase 3 routes still read as absent on the live tre
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` still need one narrow truthfulness pass so they both describe the bounded three-slice Phase 3 posture already recorded in `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
+`zigux/tests/README.md` and `Documentation/zigux/review-checklist.md` now reflect the bounded three-slice Phase 3 posture already recorded in `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
 
-`zigux/tests/README.md` already reflects that bounded three-slice posture and should stay aligned with those dedicated notes while the docs root and review checklist catch up.
+`Documentation/zigux/README.md` remains the separate shared reminder surface that still needs the same three-slice narrowing pass.
 
-`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback tracker for that remaining docs-root and review-checklist cleanup.
+`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct-readback tracker for that remaining docs-root cleanup.
 
 `scripts/zigux/README.md` is still parked on the older absent-route wording for `zigux/kernel/export_shim.zig`, so keep that broader scripts-root reminder follow-up separate from this starter-packet validation tightening and refresh it only inside the shared reminder lane.
 
-Keep the remaining follow-up focused on those shared reminder surfaces so they stop parking `include/zigux/abi.h`, `zigux/bindings/abi.zig`, and the starter export shim companion as broader missing routes, and instead record any residual reminder drift directly until additional current-tree-backed validator or export-boundary proof lands.
+Keep the remaining follow-up focused on the docs root so it stops parking `include/zigux/abi.h`, `zigux/bindings/abi.zig`, and the starter export shim companion as broader missing routes, and instead records any residual reminder drift directly until additional current-tree-backed validator or export-boundary proof lands.
 
 ## Scope
 
