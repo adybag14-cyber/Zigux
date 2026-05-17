@@ -24,6 +24,7 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
+RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
 RELEASE_CLOSURE_CHECKLIST_PATH = "Documentation/zigux/phase12-release-closure-checklist.md"
 RELEASE_COORDINATION_MATRIX_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
 RAW_GITHUB_COVERAGE_SURVEY_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
@@ -34,6 +35,7 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     TESTS_README_PATH,
     RELEASE_READINESS_SURVEY_PATH,
+    RELEASE_SEQUENCING_PATH,
     RELEASE_CLOSURE_CHECKLIST_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
@@ -70,6 +72,11 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too",
         "the broader reviewer-facing reminder family now keeps the absent standalone `scripts/zigux/check-phase12-cross.py` file explicit instead of overstating a cross-checker surface that current `master` does not ship",
         "make -C zigux phase12-validate",
+    ],
+    RELEASE_SEQUENCING_PATH: [
+        "`PHASE12_STATUS=active`",
+        "readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "Current `master` now also ships the degraded-workflow `make -C zigux phase12-validate` route together with `scripts/zigux/validate-phase12.py` and `scripts/zigux/check-phase12-release-readiness-packet.py`, but there is still no focused libbpf-only replay or cross-build replay on current `master`, so this sequencing note must keep that validator-first support packet ahead of the smoke-first direct replay order instead of treating it as broader driver delivery evidence by itself.",
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
@@ -121,6 +128,7 @@ def marker_fixture(rel_path: str) -> str:
         SCRIPTS_README_PATH: "# scripts/zigux",
         TESTS_README_PATH: "# zigux/tests",
         RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
+        RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
         RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
         RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
         RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
@@ -198,9 +206,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the narrow shared Phase 12 release-readiness reminder packet "
-            "across the release-readiness survey, release-closure checklist, "
-            "release-coordination matrix, raw-coverage warning, docs root, "
-            "scripts root, tests root, and review checklist."
+            "across the release-readiness survey, release-sequencing note, "
+            "release-closure checklist, release-coordination matrix, raw-coverage "
+            "warning, docs root, scripts root, tests root, and review checklist."
         )
     )
     parser.add_argument(
