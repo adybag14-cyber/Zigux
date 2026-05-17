@@ -36,7 +36,7 @@ This is a review packet template, not approval by itself.
 
 - retained `freeze_in_c` decision:
 - the current blocker:
-- retained discussion state:
+- `retired_from_active_discussion` state:
 - automatic return-to-blocked trigger:
 - reopen triggers:
 - trigger-specific evidence refresh:
@@ -57,5 +57,5 @@ This is a review packet template, not approval by itself.
 ## Usage Rules
 
 - If any required field above cannot be stated honestly, keep the request blocked and leave the C implementation as the product source of truth.
-- A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, retained discussion state, reopen triggers, and the evidence archive path explicit.
+- A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, `retired_from_active_discussion` state, reopen triggers, and the evidence archive path explicit.
 - A reopen request must cite the exact reopen trigger being exercised, refreshed evidence by path, the blocker disposition being challenged, and the narrower seam or policy change that makes the review safe to consider.
