@@ -9,6 +9,9 @@ SELF_PATH = Path(__file__).resolve()
 
 TESTS_README_PATH = "zigux/tests/README.md"
 LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
+    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
+)
 
 REQUIRED_MARKERS = [
     "`Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`",
@@ -16,12 +19,9 @@ REQUIRED_MARKERS = [
     "`Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
     "`Documentation/zigux/phase12-libbpf-segment-survey.md`",
     "`zigux/tests/fixtures/phase12_libbpf_snapshot.json`",
+    "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
     "`scripts/zigux/check-phase12-release-readiness-packet.py`",
     "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
-]
-
-FORBIDDEN_MARKERS = [
-    "`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`",
 ]
 
 
@@ -50,18 +50,14 @@ def ensure_contains(failures: list[str], label: str, text: str, markers: list[st
             failures.append(f"{label}:missing:{marker}")
 
 
-def ensure_not_contains(
-    failures: list[str], label: str, text: str, markers: list[str]
-) -> None:
-    for marker in markers:
-        if marker in text:
-            failures.append(f"{label}:unexpected:{marker}")
-
-
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
 
-    for rel_path in [TESTS_README_PATH, LIBBPF_SNAPSHOT_PATH]:
+    for rel_path in [
+        TESTS_README_PATH,
+        LIBBPF_SNAPSHOT_PATH,
+        LIBBPF_SNAPSHOT_DETERMINISM_PATH,
+    ]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
 
@@ -70,7 +66,6 @@ def validate(root: Path) -> list[str]:
 
     tests_readme = read_text(root, TESTS_README_PATH)
     ensure_contains(failures, "tests_readme", tests_readme, REQUIRED_MARKERS)
-    ensure_not_contains(failures, "tests_readme", tests_readme, FORBIDDEN_MARKERS)
     return failures
 
 
@@ -94,28 +89,32 @@ def minimal_snapshot() -> str:
     )
 
 
+def minimal_snapshot_determinism() -> str:
+    return minimal_snapshot()
+
+
 def run_self_test() -> list[str]:
     failures: list[str] = []
     with tempfile.TemporaryDirectory() as tmp_dir:
         root = Path(tmp_dir)
         write_text(root / TESTS_README_PATH, minimal_tests_readme())
         write_text(root / LIBBPF_SNAPSHOT_PATH, minimal_snapshot())
+        write_text(
+            root / LIBBPF_SNAPSHOT_DETERMINISM_PATH, minimal_snapshot_determinism()
+        )
 
         base_failures = validate(root)
         if base_failures:
             failures.append(f"expected clean fixture, got {base_failures}")
 
-        polluted = read_text(root, TESTS_README_PATH) + (
-            "  * `zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`\n"
-        )
-        write_text(root / TESTS_README_PATH, polluted)
+        (root / LIBBPF_SNAPSHOT_DETERMINISM_PATH).unlink()
         drift_failures = validate(root)
-        unexpected_marker_failure = (
-            "tests_readme:unexpected:`zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json`"
+        expected_missing = (
+            "missing_file:zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
         )
-        if unexpected_marker_failure not in drift_failures:
+        if expected_missing not in drift_failures:
             failures.append(
-                "expected determinism drift to fail closed, got "
+                "expected missing determinism fixture to fail closed, got "
                 f"{drift_failures}"
             )
 
@@ -125,8 +124,8 @@ def run_self_test() -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Guard the Phase 12 tests-root libbpf snapshot anchor against stale "
-            "determinism references."
+            "Guard the Phase 12 tests-root libbpf snapshot anchors against "
+            "missing companion fixtures."
         )
     )
     parser.add_argument(
@@ -155,7 +154,7 @@ def main() -> int:
     if args.self_test:
         print("self-test passed")
     else:
-        print("phase12 tests README libbpf anchor is aligned")
+        print("phase12 tests README libbpf anchors are aligned")
     return 0
 
 
