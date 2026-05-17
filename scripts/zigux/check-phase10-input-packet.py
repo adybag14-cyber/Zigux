@@ -63,7 +63,7 @@ MODULE_MARKERS = [
 SURVEY_NOTE_MARKERS = [
     "# Phase 10 Virtio Input Survey",
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L13",
+    "PHASE10_LANE_KEY=P10-L22",
     "PHASE10_SURVEYED_COMMIT=",
     "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport",
     "drivers/virtio/virtio_input_verify.zig",
@@ -77,7 +77,7 @@ SURVEY_NOTE_MARKERS = [
 ]
 
 MANIFEST_MARKERS = [
-    '"lane_key": "P10-L13"',
+    '"lane_key": "P10-L22"',
     '"surveyed_commit": "',
     '"risky_transport_posture": "blocked_on_risky_transport"',
     '"id": "phase10-virtio-input-survey-gate"',
@@ -156,7 +156,7 @@ SURVEY_GATE_MARKERS = [
     'test "phase10 virtio input manifest keeps the restored replay ids and blocked lifecycle posture explicit" {',
     'test "phase10 virtio input slice companions keep the replay inventory and blocked lifecycle boundary explicit" {',
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L13",
+    "PHASE10_LANE_KEY=P10-L22",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     '"id": "phase10-virtio-input-survey-gate"',
@@ -449,7 +449,7 @@ def run_self_test() -> int:
             'phase10_build:"phase10-virtio-input-verify-tests"',
             "phase10-input-live-packet-self-test:build_verify_test",
         )
-        build_path.write_text(original_build, encoding="utf-8")
+        build_path.writeText(original_build, encoding="utf-8")
         case_count += 1
 
         build_path.write_text(
