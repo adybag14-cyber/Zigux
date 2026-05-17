@@ -11,6 +11,17 @@ from pathlib import Path
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 
+EXPECTED_COORDINATION_OWNERS = [
+    "ABI and Runtime Team",
+    "Shared Subsystems Pod",
+]
+EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
+    "The dedicated perf-baseline survey keeps approved local benchmark commands and "
+    "approved local-only acceptable limits explicit while shared CI perf promotion "
+    "remains intentionally pending."
+)
+EXPECTED_SELF_TEST_CASES = 22
+
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
     '"phase": "Phase 4"',
@@ -22,51 +33,48 @@ MANIFEST_MARKERS = (
     '"Shared Subsystems Pod"',
     '"shared_ci_perf_promotion_status": "pending"',
     '"local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending."',
+    '"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"',
     '"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"',
     '"linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey"',
     '"acceptable_limit_status": "approved_local_only"',
     '"acceptable_limit_metric": "median_elapsed_ns"',
     '"acceptable_limit_iterations": 4',
     '"acceptable_limit_sample_count": 7',
+    '"acceptable_limit_max_elapsed_ns": 8192',
     '"acceptable_limit_max_elapsed_ns": 12288',
     '"sample_count_note": "seven monotonic samples"',
+    '"id": "phase4-perf-baseline-atomic64-command-evidence"',
+    '"checksum": 3626254113632800175',
+    '"checksum": 9210681150676220922',
     '"id": "phase4-perf-baseline-bitmap-command-evidence"',
-    '"iterations": 1',
     '"checksum": 5216946504564592253',
-    '"iterations": 4',
     '"checksum": 7942141539243507472',
     '"status": "shared CI perf promotion pending"',
 )
 
 SURVEY_MARKERS = (
     'test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {',
-    'try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 1);',
-    'try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 1);',
-    'try std.testing.expectEqual(@as(u64, 4), @as(u64, 4));',
-    'try std.testing.expectEqual(@as(u64, 7), @as(u64, 7));',
-    'test "phase4 perf baseline survey keeps dedicated local-only ownership and command evidence explicit" {',
-    'try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");',
-    'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");',
-    'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");',
-    'try requireMarker("\\\"checksum\\\": 5216946504564592253");',
-    'try requireMarker("\\\"checksum\\\": 7942141539243507472");',
-    'try requireMarker("\\\"final_first_zero\\\": 109");',
+    'try requireMarkerCount("\\"acceptable_limit_iterations\\": 4", 2);',
+    'try requireMarkerCount("\\"acceptable_limit_sample_count\\": 7", 2);',
+    'try requireMarkerCount("\\"sample_count_note\\": \\\"seven monotonic samples\\\"", 2);',
+    'test "phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit" {',
+    'try requireMarker("\\"benchmark_command\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");',
+    'try requireMarker("\\"benchmark_command\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");',
+    'try requireMarker("\\"checksum\\": 3626254113632800175");',
+    'try requireMarker("\\"checksum\\": 9210681150676220922");',
+    'try requireMarker("\\"final_counter\\": 130322557735600377");',
+    'try requireMarker("\\"final_counter\\": 130322557735600376");',
+    'try requireMarker("\\"checksum\\": 5216946504564592253");',
+    'try requireMarker("\\"checksum\\": 7942141539243507472");',
+    'try requireMarker("\\"final_first_zero\\": 109");',
+    'test "phase4 perf baseline survey keeps rollback and decision ownership explicit" {',
+    'try requireMarker("\\"owner\\": \\\"Validation and Perf Team\\\"");',
+    'try requireMarker("\\"linux_style_wrapper\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");',
+    'try requireMarker("\\"local_only_posture_note\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");',
     'test "phase4 perf baseline survey keeps the dedicated packet contract reviewable" {',
-    'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");',
-    'try requireMarker("\\\"status\\\": \\\"shared CI perf promotion pending\\\"");',
-    'try requireMarker("\\\"coordination_owners\\\": [");',
-)
-
-EXPECTED_FINAL_FIRST_ZERO_COUNT = 2
-EXPECTED_SELF_TEST_CASES = 20
-EXPECTED_COORDINATION_OWNERS = [
-    "ABI and Runtime Team",
-    "Shared Subsystems Pod",
-]
-EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
-    "The dedicated perf-baseline survey keeps approved local benchmark commands and "
-    "approved local-only acceptable limits explicit while shared CI perf promotion "
-    "remains intentionally pending."
+    'try requireMarker("\\"id\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");',
+    'try requireMarker("\\"status\\": \\\"shared CI perf promotion pending\\\"");',
+    'try requireMarker("\\"coordination_owners\\": [");',
 )
 
 
@@ -100,29 +108,18 @@ def read_json(path: Path, missing: list[str]) -> dict[str, object] | None:
         return None
 
 
-def expect_json_value(
-    payload: object,
-    path: tuple[str | int, ...],
-    expected: object,
-    missing: list[str],
-) -> None:
+def expect_json_value(payload: object, path: tuple[str | int, ...], expected: object, missing: list[str]) -> None:
     current = payload
     for step in path:
         try:
-            if isinstance(step, int):
-                current = current[step]  # type: ignore[index]
-            else:
-                current = current[step]  # type: ignore[index]
+            current = current[step]  # type: ignore[index]
         except (KeyError, IndexError, TypeError):
             path_label = ".".join(str(part) for part in path)
             missing.append(f"manifest_json:{path_label}:missing")
             return
-
     if current != expected:
         path_label = ".".join(str(part) for part in path)
-        missing.append(
-            f"manifest_json:{path_label}:expected={expected!r}:actual={current!r}"
-        )
+        missing.append(f"manifest_json:{path_label}:expected={expected!r}:actual={current!r}")
 
 
 def validate_manifest_json(manifest_data: dict[str, object], missing: list[str]) -> None:
@@ -135,6 +132,27 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("coordination_owners",), EXPECTED_COORDINATION_OWNERS),
         (("shared_ci_perf_promotion_status",), "pending"),
         (("local_only_posture_note",), EXPECTED_LOCAL_ONLY_POSTURE_NOTE),
+        (("atomic64", "benchmark_command"), "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"),
+        (("atomic64", "linux_style_wrapper"), "make -C zigux phase4-perf-baseline-survey"),
+        (("atomic64", "acceptable_limit_status"), "approved_local_only"),
+        (("atomic64", "acceptable_limit_metric"), "median_elapsed_ns"),
+        (("atomic64", "acceptable_limit_iterations"), 4),
+        (("atomic64", "acceptable_limit_sample_count"), 7),
+        (("atomic64", "acceptable_limit_max_elapsed_ns"), 8192),
+        (("atomic64", "evidence", 0, "id"), "phase4-perf-baseline-atomic64-acceptable-limit"),
+        (("atomic64", "evidence", 0, "kind"), "acceptable_limit"),
+        (("atomic64", "evidence", 0, "metric"), "median_elapsed_ns"),
+        (("atomic64", "evidence", 0, "status"), "approved_local_only"),
+        (("atomic64", "evidence", 0, "sample_count_note"), "seven monotonic samples"),
+        (("atomic64", "evidence", 0, "max_elapsed_ns"), 8192),
+        (("atomic64", "evidence", 1, "id"), "phase4-perf-baseline-atomic64-command-evidence"),
+        (("atomic64", "evidence", 1, "kind"), "threshold_replay"),
+        (("atomic64", "evidence", 1, "runs", 0, "iterations"), 1),
+        (("atomic64", "evidence", 1, "runs", 0, "checksum"), 3626254113632800175),
+        (("atomic64", "evidence", 1, "runs", 0, "final_counter"), 130322557735600377),
+        (("atomic64", "evidence", 1, "runs", 1, "iterations"), 4),
+        (("atomic64", "evidence", 1, "runs", 1, "checksum"), 9210681150676220922),
+        (("atomic64", "evidence", 1, "runs", 1, "final_counter"), 130322557735600376),
         (("bitmap", "benchmark_command"), "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"),
         (("bitmap", "linux_style_wrapper"), "make -C zigux phase4-perf-baseline-survey"),
         (("bitmap", "acceptable_limit_status"), "approved_local_only"),
@@ -161,7 +179,6 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("promotion_decision", "owner"), "Validation and Perf Team"),
         (("promotion_decision", "coordination_owners"), EXPECTED_COORDINATION_OWNERS),
     )
-
     for path, expected in expected_values:
         expect_json_value(manifest_data, path, expected, missing)
 
@@ -178,19 +195,20 @@ def validate_root(root: Path) -> list[str]:
         manifest_data = read_json(manifest, missing)
         if manifest_data is not None:
             validate_manifest_json(manifest_data, missing)
-        final_first_zero_count = manifest_text.count('"final_first_zero": 109')
-        if final_first_zero_count != EXPECTED_FINAL_FIRST_ZERO_COUNT:
-            missing.append(
-                'manifest_count:"final_first_zero": 109:'
-                f"expected={EXPECTED_FINAL_FIRST_ZERO_COUNT}:actual={final_first_zero_count}"
-            )
+        if manifest_text.count('"acceptable_limit_iterations": 4') != 2:
+            missing.append('manifest_count:"acceptable_limit_iterations": 4:expected=2')
+        if manifest_text.count('"acceptable_limit_sample_count": 7') != 2:
+            missing.append('manifest_count:"acceptable_limit_sample_count": 7:expected=2')
+        if manifest_text.count('"sample_count_note": "seven monotonic samples"') != 2:
+            missing.append('manifest_count:"sample_count_note": "seven monotonic samples":expected=2')
+        if manifest_text.count('"final_first_zero": 109') != 2:
+            missing.append('manifest_count:"final_first_zero": 109:expected=2')
 
     survey = root / SURVEY
     if not survey.is_file():
         missing.append(f"file:{SURVEY.as_posix()}")
     else:
-        survey_text = read_text(survey)
-        require_markers(survey_text, SURVEY_MARKERS, "survey_marker", missing)
+        require_markers(read_text(survey), SURVEY_MARKERS, "survey_marker", missing)
 
     return missing
 
@@ -224,291 +242,48 @@ def run_self_test() -> int:
         manifest = root / MANIFEST
         survey = root / SURVEY
 
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"acceptable_limit_iterations": 4',
-                '"acceptable_limit_iterations": 5',
-            ),
+        variants = (
+            ('"acceptable_limit_iterations": 4', '"acceptable_limit_iterations": 5', 'manifest_count:"acceptable_limit_iterations": 4'),
+            ('"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"', '"benchmark_command": "zig build phase4-runtime-atomic64-bench --build-file zigux/tests/phase4_build.zig"', 'manifest_marker:"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"'),
+            ('"acceptable_limit_max_elapsed_ns": 8192', '"acceptable_limit_max_elapsed_ns": 9216', 'manifest_marker:"acceptable_limit_max_elapsed_ns": 8192'),
+            ('"final_counter": 130322557735600377', '"final_counter": 130322557735600378', "manifest_json:atomic64.evidence.1.runs.0.final_counter:"),
+            ('"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"', '"benchmark_command": "zig build phase4-bitmap-diff-other --build-file zigux/tests/phase4_build.zig"', 'manifest_marker:"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"'),
+            ('"acceptable_limit_max_elapsed_ns": 12288', '"acceptable_limit_max_elapsed_ns": 16384', 'manifest_marker:"acceptable_limit_max_elapsed_ns": 12288'),
+            ('"final_first_zero": 109', '"final_first_zero": 110', 'manifest_count:"final_first_zero": 109:expected=2'),
+            ('"sample_count_note": "seven monotonic samples"', '"sample_count_note": "eight monotonic samples"', 'manifest_count:"sample_count_note": "seven monotonic samples":expected=2'),
+            ('"owner": "Validation and Perf Team"', '"owner": "ABI and Runtime Team"', "manifest_json:owner:"),
+            ('"decision_owner": "Validation and Perf Team"', '"decision_owner": "ABI and Runtime Team"', 'manifest_marker:"decision_owner": "Validation and Perf Team"'),
+            ('"rollback_owner": "Validation and Perf Team"', '"rollback_owner": "ABI and Runtime Team"', 'manifest_marker:"rollback_owner": "Validation and Perf Team"'),
+            ('"coordination_owners": [\n    "ABI and Runtime Team",\n    "Shared Subsystems Pod"\n  ]', '"coordination_owners": [\n    "ABI and Replay Team",\n    "Shared Subsystems Pod"\n  ]', "manifest_json:coordination_owners:"),
+            ('"local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending."', '"local_only_posture_note": "The dedicated perf-baseline survey still needs shared CI approval."', "manifest_json:local_only_posture_note:"),
+            ('"acceptable_limit_status": "approved_local_only"', '"acceptable_limit_status": "pending_review"', "manifest_json:atomic64.acceptable_limit_status:"),
+            ('"acceptable_limit_metric": "median_elapsed_ns"', '"acceptable_limit_metric": "mean_elapsed_ns"', "manifest_json:atomic64.acceptable_limit_metric:"),
+            ('"shared_ci_perf_promotion_status": "pending"', '"shared_ci_perf_promotion_status": "approved"', 'manifest_marker:"shared_ci_perf_promotion_status": "pending"'),
+            ('"status": "shared CI perf promotion pending"', '"status": "shared CI perf promotion approved"', 'manifest_marker:"status": "shared CI perf promotion pending"'),
         )
-        if not expect_failure(root, 'manifest_marker:"acceptable_limit_iterations": 4'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest iteration-count drift case did not fail closed")
-            return 1
-        cases += 1
+        for old, new, expected_prefix in variants:
+            build_fixture_tree(root)
+            write_text(manifest, replace_once(read_text(manifest), old, new))
+            if not expect_failure(root, expected_prefix):
+                print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+                print(f"manifest drift case did not fail closed: {expected_prefix}")
+                return 1
+            cases += 1
 
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"',
-                '"benchmark_command": "zig build phase4-bitmap-diff-other --build-file zigux/tests/phase4_build.zig"',
-            ),
+        survey_variants = (
+            ('try requireMarker("\\"benchmark_command\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");', 'try requireMarker("\\"benchmark_command\\": \\\"zig build phase4-runtime-atomic64-bench --build-file zigux/tests/phase4_build.zig\\\"");', 'survey_marker:try requireMarker("\\"benchmark_command\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");'),
+            ('try requireMarker("\\"id\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");', 'try requireMarker("\\"id\\": \\\"phase4-perf-baseline-other-decision\\\"");', 'survey_marker:try requireMarker("\\"id\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");'),
+            ('try requireMarker("\\"owner\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\"owner\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\"owner\\": \\\"Validation and Perf Team\\\"");'),
+            ('try requireMarker("\\"linux_style_wrapper\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");', 'try requireMarker("\\"linux_style_wrapper\\": \\\"make -C zigux phase4-perf-baseline\\\"");', 'survey_marker:try requireMarker("\\"linux_style_wrapper\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");'),
         )
-        if not expect_failure(
-            root,
-            'manifest_marker:"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"',
-        ):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest benchmark-command drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"acceptable_limit_max_elapsed_ns": 12288',
-                '"acceptable_limit_max_elapsed_ns": 16384',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"acceptable_limit_max_elapsed_ns": 12288'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest acceptable-limit drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"final_first_zero": 109',
-                '"final_first_zero": 110',
-            ),
-        )
-        if not expect_failure(root, 'manifest_count:"final_first_zero": 109:expected=2:actual=1'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest replay-count drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"sample_count_note": "seven monotonic samples"',
-                '"sample_count_note": "eight monotonic samples"',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"sample_count_note": "seven monotonic samples"'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest sample-count note drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"owner": "Validation and Perf Team"',
-                '"owner": "ABI and Runtime Team"',
-            ),
-        )
-        if not expect_failure(root, "manifest_json:owner:"):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest top-level owner drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"decision_owner": "Validation and Perf Team"',
-                '"decision_owner": "ABI and Runtime Team"',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"decision_owner": "Validation and Perf Team"'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest decision-owner drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"rollback_owner": "Validation and Perf Team"',
-                '"rollback_owner": "ABI and Runtime Team"',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"rollback_owner": "Validation and Perf Team"'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest rollback-owner drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            read_text(manifest).replace(
-                '"ABI and Runtime Team"',
-                '"ABI and Replay Team"',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"ABI and Runtime Team"'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest coordination-owner drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending."',
-                '"local_only_posture_note": "The dedicated perf-baseline survey still needs shared CI approval."',
-            ),
-        )
-        if not expect_failure(root, "manifest_json:local_only_posture_note:"):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest local-only posture drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"acceptable_limit_status": "approved_local_only"',
-                '"acceptable_limit_status": "pending_review"',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"acceptable_limit_status": "approved_local_only"'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest acceptable-limit status drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"acceptable_limit_metric": "median_elapsed_ns"',
-                '"acceptable_limit_metric": "mean_elapsed_ns"',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"acceptable_limit_metric": "median_elapsed_ns"'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest acceptable-limit metric drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"shared_ci_perf_promotion_status": "pending"',
-                '"shared_ci_perf_promotion_status": "approved"',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"shared_ci_perf_promotion_status": "pending"'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest shared-ci-promotion-status drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"status": "shared CI perf promotion pending"',
-                '"status": "shared CI perf promotion approved"',
-            ),
-        )
-        if not expect_failure(root, 'manifest_marker:"status": "shared CI perf promotion pending"'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest promotion-status drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            manifest,
-            replace_once(
-                read_text(manifest),
-                '"promotion_decision": {\n    "id": "phase4-perf-baseline-shared-promotion-decision",\n    "status": "shared CI perf promotion pending",\n    "owner": "Validation and Perf Team",',
-                '"promotion_decision": {\n    "id": "phase4-perf-baseline-shared-promotion-decision",\n    "status": "shared CI perf promotion pending",\n    "owner": "ABI and Runtime Team",',
-            ),
-        )
-        if not expect_failure(root, "manifest_json:promotion_decision.owner:"):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("manifest promotion owner drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            survey,
-            replace_once(
-                read_text(survey),
-                'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");',
-                'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-other-decision\\\"");',
-            ),
-        )
-        if not expect_failure(root, 'survey_marker:try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("survey promotion-decision drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            survey,
-            replace_once(
-                read_text(survey),
-                'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");',
-                'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff-other --build-file zigux/tests/phase4_build.zig\\\"");',
-            ),
-        )
-        if not expect_failure(root, 'survey_marker:try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("survey benchmark-command drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            survey,
-            replace_once(
-                read_text(survey),
-                'try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");',
-                'try requireMarker("\\\"owner\\\": \\\"ABI and Runtime Team\\\"");',
-            ),
-        )
-        if not expect_failure(root, 'survey_marker:try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("survey owner drift case did not fail closed")
-            return 1
-        cases += 1
-
-        build_fixture_tree(root)
-        write_text(
-            survey,
-            replace_once(
-                read_text(survey),
-                'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");',
-                'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline\\\"");',
-            ),
-        )
-        if not expect_failure(root, 'survey_marker:try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");'):
-            print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
-            print("survey wrapper drift case did not fail closed")
-            return 1
-        cases += 1
+        for old, new, expected_prefix in survey_variants:
+            build_fixture_tree(root)
+            write_text(survey, replace_once(read_text(survey), old, new))
+            if not expect_failure(root, expected_prefix):
+                print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+                print(f"survey drift case did not fail closed: {expected_prefix}")
+                return 1
+            cases += 1
 
         if cases != EXPECTED_SELF_TEST_CASES:
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
