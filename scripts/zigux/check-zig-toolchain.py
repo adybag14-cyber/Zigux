@@ -340,18 +340,33 @@ def compute_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def validate_policy_archive(path: Path, archive_target: str, *, policy_path: Path = TOOLCHAIN_POLICY) -> tuple[str, str | None]:
+def expected_archive_metadata(
+    archive_target: str,
+    *,
+    policy_path: Path = TOOLCHAIN_POLICY,
+) -> tuple[str, str]:
     payload = load_policy(policy_path)
     if payload is None:
         raise ValueError(f"toolchain policy not found at {policy_path}")
     if archive_target not in payload["archive_sha256"]:
         raise ValueError(f"archive target {archive_target!r} is not pinned in {policy_path}")
+    return str(payload["archive_sha256"][archive_target]), policy_archive_filename(
+        archive_target,
+        str(payload["channel"]),
+    )
 
+
+def validate_policy_archive(path: Path, archive_target: str, *, policy_path: Path = TOOLCHAIN_POLICY) -> tuple[str, str | None, str, str]:
+    expected_sha, _ = expected_archive_metadata(archive_target, policy_path=policy_path)
     actual_sha = compute_sha256(path)
-    expected_sha = str(payload["archive_sha256"][archive_target])
     if actual_sha != expected_sha:
-        return "mismatch", f"expected sha256 {expected_sha} for {archive_target}"
-    return "present", None
+        return (
+            "mismatch",
+            f"expected sha256 {expected_sha} for {archive_target}, got {actual_sha}",
+            expected_sha,
+            actual_sha,
+        )
+    return "present", None, expected_sha, actual_sha
 
 
 def read_zig_version(zig: str, *, runner=subprocess.run) -> str:
@@ -557,11 +572,37 @@ def run_self_test() -> int:
         )
         expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), ("x86_64-linux", workspace_archive_path))
         expect_equal(resolve_policy_archive(str(workspace_archive_path), root=root, policy_path=policy_path), ("x86_64-linux", workspace_archive_path))
-        expect_equal(validate_policy_archive(workspace_archive_path, "x86_64-linux", policy_path=policy_path), ("present", None))
-        workspace_archive_path.write_bytes(b"zigux-archive-drift")
+        expect_equal(
+            expected_archive_metadata("x86_64-linux", policy_path=policy_path),
+            (
+                expected_archive_sha,
+                "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz",
+            ),
+        )
         expect_equal(
             validate_policy_archive(workspace_archive_path, "x86_64-linux", policy_path=policy_path),
-            ("mismatch", f"expected sha256 {expected_archive_sha} for x86_64-linux"),
+            ("present", None, expected_archive_sha, expected_archive_sha),
+        )
+        missing_explicit_path = root / "missing.tar.xz"
+        expect_equal(
+            resolve_policy_archive(
+                str(missing_explicit_path),
+                "x86_64-linux",
+                root=root,
+                policy_path=policy_path,
+            ),
+            ("x86_64-linux", missing_explicit_path),
+        )
+        workspace_archive_path.write_bytes(b"zigux-archive-drift")
+        drift_sha = hashlib.sha256(b"zigux-archive-drift").hexdigest()
+        expect_equal(
+            validate_policy_archive(workspace_archive_path, "x86_64-linux", policy_path=policy_path),
+            (
+                "mismatch",
+                f"expected sha256 {expected_archive_sha} for x86_64-linux, got {drift_sha}",
+                expected_archive_sha,
+                drift_sha,
+            ),
         )
         expect_raises(
             lambda: resolve_policy_archive(str(workspace_archive_path), "aarch64-linux", root=root, policy_path=policy_path),
@@ -696,8 +737,12 @@ def main() -> int:
     if args.archive_only:
         archive_target: str | None = None
         archive_path: Path | None = None
+        expected_sha: str | None = None
+        expected_filename: str | None = None
         try:
             archive_target, archive_path = resolve_policy_archive(args.archive, args.archive_target)
+            if archive_target is not None:
+                expected_sha, expected_filename = expected_archive_metadata(archive_target)
         except ValueError as exc:
             print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=invalid")
             print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={args.archive or 'unresolved'}")
@@ -706,28 +751,43 @@ def main() -> int:
             print(f"ZIG_TOOLCHAIN_NOTE={exc}")
             return 1
 
-        if archive_path is None:
+        if archive_path is None or not archive_path.is_file():
             search_roots = iter_archive_search_roots()
             message = "pinned Zig archive not found in archive search roots"
             print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=missing")
-            print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={args.archive or 'unresolved'}")
+            print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path or args.archive or 'unresolved'}")
             print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
+            if expected_filename is not None:
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}")
+            if expected_sha is not None:
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={expected_sha}")
             print(f"ZIG_TOOLCHAIN_ARCHIVE_SEARCH_ROOTS={format_search_roots(search_roots)}")
             print(f"ZIG_TOOLCHAIN_NOTE={message}")
             return 0 if args.allow_missing else 1
 
         try:
-            archive_status, note = validate_policy_archive(archive_path, archive_target or "unresolved")
+            archive_status, note, validated_expected_sha, actual_sha = validate_policy_archive(
+                archive_path,
+                archive_target or "unresolved",
+            )
         except ValueError as exc:
             print("ZIG_TOOLCHAIN_ARCHIVE_STATUS=invalid")
             print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}")
             print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
+            if expected_filename is not None:
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}")
+            if expected_sha is not None:
+                print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={expected_sha}")
             print(f"ZIG_TOOLCHAIN_NOTE={exc}")
             return 1
 
         print(f"ZIG_TOOLCHAIN_ARCHIVE_STATUS={archive_status}")
         print(f"ZIG_TOOLCHAIN_ARCHIVE_PATH={archive_path}")
         print(f"ZIG_TOOLCHAIN_ARCHIVE_TARGET={archive_target or 'unresolved'}")
+        if expected_filename is not None:
+            print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}")
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_SHA256={validated_expected_sha}")
+        print(f"ZIG_TOOLCHAIN_ARCHIVE_ACTUAL_SHA256={actual_sha}")
         if note is not None:
             print(f"ZIG_TOOLCHAIN_NOTE={note}")
             return 1
