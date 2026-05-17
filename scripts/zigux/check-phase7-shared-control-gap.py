@@ -25,9 +25,7 @@ DIRECT_PACKET = [
 PARKED_SHARED_CONTROL_PATHS = [
     "Documentation/zigux/phase7-argv-split-slice.md",
     "Documentation/zigux/phase7-rbtree-slice.md",
-    "scripts/zigux/check-phase7-build-wiring.py",
     "scripts/zigux/check-phase7-make-wrapper.py",
-    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
     "scripts/zigux/validate-phase7.py",
     "zigux/tests/phase7_build.zig",
 ]
