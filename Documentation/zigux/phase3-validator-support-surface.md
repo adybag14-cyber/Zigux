@@ -46,6 +46,7 @@ Current `master` now carries one bounded `dev_t` starter packet, one focused hel
 - `scripts/zigux/check-phase3-policy-starter-packet.py`
 - `python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-policy-starter-packet.py`
+- `zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig`
 
 ## Review boundary
 
