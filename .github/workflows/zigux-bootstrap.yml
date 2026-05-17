@@ -97,6 +97,12 @@ jobs:
       - name: Check current Phase 1 string review packet
         run: python3 scripts/zigux/check-phase1-string-review-packet.py
 
+      - name: Self-test current Phase 2 mk_elfconfig checker
+        run: python3 scripts/zigux/check-mk-elfconfig-diff.py --self-test
+
+      - name: Check current Phase 2 mk_elfconfig packet
+        run: python3 scripts/zigux/check-mk-elfconfig-diff.py
+
       - name: Self-test current Phase 12 build-only checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
 
