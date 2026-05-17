@@ -23,13 +23,13 @@ ROOT = infer_repo_root()
 
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
-TESTS_README_PATH = "zigux/tests/README.md"
+DOCS_SANITY_CHECKER_PATH = "scripts/zigux/check-phase12-bootstrap-docs-sanity.py"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 
 REQUIRED_FILES = [
     WORKFLOW_PATH,
     SURVEY_PATH,
-    TESTS_README_PATH,
+    DOCS_SANITY_CHECKER_PATH,
     BUILD_ONLY_CHECKER_PATH,
 ]
 
@@ -38,9 +38,10 @@ WORKFLOW_STEP_NAMES = [
     "Setup Python",
     "Compile current scripts",
     "Self-test current Phase 12 build-only checker",
+    "Self-test current Phase 12 bootstrap docs sanity checker",
+    "Check current Phase 12 docs-root sanity markers",
     "Self-test current Phase 12 bootstrap lane checker",
     "Check current Phase 12 bootstrap lane shape",
-    "Check current docs-root sanity markers",
 ]
 
 WORKFLOW_COMMAND_MARKERS = [
@@ -50,9 +51,10 @@ WORKFLOW_COMMAND_MARKERS = [
     "set -euxo pipefail",
     "find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort",
     "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+    "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test",
+    "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py",
-    "Path('Documentation/zigux/phase12-release-readiness-survey.md')",
 ]
 
 SURVEY_MARKERS = [
@@ -130,17 +132,14 @@ jobs:
           python3 -m py_compile "${scripts[@]}"
       - name: Self-test current Phase 12 build-only checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
+      - name: Self-test current Phase 12 bootstrap docs sanity checker
+        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test
+      - name: Check current Phase 12 docs-root sanity markers
+        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py
       - name: Self-test current Phase 12 bootstrap lane checker
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test
       - name: Check current Phase 12 bootstrap lane shape
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
-      - name: Check current docs-root sanity markers
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          Path('Documentation/zigux/phase12-release-readiness-survey.md')
-          print('ok')
-          PY
 """
 
 
@@ -159,7 +158,7 @@ def write_fixture_tree(root: Path) -> None:
         shutil.rmtree(root)
     write_text(root / WORKFLOW_PATH, minimal_workflow())
     write_text(root / SURVEY_PATH, minimal_survey())
-    write_text(root / TESTS_README_PATH, "# zigux/tests\n")
+    write_text(root / DOCS_SANITY_CHECKER_PATH, "#!/usr/bin/env python3\n")
     write_text(root / BUILD_ONLY_CHECKER_PATH, "#!/usr/bin/env python3\n")
 
 
@@ -178,8 +177,8 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
         write_fixture_tree(base)
-        (base / BUILD_ONLY_CHECKER_PATH).unlink()
-        expect_failure(base, f"missing_file:{BUILD_ONLY_CHECKER_PATH}")
+        (base / DOCS_SANITY_CHECKER_PATH).unlink()
+        expect_failure(base, f"missing_file:{DOCS_SANITY_CHECKER_PATH}")
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
@@ -198,31 +197,21 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
+        workflow_text = workflow_path.read_text(encoding="utf-8")
+        docs_block = (
+            "      - name: Self-test current Phase 12 bootstrap docs sanity checker\n"
+            "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test\n"
+            "      - name: Check current Phase 12 docs-root sanity markers\n"
+            "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py\n"
+        )
+        swapped_block = (
+            "      - name: Check current Phase 12 docs-root sanity markers\n"
+            "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py\n"
+            "      - name: Self-test current Phase 12 bootstrap docs sanity checker\n"
+            "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test\n"
+        )
         workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Check current Phase 12 bootstrap lane shape\n"
-                "        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py\n",
-                "",
-                1,
-            ).replace(
-                "- name: Check current docs-root sanity markers\n"
-                "        run: |\n"
-                "          python3 - <<'PY'\n"
-                "          from pathlib import Path\n"
-                "          Path('Documentation/zigux/phase12-release-readiness-survey.md')\n"
-                "          print('ok')\n"
-                "          PY\n",
-                "- name: Check current docs-root sanity markers\n"
-                "        run: |\n"
-                "          python3 - <<'PY'\n"
-                "          from pathlib import Path\n"
-                "          Path('Documentation/zigux/phase12-release-readiness-survey.md')\n"
-                "          print('ok')\n"
-                "          PY\n"
-                "      - name: Check current Phase 12 bootstrap lane shape\n"
-                "        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py\n",
-                1,
-            ),
+            workflow_text.replace(docs_block, swapped_block, 1),
             encoding="utf-8",
         )
         expect_failure(base, "workflow_order:bootstrap-step-order")
