@@ -19,7 +19,7 @@ This note keeps the current `abi` review surface explicit while the shared Phase
 - `zigux/bindings/dev_t.zig`
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_build.zig`
-- `zigux/tests/README.md` still carries a broader Phase 3 packet summary and should be narrowed in a follow-on same-lane truthfulness repair
+- `zigux/tests/README.md` now mirrors the bounded starter packet and should stay aligned with this note and `Documentation/zigux/phase3-validator-support-surface.md`
 - the roadmap and ledger still place Phase 3 in the ABI substrate and export-boundary family, so the next real progress step remains one small replay, validator, or binding slice instead of more reminder-only prose
 
 ## Bounded Starter Packet Present On Master
