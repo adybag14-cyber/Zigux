@@ -32,6 +32,7 @@ test "helper-first materialized tools/lib/bpf Zigux segments keep their landed b
     try expectHasDecl(perf_buffer_poll, "summarizeBufferFdLookup");
     try expectHasDecl(perf_buffer_poll, "resolveBufferFdLookupReturn");
     try expectHasDecl(perf_buffer_poll, "summarizeBufferWindowLookup");
+    try expectHasDecl(perf_buffer_poll, "resolveBufferWindowMappedSize");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturn");
     try expectHasDecl(pin_path, "buildValidatedMapPinPath");
     try expectHasDecl(pin_path, "buildValidatedSanitizedMapPinPath");
