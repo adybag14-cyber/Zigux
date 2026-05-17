@@ -2,11 +2,12 @@
 """Fail-close guard for the current-head Phase 11 HVC cleanup packet.
 
 The current `master` branch keeps the HVC cleanup packet reviewable through the
-survey note, the verify-helper boundary note, the shared Phase 11 build
-inventory, and the direct HVC starter-depth packet that current readback now
-materializes again. This checker therefore validates the current-head wording
-that explicitly names both the smaller continuity packet and the returned direct
-HVC packet without widening into live tty or hypervisor execution claims.
+survey note, the cleanup-alignment companion, the verify-helper boundary note,
+the shared Phase 11 build inventory, the direct HVC starter-depth packet that
+current readback now materializes again, and the focused HVC cleanup proof
+shards. This checker therefore validates the current-head wording that
+explicitly names both the smaller continuity packet and the returned direct HVC
+packet without widening into live tty or hypervisor execution claims.
 """
 
 from __future__ import annotations
@@ -21,8 +22,11 @@ from pathlib import Path
 DEFAULT_ROOT = Path(__file__).resolve().parents[3]
 
 SURVEY_PATH = Path("Documentation/zigux/phase11-hvc-console-survey.md")
+COMPANION_PATH = Path("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md")
 VERIFY_HELPER_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundary.md")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
+CLEANUP_PROOF_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_proof.zig")
+CLEANUP_BUILD_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 
 SURVEY_MARKERS = (
     "current `master` still keeps the HVC lane reviewable through this survey note,",
@@ -32,12 +36,35 @@ SURVEY_MARKERS = (
     "The roadmap destination family and the bounded simple-driver support packet are",
 )
 
+COMPANION_MARKERS = (
+    "`PHASE11_STATUS=current_head_companion_landed`",
+    "`Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+    "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+    "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
+    "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "Keep those paths framed as archival packet vocabulary rather than current-head direct-readback evidence until a future reread proves they returned.",
+)
+
 VERIFY_HELPER_MARKERS = (
     "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit without implying live `hvc_remove()` execution.",
     "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
     "`error.NotifierDispatchRequiresTtyRegistration` keeps notifier prerequisite failures explicit instead of implying sysrq-triggered notifier dispatch can occur before tty registration.",
     "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
     "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.",
+)
+
+CLEANUP_PROOF_MARKERS = (
+    'test "phase11 hvc cleanup packet proof keeps cleanup replay markers explicit" {',
+    'try expectContains(cleanup_replay, "test \\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\" {");',
+    'try expectContains(cleanup_companion, "phase11 hvc cleanup");',
+    'test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the landed cleanup handoff" {',
+    'try expectContains(teardown_note, "deferred final release explicit");',
+)
+
+CLEANUP_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),',
+    '.name = "phase11-hvc-cleanup-packet-proof",',
+    'const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");',
 )
 
 REQUIRED_BUILD_TEST_NAMES = (
@@ -134,10 +161,25 @@ def run_check(root: Path) -> None:
         if marker not in survey_text:
             raise CheckError(f"missing survey marker: {marker}")
 
+    companion_text = read_text(root / COMPANION_PATH)
+    for marker in COMPANION_MARKERS:
+        if marker not in companion_text:
+            raise CheckError(f"missing cleanup-companion marker: {marker}")
+
     verify_helper_text = read_text(root / VERIFY_HELPER_PATH)
     for marker in VERIFY_HELPER_MARKERS:
         if marker not in verify_helper_text:
             raise CheckError(f"missing verify-helper marker: {marker}")
+
+    cleanup_proof_text = read_text(root / CLEANUP_PROOF_PATH)
+    for marker in CLEANUP_PROOF_MARKERS:
+        if marker not in cleanup_proof_text:
+            raise CheckError(f"missing cleanup-proof marker: {marker}")
+
+    cleanup_build_text = read_text(root / CLEANUP_BUILD_PATH)
+    for marker in CLEANUP_BUILD_MARKERS:
+        if marker not in cleanup_build_text:
+            raise CheckError(f"missing cleanup-build marker: {marker}")
 
     inventory = read_json(root / INVENTORY_PATH)
 
@@ -297,6 +339,22 @@ def fixture_survey() -> str:
     )
 
 
+def fixture_companion() -> str:
+    return "\n".join(
+        [
+            "# Phase 11 HVC Cleanup Alignment Current-Head Companion",
+            "",
+            "- `PHASE11_STATUS=current_head_companion_landed`",
+            "- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
+            "- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+            "- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
+            "- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+            "Keep those paths framed as archival packet vocabulary rather than current-head direct-readback evidence until a future reread proves they returned.",
+            "",
+        ]
+    )
+
+
 def fixture_verify_helper() -> str:
     return "\n".join(
         [
@@ -316,10 +374,37 @@ def fixture_verify_helper() -> str:
     )
 
 
+def fixture_cleanup_proof() -> str:
+    return "\n".join(
+        [
+            'test "phase11 hvc cleanup packet proof keeps cleanup replay markers explicit" {',
+            'try expectContains(cleanup_replay, "test \\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\" {");',
+            'try expectContains(cleanup_companion, "phase11 hvc cleanup");',
+            'test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the landed cleanup handoff" {',
+            'try expectContains(teardown_note, "deferred final release explicit");',
+            "",
+        ]
+    )
+
+
+def fixture_cleanup_build() -> str:
+    return "\n".join(
+        [
+            '.root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),',
+            '.name = "phase11-hvc-cleanup-packet-proof",',
+            'const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");',
+            "",
+        ]
+    )
+
+
 def build_fixture(root: Path) -> None:
     write(root / SURVEY_PATH, fixture_survey())
+    write(root / COMPANION_PATH, fixture_companion())
     write(root / VERIFY_HELPER_PATH, fixture_verify_helper())
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
+    write(root / CLEANUP_PROOF_PATH, fixture_cleanup_proof())
+    write(root / CLEANUP_BUILD_PATH, fixture_cleanup_build())
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -349,6 +434,15 @@ def run_self_test() -> int:
         expect_failure(missing_survey, SURVEY_MARKERS[0])
         case_count += 1
 
+        missing_companion = tmpdir / "missing_companion_marker"
+        shutil.copytree(fixture, missing_companion, dirs_exist_ok=True)
+        write(
+            missing_companion / COMPANION_PATH,
+            read_text(missing_companion / COMPANION_PATH).replace(COMPANION_MARKERS[3], "", 1),
+        )
+        expect_failure(missing_companion, COMPANION_MARKERS[3])
+        case_count += 1
+
         missing_verify_helper = tmpdir / "missing_verify_helper_marker"
         shutil.copytree(fixture, missing_verify_helper, dirs_exist_ok=True)
         write(
@@ -360,6 +454,32 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_verify_helper, VERIFY_HELPER_MARKERS[1])
+        case_count += 1
+
+        missing_cleanup_proof = tmpdir / "missing_cleanup_proof_marker"
+        shutil.copytree(fixture, missing_cleanup_proof, dirs_exist_ok=True)
+        write(
+            missing_cleanup_proof / CLEANUP_PROOF_PATH,
+            read_text(missing_cleanup_proof / CLEANUP_PROOF_PATH).replace(
+                CLEANUP_PROOF_MARKERS[4],
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_cleanup_proof, CLEANUP_PROOF_MARKERS[4])
+        case_count += 1
+
+        missing_cleanup_build = tmpdir / "missing_cleanup_build_marker"
+        shutil.copytree(fixture, missing_cleanup_build, dirs_exist_ok=True)
+        write(
+            missing_cleanup_build / CLEANUP_BUILD_PATH,
+            read_text(missing_cleanup_build / CLEANUP_BUILD_PATH).replace(
+                CLEANUP_BUILD_MARKERS[2],
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_cleanup_build, CLEANUP_BUILD_MARKERS[2])
         case_count += 1
 
         missing_build_name = tmpdir / "missing_build_name"
