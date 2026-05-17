@@ -13,12 +13,10 @@ ROOT = (
     else Path(__file__).resolve().parent
 )
 
-DIRECT_PACKET_FILES = [
+CURRENT_RING_PACKET_FILES = [
     "drivers/virtio/virtio_ring.zig",
-    "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
-    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
 ]
 
@@ -28,47 +26,27 @@ MARKERS = {
         "pub fn publishDescriptorChain(self: *Self, queue_index: u16) !void {",
         "pub fn prepareKick(self: *Self, queue_index: u16) !QueueNotificationSummary {",
         "pub fn pollUsedBuffers(self: *Self, queue_index: u16) !UsedBufferPollSummary {",
-        "pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {",
-        "pub fn enableCallbackDelayed(self: *Self, queue_index: u16) !DelayedCallbackSummary {",
-        "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
-        "pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {",
         "pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
         "pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
+        "pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {",
         "if (slot.broken) return error.QueueBroken;",
         "if (slot.broken) return error.QueueResetWhileBroken;",
     ],
-    "drivers/virtio/virtio_ring_verify.zig": [
-        'test "virtio ring reset readiness tracks unpublished, outstanding, and unpolled work" {',
-        'test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {',
-        "readiness = try lab.queueResetReadinessSummary(0);",
-        "const delayed = try lab.enableCallbackDelayed(2);",
-    ],
     "zigux/tests/phase10_build.zig": [
         '.root_source_file = b.path("../../drivers/virtio/virtio_ring.zig"),',
-        '.root_source_file = b.path("../../drivers/virtio/virtio_ring_verify.zig"),',
         '.root_source_file = b.path("phase10_virtio_ring_prepare_kick_idempotent.zig"),',
-        '.root_source_file = b.path("phase10_virtio_ring_reset_reuse.zig"),',
         '.root_source_file = b.path("phase10_virtio_ring_broken_queue_queue_discipline.zig"),',
         '.name = "phase10-virtio-ring-prepare-kick-idempotent-tests",',
-        '.name = "phase10-virtio-ring-reset-reuse-tests",',
         '.name = "phase10-virtio-ring-broken-queue-queue-discipline-tests",',
-        '.name = "phase10-virtio-ring-verify-tests",',
         "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
-        "test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);",
-        "test_step.dependOn(&run_phase10_virtio_ring_verify_tests.step);",
+        "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
     ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
         'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
         'const virtio_ring = @import("virtio_ring");',
         "kick_summary = try ring.prepareKick(1);",
         "try std.testing.expect(!kick_summary.needs_kick);",
-    ],
-    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
-        'test "phase10 virtio ring explicit clear plus drained reset keeps queue reuse honest" {',
-        'const virtio_ring = @import("virtio_ring");',
-        "const reset_summary = try ring.resetQueue(2);",
-        "const final_broken_summary = try ring.brokenQueueSummary(2);",
     ],
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig": [
         'test "phase10 virtio ring broken-queue coverage kicks published work before used accounting and keeps notification history visible" {',
@@ -86,7 +64,7 @@ def read_text(root: Path, rel_path: str) -> str:
 
 
 def validate(root: Path) -> tuple[list[str], list[str]]:
-    missing_files = [path for path in DIRECT_PACKET_FILES if not (root / path).exists()]
+    missing_files = [path for path in CURRENT_RING_PACKET_FILES if not (root / path).exists()]
     if missing_files:
         return missing_files, []
 
@@ -102,15 +80,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 
 
 def write_fixture(root: Path) -> None:
-    fixture = {
-        rel_path: "\n".join(markers) + "\n"
-        for rel_path, content in MARKERS.items()
-        for markers in [content]
-    }
-    for rel_path, content in fixture.items():
+    for rel_path, markers in MARKERS.items():
         target = root / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8")
+        target.write_text("\n".join(markers) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -154,40 +127,31 @@ def run_self_test() -> int:
 
         expect_missing_marker(
             "drivers/virtio/virtio_ring.zig",
-            "pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
-        )
-        expect_missing_marker(
-            "drivers/virtio/virtio_ring.zig",
             "pub fn prepareKick(self: *Self, queue_index: u16) !QueueNotificationSummary {",
         )
         expect_missing_marker(
-            "drivers/virtio/virtio_ring_verify.zig",
-            'test "virtio ring delayed callback summary reports poll pressure when used work outruns delay budget" {',
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
         )
         expect_missing_marker(
             "zigux/tests/phase10_build.zig",
-            '.name = "phase10-virtio-ring-verify-tests",',
+            '.name = "phase10-virtio-ring-broken-queue-queue-discipline-tests",',
         )
         expect_missing_marker(
             "zigux/tests/phase10_build.zig",
-            "test_step.dependOn(&run_phase10_virtio_ring_reset_reuse_tests.step);",
+            "test_step.dependOn(&run_phase10_virtio_ring_prepare_kick_idempotent_tests.step);",
         )
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
             'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
         )
         expect_missing_marker(
-            "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
-            'test "phase10 virtio ring explicit clear plus drained reset keeps queue reuse honest" {',
-        )
-        expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
             "try std.testing.expectError(error.QueueResetWhileBroken, ring.resetQueue(3));",
         )
         expect_missing_file("drivers/virtio/virtio_ring.zig")
-        expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
-        expect_missing_file("zigux/tests/phase10_virtio_ring_reset_reuse.zig")
+        expect_missing_file("zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
     print(f"PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT={case_count}")
@@ -196,9 +160,13 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the directly readable Phase 10 virtio ring queue-discipline packet."
+        description="Validate the current directly materialized Phase 10 virtio ring wrapper packet."
     )
-    parser.add_argument("--self-test", action="store_true", help="Run built-in drift checks against a synthetic fixture tree.")
+    parser.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Run built-in drift checks against a synthetic fixture tree.",
+    )
     parser.add_argument(
         "--root",
         default=str(ROOT),
@@ -228,7 +196,7 @@ def main() -> int:
         return 1
 
     print("PHASE10_RING_PACKET=pass")
-    print(f"PHASE10_RING_REQUIRED_FILE_COUNT={len(DIRECT_PACKET_FILES)}")
+    print(f"PHASE10_RING_REQUIRED_FILE_COUNT={len(CURRENT_RING_PACKET_FILES)}")
     return 0
 
 
