@@ -2,10 +2,10 @@ const std = @import("std");
 const uapi = @import("uapi_dev_t");
 
 pub const abi_version = uapi.abi_version;
-pub const fields_size: usize = @sizeOf(uapi.Fields);
-pub const fields_align: usize = @alignOf(uapi.Fields);
-pub const major_offset: usize = @offsetOf(uapi.Fields, "major");
-pub const minor_offset: usize = @offsetOf(uapi.Fields, "minor");
+pub const fields_size = uapi.fields_size;
+pub const fields_align = uapi.fields_align;
+pub const major_offset = uapi.major_offset;
+pub const minor_offset = uapi.minor_offset;
 
 pub const Fields = uapi.Fields;
 
