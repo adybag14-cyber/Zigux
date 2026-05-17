@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
+CONFDATA_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig"
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_LANE = 21
@@ -22,24 +23,25 @@ EXPECTED_TARGETS = [
 ]
 EXPECTED_ZIG_TEST_FILES = [
     "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
 CHECKER_REQUIRED_MARKERS = [
     'EXPECTED_LANE = 21',
     'EXPECTED_STATUS = "starter"',
     '    "scripts/zigux/kconfig/conf_bridge.zig",',
+    '    "scripts/zigux/kconfig/confdata_bridge.zig",',
     '"--test-no-exec"',
     'print("PHASE2_CROSS_SELF_TEST=pass")',
     'print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")',
-    'print(f"PHASE2_CROSS_FILE_COUNT={len(payload[\'zig_test_files\'])}")',
+    "print(f\"PHASE2_CROSS_FILE_COUNT={len(payload['zig_test_files'])}\")",
 ]
 CHECKER_FORBIDDEN_MARKERS = [
     '    "scripts/zigux/fixdep.zig",',
     '    "scripts/zigux/genksyms.zig",',
-    '    "scripts/zigux/kconfig/confdata_bridge.zig",',
     'CHECK_ZIG_TOOLCHAIN = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 12
+EXPECTED_SELF_TEST_CASE_COUNT = 13
 
 
 def load_json_object(path: Path, *, label: str) -> dict[str, object]:
@@ -91,6 +93,7 @@ def collect_issues(root: Path) -> list[str]:
         PHASE2_CROSS_CHECKER,
         TARGETS_MANIFEST,
         CONF_BRIDGE,
+        CONFDATA_BRIDGE,
     ]
     missing = [
         str(path.relative_to(ROOT))
@@ -142,11 +145,12 @@ def build_self_test_root(root: Path) -> None:
                 ']',
                 'EXPECTED_ZIG_TEST_FILES = [',
                 '    "scripts/zigux/kconfig/conf_bridge.zig",',
+                '    "scripts/zigux/kconfig/confdata_bridge.zig",',
                 ']',
                 '["zig", "test", rel_path, "-target", target, "--test-no-exec"]',
                 'print("PHASE2_CROSS_SELF_TEST=pass")',
                 'print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")',
-                'print(f"PHASE2_CROSS_FILE_COUNT={len(payload[\'zig_test_files\'])}")',
+                "print(f\"PHASE2_CROSS_FILE_COUNT={len(payload['zig_test_files'])}\")",
             ]
         )
         + "\n",
@@ -167,6 +171,7 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
     write_text(root / CONF_BRIDGE.relative_to(ROOT), 'test "stub" {}\n')
+    write_text(root / CONFDATA_BRIDGE.relative_to(ROOT), 'test "stub" {}\n')
 
 
 def run_self_test() -> int:
@@ -255,6 +260,12 @@ def run_self_test() -> int:
         (tmp_root / CONF_BRIDGE.relative_to(ROOT)).unlink()
         if "missing:scripts/zigux/kconfig/conf_bridge.zig" not in collect_issues(tmp_root):
             raise SystemExit("phase2-cross-alignment:self-test:missing_conf_bridge")
+        checks_run += 1
+
+        build_self_test_root(tmp_root)
+        (tmp_root / CONFDATA_BRIDGE.relative_to(ROOT)).unlink()
+        if "missing:scripts/zigux/kconfig/confdata_bridge.zig" not in collect_issues(tmp_root):
+            raise SystemExit("phase2-cross-alignment:self-test:missing_confdata_bridge")
         checks_run += 1
 
         build_self_test_root(tmp_root)
