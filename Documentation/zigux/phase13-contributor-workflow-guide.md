@@ -22,9 +22,8 @@ Keep the broader contributor-facing shared reminder packet aligned through:
 1. `Documentation/zigux/phase13-contributor-workflow-guide.md`
 2. `scripts/zigux/README.md`
 3. `zigux/tests/README.md`
-4. blocked convenience route `make -C zigux phase13`
 
-Keep the broader `phase13` make route framed as blocked convenience wiring while `zigux/tests/phase13_build.zig` remains a repo-reality gap. Do not invent a broader shared replay route before that build companion lands.
+Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13`, so keep those older shared make-route names recorded as repo-reality gaps instead of folding them into the stable shared handle.
 
 Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those older validator-first and checker names recorded as repo-reality gaps instead of folding them into the stable shared handle.
 
@@ -130,6 +129,9 @@ Use the owner split from `Documentation/zigux/phase13-shared-helper-lane-sequenc
 
 When contributor wording references absent direct companions, keep the absence explicit instead of presenting those paths as shipped evidence:
 
+- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
 - `scripts/zigux/validate-phase13-release.py`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
@@ -152,8 +154,7 @@ When contributor wording references absent direct companions, keep the absence e
 Before landing a broad Phase 13 reminder change, check that:
 
 - the shared contributor surfaces still describe the same active-not-closed helper packet
-- the stable shared handle still runs through the materialized `scripts/zigux/README.md` and `zigux/tests/README.md` reminder surfaces, while `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py` stay explicit as repo-reality gaps
-- the broader `make -C zigux phase13` route is still framed as blocked convenience wiring while `zigux/tests/phase13_build.zig` is absent
+- the stable shared handle still runs through the materialized `scripts/zigux/README.md` and `zigux/tests/README.md` reminder surfaces, while `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py` stay explicit as repo-reality gaps
 - `libfs`, `devres`, `landlock`, and adjacent notifier evidence still keep their separate owner maps
 - repo-reality gaps stay explicit instead of being promoted into shipped current-`master` evidence
 
