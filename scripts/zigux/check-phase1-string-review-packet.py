@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 1 string review packet against live manifest/lane-note drift."""
+"""Guard the Phase 1 string review packet against live helper, manifest, and lane-note drift."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from typing import Any
 
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[2]
+STRING_HELPER_REL = Path("tools/lib/string.zig")
 LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 
@@ -26,6 +27,48 @@ STRING_REVIEW_RULE_LINE = (
 )
 
 EXPECTED_STRING_ANCHORS = {
+    "helper_test_anchors": [
+        'test "strtobool accepts common Linux forms"',
+        'test "strlcpy copies and returns the source length"',
+        'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
+        'test "strscpyPad zero-pads the tail after a short source"',
+        'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
+        'test "strscpyPad preserves strscpy truncation semantics"',
+        'test "strscpy_pad mirrors strscpyPad padding semantics"',
+        'test "streq matches C-string equality semantics"',
+        'test "skip trim remove and replace spaces work in place"',
+        'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+        'test "strreplace mirrors replaceChar C-string semantics"',
+        'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+        'test "strstarts mirrors the header-level prefix helper"',
+        'test "strEndsWith honors C-string boundaries"',
+        'test "kbasename returns the final path component with C-string semantics"',
+        'test "sysfsStreq treats trailing newline and NUL as equivalent"',
+        'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+        'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+        'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
+        'test "matchString finds C-string matches and preserves first-match order"',
+        'test "match_string mirrors matchString for empty and matched lists"',
+        'test "memdup and memchrInv preserve byte content"',
+        'test "memchr_inv mirrors memchrInv byte-search semantics"',
+        'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
+        'test "memchrInv follows the earliest dirty byte as long buffers change"',
+        'test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"',
+        'test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment"',
+        'test "memchrInv keeps the earliest dirty byte for long non-zero scans across alignments"',
+        'test "memchrInv keeps the earliest dirty byte for long zero-value scans across alignments"',
+        'test "memchrInv short zero-value scans stay byte-accurate"',
+        'test "memchrInv keeps the earliest dirty byte across the fast-path cutoff"',
+        'test "memparse handles decimal hexadecimal octal and suffixes"',
+        'test "memparse keeps original rest when sign is not followed by digits"',
+        'test "memparse saturates signed overflow instead of trapping"',
+        'test "memparse clamps explicit positive signed overflow"',
+        'test "memparse keeps signed values and their trailing rest aligned"',
+        'test "memparse consumes suffix after saturation"',
+        'test "memparse applies suffixes before signed clamping"',
+        'test "strnchr honors count and C-string boundaries"',
+        'test "strnchrNul returns the first match, NUL, or count boundary"',
+    ],
     "memparse_review_anchors": [
         'test "memparse handles decimal hexadecimal octal and suffixes"',
         'test "memparse keeps original rest when sign is not followed by digits"',
@@ -92,6 +135,7 @@ EXPECTED_STRING_ANCHORS = {
 }
 
 LIST_FIELDS = (
+    "helper_test_anchors",
     "memparse_review_anchors",
     "strscpy_review_anchors",
     "prefix_suffix_review_anchors",
@@ -109,7 +153,7 @@ SCALAR_FIELDS = (
     "next_safe_step_note",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 def repo_root(root: str | None) -> Path:
@@ -126,7 +170,7 @@ def load_json(root: Path, relative_path: Path) -> Any:
 
 def collect_missing_files(root: Path) -> list[str]:
     missing: list[str] = []
-    for relative_path in (LANE_NOTE_REL, MANIFEST_REL):
+    for relative_path in (STRING_HELPER_REL, LANE_NOTE_REL, MANIFEST_REL):
         if not (root / relative_path).exists():
             missing.append(f"missing_file:{relative_path.as_posix()}")
     return missing
@@ -156,6 +200,7 @@ def collect_string_review_packet_failures(root: Path) -> list[str]:
     if missing:
         return missing
 
+    helper_text = load_text(root, STRING_HELPER_REL)
     lane_note_text = load_text(root, LANE_NOTE_REL)
     manifest = load_json(root, MANIFEST_REL)
 
@@ -191,6 +236,15 @@ def collect_string_review_packet_failures(root: Path) -> list[str]:
         expected = EXPECTED_STRING_ANCHORS[field]
         missing.extend(require_expected_string(string_anchors.get(field), field, expected))
 
+    for anchor in EXPECTED_STRING_ANCHORS["helper_test_anchors"]:
+        missing.extend(
+            require_exact_occurrence(
+                helper_text,
+                f"string_helper:{anchor}",
+                anchor,
+            )
+        )
+
     missing.extend(
         require_exact_occurrence(
             lane_note_text,
@@ -206,6 +260,10 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
     destination = root / relative_path
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(text, encoding="utf-8")
+
+
+def sample_string_helper_text() -> str:
+    return "\n".join(EXPECTED_STRING_ANCHORS["helper_test_anchors"]) + "\n"
 
 
 def sample_manifest() -> dict[str, Any]:
@@ -227,6 +285,7 @@ def sample_lane_note_text() -> str:
 
 
 def build_sample_repo(root: Path) -> None:
+    write_file(root, STRING_HELPER_REL, sample_string_helper_text())
     write_file(root, LANE_NOTE_REL, sample_lane_note_text())
     write_file(root, MANIFEST_REL, json.dumps(sample_manifest(), indent=2) + "\n")
 
@@ -235,6 +294,7 @@ def build_self_test_cases() -> list[tuple[str, str, str]]:
     return [
         ("missing_rule_line", "lane_rule", "remove"),
         ("duplicate_rule_line", "lane_rule", "duplicate"),
+        ("missing_helper_anchor", "helper_anchor", "remove"),
         ("missing_next_safe_step", "lane_next_safe_step_note", "remove"),
         ("duplicate_next_safe_step", "lane_next_safe_step_note", "duplicate"),
         *[(f"mutate_{field}", field, "mutate_list") for field in LIST_FIELDS],
@@ -280,6 +340,11 @@ def run_self_test() -> int:
                         ),
                         encoding="utf-8",
                     )
+            elif target == "helper_anchor":
+                helper_path = root / STRING_HELPER_REL
+                text = helper_path.read_text(encoding="utf-8")
+                marker = EXPECTED_STRING_ANCHORS["helper_test_anchors"][0]
+                helper_path.write_text(text.replace(marker + "\n", "", 1), encoding="utf-8")
             elif target == "lane_next_safe_step_note":
                 lane_note = root / LANE_NOTE_REL
                 text = lane_note.read_text(encoding="utf-8")
