@@ -83,6 +83,18 @@ HANDOFF_MARKERS = (
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
 )
 
+TESTS_README_MARKERS = (
+    "Phase 15 review packet",
+    "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+    "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+    "`Documentation/zigux/phase15-shared-summary-gap.md`",
+    "`Documentation/zigux/README.md`",
+    "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+    "`zigux/tests/phase15_readiness_gate_manifest.json`",
+    "`make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15`",
+    "do not by themselves change freeze-map status",
+)
+
 FOCUSED_COMPANION_RELS = (
     "zigux/tests/phase15_architecture_council_review_process.zig",
     REVIEW_PROCESS_MANIFEST_REL,
@@ -131,6 +143,7 @@ def validate(root: Path) -> list[str]:
         return failures
 
     readme = _read(root / README_REL)
+    tests_readme = _read(root / TESTS_README_REL)
     lane_seq = _read(root / LANE_SEQ_REL)
     readiness = _read(root / READINESS_REL)
     shared_gap = _read(root / SHARED_GAP_REL)
@@ -140,6 +153,7 @@ def validate(root: Path) -> list[str]:
     _require_markers(readiness, READINESS_MARKERS, "readiness", failures)
     _require_markers(shared_gap, SHARED_GAP_MARKERS, "shared_gap", failures)
     _require_markers(handoff, HANDOFF_MARKERS, "handoff", failures)
+    _require_markers(tests_readme, TESTS_README_MARKERS, "tests_readme", failures)
 
     for rel in FOCUSED_COMPANION_RELS:
         marker = f"`{rel}`"
@@ -169,8 +183,20 @@ def _seed(root: Path) -> None:
         root / README_REL,
         "# scripts/zigux\n\n"
         "This directory holds shipped Zigux validation helpers and compact reminder surfaces.\n\n"
-        "## Phase 13\n\n"
-        "- keep the shipped Phase 13 helper packet explicit.\n",
+        "## Phase 15\n\n"
+        "- current scripts-root reminder packet stays in governance-maintenance mode.\n",
+    )
+    _write(
+        root / TESTS_README_REL,
+        "# zigux/tests\n\n"
+        "Phase 15 review packet\n"
+        "  * `Documentation/zigux/phase15-governance-lane-sequencing.md`\n"
+        "  * `Documentation/zigux/phase15-handoff-next-steps-survey.md`\n"
+        "  * `Documentation/zigux/phase15-shared-summary-gap.md`\n"
+        "  * `Documentation/zigux/README.md`\n"
+        "  * `scripts/zigux/check-phase15-scripts-readme-alignment.py`\n"
+        "  * `zigux/tests/phase15_readiness_gate_manifest.json`\n"
+        "  * `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` stay visible here as parked governance-maintenance routes; they do not by themselves change freeze-map status.\n",
     )
     _write(
         root / LANE_SEQ_REL,
@@ -251,15 +277,38 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected returned-gap failure: {failures}")
 
-        missing_marker = root / "missing_marker"
-        _seed(missing_marker)
-        _write(missing_marker / HANDOFF_REL, "# Phase 15 Handoff Next Steps Survey\n")
-        failures = validate(missing_marker)
+        missing_handoff_marker = root / "missing_handoff_marker"
+        _seed(missing_handoff_marker)
+        _write(missing_handoff_marker / HANDOFF_REL, "# Phase 15 Handoff Next Steps Survey\n")
+        failures = validate(missing_handoff_marker)
         expected = [f"handoff:missing:{marker}" for marker in HANDOFF_MARKERS]
         if failures != expected:
             raise AssertionError(f"unexpected handoff-marker failure: {failures}")
 
+        missing_tests_marker = root / "missing_tests_marker"
+        _seed(missing_tests_marker)
+        _write(
+            missing_tests_marker / TESTS_README_REL,
+            "# zigux/tests\n\nPhase 15 review packet\n"
+            "  * `Documentation/zigux/phase15-governance-lane-sequencing.md`\n",
+        )
+        failures = validate(missing_tests_marker)
+        expected = sorted(
+            [
+            f"tests_readme:missing:{marker}"
+            for marker in TESTS_README_MARKERS
+            if marker
+            not in (
+                "Phase 15 review packet",
+                "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+            )
+            ]
+        )
+        if sorted(failures) != expected:
+            raise AssertionError(f"unexpected tests-marker failure: {failures}")
+
     print("PHASE15_SCRIPTS_README_ALIGNMENT=pass")
+    print("PHASE15_SCRIPTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
