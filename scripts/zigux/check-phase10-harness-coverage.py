@@ -22,6 +22,7 @@ FILES = [
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_build.zig",
+    "scripts/zigux/README.md",
 ]
 
 DOCS_ROOT_MARKERS = [
@@ -101,12 +102,32 @@ VERIFY_MARKERS = [
     'test "phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims" {',
 ]
 
+SCRIPTS_README_MARKERS = [
+    "Documentation/zigux/phase10-closure-evidence.md",
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/check-phase10-harness-coverage.py",
+    "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "scripts/zigux/validate-phase10.py",
+    "scripts/zigux/validate-phase10-closure.py",
+    "zigux/tests/phase10_closure_manifest.json",
+    "zigux/Makefile",
+]
+
+SCRIPTS_README_FORBIDDEN_MARKERS = [
+    "still return missing for `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+]
+
 EXPECTED_COUNTS = {
     "Documentation/zigux/README.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
     "Documentation/zigux/review-checklist.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
     "zigux/tests/phase10_build.zig::virtio_input_verify_module": 1,
     'zigux/tests/phase10_build.zig::"phase10-virtio-input-verify-tests"': 1,
+    "scripts/zigux/README.md::Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": 1,
+    "scripts/zigux/README.md::scripts/zigux/check-phase10-harness-coverage.py": 1,
 }
 
 
@@ -118,6 +139,12 @@ def check_markers(missing: list[str], label: str, text: str, markers: list[str])
     for marker in markers:
         if marker not in text:
             missing.append(f"{label}:{marker}")
+
+
+def check_absent_markers(missing: list[str], label: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker in text:
+            missing.append(f"{label}:forbidden:{marker}")
 
 
 def check_counts(missing: list[str], rel_path: str, text: str) -> None:
@@ -147,6 +174,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     build = read_text(root, "zigux/tests/phase10_build.zig")
     registration_helper = read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig")
     verify = read_text(root, "drivers/virtio/virtio_input_verify.zig")
+    scripts_readme = read_text(root, "scripts/zigux/README.md")
 
     check_markers(missing_markers, "docs_root", docs_root, DOCS_ROOT_MARKERS)
     check_markers(
@@ -170,6 +198,18 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         REGISTRATION_HELPER_MARKERS,
     )
     check_markers(missing_markers, "virtio_input_verify", verify, VERIFY_MARKERS)
+    check_markers(
+        missing_markers,
+        "scripts_readme",
+        scripts_readme,
+        SCRIPTS_README_MARKERS,
+    )
+    check_absent_markers(
+        missing_markers,
+        "scripts_readme",
+        scripts_readme,
+        SCRIPTS_README_FORBIDDEN_MARKERS,
+    )
 
     check_counts(missing_markers, "Documentation/zigux/README.md", docs_root)
     check_counts(
@@ -181,6 +221,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         companion,
     )
     check_counts(missing_markers, "zigux/tests/phase10_build.zig", build)
+    check_counts(missing_markers, "scripts/zigux/README.md", scripts_readme)
 
     return [], missing_markers
 
@@ -204,6 +245,7 @@ def write_fixture(root: Path) -> None:
         )
         + "\n",
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_MARKERS) + "\n",
+        "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
     }
 
     for rel_path, content in fixture_contents.items():
@@ -405,6 +447,50 @@ def run_self_test() -> int:
         verify_path.write_text(original_verify, encoding="utf-8")
         case_count += 1
 
+        scripts_readme_path = root / "scripts/zigux/README.md"
+        original_scripts_readme = scripts_readme_path.read_text(encoding="utf-8")
+        scripts_readme_path.write_text(
+            original_scripts_readme.replace(
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing-missing.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "scripts_readme:Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+            "phase10-harness-coverage-self-test:scripts_readme_lane_note_path",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+        case_count += 1
+
+        scripts_readme_path.write_text(
+            original_scripts_readme
+            + "still return missing for `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "scripts_readme:forbidden:still return missing for `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+            "phase10-harness-coverage-self-test:scripts_readme_forbidden_missing_lane_note",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+        case_count += 1
+
+        scripts_readme_path.write_text(
+            original_scripts_readme
+            + "scripts/zigux/check-phase10-harness-coverage.py\n",
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "scripts/zigux/README.md:count:scripts/zigux/check-phase10-harness-coverage.py:2!=1",
+            "phase10-harness-coverage-self-test:scripts_readme_duplicate_checker_path",
+        )
+        scripts_readme_path.write_text(original_scripts_readme, encoding="utf-8")
+        case_count += 1
+
         docs_root_path.write_text(
             original_docs_root
             + "scripts/zigux/check-phase10-harness-coverage.py\n",
@@ -467,7 +553,11 @@ def main() -> int:
     print(f"PHASE10_HARNESS_COVERAGE_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT="
-        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS)}"
+        f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(SCRIPTS_README_MARKERS)}"
+    )
+    print(
+        "PHASE10_HARNESS_COVERAGE_FORBIDDEN_MARKER_COUNT="
+        f"{len(SCRIPTS_README_FORBIDDEN_MARKERS)}"
     )
     return 0
 
