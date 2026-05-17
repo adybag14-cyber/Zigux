@@ -45,7 +45,13 @@ README_WARNING_MARKERS = (
     "historical packet members",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+README_FORBIDDEN_MARKERS = (
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 
 def read_text(path: Path) -> str:
@@ -70,6 +76,10 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
@@ -84,6 +94,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
     issues.extend(collect_missing_markers(readme_text, README_WARNING_MARKERS, "MISSING_README_WARNING_MARKERS"))
+    issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
 
     for path in SURFACE_PATHS:
         if not resolve_path(root, path).exists():
@@ -193,6 +204,14 @@ def run_self_test() -> int:
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_README_WARNING_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_README_MARKERS", marker) in issues
             checks_run += 1
 
         for rel_path in SURFACE_PATHS:
