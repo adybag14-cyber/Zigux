@@ -17,6 +17,8 @@ Queue-facing tail publication, queue ownership, shared-info refcount ownership, 
 ## Compile Evidence
 - current `master` exposes `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_build.zig`, and `net/core/skbuff_bridge.zig`
 - `zigux/tests/phase14_build.zig` wires `../../net/core/skbuff_bridge.zig` into `phase14_skbuff_bridge.zig` and registers the bounded `phase14-skbuff-bridge-tests` route inside the shared Phase 14 bundle
+- the skbuff anchor remains `full_bundle_only` through `phase14-skbuff-bridge-tests`, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and `make -C zigux phase14-test`
+- current `zigux/tests/phase14_build.zig` keeps the skbuff shard out of `phase14-smoke`, so there is still no focused-smoke compile claim for this anchor packet
 - that route is honest compile and gate coverage for the bounded bridge packet only; it is not evidence that Zigux owns live queue publication, skb lifetime ownership, checksum ownership, destructor coordination, or the final sock-owned tail transfer
 - any future widening beyond this bridge packet still needs new stay-in-C evidence first, not stale absence wording
 
