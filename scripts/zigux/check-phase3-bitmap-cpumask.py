@@ -63,8 +63,10 @@ REQUIRED_MARKERS = {
         "binding.cpumask_view_abi_version,",
         '"bitmap_tail_masked"',
         '"cpumask_window"',
+        '"cpumask_cross_word_window"',
         "bitmap_view.testBit(bitmap, 69)",
         "cpumask_view.cpuIsSet(cpumask, 7)",
+        "cpumask_view.cpuIsSet(cpumask_cross, bitmap_view.bits_per_word + 10)",
     ),
     DUMP_BUILD_PATH: (
         '.root_source_file = b.path("../uapi/bitmap_cpumask.zig"),',
@@ -79,7 +81,9 @@ REQUIRED_MARKERS = {
         'write_case(',
         '"bitmap_tail_masked"',
         '"cpumask_window"',
+        '"cpumask_cross_word_window"',
         "test_bit(bitmap, 69U)",
+        "bits_per_word() + 10U",
     ),
     EXPECTED_PATH: (
         '"word_bits": 64',
@@ -87,6 +91,7 @@ REQUIRED_MARKERS = {
         '"cpumask_view_abi_version": 1',
         '"name": "bitmap_tail_masked"',
         '"name": "cpumask_window"',
+        '"name": "cpumask_cross_word_window"',
         '"probe_present": true',
         '"probe_absent": false',
     ),
