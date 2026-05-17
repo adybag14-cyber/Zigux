@@ -69,7 +69,6 @@ Current `master` still returns missing for several focused Phase 15 companions t
 
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
 Those gaps do not erase the landed governance packet.
