@@ -1,0 +1,277 @@
+{
+  "conf_cases": [
+    {
+      "name": "olddefconfig",
+      "mode": "olddefconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expected": "olddefconfig_expected.json"
+    },
+    {
+      "name": "syncconfig",
+      "mode": "syncconfig",
+      "kconfig": "Kconfig",
+      "config": "out/.config",
+      "arch": "riscv64",
+      "expected": "syncconfig_expected.json"
+    },
+    {
+      "name": "syncconfig_nosilentupdate",
+      "mode": "syncconfig",
+      "kconfig": "Kconfig",
+      "config": "out/.config",
+      "arch": "riscv64",
+      "nosilentupdate": "1",
+      "expected": "syncconfig_nosilentupdate_expected.json"
+    },
+    {
+      "name": "syncconfig_empty_nosilentupdate",
+      "mode": "syncconfig",
+      "kconfig": "Kconfig",
+      "config": "out/.config",
+      "arch": "riscv64",
+      "nosilentupdate": "",
+      "expected": "syncconfig_empty_nosilentupdate_expected.json"
+    },
+    {
+      "name": "silent_listnewconfig",
+      "mode": "listnewconfig",
+      "kconfig": "Kconfig",
+      "config": "out/.config",
+      "arch": "x86_64",
+      "silent": true,
+      "expected": "silent_listnewconfig_expected.json"
+    },
+    {
+      "name": "alldefconfig",
+      "mode": "alldefconfig",
+      "kconfig": "Kconfig",
+      "config": "build/.config",
+      "arch": "arm64",
+      "expected": "alldefconfig_expected.json"
+    },
+    {
+      "name": "allmodconfig_empty_allconfig",
+      "mode": "allmodconfig",
+      "kconfig": "Kconfig",
+      "config": "mod/.config",
+      "arch": "arm",
+      "allconfig_env": "",
+      "expected": "allmodconfig_expected.json"
+    },
+    {
+      "name": "randconfig",
+      "mode": "randconfig",
+      "kconfig": "Kconfig",
+      "config": "rand/.config",
+      "arch": "x86_64",
+      "allconfig_env": "allrandom.config",
+      "seed": "0xC0FFEE",
+      "probability": "15:25",
+      "expected": "randconfig_expected.json"
+    },
+    {
+      "name": "randconfig_no_override",
+      "mode": "randconfig",
+      "kconfig": "Kconfig",
+      "config": "rand/.config",
+      "arch": "x86_64",
+      "seed": "0xC0FFEE",
+      "probability": "15:25",
+      "expected": "randconfig_no_override_expected.json"
+    },
+    {
+      "name": "yes2modconfig",
+      "mode": "yes2modconfig",
+      "kconfig": "Kconfig",
+      "config": "rewrite/.config",
+      "arch": "x86",
+      "expected": "yes2modconfig_expected.json"
+    },
+    {
+      "name": "defconfig",
+      "mode": "defconfig",
+      "kconfig": "Kconfig",
+      "config": "out/.config",
+      "arch": "arm64",
+      "mode_arg": "arch/arm64/configs/defconfig",
+      "expected": "defconfig_expected.json"
+    },
+    {
+      "name": "savedefconfig",
+      "mode": "savedefconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "mode_arg": "defconfig.out",
+      "expected": "savedefconfig_expected.json"
+    },
+    {
+      "name": "invalid_mode",
+      "mode": "badmode",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expect_stderr": "unsupported kconfig mode",
+      "exit_code": 1
+    },
+    {
+      "name": "missing_mode_argument",
+      "mode": "defconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expect_stderr": "defconfig mode requires <defconfig>",
+      "exit_code": 1
+    },
+    {
+      "name": "unexpected_allconfig_for_oldconfig",
+      "mode": "oldconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "allconfig_env": "mini.config",
+      "expect_stderr": "unexpected bridge option for mode",
+      "exit_code": 1
+    },
+    {
+      "name": "duplicate_silent",
+      "mode": "helpnewconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "bridge_args": [
+        "silent",
+        "silent"
+      ],
+      "expect_stderr": "duplicate silent option",
+      "exit_code": 1
+    },
+    {
+      "name": "duplicate_probability",
+      "mode": "randconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "bridge_args": [
+        "probability=10",
+        "probability=20"
+      ],
+      "expect_stderr": "duplicate randconfig probability option",
+      "exit_code": 1
+    }
+  ],
+  "confdata_cases": [
+    {
+      "name": "defconfig",
+      "mode": "defconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "defconfig_file": "arch/x86/configs/tiny_defconfig",
+      "expected": "defconfig_expected.json"
+    },
+    {
+      "name": "savedefconfig",
+      "mode": "savedefconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "output_path": "out/defconfig",
+      "expected": "savedefconfig_expected.json"
+    },
+    {
+      "name": "listnewconfig",
+      "mode": "listnewconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "arm64",
+      "expected": "listnewconfig_expected.json"
+    },
+    {
+      "name": "helpnewconfig",
+      "mode": "helpnewconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "arm64",
+      "expected": "helpnewconfig_expected.json"
+    },
+    {
+      "name": "oldaskconfig",
+      "mode": "oldaskconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expected": "oldaskconfig_expected.json"
+    },
+    {
+      "name": "oldconfig",
+      "mode": "oldconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expected": "oldconfig_expected.json"
+    },
+    {
+      "name": "oldconfig_silent",
+      "mode": "oldconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "silent": true,
+      "expected": "oldconfig_silent_expected.json"
+    },
+    {
+      "name": "yes2modconfig",
+      "mode": "yes2modconfig",
+      "kconfig": "Kconfig",
+      "config": "rewrite/.config",
+      "arch": "x86",
+      "expected": "yes2modconfig_expected.json"
+    },
+    {
+      "name": "mod2yesconfig",
+      "mode": "mod2yesconfig",
+      "kconfig": "Kconfig",
+      "config": "rewrite/.config",
+      "arch": "x86",
+      "expected": "mod2yesconfig_expected.json"
+    },
+    {
+      "name": "mod2noconfig",
+      "mode": "mod2noconfig",
+      "kconfig": "Kconfig",
+      "config": "rewrite/.config",
+      "arch": "x86",
+      "expected": "mod2noconfig_expected.json"
+    },
+    {
+      "name": "invalid_mode",
+      "mode": "badmode",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expect_stderr": "unsupported confdata mode",
+      "exit_code": 1
+    },
+    {
+      "name": "missing_mode_argument",
+      "mode": "defconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expect_stderr": "defconfig mode requires <defconfig>",
+      "exit_code": 1
+    },
+    {
+      "name": "missing_savedefconfig_argument",
+      "mode": "savedefconfig",
+      "kconfig": "Kconfig",
+      "config": ".config",
+      "arch": "x86_64",
+      "expect_stderr": "savedefconfig mode requires <path>",
+      "exit_code": 1
+    }
+  ]
+}

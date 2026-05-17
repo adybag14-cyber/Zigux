@@ -1,0 +1,49 @@
+{
+  "case_count": 17,
+  "expected_packet": [
+    "olddefconfig_expected.json",
+    "syncconfig_expected.json",
+    "syncconfig_nosilentupdate_expected.json",
+    "syncconfig_empty_nosilentupdate_expected.json",
+    "silent_listnewconfig_expected.json",
+    "alldefconfig_expected.json",
+    "allmodconfig_expected.json",
+    "randconfig_expected.json",
+    "randconfig_no_override_expected.json",
+    "yes2modconfig_expected.json",
+    "defconfig_expected.json",
+    "savedefconfig_expected.json"
+  ],
+  "allconfig_override_packet": [
+    "allmodconfig_expected.json",
+    "randconfig_expected.json"
+  ],
+  "allconfig_omission_packet": [
+    "randconfig_no_override_expected.json"
+  ],
+  "stderr_packet": [
+    "unsupported kconfig mode",
+    "defconfig mode requires <defconfig>",
+    "unexpected bridge option for mode",
+    "duplicate silent option",
+    "duplicate randconfig probability option"
+  ],
+  "mode_argument_packet": [
+    "defconfig_expected.json",
+    "savedefconfig_expected.json"
+  ],
+  "syncconfig_packet": [
+    "syncconfig_expected.json",
+    "syncconfig_nosilentupdate_expected.json",
+    "syncconfig_empty_nosilentupdate_expected.json"
+  ],
+  "helper_local_anchors": [
+    "conf bridge mode surface stays aligned with conf.c long options",
+    "conf bridge emits syncconfig nosilentupdate when present",
+    "conf bridge omits empty syncconfig nosilentupdate",
+    "conf bridge emits explicit empty allconfig override for allmodconfig",
+    "conf bridge emits explicit randconfig allconfig override when present",
+    "conf bridge omits randconfig allconfig sentinel without explicit override",
+    "bridge options parser keeps empty randconfig tunables unset"
+  ]
+}
