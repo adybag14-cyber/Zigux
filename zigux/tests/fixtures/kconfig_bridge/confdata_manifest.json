@@ -59,6 +59,7 @@
     "confdata bridge decodes escaped quoted strings",
     "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
     "confdata bridge escapes low control bytes in json output",
+    "confdata bridge emits escaped string values in json output",
     "confdata bridge accepts CRLF config lines",
     "confdata bridge preserves trailing carriage return on final unterminated value line",
     "confdata bridge ignores unterminated unset comment with trailing carriage return",
