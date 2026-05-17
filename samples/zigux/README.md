@@ -1,35 +1,53 @@
 # samples/zigux
 
-This directory holds the bounded sample surfaces that Zigux uses for reviewable product evidence.
+This directory is the sample-root boundary for Zigux.
 
-Current Phase 5 reference anchors
-- `samples/zigux/bytestream_fifo.zig`
-- `samples/zigux/kobject_example.zig`
-- `samples/zigux/kretprobe_example.zig`
-- `samples/zigux/trace_events_sample.zig`
+## Current repo reality on `master`
 
-Boundary notes
-- the four anchors above remain the freeze-aware Phase 5 sample set on current `master`; do not silently treat helper follow-ons as extra Phase 5 reference samples just because they live under `samples/zigux/` on a draft branch
-- if a proposed sample needs runtime-loader wiring, workqueue handoff, ring-buffer substrate, scheduler-visible execution, or other non-sample kernel execution context to make its contract honest, route it to the separate Phase 9 or Phase 14 packets instead of widening the four shipped Phase 5 reference anchors
+Fresh authenticated readback on 2026-05-17 shows that current `master` directly exposes these files in `samples/zigux/`:
 
-Separate helper-backed sample packet
-- `samples/zigux/string_helpers_sample.zig` is a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor
-- the roadmap-backed Phase 7 product destination here still remains `lib/string_helpers.zig`; this draft sample stays supporting review evidence for that helper lane rather than an approved sample-root idiom on its own
-- review that packet through `Documentation/zigux/phase7-string-helpers-slice.md`, `zigux/tests/phase7_string_helpers_sample_manifest.json`, `zigux/tests/phase7_string_helpers_sample_survey.zig`, and `zigux/tests/phase7_build.zig`
-- keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family
-- current `master` still ships no `samples/zigux/*cmdline*` Phase 5 reference sample; keep cmdline reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample
-- current `master` still ships no `samples/zigux/*argv*` Phase 5 reference sample; keep `argv_split` reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample
-- current `master` still ships no `samples/zigux/*rbtree*` Phase 5 reference sample; keep `rbtree` reviewability under the shared Phase 7 helper packet instead of counting it as a fifth Phase 5 sample
-- later runtime follow-ons stay under the separate Phase 9 `samples/zigux/runtime_*` family and should not be counted as extra Phase 5 reference anchors
+* `samples/zigux/README.md`
+* `samples/zigux/runtime_trace_events.zig`
+* `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+* `samples/zigux/trace_events_string_formatting_sample.zig`
 
-Separate runtime pilot family
-- `samples/zigux/runtime_atomic64.zig`
-- `samples/zigux/runtime_atomic64_loader.zig`
-- `samples/zigux/runtime_bitmap.zig`
-- `samples/zigux/runtime_bitmap_loader.zig`
-- `samples/zigux/runtime_bitmap_top_bit_contract.zig`
-- `samples/zigux/runtime_kretprobe.zig`
-- `samples/zigux/runtime_kretprobe_loader.zig`
-- `samples/zigux/runtime_trace_events.zig`
-- `samples/zigux/runtime_trace_events_loader.zig`
-- the current readable `runtime_*` packet above stays in the separate Phase 9 runtime pilot family and is not extra Phase 5 anchor evidence
+The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux anchors:
+
+* `samples/kfifo/bytestream-example.c`
+* `samples/kobject/kobject-example.c`
+* `samples/kprobes/kretprobe_example.c`
+* `samples/trace_events/trace-events-sample.c`
+
+Those four roadmap-backed anchors are not currently directly readable as sample-root files on current `master` through this route.
+Keep shared contributor guidance honest about that gap instead of repeating older sample packets as if those files were directly present here today.
+
+## Phase 5 reminder
+
+When a shared Phase 5 guide, checklist, or README mentions the bytestream, kobject, kretprobe, or trace-events anchors, treat them as roadmap-backed reference targets and reminder surfaces rather than current sample-root proof from this directory unless a fresh reread confirms those exact files have returned.
+
+Keep the shared `zigux/tests/phase5_build.zig` route out of direct-proof wording unless a fresh reread confirms that exact path too.
+
+Do not widen this lane into runtime-loader, module-registration, procfs, sysfs, user-copy, workqueue, ring-buffer, or other runtime-substrate claims.
+
+## Separate helper-backed sample packet
+
+This draft branch also carries one bounded helper-backed review surface:
+
+* `samples/zigux/string_helpers_sample.zig`
+
+Treat it as a bounded Phase 7 string-helper replay, not a fifth Phase 5 reference anchor.
+The roadmap-backed Phase 7 product destination still remains `lib/string_helpers.zig`; the draft sample stays supporting review evidence for that helper lane rather than an approved sample-root idiom on its own.
+Review that packet through `Documentation/zigux/phase7-string-helpers-slice.md`, `zigux/tests/phase7_string_helpers_sample_manifest.json`, `zigux/tests/phase7_string_helpers_sample_survey.zig`, and `zigux/tests/phase7_build.zig`.
+Keep the sample tied to the shared Phase 7 helper lane instead of treating it as a new standalone sample family.
+
+Current `master` still ships no standalone `samples/zigux/*cmdline*`, `samples/zigux/*argv*`, or `samples/zigux/*rbtree*` Phase 5 reference sample.
+Current `master` does carry one bounded `*string*` and `*format*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace-events` anchor and its selected-string plus `iter=%d` formatting cue instead of treating it as standalone string-helper delivery.
+
+## Phase 9 runtime pilot family
+
+The directly readable runtime-facing sample-root evidence on current `master` belongs to the separate later runtime lane:
+
+* `samples/zigux/runtime_trace_events.zig`
+* `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+
+Keep those files in the separate Phase 9 runtime packet instead of counting them as extra Phase 5 samples.
