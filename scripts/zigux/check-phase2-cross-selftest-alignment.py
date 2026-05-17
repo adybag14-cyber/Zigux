@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 KBUILD_ROUTES = ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py"
-TOOLCHAIN_PINNING = ROOT / "scripts" / "check-phase2-toolchain-pinning.py"
+TOOLCHAIN_PINNING = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py"
 TESTS_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 
 SCRIPTS_README_MARKERS = (
@@ -199,7 +199,7 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
             issues = collect_issues(root)
-            assert (("FORBIDDEN_SCRIPTS_README_MARKERS", marker)) in issues
+            assert ("FORBIDDEN_SCRIPTS_README_MARKERS", marker) in issues
             checks_run += 1
 
         for path, _, _ in file_cases:
