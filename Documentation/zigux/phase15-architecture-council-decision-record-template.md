@@ -10,7 +10,9 @@ This is a review packet template, not approval by itself.
 - decision record ID:
 - `PHASE=Phase 15`
 - `LANE_KEY=P15-L08`
-- `SURVEYED_COMMIT=<replace-with-dated-master-readback-or-exact-head>`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- `SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`
+- exact-head provenance exception note:
 - `REVIEW_STATUS=<blocked_review|stay_in_c|approved_status_bucket_change>`
 
 ## Anchor And Ownership
@@ -65,6 +67,8 @@ This is a review packet template, not approval by itself.
 
 ## Usage Rules
 
+- Prefer the dated master readback form for parked governance and stay-in-C review packets.
+- Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance note.
 - If any required field above cannot be stated honestly, keep the request blocked and leave the C implementation as the product source of truth.
 - A stay-in-C closeout must keep the retained `freeze_in_c` decision, the current blocker, the required approver set, the automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, and the evidence archive path that will be refreshed before any later reopen request explicit.
 - A reopen request must cite the exact reopen trigger being exercised, refreshed evidence by path, the blocker disposition being challenged, and the narrower seam or policy change that makes the new review safe to consider.
