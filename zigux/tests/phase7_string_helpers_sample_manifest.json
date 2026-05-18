@@ -1,11 +1,15 @@
 {
-  "lane_key": "P5-L18",
+  "lane_key": "P5-L14",
   "phase": "Phase 7",
   "surveyed_commit": "96d29f9f68ad5ec6aba8f87af3b153e8d1a1ea1f",
   "anchor": "lib/string_helpers.c",
   "roadmap_destinations": [
-    "lib/string_helpers.zig",
-    "samples/zigux/string_helpers_sample.zig"
+    "lib/string_helpers.zig"
+  ],
+  "draft_review_packet_paths": [
+    "samples/zigux/string_helpers_sample.zig",
+    "zigux/tests/phase7_string_helpers_sample_survey.zig",
+    "zigux/tests/phase7_string_helpers_sample_manifest.json"
   ],
   "survey_summary": {
     "string_helpers_c_lines": 1047,
