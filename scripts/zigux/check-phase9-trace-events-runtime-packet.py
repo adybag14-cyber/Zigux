@@ -14,6 +14,7 @@ SAMPLES_README_PATH = "samples/zigux/README.md"
 SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
 REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
+EXIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_exit_rollback_guard.zig"
 
 
 def infer_repo_root() -> Path:
@@ -28,11 +29,13 @@ ROOT = infer_repo_root()
 TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 UNREGISTERED_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 REENTRY_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
+EXIT_ROLLBACK_GUARD_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`"
 TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 FAIL_CLOSED_COMPANION_MARKER = "unregistered function-thread failures fail-closed"
 REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable before and after selftest"
+EXIT_ROLLBACK_COMPANION_MARKER = "failed-exit rollback explicit after reusable selftest replay"
 ABSENT_SHARED_LOADER_MARKER = "does not currently expose the broader shared runtime-loader packet"
 ABSENT_PHASE9_BUILD_MARKER = "`zigux/tests/phase9_build.zig`"
 ABSENT_RUNTIME_LOADER_KERNEL_MARKER = "`zigux/kernel/runtime_loader.zig`"
@@ -61,6 +64,9 @@ SAMPLES_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-
 SAMPLES_README_REENTRY_GATE_DETAIL_MARKER = (
     "Treat `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as the same packet's balanced registration re-entry companion across the initialized and selftest_complete stages"
 )
+SAMPLES_README_EXIT_ROLLBACK_GUARD_DETAIL_MARKER = (
+    "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig` keeps failed-exit rollback explicit after reusable selftest replay"
+)
 SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejections"
 SAMPLES_README_SUMMARY_STABILITY_MARKER = (
     "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
@@ -83,7 +89,8 @@ SAMPLE_REQUIRED_MARKERS = [
     "try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);",
     'test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {',
     "try std.testing.expectEqual(ModuleStage.cold, module.stage());",
-    "try std.testing.expectEqual(ModuleStage.cold, module.stage());\n    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
+    "try std.testing.expectEqual(ModuleStage.cold, module.stage());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());",
     "try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());",
     "try std.testing.expect(selftest.conditional_paths_checked);",
@@ -128,7 +135,8 @@ UNREGISTERED_GATE_REQUIRED_MARKERS = [
     "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {",
     "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);",
     "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));",
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\n    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));
+    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
     "try expectSummaryStable(initialized_before, initialized_after);",
     "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);",
     "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.main_iterations);",
@@ -139,7 +147,8 @@ UNREGISTERED_GATE_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);",
     "try std.testing.expectEqual(@as(i32, 5), selftest_complete_before.last_main_count);",
     "try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);",
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));\n    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));
+    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
     "try expectSummaryStable(selftest_complete_before, selftest_complete_after);",
     "try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);",
     "try module.exit();",
@@ -243,6 +252,39 @@ REENTRY_GATE_REQUIRED_MARKERS = [
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());",
 ]
 
+EXIT_ROLLBACK_GUARD_REQUIRED_MARKERS = [
+    'test "phase9 trace-events sample keeps exit rollback explicit after reusable selftest replay" {',
+    "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {",
+    "_ = try module.runSelftest();",
+    "const replayed_main = try module.emitMainIteration(5);",
+    "try std.testing.expectEqual(@as(usize, 4), replayed_main);",
+    "try module.registerFunctionThread();",
+    "const replayed_fn = try module.emitFunctionIteration(15);",
+    "try std.testing.expectEqual(@as(usize, 2), replayed_fn);",
+    "const before_failed_exit = module.summary();",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);",
+    "try std.testing.expectEqual(@as(usize, 2), before_failed_exit.main_iterations);",
+    "try std.testing.expectEqual(@as(usize, 2), before_failed_exit.fn_iterations);",
+    "try std.testing.expectEqual(@as(usize, 14), before_failed_exit.total_events);",
+    "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);",
+    "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);",
+    "try std.testing.expectError(error.OutstandingRegistration, module.exit());",
+    "const after_failed_exit = module.summary();",
+    "try expectSummaryStable(before_failed_exit, after_failed_exit);",
+    "try module.unregisterFunctionThread();",
+    "const before_exit = module.summary();",
+    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_exit.stage);",
+    "try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);",
+    "try std.testing.expectEqual(@as(usize, 2), before_exit.unregister_transitions);",
+    "try module.exit();",
+    "const after_exit = module.summary();",
+    "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);",
+    "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
+    "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);",
+]
+
 FILE_MARKERS = {
     SEQUENCING_PATH: [
         TRACE_EVENTS_SAMPLE_MARKER,
@@ -269,13 +311,16 @@ FILE_MARKERS = {
     SAMPLES_README_PATH: [
         TRACE_EVENTS_SAMPLE_MARKER,
         UNREGISTERED_GATE_SAMPLE_MARKER,
+        EXIT_ROLLBACK_GUARD_SAMPLE_MARKER,
         SAMPLES_README_FAIL_CLOSED_MARKER,
         REENTRY_GATE_SAMPLE_MARKER,
         TRACE_EVENTS_PACKET_CHECKER_MARKER,
         SELFTEST_HOOK_MARKER,
         LIFECYCLE_MARKER,
         REENTRY_COMPANION_MARKER,
+        EXIT_ROLLBACK_COMPANION_MARKER,
         SAMPLES_README_REENTRY_GATE_DETAIL_MARKER,
+        SAMPLES_README_EXIT_ROLLBACK_GUARD_DETAIL_MARKER,
         SAMPLES_README_POST_EXIT_REJECTION_MARKER,
         SAMPLES_README_SUMMARY_STABILITY_MARKER,
         ABSENT_SHARED_LOADER_MARKER,
@@ -292,6 +337,7 @@ FILE_MARKERS = {
     SAMPLE_PATH: SAMPLE_REQUIRED_MARKERS,
     UNREGISTERED_GATE_SAMPLE_PATH: UNREGISTERED_GATE_REQUIRED_MARKERS,
     REENTRY_GATE_SAMPLE_PATH: REENTRY_GATE_REQUIRED_MARKERS,
+    EXIT_ROLLBACK_GUARD_SAMPLE_PATH: EXIT_ROLLBACK_GUARD_REQUIRED_MARKERS,
 }
 
 
@@ -363,6 +409,7 @@ def run_self_test() -> int:
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_REENTRY_GATE_MARKER_COUNT={len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXIT_ROLLBACK_GUARD_MARKER_COUNT={len(FILE_MARKERS[EXIT_ROLLBACK_GUARD_SAMPLE_PATH])}")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -393,6 +440,7 @@ def main() -> int:
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_REENTRY_GATE_MARKER_COUNT={len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXIT_ROLLBACK_GUARD_MARKER_COUNT={len(FILE_MARKERS[EXIT_ROLLBACK_GUARD_SAMPLE_PATH])}")
     return 0
 
 
