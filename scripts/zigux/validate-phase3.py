@@ -12,6 +12,7 @@ ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
 NOTIFIER_BINDINGS_PATH = Path("zigux/bindings/notifier_abi.zig")
 ABI_CHECKER_PATH = Path("scripts/zigux/check-phase3-abi.py")
+PHASE3_CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")
 
 REQUIRED_SOURCE_MARKERS = {
     ABI_HEADER_PATH: (
@@ -54,6 +55,12 @@ REQUIRED_SOURCE_MARKERS = {
         'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")',
         "def validate_repo(repo_root: Path) -> list[str]:",
         'print("PHASE3_ABI_CHECK_SELF_TEST=pass")',
+    ),
+    PHASE3_CATALOG_PATH: (
+        'PHASE3_CATALOG_PHASE = "Phase 3"',
+        'PHASE3_CATALOG_SCOPE = "abi-runtime"',
+        "def build_catalog(repo_root: Path) -> dict[str, object]:",
+        'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
 }
 
@@ -261,6 +268,16 @@ def validate_repo(repo_root: Path) -> list[str]:
 print("PHASE3_ABI_CHECK_SELF_TEST=pass")
 """
 
+SELF_TEST_CATALOG = """\
+PHASE3_CATALOG_PHASE = "Phase 3"
+PHASE3_CATALOG_SCOPE = "abi-runtime"
+
+def build_catalog(repo_root: Path) -> dict[str, object]:
+    return {}
+
+print("PHASE3_CATALOG_SELF_TEST=pass")
+"""
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -411,6 +428,7 @@ def run_self_test() -> int:
         _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
         _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
         _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
+        _write(root / PHASE3_CATALOG_PATH, SELF_TEST_CATALOG)
 
         issues = validate_repo(root)
         if issues:
@@ -495,8 +513,28 @@ def run_self_test() -> int:
             print("expected missing notifier binding marker was not reported")
             return 1
 
+        _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
+
+        _write(
+            root / PHASE3_CATALOG_PATH,
+            SELF_TEST_CATALOG.replace(
+                'PHASE3_CATALOG_SCOPE = "abi-runtime"\n',
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing scripts/zigux/phase3_catalog.py marker: "
+            'PHASE3_CATALOG_SCOPE = "abi-runtime"'
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing catalog marker was not reported")
+            return 1
+
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=5")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
@@ -523,7 +561,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_VALIDATION=pass")
-    print("PHASE3_SCOPE=shared-abi-binding-layout-and-checker-surface")
+    print("PHASE3_SCOPE=shared-abi-binding-layout-and-catalog-surface")
     return 0
 
 
