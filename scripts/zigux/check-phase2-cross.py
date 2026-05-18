@@ -195,6 +195,7 @@ def run_cross_compile(
 
     if target not in targets:
         print("PHASE2_CROSS=fail")
+        print("PHASE2_CROSS_REPLAY_MODE=single-target")
         print(f"PHASE2_CROSS_TARGET={target}")
         print("PHASE2_CROSS_NOTE=target not listed in fixture")
         return 1
@@ -777,6 +778,7 @@ def run_self_test() -> int:
             ["--root", str(root), "--target", "powerpc64-linux-musl", "--zig", "/bin/true"]
         )
         assert missing_target_code == 1
+        assert "PHASE2_CROSS_REPLAY_MODE=single-target" in missing_target_output
         assert "PHASE2_CROSS_NOTE=target not listed in fixture" in missing_target_output
         case_count += 1
 
@@ -801,6 +803,7 @@ def run_self_test() -> int:
             ["--root", str(root), "--target", EXPECTED_TARGETS[0], "--zig", str(root / "missing-zig")]
         )
         assert missing_zig_code == 1
+        assert "PHASE2_CROSS_REPLAY_MODE=single-target" in missing_zig_output
         assert "PHASE2_CROSS_NOTE=zig not found on PATH" in missing_zig_output
         case_count += 1
 
@@ -810,6 +813,7 @@ def run_self_test() -> int:
             ["--root", str(root), "--all-targets", "--zig", str(missing_zig_path)]
         )
         assert missing_zig_code == 1
+        assert "PHASE2_CROSS_REPLAY_MODE=all-targets" in missing_zig_output
         assert "PHASE2_CROSS_NOTE=zig not found on PATH" in missing_zig_output
         case_count += 1
 
@@ -904,6 +908,10 @@ def main(argv: list[str] | None = None) -> int:
         zig = resolve_zig(args.zig)
         if zig is None:
             print("PHASE2_CROSS=fail")
+            if args.target:
+                print("PHASE2_CROSS_REPLAY_MODE=single-target")
+            else:
+                print("PHASE2_CROSS_REPLAY_MODE=all-targets")
             print("PHASE2_CROSS_NOTE=zig not found on PATH")
             return 1
 
