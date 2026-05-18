@@ -107,6 +107,20 @@ test "bitmap starter helpers keep exact-word windows explicit" {
     try testing.expectEqual(bitmap_view.bits_per_word + 1, summary.weight);
 }
 
+test "bitmap starter helpers keep large bounded word counts predictable" {
+    const max_nbits = std.math.maxInt(u32);
+    const expected: u32 = @intCast((@as(u64, max_nbits) + @as(u64, bitmap_view.bits_per_word) - 1) / @as(u64, bitmap_view.bits_per_word));
+    const invalid = binding.initBitmapView(1, max_nbits, expected - 1);
+    const summary = bitmap_view.summarize(invalid);
+
+    try testing.expectEqual(expected, bitmap_view.wordCount(max_nbits));
+    try testing.expect(!bitmap_view.isValid(invalid));
+    try testing.expect(!bitmap_view.testBit(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap starter helpers fail closed on malformed views" {
     const invalid = binding.initBitmapView(0, bitmap_view.bits_per_word + 1, 1);
     const summary = bitmap_view.summarize(invalid);
@@ -227,6 +241,22 @@ test "cpumask starter helpers keep exact-word windows explicit" {
     try testing.expectEqual(@as(u32, 0), summary.first_set);
     try testing.expectEqual(bitmap_view.bits_per_word, summary.first_zero);
     try testing.expectEqual(bitmap_view.bits_per_word + 1, summary.weight);
+}
+
+test "cpumask starter helpers keep large bounded word counts predictable" {
+    const max_nbits = std.math.maxInt(u32);
+    const expected = bitmap_view.wordCount(max_nbits);
+    const invalid = binding.initCpumaskView(1, max_nbits, expected - 1, max_nbits);
+    const summary = cpumask_view.summarize(invalid);
+
+    try testing.expectEqual(expected, bitmap_view.wordCount(max_nbits));
+    try testing.expect(!cpumask_view.isValid(invalid));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
 test "cpumask starter helpers fail closed on malformed views" {
