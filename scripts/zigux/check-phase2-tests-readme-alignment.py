@@ -31,6 +31,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`zigux/Makefile`",
+    "current `master` does materialize `zigux/Makefile` again, but its live body exposes only the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
@@ -56,6 +57,7 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, and `zigux/Makefile`",
     "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2`",
     "keep the fixture-backed tool-manifest and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
