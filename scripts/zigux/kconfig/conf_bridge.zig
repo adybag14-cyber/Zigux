@@ -496,7 +496,7 @@ test "conf bridge escapes quoted and backslashed syncconfig nosilentupdate in js
     });
 
     try std.testing.expectEqualStrings(
-        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"syncconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--syncconfig\",\"Kconfig\"],\"env\":{\"ARCH\":\"riscv64\",\"KCONFIG_CONFIG\":\"out/.config\",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\",\"KCONFIG_NOSILENTUPDATE\":\"keep\\\\\\\"quoted\\\\\\\\path\"}}\n",
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"syncconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--syncconfig\",\"Kconfig\"],\"env\":{\"ARCH\":\"riscv64\",\"KCONFIG_CONFIG\":\"out/.config\",\"KCONFIG_AUTOCONFIG\":\"include/config/auto.conf\",\"KCONFIG_AUTOHEADER\":\"include/generated/autoconf.h\",\"KCONFIG_NOSILENTUPDATE\":\"keep\\\\\\\"quoted\\\\path\"}}\n",
         capture.list.items,
     );
 }
@@ -594,6 +594,21 @@ test "conf bridge emits allyesconfig sentinel without explicit override" {
     });
 
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allyesconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+}
+
+test "conf bridge emits allnoconfig sentinel without explicit override" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allnoconfig,
+        .kconfig = "Kconfig",
+        .config = "no/.config",
+        .arch = "arm64",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allnoconfig\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
