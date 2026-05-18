@@ -47,12 +47,13 @@ Phase 2 notes
 - `scripts/zigux/kconfig/confdata_bridge.zig`
 - `scripts/zigux/zig-toolchain-policy.json`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
+- `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
 - `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
 - `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
 - `zigux/tests/fixtures/kconfig_bridge/cases.json`
 now keep the current directly readable Phase 2 toolchain, kbuild, and kconfig bridge packet visible from the docs root instead of rebuilding the older closure-side validator stack from missing current-`master` paths.
-  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, so treat those closure-side, validator-first, cross-route, artifact-roster, and Linux-style make-route names as historical packet members until same-lane work rematerializes them on `master`.
-  * keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the pinned toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, and the current kconfig fixture roster, without reviving missing closure, cross-target, artifact-tools, installer, or make-wrapper proof text.
+  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so treat those closure-side, validator-first, cross-route, and Linux-style make-route names as historical packet members until same-lane work rematerializes them on `master`.
+  * keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the pinned toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, and the current kconfig fixture roster, without reviving missing closure, cross-target, installer, or make-wrapper proof text.
 Phase 3 notes
 - `Documentation/zigux/phase3-abi-slice.md`
 - `Documentation/zigux/phase3-errptr-xarray-slice.md`
