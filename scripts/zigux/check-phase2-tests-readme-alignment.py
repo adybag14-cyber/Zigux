@@ -69,7 +69,7 @@ REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
-    "now keep the current directly readable Phase 2 toolchain, kbuild, kconfig bridge, make-wrapper, and artifact-support packet visible from the docs root instead of rebuilding the older closure-side validator stack from missing current-`master` paths.",
+    "now keep the current directly readable Phase 2 toolchain, closure-side, kbuild, kconfig bridge, make-wrapper, and artifact-support packet visible from the docs root instead of rebuilding the older installer and direct cross-route stack from missing current-`master` paths.",
     "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the docs-shared-reminder checker, the required-make-route guard, the pinned Zig toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, `zigux/Makefile`, the current artifact-support manifest, the current kconfig fixture roster, and the current reminder routes `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2`.",
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`zigux/tests/README.md`",
