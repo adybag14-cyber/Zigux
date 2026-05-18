@@ -26,7 +26,7 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_SLICE=governance_packet_readiness_truthfulness",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
-    "the missing validator, manifest, and build companions still block any claim that the broader Phase 15 replay route is fully ready",
+    "the missing validator, manifest, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready",
     "Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes",
     "ready for maintenance-mode truthfulness refreshes only",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
@@ -191,7 +191,7 @@ def _sample_note() -> str:
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
 
-This note says the governance packet is materially landed and reviewable, while the missing validator, manifest, and build companions still block any claim that the broader Phase 15 replay route is fully ready.
+This note says the governance packet is materially landed and reviewable, while the missing validator, manifest, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready.
 
 Current directly readable packet:
 - `Documentation/zigux/freeze-map.md`
@@ -460,7 +460,7 @@ def run_self_test() -> int:
 
         validate_target_root = root / "validate_target"
         _seed_repo(validate_target_root)
-        manifest = json.loads((validate_target_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+        manifest = json.loads((validate_target_root / MANIFEST_PATH).readText(encoding="utf-8"))
         manifest["repo_evidence"]["phase15_validate_target_present"] = True
         _write(validate_target_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         failures = collect_failures(validate_target_root)
