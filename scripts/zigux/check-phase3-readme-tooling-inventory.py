@@ -12,6 +12,7 @@ SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 RUNNER_FILE = Path("scripts/zigux/run-phase3-checks.py")
 SHARED_TESTS_ROUTES_FILE = Path("scripts/zigux/check-phase3-shared-tests-routes.py")
 BINDING_FILE = Path("zigux/bindings/dev_t.zig")
+NOTIFIER_BINDING_FILE = Path("zigux/bindings/notifier_abi.zig")
 NARROW_UNSAFE_FILE = Path("zigux/unsafe/narrow.zig")
 UAPI_FILE = Path("zigux/uapi/dev_t.zig")
 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE = Path(
@@ -19,6 +20,8 @@ LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE = Path(
 )
 LOW_LEVEL_WRAPPER_REPLAY_FILE = Path("zigux/tests/phase3_low_level_wrappers.zig")
 LOW_LEVEL_WRAPPER_BUILD_FILE = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
+EXPORT_UAPI_LAYOUT_REPLAY_FILE = Path("zigux/tests/phase3_export_uapi_layout.zig")
+EXPORT_UAPI_LAYOUT_BUILD_FILE = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 WORKFLOW_FILE = Path(".github/workflows/zigux-bootstrap.yml")
 POLICY_STARTER_BUILD_FILE = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 XARRAY_SLOT_HELPER_FILE = Path("zigux/helpers/xarray_slot_view.zig")
@@ -30,6 +33,7 @@ RUNNER_MARKER = "scripts/zigux/run-phase3-checks.py"
 SHARED_TESTS_ROUTES_MARKER = "scripts/zigux/check-phase3-shared-tests-routes.py"
 HEADER_MARKER = "include/linux/zigux.h"
 UAPI_MARKER = "zigux/uapi/dev_t.zig"
+NOTIFIER_BINDING_MARKER = "zigux/bindings/notifier_abi.zig"
 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER = (
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 )
@@ -38,6 +42,12 @@ LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER = (
 )
 LOW_LEVEL_WRAPPER_REPLAY_MARKER = "zigux/tests/phase3_low_level_wrappers.zig"
 LOW_LEVEL_WRAPPER_BUILD_MARKER = "zigux/tests/phase3_low_level_wrappers_build.zig"
+EXPORT_UAPI_LAYOUT_REPLAY_MARKER = "zigux/tests/phase3_export_uapi_layout.zig"
+EXPORT_UAPI_LAYOUT_BUILD_MARKER = "zigux/tests/phase3_export_uapi_layout_build.zig"
+EXPORT_UAPI_LAYOUT_BUILD_ROUTE_MARKER = (
+    "zig build phase3-export-uapi-layout-test --build-file "
+    "zigux/tests/phase3_export_uapi_layout_build.zig"
+)
 WORKFLOW_MARKER = ".github/workflows/zigux-bootstrap.yml"
 CATALOG_SELFTEST_GAP_MARKER = "scripts/zigux/check-phase3-catalog-selftest.py"
 CATALOG_WRAPPER_GAP_MARKER = "scripts/zigux/phase3_catalog.py"
@@ -80,6 +90,7 @@ REQUIRED_FILES = (
     BINDING_FILE,
     Path("zigux/bindings/version.zig"),
     Path("zigux/bindings/abi.zig"),
+    NOTIFIER_BINDING_FILE,
     Path("zigux/helpers/err_ptr.zig"),
     Path("zigux/helpers/xa_value.zig"),
     XARRAY_SLOT_HELPER_FILE,
@@ -103,6 +114,8 @@ REQUIRED_FILES = (
     POLICY_STARTER_BUILD_FILE,
     LOW_LEVEL_WRAPPER_REPLAY_FILE,
     LOW_LEVEL_WRAPPER_BUILD_FILE,
+    EXPORT_UAPI_LAYOUT_REPLAY_FILE,
+    EXPORT_UAPI_LAYOUT_BUILD_FILE,
     WORKFLOW_FILE,
 )
 
@@ -141,6 +154,7 @@ REQUIRED_MARKERS = (
     "zigux/bindings/dev_t.zig",
     "zigux/bindings/version.zig",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/notifier_abi.zig",
     "zigux/unsafe/narrow.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/uapi/version.zig",
@@ -155,6 +169,9 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
+    "zigux/tests/phase3_export_uapi_layout.zig",
+    "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     ".github/workflows/zigux-bootstrap.yml",
     LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER,
     CATALOG_SELFTEST_GAP_MARKER,
@@ -170,10 +187,14 @@ README_MARKER_CASES = (
     (SHARED_TESTS_ROUTES_MARKER, "expected missing shared-tests-routes README marker was not reported"),
     (HEADER_MARKER, "expected missing header README marker was not reported"),
     (UAPI_MARKER, "expected missing UAPI README marker was not reported"),
+    (NOTIFIER_BINDING_MARKER, "expected missing notifier-binding README marker was not reported"),
     (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER, "expected missing low-level-wrapper survey validator README marker was not reported"),
     (LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER, "expected missing low-level-wrapper survey self-test README marker was not reported"),
     (LOW_LEVEL_WRAPPER_REPLAY_MARKER, "expected missing low-level-wrapper replay README marker was not reported"),
     (LOW_LEVEL_WRAPPER_BUILD_MARKER, "expected missing low-level-wrapper build README marker was not reported"),
+    (EXPORT_UAPI_LAYOUT_REPLAY_MARKER, "expected missing export-uapi-layout replay README marker was not reported"),
+    (EXPORT_UAPI_LAYOUT_BUILD_MARKER, "expected missing export-uapi-layout build README marker was not reported"),
+    (EXPORT_UAPI_LAYOUT_BUILD_ROUTE_MARKER, "expected missing export-uapi-layout build-route README marker was not reported"),
     (WORKFLOW_MARKER, "expected missing workflow README marker was not reported"),
     (CATALOG_SELFTEST_GAP_MARKER, "expected missing catalog-selftest gap README marker was not reported"),
     (CATALOG_WRAPPER_GAP_MARKER, "expected missing catalog wrapper gap README marker was not reported"),
@@ -191,11 +212,14 @@ FILE_CASES = (
     (RUNNER_FILE, "expected missing runner file was not reported"),
     (SHARED_TESTS_ROUTES_FILE, "expected missing shared-tests-routes file was not reported"),
     (BINDING_FILE, "expected missing binding file was not reported"),
+    (NOTIFIER_BINDING_FILE, "expected missing notifier-binding file was not reported"),
     (NARROW_UNSAFE_FILE, "expected missing narrow-unsafe file was not reported"),
     (UAPI_FILE, "expected missing UAPI file was not reported"),
     (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE, "expected missing low-level-wrapper survey validator file was not reported"),
     (LOW_LEVEL_WRAPPER_REPLAY_FILE, "expected missing low-level-wrapper replay file was not reported"),
     (LOW_LEVEL_WRAPPER_BUILD_FILE, "expected missing low-level-wrapper build file was not reported"),
+    (EXPORT_UAPI_LAYOUT_REPLAY_FILE, "expected missing export-uapi-layout replay file was not reported"),
+    (EXPORT_UAPI_LAYOUT_BUILD_FILE, "expected missing export-uapi-layout build file was not reported"),
     (WORKFLOW_FILE, "expected missing workflow file was not reported"),
     (POLICY_STARTER_BUILD_FILE, "expected missing starter build file was not reported"),
     (XARRAY_SLOT_HELPER_FILE, "expected missing xarray-slot helper file was not reported"),
