@@ -15,7 +15,7 @@ This document records the bounded Phase 12 survey lane around `tools/lib/bpf/lib
   - `zigux/tests/phase12_build.zig`
   - `zigux/Makefile`
 - public fallback posture: shared-tree-only anchor; unlike `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md` and `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md`, this libbpf note is not a commit-pinned raw GitHub fallback artifact
-- rollback owner and reversible-delivery drill: restore the last truthful survey wording in this note, then rerun `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `make -C zigux phase12-validate`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12` so the shared Phase 12 release packet stays reviewable without pretending those shared routes already exercise the parked direct `phase12_libbpf_*` replay files directly
+- rollback owner and reversible-delivery drill: restore the last truthful survey wording in this note, then rerun `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `python3 scripts/zigux/validate-phase12.py`; keep `make -C zigux phase12-validate` explicit only as reminder-only wrapper vocabulary until `zigux/Makefile` rematerializes it on current `master`; then rerun `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-test`, and `make -C zigux phase12` so the shared Phase 12 release packet stays reviewable without pretending those shared routes already exercise the parked direct `phase12_libbpf_*` replay files directly
 
 ## Why this slice exists
 The roadmap places `tools/lib/bpf/libbpf.c` in Phase 12 alongside the other high-risk production-facing consumers because the file is both large and semantically dense even though it lives under `tools/`.
@@ -30,7 +30,7 @@ Those are still useful footholds, but the live Phase 12 survey has to explain ho
 - the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` still stay recorded only through the survey, verify-shard, and anti-overlap notes until they land again on current `master`; `scripts/zigux/check-phase12-libbpf-snapshot.py` and the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` file now keep only the same four note-owned support anchors explicit (`Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md`), so the shared survey wording should not imply that a separate checked-in `phase12_libbpf_reviewability` gate is still present on current `master`.
 - the shared shipped replay order is still narrower than that mixed direct-plus-parked libbpf packet. Current `zigux/tests/phase12_build.zig` wires only the `virtio_net` and `virtio_scsi` Phase 12 shards, and current `zigux/Makefile` keeps `phase12-smoke`, `phase12-test`, and `phase12` tied to that same build file.
 - `scripts/zigux/check-build-only-phase12-surface.py` is a shared release-packet checker for the active Phase 12 build-only contract. It exact-checks the current driver-facing release packet and adjacent PMO reminders, but it does not yet mean that the parked libbpf reviewability packet has been adopted into `zigux/tests/phase12_build.zig` or the shipped Make replay order.
-- current `master` now also ships the validator-first support bundle through `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`, but that smaller support route still complements the smoke-first shared replay order instead of proving that the parked libbpf reviewability packet has been adopted into `zigux/tests/phase12_build.zig` or the shared direct replay order.
+- current `master` now also ships the validator-side support bundle through `scripts/zigux/check-phase12-release-readiness-packet.py` and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary because current `zigux/Makefile` still omits that wrapper; that smaller support bundle still complements the smoke-first shared replay order instead of proving that the parked libbpf reviewability packet has been adopted into `zigux/tests/phase12_build.zig` or the shared direct replay order.
 - the directly readable helper-first segmentation is still roadmap-relevant, while the shared Phase 12 validator-first then smoke-and-test order is still narrower than the combined directly readable helper and parked reviewability packet described only through the survey, verify-shard, anti-overlap notes, and the historical snapshot anchor.
 - the current lane therefore needs survey truthfulness more than a new helper claim. The real boundary is no longer "libbpf is missing" versus "libbpf is landed"; it is "a bounded directly readable helper-first and checked-in reviewability packet is present on current `master`" versus "the shared shipped replay order has not adopted the absent direct `phase12_libbpf_*` replay packet into the active smoke-first route."
 
@@ -62,17 +62,20 @@ This survey slice does not claim:
 ## Gates
 1. rerun the shared build-only Phase 12 surface checker self-test
    - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
-2. rerun the shipped validator-first support bundle as shared packet evidence, not as a focused libbpf replay
+2. rerun the shipped validator-side support bundle as shared packet evidence, not as a focused libbpf replay
    - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
-   - `make -C zigux phase12-validate`
+   - `python3 scripts/zigux/validate-phase12.py`
+   - reminder-only wrapper vocabulary until it returns: `make -C zigux phase12-validate`
 3. rerun the current shipped smoke-first Phase 12 replay order as shared packet evidence, not as a focused libbpf replay
    - `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
    - `make -C zigux phase12-smoke`
    - `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+   - `make -C zigux phase12-test`
    - `make -C zigux phase12`
-4. if `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and reuse only the shipped Make routes with `ZIG=<attached-zig-path>`
-   - `make -C zigux phase12-validate ZIG=<attached-zig-path>`
+4. if `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and reuse only the shipped Make routes with `ZIG=<attached-zig-path>` while leaving `make -C zigux phase12-validate` explicit only as reminder vocabulary until that wrapper returns
+   - reminder-only wrapper vocabulary until it returns: `make -C zigux phase12-validate`
    - `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+   - `make -C zigux phase12-test ZIG=<attached-zig-path>`
    - `make -C zigux phase12 ZIG=<attached-zig-path>`
 
 ## Next bounded step
