@@ -7,6 +7,9 @@ import tempfile
 from pathlib import Path
 
 REVIEW_PROCESS_PATH = Path("Documentation/zigux/phase15-architecture-council-review-process.md")
+DECISION_RECORD_TEMPLATE_PATH = Path(
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md"
+)
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
@@ -38,6 +41,7 @@ def _line_containing(text: str, marker: str) -> str | None:
 
 def collect_failures(root: Path) -> list[str]:
     review_process = _read_text(root / REVIEW_PROCESS_PATH)
+    decision_record_template = _read_text(root / DECISION_RECORD_TEMPLATE_PATH)
     review_checklist = _read_text(root / REVIEW_CHECKLIST_PATH)
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
     gap_note = _read_text(root / SHARED_GAP_NOTE_PATH)
@@ -47,6 +51,12 @@ def collect_failures(root: Path) -> list[str]:
 
     if manifest["surveyed_commit"] not in review_process:
         failures.append("review-process note is missing the manifest surveyed_commit marker")
+
+    if manifest["decision_record_template"] not in review_process:
+        failures.append("review-process note is missing the decision-record template path")
+
+    if manifest["decision_record_template"] not in handoff_note:
+        failures.append("handoff note is missing the decision-record template path")
 
     for marker in (
         "PHASE15_STATUS=architecture_council_review_process_landed",
@@ -62,6 +72,8 @@ def collect_failures(root: Path) -> list[str]:
     for field in manifest["required_review_fields"]:
         if field not in review_process:
             failures.append(f"review-process note is missing required review field: {field}")
+        if field not in decision_record_template:
+            failures.append(f"decision-record template is missing required review field: {field}")
 
     checklist_entry_prompt = _line_containing(review_checklist, CHECKLIST_ENTRY_REVIEW_PROMPT)
     if checklist_entry_prompt is None:
@@ -76,10 +88,14 @@ def collect_failures(root: Path) -> list[str]:
     for field in manifest["stay_in_c_closeout_fields"]:
         if field not in review_process:
             failures.append(f"review-process note is missing stay-in-C closeout field: {field}")
+        if field not in decision_record_template:
+            failures.append(f"decision-record template is missing stay-in-C closeout field: {field}")
 
     for field in manifest["reopen_evidence_fields"]:
         if field not in review_process:
             failures.append(f"review-process note is missing reopen-evidence field: {field}")
+        if field not in decision_record_template:
+            failures.append(f"decision-record template is missing reopen-evidence field: {field}")
 
     for marker in manifest["handoff_required_markers"]:
         if marker not in handoff_note:
@@ -116,6 +132,7 @@ def _sample_manifest() -> str:
             "lane_key": "P15-L08",
             "phase": "Phase 15",
             "surveyed_commit": "current-master-readback-2026-05-17",
+            "decision_record_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
             "required_review_fields": [
                 "exact Linux anchor path",
                 "roadmap phase",
@@ -189,7 +206,7 @@ def _sample_review_process() -> str:
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
-- this note keeps the docs-root field inventory, the dedicated review-process manifest, the focused review-process handoff checker, and the focused Zig replay are landed through `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig`
+- this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, and the focused Zig replay are landed through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig`
 
 Any freeze-map anchor entering Architecture Council status review must keep all of the following explicit:
 - exact Linux anchor path
@@ -233,6 +250,50 @@ A later reopen request must not rely on generic intent alone. It must cite:
 """
 
 
+def _sample_decision_record_template() -> str:
+    return """# Phase 15 Architecture Council Decision Record Template
+
+- `DECISION_RECORD_ID=<replace-with-stable-id>`
+
+- exact Linux anchor path:
+- roadmap phase:
+- decision record ID:
+- lane owner:
+- current status bucket:
+- requested decision bucket:
+- required approver set:
+- rollback owner:
+- validation gate summary:
+- evidence archive path:
+- latest blocker disposition:
+- benchmark notes:
+- replay command:
+- rollback threshold:
+- automatic return-to-blocked trigger:
+- retained discussion state:
+- reopen triggers:
+- trigger-specific evidence refresh:
+- parity scorecard link or blocker record:
+- indefinite-C policy link or explicit non-applicability note:
+- explicit non-goals:
+- written rationale:
+
+- the retained `freeze_in_c` decision:
+- the current blocker:
+- the required approver set:
+- `retired_from_active_discussion` state:
+- the automatic return-to-blocked trigger:
+- the reopen triggers:
+- the trigger-specific evidence refresh:
+- the evidence archive path that will be refreshed before any later reopen request:
+
+- the exact reopen trigger being exercised:
+- refreshed evidence by path:
+- the blocker disposition being challenged:
+- the narrower seam or policy change that makes the new review safe to consider:
+"""
+
+
 def _sample_review_checklist() -> str:
     return """# Zigux Review Checklist
 
@@ -245,6 +306,7 @@ def _sample_handoff_note() -> str:
 
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
@@ -280,6 +342,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase15_review_process_") as tmp_dir:
         root = Path(tmp_dir)
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
@@ -301,6 +364,15 @@ def run_self_test() -> int:
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
+            root / DECISION_RECORD_TEMPLATE_PATH,
+            _sample_decision_record_template().replace("- roadmap phase:\n", "", 1),
+        )
+        failures = collect_failures(root)
+        if failures != ["decision-record template is missing required review field: roadmap phase"]:
+            raise AssertionError(f"unexpected decision-template review-field failure: {failures}")
+
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
+        _write(
             root / REVIEW_PROCESS_PATH,
             _sample_review_process().replace(
                 "- the automatic return-to-blocked trigger\n", "", 1
@@ -321,8 +393,20 @@ def run_self_test() -> int:
         if failures != ["review checklist prompt is missing required review field: exact Linux anchor path"]:
             raise AssertionError(f"unexpected checklist failure: {failures}")
 
-        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
+        _write(
+            root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace(
+                "- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != ["handoff note is missing the decision-record template path"]:
+            raise AssertionError(f"unexpected decision-template handoff failure: {failures}")
+
+        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(
             root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
