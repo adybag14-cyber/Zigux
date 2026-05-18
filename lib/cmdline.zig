@@ -129,6 +129,196 @@ fn cStringPrefix(text: []const u8) []const u8 {
     return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
 }
 
+fn clearOptionOut(pint: ?*i32) void {
+    if (pint) |out| {
+        out.* = 0;
+    }
+}
+
+fn wrapUnsignedToI32(value: u64) i32 {
+    return @bitCast(@as(u32, @truncate(value)));
+}
+
+fn wrapNegativeUnsignedToI32(value: u64) i32 {
+    return @bitCast(@as(u32, @truncate(@as(u64, 0) -% value)));
+}
+
+fn parseOptionBase(text: []const u8, start: usize) struct {
+    base: u8,
+    digits_start: usize,
+} {
+    if (start < text.len and text[start] == '0') {
+        if (start + 2 < text.len and (text[start + 1] == 'x' or text[start + 1] == 'X') and digitValue(text[start + 2], 16) != null) {
+            return .{ .base = 16, .digits_start = start + 2 };
+        }
+        return .{ .base = 8, .digits_start = start };
+    }
+
+    return .{ .base = 10, .digits_start = start };
+}
+
+fn parseUnsignedOption(text: []const u8) struct {
+    parsed_any: bool,
+    consumed: usize,
+    value: u64,
+} {
+    const base_info = parseOptionBase(text, 0);
+
+    var idx = base_info.digits_start;
+    var parsed_any = false;
+    var value: u64 = 0;
+
+    while (idx < text.len) : (idx += 1) {
+        const digit = digitValue(text[idx], base_info.base) orelse break;
+        parsed_any = true;
+        value = saturatingMulAdd(value, base_info.base, digit);
+    }
+
+    return .{
+        .parsed_any = parsed_any,
+        .consumed = idx,
+        .value = value,
+    };
+}
+
+fn parseSignedOption(text: []const u8) struct {
+    parsed_any: bool,
+    value: i32,
+} {
+    if (text.len == 0) {
+        return .{ .parsed_any = false, .value = 0 };
+    }
+
+    var offset: usize = 0;
+    var negative = false;
+    switch (text[0]) {
+        '-' => {
+            negative = true;
+            offset = 1;
+        },
+        '+' => {
+            offset = 1;
+        },
+        else => {},
+    }
+
+    const parsed = parseUnsignedOption(text[offset..]);
+    if (!parsed.parsed_any) {
+        return .{ .parsed_any = false, .value = 0 };
+    }
+
+    return .{
+        .parsed_any = true,
+        .value = if (negative) wrapNegativeUnsignedToI32(parsed.value) else wrapUnsignedToI32(parsed.value),
+    };
+}
+
+fn getRange(str: *[]const u8, first_value: i32, dest: []i32) i64 {
+    if (str.*.len == 0 or str.*[0] != '-') {
+        return -1;
+    }
+
+    str.* = str.*[1..];
+    const parsed_upper = parseSignedOption(str.*);
+    if (!parsed_upper.parsed_any) {
+        return -1;
+    }
+
+    var x = first_value;
+    var write_index: usize = 0;
+    while (write_index < dest.len and x < parsed_upper.value) : ({
+        write_index += 1;
+        x +%= 1;
+    }) {
+        dest[write_index] = x;
+    }
+
+    return @as(i64, parsed_upper.value) - @as(i64, first_value);
+}
+
+pub fn getOption(str: *[]const u8, pint: ?*i32) u8 {
+    if (str.*.len == 0) {
+        clearOptionOut(pint);
+        return 0;
+    }
+
+    if (str.*[0] == '+') {
+        clearOptionOut(pint);
+        return 0;
+    }
+
+    if (str.*[0] == '-') {
+        const parsed_negative = parseUnsignedOption(str.*[1..]);
+        if (!parsed_negative.parsed_any) {
+            str.* = str.*[1..];
+            clearOptionOut(pint);
+            return 0;
+        }
+
+        str.* = str.*[1 + parsed_negative.consumed ..];
+        if (pint) |out| {
+            out.* = wrapNegativeUnsignedToI32(parsed_negative.value);
+        }
+    } else {
+        const parsed_positive = parseUnsignedOption(str.*);
+        if (!parsed_positive.parsed_any) {
+            clearOptionOut(pint);
+            return 0;
+        }
+
+        str.* = str.*[parsed_positive.consumed..];
+        if (pint) |out| {
+            out.* = wrapUnsignedToI32(parsed_positive.value);
+        }
+    }
+
+    if (str.*.len != 0 and str.*[0] == ',') {
+        str.* = str.*[1..];
+        return 2;
+    }
+
+    if (str.*.len != 0 and str.*[0] == '-') {
+        return 3;
+    }
+
+    return 1;
+}
+
+pub const get_option = getOption;
+
+pub fn getOptions(str: []const u8, nints: usize, ints: []i32) []const u8 {
+    const validate = nints == 0;
+    var current = str;
+    var i: isize = 1;
+    var ignored = [_]i32{};
+
+    while (i < @as(isize, @intCast(nints)) or validate) {
+        const pint = if (validate) &ints[0] else &ints[@intCast(i)];
+        const res = getOption(&current, pint);
+        if (res == 0) {
+            break;
+        }
+
+        if (res == 3) {
+            const range_nums = getRange(&current, pint.*, if (validate) ignored[0..] else ints[@intCast(i)..nints]);
+            if (range_nums < 0) {
+                break;
+            }
+            i += @intCast(range_nums - 1);
+        }
+
+        i += 1;
+        if (res == 1) {
+            break;
+        }
+    }
+
+    ints[0] = @intCast(i - 1);
+    return current;
+}
+
+pub const get_options = getOptions;
+
 pub fn nextArg(args: []const u8) NextArgResult {
     const current = cStringPrefix(args);
     if (current.len == 0) {
@@ -239,6 +429,104 @@ pub fn memparse(text: []const u8) MemparseResult {
     }
 
     return .{ .value = result, .rest = text[idx..] };
+}
+
+test "getOption and getOptions preserve Linux-style range parsing" {
+    var option_rest: []const u8 = "3-5";
+    var option_value: i32 = 0;
+
+    try std.testing.expectEqual(@as(u8, 3), getOption(&option_rest, &option_value));
+    try std.testing.expectEqual(@as(i32, 3), option_value);
+    try std.testing.expectEqualStrings("-5", option_rest);
+
+    var values = [_]i32{ 0, 0, 0, 0, 0 };
+    const rest = getOptions("3-5,8", values.len, &values);
+    try std.testing.expectEqualStrings("", rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 3, 4, 5, 8 }, &values);
+
+    var single_validate = [_]i32{0};
+    const single_validate_rest = getOptions("1-1", 0, &single_validate);
+    try std.testing.expectEqualStrings("", single_validate_rest);
+    try std.testing.expectEqual(@as(i32, 1), single_validate[0]);
+}
+
+test "getOptions expands negative ranges and negative upper bounds" {
+    var negative_values = [_]i32{ 0, 0, 0, 0, 0 };
+    const negative_rest = getOptions("-2-1", negative_values.len, &negative_values);
+    try std.testing.expectEqualStrings("", negative_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, -2, -1, 0, 1 }, &negative_values);
+
+    var negative_upper_values = [_]i32{ 0, 0, 0, 0 };
+    const negative_upper_rest = getOptions("-3--1", negative_upper_values.len, &negative_upper_values);
+    try std.testing.expectEqualStrings("", negative_upper_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, -3, -2, -1 }, &negative_upper_values);
+}
+
+test "getOption clears caller output on malformed signed and unsigned input" {
+    var hyphen_only: []const u8 = "-";
+    var hyphen_only_value: i32 = 99;
+    try std.testing.expectEqual(@as(u8, 0), getOption(&hyphen_only, &hyphen_only_value));
+    try std.testing.expectEqual(@as(i32, 0), hyphen_only_value);
+    try std.testing.expectEqualStrings("", hyphen_only);
+
+    var malformed_negative: []const u8 = "-x";
+    var malformed_negative_value: i32 = 99;
+    try std.testing.expectEqual(@as(u8, 0), getOption(&malformed_negative, &malformed_negative_value));
+    try std.testing.expectEqual(@as(i32, 0), malformed_negative_value);
+    try std.testing.expectEqualStrings("x", malformed_negative);
+
+    var malformed_unsigned: []const u8 = "x";
+    var malformed_unsigned_value: i32 = 99;
+    try std.testing.expectEqual(@as(u8, 0), getOption(&malformed_unsigned, &malformed_unsigned_value));
+    try std.testing.expectEqual(@as(i32, 0), malformed_unsigned_value);
+    try std.testing.expectEqualStrings("x", malformed_unsigned);
+
+    var plus: []const u8 = "+9,tail";
+    try std.testing.expectEqual(@as(u8, 0), getOption(&plus, null));
+    try std.testing.expectEqualStrings("+9,tail", plus);
+}
+
+test "getOption preserves incomplete hex-prefix and descending-range behavior" {
+    var incomplete_hex: []const u8 = "0x";
+    var incomplete_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&incomplete_hex, &incomplete_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), incomplete_hex_value);
+    try std.testing.expectEqualStrings("x", incomplete_hex);
+
+    var plus_hex_rest: []const u8 = "+0x";
+    var plus_hex_value: i32 = -1;
+    try std.testing.expectEqual(@as(u8, 0), getOption(&plus_hex_rest, &plus_hex_value));
+    try std.testing.expectEqual(@as(i32, 0), plus_hex_value);
+    try std.testing.expectEqualStrings("+0x", plus_hex_rest);
+
+    var descending = [_]i32{ 0, 0, 0, 0 };
+    const descending_rest = getOptions("4-2,9", descending.len, &descending);
+    try std.testing.expectEqualStrings("2,9", descending_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 0, 4, 0, 0 }, &descending);
+}
+
+test "getOption and getOptions preserve oversized wrap semantics" {
+    var positive: []const u8 = "2147483648";
+    var positive_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&positive, &positive_value));
+    try std.testing.expectEqual(@as(i32, -2147483648), positive_value);
+    try std.testing.expectEqualStrings("", positive);
+
+    var negative: []const u8 = "-2147483649";
+    var negative_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 1), getOption(&negative, &negative_value));
+    try std.testing.expectEqual(@as(i32, 2147483647), negative_value);
+    try std.testing.expectEqualStrings("", negative);
+
+    var full_values = [_]i32{ 0, 0, 0 };
+    const full_rest = getOptions("18446744073709551615,-18446744073709551615", full_values.len, &full_values);
+    try std.testing.expectEqualStrings("", full_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, -1, 1 }, &full_values);
+
+    var overflow_validate_only = [_]i32{0};
+    const overflow_validate_rest = getOptions("18446744073709551616,-18446744073709551616", 0, &overflow_validate_only);
+    try std.testing.expectEqualStrings("", overflow_validate_rest);
+    try std.testing.expectEqual(@as(i32, 2), overflow_validate_only[0]);
 }
 
 test "memparse handles decimal hexadecimal octal and suffixes" {
