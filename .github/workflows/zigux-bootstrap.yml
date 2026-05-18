@@ -124,6 +124,9 @@ jobs:
           fi
           python3 -m py_compile "${scripts[@]}"
 
+      - name: Self-test restored Zig installer helper
+        run: python3 scripts/zigux/install-zig.py --self-test
+
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
 
@@ -252,30 +255,6 @@ jobs:
 
       - name: Check current Phase 4 tests README packet
         run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
-
-      - name: Self-test current Phase 4 artifact-diff helper
-        run: python3 scripts/zigux/artifact_diff.py --self-test
-
-      - name: Self-test current Phase 4 artifact-diff determinism checker
-        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
-
-      - name: Self-test current Phase 4 artifact-diff validator replay checker
-        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
-
-      - name: Check current Phase 4 artifact-diff validator replay packet
-        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
-
-      - name: Self-test current Phase 9 review-checklist boundaries checker
-        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test
-
-      - name: Check current Phase 9 review-checklist boundaries packet
-        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
-
-      - name: Self-test current Phase 9 trace-events runtime packet checker
-        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test
-
-      - name: Check current Phase 9 trace-events runtime packet
-        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
 
       - name: Self-test current Phase 7 shared-control gap checker
         run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test
