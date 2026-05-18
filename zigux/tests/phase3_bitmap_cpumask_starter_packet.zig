@@ -155,6 +155,20 @@ test "bitmap starter helpers keep large bounded word counts predictable" {
     try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "bitmap starter helpers fail closed on non-empty views without backing storage" {
+    const invalid = binding.initBitmapView(0, 1, 1);
+    const summary = bitmap_view.summarize(invalid);
+
+    try testing.expect(!bitmap_view.isValid(invalid));
+    try testing.expect(!bitmap_view.testBit(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstSet(invalid));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstZero(invalid));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.weight(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap starter helpers fail closed on malformed views" {
     const invalid = binding.initBitmapView(0, bitmap_view.bits_per_word + 1, 1);
     const summary = bitmap_view.summarize(invalid);
@@ -334,6 +348,20 @@ test "cpumask starter helpers keep large bounded word counts predictable" {
     try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
+test "cpumask starter helpers fail closed on non-empty views without backing storage" {
+    const invalid = binding.initCpumaskView(0, 1, 1, 1);
+    const summary = cpumask_view.summarize(invalid);
+
+    try testing.expect(!cpumask_view.isValid(invalid));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid));
     try testing.expectEqual(@as(u32, 0), summary.first_set);
     try testing.expectEqual(@as(u32, 0), summary.first_zero);
     try testing.expectEqual(@as(u32, 0), summary.weight);
