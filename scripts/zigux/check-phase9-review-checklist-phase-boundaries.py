@@ -21,6 +21,7 @@ ROOT = infer_repo_root()
 DOCS_README_PATH = "Documentation/zigux/README.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
+MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
@@ -116,6 +117,10 @@ SAMPLES_README_REENTRY_DETAIL_MARKER = "balanced registration re-entry companion
 SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejections"
 SAMPLES_README_SUMMARY_STABILITY_MARKER = "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
 
+MODULE_SLICE_PHASE_BOUNDARY_HEADING = "Keep earlier-phase references in their own lanes:"
+MODULE_SLICE_PHASE2_BOUNDARY_MARKER = "remain Phase 2 references"
+MODULE_SLICE_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references."
+
 CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
     TRACE_EVENTS_PACKET_CHECKER_MARKER,
@@ -158,6 +163,23 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     LANE_SEQUENCING_HISTORICAL_VOCABULARY_MARKER,
     LANE_SEQUENCING_NOT_OWNER_EVIDENCE_MARKER,
     LANE_SEQUENCING_STALE_OVERCLAIM_BLOCKER_MARKER,
+]
+
+MODULE_SLICE_REQUIRED_MARKERS = [
+    TRACE_EVENTS_PACKET_CHECKER_MARKER,
+    TRACE_EVENTS_SAMPLE_MARKER,
+    UNREGISTERED_GATE_SAMPLE_MARKER,
+    REENTRY_GATE_SAMPLE_MARKER,
+    SELFTEST_HOOK_MARKER,
+    LIFECYCLE_MARKER,
+    ABSENT_SHARED_LOADER_MARKER,
+    PHASE2_CONF_BRIDGE_MARKER,
+    PHASE2_CONFDATA_BRIDGE_MARKER,
+    PHASE3_EXPORTS_MARKER,
+    PHASE3_EXPORT_SHIM_MARKER,
+    MODULE_SLICE_PHASE_BOUNDARY_HEADING,
+    MODULE_SLICE_PHASE2_BOUNDARY_MARKER,
+    MODULE_SLICE_PHASE3_BOUNDARY_MARKER,
 ]
 
 TESTS_README_REQUIRED_MARKERS = [
@@ -247,6 +269,7 @@ def validate(root: Path) -> list[str]:
     docs_readme_path = root / DOCS_README_PATH
     checklist_path = root / REVIEW_CHECKLIST_PATH
     lane_sequencing_path = root / LANE_SEQUENCING_PATH
+    module_slice_path = root / MODULE_SLICE_PATH
     tests_readme_path = root / TESTS_README_PATH
     scripts_readme_path = root / SCRIPTS_README_PATH
     samples_readme_path = root / SAMPLES_README_PATH
@@ -256,6 +279,8 @@ def validate(root: Path) -> list[str]:
         failures.append(f"missing_file:{REVIEW_CHECKLIST_PATH}")
     if not lane_sequencing_path.exists():
         failures.append(f"missing_file:{LANE_SEQUENCING_PATH}")
+    if not module_slice_path.exists():
+        failures.append(f"missing_file:{MODULE_SLICE_PATH}")
     if not tests_readme_path.exists():
         failures.append(f"missing_file:{TESTS_README_PATH}")
     if not scripts_readme_path.exists():
@@ -279,6 +304,11 @@ def validate(root: Path) -> list[str]:
     for marker in LANE_SEQUENCING_REQUIRED_MARKERS:
         if marker not in lane_sequencing:
             failures.append(f"missing_marker:{LANE_SEQUENCING_PATH}:{marker}")
+
+    module_slice = read_text(root, MODULE_SLICE_PATH)
+    for marker in MODULE_SLICE_REQUIRED_MARKERS:
+        if marker not in module_slice:
+            failures.append(f"missing_marker:{MODULE_SLICE_PATH}:{marker}")
 
     tests_readme = read_text(root, TESTS_README_PATH)
     for marker in TESTS_README_REQUIRED_MARKERS:
@@ -336,6 +366,15 @@ Current `master` {LANE_SEQUENCING_BACKLOG_MARKER} that earlier reminder surfaces
 """
 
 
+def build_module_slice_fixture_text() -> str:
+    return f"""# Phase 9 Runtime Trace-Events Module Slice
+
+Current `master` keeps a narrow direct trace-events runtime packet through {TRACE_EVENTS_SAMPLE_MARKER}, {UNREGISTERED_GATE_SAMPLE_MARKER}, {REENTRY_GATE_SAMPLE_MARKER}, and {TRACE_EVENTS_PACKET_CHECKER_MARKER}, with {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER} while current `master` {ABSENT_SHARED_LOADER_MARKER} that older Phase 9 reminder surfaces described.
+
+- {MODULE_SLICE_PHASE_BOUNDARY_HEADING} {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {MODULE_SLICE_PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {MODULE_SLICE_PHASE3_BOUNDARY_MARKER}
+"""
+
+
 def build_tests_readme_fixture_text() -> str:
     return f"""# zigux/tests
 
@@ -386,6 +425,7 @@ def seed_fixture_tree(base: Path) -> None:
     write_text(base / DOCS_README_PATH, build_docs_readme_fixture_text())
     write_text(base / REVIEW_CHECKLIST_PATH, build_fixture_text())
     write_text(base / LANE_SEQUENCING_PATH, build_lane_sequencing_fixture_text())
+    write_text(base / MODULE_SLICE_PATH, build_module_slice_fixture_text())
     write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
     write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text())
     write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
@@ -414,6 +454,11 @@ def run_self_test() -> int:
             write_text(base / LANE_SEQUENCING_PATH, build_lane_sequencing_fixture_text().replace(marker, ""))
             expect_failure(base, f"missing_marker:{LANE_SEQUENCING_PATH}:{marker}")
 
+        for marker in MODULE_SLICE_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            write_text(base / MODULE_SLICE_PATH, build_module_slice_fixture_text().replace(marker, ""))
+            expect_failure(base, f"missing_marker:{MODULE_SLICE_PATH}:{marker}")
+
         for marker in TESTS_README_REQUIRED_MARKERS:
             seed_fixture_tree(base)
             write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text().replace(marker, ""))
@@ -433,6 +478,7 @@ def run_self_test() -> int:
             DOCS_README_PATH,
             REVIEW_CHECKLIST_PATH,
             LANE_SEQUENCING_PATH,
+            MODULE_SLICE_PATH,
             TESTS_README_PATH,
             SCRIPTS_README_PATH,
             SAMPLES_README_PATH,
@@ -447,6 +493,7 @@ def run_self_test() -> int:
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_DOCS_README_MARKER_COUNT={len(DOCS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_MODULE_SLICE_MARKER_COUNT={len(MODULE_SLICE_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
@@ -455,7 +502,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, fail-closed companion, balanced registration re-entry companion, backlog posture, the older runtime-loader survey trio's historical-only status, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, fail-closed companion, balanced registration re-entry companion, backlog posture, the older runtime-loader survey trio's historical-only status, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
     )
     parser.add_argument(
         "--repo-root",
@@ -482,6 +529,7 @@ def main() -> int:
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_DOCS_README_MARKER_COUNT={len(DOCS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_CHECKLIST_MARKER_COUNT={len(CHECKLIST_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_MODULE_SLICE_MARKER_COUNT={len(MODULE_SLICE_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
