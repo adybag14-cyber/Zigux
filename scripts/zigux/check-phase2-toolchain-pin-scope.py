@@ -56,24 +56,42 @@ TOOLCHAIN_CHECKER_MARKERS = (
     "def load_pinned_channel(",
     "def iter_repo_local_zig_candidates(",
     "def resolve_zig_executable(",
-    'parser.add_argument("--policy-only"',
     "def is_executable_file(",
     "def normalize_explicit_archive_path(",
+    "def describe_invalid_explicit_archive_path(",
+    "def validate_policy_archive(",
+    'parser.add_argument("--policy-only"',
+    'parser.add_argument("--archive-only"',
+    'parser.add_argument("--archive-target"',
+    'add_search_root(parent / ".zig-toolchain")',
     "if not os.access(normalized, os.X_OK):",
     "if is_executable_file(candidate):",
+    "if path.name != expected_filename:",
+    'print(f"ZIG_TOOLCHAIN_ARCHIVE_EXPECTED_FILENAME={expected_filename}")',
+    'print(f"ZIG_TOOLCHAIN_ARCHIVE_ACTUAL_SHA256={actual_sha}")',
     "resolved = archive_path or normalize_explicit_archive_path(explicit_archive)",
     "return explicit_target, normalize_explicit_archive_path(explicit_archive) if explicit_archive is not None else None",
     'expect_raises(lambda: normalize_explicit_zig_path(str(nonexec_zig)), "explicit zig path is not executable")',
     'os.environ["HOME"] = str(root)',
     'resolve_policy_archive("~/archive-under-home.tar.xz", "x86_64-linux", root=root, policy_path=policy_path)',
     'explicit_archive="~/archive-under-home.tar.xz"',
+    'validate_policy_archive(renamed_archive_path, "x86_64-linux", policy_path=policy_path)',
+    'describe_invalid_explicit_archive_path(explicit_archive_dir)',
 )
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
 EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-EXPECTED_SELF_TEST_CASE_COUNT = 49
+EXPECTED_SELF_TEST_CASE_COUNT = (
+    1
+    + len(DOCS_ROOT_MARKERS)
+    + len(REVIEW_MARKERS)
+    + len(TESTS_MARKERS)
+    + len(TOOLCHAIN_CHECKER_MARKERS)
+    + 3
+    + 5
+)
 
 
 def read_text(path: Path) -> str:
