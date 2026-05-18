@@ -63,6 +63,51 @@ test "phase13 landlock ruleset keeps matched-rule replacement planning pre-rb_re
     try std.testing.expectEqual(@as(u32, 0x10), replacement.resulting_rule.layers[2].access);
 }
 
+test "phase13 landlock ruleset rejects matched insert branches without existing rule state" {
+    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{ 10, 99, 120 }, 6);
+
+    try std.testing.expectError(error.MissingExistingRule, ruleset.RulesetHelperLab.planInsertRuleBranch(
+        search_plan,
+        null,
+        &.{.{ .level = 5, .access = 0x10 }},
+    ));
+}
+
+test "phase13 landlock ruleset rejects unmatched insert branches with stray existing rule state" {
+    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.net_port, true, 50, &.{ 10, 30, 40 }, 7);
+    const existing = ruleset.RulePlan{
+        .num_layers = 1,
+        .layers = [_]ruleset.Layer{.{ .level = 0, .access = 0x3 }} ++
+            ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 1)),
+    };
+
+    try std.testing.expectError(error.UnexpectedExistingRule, ruleset.RulesetHelperLab.planInsertRuleBranch(
+        search_plan,
+        existing,
+        &.{.{ .level = 0, .access = 0x2 }},
+    ));
+}
+
+test "phase13 landlock ruleset rejects matched insert branches that try to merge multiple layers" {
+    const search_plan = try ruleset.RulesetHelperLab.planRuleTreeSearch(.inode, true, 99, &.{ 10, 99, 120 }, 6);
+    const existing = ruleset.RulePlan{
+        .num_layers = 2,
+        .layers = [_]ruleset.Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]ruleset.Layer{.{ .level = 0, .access = 0 }} ** (ruleset.max_num_layers - 2)),
+    };
+
+    try std.testing.expectError(error.MatchingRuleRequiresSingleLayer, ruleset.RulesetHelperLab.planInsertRuleBranch(
+        search_plan,
+        existing,
+        &.{
+            .{ .level = 5, .access = 0x10 },
+            .{ .level = 7, .access = 0x20 },
+        },
+    ));
+}
+
 test "phase13 landlock ruleset manifest records the bounded security helper packet" {
     try expectContains(manifest_text, "\"lane_key\": \"P13-Y03\"");
     try expectContains(manifest_text, "\"surveyed_commit\": \"master-readback-2026-05-16\"");
