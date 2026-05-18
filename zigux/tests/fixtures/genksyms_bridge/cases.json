@@ -69,9 +69,25 @@
     "expected": "missing_long_reference_argument_expected.json"
   },
   {
+    "name": "empty_inline_long_reference_argument",
+    "argv": [
+      "--reference="
+    ],
+    "mode": "process_json",
+    "expected": "missing_long_reference_argument_expected.json"
+  },
+  {
     "name": "missing_long_dump_types_argument",
     "argv": [
       "--dump-types"
+    ],
+    "mode": "process_json",
+    "expected": "missing_long_dump_types_argument_expected.json"
+  },
+  {
+    "name": "empty_inline_abbreviated_long_dump_types_argument",
+    "argv": [
+      "--dump-t="
     ],
     "mode": "process_json",
     "expected": "missing_long_dump_types_argument_expected.json"
