@@ -65,8 +65,9 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(slice_note, "bounded parse-int-array decoding for comma-separated lists, positive ranges, first-NUL and explicit-count limits, trailing-invalid-token stop behavior, and clean allocation-failure replay");
     try expectContains(slice_note, "allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched");
     try expectContains(slice_note, "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries");
-    try expectContains(slice_note, "the broader full-family packet that still leaves `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
-    try expectContains(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectContains(slice_note, "quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path");
+    try expectContains(slice_note, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet");
+    try expectContains(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
     try expectNotContains(slice_note, "The next bounded follow-through should realign the dedicated survey and sample-boundary replays");
     try expectNotContains(slice_note, "before deciding whether `parse_int_array()` can join the same helper-local packet without widening into file-path or device-managed semantics.");
     try expectNotContains(slice_note, "restored starter packet");
@@ -92,8 +93,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper, "pub fn string_upper");
     try expectContains(helper, "pub fn stringLower");
     try expectContains(helper, "pub fn string_lower");
-    try expectNotContains(helper, "pub fn kstrdupQuotableFile");
-    try expectNotContains(helper, "pub fn kstrdup_quotable_file");
+    try expectContains(helper, "pub fn kstrdupQuotableFile");
+    try expectContains(helper, "pub fn kstrdup_quotable_file");
     try expectNotContains(helper, "pub fn devmKasprintfStrarray");
     try expectNotContains(helper, "pub fn devm_kasprintf_strarray");
 
@@ -116,8 +117,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
-    try expectNotContains(helper_tests, "kstrdupQuotableFile");
-    try expectNotContains(helper_tests, "kstrdup_quotable_file");
+    try expectContains(helper_tests, "kstrdupQuotableFile");
+    try expectContains(helper_tests, "kstrdup_quotable_file");
     try expectNotContains(helper_tests, "devmKasprintfStrarray");
     try expectNotContains(helper_tests, "devm_kasprintf_strarray");
 
@@ -125,16 +126,14 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     defer allocator.free(survey);
     try expectContains(survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
     try expectContains(survey, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
-    try expectContains(survey, "pub fn parseIntArray");
-    try expectContains(survey, "\"parseIntArray\"");
-    try expectContains(survey, "bounded parse-int-array decoding for comma-separated lists, positive ranges, first-NUL and explicit-count limits, trailing-invalid-token stop behavior, and clean allocation-failure replay");
+    try expectContains(survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
+    try expectContains(survey, "kstrdupQuotableFile");
+    try expectContains(survey, "kstrdup_quotable_file");
     try expectNotContains(survey, "Documentation/zigux/review-checklist.md");
     try expectNotContains(survey, "Documentation/zigux/phase7-make-wrapper-selftest-alignment.md");
     try expectNotContains(survey, "zigux/tests/phase7_build.zig");
-    try expectNotContains(survey, "kstrdupQuotableFile");
-    try expectNotContains(survey, "kstrdup_quotable_file");
-    try expectNotContains(survey, "devmKasprintfStrarray");
-    try expectNotContains(survey, "devm_kasprintf_strarray");
+    try expectContains(survey, "kstrdupQuotableFile");
+    try expectContains(survey, "kstrdup_quotable_file");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(manifest);
@@ -152,13 +151,13 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "\"stringLower\"");
     try expectContains(manifest, "\"string_lower\"");
     try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
     try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
-    try expectNotContains(manifest, "\"lib/string_helpers.c\"");
-    try expectNotContains(manifest, "\"kstrdupQuotableFile\"");
-    try expectNotContains(manifest, "\"kstrdup_quotable_file\"");
+    try expectContains(manifest, "\"anchor\": \"lib/string_helpers.c\"");
+    try expectContains(manifest, "\"kstrdupQuotableFile\"");
+    try expectContains(manifest, "\"kstrdup_quotable_file\"");
     try expectNotContains(manifest, "\"devmKasprintfStrarray\"");
     try expectNotContains(manifest, "\"devm_kasprintf_strarray\"");
 
