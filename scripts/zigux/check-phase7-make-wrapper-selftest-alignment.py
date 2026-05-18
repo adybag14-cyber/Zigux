@@ -8,41 +8,48 @@ import tempfile
 
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
-CHECKER = Path("scripts/zigux/check-phase7-make-wrapper.py")
+
+ACTIVE_CHECKER = Path("scripts/zigux/check-phase7-shared-control-gap.py")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+PARKED_PATHS = (
+    "scripts/zigux/check-phase7-make-wrapper.py",
+    "scripts/zigux/validate-phase7.py",
+    "zigux/tests/phase7_build.zig",
+)
 
 REQUIRED_CHECKER_MARKERS = (
-    "EXPECTED_MAKE_EXPANSIONS = {",
-    '"phase7-validate": [',
-    '"phase7-test": [',
-    '"phase7": [',
-    'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")',
-    'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=17")',
-    'print(f"PHASE7_MAKE_WRAPPER_TARGET_COUNT={len(EXPECTED_MAKE_EXPANSIONS)}")',
+    "PARKED_SHARED_CONTROL_PATHS = [",
+    '"scripts/zigux/check-phase7-make-wrapper.py",',
+    '"scripts/zigux/validate-phase7.py",',
+    '"zigux/tests/phase7_build.zig",',
+    'print("PHASE7_SHARED_CONTROL_GAP_SELF_TEST=pass")',
+    'print(f"PHASE7_SHARED_CONTROL_GAP_SELF_TEST_CASE_COUNT={cases_run}")',
+    'print("PHASE7_SHARED_CONTROL_GAP=pass")',
 )
-REQUIRED_CHECKER_EXACT_COUNTS = {
-    '"phase7-validate": [': 1,
-    '"phase7-test": [': 1,
-    '"phase7": [': 1,
-    'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")': 1,
-    'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=17")': 1,
-    'print(f"PHASE7_MAKE_WRAPPER_TARGET_COUNT={len(EXPECTED_MAKE_EXPANSIONS)}")': 1,
-}
-REQUIRED_MAKEFILE_LINES = (
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
-)
+
 REQUIRED_WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test",
+    "run: python3 scripts/zigux/check-phase7-shared-control-gap.py",
+)
+
+FORBIDDEN_WORKFLOW_LINES = (
     "run: make -C zigux phase7-validate",
     "run: make -C zigux phase7-test",
-)
-FORBIDDEN_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test",
     "run: python3 scripts/zigux/check-phase7-make-wrapper.py",
+    "run: python3 scripts/zigux/validate-phase7.py --self-test",
+    "run: python3 scripts/zigux/validate-phase7.py",
     "run: zig build test --build-file zigux/tests/phase7_build.zig --summary all",
 )
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+
+FORBIDDEN_MAKEFILE_LINES = (
+    "phase7-validate:",
+    "phase7-test:",
+    "phase7:",
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = 13
 
 
 def read_text(path: Path) -> str:
@@ -58,7 +65,13 @@ def count_exact_lines(text: str, marker: str) -> int:
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    checker_text = read_text(root / CHECKER)
+
+    checker_path = root / ACTIVE_CHECKER
+    if not checker_path.is_file():
+        issues.append(("MISSING_ACTIVE_CHECKER", str(ACTIVE_CHECKER)))
+        return issues
+
+    checker_text = read_text(checker_path)
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
 
@@ -66,22 +79,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if marker not in checker_text:
             issues.append(("MISSING_CHECKER_MARKERS", marker))
 
-    for marker, expected_count in REQUIRED_CHECKER_EXACT_COUNTS.items():
-        count = checker_text.count(marker)
-        if count != expected_count:
-            issues.append(
-                (
-                    "DUPLICATE_CHECKER_MARKERS",
-                    f"{marker}:count={count}:expected={expected_count}",
-                )
-            )
-
-    for marker in REQUIRED_MAKEFILE_LINES:
-        count = count_exact_lines(makefile_text, marker)
-        if count == 0:
-            issues.append(("MISSING_MAKEFILE_HOOKS", marker))
-        elif count != 1:
-            issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
+    for rel in PARKED_PATHS:
+        if (root / rel).exists():
+            issues.append(("UNEXPECTED_REMATERIALIZED_PATHS", rel))
 
     for marker in REQUIRED_WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -93,6 +93,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in FORBIDDEN_WORKFLOW_LINES:
         if count_exact_lines(workflow_text, marker):
             issues.append(("FORBIDDEN_WORKFLOW_HOOKS", marker))
+
+    for marker in FORBIDDEN_MAKEFILE_LINES:
+        if count_exact_lines(makefile_text, marker):
+            issues.append(("FORBIDDEN_MAKEFILE_LINES", marker))
 
     return issues
 
@@ -125,39 +129,17 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
 def build_self_test_root(root: Path) -> None:
     write_text(
-        root / CHECKER,
-        "\n".join(
-            (
-                "EXPECTED_MAKE_EXPANSIONS = {",
-                '    "phase7-validate": [',
-                '    "phase7-test": [',
-                '    "phase7": [',
-                "}",
-                'print("PHASE7_MAKE_WRAPPER_SELF_TEST=pass")',
-                'print("PHASE7_MAKE_WRAPPER_SELF_TEST_CASE_COUNT=17")',
-                'print(f"PHASE7_MAKE_WRAPPER_TARGET_COUNT={len(EXPECTED_MAKE_EXPANSIONS)}")',
-                "",
-            )
-        ),
+        root / ACTIVE_CHECKER,
+        "\n".join(REQUIRED_CHECKER_MARKERS) + "\n",
     )
     write_text(
         root / MAKEFILE,
         "\n".join(
             (
-                "phase7-validate:",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py --self-test",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase7-make-wrapper.py",
+                "phase2-validate:",
+                "\tpython3 scripts/zigux/validate-phase2.py",
                 "",
             )
         ),
@@ -169,10 +151,10 @@ def build_self_test_root(root: Path) -> None:
                 "jobs:",
                 "  bootstrap:",
                 "    steps:",
-                "      - name: Validate Phase 7 runtime helper gates",
-                "        run: make -C zigux phase7-validate",
-                "      - name: Run Phase 7 runtime helper tests",
-                "        run: make -C zigux phase7-test",
+                "      - name: Self-test current Phase 7 shared-control gap checker",
+                "        run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test",
+                "      - name: Check current Phase 7 shared-control gap packet",
+                "        run: python3 scripts/zigux/check-phase7-shared-control-gap.py",
                 "",
             )
         ),
@@ -187,60 +169,13 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
 
         build_self_test_root(root)
-        path = root / CHECKER
+        path = root / ACTIVE_CHECKER
         path.write_text(
             path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[4], "", 1),
             encoding="utf-8",
         )
         issues = collect_issues(root)
         assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[4]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / CHECKER
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[5], "", 1),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[5]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / CHECKER
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(
-                REQUIRED_CHECKER_MARKERS[3],
-                REQUIRED_CHECKER_MARKERS[3] + "\n" + REQUIRED_CHECKER_MARKERS[3],
-                1,
-            ),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert (
-            "DUPLICATE_CHECKER_MARKERS",
-            f'{REQUIRED_CHECKER_MARKERS[3]}:count=2:expected=1',
-        ) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / MAKEFILE
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[0], "\ttrue"),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_MAKEFILE_HOOKS", REQUIRED_MAKEFILE_LINES[0]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / MAKEFILE
-        path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_MAKEFILE_LINES[1]),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("DUPLICATE_MAKEFILE_HOOKS", f"{REQUIRED_MAKEFILE_LINES[1]}:count=2") in issues
         cases += 1
 
         build_self_test_root(root)
@@ -256,43 +191,39 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = root / WORKFLOW
         path.write_text(
-            duplicate_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1]),
+            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1], "        run: true"),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("DUPLICATE_WORKFLOW_HOOKS", f"{REQUIRED_WORKFLOW_LINES[1]}:count=2") in issues
+        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[1]) in issues
+        cases += 1
+
+        for marker in FORBIDDEN_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = root / WORKFLOW
+            path.write_text(path.read_text(encoding="utf-8") + f"        {marker}\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_WORKFLOW_HOOKS", marker) in issues
+            cases += 1
+
+        build_self_test_root(root)
+        path = root / MAKEFILE
+        path.write_text(path.read_text(encoding="utf-8") + "phase7-validate:\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("FORBIDDEN_MAKEFILE_LINES", "phase7-validate:") in issues
         cases += 1
 
         build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "        run: python3 scripts/zigux/check-phase7-make-wrapper.py --self-test\n",
-            encoding="utf-8",
-        )
+        parked_path = root / PARKED_PATHS[0]
+        write_text(parked_path, "# stale parked path returned\n")
         issues = collect_issues(root)
-        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[0]) in issues
+        assert ("UNEXPECTED_REMATERIALIZED_PATHS", PARKED_PATHS[0]) in issues
         cases += 1
 
         build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            path.read_text(encoding="utf-8")
-            + "        run: zig build test --build-file zigux/tests/phase7_build.zig --summary all\n",
-            encoding="utf-8",
-        )
+        (root / ACTIVE_CHECKER).unlink()
         issues = collect_issues(root)
-        assert ("FORBIDDEN_WORKFLOW_HOOKS", FORBIDDEN_WORKFLOW_LINES[2]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / CHECKER
-        path.write_text(
-            path.read_text(encoding="utf-8").replace(REQUIRED_CHECKER_MARKERS[6], "", 1),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[6]) in issues
+        assert ("MISSING_ACTIVE_CHECKER", str(ACTIVE_CHECKER)) in issues
         cases += 1
 
     assert cases == EXPECTED_SELF_TEST_CASE_COUNT
@@ -303,7 +234,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 7 make-wrapper self-test surface stays centralized in the shared make route."
+        description="Check that the parked Phase 7 make-wrapper posture stays aligned with the live shared-control checker."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
@@ -317,9 +248,9 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT=pass")
-    print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_CHECKER_MARKER_COUNT={len(REQUIRED_CHECKER_MARKERS)}")
-    print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
+    print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_PARKED_PATH_COUNT={len(PARKED_PATHS)}")
     print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE7_MAKE_WRAPPER_SELFTEST_ALIGNMENT_FORBIDDEN_WORKFLOW_HOOK_COUNT={len(FORBIDDEN_WORKFLOW_LINES)}")
     return 0
 
 
