@@ -119,6 +119,18 @@ test "software hweight helpers compose across smaller helper widths" {
     }
 }
 
+test "Linux-style hweight aliases preserve helper-width boundaries" {
+    try std.testing.expectEqual(@as(u32, 0), __sw_hweight8(0x100));
+    try std.testing.expectEqual(@as(u32, 8), __sw_hweight8(0x1ff));
+    try std.testing.expectEqual(@as(u32, 0), __sw_hweight16(0x1_0000));
+    try std.testing.expectEqual(@as(u32, 16), __sw_hweight16(0x1_ffff));
+    try std.testing.expectEqual(@as(u32, 32), __sw_hweight32(0xffff_ffff));
+    try std.testing.expectEqual(@as(u64, 64), __sw_hweight64(0xffff_ffff_ffff_ffff));
+
+    const long_value: usize = if (@sizeOf(usize) == 4) 0x8000_0001 else 0x8000_0000_0000_0001;
+    try std.testing.expectEqual(@as(usize, @popCount(long_value)), hweight_long(long_value));
+}
+
 test "Linux-style hweight aliases mirror the primary helper surface" {
     try std.testing.expectEqual(swHweight8(0xf0), __sw_hweight8(0xf0));
     try std.testing.expectEqual(swHweight16(0xf0f0), __sw_hweight16(0xf0f0));
