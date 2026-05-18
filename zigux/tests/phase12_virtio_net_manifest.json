@@ -1,8 +1,8 @@
 {
-  "lane_key": "P12-L04",
+  "lane_key": "P12-L02",
   "phase": "Phase 12",
-  "surveyed_commit": "bb423a0308879c18054c720bbccb67a3de3e0951",
-  "verified_on": "2026-05-15",
+  "surveyed_commit": "b53ec2bd507d0b3283486e76acc273b184ad5bf8",
+  "verified_on": "2026-05-18",
   "anchor": "drivers/net/virtio_net.c",
   "roadmap_destinations": [
     "drivers/net/virtio_net.zig",
@@ -30,20 +30,20 @@
     },
     "queueing_correctness": {
       "required_by_roadmap": true,
-      "status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_and_transmit_recycle_present_direct_gate_present_shared_smoke_present",
-      "current_surface": "The driver-local starter, bounded queue-topology summary, bounded receive-refill summary, bounded control-queue recovery planner, bounded control-queue payload-shaping planner, bounded transmit-recycle summary, direct tests, dedicated survey gate, dedicated syntax lab, and shared `phase12_build.zig` smoke route are all present on current master.",
+      "status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_and_post_reset_replay_present_direct_gate_present_shared_smoke_present",
+      "current_surface": "The driver-local starter, bounded queue-topology summary, bounded receive-refill summary, bounded control-queue recovery planner, bounded control-queue payload-shaping planner, bounded transmit-recycle summary, bounded post-reset replay summary, direct tests, dedicated survey gate, and dedicated syntax lab are all present on current master.",
       "blocked_by": "Control-queue payload execution, runtime queue execution, and interrupt-backed transmit completion handling still need later follow-up packets before broader queueing correctness can be treated as landed."
     },
     "throughput_and_recovery_parity": {
       "required_by_roadmap": true,
-      "status": "starter_control_queue_payload_shape_refill_and_transmit_recycle_present_throughput_gate_missing",
-      "current_surface": "The current starter now proves bounded probe fallback, queue-topology summary, mergeable receive-buffer planning, receive-refill summary, control-queue recovery sequencing, control-queue payload shaping, queue-reset recovery planning, and transmit-recycle disposition reviewability that remembers wake-threshold behavior without claiming live transport execution.",
-      "blocked_by": "Throughput parity, post-restore replay, live queue execution, and interrupt-backed transmit completion handling remain outside the current starter."
+      "status": "starter_control_queue_payload_shape_refill_transmit_recycle_and_post_reset_replay_present_runtime_completion_missing",
+      "current_surface": "The current starter now proves bounded probe fallback, queue-topology summary, mergeable receive-buffer planning, receive-refill summary, control-queue recovery sequencing, control-queue payload shaping, queue-reset recovery planning, transmit-recycle disposition reviewability, and post-reset replay checkpointing without claiming live transport execution.",
+      "blocked_by": "Live queue execution, transport-backed throughput evidence, and interrupt-backed transmit completion handling remain outside the current starter."
     },
     "segmented_rollout": {
       "required_by_roadmap": true,
-      "status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_direct_lab_present_shared_route_present",
-      "current_surface": "The survey note, survey gate, driver-local starter, direct test, transmit-recycle replay, dedicated syntax lab, control-queue recovery follow-up, control-queue payload-shaping follow-up, queue-recovery follow-up, refill-order follow-up, and shared Phase 12 smoke and test routes are present on current master.",
+      "status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_post_reset_replay_direct_lab_present_shared_route_present",
+      "current_surface": "The survey note, survey gate, driver-local starter, direct test, post-reset replay test, transmit-recycle replay, dedicated syntax lab, control-queue recovery follow-up, control-queue payload-shaping follow-up, queue-recovery follow-up, refill-order follow-up, and shared Phase 12 smoke route are present on current master.",
       "blocked_by": "A later follow-up still needs runtime queue execution and throughput evidence before this packet can widen into the broader complex-driver validation bundle."
     }
   },
@@ -53,7 +53,7 @@
       "status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_build.zig",
-      "why_now": "The shared Phase 12 build route now carries the direct `virtio_net` syntax-lab smoke shard plus the dedicated `virtio_net_transmit_recycle` replay alongside the shipped `virtio_scsi` packet."
+      "why_now": "The shared Phase 12 build route keeps the direct `virtio_net` syntax-lab smoke shard plus the dedicated `virtio_net_transmit_recycle` replay beside the shipped `virtio_scsi` packet."
     },
     {
       "id": "phase12-make-target",
@@ -67,14 +67,14 @@
       "status": "survey_present",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase12_virtio_net_survey.zig",
-      "why_now": "The dedicated survey gate keeps the bounded starter, transmit-recycle follow-up, control-queue recovery follow-up, control-queue payload-shaping follow-up, queue-recovery planner, refill-order follow-up, syntax-lab presence, and blocked runtime-data-path boundary explicit."
+      "why_now": "The dedicated survey gate keeps the bounded starter, post-reset replay follow-up, transmit-recycle follow-up, control-queue recovery follow-up, control-queue payload-shaping follow-up, queue-recovery planner, refill-order follow-up, syntax-lab presence, and blocked runtime-data-path boundary explicit."
     },
     {
       "id": "phase12-virtio-net-survey-note",
       "status": "survey_present",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase12-virtio-net-survey.md",
-      "why_now": "The survey note records the same bounded transmit-recycle follow-up, control-queue recovery follow-up, control-queue payload-shaping follow-up, queue-recovery starter, refill-order follow-up, and still-blocked runtime boundary."
+      "why_now": "The survey note records the same bounded post-reset replay follow-up, transmit-recycle follow-up, control-queue recovery follow-up, control-queue payload-shaping follow-up, queue-recovery starter, refill-order follow-up, and still-blocked runtime boundary."
     },
     {
       "id": "phase12-virtio-net-syntax-lab-gate",
@@ -131,6 +131,13 @@
       "kind": "complex_driver_followup",
       "zigux_destination": "drivers/net/virtio_net_transmit_recycle.zig",
       "why_now": "Current master now carries a bounded transmit-recycle summary that keeps completed-descriptor freeing, wake-threshold checks, and stopped-versus-running transmit-queue disposition reviewable without claiming live interrupt-backed transmit completion handling."
+    },
+    {
+      "id": "phase12-virtio-net-post-reset-replay-followup",
+      "status": "landed_on_master",
+      "kind": "complex_driver_followup",
+      "zigux_destination": "drivers/net/virtio_net_post_reset_replay.zig",
+      "why_now": "Current master now carries a bounded post-reset replay summary that keeps control-queue restore, receive-refill replay, transmit-recycle readiness, and probe-snapshot refresh checkpoints reviewable before queue resume without claiming runtime queue execution."
     },
     {
       "id": "phase12-virtio-net-runtime-data-path",
