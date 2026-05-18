@@ -306,6 +306,9 @@ jobs:
       - name: Run current Phase 9 registration reentry companion tests
         run: zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig
 
+      - name: Run current Phase 9 trace-events survey witness
+        run: zig test zigux/tests/runtime_trace_events_survey.zig
+
       - name: Self-test current Phase 7 shared-control gap checker
         run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test
 
