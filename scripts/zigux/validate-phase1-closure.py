@@ -283,6 +283,7 @@ EXPECTED_STRING_PACKET = {
         'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
         'test "strreplace mirrors replaceChar C-string semantics"',
         'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+        'test "strHasSuffix returns the matched suffix length with C-string semantics"',
         'test "strstarts mirrors the header-level prefix helper"',
         'test "strEndsWith honors C-string boundaries"',
         'test "kbasename returns the final path component with C-string semantics"',
@@ -329,6 +330,7 @@ EXPECTED_STRING_PACKET = {
     ),
     "prefix_suffix_review_anchors": [
         'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+        'test "strHasSuffix returns the matched suffix length with C-string semantics"',
         'test "strstarts mirrors the header-level prefix helper"',
         'test "strEndsWith honors C-string boundaries"',
     ],
@@ -336,8 +338,8 @@ EXPECTED_STRING_PACKET = {
         "helper-local prefix and suffix boundary anchors stay explicit through the direct string "
         "tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity "
         "rather than dedicated prefix or suffix fixture fields, so strHasPrefix and str_has_prefix "
-        "plus strstarts plus strEndsWith and str_ends_with plus strends remain review-visible at "
-        "the helper surface"
+        "plus strHasSuffix and str_has_suffix plus strstarts plus strEndsWith and str_ends_with "
+        "plus strends remain review-visible at the helper surface"
     ),
     "sysfs_review_anchors": [
         'test "sysfsStreq treats trailing newline and NUL as equivalent"',
