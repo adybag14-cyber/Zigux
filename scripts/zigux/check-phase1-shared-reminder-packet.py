@@ -72,6 +72,14 @@ MARKERS = {
     ),
     "zigux/tests/build.zig": (
         'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
+        'const slab_module = b.createModule(.{',
+        'const str_error_r_module = b.createModule(.{',
+        'const vsprintf_module = b.createModule(.{',
+        'const zalloc_module = b.createModule(.{',
+        'root_module.addImport("slab", slab_module);',
+        'root_module.addImport("str_error_r", str_error_r_module);',
+        'root_module.addImport("vsprintf", vsprintf_module);',
+        'root_module.addImport("zalloc", zalloc_module);',
         '.name = "phase1-host-tools-smoke",',
     ),
     "zigux/tests/fixtures/phase1_helper_manifest.json": (
@@ -81,7 +89,15 @@ MARKERS = {
     ),
     "zigux/tests/phase1_host_tools_smoke.zig": (
         'const argv_split = @import("argv_split");',
+        'const slab = @import("slab");',
+        'const str_error_r = @import("str_error_r");',
+        'const vsprintf = @import("vsprintf");',
+        'const zalloc = @import("zalloc");',
         'try std.testing.expect(@hasDecl(bitmap, "setRange"));',
+        'try std.testing.expect(@hasDecl(slab, "kmallocBytes"));',
+        'try std.testing.expect(@hasDecl(str_error_r, "strErrorR"));',
+        'try std.testing.expect(@hasDecl(vsprintf, "scnprintf"));',
+        'try std.testing.expect(@hasDecl(zalloc, "zallocBytes"));',
     ),
     ".github/workflows/zigux-bootstrap.yml": (
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
@@ -257,6 +273,38 @@ def run_self_test() -> int:
                 root,
                 ".github/workflows/zigux-bootstrap.yml",
                 MARKERS[".github/workflows/zigux-bootstrap.yml"][0],
+            ),
+        ),
+        (
+            "missing_phase1_build_slab_module",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][1],
+            ),
+        ),
+        (
+            "missing_phase1_build_zalloc_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][8],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_slab_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][1],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_zalloc_decl",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][9],
             ),
         ),
         (
