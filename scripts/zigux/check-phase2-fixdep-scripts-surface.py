@@ -7,62 +7,31 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
-PHASE2_BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
-PHASE2_CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
-TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+FIXDEP_C = ROOT / "scripts" / "basic" / "fixdep.c"
+FIXDEP_ZIG = ROOT / "scripts" / "zigux" / "fixdep.zig"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
-
-SCRIPTS_README_MARKERS = (
-    "`check-phase2-fixdep-gate.py --self-test` plus `check-phase2-fixdep-gate.py`, "
-    "`check-fixdep-diff.py --self-test` plus `check-fixdep-diff.py`, and the direct "
-    "`zig test scripts/zigux/fixdep.zig` replay keep the dedicated fixdep slice explicit here",
-    "`zigux/tests/fixtures/fixdep/cases.json`",
-    "`Documentation/zigux/artifact-diff.md`",
-    "`Documentation/zigux/phase2-closure.md`",
-    "`zigux/tests/README.md`",
-    "`zigux/Makefile`",
-    "`.github/workflows/zigux-bootstrap.yml`",
+FIXDEP_FIXTURES = (
+    ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "sample_dependency_continuation.d",
+    ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "sample_dependency_continuation_expected.txt",
+    ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "sample_escaped_colon.d",
+    ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "sample_escaped_colon_expected.txt",
+    ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "sample_escaped_space.d",
+    ROOT / "zigux" / "tests" / "fixtures" / "fixdep" / "sample_escaped_space_expected.txt",
 )
 
-PHASE2_BOOTSTRAP_NOTES_MARKERS = (
-    "the broader fixdep, genksyms, artifact-tools, and manifest packet should stay documented "
-    "through `Documentation/zigux/phase2-closure.md`, `zigux/tests/README.md`, and "
-    "`zigux/Makefile` instead of restating the full broader checker inventory in this dedicated "
-    "pin-scope note",
-    "the active Phase 2 closure note and Makefile keep the validator-routed direct "
-    "`zig test scripts/zigux/fixdep.zig`, `zig test scripts/zigux/genksyms.zig`, `zig test "
-    "scripts/zigux/kconfig/conf_bridge.zig`, and `zig test scripts/zigux/kconfig/confdata_bridge.zig` "
-    "replays explicit beside the same bounded Phase 2 tools and kconfig routes, while "
-    "`zigux/tests/README.md` keeps the corresponding fixdep, genksyms bridge, and kconfig "
-    "manifest packet reviewable without restating every direct tests-root replay command",
-)
-
-PHASE2_CLOSURE_DOC_MARKERS = (
-    "shared fixdep diff gate: `python3 scripts/zigux/check-fixdep-diff.py`",
-    "zig test scripts/zigux/fixdep.zig",
-)
-
-TESTS_README_MARKERS = (
-    "scripts/zigux/check-phase2-fixdep-gate.py",
-    "scripts/zigux/check-fixdep-diff.py",
-    "zig test scripts/zigux/fixdep.zig",
-)
-
-WORKFLOW_MARKERS = (
-    "      - name: Self-test Phase 2 fixdep gate checker\n"
-    "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-    "      - name: Check Phase 2 fixdep gate packet\n"
-    "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
-    "      - name: Self-test Phase 2 fixdep diff checker\n"
-    "        run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
-    "      - name: Check Phase 2 fixdep diff packet\n"
-    "        run: python3 scripts/zigux/check-fixdep-diff.py",
-    "      - name: Run Phase 2 fixdep unit tests\n"
+WORKFLOW_REQUIRED_MARKERS = (
+    "      - name: Self-test current Phase 2 fixdep scripts-surface checker\n"
+    "        run: python3 scripts/zigux/check-phase2-fixdep-scripts-surface.py --self-test",
+    "      - name: Check current Phase 2 fixdep scripts-surface packet\n"
+    "        run: python3 scripts/zigux/check-phase2-fixdep-scripts-surface.py",
+    "      - name: Run current Phase 2 fixdep direct replay\n"
     "        run: zig test scripts/zigux/fixdep.zig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+WORKFLOW_FORBIDDEN_MARKERS = (
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "python3 scripts/zigux/check-fixdep-diff.py",
+)
 
 
 def read_text(path: Path) -> str:
@@ -72,61 +41,25 @@ def read_text(path: Path) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
-
 def resolve_path(root: Path, path: Path) -> Path:
-    try:
-        return root / path.relative_to(ROOT)
-    except ValueError:
-        return root / path
-
-
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
+    return root / path.relative_to(ROOT)
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
-    bootstrap_notes_text = read_text(resolve_path(root, PHASE2_BOOTSTRAP_NOTES))
-    closure_doc_text = read_text(resolve_path(root, PHASE2_CLOSURE_DOC))
-    tests_readme_text = read_text(resolve_path(root, TESTS_README))
-    workflow_text = read_text(resolve_path(root, WORKFLOW))
 
-    issues.extend(
-        collect_missing_markers(
-            scripts_readme_text,
-            SCRIPTS_README_MARKERS,
-            "MISSING_SCRIPTS_README_MARKERS",
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            bootstrap_notes_text,
-            PHASE2_BOOTSTRAP_NOTES_MARKERS,
-            "MISSING_BOOTSTRAP_NOTES_MARKERS",
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            closure_doc_text,
-            PHASE2_CLOSURE_DOC_MARKERS,
-            "MISSING_CLOSURE_DOC_MARKERS",
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            tests_readme_text,
-            TESTS_README_MARKERS,
-            "MISSING_TESTS_README_MARKERS",
-        )
-    )
-    issues.extend(
-        collect_missing_markers(
-            workflow_text,
-            WORKFLOW_MARKERS,
-            "MISSING_WORKFLOW_MARKERS",
-        )
-    )
+    for path in (FIXDEP_C, FIXDEP_ZIG, *FIXDEP_FIXTURES):
+        if not resolve_path(root, path).exists():
+            issues.append(("MISSING_REQUIRED_PATH", str(path.relative_to(ROOT))))
+
+    workflow_text = read_text(resolve_path(root, WORKFLOW))
+    for marker in WORKFLOW_REQUIRED_MARKERS:
+        if marker not in workflow_text:
+            issues.append(("MISSING_WORKFLOW_MARKER", marker))
+    for marker in WORKFLOW_FORBIDDEN_MARKERS:
+        if marker in workflow_text:
+            issues.append(("STALE_WORKFLOW_MARKER", marker))
+
     return issues
 
 
@@ -150,24 +83,14 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
-    write_text(
-        resolve_path(root, PHASE2_BOOTSTRAP_NOTES),
-        "\n".join(PHASE2_BOOTSTRAP_NOTES_MARKERS) + "\n",
-    )
-    write_text(resolve_path(root, PHASE2_CLOSURE_DOC), "\n".join(PHASE2_CLOSURE_DOC_MARKERS) + "\n")
-    write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
-    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_MARKERS) + "\n")
-
-
-def replace_once(text: str, marker: str, replacement: str) -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
+    for path in (FIXDEP_C, FIXDEP_ZIG, *FIXDEP_FIXTURES):
+        write_text(resolve_path(root, path), "# present\n")
+    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_REQUIRED_MARKERS) + "\n")
 
 
 def run_self_test() -> int:
     checks_run = 0
+    expected_case_count = 1 + 2 + len(FIXDEP_FIXTURES) + len(WORKFLOW_REQUIRED_MARKERS) + len(WORKFLOW_FORBIDDEN_MARKERS) + 1
     with tempfile.TemporaryDirectory(prefix="zigux_p2_fixdep_scripts_surface_") as tmp_dir:
         root = Path(tmp_dir)
 
@@ -175,79 +98,46 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for marker in SCRIPTS_README_MARKERS:
+        for path in (FIXDEP_C, FIXDEP_ZIG, *FIXDEP_FIXTURES):
             build_self_test_root(root)
-            path = resolve_path(root, SCRIPTS_README)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
+            resolve_path(root, path).unlink()
+            issues = collect_issues(root)
+            assert ("MISSING_REQUIRED_PATH", str(path.relative_to(ROOT))) in issues
+            checks_run += 1
+
+        for marker in WORKFLOW_REQUIRED_MARKERS:
+            build_self_test_root(root)
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(
+                workflow_path.read_text(encoding="utf-8").replace(marker, "", 1),
                 encoding="utf-8",
             )
             issues = collect_issues(root)
-            assert ("MISSING_SCRIPTS_README_MARKERS", marker) in issues
+            assert ("MISSING_WORKFLOW_MARKER", marker) in issues
             checks_run += 1
 
-        for marker in PHASE2_BOOTSTRAP_NOTES_MARKERS:
+        for marker in WORKFLOW_FORBIDDEN_MARKERS:
             build_self_test_root(root)
-            path = resolve_path(root, PHASE2_BOOTSTRAP_NOTES)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(
+                workflow_path.read_text(encoding="utf-8") + marker + "\n",
                 encoding="utf-8",
             )
             issues = collect_issues(root)
-            assert ("MISSING_BOOTSTRAP_NOTES_MARKERS", marker) in issues
+            assert ("STALE_WORKFLOW_MARKER", marker) in issues
             checks_run += 1
 
-        for marker in PHASE2_CLOSURE_DOC_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, PHASE2_CLOSURE_DOC)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_CLOSURE_DOC_MARKERS", marker) in issues
+        build_self_test_root(root)
+        resolve_path(root, WORKFLOW).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
             checks_run += 1
+        else:
+            raise AssertionError("missing workflow did not abort")
 
-        for marker in TESTS_README_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, TESTS_README)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_TESTS_README_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in WORKFLOW_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, WORKFLOW)
-            path.write_text(
-                replace_once(path.read_text(encoding="utf-8"), marker, ""),
-                encoding="utf-8",
-            )
-            issues = collect_issues(root)
-            assert ("MISSING_WORKFLOW_MARKERS", marker) in issues
-            checks_run += 1
-
-        for rel_path in (
-            SCRIPTS_README,
-            PHASE2_BOOTSTRAP_NOTES,
-            PHASE2_CLOSURE_DOC,
-            TESTS_README,
-            WORKFLOW,
-        ):
-            build_self_test_root(root)
-            resolve_path(root, rel_path).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                checks_run += 1
-            else:
-                raise AssertionError(f"missing file did not abort: {rel_path}")
-
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+    assert checks_run == expected_case_count
     print("PHASE2_FIXDEP_SCRIPTS_SURFACE_SELF_TEST=pass")
     print(f"PHASE2_FIXDEP_SCRIPTS_SURFACE_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
@@ -255,7 +145,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the shared Phase 2 fixdep scripts-facing packet stays aligned with the current reminder surfaces."
+        description="Check that the current Phase 2 fixdep workflow and file packet stay aligned with the live repo surface."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
@@ -269,11 +159,8 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_FIXDEP_SCRIPTS_SURFACE=pass")
-    print(f"PHASE2_FIXDEP_SCRIPTS_SURFACE_SCRIPTS_MARKER_COUNT={len(SCRIPTS_README_MARKERS)}")
-    print(
-        "PHASE2_FIXDEP_SCRIPTS_SURFACE_SHARED_MARKER_COUNT="
-        f"{len(PHASE2_BOOTSTRAP_NOTES_MARKERS) + len(PHASE2_CLOSURE_DOC_MARKERS) + len(TESTS_README_MARKERS) + len(WORKFLOW_MARKERS)}"
-    )
+    print(f"PHASE2_FIXDEP_SCRIPTS_SURFACE_REQUIRED_PATH_COUNT={2 + len(FIXDEP_FIXTURES)}")
+    print(f"PHASE2_FIXDEP_SCRIPTS_SURFACE_REQUIRED_WORKFLOW_COUNT={len(WORKFLOW_REQUIRED_MARKERS)}")
     return 0
 
 
