@@ -121,13 +121,13 @@ fn clampSignedMagnitude(magnitude: u64, negative: bool) u64 {
 
 fn skipLeadingSpaces(text: []const u8, start: usize) usize {
     var idx = start;
-    while (idx < text.len and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
+    while (idx < text.len and text[idx] != 0 and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
     return idx;
 }
 
 pub fn nextArg(args: []const u8) ?NextArgResult {
     const start = skipLeadingSpaces(args, 0);
-    if (start >= args.len) {
+    if (start >= args.len or args[start] == 0) {
         return null;
     }
 
@@ -332,4 +332,9 @@ test "nextArg stops at the first embedded NUL byte" {
     try std.testing.expectEqualStrings("", parsed.remaining);
 
     try std.testing.expect(nextArg(parsed.remaining) == null);
+}
+
+test "nextArg treats a leading or post-space NUL as end of input" {
+    try std.testing.expect(nextArg("\x00panic=-1") == null);
+    try std.testing.expect(nextArg(" \t\x00panic=-1") == null);
 }
