@@ -51,7 +51,6 @@
     ]
   },
   "repo_reality_gaps": [
-    "scripts/zigux/validate-phase2.py",
     "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/check-phase2-cross.py",
