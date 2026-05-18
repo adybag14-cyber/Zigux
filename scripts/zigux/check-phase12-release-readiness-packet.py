@@ -93,14 +93,14 @@ REQUIRED_MARKERS = {
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "validator-first support route: `scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`",
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "validator-first support route: `scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`",
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.",
-        "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the shipped `phase12-validate` support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.",
+        "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the directly readable validator-side support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.",
@@ -126,7 +126,7 @@ REQUIRED_EXACT_COUNT_MARKERS = {
         "`Documentation/zigux/phase12-release-coordination-matrix.md`": 1,
     },
     RELEASE_COORDINATION_MATRIX_PATH: {
-        "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the shipped `phase12-validate` support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.": 1,
+        "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the directly readable validator-side support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.": 1,
     },
     RAW_GITHUB_COVERAGE_SURVEY_PATH: {
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.": 1,
@@ -232,7 +232,7 @@ def duplicate_marker(path: Path, marker: str) -> None:
 
 def expect_marker_failure(root: Path, rel_path: str, marker_index: int) -> None:
     marker = REQUIRED_MARKERS[rel_path][marker_index]
-    write_fixture_tree(root)
+    write_fixtureTree(root)
     remove_marker(root / rel_path, marker)
     expect_failure(root, f"{rel_path}:{marker}")
 
