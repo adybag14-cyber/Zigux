@@ -318,7 +318,18 @@ test "abi binding chrdev structs keep the published layout" {
     try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"));
 }
 
-test "abi binding notifier helpers keep monotonic chains empty" {
+test "abi binding notifier block keeps the published layout" {
+    const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
+    const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
+    try std.testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
+}
+
+test "abi binding notifier helper matches the dedicated notifier binding" {
     const third = NotifierBlock{
         .notifier_call = 0,
         .next = 0,
@@ -335,17 +346,89 @@ test "abi binding notifier helpers keep monotonic chains empty" {
         .priority = 5,
     };
 
-    try std.testing.expect(chainHasNonincreasingPriority(null));
-    try std.testing.expect(firstChainPriorityIncrease(null) == null);
     try std.testing.expect(chainHasNonincreasingPriority(&first));
-    try std.testing.expect(firstChainPriorityIncrease(&first) == null);
+    try std.testing.expectEqual(
+        notifier_abi.chainHasNonincreasingPriority(&first),
+        chainHasNonincreasingPriority(&first),
+    );
+
+    const increasing_tail = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 8,
+    };
+    const increasing_head = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&increasing_tail),
+        .priority = 2,
+    };
+
+    try std.testing.expect(!chainHasNonincreasingPriority(&increasing_head));
+    try std.testing.expectEqual(
+        notifier_abi.chainHasNonincreasingPriority(&increasing_head),
+        chainHasNonincreasingPriority(&increasing_head),
+    );
 }
 
-test "abi binding notifier helpers report the first priority increase" {
+test "abi binding notifier chain priority increase layout stays stable" {
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2 + @sizeOf(i32) * 2), @sizeOf(ChainPriorityIncrease));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ChainPriorityIncrease));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChainPriorityIncrease, "previous_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ChainPriorityIncrease, "current_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ChainPriorityIncrease, "previous_priority"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2 + @sizeOf(i32)), @offsetOf(ChainPriorityIncrease, "current_priority"));
+}
+
+test "abi binding reports the first notifier priority increase" {
     const third = NotifierBlock{
         .notifier_call = 0,
         .next = 0,
+        .priority = 6,
+    };
+    const second = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&third),
+        .priority = 2,
+    };
+    const first = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&second),
+        .priority = 4,
+    };
+
+    const increase = firstChainPriorityIncrease(&first) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), increase.previous_index);
+    try std.testing.expectEqual(@as(usize, 2), increase.current_index);
+    try std.testing.expectEqual(@as(i32, 2), increase.previous_priority);
+    try std.testing.expectEqual(@as(i32, 6), increase.current_priority);
+}
+
+test "abi binding omits notifier increase when the chain is nonincreasing" {
+    const third = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 1,
+    };
+    const second = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&third),
+        .priority = 3,
+    };
+    const first = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&second),
         .priority = 5,
+    };
+
+    try std.testing.expectEqual(@as(?ChainPriorityIncrease, null), firstChainPriorityIncrease(null));
+    try std.testing.expectEqual(@as(?ChainPriorityIncrease, null), firstChainPriorityIncrease(&first));
+}
+
+test "abi binding keeps the earliest notifier priority increase explicit" {
+    const third = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 7,
     };
     const second = NotifierBlock{
         .notifier_call = 0,
@@ -358,9 +441,7 @@ test "abi binding notifier helpers report the first priority increase" {
         .priority = 4,
     };
 
-    try std.testing.expect(!chainHasNonincreasingPriority(&first));
-
-    const increase = firstChainPriorityIncrease(&first).?;
+    const increase = firstChainPriorityIncrease(&first) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(usize, 0), increase.previous_index);
     try std.testing.expectEqual(@as(usize, 1), increase.current_index);
     try std.testing.expectEqual(@as(i32, 4), increase.previous_priority);
