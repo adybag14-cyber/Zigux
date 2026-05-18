@@ -32,8 +32,8 @@ REQUIRED_SCRIPTS_SNIPPETS = [
     "- Phase 6 flow - the current shared helper-evidence packet keeps the bounded base64, bsearch, checksum, and hexdump lane truthful from the scripts root without widening into new helper semantics",
     "- `python3 scripts/zigux/check-phase6-shared-surface.py --self-test` and `python3 scripts/zigux/check-phase6-present-entrypoints.py --self-test` replay the shipped shared-surface and present-entrypoint guards",
     "- `scripts/zigux/check-phase6-shared-surface.py` and `scripts/zigux/check-phase6-present-entrypoints.py` keep the direct-readback warning, the helper-evidence catalog packet, and the shared replay inventory explicit from the scripts root",
-    "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
-    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
+    "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, `zigux/tests/phase6_helper_parity_manifest.json`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
+    "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
     "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing bsearch and hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
     "- keep the current partially blocked helper packet tied to those shared surfaces instead of reconstructing broader helper-local proof from older route names alone until fresh direct reads recover the missing helper-local replay files again",
 ]
@@ -189,11 +189,11 @@ def run_self_test() -> None:
             ),
             (
                 root / SCRIPTS_README_PATH,
-                "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
+                "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `zigux/tests/README.md`, `zigux/tests/phase6_helper_parity_manifest.json`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
             ),
             (
                 root / SCRIPTS_README_PATH,
-                "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
+                "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
             ),
             (
                 root / SCRIPTS_README_PATH,
