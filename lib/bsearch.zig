@@ -522,3 +522,26 @@ test "mutable lower and upper bound wrappers keep write-through aliases" {
     typed_raw_upper.* = 10;
     try std.testing.expectEqual(@as(i32, 10), raw_duplicates[4]);
 }
+
+test "mutable equal-range wrappers expose whole duplicate spans for typed and raw aliases" {
+    var typed_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const key = @as(i32, 4);
+
+    const typed_range = equalRangeMutable(i32, i32, &key, typed_duplicates[0..], compareInt);
+    try std.testing.expectEqual(@as(usize, 3), typed_range.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, typed_range);
+    typed_range[0] = 5;
+    typed_range[typed_range.len - 1] = 6;
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 5, 4, 6, 9, 16 }, typed_duplicates[0..]);
+
+    var raw_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const raw_bytes = bsearchEqualRangeMutable(&key, @ptrCast(raw_duplicates[0..].ptr), raw_duplicates.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), raw_bytes.len);
+    const raw_words_ptr: [*]i32 = @ptrCast(@alignCast(raw_bytes.ptr));
+    const raw_words = raw_words_ptr[0 .. raw_bytes.len / @sizeOf(i32)];
+    try std.testing.expectEqual(@as(usize, 3), raw_words.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, raw_words);
+    raw_words[0] = 7;
+    raw_words[raw_words.len - 1] = 8;
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 4, 8, 9, 16 }, raw_duplicates[0..]);
+}
