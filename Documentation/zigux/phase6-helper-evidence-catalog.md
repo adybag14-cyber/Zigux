@@ -34,7 +34,6 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `zigux/tests/fixtures/phase6_base64_c_harness.c`
 - `zigux/tests/phase6_checksum_c_parity.zig`
 - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
-- `zigux/tests/phase6_hexdump_perf_matrix.zig`
 - `scripts/zigux/check-phase6-base64-c-parity.py`
 - `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
@@ -88,7 +87,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`
 - perf refresh note: `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
-- current review posture: direct helper-local evidence is readable again through `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders, while the perf-matrix preflight, helper-local checker, perf refresh note, and slice note still need fresh direct reads before they are presented as current shipped evidence
+- current review posture: direct helper-local evidence is readable again through `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders, while the helper-local checker, perf refresh note, and slice note still need fresh direct reads before they are presented as current shipped evidence
 
 ## Roadmap perf-gap readback
 
@@ -110,6 +109,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-perf`
 - `python3 scripts/zigux/check-phase6-hexdump-packet.py`
+- `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-bsearch-test`
 - `make -C zigux phase6-hexdump-review`
 - `make -C zigux phase6-hexdump-test`
