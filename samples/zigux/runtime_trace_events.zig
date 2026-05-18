@@ -70,6 +70,8 @@ pub const RuntimeTraceEventsSummary = struct {
     last_main_emitted_events: ?usize,
     last_fn_emitted_events: ?usize,
     last_main_conditional_event_count: ?usize,
+    register_transitions: usize,
+    unregister_transitions: usize,
     init_runs: usize,
     selftest_runs: usize,
     exit_runs: usize,
@@ -109,6 +111,8 @@ pub const RuntimeTraceEventsSample = struct {
     last_main_emitted_events: ?usize = null,
     last_fn_emitted_events: ?usize = null,
     last_main_conditional_event_count: ?usize = null,
+    register_transitions: usize = 0,
+    unregister_transitions: usize = 0,
     init_runs: usize = 0,
     selftest_runs: usize = 0,
     exit_runs: usize = 0,
@@ -149,6 +153,8 @@ pub const RuntimeTraceEventsSample = struct {
             .last_main_emitted_events = self.last_main_emitted_events,
             .last_fn_emitted_events = self.last_fn_emitted_events,
             .last_main_conditional_event_count = self.last_main_conditional_event_count,
+            .register_transitions = self.register_transitions,
+            .unregister_transitions = self.unregister_transitions,
             .init_runs = self.init_runs,
             .selftest_runs = self.selftest_runs,
             .exit_runs = self.exit_runs,
@@ -195,6 +201,8 @@ pub const RuntimeTraceEventsSample = struct {
         self.last_main_emitted_events = null;
         self.last_fn_emitted_events = null;
         self.last_main_conditional_event_count = null;
+        self.register_transitions = 0;
+        self.unregister_transitions = 0;
         self.last_main_count = -1;
         self.last_fn_count = -1;
         self.saw_vararg_payload = false;
@@ -215,6 +223,7 @@ pub const RuntimeTraceEventsSample = struct {
         if (self.registration_depth != 0) return error.FunctionThreadAlreadyRegistered;
         self.registration_depth = 1;
         self.last_register_label = "foo_bar_reg";
+        self.register_transitions += 1;
     }
 
     pub fn unregisterFunctionThread(self: *Self) !void {
@@ -222,6 +231,7 @@ pub const RuntimeTraceEventsSample = struct {
         if (self.registration_depth == 0) return error.RegistrationUnderflow;
         self.registration_depth -= 1;
         self.last_unregister_label = "foo_bar_unreg";
+        self.unregister_transitions += 1;
     }
 
     fn randomStringForCount(count: i32) []const u8 {
@@ -352,6 +362,8 @@ test "count-gated main-thread replay matches the Linux sample conditions" {
     try std.testing.expectEqual(@as(?usize, 4), replay.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), replay.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, 0), replay.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 0), replay.register_transitions);
+    try std.testing.expectEqual(@as(usize, 0), replay.unregister_transitions);
     try std.testing.expect(!replay.saw_conditional_path);
     try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_conditional_message);
     try std.testing.expectEqual(@as(?[]const u8, null), replay.last_main_template_cond_message);
@@ -371,6 +383,8 @@ test "selftest path still records both conditional families at count zero" {
     try std.testing.expectEqual(@as(?usize, 6), replay.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), replay.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), replay.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 1), replay.register_transitions);
+    try std.testing.expectEqual(@as(usize, 1), replay.unregister_transitions);
     try std.testing.expect(replay.saw_conditional_path);
     try std.testing.expectEqualStrings("Some times print", replay.last_main_conditional_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("prints other times", replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
@@ -389,6 +403,9 @@ test "mixed replay keeps explicit event totals honest across direct and selftest
     try std.testing.expectEqual(@as(usize, 10), summary.main_thread_events);
     try std.testing.expectEqual(@as(usize, 4), summary.fn_thread_events);
     try std.testing.expectEqual(@as(usize, 14), summary.total_events);
+    const replay = module.summary();
+    try std.testing.expectEqual(@as(usize, 2), replay.register_transitions);
+    try std.testing.expectEqual(@as(usize, 2), replay.unregister_transitions);
 }
 
 test "trace-events sample rejects duplicate function-thread registration" {
@@ -407,6 +424,8 @@ test "trace-events sample rejects duplicate function-thread registration" {
     try std.testing.expectEqual(@as(?usize, null), before_duplicate.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), before_duplicate.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), before_duplicate.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 1), before_duplicate.register_transitions);
+    try std.testing.expectEqual(@as(usize, 0), before_duplicate.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 1), before_duplicate.init_runs);
     try std.testing.expectEqual(@as(usize, 0), before_duplicate.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_duplicate.exit_runs);
@@ -430,6 +449,8 @@ test "trace-events sample rejects duplicate function-thread registration" {
     try std.testing.expectEqual(before_duplicate.last_main_emitted_events, after_duplicate.last_main_emitted_events);
     try std.testing.expectEqual(before_duplicate.last_fn_emitted_events, after_duplicate.last_fn_emitted_events);
     try std.testing.expectEqual(before_duplicate.last_main_conditional_event_count, after_duplicate.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_duplicate.register_transitions, after_duplicate.register_transitions);
+    try std.testing.expectEqual(before_duplicate.unregister_transitions, after_duplicate.unregister_transitions);
     try std.testing.expectEqual(before_duplicate.init_runs, after_duplicate.init_runs);
     try std.testing.expectEqual(before_duplicate.selftest_runs, after_duplicate.selftest_runs);
     try std.testing.expectEqual(before_duplicate.exit_runs, after_duplicate.exit_runs);
@@ -459,6 +480,8 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(@as(?usize, null), initialized_summary.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), initialized_summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, null), initialized_summary.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.register_transitions);
+    try std.testing.expectEqual(@as(usize, 0), initialized_summary.unregister_transitions);
 
     _ = try module.emitMainIteration(7);
     try module.registerFunctionThread();
@@ -491,6 +514,8 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(@as(?usize, 4), selftest_complete_summary.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), selftest_complete_summary.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, 0), selftest_complete_summary.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 3), selftest_complete_summary.register_transitions);
+    try std.testing.expectEqual(@as(usize, 3), selftest_complete_summary.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.init_runs);
     try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), selftest_complete_summary.exit_runs);
@@ -520,6 +545,8 @@ test "trace-events sample keeps selftest replay-summary continuity explicit afte
     try std.testing.expectEqual(selftest_complete_summary.last_main_emitted_events, exited_summary.last_main_emitted_events);
     try std.testing.expectEqual(selftest_complete_summary.last_fn_emitted_events, exited_summary.last_fn_emitted_events);
     try std.testing.expectEqual(selftest_complete_summary.last_main_conditional_event_count, exited_summary.last_main_conditional_event_count);
+    try std.testing.expectEqual(selftest_complete_summary.register_transitions, exited_summary.register_transitions);
+    try std.testing.expectEqual(selftest_complete_summary.unregister_transitions, exited_summary.unregister_transitions);
     try std.testing.expectEqual(selftest_complete_summary.last_main_count, exited_summary.last_main_count);
     try std.testing.expectEqual(selftest_complete_summary.last_fn_count, exited_summary.last_fn_count);
     try std.testing.expectEqualStrings(selftest_complete_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload, exited_summary.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
@@ -557,6 +584,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(@as(?usize, 4), before_failed_exit.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_failed_exit.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, 0), before_failed_exit.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 2), before_failed_exit.register_transitions);
+    try std.testing.expectEqual(@as(usize, 1), before_failed_exit.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);
@@ -595,6 +624,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(before_failed_exit.last_main_emitted_events, after_failed_exit.last_main_emitted_events);
     try std.testing.expectEqual(before_failed_exit.last_fn_emitted_events, after_failed_exit.last_fn_emitted_events);
     try std.testing.expectEqual(before_failed_exit.last_main_conditional_event_count, after_failed_exit.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_failed_exit.register_transitions, after_failed_exit.register_transitions);
+    try std.testing.expectEqual(before_failed_exit.unregister_transitions, after_failed_exit.unregister_transitions);
     try std.testing.expectEqual(before_failed_exit.init_runs, after_failed_exit.init_runs);
     try std.testing.expectEqual(before_failed_exit.selftest_runs, after_failed_exit.selftest_runs);
     try std.testing.expectEqual(before_failed_exit.exit_runs, after_failed_exit.exit_runs);
@@ -632,6 +663,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(@as(?usize, 4), before_exit.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_exit.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, 0), before_exit.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 2), before_exit.register_transitions);
+    try std.testing.expectEqual(@as(usize, 2), before_exit.unregister_transitions);
     try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);
     try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);
@@ -656,7 +689,6 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqualStrings(before_failed_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload, before_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings(before_failed_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);
     try std.testing.expectEqualStrings(before_failed_exit.last_format_template orelse return error.ExpectedMainPayload, before_exit.last_format_template orelse return error.ExpectedMainPayload);
-
     try module.exit();
     const after_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);
@@ -668,6 +700,8 @@ test "trace-events sample keeps failed-exit rollback explicit after selftest-rea
     try std.testing.expectEqual(before_exit.last_main_emitted_events, after_exit.last_main_emitted_events);
     try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);
     try std.testing.expectEqual(before_exit.last_main_conditional_event_count, after_exit.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_exit.register_transitions, after_exit.register_transitions);
+    try std.testing.expectEqual(before_exit.unregister_transitions, after_exit.unregister_transitions);
     try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);
     try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
@@ -713,6 +747,8 @@ test "trace-events sample keeps rejected re-selftest rollback explicit" {
     try std.testing.expectEqual(@as(?usize, 6), before_rejected_selftest.last_main_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_rejected_selftest.last_fn_emitted_events);
     try std.testing.expectEqual(@as(?usize, 2), before_rejected_selftest.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.register_transitions);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.unregister_transitions);
     try std.testing.expectEqual(@as(i32, 0), before_rejected_selftest.last_main_count);
     try std.testing.expectEqual(@as(i32, 1), before_rejected_selftest.last_fn_count);
     try std.testing.expect(before_rejected_selftest.saw_conditional_path);
@@ -733,6 +769,8 @@ test "trace-events sample keeps rejected re-selftest rollback explicit" {
     try std.testing.expectEqual(before_rejected_selftest.last_main_emitted_events, after_rejected_selftest.last_main_emitted_events);
     try std.testing.expectEqual(before_rejected_selftest.last_fn_emitted_events, after_rejected_selftest.last_fn_emitted_events);
     try std.testing.expectEqual(before_rejected_selftest.last_main_conditional_event_count, after_rejected_selftest.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_rejected_selftest.register_transitions, after_rejected_selftest.register_transitions);
+    try std.testing.expectEqual(before_rejected_selftest.unregister_transitions, after_rejected_selftest.unregister_transitions);
     try std.testing.expectEqual(before_rejected_selftest.init_runs, after_rejected_selftest.init_runs);
     try std.testing.expectEqual(before_rejected_selftest.selftest_runs, after_rejected_selftest.selftest_runs);
     try std.testing.expectEqual(before_rejected_selftest.exit_runs, after_rejected_selftest.exit_runs);
@@ -751,6 +789,8 @@ test "trace-events sample keeps rejected re-selftest rollback explicit" {
     try std.testing.expectEqual(ModuleStage.exited, before_rejected_exit_selftest.stage);
     try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.selftest_runs);
     try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.register_transitions);
+    try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.unregister_transitions);
 
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
 
@@ -764,6 +804,8 @@ test "trace-events sample keeps rejected re-selftest rollback explicit" {
     try std.testing.expectEqual(before_rejected_exit_selftest.last_main_emitted_events, after_rejected_exit_selftest.last_main_emitted_events);
     try std.testing.expectEqual(before_rejected_exit_selftest.last_fn_emitted_events, after_rejected_exit_selftest.last_fn_emitted_events);
     try std.testing.expectEqual(before_rejected_exit_selftest.last_main_conditional_event_count, after_rejected_exit_selftest.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_rejected_exit_selftest.register_transitions, after_rejected_exit_selftest.register_transitions);
+    try std.testing.expectEqual(before_rejected_exit_selftest.unregister_transitions, after_rejected_exit_selftest.unregister_transitions);
     try std.testing.expectEqual(before_rejected_exit_selftest.init_runs, after_rejected_exit_selftest.init_runs);
     try std.testing.expectEqual(before_rejected_exit_selftest.selftest_runs, after_rejected_exit_selftest.selftest_runs);
     try std.testing.expectEqual(before_rejected_exit_selftest.exit_runs, after_rejected_exit_selftest.exit_runs);
