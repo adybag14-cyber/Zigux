@@ -278,7 +278,6 @@ def run_self_test() -> None:
         if not isinstance(supporting_notes, list):
             raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_supporting_notes_shape")
         supporting_notes[2] = "Documentation/zigux/phase12-libbpf-heavy-consumer-missing.md"
-        (tmp_root / SNAPSHOT_PATH).writeText if False else None
         (tmp_root / SNAPSHOT_PATH).write_text(
             json.dumps(snapshot, indent=2) + "\n",
             encoding="utf-8",
