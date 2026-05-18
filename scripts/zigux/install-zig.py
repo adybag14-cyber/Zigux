@@ -268,11 +268,7 @@ def resolve_target(index: dict, channel: str, arch_key: str, system_key: str) ->
 def load_index(channel: str) -> dict:
     try:
         return read_index()
-    except urllib.error.HTTPError:
-        if not is_explicit_version(channel):
-            raise
-        return {}
-    except urllib.error.URLError:
+    except (TimeoutError, urllib.error.URLError):
         if not is_explicit_version(channel):
             raise
         return {}
@@ -351,6 +347,19 @@ def run_self_test() -> int:
         '0.17.0-dev.87+9b177a7d2',
         'https://ziglang.org/builds/zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz',
     )
+
+    original_read_index = globals()['read_index']
+    try:
+        globals()['read_index'] = lambda: (_ for _ in ()).throw(TimeoutError('timed out'))
+        assert load_index('0.17.0-dev.87+9b177a7d2') == {}
+        try:
+            load_index('master')
+        except TimeoutError:
+            pass
+        else:
+            raise AssertionError('expected non-explicit channel timeout to fail')
+    finally:
+        globals()['read_index'] = original_read_index
 
     with tempfile.TemporaryDirectory(prefix='zigux_install_zig_policy_') as tmp_dir:
         policy_path = Path(tmp_dir) / 'zig-toolchain-policy.json'
@@ -537,7 +546,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=27')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=29')
     return 0
 
 
