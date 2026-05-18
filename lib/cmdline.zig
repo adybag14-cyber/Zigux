@@ -339,3 +339,17 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     try std.testing.expectEqualStrings("fast path", parsed.value.?);
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
+
+test "nextArg keeps quoted bare tokens together and preserves the following remainder" {
+    const parsed = nextArg("\"two words\" tail") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("two words", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
+
+test "nextArg keeps quoted empty values explicit without swallowing the next token" {
+    const parsed = nextArg("flag=\"\" next") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("flag", parsed.param);
+    try std.testing.expectEqualStrings("", parsed.value.?);
+    try std.testing.expectEqualStrings("next", parsed.remaining);
+}
