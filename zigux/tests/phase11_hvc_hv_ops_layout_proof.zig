@@ -27,17 +27,17 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
 }
 
 test "phase11 hvc hv_ops layout proof keeps callback table explicit" {
-    try layout_assert.assertSize(HvOps, 72);
-    try layout_assert.assertAlign(HvOps, 8);
-    try layout_assert.assertOffset(HvOps, "get_chars", 0);
-    try layout_assert.assertOffset(HvOps, "put_chars", 8);
-    try layout_assert.assertOffset(HvOps, "flush", 16);
-    try layout_assert.assertOffset(HvOps, "notifier_add", 24);
-    try layout_assert.assertOffset(HvOps, "notifier_del", 32);
-    try layout_assert.assertOffset(HvOps, "notifier_hangup", 40);
-    try layout_assert.assertOffset(HvOps, "tiocmget", 48);
-    try layout_assert.assertOffset(HvOps, "tiocmset", 56);
-    try layout_assert.assertOffset(HvOps, "dtr_rts", 64);
+    try layout_assert.expectSize(HvOps, 72);
+    try layout_assert.expectAlign(HvOps, 8);
+    try layout_assert.expectOffset(HvOps, "get_chars", 0);
+    try layout_assert.expectOffset(HvOps, "put_chars", 8);
+    try layout_assert.expectOffset(HvOps, "flush", 16);
+    try layout_assert.expectOffset(HvOps, "notifier_add", 24);
+    try layout_assert.expectOffset(HvOps, "notifier_del", 32);
+    try layout_assert.expectOffset(HvOps, "notifier_hangup", 40);
+    try layout_assert.expectOffset(HvOps, "tiocmget", 48);
+    try layout_assert.expectOffset(HvOps, "tiocmset", 56);
+    try layout_assert.expectOffset(HvOps, "dtr_rts", 64);
 }
 
 test "phase11 hvc hv_ops layout proof stays tied to the exported header" {
