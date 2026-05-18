@@ -53,10 +53,16 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explici
     defer std.testing.allocator.free(verify_boundary);
 
     try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`");
-    try expectContains(survey_doc, "current authenticated contents reads in this lane still do not rematerialize");
+    try expectContains(
+        survey_doc,
+        "current public GitHub file-page readback confirms the bounded HVC starter,",
+    );
     try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");
     try expectContains(cleanup_companion, "`scripts/zigux/check-phase11-hvc-survey-packet.py`");
-    try expectContains(verify_boundary, "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit");
+    try expectContains(
+        verify_boundary,
+        "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit",
+    );
 }
 
 test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff markers aligned" {
@@ -74,9 +80,18 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff marker
     );
     defer std.testing.allocator.free(verify_boundary);
 
-    try expectContains(matrix_doc, "`hvc_cleanup()` tty-port release handoff");
-    try expectContains(matrix_doc, "final-close and hangup-driven cleanup handoff assertions inside the shared Phase 11 replay");
-    try expectContains(matrix_doc, "surviving proof-backed cleanup packet");
-    try expectContains(verify_boundary, "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary");
-    try expectContains(verify_boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.");
+    try expectContains(
+        matrix_doc,
+        "the cleanup replay keeps tty-port release boundaries explicit; the verify helper remains present",
+    );
+    try expectContains(matrix_doc, "keep those handoffs named directly in the matrix");
+    try expectContains(matrix_doc, "if one new same-lane wording gap appears");
+    try expectContains(
+        verify_boundary,
+        "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
+    );
+    try expectContains(
+        verify_boundary,
+        "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
+    );
 }
