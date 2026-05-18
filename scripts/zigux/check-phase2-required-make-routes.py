@@ -24,8 +24,10 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
 )
 
+REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2"
+REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
+
 MAKEFILE_MARKERS = (
-    ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2",
     "phase2-toolchain:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
@@ -73,7 +75,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(MAKEFILE_MARKERS)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
     + (len(MINIMAL_SURFACE_MARKERS) + 2) * len(POLICY_ROUTE_SURFACE_CODES)
-    + 3
+    + 5
 )
 
 
@@ -98,6 +100,21 @@ def resolve_path(root: Path, path: Path) -> Path:
 
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def phony_targets_present(text: str) -> set[str]:
+    targets: set[str] = set()
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith(".PHONY:"):
+            continue
+        _, suffix = stripped.split(":", 1)
+        targets.update(token for token in suffix.strip().split() if token)
+    return targets
+
+
+def has_required_phase2_phony_targets(text: str) -> bool:
+    return set(REQUIRED_PHASE2_PHONY_TARGETS).issubset(phony_targets_present(text))
 
 
 def load_required_make_routes(policy_path: Path) -> list[str]:
@@ -152,6 +169,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_WORKFLOW_LINES", f"{line}:count={count}"))
 
     makefile_text = read_text(resolve_path(root, MAKEFILE))
+    if not has_required_phase2_phony_targets(makefile_text):
+        issues.append(("MISSING_MAKEFILE_MARKERS", REQUIRED_PHASE2_PHONY_LINE))
     for marker in MAKEFILE_MARKERS:
         if count_exact_lines(makefile_text, marker) == 0:
             issues.append(("MISSING_MAKEFILE_MARKERS", marker))
@@ -185,7 +204,7 @@ def build_self_test_root(root: Path) -> None:
         + "\n",
     )
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
-    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_MARKERS) + "\n")
+    write_text(resolve_path(root, MAKEFILE), "\n".join((REQUIRED_PHASE2_PHONY_LINE,) + MAKEFILE_MARKERS) + "\n")
 
     full_marker_text = "\n".join(MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS)
     for path, _, _ in FULL_ROUTE_SURFACE_CODES:
@@ -251,6 +270,28 @@ def run_self_test() -> int:
             )
             assert ("DUPLICATE_WORKFLOW_LINES", f"{line}:count=2") in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_path.write_text(
+            replace_exact_line(makefile_path.read_text(encoding="utf-8"), REQUIRED_PHASE2_PHONY_LINE),
+            encoding="utf-8",
+        )
+        assert ("MISSING_MAKEFILE_MARKERS", REQUIRED_PHASE2_PHONY_LINE) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        makefile_path = resolve_path(root, MAKEFILE)
+        makefile_path.write_text(
+            replace_exact_line(
+                makefile_path.read_text(encoding="utf-8"),
+                REQUIRED_PHASE2_PHONY_LINE,
+                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3",
+            ),
+            encoding="utf-8",
+        )
+        assert collect_issues(root) == []
+        checks_run += 1
 
         for marker in MAKEFILE_MARKERS:
             build_self_test_root(root)
