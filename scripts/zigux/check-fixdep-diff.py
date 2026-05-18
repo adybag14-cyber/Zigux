@@ -433,6 +433,24 @@ def run_self_test() -> int:
         finally:
             FIXTURE_DIR = original_fixture_dir
 
+    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_stderr_fixture_") as tmp_dir:
+        fixture_dir = Path(tmp_dir)
+        for fixture_path in FIXTURE_DIR.iterdir():
+            if fixture_path.name == "sample_comment_only_expected.stderr.txt":
+                continue
+            shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
+
+        original_fixture_dir = FIXTURE_DIR
+        FIXTURE_DIR = fixture_dir
+        try:
+            expect_failure(
+                "missing_expected_stderr_fixture",
+                lambda: validate_cases(valid_cases),
+                f"{CASES_PATH}:missing_expected_stderr:sample_comment_only_expected.stderr.txt",
+            )
+        finally:
+            FIXTURE_DIR = original_fixture_dir
+
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
     expect_failure(
@@ -462,7 +480,7 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").writeText("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
             frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
@@ -506,7 +524,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 14}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 15}")
     return 0
 
 
