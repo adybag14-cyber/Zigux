@@ -37,25 +37,27 @@ Fresh repo-first inspection in this run confirmed that current `master` still ke
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-The same reread also confirmed that current `master` still keeps the restored direct kretprobe packet and the bounded trace-events formatting companion visible from the sample root, while the bytestream and kobject anchors remain roadmap-backed targets plus shared reminder or repo-reality-gap surfaces until a fresh reread proves their sample-root ports returned directly on current `master`.
+The same reread also confirmed that current `master` now keeps the restored direct bytestream packet, the restored direct kretprobe packet, and the bounded trace-events formatting companion visible from the sample root, while the kobject anchor remains a roadmap-backed target plus shared reminder or repo-reality-gap surface until a fresh reread proves its sample-root port returned directly on current `master`.
 
-Keep this shared note truthful about that narrower current packet instead of repeating older direct-sample wording for bytestream or kobject, or the older broader trace-events packet.
+Keep this shared note truthful about that narrower current packet instead of repeating older missing-sample wording for bytestream or older broader direct-sample wording for kobject or trace-events.
 
 ## Current sample-root reality
 
 Current `samples/zigux/README.md` says the sample root directly exposes:
 
 - `samples/zigux/README.md`
+- `samples/zigux/bytestream_fifo.zig`
 - `samples/zigux/kretprobe_example.zig`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
-So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the kretprobe port plus the bounded trace-events formatting companion.
+So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the restored bytestream port, the restored kretprobe port, and the bounded trace-events formatting companion.
+Treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
-Keep the bytestream and kobject anchors in shared-reminder or repo-reality-gap wording until a fresh reread proves `samples/zigux/bytestream_fifo.zig` or `samples/zigux/kobject_example.zig` returned directly on current `master`.
+Keep the kobject anchor in shared-reminder or repo-reality-gap wording until a fresh reread proves `samples/zigux/kobject_example.zig` returned directly on current `master`.
 
 ## Tracing and probe packet
 
@@ -109,4 +111,4 @@ Keep the no-extra-sample helper-family boundaries explicit too:
 
 ## Next-step posture
 
-The next honest Phase 5 step is another one-file reminder-surface repair that keeps the approved anchors explicit without overstating bytestream or kobject direct sample-root visibility, flattening the narrower trace-events formatting packet, or overstating the shared `zigux/tests/phase5_build.zig` route as direct authenticated proof.
+The next honest Phase 5 step is another one-file reminder-surface repair that keeps the approved anchors explicit without overstating kobject direct sample-root visibility, flattening the narrower trace-events formatting packet, or overstating the shared `zigux/tests/phase5_build.zig` route as direct authenticated proof.
