@@ -278,6 +278,7 @@ def run_self_test() -> None:
         if not isinstance(supporting_notes, list):
             raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_supporting_notes_shape")
         supporting_notes[2] = "Documentation/zigux/phase12-libbpf-heavy-consumer-missing.md"
+        (tmp_root / SNAPSHOT_PATH).writeText if False else None
         (tmp_root / SNAPSHOT_PATH).write_text(
             json.dumps(snapshot, indent=2) + "\n",
             encoding="utf-8",
@@ -320,6 +321,26 @@ def run_self_test() -> None:
             tmp_root,
             f"determinism:lane_key:{EXPECTED_DETERMINISM_LANE_KEY}",
             "determinism_lane_key",
+        )
+        build_fixture_tree(tmp_root)
+
+        replace_once(tmp_root / SNAPSHOT_DETERMINISM_PATH, EXPECTED_PHASE, "Phase 99")
+        expect_case(
+            tmp_root,
+            f"determinism:phase:{EXPECTED_PHASE}",
+            "determinism_phase",
+        )
+        build_fixture_tree(tmp_root)
+
+        replace_once(
+            tmp_root / SNAPSHOT_DETERMINISM_PATH,
+            "5ccb94e1380d1f2e236c98d09bc52b2b5f6948c7",
+            "not-a-sha",
+        )
+        expect_case(
+            tmp_root,
+            "determinism:surveyed_commit:sha1",
+            "determinism_surveyed_commit",
         )
         build_fixture_tree(tmp_root)
 
@@ -377,7 +398,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=16")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=18")
 
 
 def main() -> int:
