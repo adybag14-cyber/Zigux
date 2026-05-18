@@ -41,7 +41,9 @@ test "export and uapi version layouts stay aligned" {
 test "export shim reuses the canonical boundary header contract" {
     const header = export_shim.canonicalHeader(0x41);
 
-    try testing.expectEqual(@as(u32, @sizeOf(export_shim.BoundaryHeader)), header.size);
+    try testing.expectEqual(@as(u16, 1), export_shim.abi_version);
+    try testing.expectEqual(@as(u32, @sizeOf(export_shim.BoundaryHeader)), export_shim.header_size);
+    try testing.expectEqual(export_shim.header_size, header.size);
     try testing.expectEqual(@as(u16, 1), header.abi_version);
     try testing.expectEqual(@as(u16, 0x41), header.flags);
     try testing.expectEqual(@as(usize, 8), @sizeOf(export_shim.BoundaryHeader));
@@ -49,6 +51,35 @@ test "export shim reuses the canonical boundary header contract" {
     try testing.expectEqual(@as(usize, 0), @offsetOf(export_shim.BoundaryHeader, "size"));
     try testing.expectEqual(@as(usize, 4), @offsetOf(export_shim.BoundaryHeader, "abi_version"));
     try testing.expectEqual(@as(usize, 6), @offsetOf(export_shim.BoundaryHeader, "flags"));
+}
+
+test "export shim mirrors boundary header predicate helpers" {
+    const canonical = export_shim.canonicalHeader(0x22);
+    const future = export_shim.BoundaryHeader{
+        .size = export_shim.header_size + 16,
+        .abi_version = export_shim.abi_version,
+        .flags = 0x22,
+    };
+    const stale = export_shim.BoundaryHeader{
+        .size = export_shim.header_size,
+        .abi_version = export_shim.abi_version + 1,
+        .flags = 0,
+    };
+
+    try testing.expect(export_shim.isCurrentAbiVersion(canonical.abi_version));
+    try testing.expect(export_shim.isCanonicalSize(canonical.size));
+    try testing.expect(export_shim.isCompatibleSize(canonical.size));
+    try testing.expect(export_shim.headerIsCanonical(canonical));
+    try testing.expect(export_shim.headerIsCompatible(canonical));
+
+    try testing.expect(!export_shim.isCanonicalSize(future.size));
+    try testing.expect(export_shim.isCompatibleSize(future.size));
+    try testing.expect(!export_shim.headerIsCanonical(future));
+    try testing.expect(export_shim.headerIsCompatible(future));
+
+    try testing.expect(!export_shim.isCurrentAbiVersion(stale.abi_version));
+    try testing.expect(!export_shim.headerIsCanonical(stale));
+    try testing.expect(!export_shim.headerIsCompatible(stale));
 }
 
 test "export shim keeps facility tagged statuses explicit" {
