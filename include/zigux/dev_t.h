@@ -43,4 +43,21 @@ static inline uint32_t zigux_minor(uint32_t dev)
     return dev & ZIGUX_DEV_MINOR_MASK;
 }
 
+static inline int zigux_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)
+{
+    return fields.major <= ZIGUX_DEV_MAJOR_MAX &&
+        fields.minor <= ZIGUX_DEV_MINOR_MASK;
+}
+
+static inline int zigux_dev_t_fields_range_is_valid(
+    struct zigux_dev_t_fields start,
+    struct zigux_dev_t_fields end
+)
+{
+    if (!zigux_dev_t_fields_is_valid(start) || !zigux_dev_t_fields_is_valid(end))
+        return 0;
+    return start.major < end.major ||
+        (start.major == end.major && start.minor <= end.minor);
+}
+
 #endif
