@@ -87,7 +87,7 @@ SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "the dedicated local-only perf packet is directly readable on current `master` through `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`, so keep that exact perf packet explicit here while the broader validator, lab-matrix, and bitmap-diff companions stay in the missing-current-head bucket",
     "`zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`",
-    "keep that broader validator and helper-backed rollback packet in the missing-packet bucket here even when public current-`master` fallback rereads can still expose older companions",
+    "treat `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` as directly readable roadmap-backed differential-gate evidence again instead of backlog-only proof, while keeping the broader validator, lab-matrix, and bitmap-diff companions in the authenticated-readback gap bucket",
     "if future same-lane work restores the broader validator, lab-matrix, or bitmap-diff packet to authenticated direct-readback status, refresh this scripts-root reminder only after rereading `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `zigux/tests/README.md`, and the current scripts-root checker packet together on current `master`",
     "Validation and Perf Team",
     "ABI and Runtime Team plus Shared Subsystems Pod",
@@ -198,14 +198,15 @@ def main() -> int:
             else:
                 raise AssertionError("expected repo-reality warning wording drift to fail")
             repo_warning_path.write_text((args.root.resolve() / REPO_REALITY_WARNING).read_text(encoding="utf-8"), encoding="utf-8")
-            readme_path.write_text(readme_path.read_text(encoding="utf-8").replace(README_MARKERS[4], "tests README broader packet wording drifted"), encoding="utf-8")
+            scripts_readme_path = root / SCRIPTS_README
+            scripts_readme_path.write_text(scripts_readme_path.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[9], "atomic64 scripts README drifted"), encoding="utf-8")
             try:
                 check(root)
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected tests README broader packet wording drift to fail")
-            readme_path.write_text((args.root.resolve() / README).read_text(encoding="utf-8"), encoding="utf-8")
+                raise AssertionError("expected scripts README atomic64 direct-readback drift to fail")
+            scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
             repo_warning_path = root / REPO_REALITY_WARNING
             repo_warning_path.write_text(repo_warning_path.read_text(encoding="utf-8").replace("scripts/zigux/check-phase4-remaining-gap-matrix.py", "scripts/zigux/check-phase4-gap-matrix-drifted.py"), encoding="utf-8")
             try:
