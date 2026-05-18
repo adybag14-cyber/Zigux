@@ -152,6 +152,7 @@ SCRIPTS_README_MARKERS = (
     "zigux/bindings/abi.zig",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
+    "zigux/helpers/xarray_slot_view.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
@@ -174,6 +175,7 @@ SCRIPTS_README_MARKERS = (
 SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
     'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
@@ -182,6 +184,8 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
+    "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST=pass",
+    "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST_CASES=",
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
 
@@ -346,6 +350,7 @@ def run_self_test() -> int:
         (SCRIPTS_README_PATH, "zigux/helpers/atomic.zig", "scripts README"),
         (SCRIPTS_README_PATH, "zigux/tests/phase3_low_level_wrappers.zig", "scripts README"),
         (SCRIPTS_README_PATH, "zigux/tests/phase3_low_level_wrappers_build.zig", "scripts README"),
+        (SCRIPTS_README_PATH, "zigux/helpers/xarray_slot_view.zig", "scripts README"),
         (SCRIPTS_README_PATH, "scripts/zigux/check-phase3-catalog-selftest.py", "scripts README"),
         (SCRIPTS_README_PATH, "scripts/zigux/phase3_catalog.py", "scripts README"),
         (SCRIPTS_README_PATH, "scripts/zigux/generate-phase3-check-wrappers.py", "scripts README"),
@@ -363,6 +368,9 @@ def run_self_test() -> int:
             'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
             "selftest driver",
         ),
+        (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")', "selftest driver"),
+        (SELFTEST_DRIVER_PATH, "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST=pass", "selftest driver"),
+        (SELFTEST_DRIVER_PATH, "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST_CASES=", "selftest driver"),
         (SELFTEST_DRIVER_PATH, "PHASE3_VALIDATE_SELFTEST=pass", "selftest driver"),
     )
 
@@ -399,23 +407,23 @@ def run_self_test() -> int:
         )
         if not _expect_issue(issues, expected):
             print("PHASE3_SELFTEST_SURFACE_SELF_TEST=fail")
-            print("expected duplicate validator-support marker drift was not reported")
+            print(f"expected exact-count drift was not reported: {expected}")
             return 1
 
-    print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
-    print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={len(cases) + 1}")
-    return 0
+        print("PHASE3_SELFTEST_SURFACE_SELF_TEST=pass")
+        print(f"PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT={len(cases) + 1}")
+        return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the shared Phase 3 selftest reminder surface."
+        description="Fail-close the shared Phase 3 selftest reminder surface."
     )
     parser.add_argument(
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the shared Phase 3 reminder files",
+        help="repository root that contains scripts/zigux/",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -426,11 +434,10 @@ def main() -> int:
     issues = validate_repo(args.repo_root)
     if issues:
         print("PHASE3_SELFTEST_SURFACE=fail")
-        for issue in issues:
-            print(issue)
+        print("\n".join(issues))
         return 1
 
-    print(f"validated {args.repo_root / SCRIPTS_README_PATH}")
+    print("PHASE3_SELFTEST_SURFACE=pass")
     return 0
 
 
