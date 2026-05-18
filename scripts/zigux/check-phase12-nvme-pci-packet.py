@@ -320,6 +320,47 @@ def run_self_test() -> int:
 
         write_fixture(root)
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["surveyed_commit"] = "0123456789ABCDEF0123456789abcdef01234567"
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "surveyed_commit" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected surveyed_commit drift to fail")
+
+        write_fixture(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["survey_summary"]["preexisting_phase12_survey_gate_present"] = False
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "preexisting_phase12_survey_gate_present" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected survey-summary drift to fail")
+
+        write_fixture(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["roadmap_gap_check"]["throughput_and_recovery_parity"]["current_surface"] = (
+            "reset freeze state and frozen queue-restore host-DMA budgeting"
+        )
+        manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        try:
+            check_manifest(root)
+        except CheckFailure as exc:
+            if "throughput_and_recovery_parity" not in str(exc):
+                raise
+            cases += 1
+        else:
+            raise AssertionError("expected roadmap current-surface drift to fail")
+
+        write_fixture(root)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         manifest["gaps"][4]["status"] = "landed_on_master"
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
         try:
