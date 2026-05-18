@@ -883,6 +883,20 @@ pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
     return null;
 }
 
+pub fn strchr(buf: []const u8, needle: u8) ?usize {
+    return strnchr(buf, buf.len, needle);
+}
+
+test "strchr mirrors full-length C-string searches" {
+    try std.testing.expectEqual(@as(?usize, 1), strchr("abcd", 'b'));
+    try std.testing.expectEqual(@as(?usize, null), strchr("abcd", 'z'));
+
+    const cstr = [_]u8{ 'a', 'b', 0, 'c', 'b' };
+    try std.testing.expectEqual(@as(?usize, 1), strchr(&cstr, 'b'));
+    try std.testing.expectEqual(@as(?usize, null), strchr(&cstr, 'c'));
+    try std.testing.expectEqual(@as(?usize, 2), strchr(&cstr, 0));
+}
+
 test "strnchr honors count and C-string boundaries" {
     try std.testing.expectEqual(@as(?usize, 1), strnchr("abcd", 4, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strnchr("abcd", 1, 'b'));
