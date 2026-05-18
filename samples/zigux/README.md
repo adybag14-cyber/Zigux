@@ -70,5 +70,8 @@ Current `master` still ships no standalone Phase 5 sample-root files here for:
 * `*argv*`
 * `*rbtree*`
 * `*bitmap*`
+* `*printf*`
+* `*vsprintf*`
+* `*format*`
 
-Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets instead of treating this directory as proof that dedicated string, cmdline, argv, rbtree, bitmap, `printf`, or `vsprintf` sample families landed here as standalone samples.
+Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets instead of treating this directory as proof that dedicated string, cmdline, argv, rbtree, bitmap, `printf`, `vsprintf`, or broad `format` sample families landed here as standalone samples.
