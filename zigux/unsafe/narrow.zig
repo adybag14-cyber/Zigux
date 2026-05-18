@@ -1,148 +1,76 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
 
-pub const UnsafeScopeTag = abi.UnsafeScope;
-
 pub const Surface = enum {
     safe_only,
     mmio_only,
     raw_pointer_bridge_only,
 };
 
-pub const UnsafeScopeError = error{UnsafeScopeDenied};
-pub const RawPointerBridgeError = UnsafeScopeError || error{
-    AddressOverflow,
-    ByteLengthTooSmall,
-    LengthOverflow,
-};
+pub const ScopeError = error{UnsafeScopeDenied};
 
-pub fn scopeFromByte(scope: u8) ?UnsafeScopeTag {
+pub fn addressOf(ptr: anytype) usize {
+    return @intFromPtr(ptr);
+}
+
+pub fn byteOffset(base: usize, offset: usize) usize {
+    return std.math.add(usize, base, offset) catch @panic("phase3 narrow unsafe byte offset overflow");
+}
+
+pub fn pointerAt(comptime T: type, base: usize, offset: usize) *align(1) volatile T {
+    return @ptrFromInt(byteOffset(base, offset));
+}
+
+pub fn sliceAt(comptime T: type, base: usize, len: usize) []align(1) T {
+    const ptr: [*]align(1) T = @ptrFromInt(base);
+    return ptr[0..len];
+}
+
+pub fn constSliceAt(comptime T: type, base: usize, len: usize) []align(1) const T {
+    const ptr: [*]align(1) const T = @ptrFromInt(base);
+    return ptr[0..len];
+}
+
+pub fn constPointerAt(comptime T: type, addr: usize) *align(1) const T {
+    return @ptrFromInt(addr);
+}
+
+pub fn writeValueAt(comptime T: type, addr: usize, value: T) void {
+    const ptr: *align(1) T = @ptrFromInt(addr);
+    ptr.* = value;
+}
+
+pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {
+    if (reserved != 0) return null;
     return switch (scope) {
-        @intFromEnum(UnsafeScopeTag.none) => .none,
-        @intFromEnum(UnsafeScopeTag.volatile_mmio) => .volatile_mmio,
-        @intFromEnum(UnsafeScopeTag.raw_pointer_bridge) => .raw_pointer_bridge,
+        @intFromEnum(abi.UnsafeScope.none) => .none,
+        @intFromEnum(abi.UnsafeScope.volatile_mmio) => .volatile_mmio,
+        @intFromEnum(abi.UnsafeScope.raw_pointer_bridge) => .raw_pointer_bridge,
         else => null,
     };
 }
 
-pub fn scopeFromInteropPolicyBytes(unsafe_scope: u8, reserved: u8) ?UnsafeScopeTag {
-    if (reserved != 0) return null;
-    return scopeFromByte(unsafe_scope);
+pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {
+    return scopeFromInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
-pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {
-    return scopeFromInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
+pub fn scopeFromByte(scope: u8) ?abi.UnsafeScope {
+    return scopeFromInteropPolicyBytes(scope, 0);
+}
+
+pub fn recognizesInteropPolicyBytes(scope: u8, reserved: u8) bool {
+    return scopeFromInteropPolicyBytes(scope, reserved) != null;
 }
 
 pub fn recognizesInteropPolicy(policy: abi.InteropPolicy) bool {
     return scopeFromInteropPolicy(policy) != null;
 }
 
-pub fn permitsNoUnsafe(scope: UnsafeScopeTag) bool {
-    return scope == .none;
+pub fn recognizesByte(scope: u8) bool {
+    return recognizesInteropPolicyBytes(scope, 0);
 }
 
-pub fn permitsVolatileMmio(scope: UnsafeScopeTag) bool {
-    return scope == .volatile_mmio;
-}
-
-pub fn permitsRawPointerBridge(scope: UnsafeScopeTag) bool {
-    return scope == .raw_pointer_bridge;
-}
-
-pub fn permitsNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
-    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .none;
-}
-
-pub fn permitsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
-    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .volatile_mmio;
-}
-
-pub fn permitsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
-    return scopeFromInteropPolicyBytes(unsafe_scope, reserved) == .raw_pointer_bridge;
-}
-
-pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return scopeFromInteropPolicy(policy) == .none;
-}
-
-pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {
-    return scopeFromInteropPolicy(policy) == .volatile_mmio;
-}
-
-pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
-    return scopeFromInteropPolicy(policy) == .raw_pointer_bridge;
-}
-
-pub fn permitsNoUnsafeByte(scope: u8) bool {
-    return scopeFromByte(scope) == .none;
-}
-
-pub fn permitsVolatileMmioByte(scope: u8) bool {
-    return scopeFromByte(scope) == .volatile_mmio;
-}
-
-pub fn permitsRawPointerBridgeByte(scope: u8) bool {
-    return scopeFromByte(scope) == .raw_pointer_bridge;
-}
-
-pub fn requireNoUnsafePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {
-    if (!permitsNoUnsafePolicyBytes(unsafe_scope, reserved)) return error.UnsafeScopeDenied;
-}
-
-pub fn requireVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {
-    if (!permitsVolatileMmioPolicyBytes(unsafe_scope, reserved)) return error.UnsafeScopeDenied;
-}
-
-pub fn requireRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) UnsafeScopeError!void {
-    if (!permitsRawPointerBridgePolicyBytes(unsafe_scope, reserved)) return error.UnsafeScopeDenied;
-}
-
-pub fn requireNoUnsafeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {
-    return requireNoUnsafePolicyBytes(policy.unsafe_scope, policy.reserved);
-}
-
-pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {
-    return requireVolatileMmioPolicyBytes(policy.unsafe_scope, policy.reserved);
-}
-
-pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) UnsafeScopeError!void {
-    return requireRawPointerBridgePolicyBytes(policy.unsafe_scope, policy.reserved);
-}
-
-pub fn requireNoUnsafeByte(scope: u8) UnsafeScopeError!void {
-    if (!permitsNoUnsafeByte(scope)) return error.UnsafeScopeDenied;
-}
-
-pub fn requireVolatileMmioByte(scope: u8) UnsafeScopeError!void {
-    if (!permitsVolatileMmioByte(scope)) return error.UnsafeScopeDenied;
-}
-
-pub fn requireRawPointerBridgeByte(scope: u8) UnsafeScopeError!void {
-    if (!permitsRawPointerBridgeByte(scope)) return error.UnsafeScopeDenied;
-}
-
-pub fn allowsVolatileMmio(scope: UnsafeScopeTag) bool {
-    return permitsVolatileMmio(scope);
-}
-
-pub fn allowsVolatileMmioPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
-    return permitsVolatileMmioPolicyBytes(unsafe_scope, reserved);
-}
-
-pub fn allowsRawPointerBridge(scope: UnsafeScopeTag) bool {
-    return permitsRawPointerBridge(scope);
-}
-
-pub fn allowsRawPointerBridgePolicyBytes(unsafe_scope: u8, reserved: u8) bool {
-    return permitsRawPointerBridgePolicyBytes(unsafe_scope, reserved);
-}
-
-pub fn isUnsafe(scope: UnsafeScopeTag) bool {
-    return scope != .none;
-}
-
-pub fn surfaceFor(scope: UnsafeScopeTag) Surface {
+pub fn surfaceFor(scope: abi.UnsafeScope) Surface {
     return switch (scope) {
         .none => .safe_only,
         .volatile_mmio => .mmio_only,
@@ -150,266 +78,414 @@ pub fn surfaceFor(scope: UnsafeScopeTag) Surface {
     };
 }
 
-pub fn requiresDedicatedAudit(scope: UnsafeScopeTag) bool {
+pub fn permitsNoUnsafe(scope: abi.UnsafeScope) bool {
+    return scope == .none;
+}
+
+pub fn isUnsafe(scope: abi.UnsafeScope) bool {
+    return scope != .none;
+}
+
+pub fn allowsVolatileMmio(scope: abi.UnsafeScope) bool {
+    return scope == .volatile_mmio;
+}
+
+pub fn allowsRawPointerBridge(scope: abi.UnsafeScope) bool {
+    return scope == .raw_pointer_bridge;
+}
+
+pub fn requiresDedicatedAudit(scope: abi.UnsafeScope) bool {
     return isUnsafe(scope);
 }
 
-fn requireByteCoverage(comptime T: type, byte_len: usize) RawPointerBridgeError!void {
-    if (byte_len < @sizeOf(T)) return error.ByteLengthTooSmall;
+pub fn requireNoUnsafe(scope: abi.UnsafeScope) ScopeError!void {
+    if (!permitsNoUnsafe(scope)) return error.UnsafeScopeDenied;
 }
 
-fn requireAddressSpan(address: usize, byte_len: usize) RawPointerBridgeError!void {
-    _ = std.math.add(usize, address, byte_len) catch return error.AddressOverflow;
+pub fn requireVolatileMmio(scope: abi.UnsafeScope) ScopeError!void {
+    if (!allowsVolatileMmio(scope)) return error.UnsafeScopeDenied;
 }
 
-fn requireElementSpan(comptime T: type, address: usize, len: usize) RawPointerBridgeError!usize {
-    const byte_len = std.math.mul(usize, len, @sizeOf(T)) catch return error.LengthOverflow;
-    try requireAddressSpan(address, byte_len);
-    return byte_len;
+pub fn requireRawPointerBridge(scope: abi.UnsafeScope) ScopeError!void {
+    if (!allowsRawPointerBridge(scope)) return error.UnsafeScopeDenied;
 }
 
-fn rawPointer(comptime T: type, address: usize) *align(1) T {
-    return @ptrFromInt(address);
+pub fn requiresDedicatedAuditPolicyBytes(scope: u8, reserved: u8) bool {
+    return requiresDedicatedAudit(scopeFromInteropPolicyBytes(scope, reserved) orelse return false);
 }
 
-fn rawConstPointer(comptime T: type, address: usize) *align(1) const T {
-    return @ptrFromInt(address);
+pub fn requiresDedicatedAuditInteropPolicy(policy: abi.InteropPolicy) bool {
+    return requiresDedicatedAuditPolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
-fn rawSlice(comptime T: type, address: usize, len: usize) []align(1) T {
-    const base: [*]align(1) T = @ptrFromInt(address);
-    return base[0..len];
+pub fn requiresDedicatedAuditByte(scope: u8) bool {
+    return requiresDedicatedAuditPolicyBytes(scope, 0);
 }
 
-fn rawConstSlice(comptime T: type, address: usize, len: usize) []align(1) const T {
-    const base: [*]align(1) const T = @ptrFromInt(address);
-    return base[0..len];
+pub fn allowsVolatileMmioPolicyBytes(scope: u8, reserved: u8) bool {
+    return allowsVolatileMmio(scopeFromInteropPolicyBytes(scope, reserved) orelse return false);
 }
 
-pub fn pointerAtInteropPolicyBytes(comptime T: type, address: usize, byte_len: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!*align(1) T {
-    try requireRawPointerBridgePolicyBytes(unsafe_scope, reserved);
-    try requireByteCoverage(T, byte_len);
-    try requireAddressSpan(address, byte_len);
-    return rawPointer(T, address);
+pub fn allowsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {
+    return allowsVolatileMmioPolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
-pub fn pointerAtInteropPolicy(comptime T: type, address: usize, byte_len: usize, policy: abi.InteropPolicy) RawPointerBridgeError!*align(1) T {
-    return pointerAtInteropPolicyBytes(T, address, byte_len, policy.unsafe_scope, policy.reserved);
+pub fn allowsVolatileMmioByte(scope: u8) bool {
+    return allowsVolatileMmioPolicyBytes(scope, 0);
 }
 
-pub fn pointerAtByte(comptime T: type, address: usize, byte_len: usize, scope: u8) RawPointerBridgeError!*align(1) T {
-    return pointerAtInteropPolicyBytes(T, address, byte_len, scope, 0);
+pub fn allowsRawPointerBridgePolicyBytes(scope: u8, reserved: u8) bool {
+    return allowsRawPointerBridge(scopeFromInteropPolicyBytes(scope, reserved) orelse return false);
 }
 
-pub fn constPointerAtInteropPolicyBytes(comptime T: type, address: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!*align(1) const T {
-    try requireRawPointerBridgePolicyBytes(unsafe_scope, reserved);
-    try requireAddressSpan(address, @sizeOf(T));
-    return rawConstPointer(T, address);
+pub fn allowsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
+    return allowsRawPointerBridgePolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
-pub fn constPointerAtInteropPolicy(comptime T: type, address: usize, policy: abi.InteropPolicy) RawPointerBridgeError!*align(1) const T {
-    return constPointerAtInteropPolicyBytes(T, address, policy.unsafe_scope, policy.reserved);
+pub fn allowsRawPointerBridgeByte(scope: u8) bool {
+    return allowsRawPointerBridgePolicyBytes(scope, 0);
 }
 
-pub fn constPointerAtByte(comptime T: type, address: usize, scope: u8) RawPointerBridgeError!*align(1) const T {
-    return constPointerAtInteropPolicyBytes(T, address, scope, 0);
+pub fn permitsNoUnsafePolicyBytes(scope: u8, reserved: u8) bool {
+    return permitsNoUnsafe(scopeFromInteropPolicyBytes(scope, reserved) orelse return false);
 }
 
-pub fn sliceAtInteropPolicyBytes(comptime T: type, address: usize, len: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError![]align(1) T {
-    try requireRawPointerBridgePolicyBytes(unsafe_scope, reserved);
-    _ = try requireElementSpan(T, address, len);
-    return rawSlice(T, address, len);
+pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
+    return permitsNoUnsafePolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
-pub fn sliceAtInteropPolicy(comptime T: type, address: usize, len: usize, policy: abi.InteropPolicy) RawPointerBridgeError![]align(1) T {
-    return sliceAtInteropPolicyBytes(T, address, len, policy.unsafe_scope, policy.reserved);
+pub fn permitsNoUnsafeByte(scope: u8) bool {
+    return permitsNoUnsafePolicyBytes(scope, 0);
 }
 
-pub fn sliceAtByte(comptime T: type, address: usize, len: usize, scope: u8) RawPointerBridgeError![]align(1) T {
-    return sliceAtInteropPolicyBytes(T, address, len, scope, 0);
+pub fn requireNoUnsafePolicyBytes(scope: u8, reserved: u8) ScopeError!void {
+    try requireNoUnsafe(scopeFromInteropPolicyBytes(scope, reserved) orelse return error.UnsafeScopeDenied);
 }
 
-pub fn constSliceAtInteropPolicyBytes(comptime T: type, address: usize, len: usize, unsafe_scope: u8, reserved: u8) RawPointerBridgeError![]align(1) const T {
-    try requireRawPointerBridgePolicyBytes(unsafe_scope, reserved);
-    _ = try requireElementSpan(T, address, len);
-    return rawConstSlice(T, address, len);
+pub fn requireNoUnsafeInteropPolicy(policy: abi.InteropPolicy) ScopeError!void {
+    return requireNoUnsafePolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
-pub fn constSliceAtInteropPolicy(comptime T: type, address: usize, len: usize, policy: abi.InteropPolicy) RawPointerBridgeError![]align(1) const T {
-    return constSliceAtInteropPolicyBytes(T, address, len, policy.unsafe_scope, policy.reserved);
+pub fn requireNoUnsafeByte(scope: u8) ScopeError!void {
+    return requireNoUnsafePolicyBytes(scope, 0);
 }
 
-pub fn constSliceAtByte(comptime T: type, address: usize, len: usize, scope: u8) RawPointerBridgeError![]align(1) const T {
-    return constSliceAtInteropPolicyBytes(T, address, len, scope, 0);
+pub fn requireVolatileMmioPolicyBytes(scope: u8, reserved: u8) ScopeError!void {
+    try requireVolatileMmio(scopeFromInteropPolicyBytes(scope, reserved) orelse return error.UnsafeScopeDenied);
 }
 
-pub fn writeValueAtInteropPolicyBytes(comptime T: type, address: usize, value: T, unsafe_scope: u8, reserved: u8) RawPointerBridgeError!void {
-    const ptr = try pointerAtInteropPolicyBytes(T, address, @sizeOf(T), unsafe_scope, reserved);
-    ptr.* = value;
+pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) ScopeError!void {
+    return requireVolatileMmioPolicyBytes(policy.unsafe_scope, policy.reserved);
 }
 
-pub fn writeValueAtInteropPolicy(comptime T: type, address: usize, value: T, policy: abi.InteropPolicy) RawPointerBridgeError!void {
-    return writeValueAtInteropPolicyBytes(T, address, value, policy.unsafe_scope, policy.reserved);
+pub fn requireVolatileMmioByte(scope: u8) ScopeError!void {
+    return requireVolatileMmioPolicyBytes(scope, 0);
 }
 
-pub fn writeValueAtByte(comptime T: type, address: usize, value: T, scope: u8) RawPointerBridgeError!void {
-    return writeValueAtInteropPolicyBytes(T, address, value, scope, 0);
+pub fn requireRawPointerBridgePolicyBytes(scope: u8, reserved: u8) ScopeError!void {
+    try requireRawPointerBridge(scopeFromInteropPolicyBytes(scope, reserved) orelse return error.UnsafeScopeDenied);
 }
 
-test "phase3 narrow unsafe scope bytes stay explicit" {
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .none), scopeFromByte(0));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .volatile_mmio), scopeFromByte(1));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromByte(2));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromByte(9));
+pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) ScopeError!void {
+    return requireRawPointerBridgePolicyBytes(policy.unsafe_scope, policy.reserved);
+}
 
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .none), scopeFromInteropPolicyBytes(0, 0));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .volatile_mmio), scopeFromInteropPolicyBytes(1, 0));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromInteropPolicyBytes(2, 0));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicyBytes(9, 0));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicyBytes(2, 1));
+pub fn requireRawPointerBridgeByte(scope: u8) ScopeError!void {
+    return requireRawPointerBridgePolicyBytes(scope, 0);
+}
 
-    const none_policy = abi.InteropPolicy{
-        .panic_mode = 0,
-        .allocator_mode = 0,
-        .unsafe_scope = 0,
-        .reserved = 0,
-    };
-    const mmio_policy = abi.InteropPolicy{
-        .panic_mode = 1,
-        .allocator_mode = 1,
-        .unsafe_scope = 1,
-        .reserved = 0,
-    };
-    const raw_policy = abi.InteropPolicy{
-        .panic_mode = 2,
-        .allocator_mode = 2,
-        .unsafe_scope = 2,
-        .reserved = 0,
-    };
-    const unknown_policy = abi.InteropPolicy{
-        .panic_mode = 0,
-        .allocator_mode = 0,
-        .unsafe_scope = 9,
-        .reserved = 0,
-    };
-    const reserved_policy = abi.InteropPolicy{
-        .panic_mode = 2,
-        .allocator_mode = 2,
-        .unsafe_scope = 2,
-        .reserved = 1,
-    };
+pub fn pointerAtInteropPolicyBytes(
+    comptime T: type,
+    base: usize,
+    offset: usize,
+    scope: u8,
+    reserved: u8,
+) ScopeError!*align(1) volatile T {
+    try requireRawPointerBridgePolicyBytes(scope, reserved);
+    return pointerAt(T, base, offset);
+}
 
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .none), scopeFromInteropPolicy(none_policy));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .volatile_mmio), scopeFromInteropPolicy(mmio_policy));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, .raw_pointer_bridge), scopeFromInteropPolicy(raw_policy));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicy(unknown_policy));
-    try std.testing.expectEqual(@as(?UnsafeScopeTag, null), scopeFromInteropPolicy(reserved_policy));
+pub fn pointerAtInteropPolicy(
+    comptime T: type,
+    base: usize,
+    offset: usize,
+    policy: abi.InteropPolicy,
+) ScopeError!*align(1) volatile T {
+    try requireRawPointerBridgeInteropPolicy(policy);
+    return pointerAt(T, base, offset);
+}
 
-    try std.testing.expect(recognizesInteropPolicy(none_policy));
-    try std.testing.expect(recognizesInteropPolicy(mmio_policy));
-    try std.testing.expect(recognizesInteropPolicy(raw_policy));
-    try std.testing.expect(!recognizesInteropPolicy(unknown_policy));
-    try std.testing.expect(!recognizesInteropPolicy(reserved_policy));
+pub fn pointerAtByte(
+    comptime T: type,
+    base: usize,
+    offset: usize,
+    scope: u8,
+) ScopeError!*align(1) volatile T {
+    try requireRawPointerBridgeByte(scope);
+    return pointerAt(T, base, offset);
+}
 
-    try std.testing.expect(permitsNoUnsafeInteropPolicy(none_policy));
-    try std.testing.expect(!permitsNoUnsafeInteropPolicy(mmio_policy));
-    try std.testing.expect(!permitsNoUnsafeInteropPolicy(raw_policy));
-    try std.testing.expect(!permitsNoUnsafeInteropPolicy(unknown_policy));
-    try std.testing.expect(!permitsNoUnsafeInteropPolicy(reserved_policy));
+pub fn sliceAtInteropPolicyBytes(
+    comptime T: type,
+    base: usize,
+    len: usize,
+    scope: u8,
+    reserved: u8,
+) ScopeError![]align(1) T {
+    try requireRawPointerBridgePolicyBytes(scope, reserved);
+    return sliceAt(T, base, len);
+}
 
-    try std.testing.expect(!permitsVolatileMmioInteropPolicy(none_policy));
-    try std.testing.expect(permitsVolatileMmioInteropPolicy(mmio_policy));
-    try std.testing.expect(!permitsVolatileMmioInteropPolicy(raw_policy));
-    try std.testing.expect(!permitsVolatileMmioInteropPolicy(unknown_policy));
-    try std.testing.expect(!permitsVolatileMmioInteropPolicy(reserved_policy));
+pub fn sliceAtInteropPolicy(
+    comptime T: type,
+    base: usize,
+    len: usize,
+    policy: abi.InteropPolicy,
+) ScopeError![]align(1) T {
+    try requireRawPointerBridgeInteropPolicy(policy);
+    return sliceAt(T, base, len);
+}
 
-    try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(none_policy));
-    try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(mmio_policy));
-    try std.testing.expect(permitsRawPointerBridgeInteropPolicy(raw_policy));
-    try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(unknown_policy));
-    try std.testing.expect(!permitsRawPointerBridgeInteropPolicy(reserved_policy));
+pub fn sliceAtByte(
+    comptime T: type,
+    base: usize,
+    len: usize,
+    scope: u8,
+) ScopeError![]align(1) T {
+    try requireRawPointerBridgeByte(scope);
+    return sliceAt(T, base, len);
+}
 
-    try requireNoUnsafeInteropPolicy(none_policy);
-    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeInteropPolicy(mmio_policy));
+pub fn constPointerAtInteropPolicyBytes(
+    comptime T: type,
+    addr: usize,
+    scope: u8,
+    reserved: u8,
+) ScopeError!*align(1) const T {
+    try requireRawPointerBridgePolicyBytes(scope, reserved);
+    return constPointerAt(T, addr);
+}
+
+pub fn constPointerAtInteropPolicy(
+    comptime T: type,
+    addr: usize,
+    policy: abi.InteropPolicy,
+) ScopeError!*align(1) const T {
+    try requireRawPointerBridgeInteropPolicy(policy);
+    return constPointerAt(T, addr);
+}
+
+pub fn constPointerAtByte(
+    comptime T: type,
+    addr: usize,
+    scope: u8,
+) ScopeError!*align(1) const T {
+    try requireRawPointerBridgeByte(scope);
+    return constPointerAt(T, addr);
+}
+
+pub fn constSliceAtInteropPolicyBytes(
+    comptime T: type,
+    base: usize,
+    len: usize,
+    scope: u8,
+    reserved: u8,
+) ScopeError![]align(1) const T {
+    try requireRawPointerBridgePolicyBytes(scope, reserved);
+    return constSliceAt(T, base, len);
+}
+
+pub fn constSliceAtInteropPolicy(
+    comptime T: type,
+    base: usize,
+    len: usize,
+    policy: abi.InteropPolicy,
+) ScopeError![]align(1) const T {
+    try requireRawPointerBridgeInteropPolicy(policy);
+    return constSliceAt(T, base, len);
+}
+
+pub fn constSliceAtByte(
+    comptime T: type,
+    base: usize,
+    len: usize,
+    scope: u8,
+) ScopeError![]align(1) const T {
+    try requireRawPointerBridgeByte(scope);
+    return constSliceAt(T, base, len);
+}
+
+pub fn writeValueAtInteropPolicyBytes(
+    comptime T: type,
+    addr: usize,
+    value: T,
+    scope: u8,
+    reserved: u8,
+) ScopeError!void {
+    try requireRawPointerBridgePolicyBytes(scope, reserved);
+    writeValueAt(T, addr, value);
+}
+
+pub fn writeValueAtInteropPolicy(
+    comptime T: type,
+    addr: usize,
+    value: T,
+    policy: abi.InteropPolicy,
+) ScopeError!void {
+    try requireRawPointerBridgeInteropPolicy(policy);
+    writeValueAt(T, addr, value);
+}
+
+pub fn writeValueAtByte(
+    comptime T: type,
+    addr: usize,
+    value: T,
+    scope: u8,
+) ScopeError!void {
+    try requireRawPointerBridgeByte(scope);
+    writeValueAt(T, addr, value);
+}
+
+test "phase3 narrow unsafe surface keeps the capability split explicit" {
+    try std.testing.expectEqual(Surface.safe_only, surfaceFor(.none));
+    try std.testing.expectEqual(Surface.mmio_only, surfaceFor(.volatile_mmio));
+    try std.testing.expectEqual(Surface.raw_pointer_bridge_only, surfaceFor(.raw_pointer_bridge));
+
+    try std.testing.expect(permitsNoUnsafe(.none));
+    try std.testing.expect(!permitsNoUnsafe(.volatile_mmio));
+    try std.testing.expect(!permitsNoUnsafe(.raw_pointer_bridge));
+
+    try std.testing.expect(!isUnsafe(.none));
+    try std.testing.expect(isUnsafe(.volatile_mmio));
+    try std.testing.expect(isUnsafe(.raw_pointer_bridge));
+
+    try std.testing.expect(!allowsVolatileMmio(.none));
+    try std.testing.expect(allowsVolatileMmio(.volatile_mmio));
+    try std.testing.expect(!allowsVolatileMmio(.raw_pointer_bridge));
+
+    try std.testing.expect(!allowsRawPointerBridge(.none));
+    try std.testing.expect(!allowsRawPointerBridge(.volatile_mmio));
+    try std.testing.expect(allowsRawPointerBridge(.raw_pointer_bridge));
+
+    try std.testing.expect(!requiresDedicatedAudit(.none));
+    try std.testing.expect(requiresDedicatedAudit(.volatile_mmio));
+    try std.testing.expect(requiresDedicatedAudit(.raw_pointer_bridge));
+}
+
+test "phase3 narrow unsafe surface stays explicit" {
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), scopeFromByte(0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), scopeFromByte(1));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), scopeFromByte(2));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromByte(9));
+
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), scopeFromInteropPolicyBytes(0, 0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), scopeFromInteropPolicyBytes(1, 0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), scopeFromInteropPolicyBytes(2, 0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicyBytes(9, 0));
+    try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
+    try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
+    try std.testing.expect(recognizesInteropPolicyBytes(2, 0));
+    try std.testing.expect(!recognizesInteropPolicyBytes(9, 0));
+    try std.testing.expect(!recognizesInteropPolicyBytes(2, 1));
+
+    try std.testing.expect(recognizesByte(0));
+    try std.testing.expect(recognizesByte(1));
+    try std.testing.expect(recognizesByte(2));
+    try std.testing.expect(!recognizesByte(9));
+}
+
+test "phase3 narrow unsafe wrappers stay bounded" {
+    try std.testing.expectEqual(@as(usize, 12), byteOffset(9, 3));
+    try std.testing.expectEqual(std.math.maxInt(usize), byteOffset(std.math.maxInt(usize) - 4, 4));
+
+    var value: u32 = 0;
+    const base = addressOf(&value);
+    const ptr = pointerAt(u32, base, 0);
+    ptr.* = 11;
+    try std.testing.expectEqual(@as(u32, 11), value);
+
+    var odd_bytes = [_]u8{ 0, 0, 0, 0 };
+    const odd_addr = addressOf(&odd_bytes[0]) + 1;
+    const odd_ptr = pointerAt(u16, addressOf(&odd_bytes[0]), 1);
+    odd_ptr.* = 0x1234;
+    const odd_confirm: *align(1) const u16 = @ptrCast(&odd_bytes[1]);
+    try std.testing.expectEqual(@as(u16, 0x1234), odd_confirm.*);
+
+    const odd_const_ptr = constPointerAt(u16, odd_addr);
+    try std.testing.expectEqual(@as(u16, 0x1234), odd_const_ptr.*);
+
+    const odd_const_slice = constSliceAt(u16, odd_addr, 1);
+    try std.testing.expectEqual(@as(u16, 0x1234), odd_const_slice[0]);
+
+    const odd_mut_slice = sliceAt(u16, odd_addr, 1);
+    odd_mut_slice[0] = 0x5678;
+    try std.testing.expectEqual(@as(u16, 0x5678), odd_const_ptr.*);
+
+    writeValueAt(u16, odd_addr, 0x9abc);
+    try std.testing.expectEqual(@as(u16, 0x9abc), odd_const_ptr.*);
+}
+
+test "phase3 narrow raw pointer bridge gating stays explicit" {
+    const none_policy = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 };
+    const mmio_policy = abi.InteropPolicy{ .panic_mode = 1, .allocator_mode = 1, .unsafe_scope = 1, .reserved = 0 };
+    const raw_policy = abi.InteropPolicy{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 0 };
+    const reserved_policy = abi.InteropPolicy{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 1 };
+    const unknown_policy = abi.InteropPolicy{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 9, .reserved = 0 };
+
+    try requireNoUnsafe(.none);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafe(.volatile_mmio));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafe(.raw_pointer_bridge));
+
+    try std.testing.expect(permitsNoUnsafeByte(0));
+    try std.testing.expect(!permitsNoUnsafeByte(2));
+    try std.testing.expect(!permitsNoUnsafeByte(9));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeByte(2));
     try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeInteropPolicy(raw_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeInteropPolicy(unknown_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafeInteropPolicy(reserved_policy));
 
-    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioInteropPolicy(none_policy));
-    try requireVolatileMmioInteropPolicy(mmio_policy);
-    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioInteropPolicy(raw_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioInteropPolicy(unknown_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioInteropPolicy(reserved_policy));
+    try std.testing.expect(!allowsVolatileMmioByte(0));
+    try std.testing.expect(allowsVolatileMmioByte(1));
+    try std.testing.expect(!allowsVolatileMmioByte(2));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmio(.none));
+    try requireVolatileMmio(.volatile_mmio);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmio(.raw_pointer_bridge));
 
-    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(none_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(mmio_policy));
+    try std.testing.expect(!allowsRawPointerBridgeByte(0));
+    try std.testing.expect(!allowsRawPointerBridgeByte(1));
+    try std.testing.expect(allowsRawPointerBridgeByte(2));
+    try std.testing.expect(!allowsRawPointerBridgeByte(9));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeByte(1));
     try requireRawPointerBridgeInteropPolicy(raw_policy);
-    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(unknown_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(mmio_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(reserved_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(unknown_policy));
 
-    var bridge_values = [_]u32{ 31, 47, 59 };
-    const bridge_addr = @intFromPtr(&bridge_values[0]);
-    const second_addr = @intFromPtr(&bridge_values[1]);
-    const third_addr = @intFromPtr(&bridge_values[2]);
-    var odd_bridge_storage = [_]u8{ 0, 0xcd, 0xab, 0, 0 };
-    const odd_bridge_addr = @intFromPtr(&odd_bridge_storage[1]);
+    var bridge_values = [_]u32{ 27, 31, 35 };
+    const bridge_addr = addressOf(&bridge_values[0]);
+    const second_addr = byteOffset(bridge_addr, @sizeOf(u32));
 
-    const scoped_mut_ptr = try pointerAtInteropPolicy(u32, bridge_addr, @sizeOf(u32), raw_policy);
-    try std.testing.expectEqual(@as(u32, 31), scoped_mut_ptr.*);
+    const mut_slice = try sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, raw_policy);
+    mut_slice[0] = 39;
+    try std.testing.expectEqual(@as(u32, 39), bridge_values[0]);
 
-    const scoped_mut_slice = try sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, raw_policy);
-    try std.testing.expectEqual(@as(usize, bridge_values.len), scoped_mut_slice.len);
-    try std.testing.expectEqual(@as(u32, 47), scoped_mut_slice[1]);
-
-    const scoped_direct_mut_slice = try sliceAtByte(u32, bridge_addr, bridge_values.len, 2);
-    scoped_direct_mut_slice[1] = 47;
+    const ptr = try pointerAtByte(u32, bridge_addr, @sizeOf(u32), 2);
+    ptr.* = 47;
     try std.testing.expectEqual(@as(u32, 47), bridge_values[1]);
 
-    const scoped_const_slice = try constSliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 0);
-    try std.testing.expectEqual(@as(u32, 31), scoped_const_slice[0]);
+    const const_ptr = try constPointerAtInteropPolicy(u32, second_addr, raw_policy);
+    try std.testing.expectEqual(@as(u32, 47), const_ptr.*);
 
-    const scoped_const_policy_slice = try constSliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, raw_policy);
-    try std.testing.expectEqual(@as(u32, 59), scoped_const_policy_slice[2]);
+    const const_slice = try constSliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 0);
+    try std.testing.expectEqual(@as(u32, 39), const_slice[0]);
+    try std.testing.expectEqual(@as(u32, 47), const_slice[1]);
+    try std.testing.expectEqual(@as(u32, 35), const_slice[2]);
 
-    const scoped_direct_const_slice = try constSliceAtByte(u32, bridge_addr, bridge_values.len, 2);
-    try std.testing.expectEqual(@as(u32, 47), scoped_direct_const_slice[1]);
-
-    const scoped_const_ptr = try constPointerAtInteropPolicyBytes(u32, third_addr, 2, 0);
-    try std.testing.expectEqual(@as(u32, 59), scoped_const_ptr.*);
-
-    const scoped_direct_const_ptr = try constPointerAtInteropPolicy(u32, second_addr, raw_policy);
-    try std.testing.expectEqual(@as(u32, 47), scoped_direct_const_ptr.*);
-
-    const scoped_direct_const_byte_ptr = try constPointerAtByte(u32, second_addr, 2);
-    try std.testing.expectEqual(@as(u32, 47), scoped_direct_const_byte_ptr.*);
-
-    try writeValueAtInteropPolicyBytes(u32, third_addr, 66, 2, 0);
-    try std.testing.expectEqual(@as(u32, 66), bridge_values[2]);
-
-    try writeValueAtInteropPolicy(u32, third_addr, 71, raw_policy);
-    try std.testing.expectEqual(@as(u32, 71), bridge_values[2]);
-
-    try writeValueAtByte(u32, third_addr, 73, 2);
-    try std.testing.expectEqual(@as(u32, 73), bridge_values[2]);
-
-    const scoped_odd_ptr = try pointerAtByte(u16, odd_bridge_addr, @sizeOf(u16), 2);
-    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_ptr.*);
-
-    const scoped_odd_const_ptr = try constPointerAtByte(u16, odd_bridge_addr, 2);
-    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_const_ptr.*);
-
-    const scoped_odd_slice = try constSliceAtInteropPolicy(u16, odd_bridge_addr, 1, raw_policy);
-    try std.testing.expectEqual(@as(u16, 0xabcd), scoped_odd_slice[0]);
-
-    try writeValueAtByte(u16, odd_bridge_addr, 0x1357, 2);
-    try std.testing.expectEqual(@as(u16, 0x1357), scoped_odd_ptr.*);
+    try writeValueAtInteropPolicy(u32, bridge_addr, 65, raw_policy);
+    try std.testing.expectEqual(@as(u32, 65), bridge_values[0]);
 
     try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicy(u32, bridge_addr, bridge_values.len, none_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, sliceAtInteropPolicyBytes(u32, bridge_addr, bridge_values.len, 2, 1));
-    try std.testing.expectError(error.UnsafeScopeDenied, sliceAtByte(u32, bridge_addr, bridge_values.len, 0));
-    try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicy(u32, bridge_addr, 0, none_policy));
     try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicy(u32, bridge_addr, 0, mmio_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicy(u32, bridge_addr, 0, unknown_policy));
-    try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicyBytes(u32, bridge_addr, 0, 2, 1));
-    try std.testing.expectError(error.UnsafeScopeDenied, pointerAtByte(u32, bridge_addr, 0, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, constSliceAtByte(u32, bridge_addr, bridge_values.len, 1));
+    try std.testing.expectError(error.UnsafeScopeDenied, writeValueAtByte(u32, bridge_addr, 79, 1));
 }
