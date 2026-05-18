@@ -140,7 +140,8 @@ const Processor = struct {
         if (try self.remember(&self.config_seen, token)) {
             return;
         }
-        try writer.print("    $(wildcard include/config/{s}) \\\n", .{token});
+        try writer.print("    $(wildcard include/config/{s}) \\\
+", .{token});
     }
 
     fn parseConfigFile(self: *Processor, writer: anytype, text: []const u8) !void {
@@ -290,11 +291,13 @@ const Processor = struct {
             if (is_source) {
                 if (!saw_any_target) {
                     saw_any_target = true;
-                    try writer.print("source_{s} := {s}\n\ndeps_{s} := \\\n", .{ target, token.items, target });
+                    try writer.print("source_{s} := {s}\n\ndeps_{s} := \\\
+", .{ target, token.items, target });
                     need_parse = true;
                 }
             } else if (!isIgnoredFile(token.items) and !try self.remember(&self.file_seen, token.items)) {
-                try writer.print("  {s} \\\n", .{token.items});
+                try writer.print("  {s} \\\
+", .{token.items});
                 need_parse = true;
             }
 
@@ -421,7 +424,9 @@ test "config parsing trims _MODULE and deduplicates symbols" {
     );
 
     try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_CORE) \\\n    $(wildcard include/config/ZIGUX_DEBUG) \\\n",
+        "    $(wildcard include/config/ZIGUX_CORE) \\\
+    $(wildcard include/config/ZIGUX_DEBUG) \\\
+",
         capture.list.items,
     );
 }
@@ -433,7 +438,7 @@ test "config parsing ignores prefixed CONFIG tokens for C parity" {
 
         fn init(allocator: std.mem.Allocator) !@This() {
             return .{
-                .list = try std.ArrayList(u8).initCapacity(allocator, 8),
+                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
                 .allocator = allocator,
             };
         }
@@ -459,10 +464,14 @@ test "config parsing ignores prefixed CONFIG tokens for C parity" {
 
     try processor.parseConfigFile(
         &capture,
-        "UML_CONFIG_ZIGUX_CORE HELLO_CONFIG_ZIGUX_DEBUG_MODULE",
+        "UML_CONFIG_ZIGUX_CORE 9CONFIG_ZIGUX_COUNT _CONFIG_ZIGUX_FLAG CONFIG_ZIGUX_REAL_MODULE",
     );
 
-    try std.testing.expectEqual(@as(usize, 0), capture.list.items.len);
+    try std.testing.expectEqualStrings(
+        "    $(wildcard include/config/ZIGUX_REAL) \\\
+",
+        capture.list.items,
+    );
 }
 
 test "config parsing stops at the first embedded NUL" {
@@ -502,7 +511,8 @@ test "config parsing stops at the first embedded NUL" {
     );
 
     try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_CORE) \\\n",
+        "    $(wildcard include/config/ZIGUX_CORE) \\\
+",
         capture.list.items,
     );
 }
@@ -583,7 +593,9 @@ test "dep parsing keeps escaped spaces inside tokens" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dep\\ name.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
+  dep\\ name.rmeta \\\
+\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -626,10 +638,14 @@ test "dep parsing continues dependency lines across escaped newlines" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\n" ++
-            "  dep-first.so \\\n" ++
-            "  dep-second.so \\\n" ++
-            "  dep-third.so \\\n" ++
+        "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\
+" ++
+            "  dep-first.so \\\
+" ++
+            "  dep-second.so \\\
+" ++
+            "  dep-third.so \\\
+" ++
             "\n" ++
             "continued.o: $(deps_continued.o)\n\n" ++
             "$(deps_continued.o):\n",
@@ -675,7 +691,8 @@ test "dep parsing skips bytes after the first embedded NUL" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
+\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -827,7 +844,8 @@ test "dependency file reads beyond the legacy one mebibyte ceiling" {
     try std.testing.expect(dep_text.len > 1024 * 1024);
     try processor.parseDepFile(&capture, dep_text, "sample.o");
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
+\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -868,7 +886,10 @@ test "escaped hash dependency survives concatenated target comment path" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dir#crate.rmeta \\\n  later.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
+  dir#crate.rmeta \\\
+  later.rmeta \\\
+\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -971,14 +992,22 @@ test "runFixdep matches multi-target parity packet with escaped hash and deduped
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_module/sample2.o := {s}\n\n" ++
-            "source_module/sample2.o := {s}\n\ndeps_module/sample2.o := \\\n" ++
-            "    $(wildcard include/config/ZIGUX_MULTI) \\\n" ++
-            "  {s} \\\n" ++
-            "    $(wildcard include/config/ZIGUX_HASH) \\\n" ++
-            "    $(wildcard include/config/ZIGUX_SHARED) \\\n" ++
-            "  {s} \\\n" ++
-            "    $(wildcard include/config/ZIGUX_SECOND) \\\n" ++
-            "  {s} \\\n" ++
+            "source_module/sample2.o := {s}\n\ndeps_module/sample2.o := \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_MULTI) \\\
+" ++
+            "  {s} \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_HASH) \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_SHARED) \\\
+" ++
+            "  {s} \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_SECOND) \\\
+" ++
+            "  {s} \\\
+" ++
             "\n" ++
             "module/sample2.o: $(deps_module/sample2.o)\n\n" ++
             "$(deps_module/sample2.o):\n",
@@ -1093,9 +1122,12 @@ test "runFixdep reads escaped-space dependency paths and emits config deps" {
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_sample_escaped_space.o := {s}\n\n" ++
-            "source_sample_escaped_space.o := {s}\n\ndeps_sample_escaped_space.o := \\\n" ++
-            "  {s} \\\n" ++
-            "    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \\\n" ++
+            "source_sample_escaped_space.o := {s}\n\ndeps_sample_escaped_space.o := \\\
+" ++
+            "  {s} \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \\\
+" ++
             "\n" ++
             "sample_escaped_space.o: $(deps_sample_escaped_space.o)\n\n" ++
             "$(deps_sample_escaped_space.o):\n",
@@ -1210,10 +1242,14 @@ test "runFixdep reads escaped-colon dependency paths and trims shared _MODULE co
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_sample_escaped_colon.o := {s}\n\n" ++
-            "source_sample_escaped_colon.o := {s}\n\ndeps_sample_escaped_colon.o := \\\n" ++
-            "  {s} \\\n" ++
-            "    $(wildcard include/config/ZIGUX_COLON) \\\n" ++
-            "    $(wildcard include/config/ZIGUX_SHARED_COLON) \\\n" ++
+            "source_sample_escaped_colon.o := {s}\n\ndeps_sample_escaped_colon.o := \\\
+" ++
+            "  {s} \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_COLON) \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_SHARED_COLON) \\\
+" ++
             "\n" ++
             "sample_escaped_colon.o: $(deps_sample_escaped_colon.o)\n\n" ++
             "$(deps_sample_escaped_colon.o):\n",
