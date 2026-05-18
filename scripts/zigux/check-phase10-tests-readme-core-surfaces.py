@@ -41,9 +41,6 @@ REQUIRED_REPO_REALITY_GAP_MARKERS = (
     "current `master` still does not materialize",
     "`scripts/zigux/validate-phase10.py`",
     "`scripts/zigux/validate-phase10-closure.py`",
-    "`make -C zigux phase10-validate`",
-    "`make -C zigux phase10-test`",
-    "`make -C zigux phase10`",
     "`Documentation/zigux/phase10-virtio-core-survey.md`",
     "`Documentation/zigux/phase10-virtio-core-slice.md`",
     "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
@@ -53,8 +50,9 @@ REQUIRED_REPO_REALITY_GAP_MARKERS = (
     "last-known packet members or repo-reality gaps",
 )
 REQUIRED_RETURNED_MAKEFILE_MARKERS = (
-    "Current `master` does materialize `zigux/Makefile`, but it still does not materialize the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, or `make -C zigux phase10` routes,",
-    "the returned `zigux/Makefile` body distinct from the still-missing `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` route names",
+    "The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.",
+    "Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes,",
+    "the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate",
 )
 REQUIRED_ALIGNMENT_MARKERS = (
     "blocked risky-transport posture",
@@ -67,7 +65,8 @@ FORBIDDEN_RING_GAP_MARKERS = (
     "`drivers/virtio/virtio_ring_verify.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as missing direct-readback ring companions",
 )
 FORBIDDEN_REPO_REALITY_GAP_MARKERS = (
-    "`scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `make -C zigux phase10-validate`",
+    "Current `master` does materialize `zigux/Makefile`, but it still does not materialize the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, or `make -C zigux phase10` routes,",
+    "`scripts/zigux/validate-phase10-closure.py`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`",
     "`zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`",
 )
 
@@ -114,12 +113,14 @@ Keep the current bounded virtio closure packet explicit through the shared remin
 - directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and `zigux/tests/phase10_build.zig`
 - directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `drivers/virtio/virtio_input.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig`
 - helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`
-- current `master` still does not materialize `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json` through the direct readback available in this lane, so keep them framed as last-known packet members or repo-reality gaps instead of direct current-head evidence.
+- current `master` still does not materialize `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json` through the direct readback available in this lane, so keep them framed as last-known packet members or repo-reality gaps instead of direct current-head evidence.
 
-Current `master` does materialize `zigux/Makefile`, but it still does not materialize the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, or `make -C zigux phase10` routes, so keep the returned file distinct from those still-missing Phase 10 route names instead of framing the file itself as a repo-reality gap.
+The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.
+
+Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.
 
 Tests-root reviewer prompt:
-- Do the docs-root notes, scripts-root guards, tests-root packet, the shared closure note, the lane-sequencing note, the ring survey and slice notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and the shared `zigux/tests/phase10_build.zig` gate, the input slice, input module slice, input survey, direct input helpers, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the helper-local MMIO survey plus `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`, while keeping `zigux/tests/phase10_virtio_mmio_manifest.json` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as last-known packet members or repo-reality gaps, the blocked risky-transport posture, the returned `zigux/Makefile` body distinct from the still-missing `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` route names, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay aligned on the same bounded virtio story?
+- Do the docs-root notes, scripts-root guards, tests-root packet, the shared closure note, the lane-sequencing note, the ring survey and slice notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and the shared `zigux/tests/phase10_build.zig` gate, the input slice, input module slice, input survey, direct input helpers, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the helper-local MMIO survey plus `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`, while keeping `zigux/tests/phase10_virtio_mmio_manifest.json` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as last-known packet members or repo-reality gaps, the blocked risky-transport posture, the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay aligned on the same bounded virtio story?
 
 ## Phase 11 tests-root packet
 """
@@ -128,13 +129,14 @@ Tests-root reviewer prompt:
     tests.append((good.replace("## Phase 10 tests-root packet", "## Phase Ten tests-root packet", 1), "`## Phase 10 tests-root packet`"))
     tests.append((good.replace("## Phase 11 tests-root packet", "## Phase Eleven tests-root packet", 1), "`## Phase 11 tests-root packet`"))
     tests.append((good.replace("`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`", "`zigux/tests/phase10_virtio_ring_delayed_callback_budget_missing.zig`"), "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`"))
-    tests.append((good.replace("`make -C zigux phase10-test`", "`make -C zigux phase10-test-missing`", 2), "`make -C zigux phase10-test`"))
-    tests.append((good.replace("Current `master` does materialize `zigux/Makefile`, but it still does not materialize the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, or `make -C zigux phase10` routes,", "Current `master` does materialize the phase10 wrapper surface,", 1), "Current `master` does materialize `zigux/Makefile`"))
-    tests.append((good.replace("the returned `zigux/Makefile` body distinct from the still-missing `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` route names", "the returned phase10 route body distinct from the still-missing phase10 routes", 1), "the returned `zigux/Makefile` body distinct"))
+    tests.append((good.replace("`make -C zigux phase10-test`", "`make -C zigux phase10-test-missing`", 3), "`make -C zigux phase10-test`"))
+    tests.append((good.replace("Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes,", "Current `master` does materialize the phase10 wrapper surface,", 1), "Current `master` does materialize `zigux/Makefile`"))
+    tests.append((good.replace("The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.", "The shared build gate stays implicit.", 1), "The returned shared build gate now runs through `zigux/Makefile`"))
+    tests.append((good.replace("the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate", "the returned phase10 route body explicit as the shared build gate", 1), "the returned `zigux/Makefile` body plus"))
     tests.append((good.replace("blocked risky-transport posture", "blocked transport posture", 1), "blocked risky-transport posture"))
     tests.append((good.replace("`zigux/tests/phase10_virtio_mmio.zig`", "`zigux/tests/phase10_virtio_mmio_missing.zig`"), "`zigux/tests/phase10_virtio_mmio.zig`"))
     tests.append((good.replace("and `zigux/tests/phase10_virtio_ring_survey.zig` framed as last-known packet members or repo-reality gaps", "and `drivers/virtio/virtio_ring_verify.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as missing direct-readback ring companions", 1), "missing direct-readback ring companions"))
-    tests.append((good.replace("`scripts/zigux/validate-phase10-closure.py`, `make -C zigux phase10-validate`", "`scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `make -C zigux phase10-validate`", 1), "`zigux/Makefile`, `make -C zigux phase10-validate`"))
+    tests.append((good.replace("`scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`", "`scripts/zigux/validate-phase10-closure.py`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, `Documentation/zigux/phase10-virtio-core-survey.md`", 1), "`scripts/zigux/validate-phase10-closure.py`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`"))
     tests.append((good.replace("while keeping `zigux/tests/phase10_virtio_mmio_manifest.json` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as last-known packet members or repo-reality gaps", "while keeping `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_ring_survey.zig` framed as last-known packet members or repo-reality gaps", 1), "`zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`"))
     for text, expected in tests:
         try:
