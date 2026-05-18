@@ -14,7 +14,6 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
@@ -25,7 +24,6 @@ SURFACE_PATHS = (
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
-    ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
 )
 
 WORKFLOW_LINES = (
