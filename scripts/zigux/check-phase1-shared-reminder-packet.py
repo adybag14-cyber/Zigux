@@ -276,6 +276,22 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_workflow_shared_reminder_selftest",
+            lambda root: mutate_remove_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
+            ),
+        ),
+        (
+            "missing_workflow_shared_reminder_live_check",
+            lambda root: mutate_remove_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][2],
+            ),
+        ),
+        (
             "missing_phase1_build_slab_module",
             lambda root: mutate_remove_marker(
                 root,
