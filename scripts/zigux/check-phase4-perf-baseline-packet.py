@@ -24,7 +24,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 12
+EXPECTED_SELF_TEST_CASES = 13
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -145,6 +145,7 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("bitmap", "evidence", 1, "runs", 1, "checksum"), 7942141539243507472),
         (("promotion_decision", "status"), "shared CI perf promotion pending"),
         (("promotion_decision", "owner"), "Validation and Perf Team"),
+        (("promotion_decision", "coordination_owners"), EXPECTED_COORDINATION_OWNERS),
     )
     for path, expected in expected_values:
         expect_json_value(manifest_data, path, expected, missing)
@@ -268,7 +269,8 @@ def build_fixture_tree(root: Path) -> None:
   "promotion_decision": {
     "id": "phase4-perf-baseline-shared-promotion-decision",
     "status": "shared CI perf promotion pending",
-    "owner": "Validation and Perf Team"
+    "owner": "Validation and Perf Team",
+    "coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]
   }
 }
 """,
@@ -341,6 +343,7 @@ def run_self_test() -> int:
             (MANIFEST, '"acceptable_limit_iterations": 4', '"acceptable_limit_iterations": 5', 'manifest_count:"acceptable_limit_iterations": 4:expected=2'),
             (MANIFEST, '"acceptable_limit_sample_count": 7', '"acceptable_limit_sample_count": 8', 'manifest_count:"acceptable_limit_sample_count": 7:expected=2'),
             (MANIFEST, '"decision_owner": "Validation and Perf Team"', '"decision_owner": "ABI and Runtime Team"', 'manifest_json:decision_owner:'),
+            (MANIFEST, '"coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]', '"coordination_owners": ["ABI and Replay Team", "Shared Subsystems Pod"]', 'manifest_json:promotion_decision.coordination_owners:'),
             (MANIFEST, '"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"', '"benchmark_command": "zig build phase4-runtime-atomic64-bench --build-file zigux/tests/phase4_build.zig"', 'manifest_marker:"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"'),
             (SURVEY, 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");', 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"approved\\\"");', 'survey_marker:try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");'),
             (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are pending review today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
