@@ -5,9 +5,10 @@ Fail-closed checker for the current Phase 14 release-boundary count posture.
 
 This guard keeps the PMO release-boundary packet honest while exact contents
 readback still leaves the compile-shard counts unknown. It validates that the
-shared Phase 14 reminder notes continue to record the same unknown-count
-posture, the same executable-layer gap packet, and the same readable-but-no
-`phase14-*` Makefile split.
+release-boundary note records the same unknown-count posture, the same
+remaining executable-layer gap packet, the same readable-but-no-`phase14-*`
+Makefile split, and the now-readable exact-count checker itself as current
+release-facing evidence.
 """
 
 from __future__ import annotations
@@ -21,13 +22,7 @@ from pathlib import Path
 MARKER = "PHASE14_CHECK_PACKET=release_boundary_exact_counts"
 
 RELEASE_BOUNDARY_PATH = Path("Documentation/zigux/phase14-release-boundary-survey.md")
-SMOKE_SURVEY_PATH = Path("Documentation/zigux/phase14-end-to-end-smoke-survey.md")
-PRODUCTIZATION_GAP_PATH = Path("Documentation/zigux/phase14-productization-gap-survey.md")
-DOCS_README_PATH = Path("Documentation/zigux/README.md")
-SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
-TESTS_README_PATH = Path("zigux/tests/README.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
-VALIDATOR_PATH = Path("scripts/zigux/validate-phase14.py")
 
 UNKNOWN_COUNT_MARKERS = [
     "- `PHASE14_COMPILE_SHARD_TOTAL=unknown_in_current_contents_readback`",
@@ -36,7 +31,6 @@ UNKNOWN_COUNT_MARKERS = [
 ]
 
 EXECUTABLE_GAP_MARKERS = [
-    "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
     "- `zigux/tests/phase14_build.zig`",
     "- `zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "- `zigux/tests/phase14_end_to_end_smoke_survey.zig`",
@@ -65,37 +59,11 @@ MAKEFILE_ABSENT_MARKERS = [
 ]
 
 RELEASE_BOUNDARY_TEXT_MARKERS = [
+    "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py` now returns through the current contents path and keeps the release-facing exact-count posture aligned with the current shared reminder packet",
     "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
     "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
     "Do not present the compile-shard matrix, manifest-backed full-bundle replay, wrapper-backed `phase14-test`, wrapper-backed `phase14`, or dedicated `phase14-smoke` route as current release-facing proof",
 ]
-
-SHARED_REMINDER_MARKERS = {
-    DOCS_README_PATH: [
-        "- `Documentation/zigux/phase14-productization-gap-survey.md`",
-        "- `Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
-        "while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors",
-    ],
-    SCRIPTS_README_PATH: [
-        "- Phase 14 flow - the current scripts-root shared smoke packet stays reviewable",
-        "- `zigux/Makefile` is directly readable on current `master`, and its live body currently exposes shipped Phase 2 toolchain and kbuild routes together with bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families, but still no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
-    ],
-    TESTS_README_PATH: [
-        "Keep the current bounded Phase 14 reminder packet explicit through `Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
-        "Current `master` still does not materialize `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
-    ],
-    PRODUCTIZATION_GAP_PATH: [
-        "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
-        "The higher-value same-lane task is reminder-surface truthfulness",
-    ],
-    SMOKE_SURVEY_PATH: [
-        "If a future same-lane reread restores current direct readback for `phase14-validate`, `phase14-smoke`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, or `zigux/tests/phase14_end_to_end_smoke_survey.zig`, reconcile this note with those files",
-    ],
-    VALIDATOR_PATH: [
-        "ROLLBACK_CHECKER_PATH = \"scripts/zigux/check-phase14-rollback-threshold-sequencing.py\"",
-        "PHASE14_VALIDATOR_SELF_TEST=pass",
-    ],
-}
 
 
 def read_text(root: Path, rel: Path) -> str:
@@ -129,16 +97,7 @@ def check(root: Path) -> list[str]:
     if MARKER not in Path(__file__).read_text(encoding="utf-8"):
         errors.append("missing_checker_marker:self")
 
-    required_paths = [
-        RELEASE_BOUNDARY_PATH,
-        SMOKE_SURVEY_PATH,
-        PRODUCTIZATION_GAP_PATH,
-        DOCS_README_PATH,
-        SCRIPTS_README_PATH,
-        TESTS_README_PATH,
-        MAKEFILE_PATH,
-        VALIDATOR_PATH,
-    ]
+    required_paths = [RELEASE_BOUNDARY_PATH, MAKEFILE_PATH]
     for rel in required_paths:
         if not (root / rel).exists():
             errors.append(f"missing_file:{rel.as_posix()}")
@@ -149,9 +108,14 @@ def check(root: Path) -> list[str]:
     require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, UNKNOWN_COUNT_MARKERS)
     require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, EXECUTABLE_GAP_MARKERS)
     require_markers(errors, RELEASE_BOUNDARY_PATH, release_boundary, RELEASE_BOUNDARY_TEXT_MARKERS)
-
-    for rel, markers in SHARED_REMINDER_MARKERS.items():
-        require_markers(errors, rel, read_text(root, rel), markers)
+    require_absent(
+        errors,
+        RELEASE_BOUNDARY_PATH,
+        release_boundary,
+        [
+            "- executable packet members that still do not return through this lane's exact contents readback:\n- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`"
+        ],
+    )
 
     makefile = read_text(root, MAKEFILE_PATH)
     require_markers(errors, MAKEFILE_PATH, makefile, MAKEFILE_PRESENT_MARKERS)
@@ -165,6 +129,7 @@ def fixture_release_boundary() -> str:
         [
             "# Phase 14 Release Boundary Survey",
             *UNKNOWN_COUNT_MARKERS,
+            "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py` now returns through the current contents path and keeps the release-facing exact-count posture aligned with the current shared reminder packet",
             "- executable packet members that still do not return through this lane's exact contents readback:",
             *EXECUTABLE_GAP_MARKERS,
             "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
@@ -175,86 +140,15 @@ def fixture_release_boundary() -> str:
     )
 
 
-def fixture_smoke_survey() -> str:
-    return "\n".join(
-        [
-            "# Phase 14 End-to-End Smoke Survey",
-            "If a future same-lane reread restores current direct readback for `phase14-validate`, `phase14-smoke`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, or `zigux/tests/phase14_end_to_end_smoke_survey.zig`, reconcile this note with those files and with `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md` before restoring any stronger validator-first wording.",
-            "",
-        ]
-    )
-
-
-def fixture_productization_gap() -> str:
-    return "\n".join(
-        [
-            "# Phase 14 Productization Gap Survey",
-            "- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
-            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the blob-readable validator surface, the directly readable workqueue reviewability shard, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
-            "",
-        ]
-    )
-
-
-def fixture_docs_readme() -> str:
-    return "\n".join(
-        [
-            "# Zigux Documentation",
-            "- `Documentation/zigux/phase14-productization-gap-survey.md`",
-            "- `Documentation/zigux/phase14-end-to-end-smoke-survey.md`",
-            "while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors",
-            "",
-        ]
-    )
-
-
-def fixture_scripts_readme() -> str:
-    return "\n".join(
-        [
-            "# scripts/zigux",
-            "- Phase 14 flow - the current scripts-root shared smoke packet stays reviewable",
-            "- `zigux/Makefile` is directly readable on current `master`, and its live body currently exposes shipped Phase 2 toolchain and kbuild routes together with bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families, but still no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
-            "",
-        ]
-    )
-
-
-def fixture_tests_readme() -> str:
-    return "\n".join(
-        [
-            "# zigux/tests",
-            "Keep the current bounded Phase 14 reminder packet explicit through `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, and `Documentation/zigux/review-checklist.md`.",
-            "Current `master` still does not materialize `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, or `net/core/skbuff_bridge.zig`, so keep that executable-layer packet framed as a repo-reality gap rather than shipped tests-root evidence until fresh current-tree reads restore it.",
-            "",
-        ]
-    )
-
-
 def fixture_makefile() -> str:
     return "\n".join(MAKEFILE_PRESENT_MARKERS) + "\n"
-
-
-def fixture_validator() -> str:
-    return "\n".join(
-        [
-            'ROLLBACK_CHECKER_PATH = "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"',
-            "PHASE14_VALIDATOR_SELF_TEST=pass",
-            "",
-        ]
-    )
 
 
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     write_text(root, RELEASE_BOUNDARY_PATH, fixture_release_boundary())
-    write_text(root, SMOKE_SURVEY_PATH, fixture_smoke_survey())
-    write_text(root, PRODUCTIZATION_GAP_PATH, fixture_productization_gap())
-    write_text(root, DOCS_README_PATH, fixture_docs_readme())
-    write_text(root, SCRIPTS_README_PATH, fixture_scripts_readme())
-    write_text(root, TESTS_README_PATH, fixture_tests_readme())
     write_text(root, MAKEFILE_PATH, fixture_makefile())
-    write_text(root, VALIDATOR_PATH, fixture_validator())
 
 
 def remove_line(root: Path, rel: Path, marker: str) -> None:
@@ -290,17 +184,17 @@ def run_self_test() -> int:
             return 1
 
         write_fixture_tree(base)
+        remove_line(base, RELEASE_BOUNDARY_PATH, RELEASE_BOUNDARY_TEXT_MARKERS[0])
+        if not any(RELEASE_BOUNDARY_TEXT_MARKERS[0] in error for error in check(base)):
+            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
+            print("expected shipped-checker drift to fail")
+            return 1
+
+        write_fixture_tree(base)
         write_text(base, MAKEFILE_PATH, fixture_makefile() + "phase14-validate:\n")
         if not any("phase14-validate:" in error for error in check(base)):
             print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
             print("expected stale phase14 make route to fail")
-            return 1
-
-        write_fixture_tree(base)
-        remove_line(base, TESTS_README_PATH, "Current `master` still does not materialize `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, or `net/core/skbuff_bridge.zig`, so keep that executable-layer packet framed as a repo-reality gap rather than shipped tests-root evidence until fresh current-tree reads restore it.")
-        if not any("Current `master` still does not materialize `scripts/zigux/check-phase14-release-boundary-exact-counts.py`" in error for error in check(base)):
-            print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=fail")
-            print("expected tests-root reminder drift to fail")
             return 1
 
         print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass")
@@ -329,7 +223,6 @@ def main() -> int:
         return 1
 
     print("PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS=pass")
-    print(f"PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SHARED_REMINDER_COUNT={len(SHARED_REMINDER_MARKERS)}")
     print(f"PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_EXECUTABLE_GAP_COUNT={len(EXECUTABLE_GAP_MARKERS)}")
     return 0
 
