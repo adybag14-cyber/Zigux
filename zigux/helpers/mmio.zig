@@ -246,3 +246,57 @@ test "phase3 mmio helper gates volatile access through interop policy records" {
     );
     try std.testing.expectEqual(@as(u16, 0xF00F), register);
 }
+
+test "phase3 mmio helper keeps scoped masked writes and byte-policy exchanges explicit" {
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 1,
+    };
+
+    var register: u16 = 0x0FF0;
+    const register_ptr: *volatile u16 = @ptrCast(&register);
+
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        writeMaskedScoped(u16, .raw_pointer_bridge, register_ptr, 0x00F0, 0x0005),
+    );
+    try std.testing.expectEqual(@as(u16, 0x0FF0), register);
+
+    try std.testing.expectEqual(
+        @as(u16, 0x0F05),
+        try writeMaskedScoped(u16, .volatile_mmio, register_ptr, 0x00F0, 0x0005),
+    );
+    try std.testing.expectEqual(@as(u16, 0x0F05), register);
+
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        exchangeInteropPolicyBytes(u16, @intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 0, register_ptr, 0x5500),
+    );
+    try std.testing.expectEqual(@as(u16, 0x0F05), register);
+
+    try std.testing.expectEqual(
+        @as(u16, 0x0F05),
+        try exchangeInteropPolicyBytes(u16, @intFromEnum(abi.UnsafeScope.volatile_mmio), 0, register_ptr, 0x5500),
+    );
+    try std.testing.expectEqual(@as(u16, 0x5500), register);
+
+    try std.testing.expectError(
+        error.InvalidInteropPolicy,
+        writeMaskedInteropPolicy(u16, reserved_policy, register_ptr, 0x0F00, 0x00A0),
+    );
+    try std.testing.expectEqual(@as(u16, 0x5500), register);
+
+    try std.testing.expectEqual(
+        @as(u16, 0x50A0),
+        try writeMaskedInteropPolicy(u16, mmio_policy, register_ptr, 0x0F00, 0x00A0),
+    );
+    try std.testing.expectEqual(@as(u16, 0x50A0), register);
+}
