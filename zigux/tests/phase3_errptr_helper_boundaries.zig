@@ -21,6 +21,15 @@ test "phase3 err_ptr tagged endpoints stay out of the xa_value lane" {
     try std.testing.expect(!xa_value.isValue(err_top_raw));
 }
 
+test "phase3 highest xa_value stays below the err_ptr floor" {
+    const inline_limit_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
+
+    try std.testing.expect(xa_value.isValue(inline_limit_raw));
+    try std.testing.expectEqual(xa_value.safe_inline_limit, xa_value.toValue(inline_limit_raw));
+    try std.testing.expect(!err_ptr.isErrValue(inline_limit_raw));
+    try std.testing.expectEqual(err_ptr.err_floor - 2, inline_limit_raw);
+}
+
 test "phase3 err_ptr gap below floor stays pointer like" {
     const gap = err_ptr.err_floor - 1;
     try std.testing.expect(err_ptr.isOkValue(gap));
