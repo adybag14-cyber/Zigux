@@ -163,7 +163,6 @@ def seed_fixture(root: Path) -> None:
     for label, markers in MARKERS_BY_LABEL.items():
         (root / REQUIRED_FILES[label]).write_text("\n".join(markers), encoding="utf-8")
 
-    (root / REQUIRED_FILES["manifest"]).writeText = None
     (root / REQUIRED_FILES["manifest"]).write_text(
         json.dumps(
             {
