@@ -5,7 +5,7 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 ## Status
 
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L11`
+- `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
