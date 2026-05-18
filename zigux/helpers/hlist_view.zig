@@ -70,6 +70,8 @@ pub const HListView = struct {
     }
 
     pub fn len(self: HListView) usize {
+        if (self.hasCycle()) return 0;
+
         var count: usize = 0;
         var it = self.iterator();
         while (it.next()) |_| {
@@ -254,6 +256,7 @@ test "hlist view reports a cycle witness and fails tail checks closed" {
 
     const view = HListView.init(&head);
     try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 0), view.len());
     try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
     try std.testing.expectEqual(@as(?*const HListNode, null), view.last());
     try std.testing.expect(view.firstPprevMatchesHead());
