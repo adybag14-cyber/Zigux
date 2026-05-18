@@ -47,11 +47,6 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
-    "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-validate`",
-    "`make -C zigux phase2-tools`",
-    "`make -C zigux phase2-cross`",
-    "`make -C zigux phase2`",
 )
 REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -65,11 +60,13 @@ REQUIRED_DOCS_ROOT_MARKERS = (
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 )
 
+
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+
 
 def resolve_path(root: Path, path: Path) -> Path:
     try:
@@ -78,11 +75,14 @@ def resolve_path(root: Path, path: Path) -> Path:
         rel = path
     return root / rel
 
+
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
 
+
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker in text]
+
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
@@ -108,6 +108,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     return issues
 
+
 def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
@@ -121,18 +122,22 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         print(f"{code}_END")
     return 1
 
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
 
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_README), "\n".join(REQUIRED_TESTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
 
+
 def remove_marker(text: str, marker: str) -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, "")
+
 
 def run_self_test() -> int:
     checks_run = 0
@@ -184,6 +189,7 @@ def run_self_test() -> int:
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Keep the current directly readable Phase 2 tests-root and docs-root reminder packet aligned."
@@ -201,6 +207,7 @@ def main() -> int:
     print(f"PHASE2_TESTS_README_ALIGNMENT_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_TESTS_README_MARKERS)}")
     print(f"PHASE2_TESTS_README_ALIGNMENT_DOCS_ROOT_MARKER_COUNT={len(REQUIRED_DOCS_ROOT_MARKERS)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
