@@ -58,6 +58,25 @@
       "tools/lib/vsprintf.zig",
       "tools/lib/zalloc.zig"
     ],
+    "verified_missing_helper_c_source_count": 13,
+    "verified_missing_helper_c_sources": [
+      "tools/lib/argv_split.c",
+      "tools/lib/bitmap.c",
+      "tools/lib/cmdline.c",
+      "tools/lib/ctype.c",
+      "tools/lib/find_bit.c",
+      "tools/lib/hweight.c",
+      "tools/lib/list_sort.c",
+      "tools/lib/rbtree.c",
+      "tools/lib/slab.c",
+      "tools/lib/str_error_r.c",
+      "tools/lib/string.c",
+      "tools/lib/vsprintf.c",
+      "tools/lib/zalloc.c"
+    ],
+    "current_head_safe_helper_candidates": [],
+    "current_head_safe_reason": "Fresh 2026-05-18 repo reread still returned missing for every helper-side `tools/lib/*.c` source that the old C harness expected, including the direct-anchor quartet `tools/lib/bitmap.c`, `tools/lib/find_bit.c`, `tools/lib/rbtree.c`, and `tools/lib/string.c`.",
+    "next_safe_step": "Keep `phase1_helpers_c_harness.c` parked until one bounded packet first restores the exact helper-side C sources or replaces the harness with a narrower current-head-safe generator that does not depend on missing `tools/lib/*.c` files.",
     "blocker_id": "phase1_helpers_c_harness_missing_c_sources"
   }
 }
