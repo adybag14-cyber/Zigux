@@ -26,6 +26,14 @@ REQUIRED_MARKERS = {
         "This note records the closure of the old missing-checker gap.",
         "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
     ],
+    "Documentation/zigux/phase13-notifier-summary-gap.md": [
+        "Broad Phase 13 reminder work should therefore keep the returned list-helper packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` recorded as a repo-reality gap until a future reread proves it returned.",
+        "If the same notifier or list family needs follow-through again, refresh `scripts/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py` so they keep `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` explicit as shipped adjacent evidence, keep `zigux/helpers/notifier_chain_view.zig` recorded as a repo-reality gap, and keep `zigux/Makefile` distinct from `make -C zigux phase13-validate` and `make -C zigux phase13`.",
+    ],
+    "Documentation/zigux/phase13-roadmap-traceability.md": [
+        "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that Phase 2-only wrapper file as a materialized shared Phase 13 surface.",
+        "Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `Documentation/zigux/phase13-notifier-list-survey.md` alongside the narrower bounded devres coordination packet, so keep those surfaces aligned as shipped shared evidence while the missing validator-first checker packet, the absent shared build companion, the still-missing direct Landlock syscall companions, the older direct devres companions, and the missing notifier-chain companion stay recorded here as repo-reality gaps.",
+    ],
     "scripts/zigux/README.md": [
         "keep `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned shared-summary and adjacent notifier evidence on current `master` instead of leaving them in the repo-reality-gap list",
         "`zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep the route names recorded as repo-reality gaps instead of promoting the returned file into a shipped shared build handle",
@@ -174,6 +182,40 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "forbidden_marker:scripts/zigux/README.md:`zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` stay explicit as adjacent notifier evidence rather than a fifth helper family"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        roadmap_path = tempdir / "Documentation/zigux/phase13-roadmap-traceability.md"
+        roadmap_path.write_text(
+            roadmap_path.read_text(encoding="utf-8").replace(
+                "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that Phase 2-only wrapper file as a materialized shared Phase 13 surface.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-roadmap-traceability.md:Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that Phase 2-only wrapper file as a materialized shared Phase 13 surface."
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        notifier_gap_path = tempdir / "Documentation/zigux/phase13-notifier-summary-gap.md"
+        notifier_gap_path.write_text(
+            notifier_gap_path.read_text(encoding="utf-8").replace(
+                "Broad Phase 13 reminder work should therefore keep the returned list-helper packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` recorded as a repo-reality gap until a future reread proves it returned.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-notifier-summary-gap.md:Broad Phase 13 reminder work should therefore keep the returned list-helper packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` recorded as a repo-reality gap until a future reread proves it returned."
             in issues
         )
         populate_repo(tempdir)
