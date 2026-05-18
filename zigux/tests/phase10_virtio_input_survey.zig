@@ -25,7 +25,7 @@ fn expectSurveyedCommitAlignment(
     try expectContains(survey_note, note_marker);
 }
 
-test "phase10 virtio input survey note keeps the restored verifier, queue callback helper, teardown parity, and packet explicit" {
+test "phase10 virtio input survey note keeps the restored verifier, teardown parity, and queue callback packet explicit" {
     const allocator = std.testing.allocator;
     const survey_note = try readRepoRelative(
         allocator,
@@ -60,7 +60,7 @@ test "phase10 virtio input survey note keeps the restored verifier, queue callba
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-local MMIO tests") == null);
 }
 
-test "phase10 virtio input manifest keeps the queue callback helper, restored replay ids, and blocked lifecycle posture explicit" {
+test "phase10 virtio input manifest keeps the restored replay ids and blocked lifecycle posture explicit" {
     const allocator = std.testing.allocator;
     const manifest = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_input_manifest.json");
     defer allocator.free(manifest);
