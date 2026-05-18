@@ -27,3 +27,22 @@ comptime {
     std.debug.assert(isErrValue(err_floor));
     std.debug.assert(isOkValue(err_floor - 1));
 }
+
+test "error band boundaries round-trip through err_ptr encoding" {
+    const highest = fromErrorCode(-1);
+    const lowest = fromErrorCode(-@as(isize, @intCast(max_errno)));
+
+    try std.testing.expect(isErrValue(highest));
+    try std.testing.expect(isErrValue(lowest));
+    try std.testing.expectEqual(@as(isize, -1), toErrorCode(highest));
+    try std.testing.expectEqual(-@as(isize, @intCast(max_errno)), toErrorCode(lowest));
+    try std.testing.expectEqual(err_floor, lowest);
+}
+
+test "values below the err_ptr floor stay classified as ok pointers" {
+    const gap_before_floor = err_floor - 1;
+
+    try std.testing.expect(isOkValue(0));
+    try std.testing.expect(isOkValue(gap_before_floor));
+    try std.testing.expect(!isErrValue(gap_before_floor));
+}
