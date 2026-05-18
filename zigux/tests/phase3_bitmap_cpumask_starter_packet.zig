@@ -139,7 +139,7 @@ test "cpumask starter helpers keep an all-clear bounded window distinct from the
 
 test "cpumask starter helpers cover cross-word windows and tail masking" {
     var backing = [_]usize{
-        (@as(usize, 1) << 5) | (@as(usize, 1) << 63),
+        (@as(usize, 1) << 5) | (@as(usize, 1) << (bitmap_view.bits_per_word - 1)),
         (@as(usize, 1) << 1) | (@as(usize, 1) << 6) | (@as(usize, 1) << 10),
     };
     const view = cpumask_view.viewFromWords(backing[0..], bitmap_view.bits_per_word + 11);
@@ -147,6 +147,7 @@ test "cpumask starter helpers cover cross-word windows and tail masking" {
 
     try testing.expect(cpumask_view.isValid(view));
     try testing.expect(cpumask_view.cpuIsSet(view, 5));
+    try testing.expect(cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word - 1));
     try testing.expect(cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 10));
     try testing.expect(!cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 11));
     try testing.expectEqual(@as(u32, 5), cpumask_view.firstCpu(view));
