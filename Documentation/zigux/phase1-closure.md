@@ -62,6 +62,6 @@ That route keeps a minimal shared import-and-wire smoke check alive for the curr
 
 ## Next Step
 
-The next bounded same-lane follow-through is to sync one shared reminder surface against this restored closure note and closure validator.
+The next bounded same-lane follow-through is to sync one shared reminder surface or one helper-family tie-breaker against this restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific `next_safe_step_note` entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.
 
-- `PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface against the restored closure note and closure validator`
+- `PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, closure validator, shared tests-root smoke route, and the helper-specific next_safe_step_note entries in zigux/tests/fixtures/phase1_helper_manifest.json`
