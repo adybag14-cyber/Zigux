@@ -12,9 +12,31 @@ pub const ExportStatus = abi.ExportStatus;
 pub const Facility = abi.Facility;
 pub const Version = version.Version;
 pub const DevTFields = dev_t.Fields;
+pub const abi_version: u16 = abi.ABI_VERSION;
+pub const header_size: u32 = @sizeOf(BoundaryHeader);
 
 pub fn canonicalHeader(flags: u16) BoundaryHeader {
     return abi.defaultHeader(flags);
+}
+
+pub fn isCurrentAbiVersion(value: u16) bool {
+    return abi.headerHasCurrentAbiVersion(value);
+}
+
+pub fn isCanonicalSize(value: u32) bool {
+    return value == header_size;
+}
+
+pub fn isCompatibleSize(value: u32) bool {
+    return value >= header_size;
+}
+
+pub fn headerIsCanonical(header: BoundaryHeader) bool {
+    return isCanonicalSize(header.size) and isCurrentAbiVersion(header.abi_version);
+}
+
+pub fn headerIsCompatible(header: BoundaryHeader) bool {
+    return isCompatibleSize(header.size) and isCurrentAbiVersion(header.abi_version);
 }
 
 pub fn currentVersion() Version {
@@ -59,7 +81,9 @@ test "export shim preserves the canonical boundary header and version snapshot" 
     const header = canonicalHeader(0x41);
     const current = currentVersion();
 
-    try testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), header.size);
+    try testing.expectEqual(@as(u16, abi.ABI_VERSION), abi_version);
+    try testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), header_size);
+    try testing.expectEqual(header_size, header.size);
     try testing.expectEqual(@as(u16, abi.ABI_VERSION), header.abi_version);
     try testing.expectEqual(@as(u16, 0x41), header.flags);
     try testing.expectEqual(@as(usize, 8), @sizeOf(BoundaryHeader));
@@ -69,6 +93,35 @@ test "export shim preserves the canonical boundary header and version snapshot" 
     try testing.expectEqual(@as(u32, 1), current.abi_minor);
     try testing.expectEqual(@as(u32, 1), current.header_family_revision);
     try testing.expect(version.eql(current, version.current()));
+}
+
+test "export shim keeps boundary header predicates aligned with ABI helpers" {
+    const canonical = canonicalHeader(0x15);
+    const future = abi.compatibleHeader(header_size + 8, 0x15);
+    const stale = BoundaryHeader{
+        .size = header_size,
+        .abi_version = abi_version + 1,
+        .flags = 0,
+    };
+
+    try testing.expect(isCurrentAbiVersion(canonical.abi_version));
+    try testing.expect(isCanonicalSize(canonical.size));
+    try testing.expect(isCompatibleSize(canonical.size));
+    try testing.expect(headerIsCanonical(canonical));
+    try testing.expect(headerIsCompatible(canonical));
+    try testing.expectEqual(abi.headerIsCanonical(canonical), headerIsCanonical(canonical));
+    try testing.expectEqual(abi.headerIsCompatible(canonical), headerIsCompatible(canonical));
+
+    try testing.expect(isCompatibleSize(future.size));
+    try testing.expect(!isCanonicalSize(future.size));
+    try testing.expect(!headerIsCanonical(future));
+    try testing.expect(headerIsCompatible(future));
+    try testing.expectEqual(abi.headerIsCanonical(future), headerIsCanonical(future));
+    try testing.expectEqual(abi.headerIsCompatible(future), headerIsCompatible(future));
+
+    try testing.expect(!isCurrentAbiVersion(stale.abi_version));
+    try testing.expect(!headerIsCanonical(stale));
+    try testing.expect(!headerIsCompatible(stale));
 }
 
 test "export shim status helpers keep facility and error flags explicit" {
