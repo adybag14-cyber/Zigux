@@ -32,6 +32,8 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `zigux/tests/phase6_base64_c_parity.zig`
 - `zigux/tests/phase6_base64_c_casegen.zig`
 - `zigux/tests/fixtures/phase6_base64_c_harness.c`
+- `zigux/tests/phase6_checksum_c_parity.zig`
+- `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - `zigux/tests/phase6_hexdump_perf_matrix.zig`
 - `scripts/zigux/check-phase6-base64-c-parity.py`
 - `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
