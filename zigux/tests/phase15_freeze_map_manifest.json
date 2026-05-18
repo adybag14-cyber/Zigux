@@ -45,7 +45,7 @@
         "benchmark notes",
         "replay command",
         "rollback threshold",
-        "retained discussion state",
+        "retired_from_active_discussion",
         "reopen triggers",
         "parity scorecard link or blocker record",
         "indefinite-C policy link or non-applicability note",
@@ -71,7 +71,7 @@
     },
     {
       "id": "freeze-map-stay-in-c-closeout",
-      "summary": "Freeze-map stay-in-C closeouts must keep the required approver set, automatic return-to-blocked trigger, retained discussion state, reopen triggers, trigger-specific evidence refresh, and no-silent-exception rule explicit at the root policy layer.",
+      "summary": "Freeze-map stay-in-C closeouts must keep the required approver set, automatic return-to-blocked trigger, retired_from_active_discussion state, reopen triggers, trigger-specific evidence refresh, and no-silent-exception rule explicit at the root policy layer.",
       "required_terms": [
         "required approver set",
         "automatic return-to-blocked trigger",
@@ -212,7 +212,7 @@
       "status": "landed",
       "kind": "policy_sync",
       "zigux_destination": "Documentation/zigux/freeze-map.md",
-      "why_now": "The root freeze map now carries the required approver set, automatic return-to-blocked trigger, retained stay-in-C closeout, trigger-specific evidence refresh, and no-silent-exception wording that the wider Phase 15 packet already depends on."
+      "why_now": "The root freeze map now carries the required approver set, automatic return-to-blocked trigger, exact retired_from_active_discussion closeout state, trigger-specific evidence refresh, and no-silent-exception wording that the wider Phase 15 packet already depends on."
     },
     {
       "id": "phase15-review-process-required-field-sync",
