@@ -22,15 +22,15 @@
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-      "blob_sha": "b3ea80962e99643328ea6a67ca25ad044a138f27"
+      "blob_sha": "acdb154e34a852000dd2fadfddca7d7d0aa0cd43"
     },
     {
       "path": "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
-      "blob_sha": "f033f94d97b11b49a29efca94d1cae852bb889a5"
+      "blob_sha": "9929697fb9108ab6f52706c33fd164b79e234865"
     },
     {
       "path": "Documentation/zigux/phase12-release-coordination-matrix.md",
-      "blob_sha": "1fc412f8f451120b6e92f658fc3187f0bae7443e"
+      "blob_sha": "52adcb926e412cfc4b76969ea381a8fe6f7794e6"
     }
   ]
 }
