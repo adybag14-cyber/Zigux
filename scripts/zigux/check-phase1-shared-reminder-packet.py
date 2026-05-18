@@ -50,8 +50,8 @@ MARKERS = {
         "PHASE1_CLOSURE_SELF_TEST=pass",
     ),
     "zigux/tests/README.md": (
-        "current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`",
-        "current `master` does ship `scripts/zigux/check-phase1-bench.py`",
+        "current direct-readback Phase 1 reminder packet:",
+        "`zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
     "zigux/tests/build.zig": (
         'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
