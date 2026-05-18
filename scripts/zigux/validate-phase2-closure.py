@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -83,6 +84,14 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
+REQUIRED_MANIFEST_GAPS = (
+    "scripts/zigux/install-zig.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+)
+
+FORBIDDEN_MANIFEST_GAPS = ("scripts/zigux/validate-phase2-closure.py",)
+
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(REQUIRED_CLOSURE_MARKERS)
@@ -90,7 +99,9 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
-    + 3
+    + len(REQUIRED_MANIFEST_GAPS)
+    + len(FORBIDDEN_MANIFEST_GAPS)
+    + 4
 )
 
 
@@ -110,6 +121,13 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def read_json(path: Path) -> object:
+    try:
+        return json.loads(read_text(path))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+
+
 def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
@@ -127,6 +145,15 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     workflow_text = read_text(resolve(root, WORKFLOW_REL))
     closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
+    manifest = read_json(resolve(root, MANIFEST_REL))
+    if not isinstance(manifest, dict):
+        issues.append(("INVALID_MANIFEST_SHAPE", "root"))
+        return issues
+
+    manifest_gaps = manifest.get("repo_reality_gaps")
+    if not isinstance(manifest_gaps, list):
+        issues.append(("INVALID_MANIFEST_SHAPE", "repo_reality_gaps"))
+        return issues
 
     for marker in REQUIRED_CLOSURE_MARKERS:
         if marker not in closure_text:
@@ -149,6 +176,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_MAKEFILE_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+
+    for marker in REQUIRED_MANIFEST_GAPS:
+        if marker not in manifest_gaps:
+            issues.append(("MISSING_MANIFEST_GAP", marker))
+
+    for marker in FORBIDDEN_MANIFEST_GAPS:
+        if marker in manifest_gaps:
+            issues.append(("FORBIDDEN_MANIFEST_GAP", marker))
 
     return issues
 
@@ -219,7 +254,17 @@ The remaining current `master` repo-reality gaps are the installer and direct cr
     write_text(resolve(root, KBUILD_CHECKER_REL), "present\n")
     write_text(resolve(root, DOCS_REMINDER_CHECKER_REL), "present\n")
     write_text(resolve(root, REQUIRED_ROUTES_CHECKER_REL), "present\n")
-    write_text(resolve(root, MANIFEST_REL), "{}\n")
+    write_text(
+        resolve(root, MANIFEST_REL),
+        json.dumps(
+            {
+                "phase": "Phase 2",
+                "repo_reality_gaps": list(REQUIRED_MANIFEST_GAPS),
+            },
+            indent=2,
+        )
+        + "\n",
+    )
     write_text(resolve(root, ARTIFACT_MANIFEST_REL), "{}\n")
     write_text(
         resolve(root, MAKEFILE_REL),
@@ -315,6 +360,40 @@ def run_self_test() -> int:
             assert ("MISSING_MAKEFILE_LINE", marker) in issues
             checks_run += 1
 
+        for marker in REQUIRED_MANIFEST_GAPS:
+            build_self_test_root(root)
+            path = resolve(root, MANIFEST_REL)
+            manifest = read_json(path)
+            assert isinstance(manifest, dict)
+            manifest["repo_reality_gaps"] = [value for value in manifest["repo_reality_gaps"] if value != marker]
+            write_text(path, json.dumps(manifest, indent=2) + "\n")
+            issues = collect_issues(root)
+            assert ("MISSING_MANIFEST_GAP", marker) in issues
+            checks_run += 1
+
+        for marker in FORBIDDEN_MANIFEST_GAPS:
+            build_self_test_root(root)
+            path = resolve(root, MANIFEST_REL)
+            manifest = read_json(path)
+            assert isinstance(manifest, dict)
+            manifest["repo_reality_gaps"].append(marker)
+            write_text(path, json.dumps(manifest, indent=2) + "\n")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_MANIFEST_GAP", marker) in issues
+            checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_REL)
+        write_text(path, "{not-json}\n")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid json in required file" in str(exc)
+            assert str(path) in str(exc)
+        else:
+            raise AssertionError("invalid manifest json did not abort")
+        checks_run += 1
+
         for rel in (PHASE2_CLOSURE_REL, WORKFLOW_REL, MAKEFILE_REL):
             build_self_test_root(root)
             resolve(root, rel).unlink()
@@ -346,7 +425,10 @@ def main() -> int:
     print("PHASE2_CLOSURE_VALIDATION=pass")
     print("PHASE2_CLOSURE_STATUS=parked")
     print("PHASE2_CLOSURE_PACKET=closure_note_and_validator")
-    print("PHASE2_CLOSURE_REMAINING_GAPS=scripts/zigux/install-zig.py,scripts/zigux/check-phase2-cross.py,zigux/tests/fixtures/phase2_cross_targets.json")
+    print(
+        "PHASE2_CLOSURE_REMAINING_GAPS="
+        "scripts/zigux/install-zig.py,scripts/zigux/check-phase2-cross.py,zigux/tests/fixtures/phase2_cross_targets.json"
+    )
     return 0
 
 
