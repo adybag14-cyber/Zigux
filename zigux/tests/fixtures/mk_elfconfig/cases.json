@@ -40,6 +40,11 @@
     "expected": "not_elf_expected.json"
   },
   {
+    "name": "not_elf_trailing",
+    "input": "not_elf_trailing.hex",
+    "expected": "not_elf_trailing_expected.json"
+  },
+  {
     "name": "truncated",
     "input": "truncated.hex",
     "expected": "truncated_expected.json"
