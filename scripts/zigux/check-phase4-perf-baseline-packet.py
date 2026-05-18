@@ -10,6 +10,8 @@ from pathlib import Path
 
 MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
+MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
+REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 
 EXPECTED_COORDINATION_OWNERS = [
     "ABI and Runtime Team",
@@ -20,7 +22,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 41
+EXPECTED_SELF_TEST_CASES = 45
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -86,6 +88,21 @@ SURVEY_MARKERS = (
     'try requireMarker("\\\"coordination_owners\\\": [");',
     'try requireMarker("\\\"ABI and Runtime Team\\\"");',
     'try requireMarker("\\\"Shared Subsystems Pod\\\"");',
+)
+
+MATRIX_MARKERS = (
+    "local-only benchmark commands and acceptable limits are approved today",
+    "the dedicated perf-baseline survey may keep the approved local benchmark commands and the approved local-only acceptable limits for both landed rollback gates machine-checked",
+    "must stay outside the shared `phase4-test` entrypoint until any shared CI perf promotion is intentionally approved",
+    "any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners",
+    "any future hard timing threshold must name the benchmark command, acceptable limit, owner, and rollback owner in this record before the lane claims perf coverage",
+)
+
+REVIEW_CHECKLIST_MARKERS = (
+    "keep the directly readable local-only perf packet explicit",
+    "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
+    "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
+    "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval",
 )
 
 
@@ -196,6 +213,7 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
 
 def validate_root(root: Path) -> list[str]:
     missing = []
+
     manifest = root / MANIFEST
     if not manifest.is_file():
         missing.append(f"file:{MANIFEST.as_posix()}")
@@ -219,6 +237,19 @@ def validate_root(root: Path) -> list[str]:
         missing.append(f"file:{SURVEY.as_posix()}")
     else:
         require_markers(read_text(survey), SURVEY_MARKERS, "survey_marker", missing)
+
+    matrix = root / MATRIX
+    if not matrix.is_file():
+        missing.append(f"file:{MATRIX.as_posix()}")
+    else:
+        require_markers(read_text(matrix), MATRIX_MARKERS, "matrix_marker", missing)
+
+    review_checklist = root / REVIEW_CHECKLIST
+    if not review_checklist.is_file():
+        missing.append(f"file:{REVIEW_CHECKLIST.as_posix()}")
+    else:
+        require_markers(read_text(review_checklist), REVIEW_CHECKLIST_MARKERS, "review_checklist_marker", missing)
+
     return missing
 
 
@@ -232,6 +263,8 @@ def build_fixture_tree(root: Path) -> None:
     source_root = Path(__file__).resolve().parents[2]
     write_text(root / MANIFEST, read_text(source_root / MANIFEST))
     write_text(root / SURVEY, read_text(source_root / SURVEY))
+    write_text(root / MATRIX, read_text(source_root / MATRIX))
+    write_text(root / REVIEW_CHECKLIST, read_text(source_root / REVIEW_CHECKLIST))
 
 
 def expect_failure(root: Path, expected_prefix: str) -> bool:
@@ -277,6 +310,7 @@ def run_self_test() -> int:
                 print(f"manifest drift case did not fail closed: {expected_prefix}")
                 return 1
             cases += 1
+
         survey_variants = (
             ('try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);', 'try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 5", 2);', 'survey_marker:try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);'),
             ('try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);', 'try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 8", 2);', 'survey_marker:try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);'),
@@ -309,10 +343,28 @@ def run_self_test() -> int:
                 print(f"survey drift case did not fail closed: {expected_prefix}")
                 return 1
             cases += 1
+
+        shared_variants = (
+            (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are unapproved today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
+            (MATRIX, "any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners", "any future shared CI perf-promotion claim must name the ABI and Runtime Team as the decision owner and the Shared Subsystems Pod as coordination owners", "matrix_marker:any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners"),
+            (REVIEW_CHECKLIST, "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion", "keep the ABI and Runtime Team as the decision owner for any broader shared-CI perf promotion", "review_checklist_marker:keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion"),
+            (REVIEW_CHECKLIST, "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval", "keep the pending shared-CI perf-promotion posture implicit", "review_checklist_marker:keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval"),
+        )
+        for path, old, new, expected_prefix in shared_variants:
+            build_fixture_tree(root)
+            target = root / path
+            write_text(target, replace_once(read_text(target), old, new))
+            if not expect_failure(root, expected_prefix):
+                print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
+                print(f"shared-surface drift case did not fail closed: {expected_prefix}")
+                return 1
+            cases += 1
+
         if cases != EXPECTED_SELF_TEST_CASES:
             print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=fail")
             print(f"expected {EXPECTED_SELF_TEST_CASES} self-test cases, saw {cases}")
             return 1
+
     print("PHASE4_PERF_BASELINE_PACKET_SELF_TEST=pass")
     print(f"PHASE4_PERF_BASELINE_PACKET_SELF_TEST_CASES={EXPECTED_SELF_TEST_CASES}")
     return 0
