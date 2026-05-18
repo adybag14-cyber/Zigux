@@ -1,9 +1,17 @@
 const std = @import("std");
 const virtio_ring = @import("virtio_ring");
 
+pub const NotificationDataSummary = virtio_ring.NotificationDataSummary;
 pub const DelayedCallbackSummary = virtio_ring.DelayedCallbackSummary;
 pub const BrokenQueueSummary = virtio_ring.BrokenQueueSummary;
 pub const QueueResetReadinessSummary = virtio_ring.QueueResetReadinessSummary;
+
+pub fn summarizeNotificationData(
+    ring: *const virtio_ring.VirtioRingLab,
+    queue_index: u16,
+) !NotificationDataSummary {
+    return ring.notificationDataSummary(queue_index);
+}
 
 pub fn summarizeDelayedCallback(
     ring: *virtio_ring.VirtioRingLab,
@@ -36,6 +44,61 @@ pub fn queueHasBrokenCallbackFence(summary: BrokenQueueSummary) bool {
 
 pub fn delayedCallbackBudgetExhausted(summary: DelayedCallbackSummary) bool {
     return summary.pending_used_chain_count > summary.delay_budget_count;
+}
+
+pub fn notificationDataUsesWrapBit(summary: NotificationDataSummary) bool {
+    return (summary.encoded_next & virtio_ring.packed_notification_wrap_bit) != 0;
+}
+
+test "phase10 virtio ring verify keeps notification-data next-avail state reviewable across split packed and reset replay" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(0, 8, .split, true, false);
+    try ring.publishDescriptorChain(0);
+    try ring.publishDescriptorChain(0);
+    try ring.publishDescriptorChain(0);
+
+    var summary = try summarizeNotificationData(&ring, 0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.split, summary.layout);
+    try std.testing.expectEqual(@as(u16, 3), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 3), summary.next_avail_idx);
+    try std.testing.expect(!summary.next_avail_wrap_counter);
+    try std.testing.expect(!notificationDataUsesWrapBit(summary));
+    try std.testing.expectEqual(@as(u32, 0x0003_0000), summary.notification_data);
+
+    try ring.defineQueue(1, 8, .packed_ring, true, false);
+    inline for (0..8) |_| {
+        try ring.publishDescriptorChain(1);
+    }
+    _ = try ring.prepareKick(1);
+    try ring.recordUsedChains(1, 8);
+    _ = try ring.pollUsedBuffers(1);
+    try ring.publishDescriptorChain(1);
+
+    summary = try summarizeNotificationData(&ring, 1);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, summary.layout);
+    try std.testing.expectEqual(@as(u16, 9), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), summary.next_avail_idx);
+    try std.testing.expect(summary.next_avail_wrap_counter);
+    try std.testing.expect(notificationDataUsesWrapBit(summary));
+    try std.testing.expectEqual(
+        @as(u16, virtio_ring.packed_notification_wrap_bit | 1),
+        summary.encoded_next,
+    );
+    try std.testing.expectEqual(@as(u32, 0x8001_0001), summary.notification_data);
+
+    _ = try ring.prepareKick(1);
+    try ring.recordUsedChains(1, 1);
+    _ = try ring.pollUsedBuffers(1);
+    _ = try ring.resetQueue(1);
+
+    summary = try summarizeNotificationData(&ring, 1);
+    try std.testing.expectEqual(@as(u16, 0), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.next_avail_idx);
+    try std.testing.expect(!summary.next_avail_wrap_counter);
+    try std.testing.expect(!notificationDataUsesWrapBit(summary));
+    try std.testing.expectEqual(@as(u16, 0), summary.encoded_next);
+    try std.testing.expectEqual(@as(u32, 1), summary.notification_data);
 }
 
 test "phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit" {
