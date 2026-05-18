@@ -65,8 +65,8 @@ README_OWNER_MARKERS = (
     "historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again",
 )
 
-README_ATOMIC64_GAP_MARKERS = (
-    "roadmap-backed Phase 4 differential-gate destinations still missing on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
+README_ATOMIC64_DIRECT_MARKERS = (
+    "roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
 )
 
 README_PUBLIC_FALLBACK_MARKERS = (
@@ -84,17 +84,22 @@ README_PENDING_REQ = (
     "repo-reality warning for the broader Phase 4 validator, lab-matrix, and bitmap-diff packet",
     "historical provenance for that missing broader packet",
     PERF_CHECKER_MARKER,
-) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS + README_PUBLIC_FALLBACK_MARKERS
+) + README_OWNER_MARKERS + README_ATOMIC64_DIRECT_MARKERS + README_PUBLIC_FALLBACK_MARKERS
 
 CHECKLIST_PENDING_REQ = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
     "keep the directly readable local-only perf packet explicit",
-    "keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, bitmap-diff, and roadmap-backed `atomic64_diff` companions",
+    "keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, and bitmap-diff companions",
     "Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
     "ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
     "pending shared-CI perf-promotion posture explicit",
+)
+
+CHECKLIST_ATOMIC64_MARKER_OPTIONS = (
+    "keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, bitmap-diff, and roadmap-backed `atomic64_diff` companions",
+    "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
 )
 
 def parse_args() -> argparse.Namespace:
@@ -118,6 +123,10 @@ def require(text: str, parts: tuple[str, ...], label: str) -> None:
     missing = [part for part in parts if part not in text]
     if missing:
         raise RuntimeError(f"{label} is missing required fragments: {missing}")
+
+def require_any(text: str, parts: tuple[str, ...], label: str) -> None:
+    if not any(part in text for part in parts):
+        raise RuntimeError(f"{label} is missing any accepted fragment from: {list(parts)}")
 
 def require_exact_self_test_count(text: str, label: str, count_label: str, expected: int) -> None:
     matches = re.findall(rf"`{count_label}=(\d+)`", text)
@@ -146,6 +155,7 @@ def check(root: Path) -> None:
     require(note, NOTE_REQ + DIRECT_READBACK_PACKET + MISSING_BROADER_PACKET, "phase4 note")
     require(readme, README_PENDING_REQ + MISSING_BROADER_PACKET, "tests README")
     require(checklist, CHECKLIST_PENDING_REQ, "review checklist")
+    require_any(checklist, CHECKLIST_ATOMIC64_MARKER_OPTIONS, "review checklist atomic64 reminder")
     require_exact_self_test_count(note, "phase4 note", REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL, EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES)
     require_exact_self_test_count(note, "phase4 note", PIN_SELF_TEST_COUNT_LABEL, EXPECTED_PIN_SELF_TEST_CASES)
     _require_direct_packet(root)
@@ -182,6 +192,7 @@ def baseline_checklist() -> str:
     return "\n".join([
         "# Zigux Review Checklist",
         *CHECKLIST_PENDING_REQ,
+        CHECKLIST_ATOMIC64_MARKER_OPTIONS[0],
     ]) + "\n"
 
 def build_baseline_tree(root: Path) -> None:
@@ -215,7 +226,7 @@ def main() -> int:
                 raise AssertionError("expected tests README fallback-visibility drift to fail")
             build_baselineTree(root)
             readme_path = root / README
-            readme_path.write_text(readme_path.read_text(encoding="utf-8").replace(README_ATOMIC64_GAP_MARKERS[0], "roadmap-backed Phase 4 differential-gate warning drifted"), encoding="utf-8")
+            readme_path.write_text(readme_path.read_text(encoding="utf-8").replace(README_ATOMIC64_DIRECT_MARKERS[0], "roadmap-backed Phase 4 differential-gate warning drifted"), encoding="utf-8")
             try:
                 check(root)
             except RuntimeError:
