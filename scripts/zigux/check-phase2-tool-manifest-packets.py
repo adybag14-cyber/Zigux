@@ -23,6 +23,10 @@ CLOSURE_DOC_MARKERS = (
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "branch-local manifest packet",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`master_present_branch_missing_files`",
+    "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 )
 
 BOOTSTRAP_NOTES_MARKERS = (
@@ -30,6 +34,8 @@ BOOTSTRAP_NOTES_MARKERS = (
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "branch-local manifest packet",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 )
 
 PHASE2_VALIDATOR_MARKERS = (
@@ -42,6 +48,9 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = (
     '"tool_manifest_checker"',
     '"scripts/zigux/check-phase2-tool-manifest-packets.py"',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py"',
+    '"scripts/zigux/check-phase2-docs-shared-reminder.py"',
+    '"scripts/zigux/check-phase2-required-make-routes.py"',
+    '"zigux/tests/fixtures/phase2_artifact_tools_manifest.json"',
     '"master_present_branch_missing_files"',
 )
 
@@ -66,11 +75,15 @@ EXPECTED_PRESENT_FILES = [
 
 EXPECTED_MISSING_FILES = [
     "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/install-zig.py",
 ]
 
-EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
+EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/check-phase2-required-make-routes.py",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+]
 
 EXPECTED_SELF_TEST_CASE_COUNT = 19
 
