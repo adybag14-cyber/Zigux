@@ -10,10 +10,13 @@ continuity remains parked under `P11-L16`.
 
 ## Status
 
-- `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_anchor_readback_missing`
+- `PHASE11_HVC_CONSOLE_SURVEY_STATUS=simple_driver_current_head_gap_reopened`
 - archival landing lane: `P11-L13`
 - current coupled packet continuity: `P11-L16`
 - archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
+- the Phase 11 roadmap still calls for a bounded simple-production-driver
+destination under `drivers/tty/hvc/*.zig`, so keep the simple-driver gap marked
+as reopened on current-head readback until the direct starter anchors return
 - current `master` still keeps the HVC lane reviewable through this survey note,
   `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,
   `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
@@ -27,8 +30,9 @@ continuity remains parked under `P11-L16`.
   `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 - current direct contents reads in this lane still do not rematerialize
   `drivers/tty/hvc/hvc_console.zig` or
-  `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader
-  starter-depth packet framed as survey-recorded same-lane archival vocabulary
+  `zigux/tests/phase11_hvc_console_manifest.json`, so the roadmap-facing
+  simple-driver closure is no longer current-head-proven and the broader
+  starter-depth packet must stay survey-recorded same-lane archival vocabulary
   until a future reread proves those anchor paths returned again
 - current direct contents reads do rematerialize
   `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, so keep that
@@ -81,9 +85,11 @@ starter-depth packet for this lane:
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 
-Keep that packet visible as bounded survey-recorded archival vocabulary rather
-than direct current-head readback evidence until a future reread rematerializes
-its missing anchor paths again.
+Keep that packet visible as bounded survey-recorded archival vocabulary and as
+the next same-lane restoration target required to re-close the Phase 11
+simple-driver roadmap gap on current `master`, rather than as direct
+current-head readback evidence until a future reread rematerializes its missing
+anchor paths again.
 
 Current `master` also does not rematerialize a separate
 `make -C zigux phase11-hvc-survey` route through `zigux/Makefile` or
@@ -121,9 +127,10 @@ It does not claim tty-driver registration, notifier callback execution, khvcd
 polling execution, live sysrq dispatch, host-backed cleanup, or
 hardware-validated teardown parity.
 
-The survey still preserves the roadmap-facing starter-depth packet as archival
-continuity vocabulary, while the returned validation matrix stays part of the
-current-head four-matrix packet rather than the missing starter-depth anchor
-set. The remaining same-lane work stays focused on truthfulness and later
-execution-facing follow-through rather than on claiming that the older
-direct-readback starter packet is fully back on current `master`.
+That current-head continuity no longer proves that the roadmap-facing simple
+production driver is still directly returned on `master`. The survey preserves
+the starter-depth packet as archival continuity vocabulary precisely because the
+direct starter anchors are missing again on current-head readback. The
+remaining same-lane work starts with restoring those starter-depth anchors
+before later execution-facing follow-through, rather than claiming that the
+older direct-readback starter packet is fully back on current `master`.
