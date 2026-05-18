@@ -64,6 +64,22 @@ fn compareDirectInt(key: *const u32, item: *const u32) i32 {
     };
 }
 
+fn compareDirectDescendingInt(key: *const u32, item: *const u32) i32 {
+    return switch (std.math.order(item.*, key.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareCDirectInt(key: *const u32, item: *const u32) callconv(.c) c_int {
+    return @as(c_int, compareDirectInt(key, item));
+}
+
+fn compareCDirectDescendingInt(key: *const u32, item: *const u32) callconv(.c) c_int {
+    return @as(c_int, compareDirectDescendingInt(key, item));
+}
+
 fn compareDirectOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const u32 = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
@@ -113,6 +129,28 @@ fn rawProbe(items: []const u32, target: u32, expect_hit: bool, compare: anytype)
         try std.testing.expectEqual(@as(?*const anyopaque, null), result);
     }
     return comparisons;
+}
+
+fn expectTypedCAbiRange(items: []const u32, target: u32, expected: bsearch.IndexRange, compare: bsearch.CComparator(u32, u32)) !void {
+    const found = bsearch.search(u32, u32, &target, items, compare);
+    const lower = bsearch.lowerBoundIndex(u32, u32, &target, items, compare);
+    const upper = bsearch.upperBoundIndex(u32, u32, &target, items, compare);
+    const range = bsearch.equalRangeIndex(u32, u32, &target, items, compare);
+    const view = bsearch.equalRange(u32, u32, &target, items, compare);
+
+    try std.testing.expectEqual(expected.lower, lower);
+    try std.testing.expectEqual(expected.upper, upper);
+    try std.testing.expectEqual(expected, range);
+    try std.testing.expectEqual(expected.len(), view.len);
+
+    if (expected.isEmpty()) {
+        try std.testing.expectEqual(@as(?*const u32, null), found);
+    } else {
+        const typed_found = found orelse return error.ExpectedMatch;
+        try std.testing.expectEqual(target, typed_found.*);
+        try std.testing.expectEqual(target, view[0]);
+        try std.testing.expectEqual(target, view[expected.len() - 1]);
+    }
 }
 
 test "phase 6 bsearch keeps representative lookup work inside a binary-search budget" {
@@ -309,6 +347,27 @@ test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator p
         const found = bsearch.bsearch(&raw_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compare) orelse return error.ExpectedMatch;
         const typed_found: *const u32 = @ptrCast(@alignCast(found));
         try std.testing.expectEqual(@as(u32, 24), typed_found.*);
+    }
+}
+
+test "phase 6 bsearch accepts runtime-selected typed c abi comparator pointers" {
+    const ascending_duplicates = fixtures.representative_duplicate_values;
+    const descending_duplicates = [_]u32{ 45, 42, 39, 21, 21, 21, 12, 9, 6, 3 };
+
+    const cases = [_]struct {
+        items: []const u32,
+        target: u32,
+        expected: bsearch.IndexRange,
+        compare: bsearch.CComparator(u32, u32),
+    }{
+        .{ .items = ascending_duplicates[0..], .target = 21, .expected = .{ .lower = 4, .upper = 7 }, .compare = compareCDirectInt },
+        .{ .items = ascending_duplicates[0..], .target = 20, .expected = .{ .lower = 4, .upper = 4 }, .compare = compareCDirectInt },
+        .{ .items = descending_duplicates[0..], .target = 21, .expected = .{ .lower = 3, .upper = 6 }, .compare = compareCDirectDescendingInt },
+        .{ .items = descending_duplicates[0..], .target = 20, .expected = .{ .lower = 6, .upper = 6 }, .compare = compareCDirectDescendingInt },
+    };
+
+    for (cases) |case| {
+        try expectTypedCAbiRange(case.items, case.target, case.expected, case.compare);
     }
 }
 
