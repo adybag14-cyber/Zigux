@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-only
 const std = @import("std");
-
 const CComparatorResult = c_int;
 
 pub fn Comparator(comptime Key: type, comptime T: type) type {
@@ -13,6 +12,62 @@ pub fn CComparator(comptime Key: type, comptime T: type) type {
 
 pub const RawComparator = *const fn (*const anyopaque, *const anyopaque) i32;
 pub const CRawComparator = *const fn (*const anyopaque, *const anyopaque) callconv(.c) CComparatorResult;
+
+fn expectedComparatorReturnType(comptime fn_info: std.builtin.Type.Fn) type {
+    return if (fn_info.calling_convention.eql(std.builtin.CallingConvention.c)) CComparatorResult else i32;
+}
+
+fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
+    const fn_info = switch (@typeInfo(Compare)) {
+        .@"fn" => |info| info,
+        .pointer => |pointer| switch (@typeInfo(pointer.child)) {
+            .@"fn" => |info| info,
+            else => @compileError("bsearch comparator must be a function or function pointer"),
+        },
+        else => @compileError("bsearch comparator must be a function or function pointer"),
+    };
+
+    if (fn_info.params.len != 2) {
+        @compileError("bsearch comparator must accept exactly two parameters");
+    }
+    if (fn_info.params[0].type orelse @compileError("bsearch comparator key parameter must be typed") != *const Key) {
+        @compileError("bsearch comparator first parameter must be *const Key");
+    }
+    if (fn_info.params[1].type orelse @compileError("bsearch comparator item parameter must be typed") != *const T) {
+        @compileError("bsearch comparator second parameter must be *const T");
+    }
+    if (fn_info.return_type orelse @compileError("bsearch comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
+        @compileError("bsearch comparator return type must be i32 for native callconv or c_int for C ABI callconv");
+    }
+}
+
+fn validateRawComparator(comptime Compare: type) void {
+    const fn_info = switch (@typeInfo(Compare)) {
+        .@"fn" => |info| info,
+        .pointer => |pointer| switch (@typeInfo(pointer.child)) {
+            .@"fn" => |info| info,
+            else => @compileError("bsearch raw comparator must be a function or function pointer"),
+        },
+        else => @compileError("bsearch raw comparator must be a function or function pointer"),
+    };
+
+    if (fn_info.params.len != 2) {
+        @compileError("bsearch raw comparator must accept exactly two parameters");
+    }
+    if (fn_info.params[0].type orelse @compileError("bsearch raw comparator key parameter must be typed") != *const anyopaque) {
+        @compileError("bsearch raw comparator first parameter must be *const anyopaque");
+    }
+    if (fn_info.params[1].type orelse @compileError("bsearch raw comparator item parameter must be typed") != *const anyopaque) {
+        @compileError("bsearch raw comparator second parameter must be *const anyopaque");
+    }
+    if (fn_info.return_type orelse @compileError("bsearch raw comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
+        @compileError("bsearch raw comparator return type must be i32 for native callconv or c_int for C ABI callconv");
+    }
+}
+
+fn normalizeCompareResult(result: anytype) i32 {
+    return if (result < 0) -1 else if (result > 0) 1 else 0;
+}
 
 pub const IndexRange = struct {
     lower: usize,
@@ -49,60 +104,10 @@ pub const IndexRange = struct {
     }
 };
 
-fn expectedComparatorReturnType(comptime fn_info: std.builtin.Type.Fn) type {
-    return if (fn_info.calling_convention.eql(std.builtin.CallingConvention.c)) CComparatorResult else i32;
-}
-
-fn validateComparator(comptime Key: type, comptime T: type, comptime Compare: type) void {
-    const fn_info = switch (@typeInfo(Compare)) {
-        .@"fn" => |info| info,
-        .pointer => |pointer| switch (@typeInfo(pointer.child)) {
-            .@"fn" => |info| info,
-            else => @compileError("bsearch comparator must be a function or function pointer"),
-        },
-        else => @compileError("bsearch comparator must be a function or function pointer"),
-    };
-
-    if (fn_info.params.len != 2) @compileError("bsearch comparator must accept exactly two parameters");
-    if (fn_info.params[0].type orelse @compileError("bsearch comparator key parameter must be typed") != *const Key) {
-        @compileError("bsearch comparator first parameter must be *const Key");
-    }
-    if (fn_info.params[1].type orelse @compileError("bsearch comparator item parameter must be typed") != *const T) {
-        @compileError("bsearch comparator second parameter must be *const T");
-    }
-    if (fn_info.return_type orelse @compileError("bsearch comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
-        @compileError("bsearch comparator return type must be i32 for native callconv or c_int for C ABI callconv");
-    }
-}
-
-fn validateRawComparator(comptime Compare: type) void {
-    const fn_info = switch (@typeInfo(Compare)) {
-        .@"fn" => |info| info,
-        .pointer => |pointer| switch (@typeInfo(pointer.child)) {
-            .@"fn" => |info| info,
-            else => @compileError("bsearch raw comparator must be a function or function pointer"),
-        },
-        else => @compileError("bsearch raw comparator must be a function or function pointer"),
-    };
-
-    if (fn_info.params.len != 2) @compileError("bsearch raw comparator must accept exactly two parameters");
-    if (fn_info.params[0].type orelse @compileError("bsearch raw comparator key parameter must be typed") != *const anyopaque) {
-        @compileError("bsearch raw comparator first parameter must be *const anyopaque");
-    }
-    if (fn_info.params[1].type orelse @compileError("bsearch raw comparator item parameter must be typed") != *const anyopaque) {
-        @compileError("bsearch raw comparator second parameter must be *const anyopaque");
-    }
-    if (fn_info.return_type orelse @compileError("bsearch raw comparator return type must be explicit") != expectedComparatorReturnType(fn_info)) {
-        @compileError("bsearch raw comparator return type must be i32 for native callconv or c_int for C ABI callconv");
-    }
-}
-
-fn normalizeCompareResult(result: anytype) i32 {
-    return if (result < 0) -1 else if (result > 0) 1 else 0;
-}
-
 fn advanceSearchWindow(start: *usize, count: *usize, pivot_index: usize, result: i32) bool {
-    if (result == 0) return true;
+    if (result == 0) {
+        return true;
+    }
     if (result > 0) {
         start.* = pivot_index + 1;
         count.* -= 1;
@@ -131,82 +136,158 @@ fn advanceUpperBoundWindow(start: *usize, count: *usize, pivot_index: usize, res
     }
 }
 
-pub fn searchIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) ?usize {
+pub fn searchIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) ?usize {
     comptime validateComparator(Key, T, @TypeOf(compare));
     var start: usize = 0;
     var count = items.len;
+
     while (count > 0) {
         const pivot_index = start + (count >> 1);
-        if (advanceSearchWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, &items[pivot_index])))) {
+        const pivot: *const T = &items[pivot_index];
+        if (advanceSearchWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot)))) {
             return pivot_index;
         }
     }
+
     return null;
 }
 
-pub fn search(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) ?*const T {
+pub fn search(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) ?*const T {
     const index = searchIndex(Key, T, key, items, compare) orelse return null;
     return &items[index];
 }
 
-pub fn searchMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) ?*T {
+pub fn searchMutable(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []T,
+    compare: anytype,
+) ?*T {
     const index = searchIndex(Key, T, key, items, compare) orelse return null;
     return &items[index];
 }
 
-pub fn lowerBoundIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) usize {
+pub fn lowerBoundIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) usize {
     comptime validateComparator(Key, T, @TypeOf(compare));
     var start: usize = 0;
     var count = items.len;
+
     while (count > 0) {
         const pivot_index = start + (count >> 1);
-        advanceLowerBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, &items[pivot_index])));
+        const pivot: *const T = &items[pivot_index];
+        advanceLowerBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot)));
     }
+
     return start;
 }
 
-pub fn lowerBound(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) ?*const T {
-    const index = lowerBoundIndex(Key, T, key, items, compare);
+pub fn upperBoundIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) usize {
+    comptime validateComparator(Key, T, @TypeOf(compare));
+    var start: usize = 0;
+    var count = items.len;
+
+    while (count > 0) {
+        const pivot_index = start + (count >> 1);
+        const pivot: *const T = &items[pivot_index];
+        advanceUpperBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot)));
+    }
+
+    return start;
+}
+
+pub fn upperBound(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) ?*const T {
+    const index = upperBoundIndex(Key, T, key, items, compare);
     if (index == items.len) return null;
     return &items[index];
 }
 
-pub fn lowerBoundMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) ?*T {
-    const index = lowerBoundIndex(Key, T, key, items, compare);
+pub fn upperBoundMutable(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []T,
+    compare: anytype,
+) ?*T {
+    const index = upperBoundIndex(Key, T, key, items, compare);
     if (index == items.len) return null;
     return &items[index];
 }
 
-pub fn upperBoundIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) usize {
-    comptime validateComparator(Key, T, @TypeOf(compare));
-    var start: usize = 0;
-    var count = items.len;
-    while (count > 0) {
-        const pivot_index = start + (count >> 1);
-        advanceUpperBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, &items[pivot_index])));
-    }
-    return start;
-}
-
-pub fn equalRangeIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) IndexRange {
+pub fn equalRangeIndex(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) IndexRange {
     return .{
         .lower = lowerBoundIndex(Key, T, key, items, compare),
         .upper = upperBoundIndex(Key, T, key, items, compare),
     };
 }
 
-pub fn equalRange(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) []const T {
+pub fn equalRange(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []const T,
+    compare: anytype,
+) []const T {
     return equalRangeIndex(Key, T, key, items, compare).sliceConst(T, items);
 }
 
-pub fn equalRangeMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) []T {
+pub fn equalRangeMutable(
+    comptime Key: type,
+    comptime T: type,
+    key: *const Key,
+    items: []T,
+    compare: anytype,
+) []T {
     return equalRangeIndex(Key, T, key, items, compare).sliceMutable(T, items);
 }
 
-pub fn bsearchIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) ?usize {
+pub fn bsearchIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) ?usize {
     comptime validateRawComparator(@TypeOf(compare));
     var start: usize = 0;
     var count = num;
+
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
@@ -214,67 +295,126 @@ pub fn bsearchIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: 
             return pivot_index;
         }
     }
+
     return null;
 }
 
-pub fn bsearch(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) ?*const anyopaque {
+pub fn bsearch(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) ?*const anyopaque {
     const index = bsearchIndex(key, base, num, size, compare) orelse return null;
     return @ptrCast(base + (index * size));
 }
 
-pub fn bsearchMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) ?*anyopaque {
+pub fn bsearchMutable(
+    key: *const anyopaque,
+    base: [*]u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) ?*anyopaque {
     const index = bsearchIndex(key, base, num, size, compare) orelse return null;
     return @ptrCast(base + (index * size));
 }
 
-pub fn bsearchLowerBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {
+pub fn bsearchLowerBoundIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) usize {
     comptime validateRawComparator(@TypeOf(compare));
     var start: usize = 0;
     var count = num;
+
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
         advanceLowerBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)));
     }
+
     return start;
 }
 
-pub fn bsearchLowerBound(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) ?*const anyopaque {
-    const index = bsearchLowerBoundIndex(key, base, num, size, compare);
-    if (index == num) return null;
-    return @ptrCast(base + (index * size));
-}
-
-pub fn bsearchLowerBoundMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) ?*anyopaque {
-    const index = bsearchLowerBoundIndex(key, base, num, size, compare);
-    if (index == num) return null;
-    return @ptrCast(base + (index * size));
-}
-
-pub fn bsearchUpperBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {
+pub fn bsearchUpperBoundIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) usize {
     comptime validateRawComparator(@TypeOf(compare));
     var start: usize = 0;
     var count = num;
+
     while (count > 0) {
         const pivot_index = start + (count >> 1);
         const pivot_ptr: *const anyopaque = @ptrCast(base + (pivot_index * size));
         advanceUpperBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)));
     }
+
     return start;
 }
 
-pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {
+pub fn bsearchUpperBound(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) ?*const anyopaque {
+    const index = bsearchUpperBoundIndex(key, base, num, size, compare);
+    if (index == num) return null;
+    return @ptrCast(base + (index * size));
+}
+
+pub fn bsearchUpperBoundMutable(
+    key: *const anyopaque,
+    base: [*]u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) ?*anyopaque {
+    const index = bsearchUpperBoundIndex(key, base, num, size, compare);
+    if (index == num) return null;
+    return @ptrCast(base + (index * size));
+}
+
+pub fn bsearchEqualRangeIndex(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) IndexRange {
     return .{
         .lower = bsearchLowerBoundIndex(key, base, num, size, compare),
         .upper = bsearchUpperBoundIndex(key, base, num, size, compare),
     };
 }
 
-pub fn bsearchEqualRange(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) []const u8 {
+pub fn bsearchEqualRange(
+    key: *const anyopaque,
+    base: [*]const u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) []const u8 {
     return bsearchEqualRangeIndex(key, base, num, size, compare).bytes(base, size);
 }
 
-pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {
+pub fn bsearchEqualRangeMutable(
+    key: *const anyopaque,
+    base: [*]u8,
+    num: usize,
+    size: usize,
+    compare: anytype,
+) []u8 {
     return bsearchEqualRangeIndex(key, base, num, size, compare).bytesMutable(base, size);
 }
 
@@ -298,174 +438,653 @@ fn compareCDescendingInt(key: *const i32, item: *const i32) callconv(.c) CCompar
     return @as(CComparatorResult, compareDescendingInt(key, item));
 }
 
-fn compareCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
-    const typed_key: *const i32 = @ptrCast(@alignCast(key));
-    const typed_item: *const i32 = @ptrCast(@alignCast(item));
-    return @as(CComparatorResult, compareInt(typed_key, typed_item));
-}
-
-fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
-    const typed_key: *const i32 = @ptrCast(@alignCast(key));
-    const typed_item: *const i32 = @ptrCast(@alignCast(item));
-    return @as(CComparatorResult, compareDescendingInt(typed_key, typed_item));
-}
-
 fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const i32 = @ptrCast(@alignCast(key));
     const typed_item: *const i32 = @ptrCast(@alignCast(item));
     return compareInt(typed_key, typed_item);
 }
 
-fn expectTypedCAbiRange(items: []const i32, key: i32, expected: IndexRange, compare: CComparator(i32, i32)) !void {
-    const lower = lowerBoundIndex(i32, i32, &key, items, compare);
-    const upper = upperBoundIndex(i32, i32, &key, items, compare);
-    const range = equalRangeIndex(i32, i32, &key, items, compare);
-    const view = equalRange(i32, i32, &key, items, compare);
+fn compareOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return compareDescendingInt(typed_key, typed_item);
+}
 
-    try std.testing.expectEqual(expected.lower, lower);
-    try std.testing.expectEqual(expected.upper, upper);
-    try std.testing.expectEqual(expected, range);
-    try std.testing.expectEqual(expected.len(), view.len);
+fn compareCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    return @as(CComparatorResult, compareOpaqueInt(key, item));
+}
 
-    if (!expected.isEmpty()) {
-        try std.testing.expectEqual(key, view[0]);
-        try std.testing.expectEqual(key, view[expected.len() - 1]);
+fn compareCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    return @as(CComparatorResult, compareOpaqueDescendingInt(key, item));
+}
+
+fn comparePortableCInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
+    return if (key.* < item.*) -9 else if (key.* > item.*) 11 else 0;
+}
+
+fn comparePortableCDescendingInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
+    return if (item.* < key.*) -7 else if (item.* > key.*) 13 else 0;
+}
+
+fn comparePortableCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return comparePortableCInt(typed_key, typed_item);
+}
+
+fn comparePortableCOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
+    const typed_key: *const i32 = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    return comparePortableCDescendingInt(typed_key, typed_item);
+}
+
+const Entry = struct {
+    name: []const u8,
+    value: u32,
+};
+
+fn compareName(key: *const []const u8, item: *const Entry) i32 {
+    return switch (std.mem.order(u8, key.*, item.name)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareOpaqueName(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const []const u8 = @ptrCast(@alignCast(key));
+    const typed_item: *const Entry = @ptrCast(@alignCast(item));
+    return compareName(typed_key, typed_item);
+}
+
+test "search keeps native and C comparator pointer support" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+
+    const native_comparators = [_]Comparator(i32, i32){ compareInt, compareDescendingInt };
+    const native_slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const native_targets = [_]i32{ 23, 7 };
+    const native_indexes = [_]usize{ 5, 4 };
+
+    for (native_comparators, native_slices, native_targets, native_indexes) |compare, items, target, expected_index| {
+        try std.testing.expectEqual(@as(?usize, expected_index), searchIndex(i32, i32, &target, items, compare));
+        const found = search(i32, i32, &target, items, compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@intFromPtr(&items[expected_index]), @intFromPtr(found));
+    }
+
+    const c_comparators = [_]CComparator(i32, i32){ compareCInt, compareCDescendingInt };
+    const c_slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const c_targets = [_]i32{ 16, 11 };
+    const c_indexes = [_]usize{ 4, 3 };
+
+    for (c_comparators, c_slices, c_targets, c_indexes) |compare, items, target, expected_index| {
+        try std.testing.expectEqual(@as(?usize, expected_index), searchIndex(i32, i32, &target, items, compare));
+        const found = search(i32, i32, &target, items, compare) orelse return error.TestUnexpectedResult;
+        try std.testing.expectEqual(@intFromPtr(&items[expected_index]), @intFromPtr(found));
     }
 }
 
-fn expectRawCAbiRange(items: []const i32, key: i32, expected: IndexRange, compare: CRawComparator) !void {
-    const base: [*]const u8 = @ptrCast(items.ptr);
-    const lower = bsearchLowerBoundIndex(&key, base, items.len, @sizeOf(i32), compare);
-    const upper = bsearchUpperBoundIndex(&key, base, items.len, @sizeOf(i32), compare);
-    const range = bsearchEqualRangeIndex(&key, base, items.len, @sizeOf(i32), compare);
-    const bytes = bsearchEqualRange(&key, base, items.len, @sizeOf(i32), compare);
-
-    try std.testing.expectEqual(expected.lower, lower);
-    try std.testing.expectEqual(expected.upper, upper);
-    try std.testing.expectEqual(expected, range);
-    try std.testing.expectEqual(expected.len() * @sizeOf(i32), bytes.len);
-
-    if (!expected.isEmpty()) {
-        const typed_bytes: [*]const i32 = @ptrCast(@alignCast(bytes.ptr));
-        try std.testing.expectEqual(key, typed_bytes[0]);
-        try std.testing.expectEqual(key, typed_bytes[expected.len() - 1]);
-    }
-}
-
-test "typed and raw searches support duplicate spans and descending C ABI pointers" {
-    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
-    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
-    const key = @as(i32, 4);
-
-    const match_index = searchIndex(i32, i32, &key, ascending[0..], compareInt) orelse return error.TestUnexpectedResult;
-    try std.testing.expect(match_index >= 1);
-    try std.testing.expect(match_index < 4);
-    try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, equalRangeIndex(i32, i32, &key, ascending[0..], compareInt));
-
-    const raw_range = bsearchEqualRangeIndex(&key, @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(i32), compareOpaqueInt);
-    try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, raw_range);
-
-    const found = bsearch(&key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
-    const typed_found: *const i32 = @ptrCast(@alignCast(found));
-    try std.testing.expectEqual(@as(i32, 4), typed_found.*);
-}
-
-test "typed c abi comparator pointers keep duplicate spans and insertion points aligned" {
+test "range helpers keep native and C comparator pointer support" {
     const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
 
-    const typed_cases = [_]struct {
-        items: []const i32,
-        key: i32,
-        expected: IndexRange,
-        compare: CComparator(i32, i32),
-    }{
-        .{ .items = ascending[0..], .key = 4, .expected = .{ .lower = 1, .upper = 4 }, .compare = compareCInt },
-        .{ .items = ascending[0..], .key = 3, .expected = .{ .lower = 1, .upper = 1 }, .compare = compareCInt },
-        .{ .items = descending[0..], .key = 4, .expected = .{ .lower = 2, .upper = 5 }, .compare = compareCDescendingInt },
-        .{ .items = descending[0..], .key = 5, .expected = .{ .lower = 2, .upper = 2 }, .compare = compareCDescendingInt },
+    const native_comparators = [_]Comparator(i32, i32){ compareInt, compareDescendingInt };
+    const native_slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const native_targets = [_]i32{ 4, 4 };
+    const native_ranges = [_]IndexRange{
+        .{ .lower = 1, .upper = 4 },
+        .{ .lower = 2, .upper = 5 },
+    };
+    const native_gap_targets = [_]i32{ 5, 20 };
+    const native_gap_ranges = [_]IndexRange{
+        .{ .lower = 4, .upper = 4 },
+        .{ .lower = 0, .upper = 0 },
     };
 
-    for (typed_cases) |case| {
-        const found = search(i32, i32, &case.key, case.items, case.compare);
-        if (case.expected.isEmpty()) {
-            try std.testing.expectEqual(@as(?*const i32, null), found);
-        } else {
-            const typed_found = found orelse return error.TestUnexpectedResult;
-            try std.testing.expectEqual(case.key, typed_found.*);
-        }
+    for (native_comparators, native_slices, native_targets, native_ranges, native_gap_targets, native_gap_ranges) |compare, items, target, expected_range, gap_target, gap_range| {
+        try std.testing.expectEqual(expected_range.lower, lowerBoundIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(expected_range.upper, upperBoundIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(expected_range, equalRangeIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(gap_range.lower, lowerBoundIndex(i32, i32, &gap_target, items, compare));
+        try std.testing.expectEqual(gap_range.upper, upperBoundIndex(i32, i32, &gap_target, items, compare));
+        try std.testing.expectEqual(gap_range, equalRangeIndex(i32, i32, &gap_target, items, compare));
+    }
 
-        try expectTypedCAbiRange(case.items, case.key, case.expected, case.compare);
+    const c_comparators = [_]CComparator(i32, i32){ compareCInt, compareCDescendingInt };
+    const c_slices = [_][]const i32{ ascending[0..], descending[0..] };
+    const c_targets = [_]i32{ 4, 4 };
+    const c_ranges = [_]IndexRange{
+        .{ .lower = 1, .upper = 4 },
+        .{ .lower = 2, .upper = 5 },
+    };
+    const c_gap_targets = [_]i32{ 5, 20 };
+    const c_gap_ranges = [_]IndexRange{
+        .{ .lower = 4, .upper = 4 },
+        .{ .lower = 0, .upper = 0 },
+    };
+
+    for (c_comparators, c_slices, c_targets, c_ranges, c_gap_targets, c_gap_ranges) |compare, items, target, expected_range, gap_target, gap_range| {
+        try std.testing.expectEqual(expected_range.lower, lowerBoundIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(expected_range.upper, upperBoundIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(expected_range, equalRangeIndex(i32, i32, &target, items, compare));
+        try std.testing.expectEqual(gap_range.lower, lowerBoundIndex(i32, i32, &gap_target, items, compare));
+        try std.testing.expectEqual(gap_range.upper, upperBoundIndex(i32, i32, &gap_target, items, compare));
+        try std.testing.expectEqual(gap_range, equalRangeIndex(i32, i32, &gap_target, items, compare));
     }
 }
 
-test "raw c abi bounds keep duplicate spans and insertion points aligned" {
-    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
-    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+test "searchMutable preserves write-through aliases" {
+    var values = [_]i32{ 5, 9, 12, 18, 27 };
+    const key = @as(i32, 18);
+    const found = searchMutable(i32, i32, &key, values[0..], compareInt) orelse return error.TestUnexpectedResult;
 
-    try expectRawCAbiRange(ascending[0..], 4, .{ .lower = 1, .upper = 4 }, compareCOpaqueInt);
-    try expectRawCAbiRange(ascending[0..], 3, .{ .lower = 1, .upper = 1 }, compareCOpaqueInt);
-    try expectRawCAbiRange(descending[0..], 4, .{ .lower = 2, .upper = 5 }, compareCOpaqueDescendingInt);
-    try expectRawCAbiRange(descending[0..], 5, .{ .lower = 2, .upper = 2 }, compareCOpaqueDescendingInt);
+    try std.testing.expectEqual(@intFromPtr(&values[3]), @intFromPtr(found));
+    found.* = 19;
+    try std.testing.expectEqual(@as(i32, 19), values[3]);
 }
 
-test "lower bound wrappers return first insertion-site elements across typed and raw comparators" {
+test "typed lower and upper bounds stay stable for ascending and descending duplicates" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const ascending_end_key = @as(i32, 20);
+    const descending_key = @as(i32, 4);
+    const descending_front_key = @as(i32, 20);
+    const descending_end_key = @as(i32, 0);
+
+    const ascending_comparators = [_]Comparator(i32, i32){compareInt};
+    for (ascending_comparators) |compare| {
+        try std.testing.expectEqual(@as(usize, 1), lowerBoundIndex(i32, i32, &ascending_key, ascending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 4), upperBoundIndex(i32, i32, &ascending_key, ascending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 4), lowerBoundIndex(i32, i32, &ascending_gap_key, ascending[0..], compare));
+        try std.testing.expectEqual(@as(usize, ascending.len), upperBoundIndex(i32, i32, &ascending_end_key, ascending[0..], compare));
+    }
+
+    const descending_comparators = [_]Comparator(i32, i32){compareDescendingInt};
+    for (descending_comparators) |compare| {
+        try std.testing.expectEqual(@as(usize, 2), lowerBoundIndex(i32, i32, &descending_key, descending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 5), upperBoundIndex(i32, i32, &descending_key, descending[0..], compare));
+        try std.testing.expectEqual(@as(usize, 0), lowerBoundIndex(i32, i32, &descending_front_key, descending[0..], compare));
+        try std.testing.expectEqual(@as(usize, descending.len), upperBoundIndex(i32, i32, &descending_end_key, descending[0..], compare));
+    }
+}
+
+test "upperBound wrappers return first post-span elements across typed and raw helpers" {
     const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
 
-    const typed_hit_key = @as(i32, 4);
-    const typed_hit = lowerBound(i32, i32, &typed_hit_key, ascending[0..], compareCInt) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqual(@as(i32, 4), typed_hit.*);
-    try std.testing.expectEqual(@intFromPtr(&ascending[1]), @intFromPtr(typed_hit));
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const ascending_tail_key = @as(i32, 20);
 
-    const typed_mid_key = @as(i32, 5);
-    const typed_mid = lowerBound(i32, i32, &typed_mid_key, ascending[0..], compareCInt) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqual(@as(i32, 9), typed_mid.*);
-    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(typed_mid));
+    const typed_hit = upperBound(i32, i32, &ascending_key, ascending[0..], compareInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 9), typed_hit.*);
+    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(typed_hit));
 
-    const typed_tail_key = @as(i32, 20);
-    try std.testing.expectEqual(@as(?*const i32, null), lowerBound(i32, i32, &typed_tail_key, ascending[0..], compareCInt));
+    const typed_gap = upperBound(i32, i32, &ascending_gap_key, ascending[0..], compareInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 9), typed_gap.*);
+    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(typed_gap));
 
-    const raw_hit_key = @as(i32, 4);
-    const raw_hit = bsearchLowerBound(&raw_hit_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(?*const i32, null), upperBound(i32, i32, &ascending_tail_key, ascending[0..], compareInt));
+
+    var typed_mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const typed_mutable_hit = upperBoundMutable(i32, i32, &ascending_key, typed_mutable[0..], compareInt) orelse return error.TestUnexpectedResult;
+    typed_mutable_hit.* = 10;
+    try std.testing.expectEqual(@as(i32, 10), typed_mutable[4]);
+
+    const descending_key = @as(i32, 4);
+    const descending_gap_key = @as(i32, 5);
+    const descending_tail_key = @as(i32, 0);
+    const descending_raw: [*]const u8 = @ptrCast(descending[0..].ptr);
+
+    const raw_hit = bsearchUpperBound(&descending_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
     const typed_raw_hit: *const i32 = @ptrCast(@alignCast(raw_hit));
-    try std.testing.expectEqual(@as(i32, 4), typed_raw_hit.*);
-    try std.testing.expectEqual(@intFromPtr(&descending[2]), @intFromPtr(typed_raw_hit));
+    try std.testing.expectEqual(@as(i32, 1), typed_raw_hit.*);
+    try std.testing.expectEqual(@intFromPtr(&descending[5]), @intFromPtr(typed_raw_hit));
 
-    const raw_mid_key = @as(i32, 5);
-    const raw_mid = bsearchLowerBound(&raw_mid_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
-    const typed_raw_mid: *const i32 = @ptrCast(@alignCast(raw_mid));
-    try std.testing.expectEqual(@as(i32, 4), typed_raw_mid.*);
-    try std.testing.expectEqual(@intFromPtr(&descending[2]), @intFromPtr(typed_raw_mid));
+    const raw_gap = bsearchUpperBound(&descending_gap_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
+    const typed_raw_gap: *const i32 = @ptrCast(@alignCast(raw_gap));
+    try std.testing.expectEqual(@as(i32, 4), typed_raw_gap.*);
+    try std.testing.expectEqual(@intFromPtr(&descending[2]), @intFromPtr(typed_raw_gap));
 
-    const raw_tail_key = @as(i32, 0);
-    try std.testing.expectEqual(@as(?*const anyopaque, null), bsearchLowerBound(&raw_tail_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt));
+    try std.testing.expectEqual(
+        @as(?*const anyopaque, null),
+        bsearchUpperBound(&descending_tail_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt),
+    );
+
+    var raw_mutable = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const raw_mutable_ptr = bsearchUpperBoundMutable(
+        &descending_key,
+        @ptrCast(raw_mutable[0..].ptr),
+        raw_mutable.len,
+        @sizeOf(i32),
+        compareOpaqueDescendingInt,
+    ) orelse return error.TestUnexpectedResult;
+    const typed_raw_mutable: *i32 = @ptrCast(@alignCast(raw_mutable_ptr));
+    typed_raw_mutable.* = 2;
+    try std.testing.expectEqual(@as(i32, 2), raw_mutable[5]);
 }
 
-test "mutable wrappers keep write-through aliases" {
-    var values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
-    const key = @as(i32, 11);
+test "equalRangeIndex reports duplicate spans and empty insertion points" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const descending_key = @as(i32, 4);
+    const descending_gap_key = @as(i32, 20);
 
-    const typed = searchMutable(i32, i32, &key, values[0..], compareInt) orelse return error.TestUnexpectedResult;
-    typed.* = 12;
-    try std.testing.expectEqual(@as(i32, 12), values[3]);
+    const ascending_range = equalRangeIndex(i32, i32, &ascending_key, ascending[0..], compareInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, ascending_range);
+    try std.testing.expectEqual(@as(usize, 3), ascending_range.len());
+    try std.testing.expect(!ascending_range.isEmpty());
 
-    const raw_key = @as(i32, 12);
-    const raw = bsearchMutable(&raw_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
-    const typed_raw: *i32 = @ptrCast(@alignCast(raw));
-    typed_raw.* = 13;
-    try std.testing.expectEqual(@as(i32, 13), values[3]);
+    const ascending_missing = equalRangeIndex(i32, i32, &ascending_gap_key, ascending[0..], compareInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 4, .upper = 4 }, ascending_missing);
+    try std.testing.expectEqual(@as(usize, 0), ascending_missing.len());
+    try std.testing.expect(ascending_missing.isEmpty());
 
-    var typed_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending_range = equalRangeIndex(i32, i32, &descending_key, descending[0..], compareDescendingInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 2, .upper = 5 }, descending_range);
+    try std.testing.expectEqual(@as(usize, 3), descending_range.len());
+
+    const descending_missing = equalRangeIndex(i32, i32, &descending_gap_key, descending[0..], compareDescendingInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, descending_missing);
+    try std.testing.expect(descending_missing.isEmpty());
+}
+
+test "IndexRange slice helpers keep typed duplicate spans and empty insertion points direct" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const duplicate_key = @as(i32, 4);
+    const missing_key = @as(i32, 5);
 
-    const typed_lower = lowerBoundMutable(i32, i32, &duplicate_key, typed_duplicates[0..], compareInt) orelse return error.TestUnexpectedResult;
-    typed_lower.* = 5;
-    try std.testing.expectEqual(@as(i32, 5), typed_duplicates[1]);
+    const duplicate_view = equalRangeIndex(i32, i32, &duplicate_key, ascending[0..], compareInt).sliceConst(i32, ascending[0..]);
+    try std.testing.expectEqual(@as(usize, 3), duplicate_view.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, duplicate_view);
 
-    var raw_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
-    const raw_lower = bsearchLowerBoundMutable(&duplicate_key, @ptrCast(raw_duplicates[0..].ptr), raw_duplicates.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
-    const typed_raw_lower: *i32 = @ptrCast(@alignCast(raw_lower));
-    typed_raw_lower.* = 6;
-    try std.testing.expectEqual(@as(i32, 6), raw_duplicates[1]);
+    const missing_view = equalRangeIndex(i32, i32, &missing_key, ascending[0..], compareInt).sliceConst(i32, ascending[0..]);
+    try std.testing.expectEqual(@as(usize, 0), missing_view.len);
+    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(missing_view.ptr));
+
+    var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_view = equalRangeIndex(i32, i32, &duplicate_key, mutable[0..], compareInt).sliceMutable(i32, mutable[0..]);
+    try std.testing.expectEqual(@as(usize, 3), mutable_view.len);
+    mutable_view[1] = 6;
+    try std.testing.expectEqual(@as(i32, 6), mutable[2]);
+}
+
+test "IndexRange byte helpers keep raw duplicate spans and write-through aliases" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const duplicate_key = @as(i32, 4);
+    const missing_key = @as(i32, 5);
+
+    const duplicate_bytes = bsearchEqualRangeIndex(&duplicate_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt).bytes(ascending_raw, @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), duplicate_bytes.len);
+    const typed_bytes: [*]const i32 = @ptrCast(@alignCast(duplicate_bytes.ptr));
+    try std.testing.expectEqual(@as(i32, 4), typed_bytes[0]);
+    try std.testing.expectEqual(@as(i32, 4), typed_bytes[2]);
+
+    const missing_bytes = bsearchEqualRangeIndex(&missing_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt).bytes(ascending_raw, @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 0), missing_bytes.len);
+    try std.testing.expectEqual(@intFromPtr(ascending_raw + (4 * @sizeOf(i32))), @intFromPtr(missing_bytes.ptr));
+
+    var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_raw: [*]u8 = @ptrCast(mutable[0..].ptr);
+    const mutable_bytes = bsearchEqualRangeIndex(&duplicate_key, mutable_raw, mutable.len, @sizeOf(i32), compareOpaqueInt).bytesMutable(mutable_raw, @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), mutable_bytes.len);
+    const typed_mutable: [*]i32 = @ptrCast(@alignCast(mutable_bytes.ptr));
+    typed_mutable[1] = 7;
+    try std.testing.expectEqual(@as(i32, 7), mutable[2]);
+}
+
+test "equalRange wrappers keep direct duplicate-span views" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const duplicate_key = @as(i32, 4);
+    const missing_key = @as(i32, 5);
+
+    const duplicate_view = equalRange(i32, i32, &duplicate_key, ascending[0..], compareInt);
+    try std.testing.expectEqual(@as(usize, 3), duplicate_view.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, duplicate_view);
+
+    const missing_view = equalRange(i32, i32, &missing_key, ascending[0..], compareInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_view.len);
+    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(missing_view.ptr));
+
+    var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_view = equalRangeMutable(i32, i32, &duplicate_key, mutable[0..], compareInt);
+    try std.testing.expectEqual(@as(usize, 3), mutable_view.len);
+    mutable_view[1] = 6;
+    try std.testing.expectEqual(@as(i32, 6), mutable[2]);
+}
+
+test "bsearchEqualRange wrappers keep raw duplicate-span views" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const duplicate_key = @as(i32, 4);
+    const missing_key = @as(i32, 5);
+
+    const duplicate_bytes = bsearchEqualRange(&duplicate_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), duplicate_bytes.len);
+    const typed_bytes: [*]const i32 = @ptrCast(@alignCast(duplicate_bytes.ptr));
+    try std.testing.expectEqual(@as(i32, 4), typed_bytes[0]);
+    try std.testing.expectEqual(@as(i32, 4), typed_bytes[2]);
+
+    const missing_bytes = bsearchEqualRange(&missing_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_bytes.len);
+    try std.testing.expectEqual(@intFromPtr(ascending_raw + (4 * @sizeOf(i32))), @intFromPtr(missing_bytes.ptr));
+
+    var mutable = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_raw: [*]u8 = @ptrCast(mutable[0..].ptr);
+    const mutable_bytes = bsearchEqualRangeMutable(&duplicate_key, mutable_raw, mutable.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), mutable_bytes.len);
+    const typed_mutable: [*]i32 = @ptrCast(@alignCast(mutable_bytes.ptr));
+    typed_mutable[1] = 7;
+    try std.testing.expectEqual(@as(i32, 7), mutable[2]);
+}
+
+test "raw search helpers keep pointer and mutable contracts" {
+    const values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const key = @as(i32, 16);
+
+    try std.testing.expectEqual(@as(?usize, 4), bsearchIndex(&key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt));
+    const found = bsearch(&key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+    const typed_found: *const i32 = @ptrCast(@alignCast(found));
+    try std.testing.expectEqual(@intFromPtr(&values[4]), @intFromPtr(typed_found));
+
+    var mutable_values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const mutable_key = @as(i32, 11);
+    const mutable = bsearchMutable(&mutable_key, @ptrCast(mutable_values[0..].ptr), mutable_values.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+    const typed_mutable: *i32 = @ptrCast(@alignCast(mutable));
+    typed_mutable.* = 12;
+    try std.testing.expectEqual(@as(i32, 12), mutable_values[3]);
+}
+
+test "raw lower and upper bounds stay stable for ascending and descending duplicates" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const descending_raw: [*]const u8 = @ptrCast(descending[0..].ptr);
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const ascending_end_key = @as(i32, 20);
+    const descending_key = @as(i32, 4);
+    const descending_front_key = @as(i32, 20);
+    const descending_end_key = @as(i32, 0);
+
+    try std.testing.expectEqual(@as(usize, 1), bsearchLowerBoundIndex(&ascending_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(usize, 4), bsearchUpperBoundIndex(&ascending_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(usize, 4), bsearchLowerBoundIndex(&ascending_gap_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
+    try std.testing.expectEqual(@as(usize, ascending.len), bsearchUpperBoundIndex(&ascending_end_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt));
+
+    try std.testing.expectEqual(@as(usize, 2), bsearchLowerBoundIndex(&descending_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(usize, 5), bsearchUpperBoundIndex(&descending_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(usize, 0), bsearchLowerBoundIndex(&descending_front_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(usize, descending.len), bsearchUpperBoundIndex(&descending_end_key, descending_raw, descending.len, @sizeOf(i32), compareOpaqueDescendingInt));
+}
+
+test "raw range helpers keep native and C comparator pointer support" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const descending_raw: [*]const u8 = @ptrCast(descending[0..].ptr);
+
+    const raw_comparators = [_]RawComparator{ compareOpaqueInt, compareOpaqueDescendingInt };
+    const raw_bases = [_][*]const u8{ ascending_raw, descending_raw };
+    const raw_lengths = [_]usize{ ascending.len, descending.len };
+    const raw_sizes = [_]usize{ @sizeOf(i32), @sizeOf(i32) };
+    const raw_targets = [_]i32{ 4, 4 };
+    const raw_ranges = [_]IndexRange{
+        .{ .lower = 1, .upper = 4 },
+        .{ .lower = 2, .upper = 5 },
+    };
+    const raw_gap_targets = [_]i32{ 5, 20 };
+    const raw_gap_ranges = [_]IndexRange{
+        .{ .lower = 4, .upper = 4 },
+        .{ .lower = 0, .upper = 0 },
+    };
+
+    for (raw_comparators, raw_bases, raw_lengths, raw_sizes, raw_targets, raw_ranges, raw_gap_targets, raw_gap_ranges) |compare, base, len, size, target, expected_range, gap_target, gap_range| {
+        try std.testing.expectEqual(expected_range.lower, bsearchLowerBoundIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(expected_range.upper, bsearchUpperBoundIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(expected_range, bsearchEqualRangeIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range.lower, bsearchLowerBoundIndex(&gap_target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range.upper, bsearchUpperBoundIndex(&gap_target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range, bsearchEqualRangeIndex(&gap_target, base, len, size, compare));
+    }
+
+    const c_raw_comparators = [_]CRawComparator{ compareCOpaqueInt, compareCOpaqueDescendingInt };
+    const c_raw_bases = [_][*]const u8{ ascending_raw, descending_raw };
+    const c_raw_lengths = [_]usize{ ascending.len, descending.len };
+    const c_raw_sizes = [_]usize{ @sizeOf(i32), @sizeOf(i32) };
+    const c_raw_targets = [_]i32{ 4, 4 };
+    const c_raw_ranges = [_]IndexRange{
+        .{ .lower = 1, .upper = 4 },
+        .{ .lower = 2, .upper = 5 },
+    };
+    const c_raw_gap_targets = [_]i32{ 5, 20 };
+    const c_raw_gap_ranges = [_]IndexRange{
+        .{ .lower = 4, .upper = 4 },
+        .{ .lower = 0, .upper = 0 },
+    };
+
+    for (c_raw_comparators, c_raw_bases, c_raw_lengths, c_raw_sizes, c_raw_targets, c_raw_ranges, c_raw_gap_targets, c_raw_gap_ranges) |compare, base, len, size, target, expected_range, gap_target, gap_range| {
+        try std.testing.expectEqual(expected_range.lower, bsearchLowerBoundIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(expected_range.upper, bsearchUpperBoundIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(expected_range, bsearchEqualRangeIndex(&target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range.lower, bsearchLowerBoundIndex(&gap_target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range.upper, bsearchUpperBoundIndex(&gap_target, base, len, size, compare));
+        try std.testing.expectEqual(gap_range, bsearchEqualRangeIndex(&gap_target, base, len, size, compare));
+    }
+}
+
+test "bsearchEqualRangeIndex reports duplicate spans and empty insertion points" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_raw: [*]const u8 = @ptrCast(ascending[0..].ptr);
+    const descending_raw: [*]const u8 = @ptrCast(descending[0..].ptr);
+    const ascending_key = @as(i32, 4);
+    const ascending_gap_key = @as(i32, 5);
+    const descending_key = @as(i32, 4);
+    const descending_gap_key = @as(i32, 20);
+
+    const ascending_range = bsearchEqualRangeIndex(&ascending_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 1, .upper = 4 }, ascending_range);
+    try std.testing.expectEqual(@as(usize, 3), ascending_range.len());
+    try std.testing.expect(!ascending_range.isEmpty());
+
+    const ascending_missing = bsearchEqualRangeIndex(&ascending_gap_key, ascending_raw, ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 4, .upper = 4 }, ascending_missing);
+    try std.testing.expect(ascending_missing.isEmpty());
+
+    const descending_range = bsearchEqualRangeIndex(&descending_key, descending_raw, descending.len, @sizeOf(i32), compareCOpaqueDescendingInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 2, .upper = 5 }, descending_range);
+    try std.testing.expectEqual(@as(usize, 3), descending_range.len());
+
+    const descending_missing = bsearchEqualRangeIndex(&descending_gap_key, descending_raw, descending.len, @sizeOf(i32), compareCOpaqueDescendingInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, descending_missing);
+    try std.testing.expect(descending_missing.isEmpty());
+}
+
+test "raw comparator aliases accept native and C calling conventions" {
+    const values = [_]i32{ 89, 55, 34, 21, 13, 8, 3 };
+    const raw_comparators = [_]RawComparator{compareOpaqueDescendingInt};
+    const c_raw_comparators = [_]CRawComparator{compareCOpaqueDescendingInt};
+    const raw_hit_key = @as(i32, 21);
+    const raw_find_key = @as(i32, 13);
+    const c_hit_key = @as(i32, 34);
+    const c_find_key = @as(i32, 8);
+
+    for (raw_comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 3), bsearchIndex(&raw_hit_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare));
+        const found = bsearch(&raw_find_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const i32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@as(i32, 13), typed_found.*);
+    }
+
+    for (c_raw_comparators) |compare| {
+        try std.testing.expectEqual(@as(?usize, 2), bsearchIndex(&c_hit_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare));
+        const found = bsearch(&c_find_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(i32), compare) orelse return error.TestUnexpectedResult;
+        const typed_found: *const i32 = @ptrCast(@alignCast(found));
+        try std.testing.expectEqual(@as(i32, 8), typed_found.*);
+    }
+}
+
+test "C ABI comparators accept c_int return types with non-canonical signs" {
+    const ascending = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const descending = [_]i32{ 42, 23, 16, 11, 7, 4, 2 };
+    const descending_duplicates = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const ascending_target = @as(i32, 23);
+    const descending_target = @as(i32, 11);
+    const duplicate_target = @as(i32, 4);
+
+    try std.testing.expectEqual(@as(?usize, 5), searchIndex(i32, i32, &ascending_target, ascending[0..], comparePortableCInt));
+    try std.testing.expectEqual(@as(?usize, 3), searchIndex(i32, i32, &descending_target, descending[0..], comparePortableCDescendingInt));
+    try std.testing.expectEqual(@as(usize, 2), lowerBoundIndex(i32, i32, &duplicate_target, descending_duplicates[0..], comparePortableCDescendingInt));
+    try std.testing.expectEqual(@as(usize, 5), upperBoundIndex(i32, i32, &duplicate_target, descending_duplicates[0..], comparePortableCDescendingInt));
+
+    const raw_target = @as(i32, 21);
+    const raw_missing = @as(i32, 1);
+    const raw_descending = [_]i32{ 89, 55, 34, 21, 13, 8, 3 };
+    try std.testing.expectEqual(@as(?usize, 3), bsearchIndex(&raw_target, @ptrCast(raw_descending[0..].ptr), raw_descending.len, @sizeOf(i32), comparePortableCOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(?usize, null), bsearchIndex(&raw_missing, @ptrCast(raw_descending[0..].ptr), raw_descending.len, @sizeOf(i32), comparePortableCOpaqueDescendingInt));
+}
+
+test "typed and raw helpers support heterogeneous keys" {
+    var entries = [_]Entry{
+        .{ .name = "alpha", .value = 1 },
+        .{ .name = "beta", .value = 2 },
+        .{ .name = "delta", .value = 4 },
+        .{ .name = "omega", .value = 24 },
+    };
+    const typed_key = @as([]const u8, "delta");
+    const typed_found = search([]const u8, Entry, &typed_key, entries[0..], compareName) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(u32, 4), typed_found.value);
+
+    const raw_key = @as([]const u8, "beta");
+    const raw_found = bsearch(@ptrCast(&raw_key), @ptrCast(entries[0..].ptr), entries.len, @sizeOf(Entry), compareOpaqueName) orelse return error.TestUnexpectedResult;
+    const typed_raw_found: *const Entry = @ptrCast(@alignCast(raw_found));
+    try std.testing.expectEqual(@as(u32, 2), typed_raw_found.value);
+}
+
+const CountedKey = struct {
+    target: u32,
+    comparisons: *usize,
+};
+
+fn compareCounted(key: *const CountedKey, item: *const u32) i32 {
+    key.comparisons.* += 1;
+    return switch (std.math.order(key.target, item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+const CountedOpaqueKey = struct {
+    target: u32,
+    comparisons: *usize,
+};
+
+fn compareOpaqueCounted(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const CountedOpaqueKey = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    typed_key.comparisons.* += 1;
+    return switch (std.math.order(typed_key.target, typed_item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn comparisonBudget(len: usize) usize {
+    if (len <= 1) return len;
+    return std.math.log2_int_ceil(usize, len) + 1;
+}
+
+test "bsearch keeps comparison counts within a binary-search perf gate for hits and misses" {
+    var values: [1024]u32 = undefined;
+    for (&values, 0..) |*slot, index| {
+        slot.* = @as(u32, @intCast(index * 2));
+    }
+
+    var hit_comparisons: usize = 0;
+    const hit_key = CountedKey{ .target = 872, .comparisons = &hit_comparisons };
+    const hit = search(CountedKey, u32, &hit_key, values[0..], compareCounted) orelse return error.ExpectedMatch;
+    try std.testing.expectEqual(@as(u32, 872), hit.*);
+    try std.testing.expect(hit_comparisons <= comparisonBudget(values.len));
+
+    var miss_comparisons: usize = 0;
+    const miss_key = CountedKey{ .target = 873, .comparisons = &miss_comparisons };
+    try std.testing.expectEqual(@as(?*const u32, null), search(CountedKey, u32, &miss_key, values[0..], compareCounted));
+    try std.testing.expect(miss_comparisons <= comparisonBudget(values.len));
+}
+
+test "lower and upper bounds keep comparison counts inside a binary-search perf gate" {
+    var values: [1024]u32 = undefined;
+    for (&values, 0..) |*slot, index| {
+        slot.* = @as(u32, @intCast(index / 4));
+    }
+
+    const budget = comparisonBudget(values.len);
+    const target_value = @as(u32, 173);
+    const expected_lower = @as(usize, 692);
+    const expected_upper = @as(usize, 696);
+
+    var lower_comparisons: usize = 0;
+    const lower_key = CountedKey{ .target = target_value, .comparisons = &lower_comparisons };
+    try std.testing.expectEqual(expected_lower, lowerBoundIndex(CountedKey, u32, &lower_key, values[0..], compareCounted));
+    try std.testing.expect(lower_comparisons <= budget);
+
+    var upper_comparisons: usize = 0;
+    const upper_key = CountedKey{ .target = target_value, .comparisons = &upper_comparisons };
+    try std.testing.expectEqual(expected_upper, upperBoundIndex(CountedKey, u32, &upper_key, values[0..], compareCounted));
+    try std.testing.expect(upper_comparisons <= budget);
+
+    var range_comparisons: usize = 0;
+    const range_key = CountedKey{ .target = target_value, .comparisons = &range_comparisons };
+    try std.testing.expectEqual(IndexRange{ .lower = expected_lower, .upper = expected_upper }, equalRangeIndex(CountedKey, u32, &range_key, values[0..], compareCounted));
+    try std.testing.expect(range_comparisons <= budget * 2);
+}
+
+test "raw lower and upper bounds keep comparison counts inside a binary-search perf gate" {
+    var values: [1024]u32 = undefined;
+    for (&values, 0..) |*slot, index| {
+        slot.* = @as(u32, @intCast(index / 4));
+    }
+
+    const raw_values: [*]const u8 = @ptrCast(values[0..].ptr);
+    const budget = comparisonBudget(values.len);
+    const target_value = @as(u32, 173);
+    const expected_lower = @as(usize, 692);
+    const expected_upper = @as(usize, 696);
+
+    var lower_comparisons: usize = 0;
+    const lower_key = CountedOpaqueKey{ .target = target_value, .comparisons = &lower_comparisons };
+    try std.testing.expectEqual(expected_lower, bsearchLowerBoundIndex(&lower_key, raw_values, values.len, @sizeOf(u32), compareOpaqueCounted));
+    try std.testing.expect(lower_comparisons <= budget);
+
+    var upper_comparisons: usize = 0;
+    const upper_key = CountedOpaqueKey{ .target = target_value, .comparisons = &upper_comparisons };
+    try std.testing.expectEqual(expected_upper, bsearchUpperBoundIndex(&upper_key, raw_values, values.len, @sizeOf(u32), compareOpaqueCounted));
+    try std.testing.expect(upper_comparisons <= budget);
+
+    var range_comparisons: usize = 0;
+    const range_key = CountedOpaqueKey{ .target = target_value, .comparisons = &range_comparisons };
+    try std.testing.expectEqual(IndexRange{ .lower = expected_lower, .upper = expected_upper }, bsearchEqualRangeIndex(&range_key, raw_values, values.len, @sizeOf(u32), compareOpaqueCounted));
+    try std.testing.expect(range_comparisons <= budget * 2);
+}
+
+test "bsearch on an empty slice performs no comparisons" {
+    const values = [_]u32{};
+
+    var typed_comparisons: usize = 0;
+    const typed_key = CountedKey{ .target = 1, .comparisons = &typed_comparisons };
+    try std.testing.expectEqual(@as(?*const u32, null), search(CountedKey, u32, &typed_key, values[0..], compareCounted));
+    try std.testing.expectEqual(@as(usize, 0), typed_comparisons);
+
+    var raw_comparisons: usize = 0;
+    const raw_key = CountedOpaqueKey{ .target = 1, .comparisons = &raw_comparisons };
+    try std.testing.expectEqual(@as(?*const anyopaque, null), bsearch(&raw_key, @ptrCast(values[0..].ptr), values.len, @sizeOf(u32), compareOpaqueCounted));
+    try std.testing.expectEqual(@as(usize, 0), raw_comparisons);
 }
