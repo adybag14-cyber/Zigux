@@ -5,6 +5,11 @@
   "direct_packet_paths": [
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
     "Documentation/zigux/phase15-shared-summary-gap.md",
@@ -17,8 +22,12 @@
     "scripts/zigux/check-phase15-readiness-gate-packet.py",
     "zigux/tests/README.md",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
     "zigux/tests/phase15_governance_lane_sequencing.zig",
+    "zigux/tests/phase15_parity_scorecard.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json"
   ],
   "still_missing_broader_paths": [
