@@ -85,7 +85,7 @@ def validate_fixture(root: Path) -> list[str]:
     target_count = payload.get("target_count")
     if target_count != len(EXPECTED_TARGETS):
         issues.append(f"fixture:target_count:{target_count!r}")
-    elif targets is not None and target_count != len(targets):
+    if targets is not None and target_count != len(targets):
         issues.append(f"fixture:target_count_mismatch:{target_count!r}!={len(targets)!r}")
 
     zig_file_issues, zig_test_files = collect_list_issues(
@@ -263,6 +263,48 @@ def run_self_test() -> int:
         issues = validate_fixture(root)
         assert any(issue.startswith("fixture:targets:") for issue in issues)
         assert "fixture:target_count:2" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS[:-1],
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:targets:") for issue in issues)
+        assert f"fixture:target_count_mismatch:{len(EXPECTED_TARGETS)!r}!={len(EXPECTED_TARGETS[:-1])!r}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": str(len(EXPECTED_TARGETS)),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert f"fixture:target_count:{str(len(EXPECTED_TARGETS))!r}" in issues
+        assert f"fixture:target_count_mismatch:{str(len(EXPECTED_TARGETS))!r}!={len(EXPECTED_TARGETS)!r}" in issues
         case_count += 1
 
         build_self_test_root(root)
