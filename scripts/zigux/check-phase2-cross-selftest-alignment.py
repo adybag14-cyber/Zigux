@@ -29,6 +29,7 @@ FIXTURE_MARKERS = (
 )
 CHECKER_OUTPUT_MARKERS = (
     'print("PHASE2_CROSS_REPLAY_MODE=single-target")',
+    'print("PHASE2_CROSS_REPLAY_MODE=all-targets")',
     'print(f"PHASE2_CROSS_TARGET={target}")',
     'print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")',
     "print(f\"PHASE2_CROSS_TARGETS={','.join(targets)}\")",
@@ -37,6 +38,10 @@ CHECKER_OUTPUT_MARKERS = (
     'print("PHASE2_CROSS_MATRIX_ENTRIES=" + ",".join(matrix_entries))',
     'print("PHASE2_CROSS_MISSING_FILES_START")',
     'print("PHASE2_CROSS_MISSING_FILES_END")',
+)
+REPEATED_CHECKER_OUTPUT_MARKERS = (
+    'print("PHASE2_CROSS_REPLAY_MODE=single-target")',
+    'print("PHASE2_CROSS_REPLAY_MODE=all-targets")',
 )
 
 SCRIPTS_README_MARKERS = (
@@ -158,11 +163,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
     if surface_paths[SURFACE_PATHS[0]].exists():
         issues.extend(
-            collect_exact_line_issues(
+            collect_missing_markers(
                 read_text(surface_paths[SURFACE_PATHS[0]]),
                 CHECKER_OUTPUT_MARKERS,
                 "MISSING_CHECKER_OUTPUT_MARKERS",
-                "DUPLICATE_CHECKER_OUTPUT_MARKERS",
             )
         )
     if surface_paths[SURFACE_PATHS[1]].exists():
@@ -242,6 +246,7 @@ def run_self_test() -> int:
         presence_cases = (
             (SCRIPTS_README, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"),
             (TESTS_README, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"),
+            (SURFACE_PATHS[0], CHECKER_OUTPUT_MARKERS, "MISSING_CHECKER_OUTPUT_MARKERS"),
         )
 
         for path, markers, code in presence_cases:
@@ -260,7 +265,6 @@ def run_self_test() -> int:
             (KBUILD_ROUTES, KBUILD_ROUTE_MARKERS, "MISSING_KBUILD_ROUTE_MARKERS", "DUPLICATE_KBUILD_ROUTE_MARKERS"),
             (TOOLCHAIN_PINNING, TOOLCHAIN_PINNING_MARKERS, "MISSING_TOOLCHAIN_PINNING_MARKERS", "DUPLICATE_TOOLCHAIN_PINNING_MARKERS"),
             (TESTS_ALIGNMENT, TESTS_ALIGNMENT_MARKERS, "MISSING_TESTS_ALIGNMENT_MARKERS", "DUPLICATE_TESTS_ALIGNMENT_MARKERS"),
-            (SURFACE_PATHS[0], CHECKER_OUTPUT_MARKERS, "MISSING_CHECKER_OUTPUT_MARKERS", "DUPLICATE_CHECKER_OUTPUT_MARKERS"),
             (SURFACE_PATHS[1], FIXTURE_MARKERS, "MISSING_FIXTURE_MARKERS", "DUPLICATE_FIXTURE_MARKERS"),
         )
 
@@ -268,6 +272,7 @@ def run_self_test() -> int:
             1
             + sum(len(markers) for _, markers, _ in presence_cases)
             + (2 * sum(len(markers) for _, markers, _, _ in exact_line_cases))
+            + len(REPEATED_CHECKER_OUTPUT_MARKERS)
             + len(presence_cases)
             + len(exact_line_cases)
             + len(SURFACE_PATHS)
@@ -296,9 +301,24 @@ def run_self_test() -> int:
                 assert (duplicate_code, f"{marker}:count=2") in issues
                 checks_run += 1
 
+        for marker in REPEATED_CHECKER_OUTPUT_MARKERS:
+            build_self_test_root(root)
+            resolved = resolve_path(root, SURFACE_PATHS[0])
+            resolved.write_text(
+                duplicate_exact_line(resolved.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert collect_issues(root) == []
+            checks_run += 1
+
         for path, _, _ in presence_cases:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
+            if path in SURFACE_PATHS:
+                issues = collect_issues(root)
+                assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
+                checks_run += 1
+                continue
             try:
                 collect_issues(root)
             except SystemExit as exc:
