@@ -526,7 +526,7 @@ def run_self_test() -> int:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / "unexpected.txt").writeText("fixture\n", encoding="utf-8")
+        (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
         expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
