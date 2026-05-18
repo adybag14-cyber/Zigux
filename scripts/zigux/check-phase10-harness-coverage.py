@@ -283,6 +283,18 @@ def run_self_test() -> int:
                 "Documentation/zigux/phase10-virtio-input-module-slice.md:queued status completions reclaimable in memory",
             ),
             (
+                "Documentation/zigux/review-checklist.md",
+                "make -C zigux phase10-validate",
+                "phase10 validate route missing",
+                "Documentation/zigux/review-checklist.md:make -C zigux phase10-validate",
+            ),
+            (
+                "drivers/virtio/virtio_input_registration_preflight.zig",
+                "pub fn blockerTag(blocker: RegistrationBlocker) []const u8 {",
+                "pub fn blockerLabel(blocker: RegistrationBlocker) []const u8 {",
+                "drivers/virtio/virtio_input_registration_preflight.zig:pub fn blockerTag(blocker: RegistrationBlocker) []const u8 {",
+            ),
+            (
                 "drivers/virtio/virtio_input_verify.zig",
                 'test "phase10 virtio input verify keeps teardown wrapper parity explicit across reset" {',
                 'test "phase10 virtio input verify drift" {',
@@ -319,6 +331,12 @@ def run_self_test() -> int:
                 'scripts/zigux/check-phase10-bootstrap-route.py:TEST_CMD = "make -C zigux phase10-test"',
             ),
             (
+                "scripts/zigux/check-phase10-shared-freeze-boundary.py",
+                '"kernel/trace/ring_buffer.c"',
+                '"kernel/trace/ring_buffer_drift.c"',
+                'scripts/zigux/check-phase10-shared-freeze-boundary.py:"kernel/trace/ring_buffer.c"',
+            ),
+            (
                 ".github/workflows/zigux-bootstrap.yml",
                 "Run Phase 10 helper tests",
                 "Run Phase 10 helper drift",
@@ -332,7 +350,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=26")
     return 0
 
 
