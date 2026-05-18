@@ -219,7 +219,7 @@ def make_fake_zig(path: Path, log_path: Path, fail_target: str | None = None) ->
         fail_clause = f'case "$*" in *"{fail_target}"*) exit 7 ;; esac\n'
     script = (
         "#!/bin/sh\n"
-        f'printf "%s\n" "$*" >> "{log_path}"\n'
+        f'printf "%s\\n" "$*" >> "{log_path}"\n'
         f"{fail_clause}"
         "exit 0\n"
     )
@@ -269,6 +269,47 @@ def run_self_test() -> int:
         (fixture_path(root)).write_text(
             json.dumps(
                 {
+                    "phase": "Phase 3",
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert "fixture:phase:'Phase 3'" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": 20,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert "fixture:lane:20" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).writeText if False else None
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
                     "phase": EXPECTED_PHASE,
                     "lane": EXPECTED_LANE,
                     "status": EXPECTED_STATUS,
@@ -283,6 +324,26 @@ def run_self_test() -> int:
         )
         issues = validate_fixture(root)
         assert any(issue.startswith("fixture:targets:not_list:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": [EXPECTED_TARGETS[0], 7, EXPECTED_TARGETS[2]],
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:targets:non_string:") for issue in issues)
         case_count += 1
 
         build_self_test_root(root)
