@@ -128,7 +128,13 @@ REQUIRED_EXACT_COUNT_MARKERS = {
         "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`": 1,
         "`Documentation/zigux/phase12-release-coordination-matrix.md`": 1,
     },
+    RELEASE_CLOSURE_CHECKLIST_PATH: {
+        "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`": 1,
+    },
     RELEASE_COORDINATION_MATRIX_PATH: {
+        "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`": 1,
         "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the directly readable validator-side support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.": 1,
     },
     RAW_GITHUB_COVERAGE_SURVEY_PATH: {
@@ -203,7 +209,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 60
+EXPECTED_SELF_TEST_CASE_COUNT = 64
 
 
 def write_fixture_tree(root: Path) -> None:
