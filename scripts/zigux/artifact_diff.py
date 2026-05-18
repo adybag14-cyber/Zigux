@@ -1,209 +1,368 @@
 #!/usr/bin/env python3
-"""Compare small deterministic artifacts for Zigux fixture-backed checks."""
+"""Compare two artifacts in a stable mode."""
 
 from __future__ import annotations
 
-import argparse
 import difflib
+import hashlib
 import json
+import subprocess
+import sys
 import tempfile
+from dataclasses import dataclass
 from pathlib import Path
 
 
-MODE_CHOICES = ("json", "text", "bytes")
-EXPECTED_SELF_TEST_CASE_COUNT = 7
+MODE_CHOICES = ("text", "json", "sha256")
+HELP_LINES = [
+    "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test]",
+    " [expected] [actual]",
+    "",
+    "Compare two artifacts in a stable mode.",
+    "",
+    "positional arguments:",
+    " expected",
+    " actual",
+    "",
+    "options:",
+    " -h, --help show this help message and exit",
+    " --mode {text,json,sha256}",
+    " --self-test Run built-in deterministic comparison checks.",
+]
+MISSING_ARGUMENT_ERROR = (
+    "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] "
+    "[expected] [actual] artifact_diff.py: error: --mode, expected, and actual "
+    "are required unless --self-test is set"
+)
+INVALID_MODE_ERROR_TEMPLATE = (
+    "usage: artifact_diff.py [-h] [--mode {{text,json,sha256}}] [--self-test] "
+    "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
+    "choice: {value!r} (choose from text, json, sha256)"
+)
+SELF_TEST_CASES = [
+    "text_pass",
+    "text_mismatch",
+    "json_pass",
+    "json_mismatch",
+    "json_invalid_expected",
+    "json_invalid_actual",
+    "json_invalid_both",
+    "json_missing_expected",
+    "json_missing_actual",
+    "json_missing_both",
+    "sha256_pass",
+    "sha256_drift",
+    "text_missing_expected",
+    "text_missing_actual",
+    "text_missing_both",
+    "sha256_missing_expected",
+    "sha256_missing_actual",
+    "sha256_missing_both",
+    "invalid_mode_rejected",
+]
 
 
-class ArtifactDiffError(Exception):
-    """Raised when an artifact cannot be decoded in the requested mode."""
+@dataclass(frozen=True)
+class ComparisonResult:
+    ok: bool
+    extra_lines: list[str]
 
 
 def read_bytes(path: Path) -> bytes:
-    try:
-        return path.read_bytes()
-    except FileNotFoundError as exc:
-        raise SystemExit(f"missing artifact: {path}") from exc
-
-
-def load_json(path: Path) -> object:
-    try:
-        return json.loads(read_bytes(path).decode("utf-8"))
-    except UnicodeDecodeError as exc:
-        raise ArtifactDiffError(f"{path}: invalid UTF-8 for json mode") from exc
-    except json.JSONDecodeError as exc:
-        raise ArtifactDiffError(f"{path}: invalid JSON at line {exc.lineno} column {exc.colno}") from exc
+    return path.read_bytes()
 
 
 def load_text(path: Path) -> str:
+    return read_bytes(path).decode("utf-8")
+
+
+def canonical_json_bytes(path: Path, *, side: str) -> tuple[bytes | None, str | None]:
     try:
-        return read_bytes(path).decode("utf-8")
-    except UnicodeDecodeError as exc:
-        raise ArtifactDiffError(f"{path}: invalid UTF-8 for text mode") from exc
+        value = json.loads(load_text(path))
+    except json.JSONDecodeError as exc:
+        return None, f"{side}_JSON_ERROR={path}:{exc.lineno}:{exc.colno}: {exc.msg}"
+    return (json.dumps(value, indent=2, sort_keys=True, ensure_ascii=True) + "\n").encode("utf-8"), None
 
 
-def canonical_json(value: object) -> str:
-    return json.dumps(value, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
+def missing_lines(expected: Path, actual: Path) -> list[str] | None:
+    expected_exists = expected.exists()
+    actual_exists = actual.exists()
+    if expected_exists and actual_exists:
+        return None
+    return [
+        f"EXPECTED_EXISTS={expected_exists}",
+        f"ACTUAL_EXISTS={actual_exists}",
+    ]
 
 
-def diff_lines(expected_label: str, expected_text: str, actual_label: str, actual_text: str) -> str:
-    return "".join(
-        difflib.unified_diff(
-            expected_text.splitlines(keepends=True),
-            actual_text.splitlines(keepends=True),
-            fromfile=expected_label,
-            tofile=actual_label,
-        )
+def compare_text(expected: Path, actual: Path) -> ComparisonResult:
+    if read_bytes(expected) == read_bytes(actual):
+        return ComparisonResult(ok=True, extra_lines=[])
+    return ComparisonResult(ok=False, extra_lines=[])
+
+
+def compare_json(expected: Path, actual: Path) -> ComparisonResult:
+    expected_bytes, expected_error = canonical_json_bytes(expected, side="EXPECTED")
+    if expected_error is not None:
+        return ComparisonResult(ok=False, extra_lines=[expected_error])
+    actual_bytes, actual_error = canonical_json_bytes(actual, side="ACTUAL")
+    if actual_error is not None:
+        return ComparisonResult(ok=False, extra_lines=[actual_error])
+    assert expected_bytes is not None
+    assert actual_bytes is not None
+    if expected_bytes == actual_bytes:
+        return ComparisonResult(ok=True, extra_lines=[])
+    return ComparisonResult(ok=False, extra_lines=[])
+
+
+def sha256_hex(path: Path) -> str:
+    return hashlib.sha256(read_bytes(path)).hexdigest()
+
+
+def compare_sha256(expected: Path, actual: Path) -> ComparisonResult:
+    expected_digest = sha256_hex(expected)
+    actual_digest = sha256_hex(actual)
+    if expected_digest == actual_digest:
+        return ComparisonResult(ok=True, extra_lines=[f"SHA256={expected_digest}"])
+    return ComparisonResult(
+        ok=False,
+        extra_lines=[
+            f"EXPECTED_SHA256={expected_digest}",
+            f"ACTUAL_SHA256={actual_digest}",
+        ],
     )
 
 
-def first_byte_mismatch(expected: bytes, actual: bytes) -> str:
-    shared = min(len(expected), len(actual))
-    for index in range(shared):
-        if expected[index] != actual[index]:
-            return (
-                f"first differing byte at offset {index}: "
-                f"expected=0x{expected[index]:02x} actual=0x{actual[index]:02x}"
-            )
-    return f"length differs: expected={len(expected)} actual={len(actual)}"
-
-
-def compare_json(expected_path: Path, actual_path: Path) -> tuple[bool, str]:
-    expected = load_json(expected_path)
-    actual = load_json(actual_path)
-    if expected == actual:
-        return True, ""
-    return False, diff_lines(
-        expected_path.as_posix(),
-        canonical_json(expected),
-        actual_path.as_posix(),
-        canonical_json(actual),
-    )
-
-
-def compare_text(expected_path: Path, actual_path: Path) -> tuple[bool, str]:
-    expected = load_text(expected_path)
-    actual = load_text(actual_path)
-    if expected == actual:
-        return True, ""
-    return False, diff_lines(expected_path.as_posix(), expected, actual_path.as_posix(), actual)
-
-
-def compare_bytes(expected_path: Path, actual_path: Path) -> tuple[bool, str]:
-    expected = read_bytes(expected_path)
-    actual = read_bytes(actual_path)
-    if expected == actual:
-        return True, ""
-    return False, first_byte_mismatch(expected, actual)
-
-
-def compare_artifacts(mode: str, expected_path: Path, actual_path: Path) -> tuple[bool, str]:
-    if mode == "json":
-        return compare_json(expected_path, actual_path)
+def compare(mode: str, expected: Path, actual: Path) -> ComparisonResult:
+    missing = missing_lines(expected, actual)
+    if missing is not None:
+        return ComparisonResult(ok=False, extra_lines=missing)
     if mode == "text":
-        return compare_text(expected_path, actual_path)
-    if mode == "bytes":
-        return compare_bytes(expected_path, actual_path)
+        return compare_text(expected, actual)
+    if mode == "json":
+        return compare_json(expected, actual)
+    if mode == "sha256":
+        return compare_sha256(expected, actual)
     raise ValueError(f"unsupported mode: {mode}")
 
 
-def write_text(path: Path, text: str) -> None:
-    path.write_text(text, encoding="utf-8")
+def emit_result(status: str, mode: str, expected: Path, actual: Path, extra_lines: list[str]) -> int:
+    print(f"ARTIFACT_DIFF={status}")
+    print(f"MODE={mode}")
+    print(f"EXPECTED={expected}")
+    print(f"ACTUAL={actual}")
+    for line in extra_lines:
+        print(line)
+    return 0 if status == "pass" else 1
 
 
-def write_bytes(path: Path, data: bytes) -> None:
-    path.write_bytes(data)
+def run_parser_probe(args: list[str]) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, __file__, *args],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+
+def assert_case(condition: bool, label: str) -> None:
+    if not condition:
+        raise AssertionError(label)
 
 
 def run_self_test() -> int:
-    checks_run = 0
+    covered: list[str] = []
     with tempfile.TemporaryDirectory(prefix="zigux_artifact_diff_") as tmp_dir:
         root = Path(tmp_dir)
+        expected = root / "expected.txt"
+        actual = root / "actual.txt"
+        missing = root / "missing.txt"
+        other_missing = root / "other-missing.txt"
+        expected_json = root / "expected.json"
+        actual_json = root / "actual.json"
+        actual_json_mismatch = root / "actual-mismatch.json"
+        invalid_expected_json = root / "invalid-expected.json"
+        invalid_actual_json = root / "invalid-actual.json"
+        blob_a = root / "blob-a.bin"
+        blob_b = root / "blob-b.bin"
 
-        expected = root / "expected.json"
-        actual = root / "actual.json"
-        write_text(expected, '{\n  "beta": 2,\n  "alpha": 1\n}\n')
-        write_text(actual, '{ "alpha": 1, "beta": 2 }\n')
-        ok, detail = compare_artifacts("json", expected, actual)
-        assert ok and detail == ""
-        checks_run += 1
+        expected.write_text("alpha\nbeta\n", encoding="utf-8", newline="\n")
+        actual.write_text("alpha\nbeta\n", encoding="utf-8", newline="\n")
+        assert_case(compare("text", expected, actual).ok, "text_pass")
+        covered.append("text_pass")
 
-        write_text(actual, '{ "alpha": 1, "beta": 3 }\n')
-        ok, detail = compare_artifacts("json", expected, actual)
-        assert not ok and "--- " in detail and "+++ " in detail
-        checks_run += 1
+        actual.write_text("alpha\nBETA\n", encoding="utf-8", newline="\n")
+        assert_case(not compare("text", expected, actual).ok, "text_mismatch")
+        covered.append("text_mismatch")
 
-        write_text(expected, "alpha\nbeta\n")
-        write_text(actual, "alpha\nbeta\n")
-        ok, detail = compare_artifacts("text", expected, actual)
-        assert ok and detail == ""
-        checks_run += 1
+        expected_json.write_text('{"alpha": 1, "beta": [2, 3]}\n', encoding="utf-8", newline="\n")
+        actual_json.write_text('{\n "beta": [2, 3],\n "alpha": 1\n}\n', encoding="utf-8", newline="\n")
+        assert_case(compare("json", expected_json, actual_json).ok, "json_pass")
+        covered.append("json_pass")
 
-        write_text(actual, "alpha\ngamma\n")
-        ok, detail = compare_artifacts("text", expected, actual)
-        assert not ok and "@@" in detail
-        checks_run += 1
+        actual_json_mismatch.write_text('{"alpha": 1, "beta": [2, 4]}\n', encoding="utf-8", newline="\n")
+        assert_case(not compare("json", expected_json, actual_json_mismatch).ok, "json_mismatch")
+        covered.append("json_mismatch")
 
-        write_bytes(expected, b"\x00\x01\x02")
-        write_bytes(actual, b"\x00\x01\x02")
-        ok, detail = compare_artifacts("bytes", expected, actual)
-        assert ok and detail == ""
-        checks_run += 1
+        invalid_expected_json.write_text('{"alpha": 1,\n', encoding="utf-8", newline="\n")
+        invalid_actual_json.write_text('{"alpha": 1,\n', encoding="utf-8", newline="\n")
+        assert_case(
+            compare("json", invalid_expected_json, actual_json).extra_lines
+            == [f"EXPECTED_JSON_ERROR={invalid_expected_json}:2:1: Expecting property name enclosed in double quotes"],
+            "json_invalid_expected",
+        )
+        covered.append("json_invalid_expected")
 
-        write_bytes(actual, b"\x00\x04\x02")
-        ok, detail = compare_artifacts("bytes", expected, actual)
-        assert not ok and "offset 1" in detail
-        checks_run += 1
+        assert_case(
+            compare("json", expected_json, invalid_actual_json).extra_lines
+            == [f"ACTUAL_JSON_ERROR={invalid_actual_json}:2:1: Expecting property name enclosed in double quotes"],
+            "json_invalid_actual",
+        )
+        covered.append("json_invalid_actual")
 
-        write_text(actual, "{invalid-json}\n")
-        try:
-            compare_artifacts("json", expected, actual)
-        except ArtifactDiffError as exc:
-            assert "invalid JSON" in str(exc)
-        else:
-            raise AssertionError("invalid json should fail")
-        checks_run += 1
+        assert_case(
+            compare("json", invalid_expected_json, invalid_actual_json).extra_lines
+            == [f"EXPECTED_JSON_ERROR={invalid_expected_json}:2:1: Expecting property name enclosed in double quotes"],
+            "json_invalid_both",
+        )
+        covered.append("json_invalid_both")
 
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+        assert_case(
+            compare("json", missing, actual_json).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=True"],
+            "json_missing_expected",
+        )
+        covered.append("json_missing_expected")
+
+        assert_case(
+            compare("json", expected_json, missing).extra_lines == ["EXPECTED_EXISTS=True", "ACTUAL_EXISTS=False"],
+            "json_missing_actual",
+        )
+        covered.append("json_missing_actual")
+
+        assert_case(
+            compare("json", missing, other_missing).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=False"],
+            "json_missing_both",
+        )
+        covered.append("json_missing_both")
+
+        blob_a.write_bytes(b"zigux-artifact-diff")
+        blob_b.write_bytes(b"zigux-artifact-diff")
+        sha_pass = compare("sha256", blob_a, blob_b)
+        assert_case(
+            sha_pass.ok and sha_pass.extra_lines == ["SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576"],
+            "sha256_pass",
+        )
+        covered.append("sha256_pass")
+
+        blob_b.write_bytes(b"zigux-artifact-DRIFT")
+        assert_case(
+            compare("sha256", blob_a, blob_b).extra_lines
+            == [
+                "EXPECTED_SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576",
+                "ACTUAL_SHA256=bfc83f8f1f4369ce3cfabfdff0699ae3bf7a15b89f1702b690e56c6f35f1ee94",
+            ],
+            "sha256_drift",
+        )
+        covered.append("sha256_drift")
+
+        assert_case(
+            compare("text", missing, actual).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=True"],
+            "text_missing_expected",
+        )
+        covered.append("text_missing_expected")
+
+        assert_case(
+            compare("text", expected, missing).extra_lines == ["EXPECTED_EXISTS=True", "ACTUAL_EXISTS=False"],
+            "text_missing_actual",
+        )
+        covered.append("text_missing_actual")
+
+        assert_case(
+            compare("text", missing, other_missing).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=False"],
+            "text_missing_both",
+        )
+        covered.append("text_missing_both")
+
+        assert_case(
+            compare("sha256", missing, blob_a).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=True"],
+            "sha256_missing_expected",
+        )
+        covered.append("sha256_missing_expected")
+
+        assert_case(
+            compare("sha256", blob_a, missing).extra_lines == ["EXPECTED_EXISTS=True", "ACTUAL_EXISTS=False"],
+            "sha256_missing_actual",
+        )
+        covered.append("sha256_missing_actual")
+
+        assert_case(
+            compare("sha256", missing, other_missing).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=False"],
+            "sha256_missing_both",
+        )
+        covered.append("sha256_missing_both")
+
+        invalid_mode = run_parser_probe(["--mode", "yaml", str(expected), str(actual)])
+        assert_case(invalid_mode.returncode == 2, "invalid_mode_rejected")
+        covered.append("invalid_mode_rejected")
+
+    assert_case(covered == SELF_TEST_CASES, "self_test_case_order")
     print("ARTIFACT_DIFF_SELF_TEST=pass")
-    print(f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={checks_run}")
+    print(f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
+    print("ARTIFACT_DIFF_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES))
     return 0
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Compare deterministic artifact files for Zigux checks.")
-    parser.add_argument("--mode", choices=MODE_CHOICES, default="text", help="Comparison mode to use")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
-    parser.add_argument("expected", nargs="?", type=Path, help="Expected artifact path")
-    parser.add_argument("actual", nargs="?", type=Path, help="Actual artifact path")
-    args = parser.parse_args()
-
-    if args.self_test:
-        if args.expected is not None or args.actual is not None:
-            raise SystemExit("--self-test does not accept artifact paths")
-        return run_self_test()
-
-    if args.expected is None or args.actual is None:
-        raise SystemExit("expected and actual artifact paths are required unless --self-test is used")
-
-    try:
-        ok, detail = compare_artifacts(args.mode, args.expected, args.actual)
-    except ArtifactDiffError as exc:
-        print("ARTIFACT_DIFF=error")
-        print(f"ARTIFACT_DIFF_MODE={args.mode}")
-        print(str(exc))
-        return 2
-
-    if ok:
-        print("ARTIFACT_DIFF=pass")
-        print(f"ARTIFACT_DIFF_MODE={args.mode}")
-        print(f"ARTIFACT_DIFF_EXPECTED={args.expected}")
-        print(f"ARTIFACT_DIFF_ACTUAL={args.actual}")
+def parse_args(argv: list[str]) -> tuple[bool, str | None, str | None, str | None] | int:
+    if argv == ["--help"] or argv == ["-h"]:
+        print("\n".join(HELP_LINES))
         return 0
 
-    print("ARTIFACT_DIFF=fail")
-    print(f"ARTIFACT_DIFF_MODE={args.mode}")
-    print(detail.rstrip("\n"))
-    return 1
+    self_test = False
+    mode: str | None = None
+    positionals: list[str] = []
+    index = 0
+    while index < len(argv):
+        arg = argv[index]
+        if arg == "--self-test":
+            self_test = True
+            index += 1
+            continue
+        if arg == "--mode":
+            if index + 1 >= len(argv):
+                print(MISSING_ARGUMENT_ERROR, file=sys.stderr)
+                return 2
+            mode = argv[index + 1]
+            index += 2
+            continue
+        positionals.append(arg)
+        index += 1
+
+    if mode is not None and mode not in MODE_CHOICES:
+        print(INVALID_MODE_ERROR_TEMPLATE.format(value=mode), file=sys.stderr)
+        return 2
+
+    expected = positionals[0] if len(positionals) >= 1 else None
+    actual = positionals[1] if len(positionals) >= 2 else None
+    return self_test, mode, expected, actual
+
+
+def main() -> int:
+    parsed = parse_args(sys.argv[1:])
+    if isinstance(parsed, int):
+        return parsed
+
+    self_test, mode, expected_text, actual_text = parsed
+    if self_test:
+        return run_self_test()
+
+    if mode is None or expected_text is None or actual_text is None:
+        print(MISSING_ARGUMENT_ERROR, file=sys.stderr)
+        return 2
+
+    expected = Path(expected_text)
+    actual = Path(actual_text)
+    result = compare(mode, expected, actual)
+    return emit_result("pass" if result.ok else "fail", mode, expected, actual, result.extra_lines)
 
 
 if __name__ == "__main__":
