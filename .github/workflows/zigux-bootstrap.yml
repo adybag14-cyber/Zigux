@@ -204,7 +204,7 @@ jobs:
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
 
       - name: Validate current Phase 2 tool packet
-        run: python3 scripts/zigux/validate-phase2.py
+        run: make -C zigux phase2-validate
 
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
