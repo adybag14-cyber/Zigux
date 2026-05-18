@@ -42,6 +42,12 @@
   "forbidden_markers": [
     "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);"
   ],
+  "exact_current_checks": [
+    "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase11-build-inventory.py",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py"
+  ],
   "dedicated_survey_replays": [],
   "shared_split_replays": [],
   "shared_adjunct_replays": [
