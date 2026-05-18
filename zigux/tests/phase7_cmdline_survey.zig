@@ -44,6 +44,8 @@ test "phase 7 cmdline survey keeps the helper-plus-survey foothold truthful" {
     try expectContains(helper, "test \"memparse applies suffixes before signed clamping\"");
     try expectContains(helper, "test \"memparse keeps signed non-decimal prefixes aligned with suffix handling\"");
     try expectContains(helper, "test \"parseOptionStr matches only exact bare options\"");
+    try expectContains(helper, "try std.testing.expect(parseOptionStr(\"quiet,debug\\x00,nohlt\", \"debug\"));");
+    try expectContains(helper, "try std.testing.expect(!parseOptionStr(\"quiet,debug\\x00,nohlt\", \"nohlt\"));");
     try expectContains(helper, "test \"nextArg stays inside the first NUL for bare and key value tokens\"");
     try expectContains(helper, "test \"nextArg keeps quoted empty values explicit without swallowing the next token\"");
 
