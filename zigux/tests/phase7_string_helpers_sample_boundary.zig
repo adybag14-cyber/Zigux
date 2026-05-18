@@ -49,6 +49,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     const io = std.testing.io;
 
     try std.Io.Dir.cwd().access(io, "lib/string_helpers.zig", .{});
+    try std.Io.Dir.cwd().access(io, "lib/string_helpers.c", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_survey.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_manifest.json", .{});
@@ -96,6 +97,11 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectNotContains(helper, "pub fn kstrdup_quotable_file");
     try expectNotContains(helper, "pub fn devmKasprintfStrarray");
     try expectNotContains(helper, "pub fn devm_kasprintf_strarray");
+
+    const c_helper = try readRepoFile(allocator, "lib/string_helpers.c");
+    defer allocator.free(c_helper);
+    try expectContains(c_helper, "char *kstrdup_quotable_file(");
+    try expectContains(c_helper, "char **devm_kasprintf_strarray(");
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
