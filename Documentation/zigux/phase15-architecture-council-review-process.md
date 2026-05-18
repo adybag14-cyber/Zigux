@@ -8,7 +8,7 @@ This note records the bounded Phase 15 review-policy packet for freeze-map ancho
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=stay-in-c-review-field-inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - this note keeps the roadmap-required Architecture Council review-process surface honest on current `master`: the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, and the focused Zig replay are landed, while the broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
 
