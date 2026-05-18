@@ -75,6 +75,20 @@ static inline int zigux_uapi_boundary_header_is_compatible(zigux_boundary_header
         zigux_uapi_boundary_header_has_current_abi_version(header.abi_version);
 }
 
+static inline int zigux_uapi_boundary_header_extends_boundary(zigux_boundary_header header)
+{
+    return zigux_uapi_boundary_header_is_compatible(header) &&
+        !zigux_uapi_boundary_header_is_canonical(header);
+}
+
+static inline uint32_t zigux_uapi_boundary_header_requested_extra_bytes(
+    zigux_boundary_header header)
+{
+    if (!zigux_uapi_boundary_header_extends_boundary(header))
+        return 0;
+    return header.size - (uint32_t)sizeof(zigux_boundary_header);
+}
+
 static inline zigux_boundary_header zigux_uapi_boundary_header_canonicalize(zigux_boundary_header header)
 {
     header.size = (uint32_t)sizeof(zigux_boundary_header);
@@ -117,6 +131,17 @@ static inline int zigux_boundary_header_is_compatible(zigux_boundary_header head
 static inline int zigux_boundary_header_is_canonical(zigux_boundary_header header)
 {
     return zigux_uapi_boundary_header_is_canonical(header);
+}
+
+static inline int zigux_boundary_header_extends_boundary(zigux_boundary_header header)
+{
+    return zigux_uapi_boundary_header_extends_boundary(header);
+}
+
+static inline uint32_t zigux_boundary_header_requested_extra_bytes(
+    zigux_boundary_header header)
+{
+    return zigux_uapi_boundary_header_requested_extra_bytes(header);
 }
 
 static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)
