@@ -160,7 +160,7 @@ Keep the current bounded Phase 14 reminder packet explicit through `Documentatio
 
 Keep the directly readable workqueue reviewability shard explicit through `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` so the tests-root reminder records the returned study-only foothold instead of leaving it inside the missing executable-layer bucket.
 
-Current `master` does materialize `zigux/Makefile`, but its live body currently exposes only the Phase 2 toolchain and kbuild routes together with the bounded `phase3-validate`, `phase3`, `phase8-validate`, `phase8-test`, `phase8`, `phase10-validate`, `phase10-test`, `phase10`, `phase12-smoke`, `phase12-test`, and `phase12` routes and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets, so keep the returned file framed as current repo evidence without promoting the older Phase 14 route names into shipped tests-root proof.
+Current `master` does materialize `zigux/Makefile`, but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets, so keep the returned file framed as current repo evidence without promoting the older Phase 14 route names into shipped tests-root proof.
 
 Keep the attached-toolchain fallback explicit as packet-local rerun vocabulary rather than current build-backed evidence:
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`
