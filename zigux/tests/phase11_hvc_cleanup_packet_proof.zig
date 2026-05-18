@@ -55,7 +55,11 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explici
     try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`");
     try expectContains(
         survey_doc,
-        "current public GitHub file-page readback confirms the bounded HVC starter,",
+        "current authenticated contents readback keeps the bounded HVC current-head",
+    );
+    try expectContains(
+        survey_doc,
+        "keep the deeper verify helper, sysrq helper, focused survey replay, manifest,",
     );
     try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");
     try expectContains(cleanup_companion, "`scripts/zigux/check-phase11-hvc-survey-packet.py`");
@@ -82,10 +86,16 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff marker
 
     try expectContains(
         matrix_doc,
-        "the cleanup replay keeps tty-port release boundaries explicit; the verify helper remains present",
+        "the current matrix packet now stays aligned with the smaller",
     );
-    try expectContains(matrix_doc, "keep those handoffs named directly in the matrix");
-    try expectContains(matrix_doc, "if one new same-lane wording gap appears");
+    try expectContains(
+        matrix_doc,
+        "keep helper-local failure-mode edges reviewable through",
+    );
+    try expectContains(
+        matrix_doc,
+        "do not treat the deeper verify helper, sysrq helper, manifest, teardown note,",
+    );
     try expectContains(
         verify_boundary,
         "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
