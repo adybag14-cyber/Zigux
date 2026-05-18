@@ -41,9 +41,9 @@ REGISTRATION_SCAFFOLD_MARKERS = [
 ]
 
 VERIFY_FILE_MARKERS = [
-    'test "phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit" {',
-    'test "phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct" {',
-    'test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit" {',
+    'test "phase11 dw_wdt verify keeps remove teardown heartbeat continuation explicit" {',
+    'test "phase11 dw_wdt verify keeps remove teardown reset-backed shutdown explicit" {',
+    'test "phase11 dw_wdt verify keeps idle remove distinct from running teardown" {',
 ]
 
 MARKERS_BY_LABEL = {
@@ -109,7 +109,7 @@ def run_self_test() -> None:
             case_root = root / case_name
             shutil.copytree(root, case_root)
             target = case_root / REQUIRED_FILES[label]
-            target.write_text(read_text(target).replace(marker, "", 1), encoding="utf-8")
+            target.writeText(read_text(target).replace(marker, "", 1), encoding="utf-8")
             failures = check_repo(case_root)
             expected = f"missing_marker:{label}:{marker}"
             if expected not in failures:
