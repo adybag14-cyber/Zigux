@@ -6,6 +6,7 @@ ZIGUX_ROOT := ..
 
 phase2-toolchain:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --allow-missing
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py
