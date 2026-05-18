@@ -66,7 +66,7 @@ Key entrypoints
     `make -C zigux phase2-validate`
     `make -C zigux phase2`
     `zigux/tests/fixtures/kconfig_bridge/cases.json`
-  * the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster
+  * the current directly readable Phase 2 packet is the scripts-root kbuild, toolchain-pinning, toolchain pin-scope, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster
   * keep `scripts/zigux/zig-toolchain-policy.json`, the pinned `x86_64-linux` bootstrap archive note, the live `python3 scripts/zigux/check-zig-toolchain.py --policy-only` plus `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` replays, and the repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet
   * repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep those older validator-first, installer, and direct cross-route names framed as historical packet members rather than direct tests-root evidence
   * keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
@@ -122,7 +122,7 @@ Key entrypoints
 
 ## Phase 5 review packet
 
-Keep the current shared Phase 5 reminder packet explicit through `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
+Keep the current shared Phase 5 reminder packet explicit through `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and `zigux/tests/README.md`.
 
 Keep the current direct sample-root proof truthful here too: `samples/zigux/bytestream_fifo.zig` and `samples/zigux/kretprobe_example.zig` are the directly readable non-runtime sample-root ports on current `master`, while `samples/zigux/trace_events_string_formatting_sample.zig` is the bounded trace-events formatting companion rather than a returned full trace-events port, a standalone string-helper delivery, or a fifth Phase 5 sample. Keep `zigux/tests/phase5_build.zig` framed only as current public-tree-backed companion evidence until a fresh reread restores direct authenticated proof.
 
