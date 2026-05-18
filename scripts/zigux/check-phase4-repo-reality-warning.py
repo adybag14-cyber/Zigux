@@ -362,8 +362,8 @@ def main() -> int:
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "scripts/zigux/check-artifact-diff-contract.py",
-                    "scripts/zigux/check-artifact-diff-contract-drift.py",
+                    "scripts/zigux/artifact_diff.py",
+                    "scripts/zigux/artifact_diff_drift.py",
                 ),
                 encoding="utf-8",
             )
@@ -373,15 +373,15 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError(
-                    "expected missing artifact-diff contract marker to fail"
+                    "expected missing artifact-diff helper marker to fail"
                 )
 
             build_baseline_tree(root)
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, local-only perf, and bitmap-diff packet is directly readable again.",
-                    "The Phase 4 repo-reality warning next-step wording drifted.",
+                    "The broader Phase 4 validator, lab-matrix, the remaining local-only perf companions, and bitmap-diff companions are still repo-reality gaps in this run",
+                    "The broader Phase 4 validator, lab-matrix, and local-only perf packet are still repo-reality gaps in this run",
                 ),
                 encoding="utf-8",
             )
@@ -391,7 +391,7 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError(
-                    "expected note next-step drift to fail"
+                    "expected note bitmap-diff gap wording to fail"
                 )
 
         print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
