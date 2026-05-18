@@ -25,15 +25,20 @@ BOOTSTRAP_NOTE_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py` is directly readable on current `master`",
     "`.github/workflows/zigux-bootstrap.yml` also derives `ZIGUX_ZIG_TARGET`, `ZIGUX_ZIG_FILENAME`, and `ZIGUX_ZIG_URL`",
     "`.github/workflows/zigux-bootstrap.yml` now runs `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `zigux/Makefile`, `zigux/tests/README.md`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, and the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
+    "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `zigux/tests/README.md`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, and the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json` now records the full sixteen-mode `conf_bridge` packet",
     "The rematerialized make-wrapper packet is directly readable on current `master` through `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2`",
     "## Current repo-reality gaps",
-    "Repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`.",
-    "Treat the absent validator-first companion, direct cross-route, and installer names as historical packet members until same-lane work rematerializes them on `master`.",
+    "Repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`.",
+    "Treat the absent installer and direct cross-route names as historical packet members until same-lane work rematerializes them on `master`.",
     "## Follow-through",
     "Keep future Phase 2 follow-up inside one current packet surface at a time: toolchain pinning, toolchain pin-scope alignment, required-make-routes truthfulness, kbuild-route reminders, docs-shared-reminder truthfulness, tests-root truthfulness, kconfig bridge alignment, or fixture-backed artifact-diff support.",
-    "Do not widen this note into fixdep semantics, genksyms parser behavior, conf or confdata bridge semantics, or cross-target execution claims until current `master` materializes those companion validator-first or direct cross-route surfaces.",
+    "Do not widen this note into fixdep semantics, genksyms parser behavior, conf or confdata bridge semantics, or direct cross-target execution claims until current `master` materializes those companion installer or direct cross-route surfaces.",
+)
+
+FORBIDDEN_BOOTSTRAP_NOTE_MARKERS = (
+    "Repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`.",
+    "Treat the absent validator-first companion, direct cross-route, and installer names as historical packet members until same-lane work rematerializes them on `master`.",
 )
 
 
@@ -53,7 +58,13 @@ def resolve_path(root: Path, path: Path) -> Path:
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     text = read_text(resolve_path(root, BOOTSTRAP_NOTE))
-    return [("MISSING_BOOTSTRAP_NOTE_MARKERS", marker) for marker in BOOTSTRAP_NOTE_MARKERS if marker not in text]
+    issues = [("MISSING_BOOTSTRAP_NOTE_MARKERS", marker) for marker in BOOTSTRAP_NOTE_MARKERS if marker not in text]
+    issues.extend(
+        ("FORBIDDEN_BOOTSTRAP_NOTE_MARKERS", marker)
+        for marker in FORBIDDEN_BOOTSTRAP_NOTE_MARKERS
+        if marker in text
+    )
+    return issues
 
 
 def write_text(path: Path, content: str) -> None:
@@ -73,7 +84,7 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 1 + len(BOOTSTRAP_NOTE_MARKERS) + 1
+    expected_case_count = 1 + len(BOOTSTRAP_NOTE_MARKERS) + len(FORBIDDEN_BOOTSTRAP_NOTE_MARKERS) + 1
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_bootstrap_note_alignment_") as tmp_dir:
         root = Path(tmp_dir)
         build_self_test_root(root)
@@ -86,6 +97,14 @@ def run_self_test() -> int:
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_BOOTSTRAP_NOTE_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in FORBIDDEN_BOOTSTRAP_NOTE_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, BOOTSTRAP_NOTE)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_BOOTSTRAP_NOTE_MARKERS", marker) in issues
             checks_run += 1
 
         build_self_test_root(root)
@@ -124,6 +143,7 @@ def main() -> int:
 
     print("PHASE2_BOOTSTRAP_NOTE_ALIGNMENT=pass")
     print(f"PHASE2_BOOTSTRAP_NOTE_MARKER_COUNT={len(BOOTSTRAP_NOTE_MARKERS)}")
+    print(f"PHASE2_BOOTSTRAP_NOTE_FORBIDDEN_MARKER_COUNT={len(FORBIDDEN_BOOTSTRAP_NOTE_MARKERS)}")
     return 0
 
 
