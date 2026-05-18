@@ -377,6 +377,28 @@ test "runGenksymsCrc skips a carriage-return-only EOF tail after an exact-buffer
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
 }
 
+test "runGenksymsCrc skips a carriage-return-newline EOF tail after an exact-buffer split" {
+    var exact_then_crlf = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 2);
+    defer exact_then_crlf.deinit(std.testing.allocator);
+    try exact_then_crlf.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try exact_then_crlf.append(std.testing.allocator, '\r');
+    try exact_then_crlf.append(std.testing.allocator, '\n');
+
+    var capture = try Capture(12288).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(exact_then_crlf.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(exact_then_crlf.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(exact_crc);
+    const unsplit_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(exact_then_crlf.items[0 .. c_line_payload_len + 1])});
+    defer std.testing.allocator.free(unsplit_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, unsplit_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 1);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
+}
+
 test "runGenksymsCrc skips repeated carriage-return continuations after an exact-buffer split" {
     var exact_then_crlf = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 5);
     defer exact_then_crlf.deinit(std.testing.allocator);
