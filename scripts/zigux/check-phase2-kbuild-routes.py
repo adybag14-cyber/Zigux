@@ -18,7 +18,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
+    ROOT / "scripts" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
@@ -59,14 +59,8 @@ README_PRESENT_MARKERS = (
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 )
 
-README_WARNING_MARKERS = (
-    "repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/validate-phase2-closure.py`",
-    "`scripts/zigux/install-zig.py`",
-    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross.py`",
-    "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "historical packet members",
+README_WARNING_LINES = (
+    "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so treat those installer and direct cross-route names as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence",
 )
 
 README_FORBIDDEN_MARKERS = (
@@ -79,7 +73,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
     + len(README_PRESENT_MARKERS)
-    + len(README_WARNING_MARKERS)
+    + len(README_WARNING_LINES)
+    + len(README_WARNING_LINES)
     + len(README_FORBIDDEN_MARKERS)
     + 2
     + len(SURFACE_PATHS)
@@ -112,6 +107,19 @@ def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) ->
     return [(code, marker) for marker in markers if marker in text]
 
 
+def collect_exact_line_issues(
+    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = count_exact_lines(text, marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
@@ -125,7 +133,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
 
     issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
-    issues.extend(collect_missing_markers(readme_text, README_WARNING_MARKERS, "MISSING_README_WARNING_MARKERS"))
+    issues.extend(
+        collect_exact_line_issues(
+            readme_text,
+            README_WARNING_LINES,
+            "MISSING_README_WARNING_LINES",
+            "DUPLICATE_README_WARNING_LINES",
+        )
+    )
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
 
     for path in SURFACE_PATHS:
@@ -163,7 +178,7 @@ def build_self_test_root(root: Path) -> None:
         "",
         "- current packet",
         *README_PRESENT_MARKERS,
-        *README_WARNING_MARKERS,
+        *README_WARNING_LINES,
     ]
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
     for path in SURFACE_PATHS:
@@ -227,12 +242,26 @@ def run_self_test() -> int:
             assert ("MISSING_README_PRESENT_MARKERS", marker) in issues
             checks_run += 1
 
-        for marker in README_WARNING_MARKERS:
+        for marker in README_WARNING_LINES:
             build_self_test_root(root)
             path = resolve_path(root, SCRIPTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed for self-test"),
+                encoding="utf-8",
+            )
             issues = collect_issues(root)
-            assert ("MISSING_README_WARNING_MARKERS", marker) in issues
+            assert ("MISSING_README_WARNING_LINES", marker) in issues
+            checks_run += 1
+
+        for marker in README_WARNING_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(
+                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("DUPLICATE_README_WARNING_LINES", f"{marker}:count=2") in issues
             checks_run += 1
 
         for marker in README_FORBIDDEN_MARKERS:
