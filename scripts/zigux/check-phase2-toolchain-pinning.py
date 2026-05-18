@@ -24,6 +24,8 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
+    ROOT / "zigux" / "Makefile",
     POLICY_PATH,
     BOOTSTRAP_NOTES,
     TOOL_MANIFEST_PATH,
@@ -176,7 +178,7 @@ EXPECTED_TOOL_MANIFEST = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 105
+EXPECTED_SELF_TEST_CASE_COUNT = 107
 
 
 def read_text(path: Path) -> str:
