@@ -97,10 +97,7 @@ CHECKLIST_PENDING_REQ = (
     "pending shared-CI perf-promotion posture explicit",
 )
 
-CHECKLIST_ATOMIC64_MARKER_OPTIONS = (
-    "keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, bitmap-diff, and roadmap-backed `atomic64_diff` companions",
-    "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
-)
+CHECKLIST_ATOMIC64_DIRECT_MARKER = "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence"
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -123,10 +120,6 @@ def require(text: str, parts: tuple[str, ...], label: str) -> None:
     missing = [part for part in parts if part not in text]
     if missing:
         raise RuntimeError(f"{label} is missing required fragments: {missing}")
-
-def require_any(text: str, parts: tuple[str, ...], label: str) -> None:
-    if not any(part in text for part in parts):
-        raise RuntimeError(f"{label} is missing any accepted fragment from: {list(parts)}")
 
 def require_exact_self_test_count(text: str, label: str, count_label: str, expected: int) -> None:
     matches = re.findall(rf"`{count_label}=(\d+)`", text)
@@ -155,7 +148,7 @@ def check(root: Path) -> None:
     require(note, NOTE_REQ + DIRECT_READBACK_PACKET + MISSING_BROADER_PACKET, "phase4 note")
     require(readme, README_PENDING_REQ + MISSING_BROADER_PACKET, "tests README")
     require(checklist, CHECKLIST_PENDING_REQ, "review checklist")
-    require_any(checklist, CHECKLIST_ATOMIC64_MARKER_OPTIONS, "review checklist atomic64 reminder")
+    require(checklist, (CHECKLIST_ATOMIC64_DIRECT_MARKER,), "review checklist atomic64 reminder")
     require_exact_self_test_count(note, "phase4 note", REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL, EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES)
     require_exact_self_test_count(note, "phase4 note", PIN_SELF_TEST_COUNT_LABEL, EXPECTED_PIN_SELF_TEST_CASES)
     _require_direct_packet(root)
@@ -173,7 +166,7 @@ def baseline_note() -> str:
         f"The broader Phase 4 validator, lab-matrix, and bitmap-diff companions are still repo-reality gaps in this run: authenticated contents reads returned missing for {broader_packet}.",
         "Historical broader packet references still include `scripts/zigux/artifact_diff.py` and `scripts/zigux/check-artifact-diff-contract.py`, so the shared repo-reality warning must keep those contract anchors explicit even while the broader packet stays historical here.",
         "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.",
-        "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, bitmap-diff companions, or the roadmap-backed `atomic64_diff` pair are directly readable again.",
+        "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, or bitmap-diff packet is directly readable again.",
         "The tests-root guide already keeps the direct-readback dedicated local-only perf packet explicit beside the broader packet missing-warning, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility.",
         "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
         "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11`",
@@ -192,7 +185,7 @@ def baseline_checklist() -> str:
     return "\n".join([
         "# Zigux Review Checklist",
         *CHECKLIST_PENDING_REQ,
-        CHECKLIST_ATOMIC64_MARKER_OPTIONS[0],
+        CHECKLIST_ATOMIC64_DIRECT_MARKER,
     ]) + "\n"
 
 def build_baseline_tree(root: Path) -> None:
