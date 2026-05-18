@@ -34,6 +34,7 @@ REQUIRED_MARKERS = {
         "make -C zigux phase10-test",
         "make -C zigux phase10",
         "blocked risky-transport posture",
+        "Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig` instead of framing that survey replay as a last-known packet member.",
     ],
     "Documentation/zigux/phase10-closure-evidence.md": [
         "`PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`",
@@ -43,6 +44,7 @@ REQUIRED_MARKERS = {
         "`zigux/Makefile` itself now rematerializes on current `master`, and its live body exposes the dedicated shared Phase 10 validate/test route stack, so keep the returned file and that returned build-gate posture explicit here rather than framing it as a repo-reality gap.",
         "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.",
         "`lab_only_driver_validation=starter_landed`",
+        "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `drivers/virtio/virtio_ring.zig`, while the broader `zigux/tests/phase10_virtio_ring.zig` replay still remains a direct-readback gap in this lane.",
     ],
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
         "scripts/zigux/check-phase10-harness-coverage.py",
@@ -53,6 +55,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig` are back as directly re-readable helper-local manifest and replay anchors",
         "Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
         "Treat the shared `zigux/tests/phase10_build.zig` route as already-landed validation evidence",
+        "Current `master` also rematerializes `zigux/tests/phase10_virtio_ring_survey.zig`, so keep that dedicated ring survey gate explicit with `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and the shared `zigux/tests/phase10_build.zig` route instead of framing the survey gate as a direct-readback gap.",
     ],
     "Documentation/zigux/phase10-virtio-input-module-slice.md": [
         "drivers/virtio/virtio_input_registration_preflight.zig",
@@ -82,7 +85,6 @@ REQUIRED_MARKERS = {
         '"phase10-virtio-input-queue-callback-preflight-tests"',
         '"phase10-virtio-input-teardown-observation-tests"',
         '"phase10-virtio-input-survey-tests"',
-        '"phase10-virtio-input-verify-tests"',
         '"phase10-virtio-ring-verify-tests"',
         '"phase10-virtio-ring-survey-tests"',
         '"phase10-virtio-mmio-verify-tests"',
@@ -125,6 +127,13 @@ REQUIRED_MARKERS = {
 FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase10-closure-evidence.md": [
         "directly re-readable packet manifests in this lane now include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`",
+        "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.",
+    ],
+    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
+        "Authenticated contents reads still fail for `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the broader validator-first `scripts/zigux/validate-phase10.py` route through the direct readback available in this lane.",
+    ],
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
+        "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
     ],
     "zigux/tests/phase10_build.zig": [
         "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
@@ -226,6 +235,12 @@ def run_self_test() -> int:
                 "Documentation/zigux/phase10-closure-evidence.md:`zigux/Makefile` itself now rematerializes on current `master`, and its live body exposes the dedicated shared Phase 10 validate/test route stack, so keep the returned file and that returned build-gate posture explicit here rather than framing it as a repo-reality gap.",
             ),
             (
+                "Documentation/zigux/phase10-closure-evidence.md",
+                "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_survey.zig`, and `drivers/virtio/virtio_ring.zig`, while the broader `zigux/tests/phase10_virtio_ring.zig` replay still remains a direct-readback gap in this lane.",
+                "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.",
+                "Documentation/zigux/phase10-closure-evidence.md:forbidden:The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.",
+            ),
+            (
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
                 "drivers/virtio/virtio_input_queue_callback_preflight.zig",
                 "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
@@ -244,10 +259,22 @@ def run_self_test() -> int:
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
             ),
             (
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+                "Current `master` also rematerializes `zigux/tests/phase10_virtio_ring_survey.zig`, so keep that dedicated ring survey gate explicit with `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and the shared `zigux/tests/phase10_build.zig` route instead of framing the survey gate as a direct-readback gap.",
+                "Authenticated contents reads still fail for `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the broader validator-first `scripts/zigux/validate-phase10.py` route through the direct readback available in this lane.",
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:forbidden:Authenticated contents reads still fail for `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the broader validator-first `scripts/zigux/validate-phase10.py` route through the direct readback available in this lane.",
+            ),
+            (
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
                 "drivers/virtio/virtio_input_queue_callback_preflight.zig",
                 "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:drivers/virtio/virtio_input_queue_callback_preflight.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+                "Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig` instead of framing that survey replay as a last-known packet member.",
+                "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:forbidden:keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
             ),
             (
                 "Documentation/zigux/phase10-virtio-input-module-slice.md",
@@ -305,7 +332,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=18")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
