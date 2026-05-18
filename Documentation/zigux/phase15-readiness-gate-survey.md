@@ -52,11 +52,10 @@ Repeated authenticated reads on current `master` still return missing for:
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-- `zigux/Makefile`
 
-The dedicated readiness manifest exact-pins those broader companions as absent repo evidence so this note's maintenance-only posture stays machine-checkable.
+The dedicated readiness manifest exact-pins those missing broader companions so this note's maintenance-only posture stays machine-checkable.
 
-Because those paths are still missing:
+Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes, so:
 
 - `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
 - `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path
