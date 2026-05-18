@@ -76,6 +76,7 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {',
         'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {',
         'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {',
+        'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {',
     ),
     WRAPPER_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/mmio.zig"),',
@@ -132,6 +133,7 @@ SELF_TEST_CASES = (
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {'),
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {'),
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {'),
+    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {'),
     (WRAPPER_BUILD_PATH, '.root_source_file = b.path("../helpers/mmio.zig"),'),
     (WRAPPER_BUILD_PATH, 'mmio.addImport("abi_bindings", abi_bindings);'),
     (WRAPPER_BUILD_PATH, 'mmio.addImport("unsafe_policy", unsafe_policy);'),
