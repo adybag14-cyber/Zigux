@@ -9,7 +9,7 @@ This note records the bounded Phase 15 Architecture Council sequencing packet fo
 - `PHASE15_SLICE=architecture-council-governance-lane-boundaries`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
-- current repo reality: the core Phase 15 governance notes are landed, the dedicated review-process manifest is landed, and the shared reminder surfaces already point at this sequencing note, but some focused Zig replay and shared-build companions still remain repo-reality gaps on current `master`
+- current repo reality: the core Phase 15 governance notes are landed, the dedicated review-process manifest is landed, and the shared reminder surfaces already point at this sequencing note, but some focused validator-first, manifest, Zig replay, and shared-build companions still remain repo-reality gaps on current `master`
 - scope: keep one reviewable record of which Phase 15 governance lane owns which reminder surface, which shared checks may speak for the parked governance packet, and which adjacent gaps must stay explicit instead of being silently treated as landed
 
 ## Purpose
@@ -22,7 +22,7 @@ That means the repo needs one compact sequencing note that says:
 - which neighboring packet owns blocked-posture accounting
 - which neighboring packet owns the stay-in-C policy vocabulary
 - which reminder surfaces may describe those packets together
-- which missing focused replay or build companions must remain named as gaps instead of being implied as shipped evidence
+- which missing validator-first, manifest, focused replay, or build companions must remain named as gaps instead of being implied as shipped evidence
 
 This note exists so the docs root and scripts-side alignment checks can name a real sequencing companion instead of pointing at a missing anchor.
 
@@ -67,6 +67,8 @@ The shared reminder surfaces must not say that:
 
 Current `master` still returns missing for several focused Phase 15 companions that broader reminder surfaces may still mention:
 
+- `scripts/zigux/validate-phase15.py`
+- `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
@@ -80,7 +82,7 @@ They do mean any shared reminder surface must keep those companions framed as mi
 - current lane posture: `maintenance_mode`
 - reopen only when one of these packet-local conditions becomes true:
   - a Phase 15 owner packet changes its lane boundary or reminder ownership
-  - a previously missing focused replay or build companion lands on current `master`
+  - a previously missing validator-first, handoff-manifest, focused replay, or build companion lands on current `master`
   - a shared reminder surface starts claiming Phase 15 approval or current evidence that the owning packet does not support
 - if this lane reopens, reread `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, and `Documentation/zigux/phase15-handoff-next-steps-survey.md` together before widening any shared reminder text
 
