@@ -62,7 +62,7 @@ Keep those shared surfaces honest about the restored direct kretprobe packet, th
 
 ## Tracing and probe posture
 
-For `kretprobe`, follow the restored direct packet recorded in `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, and `zigux/tests/phase5_kretprobe_example_manifest.json`, while keeping `zigux/tests/phase5_build.zig` framed only as current public-tree-backed companion evidence.
+For `kretprobe`, follow the restored direct packet recorded in `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`, while keeping `zigux/tests/phase5_build.zig` framed only as current public-tree-backed companion evidence.
 
 For `trace_events`, follow the narrower current reminder packet through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, while keeping `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` framed as repo-reality gaps or current public-tree-backed companion evidence rather than direct authenticated proof or a returned full packet.
 
@@ -71,7 +71,7 @@ Use the shared docs to preserve these bounded cues:
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md` keeps the selected-string plus `iter=%d` formatting cue bounded to the trace-events packet instead of turning it into a fifth Phase 5 sample
 * `samples/zigux/trace_events_string_formatting_sample.zig` keeps the sibling formatting companion explicit through `selectedStringForIteration(...)`, the exact `iter=%d` buffer print, and the non-allocating lifecycle boundary around the bounded replay instead of standing in for the whole trace-events packet
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` keep the shared reminder packet explicit about the narrower trace-events formatting companion packet and the still-bounded companion-evidence posture without widening into runtime claims
-* `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, and `zigux/tests/phase5_kretprobe_example_manifest.json` keep the restored non-runtime kretprobe packet explicit without widening into the Phase 9 runtime family
+* `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` keep the restored non-runtime kretprobe packet explicit without widening into the Phase 9 runtime family
 
 ## Ownership and lifetime posture
 
