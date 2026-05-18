@@ -41,5 +41,5 @@
     "`memparse()` keeps the unconsumed suffix explicit through the returned `rest` slice instead of widening into hidden normalization",
     "the sample boundary stays helper-local only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders"
   ],
-  "next_bounded_step": "Build the matching helper-local review packet for `lib/argv_split.zig` while keeping `rbtree` parked until direct helper evidence rematerializes under `lib/` on current `master`."
+  "next_bounded_step": "Keep the dedicated cmdline survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet, and reopen only if those same-lane reminder surfaces drift or a fresh reread proves the missing dedicated test or fixture companions returned on current `master`."
 }
