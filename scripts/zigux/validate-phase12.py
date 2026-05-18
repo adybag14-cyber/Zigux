@@ -56,12 +56,14 @@ VIRTIO_SCSI_SUPPORT_MANIFEST_PATH = (
 LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
-RAW_GITHUB_EXACT_BLOB_MARKERS = [
-    "`scripts/zigux/check-build-only-phase12-surface.py` at blob `cd30bf5bf1e110714620793ba7ead604ba116936`",
-    "`scripts/zigux/check-phase12-release-readiness-packet.py` at blob `57fa3a5e173d38249ea7eee1c6c162e28cbadf29`",
-    "`.github/workflows/zigux-bootstrap.yml` at blob `046f5ea160e61c260109a521de2b66786c46bc24`",
-    "`scripts/zigux/README.md` at blob `397fe99bbb48041139a1ad5ffda2b33c21635f0b`",
-    "`zigux/Makefile` at blob `c2f5485e4391c3cb4471d8223210be5407b63147`",
+# Keep the shared Phase 12 validator scoped to stable support-surface wording.
+# Exact blob pins in the raw-coverage note belong to the neighboring fallback lane.
+RAW_GITHUB_BRIDGE_MARKERS = [
+    "`scripts/zigux/check-build-only-phase12-surface.py`",
+    "`scripts/zigux/check-phase12-release-readiness-packet.py`",
+    "`.github/workflows/zigux-bootstrap.yml`",
+    "`scripts/zigux/README.md`",
+    "`zigux/Makefile`",
 ]
 
 REQUIRED_FILES = [
@@ -128,7 +130,7 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_PATH: [
         "- exact coverage evidence checked on `2026-05-18`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
-        *RAW_GITHUB_EXACT_BLOB_MARKERS,
+        *RAW_GITHUB_BRIDGE_MARKERS,
         "while a direct contents read for `zigux/tests/phase12_build.zig` still returns `404` through the same current `master` bridge",
         "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, and current Makefile as bounded reminder evidence only",
         "the raw-URL-backed fallback pair and the contents-bridge-backed shared support bundle are distinct evidence paths in this runtime",
@@ -369,11 +371,11 @@ def run_self_test() -> int:
             ),
             (
                 RAW_GITHUB_COVERAGE_PATH,
-                RAW_GITHUB_EXACT_BLOB_MARKERS[0],
+                RAW_GITHUB_BRIDGE_MARKERS[0],
             ),
             (
                 RAW_GITHUB_COVERAGE_PATH,
-                RAW_GITHUB_EXACT_BLOB_MARKERS[3],
+                RAW_GITHUB_BRIDGE_MARKERS[3],
             ),
             (
                 RAW_GITHUB_COVERAGE_PATH,
