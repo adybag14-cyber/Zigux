@@ -33,7 +33,7 @@ pub fn allowsInteropPolicyByte(unsafe_scope: u8) bool {
     return allowsInteropPolicyBytes(unsafe_scope, 0);
 }
 
-fn requireVolatileMmioScope(scope: abi.UnsafeScope) PolicyError!void {
+pub fn requireVolatileMmioScope(scope: abi.UnsafeScope) PolicyError!void {
     if (!allowsVolatileMmioScope(scope)) {
         return error.UnsafeScopeDenied;
     }
@@ -295,6 +295,12 @@ test "phase3 mmio helper keeps policy require helpers explicit" {
         error.UnsafeScopeDenied,
         requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)),
     );
+}
+
+test "phase3 mmio helper keeps typed scope require gate explicit" {
+    try requireVolatileMmioScope(.volatile_mmio);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioScope(.none));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioScope(.raw_pointer_bridge));
 }
 
 test "phase3 mmio helper keeps 64-bit const reads and masked updates reviewable" {
