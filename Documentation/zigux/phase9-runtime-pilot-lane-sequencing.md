@@ -35,6 +35,16 @@ Current `master` keeps a narrow Phase 9 runtime-pilot packet.
 
 Current `master` does not currently expose the broader shared runtime-loader packet that earlier reminder surfaces described. Fresh repo-first rereads did not find `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds on `master`. Current `master` does materialize `zigux/Makefile` again, but its live body only exposes the rematerialized Phase 2 toolchain routes, the bounded `phase3-validate` and `phase3` routes, and the Phase 10 wrappers; it still does not provide dedicated `phase9-*` runtime-pilot handles.
 
+## Exact init and registration evidence
+
+Current `master` keeps the exact init and registration boundary readable inside the surviving trace-events runtime sample family rather than in the removed shared loader packet.
+
+- `samples/zigux/runtime_trace_events.zig` keeps `init()` cold-only: it rejects later-stage reuse with `error.InvalidLifecycleTransition`, resets the tracked summary fields, increments `init_runs`, and moves the module to `.initialized`
+- the same file keeps registration mutable-only through `ensureMutable()`, so `registerFunctionThread()` and `unregisterFunctionThread()` only operate during `.initialized` and `.selftest_complete`; duplicate registration fails with `error.FunctionThreadAlreadyRegistered`, underflow fails with `error.RegistrationUnderflow`, and unregistered function-thread emission fails with `error.FunctionThreadNotRegistered`
+- the same file keeps `runSelftest()` initialized-only: it performs one main-thread replay plus one register or function-thread emit or unregister round, increments `selftest_runs`, and moves the module to `.selftest_complete`
+- the same file keeps `exit()` limited to `.initialized` or `.selftest_complete` with zero `registration_depth`; otherwise it fail-closes with `error.OutstandingRegistration` or `error.InvalidLifecycleTransition`, and once exit succeeds it increments `exit_runs` and moves the module to `.exited`
+- the exact current proofs are readable in the shipped test names `trace-events sample rejects duplicate function-thread registration`, `trace-events sample keeps failed-exit rollback explicit after selftest-ready replay`, `trace-events sample keeps rejected re-selftest rollback explicit`, `phase9 trace-events sample keeps unregistered function-thread failures fail-closed`, `phase9 trace-events sample keeps exit rollback explicit after reusable selftest replay`, and `phase9 trace-events sample keeps registration reentry reusable across initialized and selftest_complete stages`
+
 ## Current shared-owner state
 
 The shared Phase 9 reminder packet is now aligned around the narrow surviving trace-events runtime packet.
