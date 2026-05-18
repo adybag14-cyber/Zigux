@@ -174,6 +174,22 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_docs_closure_companion_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][1],
+            ),
+        ),
+        (
+            "missing_docs_selftest_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][2],
+            ),
+        ),
+        (
             "missing_closure_note",
             lambda root: (root / "Documentation/zigux/phase1-closure.md").unlink(),
         ),
@@ -195,6 +211,22 @@ def run_self_test() -> int:
                 root,
                 "Documentation/zigux/review-checklist.md",
                 MARKERS["Documentation/zigux/review-checklist.md"][0],
+            ),
+        ),
+        (
+            "missing_review_checklist_selftest_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][1],
+            ),
+        ),
+        (
+            "missing_scripts_companion_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/README.md",
+                MARKERS["scripts/zigux/README.md"][0],
             ),
         ),
         (
@@ -243,6 +275,14 @@ def run_self_test() -> int:
                 root,
                 ".github/workflows/zigux-bootstrap.yml",
                 MARKERS[".github/workflows/zigux-bootstrap.yml"][0],
+            ),
+        ),
+        (
+            "missing_workflow_shared_reminder_live_check",
+            lambda root: mutate_remove_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][2],
             ),
         ),
         (
