@@ -126,6 +126,9 @@ jobs:
           fi
           python3 -m py_compile "${scripts[@]}"
 
+      - name: Self-test restored Zig installer helper
+        run: python3 scripts/zigux/install-zig.py --self-test
+
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
 
