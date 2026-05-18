@@ -94,6 +94,7 @@ HELPER_MARKERS = [
     "pub const TransportIdentitySummary = struct {",
     "pub const ProbePreflightSummary = struct {",
     "pub const SelectedQueueReadinessSummary = struct {",
+    "pub const InterruptAckDispositionSummary = struct {",
     "pending_config_write: ?ConfigWritePlanSummary = null,",
     "pub fn bumpConfigGeneration(self: *Self) void {",
     "self.pending_config_write = null;",
@@ -102,6 +103,7 @@ HELPER_MARKERS = [
     "pub fn transportIdentitySummary(self: *const Self) TransportIdentitySummary {",
     "pub fn probePreflightSummary(self: *const Self) ProbePreflightSummary {",
     "pub fn selectedQueueReadinessSummary(self: *const Self) !SelectedQueueReadinessSummary {",
+    "pub fn interruptAckDispositionSummary(",
 ]
 
 VERIFY_MARKERS = [
@@ -110,18 +112,23 @@ VERIFY_MARKERS = [
     "pub const SelectedQueueReadinessSummary = virtio_mmio.SelectedQueueReadinessSummary;",
     "pub const ConfigWriteDispositionSummary = virtio_mmio.ConfigWriteDispositionSummary;",
     "pub const FeatureNegotiationSummary = virtio_mmio.FeatureNegotiationSummary;",
+    "pub const InterruptAckDispositionSummary = virtio_mmio.InterruptAckDispositionSummary;",
     "pub fn summarizeFeatureNegotiation(device: *const virtio_mmio.VirtioMmioLab) FeatureNegotiationSummary {",
     "pub fn summarizeConfigWriteDisposition(device: *const virtio_mmio.VirtioMmioLab) !ConfigWriteDispositionSummary {",
+    "pub fn summarizeInterruptAckDisposition(",
     "pub fn changedByteCount(summary: ConfigWriteDispositionSummary) u3 {",
+    "pub fn acknowledgedInterruptCount(summary: InterruptAckDispositionSummary) u6 {",
     'test "phase10 virtio mmio verify keeps probe wrapper transitions explicit" {',
     'test "phase10 virtio mmio verify keeps queue readiness wrapper below transport claims" {',
     'test "phase10 virtio mmio verify counts changed config bytes without mutating staged data" {',
+    'test "phase10 virtio mmio verify keeps interrupt-ack disposition below IRQ-delivery claims" {',
 ]
 
 HELPER_TEST_MARKERS = [
     'test "phase10 virtio mmio keeps probe gating anchored below transport-backed claims" {',
     'test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory register state" {',
     'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
+    'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {',
     'test "phase10 virtio mmio keeps config-write disposition planning-only across restaging" {',
 ]
 
@@ -203,7 +210,7 @@ def expect_missing_marker(root: Path, rel_path: str, old: str, new: str, expecte
     if missing_files:
         raise SystemExit(f"phase10-mmio-packet-self-test:unexpected_missing_files:{','.join(missing_files)}")
     if expected not in missing_markers:
-        actual = ','.join(missing_markers) if missing_markers else 'none'
+        actual = ",".join(missing_markers) if missing_markers else "none"
         raise SystemExit(f"phase10-mmio-packet-self-test:expected={expected}:actual={actual}")
     path.write_text(original, encoding="utf-8")
 
@@ -216,7 +223,7 @@ def expect_missing_file(root: Path, rel_path: str) -> None:
     if missing_markers:
         raise SystemExit(f"phase10-mmio-packet-self-test:unexpected_missing_markers:{','.join(missing_markers)}")
     if rel_path not in missing_files:
-        actual = ','.join(missing_files) if missing_files else 'none'
+        actual = ",".join(missing_files) if missing_files else "none"
         raise SystemExit(f"phase10-mmio-packet-self-test:expected={rel_path}:actual={actual}")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(original, encoding="utf-8")
@@ -240,14 +247,17 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"architecture_council_reopen_required": true', '"architecture_council_reopen_required": false', 'manifest:"architecture_council_reopen_required": true')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-virtio-mmio-slice-note"', '"id": "phase10-virtio-mmio-slice-missing"', 'manifest:"id": "phase10-virtio-mmio-slice-note"')
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "self.pending_config_write = null;", "self.pending_config_write = stale_plan;", "helper:self.pending_config_write = null;")
+        expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "pub const InterruptAckDispositionSummary = struct {", "pub const InterruptAckDispositionDrift = struct {", "helper:pub const InterruptAckDispositionSummary = struct {")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", 'test "phase10 virtio mmio verify keeps queue readiness wrapper below transport claims" {', 'test "phase10 virtio mmio verify keeps queue readiness wrapper drift" {', 'verify_helper:test "phase10 virtio mmio verify keeps queue readiness wrapper below transport claims" {')
+        expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", "pub fn summarizeInterruptAckDisposition(", "pub fn summarizeInterruptAckDispositionDrift(", "verify_helper:pub fn summarizeInterruptAckDisposition(")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {', 'test "phase10 virtio mmio records feature drift" {', 'helper_tests:test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {', 'test "phase10 virtio mmio keeps interrupt-ack drift" {', 'helper_tests:test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(build_file, "phase10_virtio_mmio_survey_module");', 'try expectContains(build_file, "phase10_virtio_mmio_survey_missing_module");', 'survey_gate:try expectContains(build_file, "phase10_virtio_mmio_survey_module");')
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", "run_phase10_virtio_mmio_survey_tests.step", "run_phase10_virtio_mmio_survey_drift.step", "build_file:run_phase10_virtio_mmio_survey_tests.step")
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
