@@ -52,6 +52,8 @@
     "kstrdup_quotable",
     "kstrdupQuotableCmdline",
     "kstrdup_quotable_cmdline",
+    "parseIntArray",
+    "parse_int_array",
     "stringUpper",
     "string_upper",
     "stringLower",
@@ -60,7 +62,7 @@
     "memcpy_and_pad",
     "strreplace"
   ],
-  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, this manifest, and `samples/zigux/README.md` aligned on the any-NP and string-wrapper escape helpers, the bounded string-array ownership pair, the duplicate-and-replace helper, the quotable log-safe duplication pair, the quotable cmdline companion, the bounded case-conversion pair, and the shared no-extra-sample boundary without overstating the broader parse, file-path, or device-managed follow-ons as landed.",
+  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, this manifest, and `samples/zigux/README.md` aligned on the any-NP and string-wrapper escape helpers, the bounded string-array ownership pair, the duplicate-and-replace helper, the quotable log-safe duplication pair, the quotable cmdline companion, the bounded parse-int-array helper pair, the bounded case-conversion pair, and the shared no-extra-sample boundary without overstating the file-path or device-managed follow-ons as landed.",
   "starter_packet_focus": [
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
@@ -72,6 +74,7 @@
     "allocator-backed duplicate-and-replace helper semantics",
     "quoted-log-safe helper duplication for special characters and double quotes",
     "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters",
+    "bounded parse-int-array decoding with comma lists, positive ranges, first-NUL and count limits, trailing-invalid-token stop behavior, and caller-owned result storage",
     "bounded uppercase and lowercase copies through the exported C-string boundary",
     "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
@@ -87,9 +90,10 @@
     "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched",
     "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix",
     "kstrdupQuotableCmdline() keeps returned storage caller-owned, collapses trailing and inter-argument NULL separators inside duplicated command-line storage, and only then applies quotable escaping",
+    "parseIntArray() and parse_int_array() keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set",
     "stringUpper(), string_upper(), stringLower(), and string_lower() keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary",
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
     "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test"
   ],
-  "next_bounded_step": "Leave the current quotable helper packet parked unless a fresh reread finds helper-local drift across the slice note, helper-local manifest, dedicated survey, dedicated no-string-sample boundary replay, or `samples/zigux/README.md`; if that packet stays aligned, the next same-lane reopen can decide whether `parse_int_array()` belongs in the same helper-local packet without widening into file-path or device-managed semantics."
+  "next_bounded_step": "Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig` so the dedicated helper-local packet treats `parse_int_array()` as landed and keeps only `kstrdup_quotable_file()` plus `devm_kasprintf_strarray()` outside the current packet."
 }
