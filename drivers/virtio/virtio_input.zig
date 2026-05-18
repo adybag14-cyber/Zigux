@@ -165,6 +165,7 @@ pub const TeardownObservationSummary = struct {
     name: []const u8,
     serial: []const u8,
     phys: []const u8,
+    ids: DeviceIds,
     event_queue_was_configured: bool,
     status_queue_was_configured: bool,
     queued_event_buffer_count: u16,
@@ -535,6 +536,7 @@ pub const VirtioInputLab = struct {
             .name = self.name_buffer[0..self.name_len],
             .serial = self.serial_buffer[0..self.serial_len],
             .phys = self.phys_buffer[0..self.phys_len],
+            .ids = self.ids,
             .event_queue_was_configured = self.event_descriptor_count != 0,
             .status_queue_was_configured = self.status_descriptor_count != 0,
             .queued_event_buffer_count = self.queued_event_buffer_count,
@@ -601,3 +603,31 @@ pub const VirtioInputLab = struct {
         return copy_len;
     }
 };
+
+test "phase10 virtio input teardown summary keeps device ids explicit across reset" {
+    const ids = DeviceIds{
+        .vendor = 0x1af4,
+        .product = 0x1052,
+        .version = 7,
+    };
+    var device = try VirtioInputLab.init("virtio-touch", "teardown-ids", 12, ids);
+
+    try device.configureEventQueue(8);
+    try device.configureStatusQueue(4);
+    _ = try device.fillEventBuffers();
+    try device.markReady();
+    _ = try device.sendStatus(0x02, 0x01, 9);
+
+    const before_reset = device.teardownObservationSummary();
+    try std.testing.expectEqualDeep(ids, before_reset.ids);
+    try std.testing.expect(before_reset.preserves_identity);
+    try std.testing.expect(before_reset.clears_runtime_state);
+
+    device.reset();
+
+    const after_reset = device.teardownObservationSummary();
+    try std.testing.expectEqualDeep(ids, after_reset.ids);
+    try std.testing.expect(after_reset.preserves_identity);
+    try std.testing.expect(!after_reset.clears_runtime_state);
+    try std.testing.expect(!after_reset.clears_capability_state);
+}
