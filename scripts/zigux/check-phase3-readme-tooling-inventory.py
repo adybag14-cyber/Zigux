@@ -26,6 +26,19 @@ WORKFLOW_FILE = Path(".github/workflows/zigux-bootstrap.yml")
 POLICY_STARTER_BUILD_FILE = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 XARRAY_SLOT_HELPER_FILE = Path("zigux/helpers/xarray_slot_view.zig")
 XARRAY_SLOT_STARTER_FILE = Path("zigux/tests/phase3_xarray_slot_starter_packet.zig")
+XARRAY_SLOT_STARTER_CHECK_FILE = Path(
+    "scripts/zigux/check-phase3-xarray-slot-starter-packet.py"
+)
+XARRAY_SLOT_DUMP_FILE = Path("zigux/tests/phase3_xarray_slot_dump.zig")
+XARRAY_SLOT_DUMP_BUILD_FILE = Path("zigux/tests/phase3_xarray_slot_dump_build.zig")
+XARRAY_SLOT_EXPECTED_FILE = Path(
+    "zigux/tests/fixtures/phase3_xarray_slot/expected.json"
+)
+XARRAY_SLOT_C_HARNESS_FILE = Path(
+    "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c"
+)
+XARRAY_SLOT_MANIFEST_FILE = Path("zigux/tests/fixtures/phase3_xarray_slot_manifest.json")
+XARRAY_SLOT_PACKET_CHECK_FILE = Path("scripts/zigux/check-phase3-xarray-slot.py")
 SHARED_TESTS_BUILD_FILE = Path("zigux/tests/build.zig")
 SHARED_VALIDATOR_FILE = Path("scripts/zigux/validate-phase3.py")
 
@@ -56,6 +69,21 @@ SHARED_VALIDATOR_MARKER = "scripts/zigux/validate-phase3.py"
 MANIFEST_ROOT_GAP_MARKER = "zigux/tests/phase3_abi_manifest.json"
 XARRAY_SLOT_HELPER_MARKER = "zigux/helpers/xarray_slot_view.zig"
 XARRAY_SLOT_STARTER_MARKER = "zigux/tests/phase3_xarray_slot_starter_packet.zig"
+XARRAY_SLOT_STARTER_CHECK_MARKER = (
+    "scripts/zigux/check-phase3-xarray-slot-starter-packet.py"
+)
+XARRAY_SLOT_DUMP_MARKER = "zigux/tests/phase3_xarray_slot_dump.zig"
+XARRAY_SLOT_DUMP_BUILD_MARKER = "zigux/tests/phase3_xarray_slot_dump_build.zig"
+XARRAY_SLOT_DUMP_BUILD_ROUTE_MARKER = (
+    "zig build phase3-xarray-slot-dump --build-file "
+    "zigux/tests/phase3_xarray_slot_dump_build.zig"
+)
+XARRAY_SLOT_EXPECTED_MARKER = "zigux/tests/fixtures/phase3_xarray_slot/expected.json"
+XARRAY_SLOT_C_HARNESS_MARKER = (
+    "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c"
+)
+XARRAY_SLOT_MANIFEST_MARKER = "zigux/tests/fixtures/phase3_xarray_slot_manifest.json"
+XARRAY_SLOT_PACKET_CHECK_MARKER = "scripts/zigux/check-phase3-xarray-slot.py"
 SHARED_TESTS_BUILD_MARKER = "zigux/tests/build.zig"
 XARRAY_SLOT_BUILD_ROUTE_MARKER = (
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig"
@@ -85,6 +113,8 @@ REQUIRED_FILES = (
     SHARED_VALIDATOR_FILE,
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
+    XARRAY_SLOT_STARTER_CHECK_FILE,
+    XARRAY_SLOT_PACKET_CHECK_FILE,
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
     LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
     BINDING_FILE,
@@ -109,6 +139,11 @@ REQUIRED_FILES = (
     Path("zigux/tests/phase3_errptr_xarray_starter_packet.zig"),
     Path("zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"),
     XARRAY_SLOT_STARTER_FILE,
+    XARRAY_SLOT_DUMP_FILE,
+    XARRAY_SLOT_DUMP_BUILD_FILE,
+    XARRAY_SLOT_EXPECTED_FILE,
+    XARRAY_SLOT_C_HARNESS_FILE,
+    XARRAY_SLOT_MANIFEST_FILE,
     SHARED_TESTS_BUILD_FILE,
     Path("zigux/tests/phase3_policy_starter_packet.zig"),
     POLICY_STARTER_BUILD_FILE,
@@ -134,6 +169,8 @@ REQUIRED_MARKERS = (
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
+    "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
+    "scripts/zigux/check-phase3-xarray-slot.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "Documentation/zigux/phase3-boundary-lane-sequencing.md",
@@ -163,8 +200,14 @@ REQUIRED_MARKERS = (
     "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
     "zigux/tests/phase3_errptr_xarray_starter_packet_build.zig",
     "zigux/tests/phase3_xarray_slot_starter_packet.zig",
+    "zigux/tests/phase3_xarray_slot_dump.zig",
+    "zigux/tests/phase3_xarray_slot_dump_build.zig",
+    "zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c",
+    "zigux/tests/fixtures/phase3_xarray_slot/expected.json",
+    "zigux/tests/fixtures/phase3_xarray_slot_manifest.json",
     "zigux/tests/build.zig",
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
+    "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
@@ -203,6 +246,14 @@ README_MARKER_CASES = (
     (MANIFEST_ROOT_GAP_MARKER, "expected missing manifest-root gap README marker was not reported"),
     (XARRAY_SLOT_HELPER_MARKER, "expected missing xarray-slot helper README marker was not reported"),
     (XARRAY_SLOT_STARTER_MARKER, "expected missing xarray-slot starter README marker was not reported"),
+    (XARRAY_SLOT_STARTER_CHECK_MARKER, "expected missing xarray-slot starter checker README marker was not reported"),
+    (XARRAY_SLOT_DUMP_MARKER, "expected missing xarray-slot dump README marker was not reported"),
+    (XARRAY_SLOT_DUMP_BUILD_MARKER, "expected missing xarray-slot dump build README marker was not reported"),
+    (XARRAY_SLOT_DUMP_BUILD_ROUTE_MARKER, "expected missing xarray-slot dump build-route README marker was not reported"),
+    (XARRAY_SLOT_EXPECTED_MARKER, "expected missing xarray-slot expected fixture README marker was not reported"),
+    (XARRAY_SLOT_C_HARNESS_MARKER, "expected missing xarray-slot C harness README marker was not reported"),
+    (XARRAY_SLOT_MANIFEST_MARKER, "expected missing xarray-slot manifest README marker was not reported"),
+    (XARRAY_SLOT_PACKET_CHECK_MARKER, "expected missing xarray-slot packet checker README marker was not reported"),
     (SHARED_TESTS_BUILD_MARKER, "expected missing shared tests build README marker was not reported"),
     (XARRAY_SLOT_BUILD_ROUTE_MARKER, "expected missing xarray-slot build-route README marker was not reported"),
     (README_GAP_SUMMARY_MARKER, "expected missing repo-reality gap summary README marker was not reported"),
@@ -224,6 +275,13 @@ FILE_CASES = (
     (POLICY_STARTER_BUILD_FILE, "expected missing starter build file was not reported"),
     (XARRAY_SLOT_HELPER_FILE, "expected missing xarray-slot helper file was not reported"),
     (XARRAY_SLOT_STARTER_FILE, "expected missing xarray-slot starter file was not reported"),
+    (XARRAY_SLOT_STARTER_CHECK_FILE, "expected missing xarray-slot starter checker file was not reported"),
+    (XARRAY_SLOT_DUMP_FILE, "expected missing xarray-slot dump file was not reported"),
+    (XARRAY_SLOT_DUMP_BUILD_FILE, "expected missing xarray-slot dump build file was not reported"),
+    (XARRAY_SLOT_EXPECTED_FILE, "expected missing xarray-slot expected fixture file was not reported"),
+    (XARRAY_SLOT_C_HARNESS_FILE, "expected missing xarray-slot C harness file was not reported"),
+    (XARRAY_SLOT_MANIFEST_FILE, "expected missing xarray-slot manifest file was not reported"),
+    (XARRAY_SLOT_PACKET_CHECK_FILE, "expected missing xarray-slot packet checker file was not reported"),
     (SHARED_TESTS_BUILD_FILE, "expected missing shared tests build file was not reported"),
     (SHARED_VALIDATOR_FILE, "expected missing shared validator file was not reported"),
     (Path("Documentation/zigux/phase3-policy-slice.md"), "expected missing policy-slice file was not reported"),
