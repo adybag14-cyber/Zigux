@@ -10,9 +10,11 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
+WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 
 REQUIRED_FILES = (
+    WORKFLOW_REL,
     Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md"),
     Path("Documentation/zigux/phase1-closure.md"),
     Path("Documentation/zigux/README.md"),
@@ -34,6 +36,11 @@ REQUIRED_MARKERS = (
     "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
     "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
     "- the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, rbtree, and string reopen only inside their existing helper-local anchors or already-committed shared fixture keys, while the other nine closed helpers stay parked unless the shared replay or reminder packet drifts",
+)
+
+REQUIRED_WORKFLOW_MARKERS = (
+    "      - name: Self-test current Phase 1 bench checker",
+    "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
 )
 
 FORBIDDEN_MARKERS = (
@@ -64,6 +71,15 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(
                 f"{SCRIPTS_README_REL.as_posix()}:expected_once:{marker}:actual_count={count}"
             )
+
+    workflow_text = read_text(root, WORKFLOW_REL)
+    for marker in REQUIRED_WORKFLOW_MARKERS:
+        count = workflow_text.count(marker)
+        if count != 1:
+            failures.append(
+                f"{WORKFLOW_REL.as_posix()}:expected_once:{marker}:actual_count={count}"
+            )
+
     for marker in FORBIDDEN_MARKERS:
         count = text.count(marker)
         if count != 0:
@@ -82,6 +98,8 @@ def make_fixture_tree(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
         if relative_path == SCRIPTS_README_REL:
             write_text(root / relative_path, "\n".join(REQUIRED_MARKERS) + "\n")
+        elif relative_path == WORKFLOW_REL:
+            write_text(root / relative_path, "\n".join(REQUIRED_WORKFLOW_MARKERS) + "\n")
         else:
             write_text(root / relative_path, f"fixture for {relative_path.as_posix()}\n")
 
@@ -104,11 +122,23 @@ def run_self_test() -> int:
 
     cases = [
         ("missing_file", lambda root: (root / SCRIPTS_README_REL).unlink()),
+        ("missing_workflow_file", lambda root: (root / WORKFLOW_REL).unlink()),
         (
             "missing_marker",
             lambda root: write_text(
                 root / SCRIPTS_README_REL,
                 replace_once(read_text(root, SCRIPTS_README_REL), REQUIRED_MARKERS[0] + "\n", ""),
+            ),
+        ),
+        (
+            "missing_workflow_marker",
+            lambda root: write_text(
+                root / WORKFLOW_REL,
+                replace_once(
+                    read_text(root, WORKFLOW_REL),
+                    REQUIRED_WORKFLOW_MARKERS[0] + "\n",
+                    "",
+                ),
             ),
         ),
         (
@@ -119,6 +149,17 @@ def run_self_test() -> int:
                     read_text(root, SCRIPTS_README_REL),
                     REQUIRED_MARKERS[2],
                     REQUIRED_MARKERS[2] + "\n" + REQUIRED_MARKERS[2],
+                ),
+            ),
+        ),
+        (
+            "duplicate_workflow_command",
+            lambda root: write_text(
+                root / WORKFLOW_REL,
+                replace_once(
+                    read_text(root, WORKFLOW_REL),
+                    REQUIRED_WORKFLOW_MARKERS[1],
+                    REQUIRED_WORKFLOW_MARKERS[1] + "\n" + REQUIRED_WORKFLOW_MARKERS[1],
                 ),
             ),
         ),
@@ -166,6 +207,9 @@ def main() -> int:
     print("PHASE1_SCRIPTS_README_ALIGNMENT=pass")
     print(f"PHASE1_SCRIPTS_README_ALIGNMENT_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE1_SCRIPTS_README_ALIGNMENT_REQUIRED_MARKER_COUNT={len(REQUIRED_MARKERS)}")
+    print(
+        f"PHASE1_SCRIPTS_README_ALIGNMENT_REQUIRED_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_MARKERS)}"
+    )
     return 0
 
 
