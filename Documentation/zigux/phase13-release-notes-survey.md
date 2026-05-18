@@ -64,20 +64,21 @@ The release-planning handle that is directly supportable from this run stays anc
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
-Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build wrapper surfaces remain explicit repo-reality gaps, and while the stale direct-`devres` reminder wording in the broader docs-root, scripts-root, tests-root, tests-root companion, contributor-guide, traceability, and devres-slice packet stays recorded as a shared-summary gap rather than implied shipped evidence.
+Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps, and while the stale direct-`devres` reminder wording in the broader docs-root, scripts-root, tests-root, tests-root companion, contributor-guide, traceability, and devres-slice packet stays recorded as a shared-summary gap rather than implied shipped evidence.
 
 ## Repo-Reality Gaps
 
 Direct current-`master` readback in this run still returned missing for:
 
 - `scripts/zigux/validate-phase13-release.py`
-- `zigux/Makefile`
+- `make -C zigux phase13-validate`
+- `make -C zigux phase13`
 - `zigux/tests/phase13_build.zig`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 
-Keep those paths framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle.
+Keep those missing validator-first helper and route surfaces framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle. `zigux/Makefile` itself is present on current `master`, but it still does not expose the Phase 13 route family, so keep the returned file distinct from the still-missing `phase13` handles.
 
 Current `master` also keeps a release-note-side documentation gap open across the broader reminder packet: `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` still overstate the missing direct `devres` survey, starter, and replay companions as shipped evidence even though the directly reread release packet keeps them in the repo-reality-gap bucket.
 
@@ -93,7 +94,7 @@ Keep Phase 13 release wording inside these boundaries:
 - the shared packet is helper-local and reminder-surface backed rather than validator-first in the current direct-readback posture
 - the release-note packet should keep the broader reminder drift around the missing direct `devres` companions explicit until the shared reminder surfaces are reconciled again
 - the shared release handle is the materialized docs-root, scripts-root, and tests-root reminder packet listed above together with the shipped shared-summary guard
-- the missing validator-first helpers and shared build wrapper surfaces stay explicit as repo-reality gaps
+- the missing validator-first helpers and shared build route surfaces stay explicit as repo-reality gaps
 - adjacent notifier evidence may still matter for release truthfulness, but it does not become a fifth roadmap anchor
 - contributor-facing reminder edits in this lane should stay narrow and should not reopen helper implementation, checker code, or tranche-closure claims
 
