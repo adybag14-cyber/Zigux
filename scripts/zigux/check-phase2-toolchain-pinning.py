@@ -16,7 +16,6 @@ POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 TOOL_MANIFEST_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 SURFACE_PATHS = (
-    ROOT / "Documentation" / "zigux" / "phase2-closure.md",
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
@@ -120,18 +119,13 @@ EXPECTED_POLICY = {
 EXPECTED_TOOL_MANIFEST = {
     "phase": "Phase 2",
     "status": "active",
-    "scope": "current directly readable scripts-root kbuild, toolchain, kconfig, make-wrapper, and tranche-closure reminder packet",
+    "scope": "current directly readable scripts-root kbuild, toolchain, kconfig, and make-wrapper reminder packet",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
     "present_surfaces": {
         "review_surfaces": [
-            "Documentation/zigux/phase2-closure.md",
             "Documentation/zigux/review-checklist.md",
             "scripts/zigux/README.md",
             "zigux/tests/README.md",
-        ],
-        "closure_notes": [
-            "Documentation/zigux/phase2-closure.md",
-            "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
         ],
         "checkers": [
             "scripts/zigux/check-zig-toolchain.py",
@@ -170,6 +164,7 @@ EXPECTED_TOOL_MANIFEST = {
         ],
     },
     "repo_reality_gaps": [
+        "Documentation/zigux/phase2-closure.md",
         "scripts/zigux/validate-phase2.py",
         "scripts/zigux/validate-phase2-closure.py",
         "scripts/zigux/install-zig.py",
@@ -177,14 +172,14 @@ EXPECTED_TOOL_MANIFEST = {
         "zigux/tests/fixtures/phase2_cross_targets.json",
     ],
     "notes": [
-        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
+        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, and kconfig bridge fixture roster.",
         "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
         "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished.",
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 109
+EXPECTED_SELF_TEST_CASE_COUNT = 107
 
 
 def read_text(path: Path) -> str:
