@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L14",
   "phase": "Phase 7",
-  "surveyed_commit": "96d29f9f68ad5ec6aba8f87af3b153e8d1a1ea1f",
+  "surveyed_commit": "d9ef77ab8ba69735614b7b04e42d3335f002c708",
   "anchor": "lib/string_helpers.c",
   "roadmap_destinations": [
     "lib/string_helpers.zig"
