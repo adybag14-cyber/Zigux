@@ -48,6 +48,16 @@ test "phase3 tagged cutoff order stays xa_value, gap, then err_ptr" {
     try std.testing.expect(err_ptr.isErrValue(err_floor_raw));
 }
 
+test "phase3 first rejected xa_value would alias the err_ptr floor" {
+    const first_rejected = xa_value.safe_inline_limit + 1;
+    const aliased_raw = (first_rejected << 1) | xa_value.value_tag_mask;
+
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, xa_value.makeValue(first_rejected));
+    try std.testing.expectEqual(err_ptr.err_floor, aliased_raw);
+    try std.testing.expect(err_ptr.isErrValue(aliased_raw));
+    try std.testing.expect(!xa_value.isValue(aliased_raw));
+}
+
 test "phase3 err_ptr gap below floor stays pointer like" {
     const gap = err_ptr.err_floor - 1;
     try std.testing.expect(err_ptr.isOkValue(gap));
