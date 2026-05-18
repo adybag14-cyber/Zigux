@@ -172,6 +172,21 @@ pub const DrvdataOwnershipCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const RegistrationIntentCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    always_running: bool,
+    timeout_init_requested: bool,
+    nowayout_from_module_param: bool,
+    stop_on_reboot_requested: bool,
+    pre_registration_start_requested: bool,
+    timeout_init_stays_before_nowayout: bool,
+    nowayout_stays_before_stop_on_reboot: bool,
+    stop_on_reboot_stays_before_pre_registration_start: bool,
+    pre_registration_start_stays_before_registration: bool,
+    blocked_on_platform_registration: bool,
+};
+
 pub const GpioWatchdogLab = struct {
     const Self = @This();
 
@@ -399,6 +414,24 @@ pub const GpioWatchdogLab = struct {
             .drvdata_binding_precedes_registration_handoff = true,
             .drvdata_binding_reuses_parent_linkage = true,
             .blocked_on_live_gpio_lookup = true,
+            .blocked_on_platform_registration = true,
+        };
+    }
+
+    pub fn registrationIntentCheckpointSummary(self: *const Self, nowayout: bool) RegistrationIntentCheckpointSummary {
+        const probe = self.probeSummary(nowayout);
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .always_running = self.always_running,
+            .timeout_init_requested = probe.timeout_init_requested,
+            .nowayout_from_module_param = nowayout,
+            .stop_on_reboot_requested = probe.stop_on_reboot,
+            .pre_registration_start_requested = probe.starts_during_probe,
+            .timeout_init_stays_before_nowayout = true,
+            .nowayout_stays_before_stop_on_reboot = true,
+            .stop_on_reboot_stays_before_pre_registration_start = true,
+            .pre_registration_start_stays_before_registration = true,
             .blocked_on_platform_registration = true,
         };
     }
