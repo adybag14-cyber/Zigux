@@ -9,7 +9,7 @@ This note records the bounded Phase 15 parity-accounting surface for the freeze-
 - `PHASE15_SLICE=parity-scorecard-baseline`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `PHASE15_SCORECARD_ROLE=blocked_posture_accounting_not_port_readiness`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - the scorecard remains an honest blocker-accounting packet, not a port-readiness claim
 
