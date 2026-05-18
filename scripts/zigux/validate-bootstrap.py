@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -18,6 +19,19 @@ PIN_SCOPE_CHECKER = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 REQUIRED_MAKE_ROUTES_CHECKER = "scripts/zigux/check-phase2-required-make-routes.py"
 TOOLCHAIN_POLICY = "scripts/zigux/zig-toolchain-policy.json"
 SELF_PATH = "scripts/zigux/validate-bootstrap.py"
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+POLICY_KEYS = {
+    "phase",
+    "channel",
+    "minimum_version",
+    "archive_sha256",
+    "upgrade_policy",
+}
+UPGRADE_POLICY_KEYS = {
+    "channel_minimum_lockstep",
+    "archive_target_scope",
+    "required_make_routes",
+}
 
 REQUIRED_PATHS = (
     SCRIPTS_README,
@@ -93,7 +107,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + (len(REQUIRED_PATHS) - 1)
-    + 6
+    + 11
 )
 
 
@@ -151,7 +165,6 @@ def duplicate_exact_line(text: str, marker: str) -> str:
 
 def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    policy_path = path_under(root, TOOLCHAIN_POLICY)
     try:
         payload = json.loads(read_text(root, TOOLCHAIN_POLICY))
     except json.JSONDecodeError as exc:
@@ -159,6 +172,10 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
 
     if not isinstance(payload, dict):
         return [("INVALID_POLICY", "expected JSON object")]
+
+    unexpected_policy_keys = sorted(set(payload) - POLICY_KEYS)
+    if unexpected_policy_keys:
+        issues.append(("INVALID_POLICY", f"unexpected_policy_keys={unexpected_policy_keys!r}"))
 
     if payload.get("phase") != EXPECTED_POLICY["phase"]:
         issues.append(("INVALID_POLICY", f"phase={payload.get('phase')!r}"))
@@ -179,13 +196,18 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
         if list(archive_sha256.keys()) != EXPECTED_POLICY["archive_target_scope"]:
             issues.append(("INVALID_POLICY", f"archive_sha256_keys={list(archive_sha256.keys())!r}"))
         for target, digest in archive_sha256.items():
-            if not isinstance(digest, str) or len(digest) != 64:
+            if not isinstance(digest, str) or SHA256_RE.fullmatch(digest) is None:
                 issues.append(("INVALID_POLICY", f"archive_sha256[{target}]"))
 
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
         issues.append(("INVALID_POLICY", "upgrade_policy"))
     else:
+        unexpected_upgrade_policy_keys = sorted(set(upgrade_policy) - UPGRADE_POLICY_KEYS)
+        if unexpected_upgrade_policy_keys:
+            issues.append(
+                ("INVALID_POLICY", f"unexpected_upgrade_policy_keys={unexpected_upgrade_policy_keys!r}")
+            )
         if upgrade_policy.get("channel_minimum_lockstep") is not EXPECTED_POLICY["channel_minimum_lockstep"]:
             issues.append(("INVALID_POLICY", "channel_minimum_lockstep"))
         if upgrade_policy.get("archive_target_scope") != EXPECTED_POLICY["archive_target_scope"]:
@@ -193,8 +215,6 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
         if upgrade_policy.get("required_make_routes") != EXPECTED_POLICY["required_make_routes"]:
             issues.append(("INVALID_POLICY", "required_make_routes"))
 
-    if issues and not policy_path.exists():
-        issues.append(("INVALID_POLICY", str(policy_path)))
     return issues
 
 
@@ -385,6 +405,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         policy_path = path_under(root, TOOLCHAIN_POLICY)
         policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy["channel"] = ""
+        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "channel") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = path_under(root, TOOLCHAIN_POLICY)
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
         policy["minimum_version"] = "0.16.0"
         policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_POLICY", "channel_minimum_version_mismatch") in collect_issues(root)
@@ -401,12 +429,44 @@ def run_self_test() -> int:
         build_self_test_root(root)
         policy_path = path_under(root, TOOLCHAIN_POLICY)
         policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["archive_target_scope"] = ["aarch64-linux"]
+        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "archive_target_scope") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = path_under(root, TOOLCHAIN_POLICY)
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"]["channel_minimum_lockstep"] = False
+        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "channel_minimum_lockstep") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = path_under(root, TOOLCHAIN_POLICY)
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy["archive_sha256"] = {"x86_64-linux": "g" * 64}
+        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "archive_sha256[x86_64-linux]") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = path_under(root, TOOLCHAIN_POLICY)
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
         policy["archive_sha256"] = {"aarch64-linux": "3" * 64}
         policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
         assert (
             "INVALID_POLICY",
             "archive_sha256_keys=['aarch64-linux']",
         ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = path_under(root, TOOLCHAIN_POLICY)
+        policy = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy["upgrade_policy"] = "invalid"
+        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "upgrade_policy") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
