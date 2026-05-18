@@ -110,6 +110,8 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14-workqueue-scheduler-visible-worker-state-refinement") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared Phase 14 smoke packet") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14_workqueue_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary-map-only submission routing through `queue_work_on()` and `__queue_work()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary-map-only allocation and attribute shaping through `__alloc_workqueue()` and `devm_alloc_workqueue()`") != null);
 
     const traceability_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
