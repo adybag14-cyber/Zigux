@@ -39,6 +39,7 @@ Those directly readable surfaces agree on the same bounded message:
   * the current bridge-local slice is `phase14-workqueue-scheduler-visible-worker-state-refinement`
   * `zigux/tests/phase14_workqueue_reviewability.zig` is the bridge-local reviewability check
   * the broader shared Phase 14 smoke packet should keep the workqueue boundary shard explicit without overstating build-backed replay
+  * the bridge-local direct rerun packet stays limited to `zig test zigux/tests/phase14_workqueue_reviewability.zig` and `zig build test --build-file zigux/tests/phase14_build.zig --summary all` while the shared smoke survey still treats the older `phase14-*` Makefile wrappers as absent on current `master`
 
 ## Current workqueue packet posture
 
@@ -71,6 +72,7 @@ The workqueue-local packet should stay aligned with the shared Phase 14 smoke pa
 
   * the workqueue anchor remains the non-frozen study-only foothold inside Phase 14
   * the shared Phase 14 smoke packet should continue naming the workqueue manifest and `zigux/tests/phase14_workqueue_reviewability.zig`
+  * the bridge-local trusted reruns stay limited to the direct Zig test and the summarized full-bundle build while current `master` still lacks the older `phase14-*` Makefile wrappers
   * any future same-lane reminder repair should keep the workqueue packet explicit without presenting a returned `phase14-*` wrapper route as current proof unless a fresh reread shows it
   * the next broader same-lane step is still packet-local reread and reminder alignment, not live execution work
 
