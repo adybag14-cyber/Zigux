@@ -96,10 +96,15 @@ BUILD_MARKERS = [
     "virtio_ring_verify_module",
     "phase10_virtio_ring_prepare_kick_idempotent_module",
     "phase10_virtio_ring_broken_queue_queue_discipline_module",
+    '"phase10-virtio-input-queue-callback-preflight-tests"',
+    '"phase10-virtio-input-registration-preflight-tests"',
+    '"phase10-virtio-input-status-drain-tests"',
+    '"phase10-virtio-input-teardown-observation-tests"',
     '"phase10-virtio-input-survey-tests"',
     '"phase10-virtio-input-verify-tests"',
     '"phase10-virtio-ring-verify-tests"',
     '"phase10-virtio-ring-prepare-kick-idempotent-tests"',
+    '"phase10-virtio-ring-reset-reuse-tests"',
     '"phase10-virtio-ring-broken-queue-queue-discipline-tests"',
     '"phase10-virtio-mmio-tests"',
     "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
@@ -272,8 +277,15 @@ def run_self_test() -> int:
         expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.", "The shared bootstrap-route guard remains optional.", "phase10_closure_evidence:The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.")
         expect_missing_marker(root, "Documentation/zigux/review-checklist.md", "Documentation/zigux/phase10-closure-evidence.md", "Documentation/zigux/phase10-closure-evidence-missing.md", "review_checklist:Documentation/zigux/phase10-closure-evidence.md")
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests", "Run the live Phase 10 virtio input and MMIO lab validation tests", "phase10_build:Run the live Phase 10 virtio input, ring, and MMIO lab validation tests")
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-input-queue-callback-preflight-tests"', '"phase10-virtio-input-queue-callback-drift-tests"', 'phase10_build:"phase10-virtio-input-queue-callback-preflight-tests"')
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-input-registration-preflight-tests"', '"phase10-virtio-input-registration-drift-tests"', 'phase10_build:"phase10-virtio-input-registration-preflight-tests"')
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-input-status-drain-tests"', '"phase10-virtio-input-status-drift-tests"', 'phase10_build:"phase10-virtio-input-status-drain-tests"')
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-input-teardown-observation-tests"', '"phase10-virtio-input-teardown-drift-tests"', 'phase10_build:"phase10-virtio-input-teardown-observation-tests"')
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-input-survey-tests"', '"phase10-virtio-input-survey-drift-tests"', 'phase10_build:"phase10-virtio-input-survey-tests"')
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-input-verify-tests"', '"phase10-virtio-input-verify-drift-tests"', 'phase10_build:"phase10-virtio-input-verify-tests"')
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-verify-tests"', '"phase10-virtio-ring-drift-tests"', 'phase10_build:"phase10-virtio-ring-verify-tests"')
-        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-prepare-kick-idempotent-tests"', '"phase10-virtio-ring-drift-tests"', 'phase10_build:"phase10-virtio-ring-prepare-kick-idempotent-tests"')
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-prepare-kick-idempotent-tests"', '"phase10-virtio-ring-prepare-kick-drift-tests"', 'phase10_build:"phase10-virtio-ring-prepare-kick-idempotent-tests"')
+        expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-reset-reuse-tests"', '"phase10-virtio-ring-reset-reuse-drift-tests"', 'phase10_build:"phase10-virtio-ring-reset-reuse-tests"')
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-input-module-slice.md", "zigux/tests/phase10_virtio_input_survey.zig", "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig", "phase10_input_module_slice:zigux/tests/phase10_virtio_input_survey.zig")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-input-module-slice.md", "queued status completions reclaimable in memory", "queued status completions drain directly to the transport", "phase10_input_module_slice:queued status completions reclaimable in memory")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", "`zigux/tests/phase10_virtio_mmio.zig` is back as a directly re-readable helper-local replay anchor", "`zigux/tests/phase10_virtio_mmio.zig` remains a gap", "phase10_lane_sequencing:`zigux/tests/phase10_virtio_mmio.zig` is back as a directly re-readable helper-local replay anchor")
@@ -290,7 +302,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
         print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=18")
+        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=23")
         return 0
 
 
