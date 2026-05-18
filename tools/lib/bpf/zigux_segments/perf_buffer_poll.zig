@@ -318,6 +318,15 @@ pub fn resolveReadyBufferAttemptLookup(
     };
 }
 
+pub fn resolveReadyBufferAttemptAtIndex(
+    buffers: []const BufferObservation,
+    attempt_index: usize,
+) ReadyBufferAttemptLookupError!usize {
+    return resolveReadyBufferAttemptLookup(
+        summarizeReadyBufferAttemptLookup(buffers, attempt_index),
+    );
+}
+
 pub fn resolveReadyBufferAttemptIndexReturn(
     buffers: []const BufferObservation,
     attempt_index: usize,
@@ -763,6 +772,19 @@ test "phase8 perf-buffer poll exposes typed ready-buffer attempt lookup summarie
     try std.testing.expectEqual(@as(?usize, null), missing.ready_index);
     try std.testing.expectEqual(@as(usize, 2), missing.ready_count);
     try std.testing.expectError(error.MissingReadyBuffer, resolveReadyBufferAttemptLookup(missing));
+}
+
+test "phase8 perf-buffer poll resolves typed ready-buffer attempts without manual summary plumbing" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+
+    try std.testing.expectEqual(@as(usize, 1), try resolveReadyBufferAttemptAtIndex(&buffers, 0));
+    try std.testing.expectEqual(@as(usize, 3), try resolveReadyBufferAttemptAtIndex(&buffers, 1));
+    try std.testing.expectError(error.MissingReadyBuffer, resolveReadyBufferAttemptAtIndex(&buffers, 2));
 }
 
 test "phase8 perf-buffer poll keeps ready-buffer attempt lookup returns errno-shaped" {
