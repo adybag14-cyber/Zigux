@@ -71,6 +71,16 @@ pub const TraceEventsStringFormattingSample = struct {
         self.stage_state = .initialized;
     }
 
+    pub fn formatIterationMessageInto(
+        self: *const Self,
+        iteration_count: i32,
+        destination: []u8,
+    ) ![]const u8 {
+        if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
+        if (iteration_count < 0) return error.InvalidIterationCount;
+        return std.fmt.bufPrint(destination, "iter={d}", .{iteration_count});
+    }
+
     pub fn runAnchorReplay(self: *Self, iteration_count: i32) !ReplaySummary {
         if (self.stage() != .initialized) return error.InvalidLifecycleTransition;
         if (iteration_count < 0) return error.InvalidIterationCount;
@@ -78,7 +88,10 @@ pub const TraceEventsStringFormattingSample = struct {
         const selected_string = selectedStringForIteration(iteration_count);
 
         var rendered = RenderedText{};
-        const rendered_slice = try std.fmt.bufPrint(&rendered.bytes, "iter={d}", .{iteration_count});
+        const rendered_slice = try self.formatIterationMessageInto(
+            iteration_count,
+            &rendered.bytes,
+        );
         rendered.len = rendered_slice.len;
 
         self.replay_runs += 1;
@@ -146,4 +159,22 @@ test "phase 5 trace-events formatting companion keeps lifecycle boundaries expli
     try std.testing.expectEqual(@as(usize, 1), sample.replay_runs);
     try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
     try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay(2));
+}
+
+test "phase 5 trace-events formatting companion keeps bounded destination failures explicit" {
+    var sample = TraceEventsStringFormattingSample{};
+    try sample.init();
+
+    var short_destination: [5]u8 = undefined;
+    try std.testing.expectError(
+        error.NoSpaceLeft,
+        sample.formatIterationMessageInto(12, &short_destination),
+    );
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
+    try std.testing.expectEqual(@as(usize, 0), sample.replay_runs);
+
+    var exact_destination: [7]u8 = undefined;
+    const rendered = try sample.formatIterationMessageInto(12, &exact_destination);
+    try std.testing.expectEqualStrings("iter=12", rendered);
+    try std.testing.expectEqual(SampleStage.initialized, sample.stage());
 }
