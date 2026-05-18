@@ -63,6 +63,8 @@ REQUIRED_MARKERS = {
         "pub fn write(comptime T: type, ptr: *volatile T, value: T) void {",
         "pub fn exchange(comptime T: type, ptr: *volatile T, value: T) T {",
         "pub fn writeMasked(comptime T: type, ptr: *volatile T, clear_mask: T, set_mask: T) T {",
+        "pub fn exchangeInteropPolicyBytes(",
+        "pub fn writeMaskedInteropPolicyBytes(",
     ),
     UNSAFE_POLICY_PATH: (
         "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
@@ -127,6 +129,8 @@ SELF_TEST_CASES = (
     (MMIO_PATH, "pub fn write(comptime T: type, ptr: *volatile T, value: T) void {"),
     (MMIO_PATH, "pub fn exchange(comptime T: type, ptr: *volatile T, value: T) T {"),
     (MMIO_PATH, "pub fn writeMasked(comptime T: type, ptr: *volatile T, clear_mask: T, set_mask: T) T {"),
+    (MMIO_PATH, "pub fn exchangeInteropPolicyBytes("),
+    (MMIO_PATH, "pub fn writeMaskedInteropPolicyBytes("),
     (UNSAFE_POLICY_PATH, "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {"),
     (UNSAFE_POLICY_PATH, "pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {"),
     (NARROW_PATH, "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {"),
