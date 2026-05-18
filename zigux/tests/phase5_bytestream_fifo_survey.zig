@@ -95,6 +95,7 @@ test "phase 5 bytestream fifo survey packet keeps split-readback guidance explic
         "reviewContract().focus",
         "draining `\"hello\"` into a three-byte buffer yields `\"hel\"`",
         "authenticated GitHub contents reads in this environment still do not recover `zigux/tests/phase5_bytestream_fifo.zig`",
+        "current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample",
     };
     for (required_mentions) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
