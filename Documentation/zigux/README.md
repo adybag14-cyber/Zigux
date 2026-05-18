@@ -170,3 +170,27 @@ now keep the current Phase 13 docs-root reminder packet explicit from the docume
   * keep adjacent notifier evidence explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` without promoting that adjacent packet into a fifth shared-helper anchor.
   * current `master` does materialize `zigux/Makefile`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep the returned file distinct from those still-missing Phase 13 route names instead of treating it as a shared build handle.
   * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_libfs_addressability.zig`, `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/validate-phase13-release.py`, `zigux/tests/phase13_build.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `include/zigux/notifier_abi.h`, so keep those helper-local direct companions, validator-first helpers, build handles, and adjacent notifier helpers framed as repo-reality gaps rather than current docs-root evidence.
+Phase 15 notes
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-parity-scorecard-survey.md`
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-handoff-next-steps-survey.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+- `Documentation/zigux/phase15-shared-summary-gap.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/check-phase15-docs-readme-alignment.py`
+- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`
+- `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-readiness-gate-packet.py`
+- `zigux/tests/phase15_readiness_gate_manifest.json`
+keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim.
+  * no Architecture Council approval is currently recorded for a freeze-map status change, and the broad docs-root reminder should stay in maintenance-mode truthfulness work around the freeze map, the review process, the parity scorecard, the indefinite-C policy, the study-only anchor inventory, the handoff note, and the shared-summary gap note without implying any Architecture Council approval for a freeze-map status change.
+  * the shared Phase 15 docs-root handoff should also keep the named reopen trigger, the deep-core blocker-posture change, the four freeze-in-C anchors, and the two study-only anchors explicit while the current packet remains blocker-accounting and reminder-surface maintenance rather than port-readiness.
+  * treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence, and keep `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` in the same blocked-route bucket until fresh direct readback says otherwise.
