@@ -176,7 +176,7 @@ EXPECTED_TOOL_MANIFEST = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 104
+EXPECTED_SELF_TEST_CASE_COUNT = 105
 
 
 def read_text(path: Path) -> str:
