@@ -342,7 +342,6 @@ def run_self_test() -> int:
             for marker in MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
-                resolved.writeText if False else None
                 resolved.write_text(
                     replace_once(resolved.read_text(encoding="utf-8"), marker),
                     encoding="utf-8",
