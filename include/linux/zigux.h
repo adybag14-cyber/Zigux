@@ -119,4 +119,17 @@ static inline int zigux_boundary_header_is_canonical(zigux_boundary_header heade
     return zigux_uapi_boundary_header_is_canonical(header);
 }
 
+static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)
+{
+    return zigux_dev_t_fields_is_valid(fields);
+}
+
+static inline int zigux_uapi_dev_t_fields_range_is_valid(
+    struct zigux_dev_t_fields start,
+    struct zigux_dev_t_fields end
+)
+{
+    return zigux_dev_t_fields_range_is_valid(start, end);
+}
+
 #endif
