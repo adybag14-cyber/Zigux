@@ -45,6 +45,18 @@ pub fn escalationFor(mode: abi.PanicMode) Escalation {
     };
 }
 
+pub fn escalationFromInteropPolicyBytes(mode: u8, reserved: u8) ?Escalation {
+    return escalationFor(modeFromInteropPolicyBytes(mode, reserved) orelse return null);
+}
+
+pub fn escalationFromInteropPolicy(policy: abi.InteropPolicy) ?Escalation {
+    return escalationFromInteropPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
+pub fn escalationFromByte(mode: u8) ?Escalation {
+    return escalationFromInteropPolicyBytes(mode, 0);
+}
+
 pub fn causesImmediateHalt(mode: abi.PanicMode) bool {
     return switch (escalationFor(mode)) {
         .immediate_abort, .kernel_bug => true,
@@ -120,11 +132,22 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.PanicMode, .warn), modeFromByte(2));
     try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromByte(9));
 
+    try std.testing.expectEqual(@as(?Escalation, .immediate_abort), escalationFromByte(0));
+    try std.testing.expectEqual(@as(?Escalation, .kernel_bug), escalationFromByte(1));
+    try std.testing.expectEqual(@as(?Escalation, .warning_only), escalationFromByte(2));
+    try std.testing.expectEqual(@as(?Escalation, null), escalationFromByte(9));
+
     try std.testing.expectEqual(@as(?abi.PanicMode, .abort), modeFromInteropPolicyBytes(0, 0));
     try std.testing.expectEqual(@as(?abi.PanicMode, .bug), modeFromInteropPolicyBytes(1, 0));
     try std.testing.expectEqual(@as(?abi.PanicMode, .warn), modeFromInteropPolicyBytes(2, 0));
     try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expectEqual(@as(?Escalation, .immediate_abort), escalationFromInteropPolicyBytes(0, 0));
+    try std.testing.expectEqual(@as(?Escalation, .kernel_bug), escalationFromInteropPolicyBytes(1, 0));
+    try std.testing.expectEqual(@as(?Escalation, .warning_only), escalationFromInteropPolicyBytes(2, 0));
+    try std.testing.expectEqual(@as(?Escalation, null), escalationFromInteropPolicyBytes(9, 0));
+    try std.testing.expectEqual(@as(?Escalation, null), escalationFromInteropPolicyBytes(2, 1));
 
     try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
@@ -173,6 +196,12 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.PanicMode, .warn), modeFromInteropPolicy(warn_policy));
     try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(reserved_policy));
     try std.testing.expectEqual(@as(?abi.PanicMode, null), modeFromInteropPolicy(unknown_policy));
+
+    try std.testing.expectEqual(@as(?Escalation, .immediate_abort), escalationFromInteropPolicy(abort_policy));
+    try std.testing.expectEqual(@as(?Escalation, .kernel_bug), escalationFromInteropPolicy(bug_policy));
+    try std.testing.expectEqual(@as(?Escalation, .warning_only), escalationFromInteropPolicy(warn_policy));
+    try std.testing.expectEqual(@as(?Escalation, null), escalationFromInteropPolicy(reserved_policy));
+    try std.testing.expectEqual(@as(?Escalation, null), escalationFromInteropPolicy(unknown_policy));
 
     try std.testing.expect(recognizesInteropPolicy(abort_policy));
     try std.testing.expect(recognizesInteropPolicy(bug_policy));
