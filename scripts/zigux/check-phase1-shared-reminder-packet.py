@@ -26,7 +26,7 @@ REQUIRED_FILES = (
 MARKERS = {
     "Documentation/zigux/README.md": (
         "keep the live owner map, the restored closure note and closure validator, the parked shared-replay-versus-direct-anchor split, the shipped bench checker, and the current Phase 1 reminder packet explicit from the docs root without rebuilding the broader host-tools closure stack from older missing validator and replay surfaces.",
-        "`scripts/zigux/check-phase1-bench.py`",
+        "`scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks",
         "`python3 scripts/zigux/check-phase1-bench.py --self-test`",
     ),
     "Documentation/zigux/phase1-closure.md": (
