@@ -495,13 +495,18 @@ def run_self_test() -> int:
         )
 
     expect_failure(
-        "explicit_tool_drift",
+        "explicit_c_tool_drift",
         lambda: validate_tool_sources(C_FIXDEP.with_name("fixdep-mismatch.c"), ZIG_FIXDEP),
         f"fixdep:c_tool={C_FIXDEP.with_name('fixdep-mismatch.c')},expected={EXPECTED_C_FIXDEP}",
     )
+    expect_failure(
+        "explicit_zig_tool_drift",
+        lambda: validate_tool_sources(C_FIXDEP, ZIG_FIXDEP.with_name("fixdep-mismatch.zig")),
+        f"fixdep:zig_tool={ZIG_FIXDEP.with_name('fixdep-mismatch.zig')},expected={EXPECTED_ZIG_FIXDEP}",
+    )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 13}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 14}")
     return 0
 
 
