@@ -5,70 +5,63 @@ This note records the current bounded Phase 8 libbpf segmentation reviewability 
 ## Status
 - `PHASE8_STATUS=parked`
 - `PHASE8_SURVEY=libbpf-segment-gap-readback`
-- survey checkpoint: refreshed against inspected `master` head `089188c96b86c0da16088e916094a7c977d0cfc6`
+- survey checkpoint: refreshed against current `master` readback on 2026-05-18
 - roadmap anchor: `tools/lib/bpf/libbpf.c`
 - intended Zigux destination family: `tools/lib/bpf/zigux_segments/`
 - scope: current-tree reviewability and lane-safe next-step selection only
 
 ## Why this survey exists
-The Phase 8 roadmap still calls for a segmented rollout instead of a single-file port attempt under `tools/lib/bpf/zigux_segments/`.
+Phase 8 only makes roadmap-aligned progress here if libbpf grows as reviewable helper-first shards instead of as a single opaque port attempt.
 
-That plan only stays reviewable if the repo's public survey surfaces truthfully describe what is actually present on `master`, and if the first realistic Zigux entry points are helper-first clusters with stable text or path behavior rather than a premature heavy bridge or loader claim.
+That means the dedicated survey has to separate directly readable current-head evidence from broader reminder surfaces when current exact GitHub reads are mixed.
 
-## Current public-tree readback
-Public default-branch exact readback on 2026-05-18 still showed:
-- `Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, public Phase 8 readback still serves `Documentation/zigux/phase8-bpf-type-names-slice.md`, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders.
-- `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet through `phase8_cpu_mask.zig`, `phase8_logging.zig`, `phase8_pin_path.zig`, `phase8_bpf_type_names.zig`, `phase8_file_path_handle_bridge.zig`, `phase8_perf_buffer_poll.zig`, `phase8_libbpf_segments.zig`, and `tools/lib/bpf/zigux_segments/verify.zig`.
-- the shared helper catalog still comes from `tools/lib/bpf/zigux_segments/manifest.json`.
-- the shared landed helper packet still names `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`.
-- the shared landed helper packet still names `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/tests/phase8_libbpf_segments_only_build.zig`.
-- the shared wrapper routes now remain `make -C zigux phase8-libbpf-segments-test`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8-test`, while the exact focused replay commands remain `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`, `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase8_build.zig --summary all`; `zigux/tests/phase8_libbpf_segments_only_build.zig` replays the dedicated `tools/lib/bpf/zigux_segments/verify.zig` shard rather than the older broader libbpf-segment-only packet.
-- the shared validator-first packet also remains explicit through `python3 scripts/zigux/validate-phase8.py --self-test`, `python3 scripts/zigux/validate-phase8.py`, `python3 scripts/zigux/check-phase8-validator-flow.py --self-test`, and `python3 scripts/zigux/check-phase8-validator-flow.py`.
-- `PHASE8_VALIDATOR_FLOW_SELF_TEST_CASE_COUNT=18`.
-- targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/type_names.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`.
-- that mixed readback means the pin-path shard should stay framed as a review-surface split rather than a removed helper packet.
-- the live helper packet still keeps `fdinfo-map-info-helpers`, `map-reuse-compatibility`, `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, and `perf-buffer-poll-bookkeeping` explicit in the broader segmented catalog.
-- current `master` also carries helper-local routing evidence in `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, where `advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and `summarizeOnlineCpuRouting()` keep the online-CPU cursor, single-attempt route summary, and broader routing-summary helper packet explicit below the broader setup-side routing boundary.
-- current shared reminder surfaces already keep the landed bridge-plus-build packet explicit through `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_file_path_handle_bridge_only_build.zig`, `zigux/tests/phase8_libbpf_segments_only_build.zig`, `zigux/tests/phase8_build.zig`, `zigux/Makefile`, and `scripts/zigux/validate-phase8.py`.
-- exact readable timing-adjacent survey evidence also includes `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, which keeps `perf_buffer__poll(timeout_ms)` reviewable not only for wait-result shaping and upper-bound ready-buffer checks, but also for the full ready-buffer completion guard that a successful ready wait cannot stop before every helper-counted ready buffer is processed, while still stopping short of standalone timer or clockevent helper behavior and broader timeout-sensitive routing behavior.
-- authenticated contents reads remain inconsistent for some paired Phase 8 docs and helper paths from this environment, so exact readable blob content and public tree evidence should outweigh older absent-file assumptions when choosing the next bounded step.
+## Current exact readback
+Exact current-`master` readback on 2026-05-18 still returns content for:
+- `Documentation/zigux/phase8-libbpf-segment-survey.md`
+- `Documentation/zigux/README.md`
+- `tools/lib/bpf/zigux_segments/verify.zig`
+- `tools/lib/bpf/zigux_segments/type_names.zig`
+- `tools/lib/bpf/zigux_segments/pin_path.zig`
 
-The manifest currently records twelve bounded segments: seven landed helper or helper-adjacent slices and five deferred or blocked follow-ons.
+Those directly readable files keep a smaller helper-first packet explicit today:
+- `verify.zig` still imports `file_path_handle_bridge.zig`, `online_cpu_routing.zig`, `logging.zig`, `perf_buffer_poll.zig`, `pin_path.zig`, and `type_names.zig`, and it still checks bridge-local entrypoints such as `planTokenPreparation()` together with the routing-summary names `advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and `summarizeOnlineCpuRouting()`.
+- `type_names.zig` keeps the stable libbpf type-name tables and formatter outputs explicit.
+- `pin_path.zig` keeps the bounded bpffs path join, validation, and sanitization helpers explicit.
+- `Documentation/zigux/README.md` still keeps the broader Phase 8 libbpf helper packet visible from the docs root, including the bridge and routing surfaces.
 
-The seven landed bounded slices are `logging-version-and-errno`, `pin-path-helpers`, `cpu-mask-parsing`, `type-name-helpers`, `fdinfo-map-info-helpers`, `map-reuse-compatibility`, and `perf-buffer-poll-bookkeeping`.
+The same authenticated exact-read path still returns `404` from this environment for:
+- `tools/lib/bpf/zigux_segments/manifest.json`
+- `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`
+- `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`
+- `zigux/tests/phase8_build.zig`
+- `zigux/tests/phase8_libbpf_segments.zig`
 
-An older shared-wording pass still carried the sentence "The two ready-next helper-first catalog entries are `fdinfo-map-info-helpers` and `map-reuse-compatibility`, and they stay queued helper-first catalog entries until the next bridge-local helper follow-through lands." Current `master` no longer matches that wording: the manifest and the shared file-path bridge packet now treat those two bridge-adjacent helpers as landed helper-first slices while keeping the heavier `file-path-and-handle-bridge` destination deferred.
-
-The deferred or blocked follow-ons are `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, `skeleton-population`, `object-and-elf-loader`, and `btf-relocation-and-program-load`.
-
-Those segments still keep the bounded fdinfo helper packet explicit while the resource-boundary packet still stays deferred.
-
-The deferred `perf-buffer-online-cpu-routing` segment also stays explicitly larger than the helper-local `online_cpu_routing.zig` evidence: the setup-side packet still covers sysfs reads, `perf_event_open()` setup, `mmap()`-backed ring state, per-CPU perf-event-array updates, epoll registration, and timeout-sensitive waits, while the landed helper-local cursor, single-attempt route summary, and routing-summary code remains smaller than that broader setup boundary.
+That mixed readback means the survey should treat the bridge helper, routing helper, manifest-backed catalog, and focused build/test routes as reminder-surface or verify-shard evidence until those exact file reads become stable again, not as uniformly direct current-head proof.
 
 ## Current bounded gap
-The real current gap is keeping the survey truthful about the focused wrapper-plus-build-file replay surface, not a missing checker rule or helper absence.
+The real same-lane gap is truthfulness about directly readable segment evidence, not a new helper implementation claim.
 
-Current `zigux/Makefile` keeps the focused `phase8-libbpf-segments-test` and `phase8-perf-buffer-poll-test` wrappers alongside the shared `phase8-test` route, so this survey should keep both those wrapper names and the underlying `zig build test --build-file ... --summary all` commands explicit rather than collapsing the packet to only one layer of rerun syntax.
+Current `master` still exposes a real helper-first Phase 8 libbpf packet, but the directly readable subset is smaller than the broader bridge-and-build packet still named by docs-root reminder surfaces and `verify.zig`.
 
-Exact 2026-05-18 readback also keeps the already-landed checker packet, helper-local routing evidence, the timing-adjacent poll note, and the verify-only focused build shard explicit on `master`.
-
-That leaves the narrower same-lane task as keeping this survey parked and truthful about that already-landed checker coverage, the helper-local routing evidence, the timing-adjacent poll note, and the wrapper-plus-build-file replay surface instead of reopening the same checker-local step.
+So the dedicated survey needs to keep three facts explicit at the same time:
+- the roadmap still calls for segmented libbpf delivery under `tools/lib/bpf/zigux_segments/`
+- `verify.zig`, `type_names.zig`, and `pin_path.zig` are current exact-readable evidence
+- `manifest.json`, `file_path_handle_bridge.zig`, `online_cpu_routing.zig`, and the focused Phase 8 build/test files are still exact-read gaps from this environment today
 
 ## Non-goals
 This survey slice does not yet claim:
 - any direct Zig port of `tools/lib/bpf/libbpf.c`
-- restored direct behavior verification for every paired Phase 8 libbpf test shard by itself
-- direct `perf_event_open()` setup, epoll wiring, mmap-backed ring ownership, or online-CPU routing parity
-- direct procfs reads, live bpffs opens, token creation, `bpf_obj_get()` reopen flow, or fd ownership parity for the deferred resource-boundary packet
+- direct readable proof for every bridge, routing, manifest, or focused build shard named by reminder surfaces
+- direct `perf_event_open()` setup, epoll wiring, mmap-backed ring ownership, or online-CPU setup parity
+- live bpffs reopen flow, token materialization, `bpf_obj_get()` reopen flow, or broader fd ownership parity
 - standalone timer or clockevent helper behavior
-- broader timeout-sensitive routing behavior
 - any reopen of the shared command or symbol packets
 - any reopen of deferred object-model, descriptor-lifecycle, or bridge-heavy libbpf work
 
 ## Next bounded step
-Keep the libbpf survey packet parked after this survey-and-route sync unless a fresh shared reminder-surface drift reappears against the current helper-plus-build evidence.
+Keep this lane parked unless a fresh exact reread changes the directly readable libbpf packet again.
 
 Preferred order:
-1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
-2. confirm the shared bridge-boundary note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` still agree on the focused bridge and perf-buffer replay markers while the dedicated survey stays aligned with that already-landed checker state, the focused `phase8_libbpf_segments_only_build.zig` verify shard, and the current wrapper-plus-build-file route wording
-3. keep the helper-local `online_cpu_routing.zig` evidence explicit, keep the timing-adjacent poll slice explicit for the landed full ready-buffer completion guard, and stay smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
+1. reread `verify.zig`, `type_names.zig`, `pin_path.zig`, `Documentation/zigux/README.md`, and this survey note before treating any libbpf shard as removed
+2. if exact reads recover for `manifest.json`, `file_path_handle_bridge.zig`, `online_cpu_routing.zig`, or the focused Phase 8 build/test files, retell this survey to that larger directly readable packet
+3. otherwise keep bridge, routing, manifest, and focused build references framed as reminder-surface or verify-shard expectations only
