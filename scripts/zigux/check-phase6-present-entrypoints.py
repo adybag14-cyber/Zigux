@@ -156,7 +156,7 @@ EXPECTED_LAST_KNOWN_SHARED_REPLAY_INVENTORY = [
 ]
 
 REQUIRED_CATALOG_SNIPPETS = [
-    "- lane scope: shared helper-evidence rows only",
+    "- lane scope: shared helper-evidence rows and machine-readable manifest only",
     "- directly readable shared build foothold: `zigux/tests/phase6_build.zig`",
     "## Current direct-readback warning",
     "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
