@@ -37,9 +37,14 @@ CLEANUP_BUILD_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 SURVEY_MARKERS = (
     "current `master` still keeps the HVC lane reviewable through this survey note,",
     "current direct contents reads in this lane still do not rematerialize",
+    "current direct contents reads do rematerialize",
+    "shared matrix explicit as returned current-head readback evidence",
     "Treat the current bounded HVC continuity packet on `master` as the shared",
+    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "The survey still records the bounded HVC starter, helper, replay, split,",
     "The survey still preserves the roadmap-facing starter-depth packet as archival",
+    "returned validation matrix stays part of the",
+    "current-head four-matrix packet rather than the missing starter-depth anchor",
 )
 
 COMPANION_MARKERS = (
@@ -83,7 +88,7 @@ HV_OPS_BUILD_MARKERS = (
 
 CLEANUP_PROOF_MARKERS = (
     'test "phase11 hvc cleanup packet proof keeps cleanup replay markers explicit" {',
-    'try expectContains(cleanup_replay, "test \\\\\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\\\\" {");',
+    'try expectContains(cleanup_replay, "test \\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\" {");',
     'try expectContains(cleanup_companion, "phase11 hvc cleanup");',
     'test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the landed cleanup handoff" {',
     'try expectContains(teardown_note, "deferred final release explicit");',
@@ -292,6 +297,7 @@ def fixture_survey() -> str:
             "* current `master` still keeps the HVC lane reviewable through this survey note,",
             "  `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,",
             "  `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,",
+            "  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`,",
             "  `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,",
             "  `zigux/tests/fixtures/phase11_build_inventory.json`,",
             "  `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,",
@@ -304,6 +310,10 @@ def fixture_survey() -> str:
             "  `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader",
             "  starter-depth packet framed as survey-recorded same-lane archival vocabulary",
             "  until a future reread proves those anchor paths returned again",
+            "* current direct contents reads do rematerialize",
+            "  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, so keep that",
+            "  shared matrix explicit as returned current-head readback evidence instead of",
+            "  folding it back into the missing starter-depth anchor set",
             "",
             "## Current-Head Continuity Packet",
             "",
@@ -313,6 +323,7 @@ def fixture_survey() -> str:
             "- `Documentation/zigux/phase11-hvc-console-survey.md`",
             "- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`",
             "- `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`",
+            "- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
             "- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
             "- `zigux/tests/fixtures/phase11_build_inventory.json`",
             "- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
@@ -338,15 +349,13 @@ def fixture_survey() -> str:
             "- `zigux/tests/phase11_hvc_console_poll_retry_split.zig`",
             "- `Documentation/zigux/phase11-hvc-console-slice.md`",
             "- `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
-            "- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
             "",
             "## Bounded Meaning",
             "",
             "The survey still preserves the roadmap-facing starter-depth packet as archival",
-            "continuity vocabulary, but the remaining same-lane work stays focused on",
-            "truthfulness and later execution-facing follow-through rather than on claiming",
-            "that the older direct-readback starter packet is fully back on current",
-            "`master`.",
+            "continuity vocabulary, while the returned validation matrix stays part of the",
+            "current-head four-matrix packet rather than the missing starter-depth anchor",
+            "set.",
             "",
         ]
     )
@@ -428,7 +437,7 @@ def fixture_cleanup_proof() -> str:
     return "\n".join(
         [
             'test "phase11 hvc cleanup packet proof keeps cleanup replay markers explicit" {',
-            'try expectContains(cleanup_replay, "test \\\\\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\\\\" {");',
+            'try expectContains(cleanup_replay, "test \\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\" {");',
             'try expectContains(cleanup_companion, "phase11 hvc cleanup");',
             'test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the landed cleanup handoff" {',
             'try expectContains(teardown_note, "deferred final release explicit");',
@@ -482,19 +491,20 @@ def run_self_test() -> int:
         survey_path = missing_survey_root / SURVEY_PATH
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
-                "The survey still preserves the roadmap-facing starter-depth packet as archival",
+                "current-head four-matrix packet rather than the missing starter-depth anchor",
                 "",
             ),
             encoding="utf-8",
         )
         expect_failure(
             missing_survey_root,
-            "The survey still preserves the roadmap-facing starter-depth packet as archival",
+            "current-head four-matrix packet rather than the missing starter-depth anchor",
         )
 
         missing_hv_ops_root = tmpdir / "missing_hv_ops_marker"
         shutil.copytree(fixture, missing_hv_ops_root, dirs_exist_ok=True)
         hv_ops_path = missing_hv_ops_root / HV_OPS_PROOF_PATH
+        hv_ops_path.writeText = None
         hv_ops_path.write_text(
             hv_ops_path.read_text(encoding="utf-8").replace(
                 'try expectContains(hvc_header, "(*dtr_rts)");',
