@@ -79,6 +79,10 @@ SELF_TEST_CASES = (
         "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
     ),
     (
+        "scripts/zigux/check-phase3-abi.py",
+        "scripts/zigux/check-phase3-abi.py",
+    ),
+    (
         "scripts/zigux/validate-phase3-export-uapi-survey.py",
         "scripts/zigux/validate-phase3-export-uapi-survey.py",
     ),
