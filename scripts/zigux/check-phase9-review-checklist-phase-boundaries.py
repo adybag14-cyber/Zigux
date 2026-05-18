@@ -57,13 +57,17 @@ REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER = "unless a fresh repo reread prov
 LANE_SEQUENCING_SAMPLE_MARKER = "surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`"
 LANE_SEQUENCING_SELFTEST_MARKER = "`.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking"
 LANE_SEQUENCING_UNREGISTERED_GATE_MARKER = "surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+LANE_SEQUENCING_REENTRY_GATE_MARKER = "surviving registration-reentry runtime companion: `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
+LANE_SEQUENCING_REENTRY_DETAIL_MARKER = "balanced registration re-entry replay in `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` across both the initialized and selftest_complete stages"
 LANE_SEQUENCING_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
 
 TESTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 TESTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 TESTS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 TESTS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+TESTS_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 TESTS_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
+TESTS_README_REENTRY_COMPANION_MARKER = "keeps balanced function-thread registration reusable before and after selftest"
 TESTS_README_BACKLOG_MARKER = (
     "there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, "
     "`make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`"
@@ -74,16 +78,20 @@ DOCS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zi
 DOCS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 DOCS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 DOCS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+DOCS_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 DOCS_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
+DOCS_README_REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable across the initialized and selftest_complete stages"
 DOCS_README_BACKLOG_MARKER = "does not currently expose the older shared runtime-loader packet that earlier reminder surfaces described"
 DOCS_README_PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 DOCS_README_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
 
 SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 SCRIPTS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+SCRIPTS_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 SCRIPTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 SCRIPTS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 SCRIPTS_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
+SCRIPTS_README_REENTRY_COMPANION_MARKER = "keeps balanced function-thread registration reusable before and after selftest"
 SCRIPTS_README_BACKLOG_MARKER = "current `master` still does not materialize `zigux/tests/phase9_build.zig`"
 SCRIPTS_README_BOUNDARY_SELF_TEST_MARKER = "`python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test`"
 SCRIPTS_README_PACKET_SELF_TEST_MARKER = "`python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test`"
@@ -129,15 +137,19 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     LANE_SEQUENCING_SAMPLE_MARKER,
     LANE_SEQUENCING_SELFTEST_MARKER,
     LANE_SEQUENCING_UNREGISTERED_GATE_MARKER,
+    LANE_SEQUENCING_REENTRY_GATE_MARKER,
+    LANE_SEQUENCING_REENTRY_DETAIL_MARKER,
     LANE_SEQUENCING_BACKLOG_MARKER,
 ]
 
 TESTS_README_REQUIRED_MARKERS = [
     TESTS_README_TRACE_EVENTS_SAMPLE_MARKER,
     TESTS_README_UNREGISTERED_GATE_MARKER,
+    TESTS_README_REENTRY_GATE_MARKER,
     TESTS_README_SELFTEST_HOOK_MARKER,
     TESTS_README_LIFECYCLE_MARKER,
     TESTS_README_FAIL_CLOSED_MARKER,
+    TESTS_README_REENTRY_COMPANION_MARKER,
     TESTS_README_BACKLOG_MARKER,
 ]
 
@@ -148,7 +160,9 @@ DOCS_README_REQUIRED_MARKERS = [
     DOCS_README_SELFTEST_HOOK_MARKER,
     DOCS_README_LIFECYCLE_MARKER,
     DOCS_README_UNREGISTERED_GATE_MARKER,
+    DOCS_README_REENTRY_GATE_MARKER,
     DOCS_README_FAIL_CLOSED_MARKER,
+    DOCS_README_REENTRY_COMPANION_MARKER,
     DOCS_README_BACKLOG_MARKER,
     DOCS_README_PHASE2_BOUNDARY_MARKER,
     DOCS_README_PHASE3_BOUNDARY_MARKER,
@@ -164,9 +178,11 @@ SCRIPTS_README_REQUIRED_MARKERS = [
     SCRIPTS_README_PACKET_LIVE_MARKER,
     SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER,
     SCRIPTS_README_UNREGISTERED_GATE_MARKER,
+    SCRIPTS_README_REENTRY_GATE_MARKER,
     SCRIPTS_README_SELFTEST_HOOK_MARKER,
     SCRIPTS_README_LIFECYCLE_MARKER,
     SCRIPTS_README_FAIL_CLOSED_MARKER,
+    SCRIPTS_README_REENTRY_COMPANION_MARKER,
     SCRIPTS_README_BACKLOG_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
@@ -261,7 +277,7 @@ def validate(root: Path) -> list[str]:
 def build_docs_readme_fixture_text() -> str:
     return f"""# Zigux Documentation
 
-{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - {PHASE9_BOUNDARY_CHECKER_MARKER} - {TRACE_EVENTS_PACKET_CHECKER_MARKER} - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} - {DOCS_README_UNREGISTERED_GATE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while the shipped unregistered-gate companion keeps {DOCS_README_FAIL_CLOSED_MARKER}, and while current `master` {DOCS_README_BACKLOG_MARKER}.
+{DOCS_README_PHASE9_NOTES_MARKER} - `Documentation/zigux/review-checklist.md` - {PHASE9_BOUNDARY_CHECKER_MARKER} - {TRACE_EVENTS_PACKET_CHECKER_MARKER} - `zigux/tests/README.md` - {DOCS_README_TRACE_EVENTS_SAMPLE_MARKER} - {DOCS_README_UNREGISTERED_GATE_MARKER} - {DOCS_README_REENTRY_GATE_MARKER} now keep the current narrow runtime-pilot packet reviewable from the docs root: the surviving direct runtime-module sample still exposes {DOCS_README_SELFTEST_HOOK_MARKER} together with {DOCS_README_LIFECYCLE_MARKER}, while the shipped unregistered-gate companion keeps {DOCS_README_FAIL_CLOSED_MARKER}, the registration-reentry companion keeps {DOCS_README_REENTRY_COMPANION_MARKER}, and while current `master` {DOCS_README_BACKLOG_MARKER}.
 - the same shared Phase 9 summary should keep the older non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {DOCS_README_PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {DOCS_README_PHASE3_BOUNDARY_MARKER}.
 """
 
@@ -286,6 +302,8 @@ def build_lane_sequencing_fixture_text() -> str:
 - {LANE_SEQUENCING_SAMPLE_MARKER}
 - surviving runtime-module evidence inside that sample: {LANE_SEQUENCING_SELFTEST_MARKER}
 - {LANE_SEQUENCING_UNREGISTERED_GATE_MARKER}
+- {LANE_SEQUENCING_REENTRY_GATE_MARKER}
+- surviving companion boundaries inside the same narrow packet: the {LANE_SEQUENCING_REENTRY_DETAIL_MARKER}
 
 Current `master` {LANE_SEQUENCING_BACKLOG_MARKER} that earlier reminder surfaces described.
 """
@@ -295,7 +313,7 @@ def build_tests_readme_fixture_text() -> str:
     return f"""# zigux/tests
 
 Phase 9 review packet
-  * the surviving trace-events sample still keeps the roadmap-backed runtime pilot shape concrete by exposing {TESTS_README_SELFTEST_HOOK_MARKER} together with {TESTS_README_LIFECYCLE_MARKER} inside {TESTS_README_TRACE_EVENTS_SAMPLE_MARKER}, while {TESTS_README_UNREGISTERED_GATE_MARKER} keeps the same narrow packet's {TESTS_README_FAIL_CLOSED_MARKER}, so reviewers can still inspect one real runtime-module and its companion boundary while the broader shared loader packet remains backlog
+  * the surviving trace-events sample still keeps the roadmap-backed runtime pilot shape concrete by exposing {TESTS_README_SELFTEST_HOOK_MARKER} together with {TESTS_README_LIFECYCLE_MARKER} inside {TESTS_README_TRACE_EVENTS_SAMPLE_MARKER}, while {TESTS_README_UNREGISTERED_GATE_MARKER} keeps the same narrow packet's {TESTS_README_FAIL_CLOSED_MARKER} and {TESTS_README_REENTRY_GATE_MARKER} {TESTS_README_REENTRY_COMPANION_MARKER}, so reviewers can still inspect one real runtime-module and its companion boundary while the broader shared loader packet remains backlog
   * {TESTS_README_BACKLOG_MARKER}
 """
 
@@ -305,9 +323,9 @@ def build_scripts_readme_fixture_text() -> str:
 
 ## Phase 9
 
-- {PHASE9_SCRIPTS_PACKET_MARKER}: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, {PHASE9_BOUNDARY_CHECKER_MARKER}, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, `zigux/tests/README.md`, {SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER}, and {SCRIPTS_README_UNREGISTERED_GATE_MARKER} keep the live reminder surface honest from the scripts root
+- {PHASE9_SCRIPTS_PACKET_MARKER}: `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, {PHASE9_BOUNDARY_CHECKER_MARKER}, {TRACE_EVENTS_PACKET_CHECKER_MARKER}, `zigux/tests/README.md`, {SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER}, {SCRIPTS_README_UNREGISTERED_GATE_MARKER}, and {SCRIPTS_README_REENTRY_GATE_MARKER} keep the live reminder surface honest from the scripts root
 - {SCRIPTS_README_BOUNDARY_SELF_TEST_MARKER}, {SCRIPTS_README_PACKET_SELF_TEST_MARKER}, {SCRIPTS_README_BOUNDARY_LIVE_MARKER}, and {SCRIPTS_README_PACKET_LIVE_MARKER} replay the shipped bounded Phase 9 reminder checks
-- {SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER} remains the surviving direct runtime-module sample and still exposes {SCRIPTS_README_SELFTEST_HOOK_MARKER} together with {SCRIPTS_README_LIFECYCLE_MARKER}, while {SCRIPTS_README_UNREGISTERED_GATE_MARKER} keeps the same narrow packet's {SCRIPTS_README_FAIL_CLOSED_MARKER}
+- {SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER} remains the surviving direct runtime-module sample and still exposes {SCRIPTS_README_SELFTEST_HOOK_MARKER} together with {SCRIPTS_README_LIFECYCLE_MARKER}, while {SCRIPTS_README_UNREGISTERED_GATE_MARKER} keeps the same narrow packet's {SCRIPTS_README_FAIL_CLOSED_MARKER} and {SCRIPTS_README_REENTRY_GATE_MARKER} {SCRIPTS_README_REENTRY_COMPANION_MARKER}
 - {SCRIPTS_README_BACKLOG_MARKER}, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds, so treat those loader, build, kernel, workflow, and sample paths as absent backlog evidence until a fresh reread proves they returned
 - keep the older non-owner boundaries explicit here too: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}
 """
