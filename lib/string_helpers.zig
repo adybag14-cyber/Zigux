@@ -639,6 +639,15 @@ pub fn kstrdup_quotable(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8
     return kstrdupQuotable(allocator, src);
 }
 
+pub fn kstrdupQuotableFile(allocator: std.mem.Allocator, src: ?[]const u8) ![:0]u8 {
+    const raw = src orelse return allocator.dupeZ(u8, "<unknown>");
+    return (try kstrdupQuotable(allocator, raw)).?;
+}
+
+pub fn kstrdup_quotable_file(allocator: std.mem.Allocator, src: ?[]const u8) ![:0]u8 {
+    return kstrdupQuotableFile(allocator, src);
+}
+
 pub fn kstrdupQuotableCmdline(allocator: std.mem.Allocator, src: ?[]const u8) !?[:0]u8 {
     const raw = src orelse return null;
 
@@ -819,6 +828,11 @@ fn runKstrdupQuotableWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]
     }
 }
 
+fn runKstrdupQuotableFileWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]const u8) !void {
+    const quoted = try kstrdupQuotableFile(allocator, src);
+    allocator.free(quoted);
+}
+
 fn runKstrdupQuotableCmdlineWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]const u8) !void {
     if (try kstrdupQuotableCmdline(allocator, src)) |quoted| {
         allocator.free(quoted);
@@ -955,6 +969,29 @@ test "kstrdupQuotable reports allocation failure cleanly" {
         .{
             "phase7\nquote\"",
         },
+    );
+}
+
+test "kstrdupQuotableFile quotes already-materialized paths and falls back to unknown for missing files" {
+    const missing = try kstrdupQuotableFile(std.testing.allocator, null);
+    defer std.testing.allocator.free(missing);
+    try std.testing.expectEqualStrings("<unknown>", missing);
+
+    const source = [_]u8{ '/', 't', 'm', 'p', '/', 'f', 'o', 'o', '\n', '"', 0, 'x' };
+    const quoted = try kstrdupQuotableFile(std.testing.allocator, &source);
+    defer std.testing.allocator.free(quoted);
+    try std.testing.expectEqualStrings("/tmp/foo\\x0A\\x22", quoted);
+
+    const alias = try kstrdup_quotable_file(std.testing.allocator, "trace\\\"path");
+    defer std.testing.allocator.free(alias);
+    try std.testing.expectEqualStrings("trace\\x5C\\x22path", alias);
+}
+
+test "kstrdupQuotableFile reports allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupQuotableFileWithFailingAllocator,
+        .{"/tmp/phase7\nquote\""},
     );
 }
 
