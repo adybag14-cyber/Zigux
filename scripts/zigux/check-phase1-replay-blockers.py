@@ -151,6 +151,11 @@ def check_blockers(payload: object, issues: list[str]) -> None:
             "blockers:direct_anchor_helpers",
         )
         expect(
+            lane.get("rule_summary") == EXPECTED_RULE_SUMMARY,
+            issues,
+            "blockers:rule_summary",
+        )
+        expect(
             lane.get("anti_overlap_rule") == EXPECTED_ANTI_OVERLAP_RULE,
             issues,
             "blockers:anti_overlap_rule",
@@ -281,6 +286,7 @@ def good_blockers() -> dict[str, object]:
             "shared_replay_parked_helpers": list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS),
             "direct_anchor_followup_helper_count": len(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS),
             "direct_anchor_followup_helpers": list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS),
+            "rule_summary": EXPECTED_RULE_SUMMARY,
             "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
         },
         "replay": {
@@ -368,6 +374,13 @@ def run_self_test() -> int:
         if expect_failure("blockers_lane", blockers_lane_root) is not None:
             failed.append("blockers_lane")
 
+        blockers_rule_summary_root = build_root(base / "blockers_rule_summary")
+        payload = good_blockers()
+        payload["lane_sequencing"]["rule_summary"] = "Phase 1 helper follow-up can reopen anywhere after reread."
+        write_json(blockers_rule_summary_root / BLOCKERS_REL, payload)
+        if expect_failure("blockers_rule_summary", blockers_rule_summary_root) is not None:
+            failed.append("blockers_rule_summary")
+
         blockers_replay_root = build_root(base / "blockers_replay")
         payload = good_blockers()
         payload["replay"]["blockers"][0]["actual"] = True
@@ -403,7 +416,7 @@ def run_self_test() -> int:
         return 1
 
     print("PHASE1_REPLAY_BLOCKERS_SELF_TEST=pass")
-    print("PHASE1_REPLAY_BLOCKERS_SELF_TEST_CASE_COUNT=11")
+    print("PHASE1_REPLAY_BLOCKERS_SELF_TEST_CASE_COUNT=12")
     print(
         "PHASE1_REPLAY_BLOCKERS_SELF_TEST_CASES="
         + ",".join(
@@ -415,6 +428,7 @@ def run_self_test() -> int:
                 "blockers_missing",
                 "blockers_status",
                 "blockers_lane",
+                "blockers_rule_summary",
                 "blockers_replay",
                 "blockers_replay_evidence",
                 "blockers_c_harness",
