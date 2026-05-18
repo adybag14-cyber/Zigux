@@ -47,6 +47,13 @@
     "the blocker disposition being challenged",
     "the narrower seam or policy change that makes the new review safe to consider"
   ],
+  "decision_record_template_required_markers": [
+    "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
+    "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
+    "exact-head provenance exception note:",
+    "Prefer the dated master readback form for parked governance and stay-in-C review packets.",
+    "Only record an exact head when the linked review needs it to anchor a named published decision"
+  ],
   "handoff_required_markers": [
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/README.md`",
