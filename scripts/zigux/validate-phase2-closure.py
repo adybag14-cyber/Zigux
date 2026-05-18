@@ -238,6 +238,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if resolve_manifest_relpath(root, relpath).exists():
             issues.append(("MISSING_FILE_PRESENT_IN_TREE", relpath))
     for relpath in master_present_branch_missing_files:
+        if relpath in present_set:
+            issues.append(("MASTER_PRESENT_PATH_MARKED_PRESENT", relpath))
         if resolve_manifest_relpath(root, relpath).exists():
             issues.append(("MASTER_BRANCH_MISSING_FILE_PRESENT_IN_TREE", relpath))
         if relpath not in missing_set:
@@ -405,7 +407,10 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=["scripts/zigux/check-phase2-toolchain-pin-scope.py"]))
-        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in collect_issues(root)
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
+        assert ("MASTER_PRESENT_PATH_MARKED_PRESENT", "scripts/zigux/check-phase2-toolchain-pin-scope.py") in issues
+        assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", "scripts/zigux/check-phase2-toolchain-pin-scope.py") in issues
         checks_run += 1
 
         build_self_test_root(root)
