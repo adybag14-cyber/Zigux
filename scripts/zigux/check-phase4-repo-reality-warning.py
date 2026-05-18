@@ -40,7 +40,7 @@ REMAINING_GAP_PACKET = (
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 12
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16
 EXPECTED_PIN_SELF_TEST_CASES = 8
 PERF_CHECKER_MARKER = (
     "Current direct-readback dedicated local-only perf checker: "
@@ -59,8 +59,25 @@ NOTE_REQ = (
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here",
     PERF_CHECKER_MARKER,
+)
+
+README_PHASE4_REQ = (
+    "current direct-readback Phase 4 rollback packet:",
+    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
+    "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
+    "roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
+    "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
+)
+
+CHECKLIST_PHASE4_REQ = (
+    "if the change touches the shared Phase 4 rollback-ownership and lab-matrix packet, do `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase4-repo-reality-warning.py` and `scripts/zigux/check-phase4-reversible-delivery-pins.py` still agree on the current direct-readback packet",
+    "keep the directly readable local-only perf packet explicit",
+    "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
+    "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
+    "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
+    "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval?",
 )
 
 
@@ -117,6 +134,8 @@ def _require_direct_packet(root: Path) -> None:
 def check(root: Path) -> None:
     note = read(root, NOTE)
     require(note, NOTE_REQ + DIRECT_READBACK_PACKET + RECOVERED_NOTE_PACKET + REMAINING_GAP_PACKET, "phase4 note")
+    require(read(root, README), README_PHASE4_REQ, "phase4 tests readme")
+    require(read(root, CHECKLIST), CHECKLIST_PHASE4_REQ, "phase4 review checklist")
     require_exact_self_test_count(
         note,
         "phase4 note",
@@ -142,26 +161,47 @@ def baseline_note() -> str:
         f"Current direct-readback packet members: {direct_packet}.",
         f"Current direct-readback dedicated local-only perf checker: `{PERF_BASELINE_CHECKER.as_posix()}`.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` on current `master`.",
-        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here.",
+        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here.",
         f"The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run: authenticated contents reads returned missing for {gap_packet}.",
         "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff.",
         "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up.",
         "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`.",
         "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence.",
         "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-        "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12`",
+        "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`",
         "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8`",
     ]) + "\n"
 
 
-def baseline_placeholder(title: str) -> str:
-    return f"# {title}\n"
+def baseline_tests_readme() -> str:
+    return "\n".join([
+        "# zigux/tests",
+        "",
+        "  * current direct-readback Phase 4 rollback packet:",
+        "    `Documentation/zigux/phase4-reversible-delivery-evidence.md`",
+        "    `Documentation/zigux/review-checklist.md`",
+        "    `zigux/tests/README.md`",
+        "    `scripts/zigux/check-phase4-repo-reality-warning.py`",
+        "    `scripts/zigux/check-phase4-reversible-delivery-pins.py`",
+        "  * Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
+        "  * Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
+        "  * roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
+        "  * current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
+    ]) + "\n"
+
+
+def baseline_checklist() -> str:
+    return "\n".join([
+        "# Zigux Review Checklist",
+        "",
+        "  * if the change touches the shared Phase 4 rollback-ownership and lab-matrix packet, do `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase4-repo-reality-warning.py` and `scripts/zigux/check-phase4-reversible-delivery-pins.py` still agree on the current direct-readback packet, keep the directly readable local-only perf packet explicit, keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence, keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion, keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call, and keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval?",
+    ]) + "\n"
 
 
 def build_baseline_tree(root: Path) -> None:
     write(root, NOTE, baseline_note())
-    write(root, README, baseline_placeholder("zigux/tests"))
-    write(root, CHECKLIST, baseline_placeholder("Zigux Review Checklist"))
+    write(root, README, baseline_tests_readme())
+    write(root, CHECKLIST, baseline_checklist())
     write(root, SELF, "# repo-reality warning checker placeholder\n")
     write(root, PINS, "# reversible-delivery pin checker placeholder\n")
     write(root, PERF_BASELINE_CHECKER, "# direct-readback perf checker placeholder\n")
@@ -253,8 +293,8 @@ def main() -> int:
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12`",
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=15`",
                 ),
                 encoding="utf-8",
             )
@@ -338,6 +378,70 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected atomic64 direct-readback wording drift to fail")
+
+            build_baseline_tree(root)
+            readme_path = root / README
+            readme_path.write_text(
+                readme_path.read_text(encoding="utf-8").replace(
+                    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
+                    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet-drift.py`",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected tests-readme perf-checker drift to fail")
+
+            build_baseline_tree(root)
+            readme_path = root / README
+            readme_path.write_text(
+                readme_path.read_text(encoding="utf-8").replace(
+                    "roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
+                    "roadmap-backed Phase 4 differential-gate destinations are no longer direct current-head evidence",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected tests-readme atomic64 marker drift to fail")
+
+            build_baseline_tree(root)
+            checklist_path = root / CHECKLIST
+            checklist_path.write_text(
+                checklist_path.read_text(encoding="utf-8").replace(
+                    "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
+                    "keep the ABI and Runtime Team as the decision owner for any broader shared-CI perf promotion",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected checklist decision-owner drift to fail")
+
+            build_baseline_tree(root)
+            checklist_path = root / CHECKLIST
+            checklist_path.write_text(
+                checklist_path.read_text(encoding="utf-8").replace(
+                    "still agree on the current direct-readback packet",
+                    "still agree on the current historical packet",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected checklist direct-readback drift to fail")
 
         print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
         print(f"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES={cases}")
