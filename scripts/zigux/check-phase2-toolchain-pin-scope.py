@@ -24,6 +24,7 @@ DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`make -C zigux phase2-validate`",
@@ -35,6 +36,7 @@ DOCS_ROOT_MARKERS = (
 REVIEW_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
@@ -48,6 +50,7 @@ REVIEW_MARKERS = (
 TESTS_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "pinned `x86_64-linux` bootstrap archive note",
     "repo-local `.zig-toolchain` fallback reused",
