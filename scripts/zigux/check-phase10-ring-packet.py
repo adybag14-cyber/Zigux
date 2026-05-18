@@ -17,6 +17,7 @@ CURRENT_RING_PACKET_FILES = [
     "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_build.zig",
@@ -37,16 +38,25 @@ MARKERS = {
         "the ring lane still stays below transport-backed work: the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
+        "current packet lane on master: `P10-L05`",
+        "adjacent freeze-boundary owner: `P10-L11`",
         "drivers/virtio/virtio_ring_verify.zig",
         "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
         "while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing.",
         "Keep the queue-local ring helper ladder, the wrapper-facing verify replay, and the focused replays framed as direct current-head evidence",
         "the remaining direct ring gap is the dedicated survey replay",
+        "the smallest same-lane follow-through is validation-only: keep this companion note exact-checked by `scripts/zigux/check-phase10-ring-packet.py` so owner-lane drift or stale direct-readback claims fail closed",
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
         "Fresh direct readback on current `master` now materializes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still do not materialize through direct contents readback.",
         "The shared ring packet therefore keeps the restored helper, the wrapper-facing verify replay, and the focused replays as current direct evidence",
         "while the dedicated survey gate remains the only direct ring packet gap in this slice.",
+    ],
+    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
+        "directly re-readable ring packet anchors:",
+        "`Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`",
+        "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
+        "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
     ],
     "drivers/virtio/virtio_ring.zig": [
         "pub fn defineQueue(",
@@ -97,6 +107,7 @@ MARKERS = {
         '"forbidden_transport_claims": [',
         '"architecture_council_reopen_required": true',
         '"architecture_council_reopen_attached": false',
+        '"freeze_boundary_owner_lane": "P10-L11"',
     ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
         'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
@@ -217,6 +228,14 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "current packet lane on master: `P10-L05`",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "adjacent freeze-boundary owner: `P10-L11`",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
             "drivers/virtio/virtio_ring_verify.zig",
         )
         expect_missing_marker(
@@ -232,6 +251,10 @@ def run_self_test() -> int:
             "the remaining direct ring gap is the dedicated survey replay",
         )
         expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "the smallest same-lane follow-through is validation-only: keep this companion note exact-checked by `scripts/zigux/check-phase10-ring-packet.py` so owner-lane drift or stale direct-readback claims fail closed",
+        )
+        expect_missing_marker(
             "Documentation/zigux/phase10-virtio-ring-slice.md",
             "Fresh direct readback on current `master` now materializes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still do not materialize through direct contents readback.",
         )
@@ -242,6 +265,22 @@ def run_self_test() -> int:
         expect_missing_marker(
             "Documentation/zigux/phase10-virtio-ring-slice.md",
             "while the dedicated survey gate remains the only direct ring packet gap in this slice.",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "directly re-readable ring packet anchors:",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "`Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+            "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
         )
         expect_missing_marker(
             "drivers/virtio/virtio_ring.zig",
@@ -328,6 +367,14 @@ def run_self_test() -> int:
             '"architecture_council_reopen_attached": false',
         )
         expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"lane_key": "P10-L05"',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"freeze_boundary_owner_lane": "P10-L11"',
+        )
+        expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
             'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
         )
@@ -405,10 +452,6 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_manifest.json",
-            '"lane_key": "P10-L05"',
-        )
-        expect_missing_marker(
-            "zigux/tests/phase10_virtio_ring_manifest.json",
             '"status": "repo_reality_gap"',
         )
         expect_missing_marker(
@@ -418,6 +461,7 @@ def run_self_test() -> int:
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-survey.md")
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md")
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-slice.md")
+        expect_missing_file("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
         expect_missing_file("drivers/virtio/virtio_ring.zig")
         expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
