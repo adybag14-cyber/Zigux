@@ -78,6 +78,21 @@ Keep those shared surfaces honest about the restored direct kretprobe packet, th
 
 For `kfifo`, follow the restored direct packet through `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`.
 
+Keep the current ten-cue review contract explicit in shared contributor guidance when a bytestream reminder surface is refreshed:
+
+* `bounded_fifo_order`
+* `wraparound_requeue`
+* `peek_and_skip`
+* `non_destructive_snapshot`
+* `preview_truncation`
+* `remaining_capacity`
+* `queue_shape_boundaries`
+* `helper_boundaries`
+* `reset_and_replay`
+* `ownership_and_lifetime`
+
+Use the direct packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
+
 Keep the current split explicit too:
 
 * `Documentation/zigux/phase5-kfifo-sample-survey.md`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence or repo-reality gaps until a fresh reread proves direct authenticated proof again
