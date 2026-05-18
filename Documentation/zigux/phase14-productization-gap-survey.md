@@ -29,7 +29,7 @@ The roadmap also keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in 
 
 ## Current Direct-Readback Evidence
 
-Fresh GitHub contents reads on 2026-05-18 now recover a broader Phase 14 documentation packet on current `master` than this note recorded on 2026-05-17, and the current lane can also recover two adjacent non-doc surfaces through mixed read modes.
+Fresh GitHub contents reads on 2026-05-18 now recover a broader Phase 14 documentation packet on current `master` than this note recorded on 2026-05-17, and the current lane can also recover three adjacent non-doc surfaces through mixed read modes.
 
 The current directly readable or recoverable Phase 14 summary and companion surfaces are:
 
@@ -46,14 +46,19 @@ The current directly readable or recoverable Phase 14 summary and companion surf
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `zigux/Makefile` through the current contents path
 - `scripts/zigux/validate-phase14.py` through pinned blob readback
+- `kernel/workqueue_bridge.zig`
+- `zigux/tests/phase14_workqueue_bridge.zig`
+- `zigux/tests/phase14_workqueue_reviewability.zig`
+- `zigux/tests/phase14_workqueue_bridge_manifest.json`
 
 That means the current productization gap is no longer a docs-level absence of the shared smoke packet.
 Current `master` does expose the shared smoke note, the cross-anchor traceability note, the release-boundary note, the freeze map, and the shared gap notes through the exact contents path available in this lane.
 
-It also now matters that the two non-doc companions split in different ways:
+It also now matters that the three non-doc companion layers split in different ways:
 
 - `zigux/Makefile` is readable again on current `master`, but its live body currently exposes only the Phase 2 toolchain and kbuild routes and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
 - `scripts/zigux/validate-phase14.py` is still not returned by the same path-based contents bridge, but it is recoverable again through pinned blob readback and now carries a real shared-smoke validator surface rather than the older placeholder-only body
+- `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` are directly readable again as the workqueue-local reviewability shard, so this productization note should keep that study-only foothold explicit instead of leaving part of it in the missing executable layer
 
 ## Current Readback Gaps
 
@@ -63,26 +68,25 @@ Direct GitHub contents reads in this lane still return missing-path results for 
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
-- `zigux/tests/phase14_workqueue_bridge.zig`
 - `zigux/tests/phase14_skbuff_bridge.zig`
 - `zigux/tests/phase14_ring_buffer_survey.zig`
 - `zigux/tests/phase14_rcu_tree_survey.zig`
 - `net/core/skbuff_bridge.zig`
 
 This means the current productization gap is narrower and more specific than the older note claimed.
-The remaining drift is the split between the directly readable shared-smoke documentation surfaces, the blob-readable validator body, the readable-but-Phase-2-only Makefile body, and the still-unrecovered executable survey, manifest, checker, and bridge layer beneath them.
+The remaining drift is the split between the directly readable shared-smoke documentation surfaces, the blob-readable validator body, the readable-but-Phase-2-only Makefile body, the directly readable workqueue reviewability shard, and the still-unrecovered executable survey, manifest, checker, and skbuff-side bridge layer beneath them.
 
 ## Product Judgment
 
 Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.
 
 Given current repo readback, the next honest delivery move is no longer the older validator-local exact-line handoff.
-The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the blob-readable validator surface, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.
+The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the blob-readable validator surface, the directly readable workqueue reviewability shard, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.
 
-Reviewers should therefore treat the shared smoke documentation packet as directly readable current evidence again, treat `scripts/zigux/validate-phase14.py` as blob-readable mixed-source evidence rather than a missing file, and still treat the executable checker, build, manifest, survey, and bridge companions above as repo-reality gaps until they return through the same exact contents path.
+Reviewers should therefore treat the shared smoke documentation packet as directly readable current evidence again, treat `scripts/zigux/validate-phase14.py` as blob-readable mixed-source evidence rather than a missing file, keep the workqueue-local reviewability shard explicit as returned study-only evidence, and still treat the executable checker, build, manifest, survey, and skbuff bridge companions above as repo-reality gaps until they return through the same exact contents path.
 
 ## Recommended Next Bounded Step
 
-Stay in the same core-adjacent lane and tighten the remaining shared reminder surfaces that still lag behind this 2026-05-18 readback split.
+Stay in the same core-adjacent lane and keep the surviving shared reminder packet aligned around this 2026-05-18 readback split.
 
-The smallest honest follow-up is to reread `zigux/tests/README.md` against `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, and the readable current `zigux/Makefile` body, then add or tighten the tests-root Phase 14 reminder so it points at the recovered study-only packet without presenting the current Makefile as if it still ships `phase14-*` routes.
+The next honest follow-up is no longer another tests-root reminder rewrite unless a fresh reread finds drift there again. Instead, re-evaluate the smallest same-lane surface only if one of the current reminder notes stops keeping the recovered documentation packet, the blob-readable validator surface, the directly readable workqueue reviewability shard, and the readable-but-Phase-2-only Makefile posture aligned, or if the missing executable packet members above return through exact current-`master` readback.
