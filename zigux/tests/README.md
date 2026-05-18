@@ -23,6 +23,98 @@ Key entrypoints
   * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
   * repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, and `zigux/Makefile`
   * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`
+  * current direct-readback Phase 2 kconfig bridge packet:
+    `Documentation/zigux/review-checklist.md`
+    `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+    `scripts/zigux/kconfig/conf_bridge.zig`
+    `scripts/zigux/kconfig/confdata_bridge.zig`
+    `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
+    `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
+  * current shared Phase 2 kconfig route: `make -C zigux phase2-kconfig`
+  * Phase 2 review packet:
+    `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
+    `Documentation/zigux/phase2-closure.md`
+    `Documentation/zigux/review-checklist.md`
+    `scripts/zigux/README.md`
+    `scripts/zigux/validate-phase2.py`
+    `scripts/zigux/check-zig-toolchain.py`
+    `scripts/zigux/check-phase2-kbuild-routes.py`
+    `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+    `scripts/zigux/check-phase2-tests-readme-alignment.py`
+    `scripts/zigux/check-phase2-cross-selftest-alignment.py`
+    `scripts/zigux/check-phase2-toolchain-pinning.py`
+    `scripts/zigux/check-phase2-toolchain-pin-scope.py`
+    `scripts/zigux/check-phase2-docs-shared-reminder.py`
+    `scripts/zigux/check-phase2-required-make-routes.py`
+    `python3 scripts/zigux/check-zig-toolchain.py --self-test`
+    `scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
+    `scripts/zigux/kconfig/conf_bridge.zig`
+    `scripts/zigux/kconfig/confdata_bridge.zig`
+    `zigux/Makefile`
+    `zigux/tests/fixtures/phase2_tool_manifest.json`
+    `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
+    `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
+    `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
+    `make -C zigux phase2-kconfig`
+    `make -C zigux phase2-cross`
+    `zigux/tests/fixtures/kconfig_bridge/cases.json`
+  * the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster
+  * keep the pinned `x86_64-linux` bootstrap archive note and repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet
+  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep those older validator-first, installer, and direct cross-route names framed as historical packet members rather than direct tests-root evidence
+  * keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
+  * current direct-readback Phase 3 shared interop packet:
+    `Documentation/zigux/phase3-abi-slice.md`
+    `Documentation/zigux/phase3-errptr-xarray-slice.md`
+    `Documentation/zigux/phase3-policy-slice.md`
+    `Documentation/zigux/phase3-validator-support-surface.md`
+    `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
+    `include/linux/zigux.h`
+    `include/zigux/dev_t.h`
+    `include/zigux/abi.h`
+    `zigux/uapi/version.zig`
+    `zigux/uapi/dev_t.zig`
+    `zigux/bindings/dev_t.zig`
+    `zigux/bindings/version.zig`
+    `zigux/bindings/abi.zig`
+    `zigux/bindings/notifier_abi.zig`
+    `zigux/kernel/export_shim.zig`
+    `zigux/helpers/err_ptr.zig`
+    `zigux/helpers/xa_value.zig`
+    `zigux/helpers/xarray_slot_view.zig`
+    `zigux/helpers/panic_policy.zig`
+    `zigux/helpers/allocator_policy.zig`
+    `zigux/helpers/unsafe_policy.zig`
+    `zigux/helpers/atomic.zig`
+    `zigux/helpers/barrier.zig`
+    `zigux/helpers/mmio.zig`
+    `zigux/unsafe/narrow.zig`
+    `zigux/tests/phase3_dev_t_starter_packet.zig`
+    `zigux/tests/phase3_dev_t_starter_packet_build.zig`
+    `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
+    `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
+    `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
+    `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
+    `zigux/tests/phase3_errptr_xarray_dump.zig`
+    `zigux/tests/phase3_errptr_xarray_dump_build.zig`
+    `zigux/tests/fixtures/phase3_errptr_xarray_manifest.json`
+    `zigux/tests/phase3_xarray_slot_starter_packet.zig`
+    `zigux/tests/phase3_policy_starter_packet.zig`
+    `zigux/tests/phase3_policy_starter_packet_build.zig`
+    `zigux/tests/phase3_policy_starter_packet_manifest.json`
+    `zigux/tests/phase3_low_level_wrappers.zig`
+    `zigux/tests/phase3_low_level_wrappers_build.zig`
+    `zigux/tests/phase3_export_uapi_layout.zig`
+    `zigux/tests/phase3_export_uapi_layout_build.zig`
+    `scripts/zigux/check-phase3-dev-t-starter-packet.py`
+    `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+    `scripts/zigux/check-phase3-errptr-xarray.py`
+    `scripts/zigux/check-phase3-policy-starter-packet.py`
+    `scripts/zigux/check-phase3-shared-tests-routes.py`
+    `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+  * current shared Phase 3 interop routes: `zig build phase3-errptr-xarray-starter-packet --build-file zigux/tests/build.zig`, `zig build phase3-errptr-xarray-dump --build-file zigux/tests/phase3_errptr_xarray_dump_build.zig`, `zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig`, `zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`, and `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
+  * keep the focused Phase 3 tests-root reminder bounded to the current `dev_t` starter packet, the landed `err_ptr` / `xarray` starter and dump packet, the shared `xarray_slot` starter packet, the focused policy slice, the low-level-wrapper reminder packet, and the returned notifier-binding plus focused export/UAPI layout replay pair instead of presenting the broader validator, export/UAPI layout, catalog, IDR, or IDA packet as shipped tests-root evidence
+  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/phase3_catalog.py`, `scripts/zigux/validate-phase3.py`, and `zigux/tests/fixtures/phase3_abi_manifest.json`, so keep those broader export/UAPI survey, catalog, shared validator, and manifest-root routes framed as repo-reality gaps rather than direct tests-root evidence
+  * keep the returned notifier-binding and focused export/UAPI layout replay pair explicit here instead of leaving `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/phase3_export_uapi_layout_build.zig` framed as broader repo-reality gaps
   * roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`
   * current direct-readback Phase 4 rollback packet:
     `Documentation/zigux/phase4-reversible-delivery-evidence.md`
