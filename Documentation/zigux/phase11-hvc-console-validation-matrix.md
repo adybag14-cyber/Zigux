@@ -5,113 +5,99 @@ This document records the bounded current-head validation matrix for the Zigux
 
 ## Status
 
-- `PHASE11_HVC_CONSOLE_STATUS=driver_anchor_returned_current_head_compile_verified`
-- lane: `P11-L15`
+- `PHASE11_HVC_CONSOLE_STATUS=public_readback_packet_truthful`
+- lane: `P11-L17`
 - reviewed against live `master`
 - archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
-- scope: keep the returned `hvc_console` driver anchor and the surviving HVC
-  packet truthful without widening into live tty registration, notifier callback
-  execution, khvcd worker execution, live sysrq dispatch, or host-backed
-  teardown
-- current direct-readback packet in this lane:
+- scope: keep the current HVC console validation and teardown packet truthful
+  without widening into live tty registration, notifier callback execution,
+  khvcd worker execution, live sysrq dispatch, or host-backed teardown
+- current public-readback packet in this lane:
   - `drivers/tty/hvc/hvc_console.zig`
-  - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+  - `drivers/tty/hvc/hvc_console_verify.zig`
+  - `drivers/tty/hvc/hvc_console_sysrq.zig`
+  - `zigux/tests/phase11_hvc_console.zig`
+  - `zigux/tests/phase11_hvc_cleanup.zig`
+  - `zigux/tests/phase11_hvc_console_survey.zig`
+  - `zigux/tests/phase11_hvc_console_manifest.json`
+  - `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
   - `Documentation/zigux/phase11-hvc-console-survey.md`
-- attached-toolchain replay for this lane now succeeds on the returned direct
-  driver anchor through `zig test drivers/tty/hvc/hvc_console.zig` replayed from
-  current-head readback, with all 23 bundled driver tests passing in scratch
-- current direct contents reads in this lane still do not rematerialize
-  `drivers/tty/hvc/hvc_console_verify.zig`,
-  `drivers/tty/hvc/hvc_console_sysrq.zig`,
-  `zigux/tests/phase11_hvc_console.zig`,
-  `zigux/tests/phase11_hvc_cleanup.zig`,
-  `zigux/tests/phase11_hvc_console_survey.zig`,
-  `zigux/tests/phase11_hvc_console_manifest.json`,
-  `zigux/tests/phase11_hvc_console_modem_control_split.zig`,
-  `zigux/tests/phase11_hvc_console_poll_retry_split.zig`,
-  `Documentation/zigux/phase11-hvc-console-slice.md`,
-  `Documentation/zigux/phase11-hvc-console-teardown-note.md`,
-  `Documentation/zigux/phase11-shared-replay-contract.md`,
-  `scripts/zigux/check-phase11-hvc-survey-packet.py`, and
-  `make -C zigux phase11-hvc-survey`, so keep those paths framed as same-lane
-  archival vocabulary or repo-reality gaps until a future reread proves they
-  returned
-- current `master` still does materialize `zigux/Makefile`, but its live body
-  does not expose a dedicated Phase 11 build or survey route, so keep the
-  returned file distinct from the still-missing Phase 11 route names
+  - `Documentation/zigux/phase11-hvc-console-slice.md`
+  - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
+  - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+  - `scripts/zigux/check-phase11-hvc-survey-packet.py`
+- the GitHub contents API still returned flaky `404` reads for several of those
+  same paths in this run, so this matrix now prefers direct public file-page
+  readback before treating the HVC packet as missing
+- current public readback did not stably confirm
+  `zigux/tests/phase11_hvc_console_modem_control_split.zig`, and `zigux/Makefile`
+  still exposes no dedicated `make -C zigux phase11-hvc-survey` route, so keep
+  those claims bounded until a future reread reconfirms them
 
 ## Why This Exists
 
-The bounded Phase 11 HVC lane still needs one reviewable matrix note, but that
-note now has to match a split current-head reality: the direct `hvc_console`
-driver anchor has returned and compiles cleanly in a narrowed attached-toolchain
-replay, while the broader starter-depth companion packet and dedicated survey
-route still do not rematerialize through this lane's current contents reads.
+The Phase 11 roadmap still keeps `drivers/tty/hvc/hvc_console.c` in the simple
+production-driver tranche where teardown parity and failure-mode reviewability
+should deepen before any live execution claims.
 
-This matrix therefore records current-head truthfulness for the returned driver
-anchor plus the surviving HVC reminder surfaces, instead of collapsing back to
-either the older fully returned starter-depth packet or the later proof-only
-packet that treated the direct driver itself as missing.
+This matrix therefore keeps the current HVC console packet truthful in the face
+of readback drift: public GitHub file pages show the starter, helper, survey,
+manifest, focused tests, teardown note, and checker on `master`, while the
+contents API used by some earlier lane reads still reports flaky `404`s for a
+subset of those same files.
 
 ## Current-Head Matrix
 
 | lane surface | current evidence | bounded gate today | next bounded follow-up | out of scope for now |
 | --- | --- | --- | --- | --- |
-| direct driver compile replay | `drivers/tty/hvc/hvc_console.zig` now rematerializes on current `master`, and the returned driver still carries reviewable summaries for final-close teardown ownership, cleanup-time tty-port ownership, wakeup cues, targetless notifier edges, notifier IRQ helper behavior, modem-control helper behavior, and the broader bounded HVC handoff surface | attached Zig replay of the returned driver anchor keeps the same bounded direct-driver packet compile-valid with all 23 bundled tests passing in scratch | if another same-lane drift appears, start from the returned driver anchor and keep the follow-through to one driver-local compile or truthfulness repair only | live tty registration, notifier callback execution, khvcd worker execution, live sysrq dispatch, host-backed cleanup, and hardware-backed teardown |
-| shared survey and matrix posture | `Documentation/zigux/phase11-hvc-console-survey.md` and `Documentation/zigux/phase11-hvc-console-validation-matrix.md` still rematerialize on current `master`, so the HVC lane keeps one direct survey surface and one direct matrix surface beside the returned driver anchor | this matrix and the surviving survey note keep the returned direct driver anchor separate from the still-missing companion replay packet and route names | refresh the survey and matrix together if a future reread changes which same-lane anchors rematerialize | using the returned survey and matrix to overclaim broader replay or execution parity |
-| starter-depth companion packet | the broader same-lane companion family still does not rematerialize in this lane through current contents reads: verify helper, sysrq helper, focused replay files, survey gate, manifest, split replays, teardown note, shared replay contract, dedicated checker, and dedicated survey route remain archival vocabulary or repo-reality gaps | keep the returned driver anchor explicit without treating the missing companion packet as back on current head | if direct rereads rematerialize one or more missing companion anchors, refresh this matrix and the coupled survey note in one bounded pass | turning historical packet membership into current-head proof without fresh readback |
-| shared route boundary | `zigux/Makefile` is readable again on current `master`, but its body still exposes no dedicated Phase 11 route, so the returned file must stay distinct from missing names such as `make -C zigux phase11-hvc-survey` or any broader Phase 11 build handle | the survey note and contributor-facing reminders keep returned files distinct from still-missing Phase 11 route names | keep broad reminders aligned with the returned Makefile posture until a future reread proves a dedicated Phase 11 route returned | reviving missing Phase 11 routes from historical wording alone |
+| starter and helper packet | public readback confirms `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`, and `drivers/tty/hvc/hvc_console_sysrq.zig` are present on current `master` | keep the matrix, survey note, slice note, teardown note, and checker aligned with the publicly readable starter packet instead of downgrading those files to missing | if a future reread shows one of those starter files disappearing again, refresh the matrix and the coupled survey surfaces together in one bounded pass | live tty registration, notifier callback execution, khvcd worker execution, live sysrq dispatch, and host-backed teardown |
+| focused teardown and replay packet | public readback confirms `zigux/tests/phase11_hvc_console.zig`, `zigux/tests/phase11_hvc_cleanup.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, and `zigux/tests/phase11_hvc_console_poll_retry_split.zig` remain present beside the survey-backed packet | keep final-close teardown, poll-retry, cleanup, layout-proof, and survey-gate evidence explicit across the current packet without claiming broader runtime closure | recheck `zigux/tests/phase11_hvc_console_modem_control_split.zig` only if a later lane needs that exact same-lane split surface; otherwise leave the current packet parked | reconstructing a larger replay family or claiming end-to-end runtime parity from host-free tests alone |
+| failure-mode and teardown evidence | the current starter and manifest still keep close teardown, notifier-add outcome, khvcd polling and sleep handoff, hangup disconnect, remove handoff, header boundary, and cleanup ownership reviewable; the cleanup replay keeps tty-port release boundaries explicit; the verify helper remains present for targetless notifier and helper-local review surfaces | keep those handoffs named directly in the matrix instead of treating them as archival-only cues | if one new same-lane wording gap appears, keep the fix to one matrix or note clarification tied to one of those already-landed handoffs | widening into notifier delivery, live khvcd scheduling, or hardware-backed lifecycle claims |
+| survey checker and route boundary | public readback confirms `scripts/zigux/check-phase11-hvc-survey-packet.py` is present, while `zigux/Makefile` still shows no dedicated `make -C zigux phase11-hvc-survey` route | treat the checker as current-head evidence, but keep the dedicated make route absent until direct readback proves it exists | if the Makefile grows a dedicated HVC survey route later, refresh this matrix and the coupled docs together | reviving missing build-route claims from historical wording alone |
+| readback-drift handling | this run reproduced a real tooling split: the GitHub contents API returned `404` for several HVC paths that public GitHub file pages still show on `master` | when those sources disagree, cross-check with the public repo fallback before recording a packet shrink or repo-reality gap | keep future same-lane matrix updates explicit about which read path established the current evidence | treating one flaky contents read as enough proof to reopen or collapse the HVC packet |
 
 ## Failure-Mode Evidence
 
-- The returned direct driver anchor still keeps close-path ownership explicit
-  through `summarizeCloseTeardown()` with `close_wait_ownership` and keeps
-  cleanup-time tty-port ownership explicit through `summarizeCleanupHandoff()`.
-- The same returned driver anchor still keeps targetless notifier no-unregister
-  behavior, notifier IRQ helper boundaries, wakeup-cue visibility, and
-  modem-control helper boundaries reviewable without claiming live notifier or
-  host-backed execution.
-- The attached-toolchain scratch replay for the returned
-  `drivers/tty/hvc/hvc_console.zig` anchor now passes all 23 bundled driver
-  tests, so the direct driver anchor is current-head compile-verified even while
-  the broader companion packet remains missing in this lane.
-- The companion verify helper, sysrq helper, focused replay files, teardown
-  note, survey checker, and dedicated survey route remain same-lane archival
-  vocabulary or repo-reality gaps until direct rereads rematerialize them again.
+- `drivers/tty/hvc/hvc_console.zig` remains present and keeps CRLF framing,
+  flush intent, final-close teardown, tty-registration handoff, notifier-add
+  open handoff, khvcd polling-contract, khvcd worker-entry, khvcd
+  sleep-and-reschedule handoff, `__hvc_poll` drain-order, `hvc_hangup()`
+  disconnect, `hvc_remove()` handoff, and `hvc_cleanup()` tty-port release
+  summaries reviewable on current `master`.
+- `zigux/tests/phase11_hvc_cleanup.zig` remains present and keeps the
+  `hvc_cleanup()` tty-port release boundary explicit in a host-free replay.
+- `drivers/tty/hvc/hvc_console_verify.zig` remains present, so the matrix keeps
+  helper-local verification and targetless notifier review surfaces in the
+  current packet instead of downgrading them to archival-only vocabulary.
+- `drivers/tty/hvc/hvc_console_sysrq.zig` remains present, so the matrix can
+  keep bounded sysrq-handling support explicit without claiming live sysrq
+  dispatch.
+- `zigux/tests/phase11_hvc_console_manifest.json` still records the same-lane
+  starter, teardown, hangup, remove, header, layout, signature, and matrix
+  expectations, so use that manifest as the current packet inventory instead of
+  reconstructing the lane from stale missing-file assumptions.
+- The checker remains present, but the dedicated Makefile survey route does not,
+  so fail-closed survey evidence is current-head truth while the route claim
+  remains out of scope.
 
 ## Replay Posture
 
-- Treat `drivers/tty/hvc/hvc_console.zig`,
-  `Documentation/zigux/phase11-hvc-console-survey.md`, and
-  `Documentation/zigux/phase11-hvc-console-validation-matrix.md` as the truthful
-  current-head HVC packet that this lane can directly read today.
-- Treat the returned `hvc_console` driver anchor as compile-verified at bounded
-  starter depth through the attached Zig replay, not as proof that the broader
-  helper, replay, survey-gate, teardown-note, or route packet has returned.
-- Keep the companion verify, sysrq, replay, split, teardown-note, checker, and
-  dedicated route family framed as archival vocabulary or repo-reality gaps
-  until current direct reads recover them.
+- Treat the publicly readable starter, helper, survey, manifest, focused test,
+  teardown-note, matrix, and checker files as the truthful current-head HVC
+  packet for this lane.
+- Treat the contents-API `404` results from this run as flaky readback, not as
+  sufficient proof that the packet disappeared from `master`.
+- Keep `zigux/tests/phase11_hvc_console_modem_control_split.zig` bounded as
+  unconfirmed until a future reread verifies it directly.
 - Keep `zigux/Makefile` explicit only as the returned file; do not treat it as
-  proof that a dedicated Phase 11 HVC route has come back.
+  proof that a dedicated `phase11-hvc-survey` route exists.
 
 ## Review Rules
 
-- Do not claim `drivers/tty/hvc/hvc_console_verify.zig`,
-  `drivers/tty/hvc/hvc_console_sysrq.zig`,
-  `zigux/tests/phase11_hvc_console.zig`,
-  `zigux/tests/phase11_hvc_cleanup.zig`,
-  `zigux/tests/phase11_hvc_console_survey.zig`,
-  `zigux/tests/phase11_hvc_console_manifest.json`,
-  `zigux/tests/phase11_hvc_console_modem_control_split.zig`,
-  `zigux/tests/phase11_hvc_console_poll_retry_split.zig`,
-  `Documentation/zigux/phase11-hvc-console-slice.md`,
-  `Documentation/zigux/phase11-hvc-console-teardown-note.md`,
-  `Documentation/zigux/phase11-shared-replay-contract.md`,
-  `scripts/zigux/check-phase11-hvc-survey-packet.py`, or
-  `make -C zigux phase11-hvc-survey` as direct current-head evidence unless a
-  future reread proves they rematerialized.
-- If the returned direct driver anchor or the surviving survey-plus-matrix pair
-  changes, update those same-lane surfaces together in one bounded pass.
-- Do not widen this matrix into notifier callback execution, tty registration,
-  khvcd worker execution, live sysrq dispatch, host-backed teardown, or overall
-  Phase 11 closure claims.
+- Do not claim live notifier callback execution, tty registration, khvcd worker
+  execution, live sysrq dispatch, or host-backed teardown from this matrix.
+- If the publicly readable HVC packet changes, update the matrix together with
+  the coupled HVC survey note, slice note, teardown note, or checker in one
+  bounded pass.
+- When the GitHub contents API and the public repo disagree, cross-check with
+  the public repo fallback before recording a same-lane packet shrink.
