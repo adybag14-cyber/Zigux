@@ -97,7 +97,7 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
 
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-17", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-18", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try expectContains(manifest.surveyed_commit_mode_reason, "dated master-readback marker");
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
@@ -147,7 +147,8 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15-shared-summary-gap.md");
     try expectContains(manifest.maintenance_handoff.next_future_target, "validate-phase15.py");
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15_build.zig");
-    try expectContains(manifest.maintenance_handoff.next_future_target, "repo-reality gaps");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "zigux/Makefile");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "phase15 routes");
 
     const validator_gap = findGap(manifest.gaps, "phase15-shared-validator-route-readback") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("repo_reality_gap_confirmed", validator_gap.status);
@@ -162,7 +163,10 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     const wrapper_gap = findGap(manifest.gaps, "phase15-shared-wrapper-route-readback") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("repo_reality_gap_confirmed", wrapper_gap.status);
     try std.testing.expectEqualStrings("shared_route_gap", wrapper_gap.kind);
-    try expectContains(wrapper_gap.why_now, "not-found for zigux/Makefile");
+    try expectContains(wrapper_gap.why_now, "resolve zigux/Makefile");
+    try expectContains(wrapper_gap.why_now, "phase15-validate");
+    try expectContains(wrapper_gap.why_now, "phase15-test");
+    try expectContains(wrapper_gap.why_now, "phase15");
 }
 
 test "phase 15 freeze-map governance doc records the current blocker posture honestly" {
@@ -176,9 +180,10 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "PHASE15_LANE_KEY=P15-L04");
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(governance_note, "current-master-readback-2026-05-17");
+    try expectContains(governance_note, "current-master-readback-2026-05-18");
     try expectContains(governance_note, "shared reminder surfaces still carry as repo-reality gaps on current `master`");
-    try expectContains(governance_note, "direct current-master contents reads still return not-found");
+    try expectContains(governance_note, "direct current-master contents reads still return not-found for the broader Phase 15 validator-first and dedicated-build companion paths");
+    try expectContains(governance_note, "the current `zigux/Makefile` readback still carries no `phase15-validate`, `phase15-test`, or `phase15` targets");
     try expectContains(governance_note, "exact branch-head parity is not recorded");
     try expectContains(governance_note, "blocked_no_bounded_scheduler_seam");
     try expectContains(governance_note, "blocked_no_bounded_allocator_seam");
@@ -195,7 +200,8 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "check-phase15-shared-summary-gap.py");
     try expectContains(governance_note, "scripts/zigux/validate-phase15.py");
     try expectContains(governance_note, "zigux/tests/phase15_build.zig");
-    try expectContains(governance_note, "repo-reality gaps");
+    try expectContains(governance_note, "current-master contents reads now resolve `zigux/Makefile`");
+    try expectContains(governance_note, "those wrapper route names remain gap vocabulary rather than direct landed evidence");
     try expectContains(governance_note, "phase15-freeze-map-manifest");
     try expectContains(governance_note, "phase15-freeze-map-governance-gate");
     try expectContains(governance_note, "phase15-shared-validator-route-readback");
