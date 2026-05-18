@@ -413,3 +413,27 @@ test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers e
  try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_mergeable_buffer_refill") != null);
 
 }
+
+test "phase12 virtio net survey gate keeps transmit recycle helper and replay markers explicit" {
+
+ const helper = try readFileAlloc("drivers/net/virtio_net_transmit_recycle.zig", 16 * 1024);
+ defer std.testing.allocator.free(helper);
+
+ const replay = try readFileAlloc("zigux/tests/phase12_virtio_net_transmit_recycle.zig", 16 * 1024);
+ defer std.testing.allocator.free(replay);
+
+ try std.testing.expect(std.mem.indexOf(u8, helper, "pub const default_wake_threshold: u16 = 2;") != null);
+ try std.testing.expect(std.mem.indexOf(u8, helper, "pub const RecycleDisposition = enum") != null);
+ try std.testing.expect(std.mem.indexOf(u8, helper, "pub fn summarizeTransmitRecycle") != null);
+ try std.testing.expect(std.mem.indexOf(u8, helper, "return error.CompletedDescriptorOverflow;") != null);
+ try std.testing.expect(std.mem.indexOf(u8, helper, "error.QueueCountOverflow") != null);
+ try std.testing.expect(std.mem.indexOf(u8, helper, ".wake_queue") != null);
+ try std.testing.expect(std.mem.indexOf(u8, helper, ".keep_stopped") != null);
+ try std.testing.expect(std.mem.indexOf(u8, helper, ".keep_running") != null);
+
+ try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle summary stays anchored to virtio_net.c") != null);
+ try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle keeps a stopped queue parked below the wake threshold") != null);
+ try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle keeps running queues running even when recycle frees enough descriptors") != null);
+ try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle rejects impossible completion counts") != null);
+ try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle fails closed when the free-descriptor count would overflow") != null);
+}
