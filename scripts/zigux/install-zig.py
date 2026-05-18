@@ -222,6 +222,10 @@ def copy_url_to_file(
             return
         except TimeoutError as exc:
             last_error = exc
+        except urllib.error.HTTPError as exc:
+            if exc.code not in RETRYABLE_HTTP_STATUS_CODES:
+                raise
+            last_error = exc
         except urllib.error.URLError as exc:
             last_error = exc
         if attempt == retries:
@@ -467,6 +471,39 @@ def run_self_test() -> int:
             temp_path.unlink()
         temp_path.parent.rmdir()
 
+    retryable_http_headers: list[str | None] = []
+
+    def retryable_http_open_url(target: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
+        del retries, timeout
+        if isinstance(target, urllib.request.Request):
+            range_header = target.headers.get('Range')
+        else:
+            range_header = None
+        retryable_http_headers.append(range_header)
+        if len(retryable_http_headers) == 1:
+            raise urllib.error.HTTPError(
+                'https://example.invalid/archive.tar.xz',
+                503,
+                'service unavailable',
+                hdrs=None,
+                fp=None,
+            )
+        return FakeResponse([b'zigux'], status=200)
+
+    retryable_http_path = Path(tempfile.mkdtemp(prefix='zigux_install_zig_http_retry_')) / 'archive.tar.xz'
+    try:
+        shutil.which = lambda name: None if name == 'curl' else original_which(name)
+        globals()['open_url'] = retryable_http_open_url
+        copy_url_to_file('https://example.invalid/archive.tar.xz', retryable_http_path, retries=2, timeout=1.0)
+        assert retryable_http_path.read_bytes() == b'zigux'
+        assert retryable_http_headers == [None, None]
+    finally:
+        shutil.which = original_which
+        globals()['open_url'] = original_open_url
+        if retryable_http_path.exists():
+            retryable_http_path.unlink()
+        retryable_http_path.parent.rmdir()
+
     curl_commands: list[list[str]] = []
 
     def fake_run(cmd: list[str], *, check: bool) -> None:
@@ -546,7 +583,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=29')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=30')
     return 0
 
 
