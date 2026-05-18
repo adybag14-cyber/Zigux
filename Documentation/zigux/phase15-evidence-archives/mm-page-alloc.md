@@ -8,8 +8,8 @@ It is not Architecture Council approval and does not request a status change by 
 
 - `DECISION_RECORD_ID=phase15-mm-page-alloc-blocked-posture`
 - `PHASE=Phase 15`
-- `LANE_KEY=P15-L09`
-- `SURVEYED_COMMIT=current-master-readback-2026-05-17`
+- `LANE_KEY=P15-L03`
+- `SURVEYED_COMMIT=current-master-readback-2026-05-18`
 - `REVIEW_STATUS=blocked_review`
 - current Architecture Council status-change approval: `not_recorded`
 
