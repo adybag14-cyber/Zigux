@@ -6,34 +6,36 @@ import tempfile
 from pathlib import Path
 
 TESTS_README_PATH = Path("zigux/tests/README.md")
-FREEZE_MAP_PATH = Path("Documentation/zigux/freeze-map.md")
-REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
-FREEZE_GOVERNANCE_PATH = Path("Documentation/zigux/phase15-freeze-map-governance.md")
-REVIEW_PROCESS_NOTE_PATH = Path("Documentation/zigux/phase15-architecture-council-review-process.md")
-READINESS_PATH = Path("Documentation/zigux/phase15-readiness-gate-survey.md")
-HANDOFF_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
-STUDY_ONLY_ACCOUNTING_PATH = Path("Documentation/zigux/phase15-study-only-anchor-accounting.md")
-SHARED_GAP_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
-REVIEW_PROCESS_CHECKER_PATH = Path("scripts/zigux/check-phase15-review-process-handoff.py")
-SELF_PATH = Path("scripts/zigux/check-phase15-tests-readme-alignment.py")
-REVIEW_PROCESS_TEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process.zig")
-REVIEW_PROCESS_MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_manifest.json")
-READINESS_MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
 MAKEFILE_PATH = Path("zigux/Makefile")
+SELF_PATH = Path("scripts/zigux/check-phase15-tests-readme-alignment.py")
 
 DIRECT_PACKET_PATHS = (
     "Documentation/zigux/freeze-map.md",
-    "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "Documentation/zigux/phase15-study-only-anchor-accounting.md",
     "Documentation/zigux/phase15-shared-summary-gap.md",
-    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "scripts/zigux/check-phase15-docs-readme-alignment.py",
+    "scripts/zigux/check-phase15-scripts-readme-alignment.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
+    "scripts/zigux/check-phase15-readiness-gate-packet.py",
+    "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_parity_scorecard.zig",
+    "zigux/tests/phase15_indefinite_c_policy.json",
+    "zigux/tests/phase15_indefinite_c_policy.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
 )
 
@@ -45,13 +47,13 @@ BROADER_GAP_PATHS = (
 )
 
 REQUIRED_MARKERS = (
-    "Phase 15 review packet",
-    "no Architecture Council approval is currently recorded for a freeze-map status change",
-    "keep the four freeze-in-C anchors parked",
-    "keep the two roadmap study-only anchors parked",
-    "`python3 scripts/zigux/check-phase15-tests-readme-alignment.py --self-test`",
-    "`python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test`",
-    "although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than direct tests-root evidence",
+    "Phase 15 governance packet",
+    "Keep the current bounded Phase 15 governance reminder explicit through",
+    "Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.",
+    "Keep the directly readable tests-root Phase 15 governance packet explicit through",
+    "Current `master` still does not materialize `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, or `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, handoff-manifest, build-route, and lane-owner companions framed as repo-reality gaps rather than shipped tests-root evidence.",
+    "Although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names in the same blocked-route bucket until direct readback proves they have returned.",
+    "without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?",
 )
 
 
@@ -91,19 +93,25 @@ def collect_failures(root: Path) -> list[str]:
 
 
 def _sample_readme() -> str:
-    direct = "\n".join(f"  * `{rel}`" for rel in DIRECT_PACKET_PATHS)
-    broader = "\n".join(f"  * `{rel}`" for rel in BROADER_GAP_PATHS)
+    direct = "\n".join(f"- `{rel}`" for rel in DIRECT_PACKET_PATHS)
+    broader = "\n".join(f"- `{rel}`" for rel in BROADER_GAP_PATHS)
     return f"""# zigux/tests
 
-Phase 15 review packet
-  * current direct-readback Phase 15 governance packet:
+## Phase 15 governance packet
+
+Keep the current bounded Phase 15 governance reminder explicit through {", ".join(f"`{rel}`" for rel in DIRECT_PACKET_PATHS[:14])}, and `zigux/tests/README.md`.
+Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.
+
+Keep the directly readable tests-root Phase 15 governance packet explicit through:
 {direct}
-  * `python3 scripts/zigux/check-phase15-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test` replay the focused tests-root governance checks, while the live checker routes keep the shipped reminder packet honest without rebuilding the missing broader validator-first or build packet
-  * repeated authenticated contents reads on current `master` still return missing for:
+
+Current `master` still does not materialize `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, or `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, handoff-manifest, build-route, and lane-owner companions framed as repo-reality gaps rather than shipped tests-root evidence.
 {broader}
-  * although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than direct tests-root evidence
-  * keep the current Phase 15 tests-root reminder aligned with the directly materialized governance packet, including the dedicated Architecture Council review-process note and the study-only accounting note, instead of implying that the broader validator-first, handoff-manifest, build, lane-owner, or make-wrapper routes are already shipped on current `master`
-  * no Architecture Council approval is currently recorded for a freeze-map status change, keep the four freeze-in-C anchors parked, keep the two roadmap study-only anchors parked, and keep any future follow-through narrowed to the smallest reminder-surface repair first
+
+Although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names in the same blocked-route bucket until direct readback proves they have returned.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 15 reminder keep the freeze map, review process, decision-record template, indefinite-C policy, parity scorecard, readiness packet, handoff note, shared-summary gap note, directly readable Phase 15 Zig and manifest artifacts, and the shipped scripts-side checker set aligned on maintenance-mode truthfulness work without implying any Architecture Council approval for a freeze-map status change or a returned validator-first build packet?
 """
 
 
@@ -122,39 +130,55 @@ def run_self_test() -> int:
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
 
-        missing_marker_root = root / "missing_marker"
-        _seed(missing_marker_root)
+        missing_checker_root = root / "missing_checker"
+        _seed(missing_checker_root)
         _write(
-            missing_marker_root / TESTS_README_PATH,
-            _sample_readme().replace(
-                "  * `python3 scripts/zigux/check-phase15-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test` replay the focused tests-root governance checks, while the live checker routes keep the shipped reminder packet honest without rebuilding the missing broader validator-first or build packet\n",
-                "",
-                1,
-            ),
+            missing_checker_root / TESTS_README_PATH,
+            _sample_readme().replace("`scripts/zigux/check-phase15-readiness-gate-packet.py`", "", 1),
         )
-        failures = collect_failures(missing_marker_root)
+        failures = collect_failures(missing_checker_root)
         expected = [
-            "tests_readme:missing:`python3 scripts/zigux/check-phase15-tests-readme-alignment.py --self-test`",
-            "tests_readme:missing:`python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test`",
+            "tests_readme:missing:Keep `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` explicit as the shipped reminder guards so the tests-root summary stays in maintenance-mode truthfulness work instead of implying Architecture Council approval or direct deep-core port-readiness.",
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected missing-marker failure: {failures}")
+            raise AssertionError(f"unexpected missing-checker failure: {failures}")
 
         missing_direct_root = root / "missing_direct"
         _seed(missing_direct_root)
-        (missing_direct_root / REVIEW_PROCESS_TEST_PATH).unlink()
+        (missing_direct_root / "zigux/tests/phase15_parity_scorecard.zig").unlink()
         failures = collect_failures(missing_direct_root)
-        expected = ["repo:missing_direct_path:zigux/tests/phase15_architecture_council_review_process.zig"]
+        expected = ["repo:missing_direct_path:zigux/tests/phase15_parity_scorecard.zig"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-direct failure: {failures}")
 
+        missing_gap_root = root / "missing_gap"
+        _seed(missing_gap_root)
+        _write(
+            missing_gap_root / TESTS_README_PATH,
+            _sample_readme().replace("`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`", "", 1),
+        )
+        failures = collect_failures(missing_gap_root)
+        expected = [
+            "tests_readme:missing:Current `master` still does not materialize `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, or `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, handoff-manifest, build-route, and lane-owner companions framed as repo-reality gaps rather than shipped tests-root evidence.",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-gap failure: {failures}")
+
         returned_gap_root = root / "returned_gap"
         _seed(returned_gap_root)
-        (returned_gap_root / MAKEFILE_PATH).unlink()
+        _write(returned_gap_root / BROADER_GAP_PATHS[0], "present\n")
         failures = collect_failures(returned_gap_root)
-        expected = ["repo:missing_present_path:zigux/Makefile"]
+        expected = ["repo:gap_path_returned:scripts/zigux/validate-phase15.py"]
         if failures != expected:
             raise AssertionError(f"unexpected returned-gap failure: {failures}")
+
+        missing_makefile_root = root / "missing_makefile"
+        _seed(missing_makefile_root)
+        (missing_makefile_root / MAKEFILE_PATH).unlink()
+        failures = collect_failures(missing_makefile_root)
+        expected = ["repo:missing_present_path:zigux/Makefile"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-makefile failure: {failures}")
 
     print("PHASE15_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     return 0
