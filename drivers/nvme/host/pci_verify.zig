@@ -152,6 +152,75 @@ test "nvme pci recovery restore verifier keeps admin-first replay and mixed DMA 
     try testing.expect(restore.restores_io_after_admin);
 }
 
+test "nvme pci recovery rollback gate verifier keeps blocker transitions and DMA parity explicit" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(64, 64, false);
+    _ = try lab.planIoQueue(128, 64, false);
+
+    _ = lab.beginReset();
+    const frozen = lab.recoveryRollbackGateSummary();
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", frozen.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.reset_frozen, frozen.state);
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.reset_frozen, frozen.rollback_blocker);
+    try testing.expectEqual(@as(usize, 2), frozen.dropped_io_queue_count);
+    try testing.expectEqual(@as(u32, 5), frozen.dropped_io_host_dma_pages);
+    try testing.expect(!frozen.queue_count_parity_recovered);
+    try testing.expect(!frozen.host_dma_parity_recovered);
+    try testing.expect(!frozen.can_clear_rollback_gate);
+
+    _ = lab.completeReset();
+    const replay_blocked = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.admin_queue_replay, replay_blocked.rollback_blocker);
+    try testing.expect(replay_blocked.queue_numbering_restarted);
+    try testing.expectEqual(@as(usize, 2), replay_blocked.remaining_io_queue_count);
+    try testing.expectEqual(@as(u32, 5), replay_blocked.remaining_io_host_dma_pages);
+    try testing.expect(!replay_blocked.queue_count_parity_recovered);
+    try testing.expect(!replay_blocked.host_dma_parity_recovered);
+    try testing.expect(!replay_blocked.can_clear_rollback_gate);
+
+    _ = try lab.planAdminQueue(48, 64, false);
+    _ = try lab.planIoQueue(16, 64, true);
+    const queue_blocked = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.queue_count_parity, queue_blocked.rollback_blocker);
+    try testing.expect(queue_blocked.admin_queue_replayed_after_reset);
+    try testing.expectEqual(@as(usize, 1), queue_blocked.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 1), queue_blocked.remaining_io_queue_count);
+    try testing.expectEqual(@as(u32, 1), queue_blocked.rebuilt_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 4), queue_blocked.remaining_io_host_dma_pages);
+    try testing.expect(!queue_blocked.queue_count_parity_recovered);
+    try testing.expect(!queue_blocked.host_dma_parity_recovered);
+    try testing.expect(!queue_blocked.can_clear_rollback_gate);
+
+    _ = try lab.planIoQueue(32, 64, true);
+    const dma_blocked = lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.dma_page_parity, dma_blocked.rollback_blocker);
+    try testing.expectEqual(@as(usize, 2), dma_blocked.rebuilt_io_queue_count);
+    try testing.expectEqual(@as(usize, 0), dma_blocked.remaining_io_queue_count);
+    try testing.expectEqual(@as(u32, 2), dma_blocked.rebuilt_io_host_dma_pages);
+    try testing.expectEqual(@as(u32, 3), dma_blocked.remaining_io_host_dma_pages);
+    try testing.expect(dma_blocked.queue_count_parity_recovered);
+    try testing.expect(!dma_blocked.host_dma_parity_recovered);
+    try testing.expect(!dma_blocked.can_clear_rollback_gate);
+
+    var parity_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try parity_lab.planAdminQueue(48, 64, false);
+    _ = try parity_lab.planIoQueue(16, 64, false);
+    _ = try parity_lab.planIoQueue(32, 64, true);
+    _ = parity_lab.beginReset();
+    _ = parity_lab.completeReset();
+    _ = try parity_lab.planAdminQueue(48, 64, false);
+    _ = try parity_lab.planIoQueue(16, 64, false);
+    _ = try parity_lab.planIoQueue(32, 64, true);
+    const ready = parity_lab.recoveryRollbackGateSummary();
+    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.none, ready.rollback_blocker);
+    try testing.expect(ready.admin_queue_replayed_after_reset);
+    try testing.expect(ready.queue_count_parity_recovered);
+    try testing.expect(ready.host_dma_parity_recovered);
+    try testing.expect(ready.queue_numbering_restarted);
+    try testing.expect(ready.can_clear_rollback_gate);
+}
+
 test "nvme pci recovery reservation replay preflight stays non-mutating and controller-capped" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     _ = try lab.planAdminQueue(32, 64, false);
