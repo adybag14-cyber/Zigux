@@ -102,7 +102,7 @@ test "phase 7 rbtree survey keeps the surviving anchor scoped to rbtree only" {
     try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
     try expectContains(direct_anchor_note, "`zigux/tests/phase7_build.zig`");
     try expectContains(direct_anchor_note, "`string_helpers` stays the only directly readable full helper-local Phase 7 packet in this lane today");
-    try expectContains(direct_anchor_note, "`cmdline` stays reviewable through the parked Phase 1 helper packet");
+    try expectContains(direct_anchor_note, "`cmdline` stays reviewable through the returned Phase 7 helper-local foothold");
     try expectContains(direct_anchor_note, "`lib/argv_split.zig` is directly readable again on current `master`, but the dedicated Phase 7 `argv_split` slice, survey, manifest, and shared build-route packet still need a fresh same-lane reread or republish before they can count as a full helper-local review surface");
     try expectContains(direct_anchor_note, "do not present the broader `argv_split` review packet or the broader `rbtree` helper-local slice, checker, dedicated test, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`");
     try expectContains(direct_anchor_note, "Do not widen this note into broader validator, checker, fixture, or make-wrapper claims without a fresh same-lane reread of those sibling review surfaces.");
