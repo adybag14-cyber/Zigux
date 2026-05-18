@@ -216,6 +216,7 @@ Current directly readable packet:
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
+- `zigux/tests/phase15_parity_scorecard.json`
 - `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_indefinite_c_policy.json`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
@@ -265,6 +266,7 @@ def _sample_manifest() -> str:
                 "zigux/tests/phase15_architecture_council_review_process.zig",
                 "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
                 "zigux/tests/phase15_governance_lane_sequencing.zig",
+                "zigux/tests/phase15_parity_scorecard.json",
                 "zigux/tests/phase15_parity_scorecard.zig",
                 "zigux/tests/phase15_indefinite_c_policy.json",
                 "zigux/tests/phase15_indefinite_c_policy.zig",
@@ -330,6 +332,7 @@ def _seed_repo(root: Path) -> None:
         "zigux/tests/phase15_architecture_council_review_process.zig",
         "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
         "zigux/tests/phase15_governance_lane_sequencing.zig",
+        "zigux/tests/phase15_parity_scorecard.json",
         "zigux/tests/phase15_parity_scorecard.zig",
         "zigux/tests/phase15_indefinite_c_policy.json",
         "zigux/tests/phase15_indefinite_c_policy.zig",
