@@ -25,6 +25,8 @@ Keep the contributor-facing shared handle aligned through:
 4. `Documentation/zigux/phase13-release-coordination-matrix.md`
 5. `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 
+stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+
 Keep `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard for those reminder surfaces rather than as the contributor-facing handle itself.
 
 `zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`, so keep the file itself distinct from those missing Phase 13 route names and keep only the route names recorded as repo-reality gaps until the shared build handle returns.
