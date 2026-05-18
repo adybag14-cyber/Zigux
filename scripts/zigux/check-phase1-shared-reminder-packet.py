@@ -212,8 +212,24 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_docs_direct_checks_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][1],
+            ),
+        ),
+        (
             "missing_closure_note",
             lambda root: (root / "Documentation/zigux/phase1-closure.md").unlink(),
+        ),
+        (
+            "missing_closure_shared_tests_route",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-closure.md",
+                MARKERS["Documentation/zigux/phase1-closure.md"][1],
+            ),
         ),
         (
             "missing_lane_note_marker",
@@ -221,6 +237,30 @@ def run_self_test() -> int:
                 root,
                 "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
                 MARKERS["Documentation/zigux/phase1-host-helper-lane-sequencing.md"][0],
+            ),
+        ),
+        (
+            "missing_lane_active_packet_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
+                MARKERS["Documentation/zigux/phase1-host-helper-lane-sequencing.md"][1],
+            ),
+        ),
+        (
+            "missing_review_checklist_smoke_route_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][1],
+            ),
+        ),
+        (
+            "missing_scripts_readme_closure_companion_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/README.md",
+                MARKERS["scripts/zigux/README.md"][1],
             ),
         ),
         (
@@ -257,6 +297,22 @@ def run_self_test() -> int:
                 root,
                 "scripts/zigux/check-phase1-direct-owner-markers.py",
                 MARKERS["scripts/zigux/check-phase1-direct-owner-markers.py"][1],
+            ),
+        ),
+        (
+            "missing_manifest_lane_sequencing_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/fixtures/phase1_helper_manifest.json",
+                MARKERS["zigux/tests/fixtures/phase1_helper_manifest.json"][0],
+            ),
+        ),
+        (
+            "missing_manifest_direct_anchor_helpers_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/fixtures/phase1_helper_manifest.json",
+                MARKERS["zigux/tests/fixtures/phase1_helper_manifest.json"][1],
             ),
         ),
         (
@@ -297,6 +353,14 @@ def run_self_test() -> int:
                 root,
                 "scripts/zigux/README.md",
                 MARKERS["scripts/zigux/README.md"][0],
+            ),
+        ),
+        (
+            "missing_tests_header_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/README.md",
+                MARKERS["zigux/tests/README.md"][0],
             ),
         ),
         (
