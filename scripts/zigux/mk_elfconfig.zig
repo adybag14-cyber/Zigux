@@ -518,7 +518,6 @@ test "non-ELF input exits with stderr" {
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
 }
-
 test "non-ELF input with trailing bytes exits with stderr" {
     var stdout = try Capture.init(std.testing.allocator);
     defer stdout.deinit();
@@ -1231,4 +1230,25 @@ test "split-read later read error after non-ELF header completes on final chunk 
     try std.testing.expectEqual(@as(usize, 3), reader.call_count);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+}
+
+test "split-read later read error one byte before full header still exits with truncated stderr" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 7, 8, 8 },
+        .fail_on_call = 3,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
 }
