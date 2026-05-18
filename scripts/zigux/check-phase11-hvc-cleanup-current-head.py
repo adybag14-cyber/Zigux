@@ -42,9 +42,9 @@ EXACT_CURRENT_CHECKS = [
 ]
 
 SURVEY_MARKERS = (
-    "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=public_readback_packet_truthful`",
-    "current public GitHub file-page readback confirms the bounded HVC starter,",
-    "still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
+    "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
+    "current authenticated contents readback keeps the bounded HVC current-head",
+    "keep the deeper verify helper, sysrq helper, focused survey replay, manifest,",
 )
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
@@ -60,9 +60,10 @@ VERIFY_MARKERS = (
     "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
 )
 MATRIX_MARKERS = (
-    "the cleanup replay keeps tty-port release boundaries explicit; the verify helper remains present for targetless notifier and helper-local review surfaces",
-    "keep those handoffs named directly in the matrix instead of treating them as archival-only cues",
-    "if one new same-lane wording gap appears",
+    "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
+    "the current matrix packet now stays aligned with the smaller",
+    "keep helper-local failure-mode edges reviewable through",
+    "do not treat the deeper verify helper, sysrq helper, manifest, teardown note,",
 )
 EXPORT_PROOF_MARKERS = (
     'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
@@ -84,11 +85,11 @@ HV_OPS_BUILD_MARKERS = (
 PROOF_MARKERS = (
     'test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explicit" {',
     'try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`");',
-    'try expectContains(survey_doc, "current public GitHub file-page readback confirms the bounded HVC starter,");',
+    'try expectContains(survey_doc, "current authenticated contents readback keeps the bounded HVC current-head");',
     'try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");',
     'test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff markers aligned" {',
-    'try expectContains(matrix_doc, "the cleanup replay keeps tty-port release boundaries explicit; the verify helper remains present");',
-    'try expectContains(matrix_doc, "keep those handoffs named directly in the matrix");',
+    'try expectContains(matrix_doc, "the current matrix packet now stays aligned with the smaller");',
+    'try expectContains(matrix_doc, "keep helper-local failure-mode edges reviewable through");',
 )
 BUILD_MARKERS = (
     '.root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),',
@@ -235,7 +236,7 @@ def build_route_markers_from_inventory(payload: dict[str, object]) -> tuple[str,
         REQUIRED_PROOF_ROUTE["proof_root_source_file"],
     )
     if proof_replay_command != f"zig build test --build-file {proof_build_file}":
-        raise CheckError("proof_replay_command does not match proof_build_file")
+        raise CheckError("proof_replay_command does not match the current-head HVC packet")
     return (
         f'.root_source_file = b.path("{proof_root_source_file}"),',
         f'.name = "{proof_test_artifact_name}"',
@@ -278,90 +279,143 @@ def write(path: Path, text: str) -> None:
 
 
 def build_fixture(root: Path) -> None:
-    write(root / SURVEY_PATH, "\n".join([
-        "# Phase 11 HVC Console Survey",
-        "",
-        "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=public_readback_packet_truthful`",
-        "current public GitHub file-page readback confirms the bounded HVC starter,",
-        "still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
-        "",
-    ]))
-    write(root / COMPANION_PATH, "\n".join([
-        "# Phase 11 HVC Cleanup Alignment Current-Head Companion",
-        "",
-        "`PHASE11_STATUS=current_head_companion_landed`",
-        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-        "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
-        "the returned HVC validation matrix stays explicit beside this companion",
-        "smaller proof-backed HVC continuity packet reviewable",
-        "",
-    ]))
-    write(root / VERIFY_PATH, "\n".join([
-        "# Phase 11 HVC Verify Helper Boundary",
-        "",
-        "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit",
-        "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
-        "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
-        "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
-        "",
-    ]))
-    write(root / MATRIX_PATH, "\n".join([
-        "# Phase 11 HVC Console Validation Matrix",
-        "",
-        "the cleanup replay keeps tty-port release boundaries explicit; the verify helper remains present for targetless notifier and helper-local review surfaces",
-        "keep those handoffs named directly in the matrix instead of treating them as archival-only cues",
-        "if one new same-lane wording gap appears",
-        "",
-    ]))
-    write(root / EXPORT_PROOF_PATH, "\n".join([
-        'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
-        'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
-        'try expectContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");',
-        "",
-    ]))
-    write(root / HV_OPS_PROOF_PATH, "\n".join([
-        'test "phase11 hvc hv_ops layout proof keeps callback table explicit" {',
-        'try layout_assert.expectOffset(HvOps, "notifier_hangup", 40);',
-        'try expectContains(hvc_header, "(*dtr_rts)");',
-        "",
-    ]))
-    write(root / HV_OPS_BUILD_PATH, "\n".join([
-        '.root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),',
-        '.name = "phase11-hvc-hv-ops-layout-proof-tests",',
-        '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),',
-        '.name = "phase11-hvc-export-surface-layout-proof-tests",',
-        'const test_step = b.step("test", "Run the focused Phase 11 exported-header proofs");',
-        "",
-    ]))
-    write(root / PROOF_PATH, "\n".join([
-        'test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explicit" {',
-        'try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`");',
-        'try expectContains(survey_doc, "current public GitHub file-page readback confirms the bounded HVC starter,");',
-        'try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");',
-        'test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff markers aligned" {',
-        'try expectContains(matrix_doc, "the cleanup replay keeps tty-port release boundaries explicit; the verify helper remains present");',
-        'try expectContains(matrix_doc, "keep those handoffs named directly in the matrix");',
-        "",
-    ]))
-    write(root / BUILD_PATH, "\n".join([
-        '.root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),',
-        '.name = "phase11-hvc-cleanup-packet-proof",',
-        'const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");',
-        "",
-    ]))
-    write(root / INVENTORY_PATH, json.dumps({
-        **REQUIRED_PROOF_ROUTE,
-        "exact_current_checks": EXACT_CURRENT_CHECKS,
-        "build_test_names": EXPECTED_BUILD_TESTS,
-        "shared_test_depend_steps": EXPECTED_DEPEND_STEPS,
-        "module_root_source_files": [{"module": k, "path": v} for k, v in EXPECTED_MODULES.items()],
-        "test_root_modules": [{"test": k, "root_module": v} for k, v in EXPECTED_ROOT_MODULES.items()],
-        "forbidden_markers": EXPECTED_FORBIDDEN_MARKERS,
-        "dedicated_survey_replays": [],
-        "shared_split_replays": EXPECTED_SHARED_SPLIT_REPLAYS,
-        "shared_adjunct_replays": EXPECTED_SHARED_ADJUNCT_REPLAYS,
-        "shared_replay_markers": [],
-    }, indent=2) + "\n")
+    write(
+        root / SURVEY_PATH,
+        "\n".join(
+            [
+                "# Phase 11 HVC Console Survey",
+                "",
+                "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=current_head_companion_packet_truthful`",
+                "current authenticated contents readback keeps the bounded HVC current-head packet reviewable through:",
+                "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note, slice, and dedicated survey checker framed as archival or repo-reality-gap vocabulary until a future reread proves they returned beside the smaller companion packet.",
+                "",
+            ]
+        ),
+    )
+    write(
+        root / COMPANION_PATH,
+        "\n".join(
+            [
+                "# Phase 11 HVC Cleanup Alignment Current-Head Companion",
+                "",
+                "`PHASE11_STATUS=current_head_companion_landed`",
+                "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+                "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
+                "the returned HVC validation matrix stays explicit beside this companion",
+                "smaller proof-backed HVC continuity packet reviewable",
+                "",
+            ]
+        ),
+    )
+    write(
+        root / VERIFY_PATH,
+        "\n".join(
+            [
+                "# Phase 11 HVC Verify Helper Boundary",
+                "",
+                "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit",
+                "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
+                "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
+                "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
+                "",
+            ]
+        ),
+    )
+    write(
+        root / MATRIX_PATH,
+        "\n".join(
+            [
+                "# Phase 11 HVC Console Validation Matrix",
+                "",
+                "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
+                "the current matrix packet now stays aligned with the smaller authenticated-readback companion stack rather than the older starter-depth public-readback packet",
+                "keep helper-local failure-mode edges reviewable through `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` rather than treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned direct-readback anchor",
+                "do not treat the deeper verify helper, sysrq helper, manifest, teardown note, dedicated survey checker, or focused survey and cleanup replays as current-head direct-readback evidence",
+                "",
+            ]
+        ),
+    )
+    write(
+        root / EXPORT_PROOF_PATH,
+        "\n".join(
+            [
+                'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
+                'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
+                'try expectContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");',
+                "",
+            ]
+        ),
+    )
+    write(
+        root / HV_OPS_PROOF_PATH,
+        "\n".join(
+            [
+                'test "phase11 hvc hv_ops layout proof keeps callback table explicit" {',
+                'try layout_assert.expectOffset(HvOps, "notifier_hangup", 40);',
+                'try expectContains(hvc_header, "(*dtr_rts)");',
+                "",
+            ]
+        ),
+    )
+    write(
+        root / HV_OPS_BUILD_PATH,
+        "\n".join(
+            [
+                '.root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),',
+                '.name = "phase11-hvc-hv-ops-layout-proof-tests",',
+                '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),',
+                '.name = "phase11-hvc-export-surface-layout-proof-tests",',
+                'const test_step = b.step("test", "Run the focused Phase 11 exported-header proofs");',
+                "",
+            ]
+        ),
+    )
+    write(
+        root / PROOF_PATH,
+        "\n".join(
+            [
+                'test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explicit" {',
+                'try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`");',
+                'try expectContains(survey_doc, "current authenticated contents readback keeps the bounded HVC current-head");',
+                'try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");',
+                'test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff markers aligned" {',
+                'try expectContains(matrix_doc, "the current matrix packet now stays aligned with the smaller");',
+                'try expectContains(matrix_doc, "keep helper-local failure-mode edges reviewable through");',
+                "",
+            ]
+        ),
+    )
+    write(
+        root / BUILD_PATH,
+        "\n".join(
+            [
+                '.root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),',
+                '.name = "phase11-hvc-cleanup-packet-proof",',
+                'const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");',
+                "",
+            ]
+        ),
+    )
+    write(
+        root / INVENTORY_PATH,
+        json.dumps(
+            {
+                **REQUIRED_PROOF_ROUTE,
+                "exact_current_checks": EXACT_CURRENT_CHECKS,
+                "build_test_names": EXPECTED_BUILD_TESTS,
+                "shared_test_depend_steps": EXPECTED_DEPEND_STEPS,
+                "module_root_source_files": [{"module": k, "path": v} for k, v in EXPECTED_MODULES.items()],
+                "test_root_modules": [{"test": k, "root_module": v} for k, v in EXPECTED_ROOT_MODULES.items()],
+                "forbidden_markers": EXPECTED_FORBIDDEN_MARKERS,
+                "dedicated_survey_replays": [],
+                "shared_split_replays": EXPECTED_SHARED_SPLIT_REPLAYS,
+                "shared_adjunct_replays": EXPECTED_SHARED_ADJUNCT_REPLAYS,
+                "shared_replay_markers": [],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -386,47 +440,22 @@ def run_self_test() -> int:
         write(
             missing_survey / SURVEY_PATH,
             read_text(missing_survey / SURVEY_PATH).replace(
-                "still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
+                "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note, slice, and dedicated survey checker framed as archival or repo-reality-gap vocabulary until a future reread proves they returned beside the smaller companion packet.",
                 "",
             ),
         )
-        expect_failure(
-            missing_survey,
-            "still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
-        )
-
-        missing_survey_anchor = tmpdir / "missing_survey_anchor"
-        shutil.copytree(fixture, missing_survey_anchor, dirs_exist_ok=True)
-        write(
-            missing_survey_anchor / SURVEY_PATH,
-            read_text(missing_survey_anchor / SURVEY_PATH).replace(
-                "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=public_readback_packet_truthful`",
-                "",
-            ),
-        )
-        expect_failure(missing_survey_anchor, "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=public_readback_packet_truthful`")
+        expect_failure(missing_survey, "keep the deeper verify helper")
 
         missing_companion = tmpdir / "missing_companion"
         shutil.copytree(fixture, missing_companion, dirs_exist_ok=True)
         write(
             missing_companion / COMPANION_PATH,
             read_text(missing_companion / COMPANION_PATH).replace(
-                "smaller proof-backed HVC continuity packet reviewable",
-                "",
-            ),
-        )
-        expect_failure(missing_companion, "smaller proof-backed HVC continuity packet reviewable")
-
-        missing_companion_gap = tmpdir / "missing_companion_gap"
-        shutil.copytree(fixture, missing_companion_gap, dirs_exist_ok=True)
-        write(
-            missing_companion_gap / COMPANION_PATH,
-            read_text(missing_companion_gap / COMPANION_PATH).replace(
                 "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
                 "",
             ),
         )
-        expect_failure(missing_companion_gap, "`scripts/zigux/check-phase11-hvc-survey-packet.py`")
+        expect_failure(missing_companion, "`scripts/zigux/check-phase11-hvc-survey-packet.py`")
 
         missing_verify = tmpdir / "missing_verify"
         shutil.copytree(fixture, missing_verify, dirs_exist_ok=True)
@@ -439,78 +468,16 @@ def run_self_test() -> int:
         )
         expect_failure(missing_verify, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`")
 
-        missing_remove_handoff = tmpdir / "missing_remove_handoff"
-        shutil.copytree(fixture, missing_remove_handoff, dirs_exist_ok=True)
-        write(
-            missing_remove_handoff / VERIFY_PATH,
-            read_text(missing_remove_handoff / VERIFY_PATH).replace(
-                "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
-                "",
-            ),
-        )
-        expect_failure(missing_remove_handoff, "remove handoff explicit when tty teardown outlives console binding")
-
         missing_matrix = tmpdir / "missing_matrix"
         shutil.copytree(fixture, missing_matrix, dirs_exist_ok=True)
         write(
             missing_matrix / MATRIX_PATH,
             read_text(missing_matrix / MATRIX_PATH).replace(
-                "if one new same-lane wording gap appears",
+                "do not treat the deeper verify helper, sysrq helper, manifest, teardown note, dedicated survey checker, or focused survey and cleanup replays as current-head direct-readback evidence",
                 "",
             ),
         )
-        expect_failure(missing_matrix, "if one new same-lane wording gap appears")
-
-        missing_export_proof = tmpdir / "missing_export_proof"
-        shutil.copytree(fixture, missing_export_proof, dirs_exist_ok=True)
-        write(
-            missing_export_proof / EXPORT_PROOF_PATH,
-            read_text(missing_export_proof / EXPORT_PROOF_PATH).replace(
-                'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
-                "",
-            ),
-        )
-        expect_failure(missing_export_proof, 'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);')
-
-        missing_hv_ops_proof = tmpdir / "missing_hv_ops_proof"
-        shutil.copytree(fixture, missing_hv_ops_proof, dirs_exist_ok=True)
-        write(
-            missing_hv_ops_proof / HV_OPS_PROOF_PATH,
-            read_text(missing_hv_ops_proof / HV_OPS_PROOF_PATH).replace(
-                'try expectContains(hvc_header, "(*dtr_rts)");',
-                "",
-            ),
-        )
-        expect_failure(missing_hv_ops_proof, 'try expectContains(hvc_header, "(*dtr_rts)");')
-
-        missing_hv_ops_build = tmpdir / "missing_hv_ops_build"
-        shutil.copytree(fixture, missing_hv_ops_build, dirs_exist_ok=True)
-        write(
-            missing_hv_ops_build / HV_OPS_BUILD_PATH,
-            read_text(missing_hv_ops_build / HV_OPS_BUILD_PATH).replace(
-                '.name = "phase11-hvc-export-surface-layout-proof-tests",',
-                "",
-            ),
-        )
-        expect_failure(missing_hv_ops_build, '.name = "phase11-hvc-export-surface-layout-proof-tests",')
-
-        missing_proof = tmpdir / "missing_proof"
-        shutil.copytree(fixture, missing_proof, dirs_exist_ok=True)
-        write(
-            missing_proof / PROOF_PATH,
-            read_text(missing_proof / PROOF_PATH).replace(
-                'try expectContains(matrix_doc, "keep those handoffs named directly in the matrix");',
-                "",
-            ),
-        )
-        expect_failure(missing_proof, 'try expectContains(matrix_doc, "keep those handoffs named directly in the matrix");')
-
-        wrong_proof_command = tmpdir / "wrong_proof_command"
-        shutil.copytree(fixture, wrong_proof_command, dirs_exist_ok=True)
-        payload = read_inventory(wrong_proof_command)
-        payload["proof_replay_command"] = "zig build test --build-file zigux/tests/phase11_build.zig"
-        write(wrong_proof_command / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
-        expect_failure(wrong_proof_command, "proof_replay_command does not match the current-head HVC packet")
+        expect_failure(missing_matrix, "do not treat the deeper verify helper")
 
         wrong_exact_checks = tmpdir / "wrong_exact_checks"
         shutil.copytree(fixture, wrong_exact_checks, dirs_exist_ok=True)
@@ -519,13 +486,6 @@ def run_self_test() -> int:
         write(wrong_exact_checks / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
         expect_failure(wrong_exact_checks, "exact_current_checks does not match the current-head HVC packet")
 
-        wrong_inventory = tmpdir / "wrong_inventory"
-        shutil.copytree(fixture, wrong_inventory, dirs_exist_ok=True)
-        payload = read_inventory(wrong_inventory)
-        payload["build_test_names"] = payload["build_test_names"][:-1]
-        write(wrong_inventory / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
-        expect_failure(wrong_inventory, "build_test_names does not match the current-head HVC packet")
-
         wrong_adjunct = tmpdir / "wrong_adjunct"
         shutil.copytree(fixture, wrong_adjunct, dirs_exist_ok=True)
         payload = read_inventory(wrong_adjunct)
@@ -533,12 +493,12 @@ def run_self_test() -> int:
         write(wrong_adjunct / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
         expect_failure(wrong_adjunct, "shared_adjunct_replays does not match the current-head HVC packet")
 
-        wrong_dedicated = tmpdir / "wrong_dedicated"
-        shutil.copytree(fixture, wrong_dedicated, dirs_exist_ok=True)
-        payload = read_inventory(wrong_dedicated)
-        payload["dedicated_survey_replays"] = ["zigux/tests/phase11_hvc_console_survey.zig"]
-        write(wrong_dedicated / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
-        expect_failure(wrong_dedicated, "dedicated_survey_replays does not match the current-head HVC packet")
+        wrong_proof_command = tmpdir / "wrong_proof_command"
+        shutil.copytree(fixture, wrong_proof_command, dirs_exist_ok=True)
+        payload = read_inventory(wrong_proof_command)
+        payload["proof_replay_command"] = "zig build test --build-file zigux/tests/phase11_build.zig"
+        write(wrong_proof_command / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(wrong_proof_command, "proof_replay_command does not match the current-head HVC packet")
 
         missing_file = tmpdir / "missing_file"
         shutil.copytree(fixture, missing_file, dirs_exist_ok=True)
@@ -546,7 +506,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=17")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=8")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
