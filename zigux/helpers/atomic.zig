@@ -45,6 +45,15 @@ pub fn weakestAllowedFailureOrder(success: Ordering) ?Ordering {
     };
 }
 
+pub fn exchange(
+    comptime T: type,
+    ptr: *T,
+    value: T,
+    comptime order: Ordering,
+) T {
+    return @atomicRmw(T, ptr, .Xchg, value, order);
+}
+
 pub fn compareExchangeStrong(
     comptime T: type,
     ptr: *T,
@@ -106,6 +115,19 @@ test "phase3 atomic helper reports allowed failure-order bounds" {
     try std.testing.expectEqual(@as(?Ordering, .acquire), strongestAllowedFailureOrder(.acq_rel));
     try std.testing.expectEqual(@as(?Ordering, .seq_cst), strongestAllowedFailureOrder(.seq_cst));
     try std.testing.expectEqual(@as(?Ordering, null), strongestAllowedFailureOrder(.unordered));
+}
+
+test "phase3 atomic helper keeps exchange ordering explicit" {
+    var value: u32 = 1;
+
+    try std.testing.expectEqual(@as(u32, 1), exchange(u32, &value, 7, .release));
+    try std.testing.expectEqual(@as(u32, 7), value);
+
+    try std.testing.expectEqual(@as(u32, 7), exchange(u32, &value, 19, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 19), value);
+
+    try std.testing.expectEqual(@as(u32, 19), exchange(u32, &value, 23, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 23), value);
 }
 
 test "phase3 atomic helper wraps compare-exchange without widening failure semantics" {
