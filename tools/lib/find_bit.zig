@@ -714,6 +714,20 @@ test "clump8 scans leave the caller byte untouched when no set bit remains" {
     try std.testing.expectEqual(@as(u8, 0xaa), clump);
 }
 
+test "clump8 scans leave the caller byte untouched when the scan window is already empty" {
+    const populated = [_]Word{@as(Word, 1) << 3};
+    var clump: u8 = 0xaa;
+
+    try std.testing.expectEqual(@as(usize, 0), findFirstClump8(&clump, &populated, 0));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+
+    try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &populated, 8, 8));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+
+    try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &populated, 8, 12));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+}
+
 test "getValue8 reads aligned bytes from bitmap words" {
     const bitmap = [_]Word{
         (@as(Word, 0x42) << 8) | (@as(Word, 0xa5) << 24),
