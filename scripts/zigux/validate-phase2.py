@@ -75,6 +75,13 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
 )
 
+DISALLOWED_MAKEFILE_LINES = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+)
+
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(REQUIRED_WORKFLOW_LINES)
@@ -82,6 +89,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(DISALLOWED_WORKFLOW_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
+    + len(DISALLOWED_MAKEFILE_LINES)
     + (len(REQUIRED_PATHS) - 1)
     + 2
 )
@@ -156,6 +164,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_MAKEFILE_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+
+    for marker in DISALLOWED_MAKEFILE_LINES:
+        count = count_exact_lines(makefile_text, marker)
+        if count != 0:
+            issues.append(("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count={count}"))
 
     for rel in REQUIRED_PATHS:
         if not path_under(root, rel).exists():
@@ -271,6 +284,16 @@ def run_self_test() -> int:
             assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
+        for marker in DISALLOWED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            makefile_path = path_under(root, MAKEFILE)
+            makefile_path.write_text(
+                makefile_path.read_text(encoding="utf-8") + marker + "\n",
+                encoding="utf-8",
+            )
+            assert ("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count=1") in collect_issues(root)
+            checks_run += 1
+
         for rel in REQUIRED_PATHS:
             if rel == MAKEFILE:
                 continue
@@ -316,6 +339,7 @@ def main() -> int:
     print(f"PHASE2_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_DISALLOWED_WORKFLOW_LINE_COUNT={len(DISALLOWED_WORKFLOW_LINES)}")
     print(f"PHASE2_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
+    print(f"PHASE2_DISALLOWED_MAKEFILE_LINE_COUNT={len(DISALLOWED_MAKEFILE_LINES)}")
     return 0
 
 
