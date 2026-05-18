@@ -46,7 +46,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
 
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-17", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-18", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.review_process_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", manifest.decision_record_template);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
@@ -137,8 +137,8 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "repo_path = _marker_to_repo_path(marker)");
     try expectContains(checker, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectContains(checker, "PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass");
-    try expectContains(checker, "current-master-readback-2026-05-17");
-    try expectContains(review_process, "current-master-readback-2026-05-17");
+    try expectContains(checker, "current-master-readback-2026-05-18");
+    try expectContains(review_process, "current-master-readback-2026-05-18");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_build.zig`");
 }
