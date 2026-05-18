@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L09",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-18T11:50:54Z",
+  "verified_on_utc": "2026-05-18T20:19:50Z",
   "anchor": "lib/argv_split.c",
   "current_master_state": "helper_survey_manifest_anchor",
   "review_surfaces": [
@@ -9,7 +9,8 @@
     "lib/argv_split.zig",
     "zigux/tests/phase7_argv_split_survey.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
-    "scripts/zigux/check-phase7-argv-split-packet.py"
+    "scripts/zigux/check-phase7-argv-split-packet.py",
+    "samples/zigux/README.md"
   ],
   "covered_helpers": [
     "countArgc",
@@ -30,7 +31,8 @@
     "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage",
     "countArgc(), cStringPrefix(), nextArgSpan(), and nextSplitArgSpan() keep token counting and separator zeroing bounded to the exported C-string prefix",
     "blank-input results reuse exported empty storage and argv sentinel views without allocating fresh packet state",
-    "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet"
+    "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet",
+    "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders"
   ],
-  "next_bounded_step": "Keep same-lane follow-through limited to helper-local survey-or-manifest truthfulness while the dedicated checker remains returned on current master and the dedicated argv_split test file, fixture vectors, slice note, and shared Phase 7 build or validation routes still read missing."
+  "next_bounded_step": "Keep same-lane follow-through limited to helper-local survey-manifest-checker or sample-boundary truthfulness while the dedicated checker remains returned on current master and the dedicated argv_split test file, fixture vectors, slice note, and shared Phase 7 build or validation routes still read missing."
 }
