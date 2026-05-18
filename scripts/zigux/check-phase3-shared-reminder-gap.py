@@ -17,34 +17,28 @@ REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 REQUIRED_MARKERS = {
     GAP_NOTE_PATH: (
         "PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit",
-        "Documentation/zigux/phase3-policy-slice.md",
-        "include/zigux/abi.h",
-        "zigux/bindings/abi.zig",
-        "Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md",
-        "one narrow reminder-surface cleanup pass",
+        "There is no active shared-reminder sentence cleanup left in this packet today.",
+        "broader scripts-root inventory truthfulness work should remain a separate same-lane step.",
     ),
     VALIDATOR_NOTE_PATH: (
         "## Focused policy slice present on `master`",
-        "Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still lag",
-        "bounded three-slice posture on current `master`",
+        "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now all reflect that bounded three-slice posture",
+        "`Documentation/zigux/phase3-shared-reminder-gap.md` now records that the earlier shared-reminder sentence drift is closed on current `master`.",
     ),
     DOCS_ROOT_PATH: (
-        "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md`",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`include/zigux/abi.h`",
-        "`zigux/bindings/abi.zig`",
+        "Phase 3 notes",
+        "`Documentation/zigux/phase3-shared-reminder-gap.md`",
+        "keep `Documentation/zigux/phase3-shared-reminder-gap.md` explicit as the tracker for any remaining docs-root or tests-root reminder drift",
     ),
     TESTS_ROOT_PATH: (
         "Phase 3 review packet",
-        "`Documentation/zigux/phase3-abi-slice.md`",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`include/zigux/abi.h`",
-        "`zigux/bindings/abi.zig`",
+        "keep `Documentation/zigux/phase3-shared-reminder-gap.md` limited to tracking any future shared-surface drift or separate scripts-root inventory follow-through",
+        "`Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` already carry the bounded three-slice posture",
     ),
     REVIEW_CHECKLIST_PATH: (
-        "if the change touches the shared Phase 3 ABI packet or a broad reminder surface",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`Documentation/zigux/README.md` and `zigux/tests/README.md` stay framed as the remaining broader shared reminder surfaces",
+        "if the change touches the shared Phase 12 release-planning packet",
+        "if the change touches the shared Phase 2 toolchain packet",
+        "if the change touches the shared Phase 15 freeze-posture packet",
     ),
 }
 
@@ -73,28 +67,38 @@ def validate_repo(repo_root: Path) -> list[str]:
     return issues
 
 
-def _populate_repo(root: Path) -> None:
-    for relative_path in (
-        GAP_NOTE_PATH,
-        VALIDATOR_NOTE_PATH,
-        DOCS_ROOT_PATH,
-        TESTS_ROOT_PATH,
-        REVIEW_CHECKLIST_PATH,
-    ):
-        source = Path("/workspace/.scratch-l29-reminder-source") / relative_path
-        _write(root / relative_path, _read(source))
-
+SAMPLE_FILES = {
+    path: "\n".join(markers) + "\n"
+    for path, markers in REQUIRED_MARKERS.items()
+}
 
 SELF_TEST_CASES = (
-    (GAP_NOTE_PATH, "one narrow reminder-surface cleanup pass"),
-    (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
-    (DOCS_ROOT_PATH, "`include/zigux/abi.h`"),
-    (TESTS_ROOT_PATH, "`zigux/bindings/abi.zig`"),
+    (
+        GAP_NOTE_PATH,
+        "There is no active shared-reminder sentence cleanup left in this packet today.",
+    ),
+    (
+        VALIDATOR_NOTE_PATH,
+        "`Documentation/zigux/phase3-shared-reminder-gap.md` now records that the earlier shared-reminder sentence drift is closed on current `master`.",
+    ),
+    (
+        DOCS_ROOT_PATH,
+        "keep `Documentation/zigux/phase3-shared-reminder-gap.md` explicit as the tracker for any remaining docs-root or tests-root reminder drift",
+    ),
+    (
+        TESTS_ROOT_PATH,
+        "keep `Documentation/zigux/phase3-shared-reminder-gap.md` limited to tracking any future shared-surface drift or separate scripts-root inventory follow-through",
+    ),
     (
         REVIEW_CHECKLIST_PATH,
-        "`Documentation/zigux/README.md` and `zigux/tests/README.md` stay framed as the remaining broader shared reminder surfaces",
+        "if the change touches the shared Phase 15 freeze-posture packet",
     ),
 )
+
+
+def _populate_repo(root: Path) -> None:
+    for relative_path, text in SAMPLE_FILES.items():
+        _write(root / relative_path, text)
 
 
 def run_self_test() -> int:
