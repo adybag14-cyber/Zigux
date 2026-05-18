@@ -54,3 +54,22 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(type_names, "formatLibbpfBpfLinkType");
     try expectHasDecl(type_names, "formatLibbpfBpfProgType");
 }
+
+test "materialized tools/lib/bpf Zigux segments keep stable type-name formatter outputs explicit" {
+    var map_buffer: [32]u8 = undefined;
+    var attach_buffer: [40]u8 = undefined;
+    var link_buffer: [32]u8 = undefined;
+    var prog_buffer: [32]u8 = undefined;
+
+    try std.testing.expectEqualStrings("ringbuf", try type_names.formatLibbpfBpfMapType(map_buffer[0..], 27));
+    try std.testing.expectEqualStrings("unknown_map_type(99)", try type_names.formatLibbpfBpfMapType(map_buffer[0..], 99));
+
+    try std.testing.expectEqualStrings("perf_event", try type_names.formatLibbpfBpfAttachType(attach_buffer[0..], 41));
+    try std.testing.expectEqualStrings("unknown_attach_type(88)", try type_names.formatLibbpfBpfAttachType(attach_buffer[0..], 88));
+
+    try std.testing.expectEqualStrings("sockmap", try type_names.formatLibbpfBpfLinkType(link_buffer[0..], 14));
+    try std.testing.expectEqualStrings("unknown_link_type(42)", try type_names.formatLibbpfBpfLinkType(link_buffer[0..], 42));
+
+    try std.testing.expectEqualStrings("netfilter", try type_names.formatLibbpfBpfProgType(prog_buffer[0..], 32));
+    try std.testing.expectEqualStrings("unknown_prog_type(77)", try type_names.formatLibbpfBpfProgType(prog_buffer[0..], 77));
+}
