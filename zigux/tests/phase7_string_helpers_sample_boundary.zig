@@ -49,7 +49,6 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     const io = std.testing.io;
 
     try std.Io.Dir.cwd().access(io, "lib/string_helpers.zig", .{});
-    try std.Io.Dir.cwd().access(io, "lib/string_helpers.c", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_survey.zig", .{});
     try std.Io.Dir.cwd().access(io, "zigux/tests/phase7_string_helpers_manifest.json", .{});
@@ -98,11 +97,6 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectNotContains(helper, "pub fn devmKasprintfStrarray");
     try expectNotContains(helper, "pub fn devm_kasprintf_strarray");
 
-    const c_helper = try readRepoFile(allocator, "lib/string_helpers.c");
-    defer allocator.free(c_helper);
-    try expectContains(c_helper, "char *kstrdup_quotable_file(");
-    try expectContains(c_helper, "char **devm_kasprintf_strarray(");
-
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
     try expectContains(helper_tests, "phase 7 string helpers starter covers whitespace trimming and prefix skipping");
@@ -150,7 +144,6 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
-    try expectContains(manifest, "\"parseIntArray\"");
     try expectContains(manifest, "bounded parse-int-array decoding with comma lists, positive ranges, first-NUL and count limits, trailing-invalid-token stop behavior, and caller-owned result storage");
     try expectContains(manifest, "parseIntArray() and parse_int_array() keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set");
     try expectContains(manifest, "\"stringEscapeStrAnyNp\"");
@@ -163,6 +156,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
+    try expectNotContains(manifest, "\"lib/string_helpers.c\"");
     try expectNotContains(manifest, "\"kstrdupQuotableFile\"");
     try expectNotContains(manifest, "\"kstrdup_quotable_file\"");
     try expectNotContains(manifest, "\"devmKasprintfStrarray\"");
