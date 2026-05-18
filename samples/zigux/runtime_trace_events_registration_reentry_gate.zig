@@ -118,6 +118,20 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings("iter=%d", selftest_before.last_format_template orelse return error.ExpectedMainPayload);
 
     try module.registerFunctionThread();
+
+    const selftest_registered_before_duplicate = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_registered_before_duplicate.stage);
+    try std.testing.expectEqual(@as(usize, 1), selftest_registered_before_duplicate.registration_depth);
+    try std.testing.expectEqual(@as(usize, 1), selftest_registered_before_duplicate.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), selftest_registered_before_duplicate.exit_runs);
+    try std.testing.expectEqual(@as(i32, 1), selftest_registered_before_duplicate.last_fn_count);
+    try std.testing.expectEqualStrings("foo_bar_reg", selftest_registered_before_duplicate.last_register_label orelse return error.ExpectedRegisterLabel);
+
+    try std.testing.expectError(error.FunctionThreadAlreadyRegistered, module.registerFunctionThread());
+
+    const selftest_registered_after_duplicate = module.summary();
+    try std.testing.expect(std.meta.eql(selftest_registered_before_duplicate, selftest_registered_after_duplicate));
+
     const selftest_replay = try module.emitFunctionIteration(11);
     try std.testing.expectEqual(@as(usize, 2), selftest_replay);
     try module.unregisterFunctionThread();
