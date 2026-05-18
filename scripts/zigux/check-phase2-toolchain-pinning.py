@@ -110,6 +110,8 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`.github/workflows/zigux-bootstrap.yml`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
@@ -239,7 +241,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 2
-    + len(EXPECTED_TOOL_MANIFEST["present_surfaces"])
+    + len(EXPECTED_TOOL_MANIFEST["present_surfaces"]) 
     + 1
     + 1
     + 1
