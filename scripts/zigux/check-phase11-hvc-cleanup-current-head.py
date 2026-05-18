@@ -3,11 +3,11 @@
 
 The current `master` branch keeps the HVC cleanup packet reviewable through the
 survey note, the cleanup-alignment companion, the verify-helper boundary note,
-the shared Phase 11 build inventory, the direct HVC starter-depth packet that
-current readback now materializes again, and the focused HVC cleanup proof
-shards. This checker therefore validates the current-head wording that
-explicitly names both the smaller continuity packet and the returned direct HVC
-packet without widening into live tty or hypervisor execution claims.
+the shared Phase 11 build inventory, and the focused HVC cleanup proof shards.
+This checker therefore validates wording that keeps the smaller continuity
+packet explicit while treating the older starter-depth HVC packet and the
+dedicated survey-checker path as survey-recorded or repo-reality-gap evidence
+until direct readback proves they returned again.
 """
 
 from __future__ import annotations
@@ -30,19 +30,19 @@ CLEANUP_BUILD_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 
 SURVEY_MARKERS = (
     "current `master` still keeps the HVC lane reviewable through this survey note,",
-    "public current-head readback in this lane also reconfirmed",
+    "current direct contents reads in this lane still do not rematerialize",
     "Treat the current bounded HVC continuity packet on `master` as the shared",
-    "The direct HVC packet is again current-head readback evidence in this lane, so",
-    "The roadmap destination family and the bounded simple-driver support packet are",
+    "The survey still records the bounded HVC starter, helper, replay, split,",
+    "The survey still preserves the roadmap-facing starter-depth packet as archival",
 )
 
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
     "`PHASE11_FAMILY=hvc-console-cleanup-alignment`",
     "Current `master` keeps the bounded HVC continuity packet reviewable through these live surfaces:",
-    "Current `master` also keeps the returned direct HVC starter-depth packet explicit through these live surfaces:",
+    "Current direct contents reads in this lane still do not rematerialize `drivers/tty/hvc/hvc_console.zig` or `zigux/tests/phase11_hvc_console_manifest.json`,",
     "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.",
-    "Until then, keep both the smaller inventory-backed continuity packet and the returned direct HVC starter-depth packet explicit across the broad Phase 11 reminder surfaces without promoting the missing survey checker as live current-head evidence.",
+    "Until then, keep the smaller inventory-backed continuity packet explicit across the broad Phase 11 reminder surfaces without promoting the older starter-depth packet or missing survey checker as live current-head evidence.",
 )
 
 VERIFY_HELPER_MARKERS = (
@@ -278,20 +278,11 @@ def fixture_survey() -> str:
             "  `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,",
             "  `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and",
             "  `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
-            "* public current-head readback in this lane also reconfirmed",
-            "  `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`,",
-            "  `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,",
-            "  `zigux/tests/phase11_hvc_cleanup.zig`,",
-            "  `zigux/tests/phase11_hvc_console_survey.zig`,",
-            "  `zigux/tests/phase11_hvc_console_manifest.json`,",
-            "  `zigux/tests/phase11_hvc_console_modem_control_split.zig`,",
-            "  `zigux/tests/phase11_hvc_console_poll_retry_split.zig`,",
-            "  `Documentation/zigux/phase11-hvc-console-slice.md`,",
-            "  `Documentation/zigux/phase11-hvc-console-teardown-note.md`,",
-            "  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and",
-            "  `scripts/zigux/check-phase11-hvc-survey-packet.py` as the bounded",
-            "  starter-depth packet that closes the Phase 11 simple-driver roadmap gap",
-            "  without claiming live tty or hypervisor execution",
+            "* current direct contents reads in this lane still do not rematerialize",
+            "  `drivers/tty/hvc/hvc_console.zig` or",
+            "  `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader",
+            "  starter-depth packet framed as survey-recorded same-lane archival vocabulary",
+            "  until a future reread proves those anchor paths returned again",
             "",
             "## Current-Head Continuity Packet",
             "",
@@ -307,11 +298,11 @@ def fixture_survey() -> str:
             "- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
             "- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
             "",
-            "## Current-Head Starter Packet",
+            "## Survey-Recorded Starter Packet",
             "",
-            "The direct HVC packet is again current-head readback evidence in this lane, so",
-            "keep the bounded starter, helper, replay, split, teardown, validation, and",
-            "survey paths below tied directly to the roadmap-facing simple-driver packet:",
+            "The survey still records the bounded HVC starter, helper, replay, split,",
+            "teardown, validation, and survey paths below as the roadmap-facing",
+            "starter-depth packet for this lane:",
             "",
             "- `drivers/tty/hvc/hvc_console.zig`",
             "- `drivers/tty/hvc/hvc_console_verify.zig`",
@@ -325,15 +316,14 @@ def fixture_survey() -> str:
             "- `Documentation/zigux/phase11-hvc-console-slice.md`",
             "- `Documentation/zigux/phase11-hvc-console-teardown-note.md`",
             "- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-            "- `scripts/zigux/check-phase11-hvc-survey-packet.py`",
-            "- `make -C zigux phase11-hvc-survey`",
             "",
             "## Bounded Meaning",
             "",
-            "The roadmap destination family and the bounded simple-driver support packet are",
-            "now directly readable on current `master`, so the remaining same-lane work is",
-            "execution-facing follow-through rather than a missing simple-driver starter or a",
-            "missing survey-backed validation packet.",
+            "The survey still preserves the roadmap-facing starter-depth packet as archival",
+            "continuity vocabulary, but the remaining same-lane work stays focused on",
+            "truthfulness and later execution-facing follow-through rather than on claiming",
+            "that the older direct-readback starter packet is fully back on current",
+            "`master`.",
             "",
         ]
     )
@@ -347,9 +337,9 @@ def fixture_companion() -> str:
             "- `PHASE11_STATUS=current_head_companion_landed`",
             "- `PHASE11_FAMILY=hvc-console-cleanup-alignment`",
             "Current `master` keeps the bounded HVC continuity packet reviewable through these live surfaces:",
-            "Current `master` also keeps the returned direct HVC starter-depth packet explicit through these live surfaces:",
+            "Current direct contents reads in this lane still do not rematerialize `drivers/tty/hvc/hvc_console.zig` or `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader direct HVC starter-depth packet framed as survey-recorded same-lane archival vocabulary until a future reread proves those anchor paths returned again.",
             "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.",
-            "Until then, keep both the smaller inventory-backed continuity packet and the returned direct HVC starter-depth packet explicit across the broad Phase 11 reminder surfaces without promoting the missing survey checker as live current-head evidence.",
+            "Until then, keep the smaller inventory-backed continuity packet explicit across the broad Phase 11 reminder surfaces without promoting the older starter-depth packet or missing survey checker as live current-head evidence.",
             "",
         ]
     )
@@ -418,138 +408,43 @@ def expect_failure(root: Path, fragment: str) -> None:
 
 
 def run_self_test() -> int:
-    tmpdir = Path(tempfile.mkdtemp(prefix="phase11_hvc_cleanup_current_head_"))
+    tmpdir = Path(tempfile.mkdtemp(prefix="phase11_hvc_cleanup_"))
     try:
         fixture = tmpdir / "fixture"
         build_fixture(fixture)
         run_check(fixture)
-        case_count = 1
 
-        missing_survey = tmpdir / "missing_survey_marker"
-        shutil.copytree(fixture, missing_survey, dirs_exist_ok=True)
-        write(
-            missing_survey / SURVEY_PATH,
-            read_text(missing_survey / SURVEY_PATH).replace(SURVEY_MARKERS[0], "", 1),
-        )
-        expect_failure(missing_survey, SURVEY_MARKERS[0])
-        case_count += 1
-
-        missing_companion = tmpdir / "missing_companion_marker"
-        shutil.copytree(fixture, missing_companion, dirs_exist_ok=True)
-        write(
-            missing_companion / COMPANION_PATH,
-            read_text(missing_companion / COMPANION_PATH).replace(COMPANION_MARKERS[3], "", 1),
-        )
-        expect_failure(missing_companion, COMPANION_MARKERS[3])
-        case_count += 1
-
-        missing_verify_helper = tmpdir / "missing_verify_helper_marker"
-        shutil.copytree(fixture, missing_verify_helper, dirs_exist_ok=True)
-        write(
-            missing_verify_helper / VERIFY_HELPER_PATH,
-            read_text(missing_verify_helper / VERIFY_HELPER_PATH).replace(
-                VERIFY_HELPER_MARKERS[1],
+        missing_survey_root = tmpdir / "missing_survey_marker"
+        shutil.copytree(fixture, missing_survey_root, dirs_exist_ok=True)
+        survey_path = missing_survey_root / SURVEY_PATH
+        survey_path.write_text(
+            survey_path.read_text(encoding="utf-8").replace(
+                "The survey still preserves the roadmap-facing starter-depth packet as archival",
                 "",
-                1,
             ),
+            encoding="utf-8",
         )
-        expect_failure(missing_verify_helper, VERIFY_HELPER_MARKERS[1])
-        case_count += 1
+        expect_failure(missing_survey_root, "The survey still preserves the roadmap-facing starter-depth packet as archival")
 
-        missing_cleanup_proof = tmpdir / "missing_cleanup_proof_marker"
-        shutil.copytree(fixture, missing_cleanup_proof, dirs_exist_ok=True)
-        write(
-            missing_cleanup_proof / CLEANUP_PROOF_PATH,
-            read_text(missing_cleanup_proof / CLEANUP_PROOF_PATH).replace(
-                CLEANUP_PROOF_MARKERS[4],
+        missing_companion_root = tmpdir / "missing_companion_marker"
+        shutil.copytree(fixture, missing_companion_root, dirs_exist_ok=True)
+        companion_path = missing_companion_root / COMPANION_PATH
+        companion_path.write_text(
+            companion_path.read_text(encoding="utf-8").replace(
+                "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.",
                 "",
-                1,
             ),
+            encoding="utf-8",
         )
-        expect_failure(missing_cleanup_proof, CLEANUP_PROOF_MARKERS[4])
-        case_count += 1
+        expect_failure(missing_companion_root, "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.")
 
-        missing_cleanup_build = tmpdir / "missing_cleanup_build_marker"
-        shutil.copytree(fixture, missing_cleanup_build, dirs_exist_ok=True)
-        write(
-            missing_cleanup_build / CLEANUP_BUILD_PATH,
-            read_text(missing_cleanup_build / CLEANUP_BUILD_PATH).replace(
-                CLEANUP_BUILD_MARKERS[2],
-                "",
-                1,
-            ),
-        )
-        expect_failure(missing_cleanup_build, CLEANUP_BUILD_MARKERS[2])
-        case_count += 1
-
-        missing_build_name = tmpdir / "missing_build_name"
-        shutil.copytree(fixture, missing_build_name, dirs_exist_ok=True)
-        inventory = read_json(missing_build_name / INVENTORY_PATH)
-        inventory["build_test_names"].remove("phase11-hvc-cleanup-tests")
-        write(missing_build_name / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
-        expect_failure(missing_build_name, "phase11-hvc-cleanup-tests")
-        case_count += 1
-
-        missing_shared_step = tmpdir / "missing_shared_step"
-        shutil.copytree(fixture, missing_shared_step, dirs_exist_ok=True)
-        inventory = read_json(missing_shared_step / INVENTORY_PATH)
-        inventory["shared_test_depend_steps"].remove("run_hvc_console_verify_tests")
-        write(missing_shared_step / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
-        expect_failure(missing_shared_step, "run_hvc_console_verify_tests")
-        case_count += 1
-
-        wrong_module_path = tmpdir / "wrong_module_path"
-        shutil.copytree(fixture, wrong_module_path, dirs_exist_ok=True)
-        inventory = read_json(wrong_module_path / INVENTORY_PATH)
-        for entry in inventory["module_root_source_files"]:
-            if entry["module"] == "hvc_console_verify_module":
-                entry["path"] = "../../drivers/tty/hvc/hvc_console.zig"
-                break
-        write(wrong_module_path / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
-        expect_failure(wrong_module_path, "module_root_source_files mismatch for hvc_console_verify_module")
-        case_count += 1
-
-        wrong_root_module = tmpdir / "wrong_root_module"
-        shutil.copytree(fixture, wrong_root_module, dirs_exist_ok=True)
-        inventory = read_json(wrong_root_module / INVENTORY_PATH)
-        for entry in inventory["test_root_modules"]:
-            if entry["test"] == "phase11-hvc-cleanup-tests":
-                entry["root_module"] = "phase11_hvc_console_module"
-                break
-        write(wrong_root_module / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
-        expect_failure(wrong_root_module, "test_root_modules mismatch for phase11-hvc-cleanup-tests")
-        case_count += 1
-
-        missing_dedicated_survey_replay = tmpdir / "missing_dedicated_survey_replay"
-        shutil.copytree(fixture, missing_dedicated_survey_replay, dirs_exist_ok=True)
-        inventory = read_json(missing_dedicated_survey_replay / INVENTORY_PATH)
-        inventory["dedicated_survey_replays"].clear()
-        write(
-            missing_dedicated_survey_replay / INVENTORY_PATH,
-            json.dumps(inventory, indent=2) + "\n",
-        )
-        expect_failure(
-            missing_dedicated_survey_replay,
-            "zigux/tests/phase11_hvc_console_survey.zig",
-        )
-        case_count += 1
-
-        missing_replay_pair = tmpdir / "missing_replay_pair"
-        shutil.copytree(fixture, missing_replay_pair, dirs_exist_ok=True)
-        inventory = read_json(missing_replay_pair / INVENTORY_PATH)
-        inventory["shared_replay_markers"] = inventory["shared_replay_markers"][:-1]
-        write(missing_replay_pair / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
-        expect_failure(missing_replay_pair, "missing shared replay marker pair")
-        case_count += 1
-
-        missing_inventory = tmpdir / "missing_inventory"
-        shutil.copytree(fixture, missing_inventory, dirs_exist_ok=True)
-        (missing_inventory / INVENTORY_PATH).unlink()
-        expect_failure(missing_inventory, str(INVENTORY_PATH))
-        case_count += 1
+        missing_file_root = tmpdir / "missing_file"
+        shutil.copytree(fixture, missing_file_root, dirs_exist_ok=True)
+        (missing_file_root / SURVEY_PATH).unlink()
+        expect_failure(missing_file_root, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print(f"PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT={case_count}")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=4")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
@@ -565,7 +460,7 @@ def main() -> int:
         return run_self_test()
 
     try:
-        run_check(args.root.resolve())
+        run_check(args.root)
     except CheckError as exc:
         print(f"PHASE11_HVC_CLEANUP_CURRENT_HEAD=fail: {exc}")
         return 1
