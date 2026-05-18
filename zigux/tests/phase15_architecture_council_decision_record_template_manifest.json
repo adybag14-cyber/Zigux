@@ -1,0 +1,75 @@
+{
+  "lane_key": "P15-L08",
+  "phase": "Phase 15",
+  "template_path": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+  "surveyed_commit_mode": "dated_master_readback",
+  "surveyed_commit_placeholder": "current-master-readback-YYYY-MM-DD",
+  "supporting_artifacts": [
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/review-checklist.md"
+  ],
+  "record_metadata_fields": [
+    "DECISION_RECORD_ID=<replace-with-stable-id>",
+    "decision record ID:",
+    "PHASE=Phase 15",
+    "LANE_KEY=P15-L08",
+    "PHASE15_PROVENANCE_MODE=dated_master_readback",
+    "SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD",
+    "exact-head provenance exception note:",
+    "REVIEW_STATUS=<blocked_review|stay_in_c|approved_status_bucket_change>"
+  ],
+  "anchor_and_ownership_fields": [
+    "exact Linux anchor path:",
+    "roadmap phase:",
+    "lane owner:",
+    "current status bucket:",
+    "requested decision bucket:",
+    "required approver set:",
+    "rollback owner:"
+  ],
+  "validation_and_evidence_fields": [
+    "validation gate summary:",
+    "evidence archive path:",
+    "latest blocker disposition:",
+    "benchmark notes:",
+    "replay command:",
+    "rollback threshold:"
+  ],
+  "stay_in_c_closeout_fields": [
+    "retained `freeze_in_c` decision:",
+    "the current blocker:",
+    "the required approver set:",
+    "`retired_from_active_discussion` state:",
+    "automatic return-to-blocked trigger:",
+    "the reopen triggers:",
+    "the trigger-specific evidence refresh:",
+    "the evidence archive path that will be refreshed before any later reopen request:"
+  ],
+  "reopen_evidence_fields": [
+    "the exact reopen trigger being exercised:",
+    "refreshed evidence by path:",
+    "the blocker disposition being challenged:",
+    "the narrower seam or policy change that makes the new review safe to consider:"
+  ],
+  "supporting_context_fields": [
+    "parity scorecard link or blocker record:",
+    "indefinite-C policy link or explicit non-applicability note:",
+    "explicit non-goals:",
+    "written rationale:"
+  ],
+  "review_outcome_fields": [
+    "closeout result:",
+    "follow-up owner:",
+    "next bounded step:"
+  ],
+  "usage_rules_required_terms": [
+    "Prefer the dated master readback form",
+    "Only record an exact head",
+    "keep the request blocked and leave the C implementation as the product source of truth",
+    "A stay-in-C closeout must keep the retained `freeze_in_c` decision",
+    "A reopen request must cite the exact reopen trigger being exercised"
+  ]
+}
