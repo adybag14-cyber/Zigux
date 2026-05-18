@@ -12,8 +12,8 @@ README = ROOT / "scripts" / "zigux" / "README.md"
 PHASE2_FLOW_SENTENCE = (
     "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live "
     "`conf_bridge` and `confdata_bridge` helper surfaces, the manifest-backed kconfig fixture roster, "
-    "and the surviving Phase 2 alignment guards instead of rebuilding the older closure-side validator "
-    "stack from paths that current `master` no longer serves"
+    "the shipped make-wrapper packet, and the surviving Phase 2 alignment guards instead of rebuilding "
+    "the older closure-side validator stack from paths that current `master` no longer serves"
 )
 
 PHASE2_BRIDGE_PACKET_SENTENCE = (
@@ -26,28 +26,85 @@ PHASE2_BRIDGE_PACKET_SENTENCE = (
 )
 
 PHASE2_GUARDS_SENTENCE = (
-    "- `scripts/zigux/check-phase2-kbuild-routes.py`, "
+    "- `scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, "
+    "`scripts/zigux/check-phase2-docs-shared-reminder.py`, "
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, "
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`, "
-    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`, and "
-    "`scripts/zigux/check-phase2-toolchain-pinning.py` remain the shipped Phase 2 reminder and alignment "
-    "guards that survive on current `master`"
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`, "
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`, "
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`, and "
+    "`scripts/zigux/check-phase2-required-make-routes.py` remain the shipped Phase 2 toolchain, "
+    "reminder, alignment, and required-make-route guards that survive on current `master`"
+)
+
+PHASE2_BOOTSTRAP_ACTION_SENTENCE = (
+    "- `.github/workflows/zigux-bootstrap.yml`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, "
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`, and "
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` keep the shipped "
+    "pinned Zig toolchain guard explicit in the live bootstrap action path before the surviving Phase 2 "
+    "bridge and pinning checks"
+)
+
+PHASE2_CLOSURE_PACKET_SENTENCE = (
+    "- `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, "
+    "`zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, "
+    "`make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, "
+    "`make -C zigux phase2-validate`, `make -C zigux phase2`, and "
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json` keep the shipped closure-side "
+    "reminder, validator entrypoint, make-wrapper, and artifact-support packet explicit from the "
+    "scripts root beside the surviving checker set"
 )
 
 PHASE2_MISSING_SENTENCE = (
     "- repeated authenticated reads on current `master` still return missing for "
-    "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, "
-    "`scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, "
-    "`scripts/zigux/check-zig-toolchain.py`, `python3 scripts/zigux/install-zig.py --self-test`, "
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`, "
+    "`scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, "
+    "`python3 scripts/zigux/install-zig.py --self-test`, "
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`, "
-    "`python3 scripts/zigux/check-phase2-cross.py`, `make -C zigux phase2-validate`, and "
-    "`make -C zigux phase2`, so treat those closure-side, validator-first, cross-matrix, "
-    "toolchain-replay, and make-route names as historical packet members that need fresh "
-    "re-materialization before they are reused here as direct current-`master` scripts-root evidence"
+    "`python3 scripts/zigux/check-phase2-cross.py`, and "
+    "`zigux/tests/fixtures/phase2_cross_targets.json`, so treat those validator-first "
+    "follow-through, installer, and direct cross-route names as historical packet members that need "
+    "fresh re-materialization before they are reused here as direct current-`master` "
+    "scripts-root evidence"
 )
 
 PHASE2_FOLLOWUP_SENTENCE = (
+    "- if future work rematerializes the missing validator-first follow-through, installer hook, or "
+    "direct cross-route names, update this reminder packet only after the direct paths return on "
+    "current `master`, and keep any conf-side follow-up tied to the live `16-case` manifest, fixture "
+    "roster, and shipped make-wrapper packet rather than the older eight-case closure story"
+)
+
+STALE_PHASE2_FLOW_SENTENCE = (
+    "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live "
+    "`conf_bridge` and `confdata_bridge` helper surfaces, the manifest-backed kconfig fixture roster, "
+    "and the surviving Phase 2 alignment guards instead of rebuilding the older closure-side validator "
+    "stack from paths that current `master` no longer serves"
+)
+
+STALE_PHASE2_GUARDS_SENTENCE = (
+    "- `scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, "
+    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, "
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`, "
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`, "
+    "`scripts/zigux/check-phase2-toolchain-pinning.py`, and "
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py` remain the shipped Phase 2 toolchain, "
+    "reminder, and alignment guards that survive on current `master`"
+)
+
+STALE_PHASE2_MISSING_SENTENCE = (
+    "- repeated authenticated reads on current `master` still return missing for "
+    "`Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, "
+    "`scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `scripts/zigux/install-zig.py`, "
+    "`python3 scripts/zigux/install-zig.py --self-test`, "
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`, "
+    "`python3 scripts/zigux/check-phase2-cross.py`, `make -C zigux phase2-toolchain`, "
+    "`make -C zigux phase2-validate`, and `make -C zigux phase2`, so treat those closure-side, "
+    "validator-first, cross-matrix, installer, and make-route names as historical packet members "
+    "that need fresh re-materialization before they are reused here as direct current-`master` "
+    "scripts-root evidence"
+)
+
+STALE_PHASE2_FOLLOWUP_SENTENCE = (
     "- if future work rematerializes the missing `phase2-closure`, validator-first routes, or make "
     "wrappers, update this reminder packet only after the direct paths return on current `master`, "
     "and keep any conf-side follow-up tied to the live `16-case` manifest and fixture roster rather "
@@ -79,11 +136,17 @@ REQUIRED_SNIPPETS = (
     PHASE2_FLOW_SENTENCE,
     PHASE2_BRIDGE_PACKET_SENTENCE,
     PHASE2_GUARDS_SENTENCE,
+    PHASE2_BOOTSTRAP_ACTION_SENTENCE,
+    PHASE2_CLOSURE_PACKET_SENTENCE,
     PHASE2_MISSING_SENTENCE,
     PHASE2_FOLLOWUP_SENTENCE,
 )
 
 FORBIDDEN_SNIPPETS = (
+    STALE_PHASE2_FLOW_SENTENCE,
+    STALE_PHASE2_GUARDS_SENTENCE,
+    STALE_PHASE2_MISSING_SENTENCE,
+    STALE_PHASE2_FOLLOWUP_SENTENCE,
     LEGACY_LIVE_SENTENCE,
     LEGACY_CHECKER_SENTENCE,
     "`scripts/zigux/check-phase2-kconfig-readme-alignment.py`",
@@ -129,6 +192,8 @@ def build_base_text() -> str:
             "- `scripts/zigux/kconfig/conf_bridge.zig` keeps the shipped sixteen-mode request-plan bridge explicit from the scripts root, including the `helpnewconfig` `silent` option handling and the same `randconfig`, `defconfig`, `savedefconfig`, and `syncconfig` argument surfaces that the Phase 2 wrapper-first roadmap tranche expects",
             PHASE2_BRIDGE_PACKET_SENTENCE,
             PHASE2_GUARDS_SENTENCE,
+            PHASE2_BOOTSTRAP_ACTION_SENTENCE,
+            PHASE2_CLOSURE_PACKET_SENTENCE,
             PHASE2_MISSING_SENTENCE,
             PHASE2_FOLLOWUP_SENTENCE,
             "",
