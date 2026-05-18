@@ -78,6 +78,47 @@ test "software hweight helpers truncate sparse overflow bits to helper width" {
     try std.testing.expectEqual(@as(usize, @popCount(long_value)), hweightLong(long_value));
 }
 
+test "software hweight helpers compose across smaller helper widths" {
+    var byte: u16 = 0;
+    while (byte < 256) : (byte += 1) {
+        const value: u8 = @intCast(byte);
+        try std.testing.expectEqual(@as(u32, @popCount(value)), swHweight8(value));
+    }
+
+    const cases16 = [_]u32{ 0x0000, 0x00ff, 0xa5c3, 0xffff };
+    for (cases16) |value| {
+        const low = swHweight8(value & 0x00ff);
+        const high = swHweight8((value >> 8) & 0x00ff);
+        try std.testing.expectEqual(low + high, swHweight16(value));
+    }
+
+    const cases32 = [_]u32{ 0x0000_0000, 0x0000_ffff, 0x89ab_cdef, 0xffff_ffff };
+    for (cases32) |value| {
+        const low = swHweight16(value & 0x0000_ffff);
+        const high = swHweight16(value >> 16);
+        try std.testing.expectEqual(low + high, swHweight32(value));
+    }
+
+    const cases64 = [_]u64{ 0x0000_0000_0000_0000, 0x0000_0000_ffff_ffff, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (cases64) |value| {
+        const low = swHweight32(@intCast(value & 0xffff_ffff));
+        const high = swHweight32(@intCast(value >> 32));
+        try std.testing.expectEqual(low + high, swHweight64(value));
+    }
+
+    const cases_long = if (@sizeOf(usize) == 4)
+        [_]usize{ 0x0000_0000, 0x89ab_cdef, 0xffff_ffff }
+    else
+        [_]usize{ 0x0000_0000_0000_0000, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (cases_long) |value| {
+        const expected: usize = if (@sizeOf(usize) == 4)
+            @intCast(swHweight32(@intCast(value)))
+        else
+            @intCast(swHweight64(@intCast(value)));
+        try std.testing.expectEqual(expected, hweightLong(value));
+    }
+}
+
 test "Linux-style hweight aliases mirror the primary helper surface" {
     try std.testing.expectEqual(swHweight8(0xf0), __sw_hweight8(0xf0));
     try std.testing.expectEqual(swHweight16(0xf0f0), __sw_hweight16(0xf0f0));
