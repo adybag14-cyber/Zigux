@@ -54,6 +54,7 @@ Those checks confirmed this current sample behavior:
 ## Review boundary
 
 Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample outside the bounded trace-events companion.
+Current `master` also still ships no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample outside the same bounded trace-events companion and the shared reminder packet.
 
 Use this note only to restate the bounded formatting cue that Phase 5 reviewers should preserve inside the roadmap-backed `trace_events` anchor.
 
@@ -64,9 +65,13 @@ Do not treat this note as proof of:
 - standalone `printf` parity
 - standalone `vsprintf` parity
 - standalone string-helper delivery
+- standalone `*cmdline*` sample delivery
+- standalone `*argv*` sample delivery
+- standalone `*rbtree*` sample delivery
+- standalone `*bitmap*` sample delivery
 - a fifth approved Phase 5 sample
 
-Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.
+Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, keep `cmdline`, `argv_split`, and `rbtree` evidence under the bounded Phase 7 helper packet, keep direct bitmap helper reviewability under the closed Phase 1 plus bounded Phase 4 reminder packet, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.
 
 ## Next bounded step
 
