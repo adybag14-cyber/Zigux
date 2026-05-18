@@ -12,6 +12,7 @@ WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
+    ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
@@ -29,6 +30,8 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
