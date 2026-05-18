@@ -59,6 +59,7 @@
   "shared_split_replays": [],
   "shared_adjunct_replays": [
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig"
   ],
   "shared_replay_markers": [
