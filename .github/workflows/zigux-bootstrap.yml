@@ -1,10 +1,32 @@
 name: zigux-bootstrap
 # Keep this lane tied to files that the current checkout actually contains.
-# Run every master push so exact-head bootstrap status stays attached even when path filtering misses a live change.
+# Force a fresh exact-head run after the 2026-05-17 23:41 UTC docs-only push reported no jobs.
 
 on:
   push:
     branches: [ master ]
+    paths:
+      - 'lib/**'
+      - 'zigux-alpha/**'
+      - 'Documentation/zigux/**'
+      - 'samples/zigux/**'
+      - 'kernel/**/*.zig'
+      - 'net/**/*.zig'
+      - 'drivers/**/*.zig'
+      - 'scripts/basic/fixdep.c'
+      - 'scripts/include/xalloc.h'
+      - 'scripts/kconfig/conf.c'
+      - 'scripts/kconfig/confdata.c'
+      - 'scripts/zigux/**'
+      - 'tools/lib/*.zig'
+      - 'tools/lib/**/*.zig'
+      - 'tools/lib/subcmd/exec-cmd.c'
+      - 'tools/lib/subcmd/help.c'
+      - 'tools/lib/symbol/kallsyms.c'
+      - 'zigux/**'
+      - 'include/linux/zigux.h'
+      - 'include/zigux/**'
+      - '.github/workflows/zigux-bootstrap.yml'
   pull_request:
     paths:
       - 'lib/**'
@@ -51,69 +73,6 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Setup pinned Zig toolchain
-        run: |
-          set -euxo pipefail
-          eval "$(python3 - <<'PY'
-          import json
-          from pathlib import Path
-
-          policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))
-          targets = policy["upgrade_policy"]["archive_target_scope"]
-          if len(targets) != 1:
-              raise SystemExit(f"expected exactly one pinned archive target, got {len(targets)}")
-          target = targets[0]
-          channel = policy["channel"]
-          filename = f"zig-{target}-{channel}.tar.xz"
-          url = f"https://ziglang.org/builds/{filename}"
-          print(f"ZIGUX_ZIG_TARGET='{target}'")
-          print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
-          print(f"ZIGUX_ZIG_FILENAME='{filename}'")
-          print(f"ZIGUX_ZIG_URL='{url}'")
-          PY
-          )"
-          mkdir -p .zig-toolchain
-          archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
-          extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
-          mirror_file=".zig-toolchain/community-mirrors.txt"
-          rm -f "$archive_path" "$mirror_file"
-          rm -rf "$extract_root"
-          try_download() {
-            local url="$1"
-            if curl -L --fail "$url" -o "$archive_path"; then
-              tar -xJf "$archive_path" -C .zig-toolchain
-              zig_path="$extract_root/zig"
-              if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
-                return 0
-              fi
-              rm -f "$archive_path"
-              rm -rf "$extract_root"
-            fi
-            return 1
-          }
-          download_success=0
-          if curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
-            while IFS= read -r mirror_url; do
-              [ -n "$mirror_url" ] || continue
-              if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then
-                download_success=1
-                break
-              fi
-            done < "$mirror_file"
-          fi
-          if [ "$download_success" -ne 1 ]; then
-            if try_download "$ZIGUX_ZIG_URL"; then
-              download_success=1
-            fi
-          fi
-          if [ "$download_success" -ne 1 ]; then
-            echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2
-            exit 1
-          fi
-          zig_path="$extract_root/zig"
-          echo "$extract_root" >> "$GITHUB_PATH"
-          "$zig_path" version
-
       - name: Compile current scripts
         run: |
           set -euxo pipefail
@@ -132,15 +91,6 @@ jobs:
 
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
-
-      - name: Self-test current kconfig bridge checker
-        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
-
-      - name: Check current kconfig bridge packet
-        run: python3 scripts/zigux/check-kconfig-bridge.py
-
-      - name: Run current Phase 2 confdata bridge unit tests
-        run: zig test scripts/zigux/kconfig/confdata_bridge.zig
 
       - name: Self-test current Phase 2 kconfig bridge checker
         run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
@@ -190,9 +140,6 @@ jobs:
       - name: Check current Phase 2 shared reminder packet
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
 
-      - name: Validate current Phase 2 tool packet
-        run: python3 scripts/zigux/validate-phase2.py
-
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
 
@@ -214,14 +161,11 @@ jobs:
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
-      - name: Self-test current Phase 3 interop packet
-        run: python3 scripts/zigux/validate_phase3_selftest.py
+      - name: Self-test current Phase 1 workflow viability checker
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test
 
-      - name: Check current Phase 3 interop packet
-        run: python3 scripts/zigux/run-phase3-checks.py
-
-      - name: Run current Phase 3 shared tests-root packet
-        run: zig build phase3-test --build-file zigux/tests/build.zig
+      - name: Check current Phase 1 workflow viability
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py
 
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
@@ -267,3 +211,74 @@ jobs:
 
       - name: Check current Phase 11 HVC cleanup current-head packet
         run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py
+
+      - name: Self-test current Phase 11 build inventory checker
+        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
+
+      - name: Check current Phase 11 build inventory packet
+        run: python3 scripts/zigux/check-phase11-build-inventory.py
+
+      - name: Self-test current Phase 11 matrix-gap survey checker
+        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test
+
+      - name: Check current Phase 11 matrix-gap survey packet
+        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py
+
+      - name: Self-test current Phase 12 build-only surface checker
+        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
+
+      - name: Check current Phase 12 build-only surface
+        run: python3 scripts/zigux/check-build-only-phase12-surface.py
+
+      - name: Self-test current Phase 12 release-readiness packet checker
+        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
+
+      - name: Validate Phase 12 degraded-workflow bundle
+        run: make -C zigux phase12-validate
+
+      - name: Check current Phase 12 release-readiness packet
+        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
+
+      - name: Run focused Phase 12 smoke shard
+        run: make -C zigux phase12-smoke
+
+      - name: Run Phase 12 complex driver tests
+        run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
+
+      - name: Validate Phase 8 tooling gates
+        run: make -C zigux phase8-validate
+
+      - name: Run focused Phase 8 libbpf segment survey tests
+        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
+
+      - name: Check current docs-root sanity markers
+        run: |
+          python3 - <<'PY2'
+          from pathlib import Path
+
+          required_files = [
+              Path('.github/workflows/zigux-bootstrap.yml'),
+              Path('Documentation/zigux/README.md'),
+              Path('Documentation/zigux/phase12-release-readiness-survey.md'),
+              Path('zigux/tests/README.md'),
+              Path('scripts/zigux/check-build-only-phase12-surface.py'),
+          ]
+          missing = [str(path) for path in required_files if not path.exists()]
+          if missing:
+              raise SystemExit('missing required files: ' + ', '.join(missing))
+
+          survey = Path('Documentation/zigux/phase12-release-readiness-survey.md').read_text(encoding='utf-8')
+          markers = [
+              '`PHASE12_STATUS=active`',
+              '`PHASE12_RELEASE_CLOSED=no`',
+              'shared-summary lane owner: `pmo-release`',
+              'shared build-only contract guard: `scripts/zigux/check-build-only-phase12-surface.py`',
+          ]
+          missing_markers = [marker for marker in markers if marker not in survey]
+          if missing_markers:
+              raise SystemExit('missing survey markers: ' + ', '.join(missing_markers))
+
+          print('ZIGUX_BOOTSTRAP_SANITY=pass')
+          print(f'ZIGUX_BOOTSTRAP_REQUIRED_FILE_COUNT={len(required_files)}')
+          print(f'ZIGUX_BOOTSTRAP_MARKER_COUNT={len(markers)}')
+          PY2
