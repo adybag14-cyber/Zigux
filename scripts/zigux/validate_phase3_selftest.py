@@ -229,6 +229,7 @@ def run_self_test() -> int:
             (2, "expected xarray-slot script omission was not reported"),
             (4, "expected shared ABI validator omission was not reported"),
             (5, "expected shared-routes script omission was not reported"),
+            (6, "expected readme-tooling script omission was not reported"),
             (7, "expected runner omission was not reported"),
             (8, "expected validator-support script omission was not reported"),
             (9, "expected export-uapi survey script omission was not reported"),
