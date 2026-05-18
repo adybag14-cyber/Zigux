@@ -11,31 +11,108 @@ import sys
 import tempfile
 
 SELFTEST_COMMANDS = (
-    (Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"), ("--self-test",)),
+    (
+        Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
+        ("--self-test",),
+        (
+            "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST=pass",
+            "PHASE3_DEV_T_STARTER_PACKET_SELF_TEST_CASES=",
+        ),
+    ),
     (
         Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
         ("--self-test",),
+        (
+            "PHASE3_ERRPTR_XARRAY_STARTER_PACKET_SELF_TEST=pass",
+            "PHASE3_ERRPTR_XARRAY_STARTER_PACKET_SELF_TEST_CASES=",
+        ),
     ),
-    (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ("--self-test",)),
-    (Path("scripts/zigux/validate-phase3.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-shared-tests-routes.py"), ("--self-test",)),
-    (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ("--self-test",)),
-    (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
+    (
+        Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
+        ("--self-test",),
+        (
+            "PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass",
+            "PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES=",
+        ),
+    ),
+    (
+        Path("scripts/zigux/validate-phase3.py"),
+        ("--self-test",),
+        (
+            "PHASE3_VALIDATION_SELF_TEST=pass",
+            "PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
+    (
+        Path("scripts/zigux/check-phase3-shared-tests-routes.py"),
+        ("--self-test",),
+        (
+            "PHASE3_SHARED_TESTS_ROUTES_SELF_TEST=pass",
+            "PHASE3_SHARED_TESTS_ROUTES_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
+    (
+        Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
+        ("--self-test",),
+        (
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass",
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
+    (
+        Path("scripts/zigux/run-phase3-checks.py"),
+        ("--self-test",),
+        (
+            "PHASE3_CHECK_RUNNER_SELF_TEST=pass",
+            "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
     (
         Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
         ("--self-test",),
+        (
+            "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST=pass",
+            "PHASE3_VALIDATOR_SUPPORT_SURFACE_SELF_TEST_CASE_COUNT=",
+        ),
     ),
     (
         Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
         ("--self-test",),
+        (
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",
+        ),
     ),
-    (Path("scripts/zigux/check-phase3-selftest-surface.py"), ("--self-test",)),
+    (
+        Path("scripts/zigux/check-phase3-selftest-surface.py"),
+        ("--self-test",),
+        (
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST=pass",
+            "PHASE3_SELFTEST_SURFACE_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
 )
+
+
+def _has_output_marker(stdout: str, marker: str) -> bool:
+    if marker.endswith("="):
+        return any(line.startswith(marker) for line in stdout.splitlines())
+    return marker in stdout
+
+
+def _missing_output_markers(rel_path: Path, stdout: str, markers: tuple[str, ...]) -> list[str]:
+    missing: list[str] = []
+    for marker in markers:
+        if not _has_output_marker(stdout, marker):
+            missing.append(
+                f"missing selftest output marker for {rel_path.as_posix()}: {marker}"
+            )
+    return missing
 
 
 def validate_script_list(repo_root: Path) -> list[str]:
     missing: list[str] = []
-    for rel_path, _args in SELFTEST_COMMANDS:
+    for rel_path, _args, _markers in SELFTEST_COMMANDS:
         if not (repo_root / rel_path).is_file():
             missing.append(f"missing selftest script: {rel_path.as_posix()}")
     return missing
@@ -47,7 +124,7 @@ def run_packet(repo_root: Path) -> int:
         print("PHASE3_VALIDATE_SELFTEST=fail")
         print("\n".join(missing))
         return 1
-    for rel_path, args in SELFTEST_COMMANDS:
+    for rel_path, args, output_markers in SELFTEST_COMMANDS:
         result = subprocess.run(
             [sys.executable, rel_path.as_posix(), *args],
             cwd=repo_root,
@@ -63,18 +140,46 @@ def run_packet(repo_root: Path) -> int:
             if result.stderr:
                 print(result.stderr.rstrip())
             return 1
+
+        marker_issues = _missing_output_markers(rel_path, result.stdout, output_markers)
+        if marker_issues:
+            print("PHASE3_VALIDATE_SELFTEST=fail")
+            print("\n".join(marker_issues))
+            if result.stdout:
+                print(result.stdout.rstrip())
+            if result.stderr:
+                print(result.stderr.rstrip())
+            return 1
     print("PHASE3_VALIDATE_SELFTEST=pass")
     return 0
 
 
+def _write_synthetic_script(
+    path: Path,
+    pass_marker: str | None,
+    count_marker: str | None,
+    *,
+    failure_code: int | None = None,
+) -> None:
+    lines = ["#!/usr/bin/env python3", "import sys"]
+    if pass_marker is not None:
+        lines.append(f"print({pass_marker!r})")
+    if count_marker is not None:
+        lines.append(f"print({count_marker!r} + '1')")
+    if failure_code is None:
+        lines.append("raise SystemExit(0)")
+    else:
+        lines.append("print('synthetic stderr detail', file=sys.stderr)")
+        lines.append(f"raise SystemExit({failure_code})")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def _populate_repo(root: Path) -> None:
-    for rel_path, _args in SELFTEST_COMMANDS:
+    for rel_path, _args, output_markers in SELFTEST_COMMANDS:
         path = root / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-            encoding="utf-8",
-        )
+        _write_synthetic_script(path, output_markers[0], output_markers[1])
+
 
 
 def _expect_missing(root: Path, index: int, message: str) -> int:
@@ -99,6 +204,11 @@ def run_self_test() -> int:
             print("expected synthetic self-test script set to validate")
             return 1
 
+        if run_packet(root) != 0:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected synthetic self-test packet to pass")
+            return 1
+
         missing_cases = (
             (0, "expected missing leading script was not reported"),
             (3, "expected shared ABI validator omission was not reported"),
@@ -113,23 +223,44 @@ def run_self_test() -> int:
                 return 1
 
         _populate_repo(root)
-        failing_path = SELFTEST_COMMANDS[8][0]
-        (root / failing_path).write_text(
-            "#!/usr/bin/env python3\n"
-            "import sys\n"
-            "print('synthetic low-level-wrapper failure')\n"
-            "print('synthetic stderr detail', file=sys.stderr)\n"
-            "raise SystemExit(7)\n",
-            encoding="utf-8",
+        failing_path = root / SELFTEST_COMMANDS[8][0]
+        _write_synthetic_script(
+            failing_path,
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST_CASE_COUNT=",
+            failure_code=7,
         )
-        result = run_packet(root)
-        if result != 1:
+        if run_packet(root) != 1:
             print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
             print("expected failing child self-test to fail the packet")
             return 1
 
+        _populate_repo(root)
+        missing_pass_path = root / SELFTEST_COMMANDS[6][0]
+        _write_synthetic_script(
+            missing_pass_path,
+            None,
+            "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_count_path = root / SELFTEST_COMMANDS[3][0]
+        _write_synthetic_script(
+            missing_count_path,
+            "PHASE3_VALIDATION_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing count marker to fail the packet")
+            return 1
+
         print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
-        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=9")
+        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=11")
         return 0
 
 
