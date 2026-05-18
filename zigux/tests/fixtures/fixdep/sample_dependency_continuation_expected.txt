@@ -3,9 +3,15 @@ savedcmd_sample_dependency_continuation.o := clang -c zigux/tests/fixtures/fixde
 source_sample_dependency_continuation.o := zigux/tests/fixtures/fixdep/sample_dependency_continuation_source.rmeta
 
 deps_sample_dependency_continuation.o := \
- zigux/tests/fixtures/fixdep/sample_dependency_continuation_dep.so \
- zigux/tests/fixtures/fixdep/sample_dependency_continuation_second.so \
- zigux/tests/fixtures/fixdep/sample_dependency_continuation_third.so \
+  zigux/tests/fixtures/fixdep/escaped\\ space-config.h \
+    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \
+  zigux/tests/fixtures/fixdep/shared#config.h \
+    $(wildcard include/config/ZIGUX_HASH) \
+    $(wildcard include/config/ZIGUX_SHARED) \
+  zigux/tests/fixtures/fixdep/shared:config.h \
+    $(wildcard include/config/ZIGUX_COLON) \
+    $(wildcard include/config/ZIGUX_SHARED_COLON) \
+  zigux/tests/fixtures/fixdep/sample_dependency_continuation_dep.so \
 
 sample_dependency_continuation.o: $(deps_sample_dependency_continuation.o)
 
