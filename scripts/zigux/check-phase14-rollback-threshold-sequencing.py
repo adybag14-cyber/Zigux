@@ -57,6 +57,11 @@ ATTACHED_TOOLCHAIN_EXAMPLES = [
 MAKEFILE_ROUTE_ABSENCE_MARKER = (
     "`phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets"
 )
+RETURNED_PHASE4_ROUTE_MARKERS = [
+    "`phase4-validate`",
+    "`phase4-test`",
+    "`phase4`",
+]
 PRODUCTIZATION_GAP_MARKERS = [
     "Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.",
     "The higher-value same-lane task is reminder-surface truthfulness:",
@@ -71,6 +76,8 @@ CHECKLIST_MARKERS = [
 MAKEFILE_PRESENT_ROUTE_MARKERS = [
     "phase3-validate:",
     "phase4-validate:",
+    "phase4-test:",
+    "phase4: phase4-validate phase4-test",
     "phase6-base64-test:",
     "phase8-validate:",
     "phase10-validate:",
@@ -146,6 +153,7 @@ def check(root: Path) -> list[str]:
             *ROLLBACK_TRIGGER_MARKERS,
             *ATTACHED_TOOLCHAIN_EXAMPLES,
             MAKEFILE_ROUTE_ABSENCE_MARKER,
+            *RETURNED_PHASE4_ROUTE_MARKERS,
             "the next honest same-lane follow-through is reminder-surface truthfulness, not a validator-local exact-line sync against `phase14-validate`",
         ],
     )
@@ -157,6 +165,7 @@ def check(root: Path) -> list[str]:
         release_boundary,
         [
             MAKEFILE_ROUTE_ABSENCE_MARKER,
+            *RETURNED_PHASE4_ROUTE_MARKERS,
             "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
             "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
         ],
@@ -217,7 +226,7 @@ def fixture_release_boundary() -> str:
     return "\n".join(
         [
             "# Phase 14 Release Boundary Survey",
-            f"- current Makefile posture: `zigux/Makefile` is readable again on current `master`, and its live body now exposes the shipped Phase 2 toolchain and kbuild routes together with the bounded `phase3-validate`, `phase3`, `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-test`, `phase6-hexdump-perf`, `phase8-validate`, `phase8-test`, `phase8`, `phase10-validate`, `phase10-test`, and `phase10`, `phase12-smoke`, `phase12-test`, and `phase12` routes, and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
+            f"- current Makefile posture: `zigux/Makefile` is readable again on current `master`, and its live body now exposes the shipped Phase 2 toolchain and kbuild routes together with the bounded `phase3-validate`, `phase3`, `phase4-validate`, `phase4-test`, `phase4`, `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-test`, `phase6-hexdump-perf`, `phase8-validate`, `phase8-test`, `phase8`, `phase10-validate`, `phase10-test`, and `phase10`, `phase12-smoke`, `phase12-test`, and `phase12` routes, and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
             "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
             "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
             "",
@@ -252,6 +261,8 @@ def fixture_makefile() -> str:
         [
             "phase3-validate:",
             "phase4-validate:",
+            "phase4-test:",
+            "phase4: phase4-validate phase4-test",
             "phase6-base64-test:",
             "phase8-validate:",
             "phase10-validate:",
@@ -319,8 +330,30 @@ def run_self_test() -> int:
             print("expected checklist route-absence drift to fail")
             return 1
 
+        write(root, CHECKLIST_PATH, fixture_checklist())
+        write(
+            root,
+            RELEASE_BOUNDARY_PATH,
+            fixture_release_boundary().replace("`phase4-test`", "missing phase4-test", 1),
+        )
+        if not any("`phase4-test`" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected returned Phase 4 route drift in release boundary note to fail")
+            return 1
+
+        write(root, RELEASE_BOUNDARY_PATH, fixture_release_boundary())
+        write(
+            root,
+            MAKEFILE_PATH,
+            fixture_makefile().replace("phase4-test:\n", "", 1),
+        )
+        if not any("phase4-test:" in error for error in check(root)):
+            print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
+            print("expected returned Phase 4 makefile route drift to fail")
+            return 1
+
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
-    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=5")
+    print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
