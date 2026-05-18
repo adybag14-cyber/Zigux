@@ -42,6 +42,8 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - keep the shared build anchor plus checker visible during degraded contents reads too, and do not promote any of those shared-tree surfaces into extra commit-pinned fallback artifacts unless new dedicated files actually land
 
 ## Smoke Set
+Current repo-reality override: `zigux/Makefile` does not expose `phase12-validate`, `phase12-smoke`, or `phase12` on current `master`, so the Make-route names retained in this section are stale reminder vocabulary rather than shipped wrapper proof until same-lane work rematerializes them. The directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
+
 1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 2. `make -C zigux phase12-smoke`
 3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
@@ -53,6 +55,7 @@ Keep the degraded-workflow validation trio explicit beside that same order too:
 - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
 - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
 - `make -C zigux phase12-validate`
+- The directly readable validator body is `scripts/zigux/validate-phase12.py`; keep the old `make -C zigux phase12-validate` name here only as stale reminder text until the wrapper returns.
 - Current `master` keeps the shared smoke shard explicit through `zigux/tests/phase12_build.zig`: the shipped `smoke` step runs `zigux/tests/phase12_virtio_net_syntax_lab.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`, before the `test` step layers in the direct `zigux/tests/phase12_virtio_net.zig` and `zigux/tests/phase12_virtio_scsi.zig` replays on top of that same smoke shard.
 - Current `master` also keeps `zigux/tests/phase12_virtio_net_transmit_recycle.zig` and `zigux/tests/phase12_virtio_net_queue_resume.zig` wired through both `smoke` and `test` inside `zigux/tests/phase12_build.zig`, but this matrix should keep them framed as bounded transmit-disposition and queue-resume reviewability rather than live DMA or queue-restart parity.
 - The same smoke shard also keeps `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig` explicit as the shipped rollback-lab drill inside `zigux/tests/phase12_build.zig` rather than leaving that gate implied by the broader `virtio_scsi` packet wording.
