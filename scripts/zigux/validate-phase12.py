@@ -59,7 +59,7 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 RAW_GITHUB_EXACT_BLOB_MARKERS = [
     "`scripts/zigux/check-build-only-phase12-surface.py` at blob `f16163d6cb8a522995156ace1271d1b30796973f`",
     "`scripts/zigux/check-phase12-release-readiness-packet.py` at blob `13bf09d84b6946486cabcd7ad99b9733ea439be8`",
-    "`.github/workflows/zigux-bootstrap.yml` at blob `6a35fbc97dcf5d776a2ef55f490fb862c0b088f0`",
+    "`.github/workflows/zigux-bootstrap.yml` at blob `00311cf84fe1c9c2de9abe626777ba9e79febe7a`",
     "`scripts/zigux/README.md` at blob `879a17be9da422d4e14f90bef45e56e3f03bb966`",
     "`zigux/Makefile` at blob `096311d4b448b7c6f6f5b0fe4da220794c6cf94a`",
 ]
