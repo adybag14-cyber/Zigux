@@ -63,7 +63,7 @@ EXPECTED_BITMAP_PACKET = {
         "partial_xor_nbits",
         "partial_xor_masked_values",
     ],
-    "scnprintf_cross_word_anchor": 'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
+    "scnprintf_cross_word_anchor": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
     "scnprintf_truncation_anchor": 'test "bitmap scnprintf truncates and keeps a terminator slot"',
     "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
     "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
@@ -109,6 +109,10 @@ SCALAR_FIELDS = (
     "zero_bit_binary_identity_anchor",
     "linux_alias_anchor",
     "next_safe_step_note",
+)
+
+SOURCE_ANCHOR_FIELDS = (
+    "scnprintf_cross_word_anchor",
 )
 
 
@@ -182,6 +186,14 @@ def collect_failures(root: Path) -> list[str]:
                 anchor,
             )
         )
+    for field in SOURCE_ANCHOR_FIELDS:
+        failures.extend(
+            require_exact_occurrence(
+                helper_text,
+                f"{BITMAP_HELPER_REL.as_posix()}:{field}",
+                EXPECTED_BITMAP_PACKET[field],
+            )
+        )
 
     return failures
 
@@ -196,7 +208,11 @@ def build_sample_repo(root: Path) -> None:
     write_file(
         root,
         BITMAP_HELPER_REL,
-        "\n".join(EXPECTED_BITMAP_PACKET["helper_test_anchors"]) + "\n",
+        "\n".join(
+            EXPECTED_BITMAP_PACKET["helper_test_anchors"]
+            + [EXPECTED_BITMAP_PACKET["scnprintf_cross_word_anchor"]]
+        )
+        + "\n",
     )
     write_file(
         root,
@@ -224,6 +240,7 @@ def run_self_test() -> int:
         ("missing_helper_file", "helper_file", "remove"),
         ("missing_manifest_file", "manifest_file", "remove"),
         ("missing_helper_anchor", "helper_anchor", "remove"),
+        ("missing_cross_word_anchor", "cross_word_anchor", "remove"),
         ("duplicate_helper_anchor", "helper_anchor", "duplicate"),
         ("scalar_field_drift", "first_word_boundary_anchor", "manifest"),
         ("list_field_drift", "parity_fixture_keys", "manifest"),
@@ -242,7 +259,11 @@ def run_self_test() -> int:
                     (root / MANIFEST_REL).unlink()
                 else:
                     path = root / BITMAP_HELPER_REL
-                    marker = EXPECTED_BITMAP_PACKET["helper_test_anchors"][0] + "\n"
+                    marker = (
+                        EXPECTED_BITMAP_PACKET["helper_test_anchors"][0] + "\n"
+                        if target == "helper_anchor"
+                        else EXPECTED_BITMAP_PACKET["scnprintf_cross_word_anchor"] + "\n"
+                    )
                     path.write_text(path.read_text(encoding="utf-8").replace(marker, "", 1), encoding="utf-8")
             elif kind == "duplicate":
                 path = root / BITMAP_HELPER_REL
