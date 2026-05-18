@@ -60,7 +60,7 @@ test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points
 }
 
 test "phase 6 bsearch descending raw c abi bounds stay comparator-driven" {
-    const descending_duplicates = [_]u32{ 45, 42, 39, 21, 21, 21, 12, 9, 6, 3 };
+    const descending_duplicates = fixtures.representative_descending_duplicate_values;
     const compare = compareCOpaqueDescendingInt;
 
     try expectRange(descending_duplicates[0..], 45, .{ .lower = 0, .upper = 1 }, compare);
