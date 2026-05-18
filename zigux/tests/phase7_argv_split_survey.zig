@@ -53,6 +53,9 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     const helper = try readRepoFile(allocator, "lib/argv_split.zig");
     defer allocator.free(helper);
 
+    const checker = try readRepoFile(allocator, checker_path);
+    defer allocator.free(checker);
+
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -67,6 +70,7 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     try expectStringSliceContains(manifest.review_surfaces, "lib/argv_split.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_survey.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_manifest.json");
+    try expectStringSliceContains(manifest.review_surfaces, checker_path);
 
     try expectStringSliceContains(manifest.covered_helpers, "countArgc");
     try expectStringSliceContains(manifest.covered_helpers, "argvSplit");
@@ -90,6 +94,17 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
         try expectContains(manifest.next_bounded_step, "checker remains returned");
     }
 
+    try expectContains(checker, "REQUIRED_FILES = [");
+    try expectContains(checker, "\"scripts/zigux/check-phase7-argv-split-packet.py\",");
+    try expectContains(checker, "\"lib/argv_split.zig\",");
+    try expectContains(checker, "\"zigux/tests/phase7_argv_split_manifest.json\",");
+    try expectContains(checker, "\"zigux/tests/phase7_argv_split_survey.zig\",");
+    try expectContains(checker, "\"samples/zigux/README.md\",");
+    try expectContains(checker, "\"zigux/tests/phase7_argv_split_survey.zig\": [");
+    try expectContains(checker, "\"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass\",");
+    try expectContains(checker, "\"helper-local survey-or-manifest truthfulness\",");
+    try expectContains(checker, "\"* `*argv*`\",");
+
     try expectStringSliceContains(manifest.ownership_focus, "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage");
     try expectStringSliceContains(manifest.ownership_focus, "countArgc(), cStringPrefix(), nextArgSpan(), and nextSplitArgSpan() keep token counting and separator zeroing bounded to the exported C-string prefix");
     try expectStringSliceContains(manifest.ownership_focus, "blank-input results reuse exported empty storage and argv sentinel views without allocating fresh packet state");
@@ -111,21 +126,21 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     try expectContains(helper, "fn cStringPrefix");
     try expectContains(helper, "fn nextSplitArgSpan");
     try expectContains(helper, "fn allocArgvNullTerminated");
-    try expectContains(helper, "test \"argvSplit matches focused parity fixtures\"");
-    try expectContains(helper, "test \"argvSplit duplicates the input before tokenizing\"");
-    try expectContains(helper, "test \"argvSplit tokens stay inside the owned storage copy\"");
-    try expectContains(helper, "test \"argvSplit zeroes copied whitespace separators across the tokenized buffer\"");
-    try expectContains(helper, "test \"argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too\"");
-    try expectContains(helper, "test \"argvSplit preserves C-string termination for the final token and argv vector\"");
-    try expectContains(helper, "test \"cArgv exposes a sentinel-terminated pointer view for Zig callers\"");
-    try expectContains(helper, "test \"argvSplit treats whitespace before the first NUL as blank input\"");
-    try expectContains(helper, "test \"argvSplit treats a leading NUL as blank input\"");
-    try expectContains(helper, "test \"blank-input deinit on one caller keeps the shared sentinel views usable for another\"");
-    try expectContains(helper, "test \"argvFree keeps blank-input sentinel teardown safe and repeatable\"");
-    try expectContains(helper, "test \"ArgvSplitResult deinit clears exported storage and argv views\"");
-    try expectContains(helper, "test \"ArgvSplitResult deinit is idempotent after the exported views are cleared\"");
-    try expectContains(helper, "test \"argvFree mirrors argv_free release ownership and stays safe after teardown\"");
-    try expectContains(helper, "test \"argvSplit frees intermediate allocations when allocator failure interrupts setup\"");
-    try expectContains(helper, "test \"argvSplitWithArgc keeps caller argc unchanged when allocation fails before returning a result\"");
-    try expectContains(helper, "test \"argvSplit reports overflow before sizing the null-terminated argv vector\"");
+    try expectContains(helper, "test \\\"argvSplit matches focused parity fixtures\\\"");
+    try expectContains(helper, "test \\\"argvSplit duplicates the input before tokenizing\\\"");
+    try expectContains(helper, "test \\\"argvSplit tokens stay inside the owned storage copy\\\"");
+    try expectContains(helper, "test \\\"argvSplit zeroes copied whitespace separators across the tokenized buffer\\\"");
+    try expectContains(helper, "test \\\"argvSplit zeroes carriage-return, vertical-tab, and form-feed separators too\\\"");
+    try expectContains(helper, "test \\\"argvSplit preserves C-string termination for the final token and argv vector\\\"");
+    try expectContains(helper, "test \\\"cArgv exposes a sentinel-terminated pointer view for Zig callers\\\"");
+    try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\"");
+    try expectContains(helper, "test \\\"argvSplit treats a leading NUL as blank input\\\"");
+    try expectContains(helper, "test \\\"blank-input deinit on one caller keeps the shared sentinel views usable for another\\\"");
+    try expectContains(helper, "test \\\"argvFree keeps blank-input sentinel teardown safe and repeatable\\\"");
+    try expectContains(helper, "test \\\"ArgvSplitResult deinit clears exported storage and argv views\\\"");
+    try expectContains(helper, "test \\\"ArgvSplitResult deinit is idempotent after the exported views are cleared\\\"");
+    try expectContains(helper, "test \\\"argvFree mirrors argv_free release ownership and stays safe after teardown\\\"");
+    try expectContains(helper, "test \\\"argvSplit frees intermediate allocations when allocator failure interrupts setup\\\"");
+    try expectContains(helper, "test \\\"argvSplitWithArgc keeps caller argc unchanged when allocation fails before returning a result\\\"");
+    try expectContains(helper, "test \\\"argvSplit reports overflow before sizing the null-terminated argv vector\\\"");
 }
