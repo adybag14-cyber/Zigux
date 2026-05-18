@@ -179,6 +179,12 @@ jobs:
       - name: Check current Phase 2 cross alignment packet
         run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py
 
+      - name: Self-test current Phase 2 direct cross-route checker
+        run: python3 scripts/zigux/check-phase2-cross.py --self-test
+
+      - name: Check current Phase 2 direct cross-route packet
+        run: python3 scripts/zigux/check-phase2-cross.py
+
       - name: Self-test current Phase 2 toolchain pinning checker
         run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test
 
