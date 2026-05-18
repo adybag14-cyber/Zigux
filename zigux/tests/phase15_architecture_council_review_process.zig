@@ -9,6 +9,7 @@ const ReviewProcessManifest = struct {
     handoff_note: []const u8,
     shared_summary_gap_note: []const u8,
     checker: []const u8,
+    build_gate: []const u8,
     review_checklist_entry_prompt: []const u8,
     review_checklist_boundary_rule: []const u8,
     required_review_fields: []const []const u8,
@@ -55,13 +56,14 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-shared-summary-gap.md", manifest.shared_summary_gap_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-review-process-handoff.py", manifest.checker);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_architecture_council_review_process_build.zig", manifest.build_gate);
     try std.testing.expectEqualStrings("if a freeze-map anchor is entering Architecture Council status review", manifest.review_checklist_entry_prompt);
     try expectContains(manifest.review_checklist_boundary_rule, "exact Architecture Council field inventory stays owned by this note");
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_fields.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
-    try std.testing.expectEqual(@as(usize, 9), manifest.handoff_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 10), manifest.handoff_required_markers.len);
     try std.testing.expectEqual(@as(usize, 12), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.shared_gap_expected_missing_paths.len);
 
@@ -72,6 +74,10 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(
         manifest.shared_gap_expected_present_paths,
         "`zigux/tests/phase15_architecture_council_review_process.zig`",
+    );
+    try expectSliceContains(
+        manifest.shared_gap_expected_present_paths,
+        "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
     );
     try expectSliceContains(
         manifest.shared_gap_expected_missing_paths,
@@ -107,9 +113,11 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`");
     try expectContains(review_process, "`scripts/zigux/check-phase15-review-process-handoff.py`");
     try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process.zig`");
-    try expectContains(review_process, "the focused Zig replay are landed");
+    try expectContains(review_process, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
+    try expectContains(review_process, "the focused Zig replay, and the focused build-file replay are landed");
     try expectContains(review_process, "broader validator-first shared-summary surfaces remain gap-tracked");
     try expectContains(review_process, "focused review-process replay");
+    try expectContains(review_process, "focused build-file replay");
     try expectContains(review_process, "defaults that record to dated-master-readback provenance");
     try expectContains(review_process, manifest.review_checklist_boundary_rule);
 
@@ -137,6 +145,16 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     }
 }
 
+test "phase 15 review-process build gate stays aligned with the focused replay packet" {
+    const build_gate = try readRepoFile("zigux/tests/phase15_architecture_council_review_process_build.zig", 8 * 1024);
+    defer std.testing.allocator.free(build_gate);
+
+    try expectContains(build_gate, "phase15_architecture_council_review_process.zig");
+    try expectContains(build_gate, "phase15-architecture-council-review-process-tests");
+    try expectContains(build_gate, "Run the focused Phase 15 Architecture Council review-process test");
+    try expectContains(build_gate, "test_step.dependOn");
+}
+
 test "phase 15 review-process handoff checker fails closed on missing present paths" {
     const checker = try readRepoFile("scripts/zigux/check-phase15-review-process-handoff.py", 24 * 1024);
     defer std.testing.allocator.free(checker);
@@ -156,5 +174,6 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "current-master-readback-2026-05-18");
     try expectContains(review_process, "current-master-readback-2026-05-18");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process.zig`");
+    try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_build.zig`");
 }
