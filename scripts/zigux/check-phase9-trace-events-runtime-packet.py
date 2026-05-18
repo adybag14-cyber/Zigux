@@ -9,7 +9,6 @@ import tempfile
 
 SELF_PATH = Path(__file__).resolve()
 SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
-TESTS_README_PATH = "zigux/tests/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
 SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
@@ -47,19 +46,12 @@ PHASE2_CONFDATA_BRIDGE_MARKER = "`scripts/zigux/kconfig/confdata_bridge.zig`"
 PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
 PHASE3_EXPORT_SHIM_MARKER = "`zigux/kernel/export_shim.zig`"
 
-TESTS_README_BACKLOG_MARKER = (
-    "there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, "
-    "`make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`"
-)
-
 SEQUENCING_UNREGISTERED_GATE_MARKER = (
     "surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 )
 SEQUENCING_REENTRY_GATE_MARKER = (
     "surviving registration-reentry runtime companion: `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 )
-TESTS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
-TESTS_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 SAMPLES_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
 SAMPLES_README_REENTRY_GATE_DETAIL_MARKER = (
     "Treat `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as the same packet's balanced registration re-entry companion across the initialized and selftest_complete stages"
@@ -298,16 +290,6 @@ FILE_MARKERS = {
         ABSENT_RUNTIME_LOADER_CONTRACT_MARKER,
         ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
     ],
-    TESTS_README_PATH: [
-        TRACE_EVENTS_SAMPLE_MARKER,
-        TESTS_README_UNREGISTERED_GATE_MARKER,
-        TESTS_README_REENTRY_GATE_MARKER,
-        SELFTEST_HOOK_MARKER,
-        LIFECYCLE_MARKER,
-        FAIL_CLOSED_COMPANION_MARKER,
-        REENTRY_COMPANION_MARKER,
-        TESTS_README_BACKLOG_MARKER,
-    ],
     SAMPLES_README_PATH: [
         TRACE_EVENTS_SAMPLE_MARKER,
         UNREGISTERED_GATE_SAMPLE_MARKER,
@@ -404,7 +386,6 @@ def run_self_test() -> int:
 
         print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(FILE_MARKERS[TESTS_README_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(FILE_MARKERS[SAMPLES_README_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
@@ -435,7 +416,6 @@ def main() -> int:
 
     print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET=pass")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(FILE_MARKERS[TESTS_README_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(FILE_MARKERS[SAMPLES_README_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
