@@ -187,6 +187,18 @@ test "lane10 helper ports keep current helper-local safety contracts" {
     try std.testing.expect(slab.kmallocArray(std.math.maxInt(usize), 2, slab.GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
 
+    const zero_bytes = slab.kmallocBytes(0, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_bytes.len);
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    slab.kfree(zero_bytes);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    const zero_array = slab.kmallocArray(0, 8, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_array.len);
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    slab.kfree(zero_array);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
     var known_message_buffer: [6]u8 = undefined;
     const known_message = str_error_r.strErrorR(0, &known_message_buffer);
     try std.testing.expectEqualStrings("Succe", known_message);
