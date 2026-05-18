@@ -352,16 +352,18 @@ WORKFLOW_MARKERS = [
 ]
 
 MAKEFILE_MARKERS = [
+    "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+    "PHASE3_SCRIPT_ROOT := ../scripts/zigux",
+    ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
+    "phase3-validate:",
+    "phase3: phase3-validate",
+]
+
+MAKEFILE_FORBIDDEN_MARKERS = [
     "phase12-validate:",
-    "$(PYTHON) scripts/zigux/check-build-only-phase12-surface.py --self-test",
-    "$(PYTHON) scripts/zigux/check-build-only-phase12-surface.py",
-    "$(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
-    "$(PYTHON) scripts/zigux/check-phase12-release-readiness-packet.py",
-    "$(PYTHON) scripts/zigux/validate-phase12.py",
     "phase12-smoke:",
-    "$(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12-test:",
-    "$(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
     "phase12: phase12-validate phase12-smoke phase12-test",
 ]
 
@@ -457,6 +459,11 @@ def validate(root: Path) -> list[str]:
         for forbidden in DOCS_ROOT_FORBIDDEN_MARKERS:
             if forbidden in docs_root_text:
                 failures.append(f"docs_root_forbidden:{forbidden}")
+
+    makefile_text = (root / MAKEFILE_PATH).read_text(encoding="utf-8")
+    for forbidden in MAKEFILE_FORBIDDEN_MARKERS:
+        if forbidden in makefile_text:
+            failures.append(f"makefile_forbidden:{forbidden}")
 
     build_text = (root / PHASE12_BUILD_PATH).read_text(encoding="utf-8")
     test_decl_count = build_text.count("b.addTest(.{")
@@ -823,8 +830,8 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
-        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[18])
-        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[18]}")
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[17])
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[17]}")
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
@@ -833,18 +840,18 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         docs_root_path = base / DOCS_README_PATH
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[20])
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[20]}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
+        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[21])
+        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[21]}")
+
+        write_fixture_tree(base)
+        docs_root_path = base / DOCS_README_PATH
         remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[22])
         expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[22]}")
-
-        write_fixture_tree(base)
-        docs_root_path = base / DOCS_README_PATH
-        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[23])
-        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[23]}")
-
-        write_fixture_tree(base)
-        docs_root_path = base / DOCS_README_PATH
-        remove_marker_line(docs_root_path, DOCS_ROOT_MARKERS[24])
-        expect_failure(base, f"docs_root:{DOCS_ROOT_MARKERS[24]}")
 
         write_fixture_tree(base)
         scripts_readme_path = base / SCRIPTS_README_PATH
@@ -935,6 +942,26 @@ def run_self_test() -> int:
         )
 
         write_fixture_tree(base)
+        makefile_path = base / MAKEFILE_PATH
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8").replace(
+                "PHASE3_SCRIPT_ROOT := ../scripts/zigux\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "makefile:PHASE3_SCRIPT_ROOT := ../scripts/zigux")
+
+        write_fixture_tree(base)
+        makefile_path = base / MAKEFILE_PATH
+        makefile_path.write_text(
+            makefile_path.read_text(encoding="utf-8") + "phase12-validate:\n",
+            encoding="utf-8",
+        )
+        expect_failure(base, "makefile_forbidden:phase12-validate:")
+
+        write_fixture_tree(base)
         build_path = base / PHASE12_BUILD_PATH
         build_path.write_text(
             build_path.read_text(encoding="utf-8").replace(
@@ -1007,7 +1034,7 @@ def run_self_test() -> int:
         expect_failure(base, "phase12_build_exact_count:b.addTest(.{:expected=9:actual=8")
 
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
-        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=56")
+        print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT=58")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
