@@ -76,6 +76,16 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
     "run: python3 scripts/zigux/validate-bootstrap.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -85,26 +95,9 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
 )
 
-# Keep the bootstrap validator and adjacent boundary markers anchored to the
-# actual Lane 03 packet order instead of drifting into the later Phase 2
-# checker tranche.
-WORKFLOW_ORDER_MARKERS = (
-    "- name: Setup pinned Zig toolchain",
-    "- name: Compile current scripts",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
-    "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
-    "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
-    "run: python3 scripts/zigux/validate-bootstrap.py",
-    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
-    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
-    "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
-    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
-    "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
-    "run: make -C zigux phase2-toolchain",
-    "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
-    "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
-)
+# Keep the bootstrap validator and the now-live Phase 2 bridge tranche anchored
+# to the active Lane 03 packet order before the later toolchain pinning checks.
+WORKFLOW_ORDER_MARKERS = WORKFLOW_LINE_MARKERS
 
 README_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
@@ -149,7 +142,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + (len(REQUIRED_PATHS) - 1)
-    + 22
+    + 28
 )
 
 
@@ -571,6 +564,102 @@ def run_self_test() -> int:
         assert (
             "OUT_OF_ORDER_WORKFLOW_MARKER",
             "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing -> run: python3 scripts/zigux/validate-bootstrap.py --self-test",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+                "run: python3 scripts/zigux/check-kconfig-bridge.py",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test -> run: python3 scripts/zigux/check-kconfig-bridge.py",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: python3 scripts/zigux/check-kconfig-bridge.py",
+                "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: python3 scripts/zigux/check-kconfig-bridge.py -> run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
+                "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: zig test scripts/zigux/kconfig/confdata_bridge.zig -> run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+                "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py -> run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+                "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py -> run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
+                "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py -> run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
         ) in collect_issues(root)
         checks_run += 1
 
