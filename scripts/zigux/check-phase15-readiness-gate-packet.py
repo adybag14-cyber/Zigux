@@ -283,7 +283,7 @@ def run_self_test() -> int:
         tests_checker_root = root / "tests_checker"
         _seed_repo(tests_checker_root)
         manifest = json.loads((tests_checker_root / MANIFEST_PATH).read_text(encoding="utf-8"))
-        manifest["repo_evidence"]["phase15_tests_readme_checker_present"] = false
+        manifest["repo_evidence"]["phase15_tests_readme_checker_present"] = False
         _write(tests_checker_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         failures = collect_failures(tests_checker_root)
         expected = [
@@ -295,7 +295,7 @@ def run_self_test() -> int:
         makefile_root = root / "makefile"
         _seed_repo(makefile_root)
         manifest = json.loads((makefile_root / MANIFEST_PATH).read_text(encoding="utf-8"))
-        manifest["repo_evidence"]["phase15_makefile_present"] = false
+        manifest["repo_evidence"]["phase15_makefile_present"] = False
         _write(makefile_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         failures = collect_failures(makefile_root)
         expected = [
