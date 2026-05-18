@@ -9,22 +9,33 @@ DOCS_README_PATH = Path("Documentation/zigux/README.md")
 
 REQUIRED_MARKERS = (
     "Phase 15 notes",
+    "`Documentation/zigux/phase15-freeze-map-governance.md`",
+    "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+    "`Documentation/zigux/phase15-parity-scorecard.md`",
+    "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "`Documentation/zigux/phase15-shared-summary-gap.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
     "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
-    "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
+    "`zigux/tests/phase15_architecture_council_review_process.zig`",
+    "`zigux/tests/phase15_indefinite_c_policy.json`",
+    "`zigux/tests/phase15_indefinite_c_policy.zig`",
+    "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
     "without implying any Architecture Council approval for a freeze-map status change",
-    "the shared Phase 15 docs-root handoff should also keep",
-    "the named reopen trigger",
+    "the shared Phase 15 docs-root handoff should also keep the named reopen trigger",
     "deep-core blocker-posture change",
-    "treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence",
+    "`zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, and `zigux/tests/phase15_indefinite_c_policy.zig` companions while the four freeze-in-C anchors and two study-only anchors stay parked",
+    "treat `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence",
     "keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim",
 )
 
@@ -46,22 +57,33 @@ def _write(path: Path, text: str) -> None:
 def _sample_docs_readme() -> str:
     return """Scope
 Phase 15 notes
+`Documentation/zigux/phase15-freeze-map-governance.md`
+`Documentation/zigux/phase15-architecture-council-review-process.md`
+`Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+`Documentation/zigux/phase15-indefinite-c-policy.md`
+`Documentation/zigux/phase15-parity-scorecard.md`
+`Documentation/zigux/phase15-parity-scorecard-survey.md`
 `Documentation/zigux/phase15-readiness-gate-survey.md`
 `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 `Documentation/zigux/phase15-governance-lane-sequencing.md`
 `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+`Documentation/zigux/phase15-shared-summary-gap.md`
 `scripts/zigux/check-phase15-docs-readme-alignment.py`
 `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 `scripts/zigux/check-phase15-shared-summary-gap.py`
 `scripts/zigux/check-phase15-review-process-handoff.py`
-`scripts/zigux/validate-phase15.py`
+`zigux/tests/phase15_architecture_council_review_process_manifest.json`
 `zigux/tests/phase15_readiness_gate_manifest.json`
+`zigux/tests/phase15_architecture_council_review_process.zig`
+`zigux/tests/phase15_indefinite_c_policy.json`
+`zigux/tests/phase15_indefinite_c_policy.zig`
+`scripts/zigux/validate-phase15.py`
 `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 without implying any Architecture Council approval for a freeze-map status change
-the shared Phase 15 docs-root handoff should also keep
-the named reopen trigger
+the shared Phase 15 docs-root handoff should also keep the named reopen trigger
 deep-core blocker-posture change
-treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence
+`zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, and `zigux/tests/phase15_indefinite_c_policy.zig` companions while the four freeze-in-C anchors and two study-only anchors stay parked
+treat `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence
 keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim
 """
 
@@ -86,6 +108,35 @@ def run_self_test() -> int:
         if missing != ["docs_readme:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"]:
             raise AssertionError(
                 f"unexpected missing markers for study-only accounting case: {missing}"
+            )
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "`Documentation/zigux/phase15-architecture-council-review-process.md`\n", "", 1
+            ),
+        )
+        missing = collect_missing_markers(root)
+        if missing != ["docs_readme:`Documentation/zigux/phase15-architecture-council-review-process.md`"]:
+            raise AssertionError(
+                f"unexpected missing markers for review-process note case: {missing}"
+            )
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = ["docs_readme:`Documentation/zigux/phase15-architecture-council-decision-record-template.md`"]
+        if missing != expected:
+            raise AssertionError(
+                f"unexpected missing markers for decision-record-template case: {missing}"
             )
         case_count += 1
 
@@ -126,14 +177,30 @@ def run_self_test() -> int:
         _write(
             root / DOCS_README_PATH,
             _sample_docs_readme().replace(
-                "treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence\n",
+                "`zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, and `zigux/tests/phase15_indefinite_c_policy.zig` companions while the four freeze-in-C anchors and two study-only anchors stay parked\n",
                 "",
                 1,
             ),
         )
         missing = collect_missing_markers(root)
         expected = [
-            "docs_readme:treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence"
+            "docs_readme:`zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, and `zigux/tests/phase15_indefinite_c_policy.zig` companions while the four freeze-in-C anchors and two study-only anchors stay parked"
+        ]
+        if missing != expected:
+            raise AssertionError(f"unexpected missing markers for dedicated-companions case: {missing}")
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "treat `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = [
+            "docs_readme:treat `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence"
         ]
         if missing != expected:
             raise AssertionError(f"unexpected missing markers for repo-reality-gap case: {missing}")
