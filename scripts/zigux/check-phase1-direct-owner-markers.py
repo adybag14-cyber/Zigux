@@ -182,7 +182,7 @@ def collect_direct_owner_failures(root: Path) -> list[str]:
         )
     )
     failures.extend(
-        require_exactValue(
+        require_exact_value(
             f"{MANIFEST_REL.as_posix()}:status",
             manifest.get("status"),
             EXPECTED_STATUS,
