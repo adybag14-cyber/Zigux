@@ -15,7 +15,7 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
   - `zigux/tests/phase8_kallsyms.zig`
   - `zigux/tests/phase8_kallsyms_only_build.zig`
   - `zigux/tests/phase8_help_kallsyms_only_build.zig`
-  - `zigux/Makefile` route names for `phase8-help-kallsyms-test` and `phase8-kallsyms-test`
+  - `zigux/Makefile` route names for the broader `phase8-validate`, `phase8-exec-cmd-test`, `phase8-test`, and `phase8` entrypoints only
 - current blocker:
   - current `master` still presents a mixed readback surface in this scheduled environment: public raw GitHub fallback reads the focused helper, checker, validator, test, and build files cleanly, but authenticated contents reads for some of the same symbol-lane paths still return `404`, so this lane remains parked on reminder truthfulness and direct raw-backed survey evidence rather than a fresh in-workspace replay
 
@@ -46,7 +46,7 @@ Current `master` also keeps the directly coupled focused packet readable through
 - `zigux/tests/phase8_kallsyms.zig`
 - `zigux/tests/phase8_kallsyms_only_build.zig`
 - `zigux/tests/phase8_help_kallsyms_only_build.zig`
-- `zigux/Makefile` route names for `phase8-validate`, `phase8-help-kallsyms-test`, and `phase8-kallsyms-test`
+- `zigux/Makefile` route names for the broader `phase8-validate`, `phase8-exec-cmd-test`, `phase8-test`, and `phase8` entrypoints only, while the focused symbol replays remain direct `zig build test --build-file ...` entrypoints rather than dedicated make wrappers
 
 That means the current symbol lane is no longer a missing-checker or missing-test packet from a repo-read perspective. The honest current lane posture is narrower: the helper-first parser-and-wrapper packet is readable again through the fallback path, while authenticated contents reads still disagree on some of those same paths and keep exact-file verification degraded in this scheduled environment.
 
@@ -58,7 +58,7 @@ The current readable packet still covers:
 - the helper-first expansion wording and one direct `kallsymsParse()` wrapper target
 - direct helper-backed reminder truthfulness for truncation, weak-object classification, chunked oversized-line handling, and callback-wrapper stability
 - a directly readable focused checker, validator, test, and build packet for the bounded symbol lane
-- the fact that `zigux/Makefile` still advertises focused Phase 8 kallsyms replay routes
+- the fact that current `master` keeps only the broader Phase 8 make routes, so focused symbol review depends on the dedicated build files rather than per-slice make wrappers
 - a directly verifiable blocker: authenticated contents reads and in-workspace replay remain degraded even though raw GitHub fallback now surfaces the packet
 
 The current packet does not yet provide:
@@ -80,6 +80,6 @@ This slice does not yet claim:
 
 Keep the lane narrow.
 
-If this lane reopens before a focused helper replay is practical, correct one directly coupled symbol-lane reminder, checker, or focused-test truthfulness gap only so the `kallsyms` packet stays aligned with the live helper and the currently readable raw-fallback packet.
+If this lane reopens before a focused helper replay is practical, correct one directly coupled symbol-lane reminder, checker, or focused-test truthfulness gap only so the `kallsyms` packet stays aligned with the live helper, the direct build-file replays, and the broader shared Phase 8 make routes.
 
 If helper replay becomes practical later, restart with one focused replay step around the already readable dedicated packet: rerun `zig build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all`, then confirm the same result against `zigux/tests/phase8_help_kallsyms_only_build.zig` before widening into any other Phase 8 tooling work.
