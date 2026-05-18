@@ -463,6 +463,22 @@ def run_self_test() -> int:
         build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
+        preflight_block = (
+            "      - name: Preflight current Phase 1 workflow viability checker\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + preflight_block)
+        failures = collect_failures(root)
+        if "workflow_step:Preflight current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_preflight_step_not_detected")
+            return 1
+        if "workflow_run:Preflight current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_preflight_run_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
         old = (
             "      - name: Setup Python\n"
             "        run: python3 --version\n\n"
@@ -519,6 +535,38 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=0" not in failures:
             print("self-test:missing_lane_selftest_step")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        lane_selftest_block = (
+            "      - name: Self-test current Phase 1 workflow viability checker\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + lane_selftest_block)
+        failures = collect_failures(root)
+        if "workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_selftest_step_not_detected")
+            return 1
+        if "workflow_run:Self-test current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_selftest_run_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        lane_check_block = (
+            "      - name: Check current Phase 1 workflow viability\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + lane_check_block)
+        failures = collect_failures(root)
+        if "workflow_step:Check current Phase 1 workflow viability:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_check_step_not_detected")
+            return 1
+        if "workflow_run:Check current Phase 1 workflow viability:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_check_run_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
