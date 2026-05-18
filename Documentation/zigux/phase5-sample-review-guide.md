@@ -75,7 +75,7 @@ Use the shared docs to preserve these bounded cues:
 
 ## Ownership and lifetime posture
 
-The roadmap still includes the `kobject` anchor, but fresh direct current-`master` readback in this run did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited:
+The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback still did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited, while public-tree fallback still exposes the bounded packet below:
 
 * `Documentation/zigux/phase5-kobject-sample-survey.md`
 * `samples/zigux/kobject_example.zig`
@@ -84,11 +84,12 @@ The roadmap still includes the `kobject` anchor, but fresh direct current-`maste
 * `zigux/tests/phase5_kobject_example_survey.zig`
 * `zigux/tests/phase5_build.zig`
 
-Keep shared contributor guidance honest about that repo-reality gap instead of restating the older mixed direct-plus-public-tree-backed kobject packet as current proof.
+Keep shared contributor guidance honest about that split instead of restating the older kobject packet as direct authenticated proof or flattening it into a pure missing-packet story.
 
-Use the shared docs to preserve only these bounded cues until a fresh reread proves the packet returned:
+Use the shared docs to preserve these bounded cues until a fresh reread restores direct authenticated proof for the whole packet:
 
 * Phase 5 still owns the roadmap-backed `samples/kobject/kobject-example.c` anchor
+* `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence rather than direct authenticated proof
 * the lane still stays non-runtime and should not widen into sysfs creation, `kernel_kobj` integration, uevents, or module-registration claims
 * same-lane follow-through should repair one shared reminder surface at a time instead of recreating missing sample-local ownership checklists from historical wording alone
 
@@ -104,18 +105,18 @@ Do not describe that formatting cue as a fifth Phase 5 sample, a standalone form
 
 ## Review posture
 
-Because current `master` keeps the restored direct kretprobe packet, the shared trace-events side in the narrower formatting-companion posture, and the `kobject` anchor in the repo-reality-gap bucket, same-lane follow-through should stay inside these bounded categories:
+Because current `master` keeps the restored direct kretprobe packet, the shared trace-events side in the narrower formatting-companion posture, and the `kobject` anchor in the public-tree-backed-companion-plus-authenticated-gap bucket, same-lane follow-through should stay inside these bounded categories:
 
 * one trace-events reminder-surface truthfulness repair at a time
 * one trace-events approved-idiom-gap repair at a time
 * one trace-events sample-root, tests-root, approved-idiom-gap, or shared-build reminder alignment repair at a time
-* one kobject repo-reality-gap reminder repair at a time
+* one kobject split-evidence reminder repair at a time
 
 Avoid:
 
 * treating the narrower trace-events reminder packet as a restored direct sample packet when current sample-root and tests-root rereads still keep the direct sample-local companions in the gap bucket
 * treating `zigux/tests/phase5_build.zig` as direct authenticated proof while the current lane still only has bounded public-tree-backed confirmation for that shared build route
-* treating the `kobject` anchor as a returned sample packet while current direct rereads still keep its older sample-root and tests-root packet members in the gap bucket
+* treating the `kobject` anchor as a returned direct sample packet while current authenticated rereads still keep its older sample-root and tests-root packet members out of direct-proof status
 * broadening the lane into runtime-loader, module-registration, procfs, sysfs, workqueue, or ring-buffer claims
 * treating Phase 9 runtime samples as extra Phase 5 evidence
 * treating the trace-events packet as permission to reopen unrelated bytestream, kobject, or kretprobe reminder work here
