@@ -98,6 +98,7 @@ pub fn main(init: std.process.Init) !void {
     try writeCase(writer, "inline_small", try xa_value.makeValue(29), true);
     try writeCase(writer, "inline_limit", inline_limit_raw, true);
     try writeCase(writer, "gap_before_err_floor", err_ptr.err_floor - 1, true);
+    try writeCase(writer, "err_top", err_ptr.fromErrorCode(-1), true);
     try writeCase(writer, "err_enomem", err_ptr.fromErrorCode(-12), true);
     try writeCase(writer, "err_max", err_ptr.fromErrorCode(-4095), false);
 
