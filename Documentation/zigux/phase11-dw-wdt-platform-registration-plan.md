@@ -4,18 +4,19 @@ This note records the next bounded follow-up for the live Phase 11 DesignWare wa
 
 ## Why this step belongs next
 
-Current direct contents reads on `master` still keep this owner note, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` directly readable for the bounded DesignWare packet.
+Current direct contents reads on `master` still keep this owner note, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `zigux/tests/phase11_dw_wdt_manifest.json`, and `zigux/tests/phase11_dw_wdt_registration_scaffold.zig` directly readable for the bounded DesignWare packet.
 
-Current contents reads in this run still return missing for `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`, so keep those as last-known DesignWare packet members until a future reread confirms them again.
+Current contents reads in this run still return missing for `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`, so keep those as last-known DesignWare packet members until a future reread confirms them again.
 
-The directly readable manifest and registration scaffold still keep the bounded lane reviewable through:
+The directly readable owner packet still keeps the bounded lane reviewable through:
+- the current hardware-validation note in `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - the current starter-laned gap inventory in `zigux/tests/phase11_dw_wdt_manifest.json`
 - the acquisition-facing scaffold in `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, including timer-clock, optional APB clock, reset-release posture, optional pretimeout-IRQ acquisition, imported-running handoff, and the missing timer-clock failure path
 - this owner note together with `Documentation/zigux/phase11-driver-lane-sequencing.md` and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` as the shared continuity packet that keeps the surviving DesignWare platform-registration follow-through explicit without widening it into live platform-driver execution or broader hardware-backed closure
 
-Current `master` therefore keeps a smaller directly readable DesignWare owner packet explicit through this plan note, the manifest, and the registration scaffold, so this owner note should not reintroduce the older driver, verify, direct replay, survey, validation-matrix, slice, teardown, or dedicated-checker set as if they were still directly readable review evidence.
+Current `master` therefore keeps a smaller directly readable DesignWare owner packet explicit through this plan note, the validation matrix, the manifest, and the registration scaffold, so this owner note should not reintroduce the older driver, verify, direct replay, survey, slice, teardown, or dedicated-checker set as if they were still directly readable review evidence.
 
-That means the honest next step is to keep the DesignWare owner packet aligned with the already-landed manifest-backed gap inventory and the registration scaffold current `master` actually materializes while still parking the next implementation step on platform-backed registration scaffolding instead of widening into live platform behavior.
+That means the honest next step is to keep the DesignWare owner packet aligned with the already-landed manifest-backed gap inventory, the directly readable validation matrix, and the registration scaffold current `master` actually materializes while still parking the next implementation step on platform-backed registration scaffolding instead of widening into live platform behavior.
 
 The last-known DesignWare packet still reserves compile-local teardown ownership and restart failure-mode parity for `drivers/watchdog/dw_wdt_verify.zig`, so future owner-packet wording should keep that host-free failure-mode scope explicit while platform acquisition remains the only next implementation step, without claiming that the verify file is directly readable again before a fresh reread confirms it.
 
@@ -68,4 +69,4 @@ The first scaffold packet should stay publishable with bounded proof only:
 
 If a future run picks up this packet, keep it to one acquisition-facing helper or summary family only.
 If clock acquisition lands first, leave reset wiring for the next bounded step. If reset acquisition lands first, leave clock-path execution for the next bounded step. When reset control is absent, keep the ready-to-register branch explicit instead of treating reset wiring as a blocked prerequisite. Keep the missing timer-clock failure path explicit until live acquisition exists.
-Keep the directly readable registration-scaffold surface and the owner-lane continuity packet explicit while the next implementation step stays inside `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and keep the broader DesignWare driver, verify, direct replay, survey, manifest-adjacent survey gate, slice, validation-matrix, teardown, and checker companions framed as last-known packet members until current `master` rematerializes them again.
+Keep the directly readable registration-scaffold surface and the owner-lane continuity packet explicit while the next implementation step stays inside `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, and keep the broader DesignWare driver, verify, direct replay, survey, manifest-adjacent survey gate, slice, teardown, and checker companions framed as last-known packet members until current `master` rematerializes them again.
