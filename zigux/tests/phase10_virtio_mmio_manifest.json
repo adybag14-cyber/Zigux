@@ -59,7 +59,7 @@
       "status": "starter_landed",
       "kind": "mmio_wrapper",
       "zigux_destination": "drivers/virtio/virtio_mmio.zig",
-      "why_now": "Current master already carries the in-memory VirtioMmioLab helper surface for bounded transport identity, queue readiness, feature negotiation, and config-write planning."
+      "why_now": "Current master already carries the in-memory VirtioMmioLab helper surface for bounded transport identity, queue readiness, interrupt-ack disposition, feature negotiation, and config-write planning."
     },
     {
       "id": "phase10-mmio-transport-identity-helper",
@@ -83,6 +83,13 @@
       "why_now": "The selected-queue readiness summary keeps queue-size programming and queue-ready gating reviewable entirely in memory."
     },
     {
+      "id": "phase10-mmio-interrupt-ack-disposition-helper",
+      "status": "starter_landed",
+      "kind": "mmio_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The interrupt-ack disposition summary keeps pending, acknowledged, ignored, and remaining bits explicit without claiming live IRQ delivery parity."
+    },
+    {
       "id": "phase10-mmio-feature-negotiation-summary-helper",
       "status": "starter_landed",
       "kind": "mmio_wrapper",
@@ -101,14 +108,14 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "drivers/virtio/virtio_mmio_verify.zig",
-      "why_now": "The wrapper-facing verify replay keeps probe, queue-readiness, feature-negotiation drift, and config-byte-count checks explicit beside the helper."
+      "why_now": "The wrapper-facing verify replay keeps probe, queue-readiness, interrupt-ack, feature-negotiation drift, and config-byte-count checks explicit beside the helper."
     },
     {
       "id": "phase10-virtio-mmio-lab-gate",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_mmio.zig",
-      "why_now": "The dedicated MMIO replay keeps probe gating, queue readiness, feature negotiation, and config-write disposition reviewable as VM-friendly lab validation."
+      "why_now": "The dedicated MMIO replay keeps probe gating, queue readiness, interrupt-ack disposition, feature negotiation, and config-write disposition reviewable as VM-friendly lab validation."
     },
     {
       "id": "phase10-virtio-mmio-survey-gate",
