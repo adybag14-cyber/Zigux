@@ -14,6 +14,7 @@ CHECKLIST = Path("Documentation/zigux/review-checklist.md")
 README = Path("zigux/tests/README.md")
 SELF = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 PINS = Path("scripts/zigux/check-phase4-reversible-delivery-pins.py")
+PERF_BASELINE_CHECKER = Path("scripts/zigux/check-phase4-perf-baseline-packet.py")
 
 DIRECT_READBACK_PACKET = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
@@ -28,7 +29,6 @@ MISSING_BROADER_PACKET = (
     "Documentation/zigux/phase4-validation-matrix.md",
     "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
-    "scripts/zigux/check-phase4-perf-baseline-packet.py",
     "scripts/zigux/validate-phase4.py",
     "zigux/tests/phase4_build.zig",
     "zigux/tests/phase4_perf_baseline_manifest.json",
@@ -39,6 +39,10 @@ PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 11
 EXPECTED_PIN_SELF_TEST_CASES = 7
+PERF_CHECKER_MARKER = (
+    "Current direct-readback dedicated local-only perf checker: "
+    "`scripts/zigux/check-phase4-perf-baseline-packet.py`"
+)
 
 NOTE_REQ = (
     "Documentation/zigux/review-checklist.md",
@@ -47,12 +51,13 @@ NOTE_REQ = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-artifact-diff-contract.py",
-    "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, lab-matrix, the remaining local-only perf companions, and bitmap-diff companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     "The tests-root guide already keeps the broader packet missing-warning aligned, and the repo-reality warning checker now fails closed on that broader-packet distinction between authenticated direct-readback gaps and public current-`master` fallback visibility.",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
+    PERF_CHECKER_MARKER,
 )
 
 README_OWNER_MARKERS = (
@@ -75,8 +80,9 @@ README_PENDING_REQ = (
     "zigux/tests/README.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
+    "repo-reality warning for the broader Phase 4 validator, lab-matrix, and remaining local-only perf companions",
     "historical provenance for that missing broader packet",
+    PERF_CHECKER_MARKER,
 ) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS + README_PUBLIC_FALLBACK_MARKERS
 
 CHECKLIST_PENDING_REQ = (
@@ -136,6 +142,8 @@ def _require_direct_packet(root: Path) -> None:
     missing_direct = [
         rel for rel in DIRECT_READBACK_PACKET if not (root / Path(rel)).exists()
     ]
+    if not (root / PERF_BASELINE_CHECKER).exists():
+        missing_direct.append(PERF_BASELINE_CHECKER.as_posix())
     if missing_direct:
         raise RuntimeError(
             "direct-readback packet no longer matches the current tree: "
@@ -174,8 +182,9 @@ def baseline_note() -> str:
             "",
             "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` on current `master`.",
             f"Current direct-readback packet members: {direct_packet}.",
+            f"Current direct-readback dedicated local-only perf checker: `{PERF_BASELINE_CHECKER.as_posix()}`.",
             "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.",
-            f"The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run: authenticated contents reads returned missing for {broader_packet}.",
+            f"The broader Phase 4 validator, lab-matrix, the remaining local-only perf companions, and bitmap-diff companions are still repo-reality gaps in this run: authenticated contents reads returned missing for {broader_packet}.",
             "Historical broader packet references still include `scripts/zigux/artifact_diff.py` and `scripts/zigux/check-artifact-diff-contract.py`, so the shared repo-reality warning must keep those contract anchors explicit even while the broader packet stays historical here.",
             "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof.",
             "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open until that broader validator, lab-matrix, local-only perf, and bitmap-diff packet is directly readable again.",
@@ -213,6 +222,7 @@ def build_baseline_tree(root: Path) -> None:
     write(root, CHECKLIST, baseline_checklist())
     write(root, SELF, "# repo-reality warning checker placeholder\n")
     write(root, PINS, "# reversible-delivery pin checker placeholder\n")
+    write(root, PERF_BASELINE_CHECKER, "# direct-readback perf checker placeholder\n")
 
 
 def main() -> int:
