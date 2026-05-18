@@ -56,6 +56,22 @@ pub fn currentVersion() Version {
     return version.current();
 }
 
+pub fn hasCurrentAbiMajor(value: u32) bool {
+    return version.hasCurrentAbiMajor(value);
+}
+
+pub fn hasCurrentAbiMinor(value: u32) bool {
+    return version.hasCurrentAbiMinor(value);
+}
+
+pub fn hasCurrentHeaderFamilyRevision(value: u32) bool {
+    return version.hasCurrentHeaderFamilyRevision(value);
+}
+
+pub fn versionMatchesCurrent(current: Version) bool {
+    return version.matchesCurrent(current);
+}
+
 pub fn makeDevTFields(major: u32, minor: u32) DevTFields {
     return dev_t.init(major, minor);
 }
@@ -152,6 +168,45 @@ test "export shim keeps boundary header predicates aligned with ABI helpers" {
     try testing.expectEqual(future.flags, canonicalized.flags);
     try testing.expect(headerIsCanonical(canonicalized));
     try testing.expect(!extendsBoundary(canonicalized));
+}
+
+test "export shim mirrors current version compatibility helpers" {
+    const live = currentVersion();
+    const stale_major = Version{
+        .abi_major = live.abi_major + 1,
+        .abi_minor = live.abi_minor,
+        .header_family_revision = live.header_family_revision,
+    };
+    const stale_minor = Version{
+        .abi_major = live.abi_major,
+        .abi_minor = live.abi_minor + 1,
+        .header_family_revision = live.header_family_revision,
+    };
+    const stale_revision = Version{
+        .abi_major = live.abi_major,
+        .abi_minor = live.abi_minor,
+        .header_family_revision = live.header_family_revision + 1,
+    };
+
+    try testing.expect(hasCurrentAbiMajor(live.abi_major));
+    try testing.expect(hasCurrentAbiMinor(live.abi_minor));
+    try testing.expect(hasCurrentHeaderFamilyRevision(live.header_family_revision));
+    try testing.expect(versionMatchesCurrent(live));
+
+    try testing.expectEqual(version.hasCurrentAbiMajor(live.abi_major), hasCurrentAbiMajor(live.abi_major));
+    try testing.expectEqual(version.hasCurrentAbiMinor(live.abi_minor), hasCurrentAbiMinor(live.abi_minor));
+    try testing.expectEqual(
+        version.hasCurrentHeaderFamilyRevision(live.header_family_revision),
+        hasCurrentHeaderFamilyRevision(live.header_family_revision),
+    );
+    try testing.expectEqual(version.matchesCurrent(live), versionMatchesCurrent(live));
+
+    try testing.expect(!hasCurrentAbiMajor(stale_major.abi_major));
+    try testing.expect(!versionMatchesCurrent(stale_major));
+    try testing.expect(!hasCurrentAbiMinor(stale_minor.abi_minor));
+    try testing.expect(!versionMatchesCurrent(stale_minor));
+    try testing.expect(!hasCurrentHeaderFamilyRevision(stale_revision.header_family_revision));
+    try testing.expect(!versionMatchesCurrent(stale_revision));
 }
 
 test "export shim status helpers keep facility and error flags explicit" {
