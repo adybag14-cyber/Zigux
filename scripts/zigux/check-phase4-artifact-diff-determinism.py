@@ -58,7 +58,6 @@ REPO_WARNING_MARKERS = (
 
 ABSENT_HISTORICAL_MEMBERS = (
     "Documentation/zigux/artifact-diff.md",
-    "Documentation/zigux/phase4-artifact-diff-tooling-survey.md",
     "scripts/zigux/artifact_diff.py",
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/validate-phase4.py",
