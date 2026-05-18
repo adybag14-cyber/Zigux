@@ -14,8 +14,8 @@ It is a PMO release artifact only. It does not claim that Phase 12 is already cl
 - shared coordination companion: `Documentation/zigux/phase12-release-coordination-matrix.md`
 - shared fallback companion: `Documentation/zigux/phase12-raw-github-coverage-survey.md`
 - support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`
-- validator-first support route: `scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`
-- shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
+- validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`
+- shared replay wiring: `zigux/tests/phase12_build.zig` and `.github/workflows/zigux-bootstrap.yml`; `zigux/Makefile` remains directly readable repo evidence but does not currently expose `phase12-validate`, `phase12-smoke`, or `phase12` on `master`
 
 ## Closure Gates
 
