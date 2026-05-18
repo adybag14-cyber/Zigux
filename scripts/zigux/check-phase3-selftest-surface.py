@@ -71,6 +71,7 @@ TESTS_README_MARKERS = (
     "Documentation/zigux/phase3-errptr-xarray-slice.md",
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
+    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
     "include/zigux/abi.h",
@@ -93,6 +94,7 @@ TESTS_README_MARKERS = (
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
+    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence",
     "keep the returned notifier-binding and focused export/UAPI layout replay pair explicit here instead of leaving `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/phase3_export_uapi_layout_build.zig` framed as broader repo-reality gaps",
 )
@@ -305,6 +307,16 @@ def run_self_test() -> int:
         (README_PATH, "Documentation/zigux/phase3-linux-zigux-header-governance.md", "docs README"),
         (README_PATH, "scripts/zigux/validate-phase3-export-uapi-survey.py", "docs README"),
         (README_PATH, "zigux/tests/fixtures/phase3_abi_manifest.json", "docs README"),
+        (
+            TESTS_README_PATH,
+            "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+            "tests README",
+        ),
+        (
+            TESTS_README_PATH,
+            "scripts/zigux/validate-phase3-export-uapi-survey.py",
+            "tests README",
+        ),
         (
             TESTS_README_PATH,
             "instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence",
