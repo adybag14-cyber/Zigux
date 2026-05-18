@@ -137,6 +137,8 @@ EXPECTED_CURRENT_REPO_REALITY_GAPS = [
     "zigux/tests/phase6_base64_c_parity.zig",
     "zigux/tests/phase6_base64_c_casegen.zig",
     "zigux/tests/fixtures/phase6_base64_c_harness.c",
+    "zigux/tests/phase6_checksum_c_parity.zig",
+    "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
     "scripts/zigux/check-phase6-base64-c-parity.py",
     "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
@@ -172,6 +174,8 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `zigux/tests/phase6_base64_c_parity.zig`",
     "- `zigux/tests/phase6_base64_c_casegen.zig`",
     "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
+    "- `zigux/tests/phase6_checksum_c_parity.zig`",
+    "- `zigux/tests/fixtures/phase6_checksum_c_harness.c`",
     "- `zigux/tests/phase6_hexdump_perf_matrix.zig`",
     "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
     "- committed fixture surface: `zigux/tests/fixtures/phase6_base64_vectors.zig`",
@@ -383,17 +387,17 @@ def run_self_test() -> None:
 
         write(
             catalog_path,
-            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[14] + "\n", "", 1),
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[16] + "\n", "", 1),
         )
-        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[14])
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[16])
         cases_run += 1
         scaffold_repo(root)
 
         write(
             catalog_path,
-            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[15] + "\n", "", 1),
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[17] + "\n", "", 1),
         )
-        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[15])
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[17])
         cases_run += 1
         scaffold_repo(root)
 
