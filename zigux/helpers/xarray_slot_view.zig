@@ -312,6 +312,46 @@ test "constructor accessors stay lane-specific at both slot cutoffs" {
     try std.testing.expectEqual(@as(?usize, null), top_err.pointerValue());
 }
 
+test "constructor outputs round-trip through fromRaw at both slot cutoffs" {
+    const cases = [_]struct {
+        slot: SlotView,
+        kind: SlotKind,
+        value: ?usize,
+        error_code: ?isize,
+        pointer: ?usize,
+    }{
+        .{ .slot = nullSlot(), .kind = .null, .value = null, .error_code = null, .pointer = null },
+        .{ .slot = try fromValue(0), .kind = .value, .value = 0, .error_code = null, .pointer = null },
+        .{ .slot = fromPointer(2), .kind = .pointer, .value = null, .error_code = null, .pointer = 2 },
+        .{
+            .slot = try fromValue(xa_value.safe_inline_limit),
+            .kind = .value,
+            .value = xa_value.safe_inline_limit,
+            .error_code = null,
+            .pointer = null,
+        },
+        .{
+            .slot = fromPointer(err_ptr.err_floor - 1),
+            .kind = .pointer,
+            .value = null,
+            .error_code = null,
+            .pointer = err_ptr.err_floor - 1,
+        },
+        .{ .slot = fromErrorCode(-4095), .kind = .err, .value = null, .error_code = -4095, .pointer = null },
+        .{ .slot = fromErrorCode(-1), .kind = .err, .value = null, .error_code = -1, .pointer = null },
+    };
+
+    for (cases) |case| {
+        const decoded = fromRaw(case.slot.rawValue());
+
+        try std.testing.expectEqual(case.slot.rawValue(), decoded.rawValue());
+        try std.testing.expectEqual(case.kind, decoded.kind());
+        try std.testing.expectEqual(case.value, decoded.value());
+        try std.testing.expectEqual(case.error_code, decoded.errorCode());
+        try std.testing.expectEqual(case.pointer, decoded.pointerValue());
+    }
+}
+
 test "inline zero stays a tagged value and keeps other decoders closed" {
     const raw = try xa_value.makeValue(0);
     const slot = fromRaw(raw);
