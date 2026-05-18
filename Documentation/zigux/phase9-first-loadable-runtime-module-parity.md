@@ -49,8 +49,8 @@ Current `master` also does not currently expose the broader shared runtime-loade
 - `zigux/kernel/runtime_loader_contract.zig`
 - `zigux/tests/phase9_build.zig`
 - `scripts/zigux/check-phase9-build-only-surface.py`
-- `zigux/Makefile`
-- `.github/workflows/zigux-bootstrap.yml`
+
+Current `master` does materialize `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` again, but those live bodies stay shared repo-level surfaces rather than dedicated Phase 9 owner evidence: `zigux/Makefile` still lacks any `phase9-*` runtime-pilot routes, and `.github/workflows/zigux-bootstrap.yml` remains a broad bootstrap workflow instead of proof that the removed shared runtime-loader packet returned.
 
 ## Cross-Family Parity
 The older first-loadable atomic64-versus-bitmap parity comparison is not currently live on shipped `master`.
