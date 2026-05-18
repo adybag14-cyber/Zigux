@@ -2,6 +2,7 @@ const std = @import("std");
 const virtio_ring = @import("virtio_ring");
 
 pub const NotificationDataSummary = virtio_ring.NotificationDataSummary;
+pub const UsedBufferPollSummary = virtio_ring.UsedBufferPollSummary;
 pub const DelayedCallbackSummary = virtio_ring.DelayedCallbackSummary;
 pub const BrokenQueueSummary = virtio_ring.BrokenQueueSummary;
 pub const QueueResetReadinessSummary = virtio_ring.QueueResetReadinessSummary;
@@ -11,6 +12,13 @@ pub fn summarizeNotificationData(
     queue_index: u16,
 ) !NotificationDataSummary {
     return ring.notificationDataSummary(queue_index);
+}
+
+pub fn summarizeUsedBufferPoll(
+    ring: *virtio_ring.VirtioRingLab,
+    queue_index: u16,
+) !UsedBufferPollSummary {
+    return ring.pollUsedBuffers(queue_index);
 }
 
 pub fn summarizeDelayedCallback(
@@ -99,6 +107,40 @@ test "phase10 virtio ring verify keeps notification-data next-avail state review
     try std.testing.expect(!notificationDataUsesWrapBit(summary));
     try std.testing.expectEqual(@as(u16, 0), summary.encoded_next);
     try std.testing.expectEqual(@as(u32, 1), summary.notification_data);
+}
+
+test "phase10 virtio ring verify keeps used-buffer polling progress explicit after queue-local replay" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(3, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(3);
+    try ring.publishDescriptorChain(3);
+    _ = try ring.prepareKick(3);
+    try ring.recordUsedChains(3, 1);
+
+    var summary = try summarizeUsedBufferPoll(&ring, 3);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 3), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expect(summary.has_newly_used_chains);
+
+    summary = try summarizeUsedBufferPoll(&ring, 3);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expect(!summary.has_newly_used_chains);
+
+    try ring.recordUsedChains(3, 1);
+    summary = try summarizeUsedBufferPoll(&ring, 3);
+    try std.testing.expectEqual(@as(u16, 2), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.newly_used_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expect(summary.has_newly_used_chains);
 }
 
 test "phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit" {
