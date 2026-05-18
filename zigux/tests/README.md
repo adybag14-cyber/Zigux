@@ -23,6 +23,14 @@ Key entrypoints
   * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
   * repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, and `zigux/Makefile`
   * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`
+  * current direct-readback Phase 2 kconfig bridge packet:
+    `Documentation/zigux/review-checklist.md`
+    `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+    `scripts/zigux/kconfig/conf_bridge.zig`
+    `scripts/zigux/kconfig/confdata_bridge.zig`
+    `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
+    `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
+  * current shared Phase 2 kconfig route: `make -C zigux phase2-kconfig`
   * roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`
   * current direct-readback Phase 4 rollback packet:
     `Documentation/zigux/phase4-reversible-delivery-evidence.md`
