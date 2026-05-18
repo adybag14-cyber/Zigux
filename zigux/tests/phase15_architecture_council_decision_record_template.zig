@@ -56,20 +56,22 @@ test "phase 15 decision record template keeps the required Architecture Council 
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", manifest.template_path);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("current-master-readback-YYYY-MM-DD", manifest.surveyed_commit_placeholder);
-    try std.testing.expectEqual(@as(usize, 5), manifest.supporting_artifacts.len);
+    try std.testing.expectEqual(@as(usize, 7), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.record_metadata_fields.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.anchor_and_ownership_fields.len);
     try std.testing.expectEqual(@as(usize, 6), manifest.validation_and_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
-    try std.testing.expectEqual(@as(usize, 4), manifest.supporting_context_fields.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.supporting_context_fields.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.review_outcome_fields.len);
-    try std.testing.expectEqual(@as(usize, 5), manifest.usage_rules_required_terms.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.usage_rules_required_terms.len);
 
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-freeze-map-governance.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-parity-scorecard.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-architecture-council-review-process.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-governance-lane-sequencing.md");
+    try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-study-only-anchor-accounting.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/review-checklist.md");
 
     try expectContains(template, "This is a review packet template, not approval by itself.");
