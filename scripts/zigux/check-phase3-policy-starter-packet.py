@@ -31,6 +31,7 @@ REQUIRED_PACKET_FILES = (
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/notifier_abi.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
@@ -170,6 +171,7 @@ REQUIRED_MARKERS = {
         '"slug": "phase3-policy-starter-packet"',
         '"status": "policy_slice_present"',
         '"Documentation/zigux/phase3-policy-slice.md"',
+        '"zigux/bindings/notifier_abi.zig"',
         '"zigux/helpers/panic_policy.zig"',
         '"zigux/helpers/allocator_policy.zig"',
         '"zigux/helpers/unsafe_policy.zig"',
@@ -203,6 +205,7 @@ SELF_TEST_CASES = (
     (UNSAFE_POLICY_PATH, "pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {"),
     (TEST_PATH, "unsafe_policy.requiresRawPointerBridge(.raw_pointer_bridge)"),
     (BUILD_PATH, 'root_module.addImport("unsafe_policy", unsafe_policy);'),
+    (MANIFEST_PATH, '"zigux/bindings/notifier_abi.zig"'),
     (MANIFEST_PATH, '"zigux/helpers/unsafe_policy.zig"'),
 )
 
@@ -245,6 +248,7 @@ SAMPLE_FILES[MANIFEST_PATH] = """{
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/notifier_abi.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
