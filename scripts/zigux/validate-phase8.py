@@ -25,11 +25,13 @@ REQUIRED_FILES = (
     Path("zigux/Makefile"),
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase8_exec_cmd.zig"),
+    Path("zigux/tests/phase8_file_path_handle_bridge.zig"),
     Path("zigux/tests/phase8_libbpf_segments.zig"),
 )
 
 ROUTE_FILES = (
     Path("zigux/tests/phase8_exec_cmd_only_build.zig"),
+    Path("zigux/tests/phase8_file_path_handle_bridge_only_build.zig"),
     Path("zigux/tests/phase8_libbpf_segments_only_build.zig"),
     Path("zigux/tests/phase8_perf_buffer_poll_only_build.zig"),
     Path("zigux/tests/phase8_build.zig"),
@@ -45,6 +47,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py",
         "phase8-exec-cmd-test:",
+        "phase8-file-path-handle-bridge-test:",
         "phase8-libbpf-segments-test:",
         "phase8-perf-buffer-poll-test:",
         "phase8-test:",
@@ -60,6 +63,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "scripts/zigux/validate-phase8.py",
         "tools/lib/subcmd/exec-cmd.zig",
         "tools/lib/bpf/zigux_segments/verify.zig",
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_libbpf_segments.zig",
     ),
     Path("Documentation/zigux/phase8-libbpf-segment-survey.md"): (
@@ -81,12 +86,19 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
     Path("scripts/zigux/README.md"): (
         "## Phase 8",
         "scripts/zigux/validate-phase8.py",
+        "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+        "zigux/tests/phase8_file_path_handle_bridge.zig",
+        "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+        "make -C zigux phase8-file-path-handle-bridge-test",
         "make -C zigux phase8-validate",
     ),
     Path("zigux/tests/README.md"): (
         "scripts/zigux/validate-phase8.py",
+        "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+        "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
         "make -C zigux phase8-validate",
         "make -C zigux phase8-exec-cmd-test",
+        "make -C zigux phase8-file-path-handle-bridge-test",
     ),
     Path("zigux/tests/phase8_exec_cmd.zig"): (
         "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit",
@@ -180,6 +192,7 @@ def _passing_fixture(root: Path) -> None:
                 "phase8-validate:",
                 "\tpython3 scripts/zigux/validate-phase8.py",
                 "phase8-exec-cmd-test:",
+                "phase8-file-path-handle-bridge-test:",
                 "phase8-libbpf-segments-test:",
                 "phase8-perf-buffer-poll-test:",
                 "phase8-test:",
@@ -205,6 +218,8 @@ def _passing_fixture(root: Path) -> None:
                 "scripts/zigux/validate-phase8.py",
                 "tools/lib/subcmd/exec-cmd.zig",
                 "tools/lib/bpf/zigux_segments/verify.zig",
+                "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                "zigux/tests/phase8_file_path_handle_bridge.zig",
                 "zigux/tests/phase8_libbpf_segments.zig",
             )
         ),
@@ -245,6 +260,10 @@ def _passing_fixture(root: Path) -> None:
             (
                 "## Phase 8",
                 "scripts/zigux/validate-phase8.py",
+                "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+                "zigux/tests/phase8_file_path_handle_bridge.zig",
+                "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+                "make -C zigux phase8-file-path-handle-bridge-test",
                 "make -C zigux phase8-validate",
             )
         ),
@@ -254,8 +273,11 @@ def _passing_fixture(root: Path) -> None:
         "\n".join(
             (
                 "scripts/zigux/validate-phase8.py",
+                "`zigux/tests/phase8_file_path_handle_bridge.zig`",
+                "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
                 "make -C zigux phase8-validate",
                 "make -C zigux phase8-exec-cmd-test",
+                "make -C zigux phase8-file-path-handle-bridge-test",
             )
         ),
     )
@@ -272,17 +294,25 @@ def _passing_fixture(root: Path) -> None:
         ),
     )
     _write(
+        root / "zigux/tests/phase8_file_path_handle_bridge.zig",
+        "phase8 file-path-handle bridge reminder surface",
+    )
+    _write(
         root / "zigux/tests/phase8_libbpf_segments.zig",
         "phase8 libbpf segment reminder surface",
     )
     _write(root / "zigux/tests/phase8_exec_cmd_only_build.zig", "exec cmd build shard")
+    _write(
+        root / "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+        "file-path-handle bridge build shard",
+    )
     _write(root / "zigux/tests/phase8_libbpf_segments_only_build.zig", "libbpf segment verify shard")
     _write(root / "zigux/tests/phase8_perf_buffer_poll_only_build.zig", "perf buffer poll shard")
     _write(root / "zigux/tests/phase8_build.zig", "phase8 aggregate build shard")
 
 
 def _self_test_case_count() -> int:
-    return 5
+    return 9
 
 
 def run_self_test() -> int:
@@ -347,6 +377,44 @@ def run_self_test() -> int:
         )
         if expected_survey_route not in missing_survey_route.missing_markers:
             raise AssertionError("expected missing libbpf survey route marker to be reported")
+        survey.write_text(original_survey, encoding="utf-8")
+
+        bridge_test = root / "zigux/tests/phase8_file_path_handle_bridge.zig"
+        bridge_test.unlink()
+        missing_bridge_test = validate_root(root)
+        if "zigux/tests/phase8_file_path_handle_bridge.zig" not in missing_bridge_test.missing_files:
+            raise AssertionError("expected missing bridge replay file to be reported")
+        _write(bridge_test, "phase8 file-path-handle bridge reminder surface")
+
+        bridge_build = root / "zigux/tests/phase8_file_path_handle_bridge_only_build.zig"
+        bridge_build.unlink()
+        missing_bridge_build = validate_root(root)
+        if "zigux/tests/phase8_file_path_handle_bridge_only_build.zig" not in missing_bridge_build.missing_files:
+            raise AssertionError("expected missing bridge build shard to be reported")
+        _write(bridge_build, "file-path-handle bridge build shard")
+
+        makefile.write_text(
+            original_makefile.replace("phase8-file-path-handle-bridge-test:\n", "", 1),
+            encoding="utf-8",
+        )
+        missing_bridge_route = validate_root(root)
+        expected_bridge_route = "zigux/Makefile:phase8-file-path-handle-bridge-test:"
+        if expected_bridge_route not in missing_bridge_route.missing_markers:
+            raise AssertionError("expected missing bridge make route marker to be reported")
+        makefile.write_text(original_makefile, encoding="utf-8")
+
+        tests_readme = root / "zigux/tests/README.md"
+        original_tests_readme = _read(tests_readme)
+        tests_readme.write_text(
+            original_tests_readme.replace("make -C zigux phase8-file-path-handle-bridge-test", "", 1),
+            encoding="utf-8",
+        )
+        missing_tests_bridge_marker = validate_root(root)
+        expected_tests_bridge_marker = (
+            "zigux/tests/README.md:make -C zigux phase8-file-path-handle-bridge-test"
+        )
+        if expected_tests_bridge_marker not in missing_tests_bridge_marker.missing_markers:
+            raise AssertionError("expected missing tests-root bridge route marker to be reported")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
     print(f"PHASE8_VALIDATE_SELF_TEST_CASE_COUNT={_self_test_case_count()}")
