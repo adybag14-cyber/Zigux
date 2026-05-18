@@ -273,3 +273,51 @@ test "hlist view reports a cycle witness and fails tail checks closed" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
     try std.testing.expect(!view.hasConsistentPrevLinks());
 }
+
+test "hlist view handles a one-node hlist without losing tail access" {
+    var head = HListHead{ .first = 0 };
+    var node = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&node);
+    node.next = 0;
+    node.pprev = @intFromPtr(&head.first);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 1), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.last());
+    try std.testing.expect(view.firstPprevMatchesHead());
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
+    try std.testing.expect(view.hasConsistentPrevLinks());
+    try std.testing.expect(view.tailNextIsNull());
+}
+
+test "hlist view fails closed for a self-looped first node" {
+    var head = HListHead{ .first = 0 };
+    var node = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&node);
+    node.next = @intFromPtr(&node);
+    node.pprev = @intFromPtr(&head.first);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, null), view.last());
+    try std.testing.expect(view.firstPprevMatchesHead());
+    try std.testing.expect(!view.tailNextIsNull());
+    try std.testing.expect(view.hasCycle());
+
+    const witness = view.firstCycleWitness().?;
+    try std.testing.expectEqual(@as(usize, 1), witness.slow_index);
+    try std.testing.expectEqual(@as(usize, 2), witness.fast_index);
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&node.next)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+}
