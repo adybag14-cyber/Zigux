@@ -265,10 +265,25 @@ def run_self_test() -> int:
         write(missing_survey / SURVEY_PATH, read_text(missing_survey / SURVEY_PATH).replace("current-head four-matrix packet rather than the missing starter-depth anchor", ""))
         expect_failure(missing_survey, "current-head four-matrix packet rather than the missing starter-depth anchor")
 
+        missing_survey_anchor = tmpdir / "missing_survey_anchor"
+        shutil.copytree(fixture, missing_survey_anchor, dirs_exist_ok=True)
+        write(missing_survey_anchor / SURVEY_PATH, read_text(missing_survey_anchor / SURVEY_PATH).replace("`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`", ""))
+        expect_failure(missing_survey_anchor, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`")
+
         missing_companion = tmpdir / "missing_companion"
         shutil.copytree(fixture, missing_companion, dirs_exist_ok=True)
         write(missing_companion / COMPANION_PATH, read_text(missing_companion / COMPANION_PATH).replace("smaller proof-backed HVC continuity packet reviewable", ""))
         expect_failure(missing_companion, "smaller proof-backed HVC continuity packet reviewable")
+
+        missing_companion_gap = tmpdir / "missing_companion_gap"
+        shutil.copytree(fixture, missing_companion_gap, dirs_exist_ok=True)
+        write(missing_companion_gap / COMPANION_PATH, read_text(missing_companion_gap / COMPANION_PATH).replace("Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap", ""))
+        expect_failure(missing_companion_gap, "`scripts/zigux/check-phase11-hvc-survey-packet.py`")
+
+        missing_verify = tmpdir / "missing_verify"
+        shutil.copytree(fixture, missing_verify, dirs_exist_ok=True)
+        write(missing_verify / VERIFY_PATH, read_text(missing_verify / VERIFY_PATH).replace("`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.", ""))
+        expect_failure(missing_verify, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`")
 
         missing_matrix = tmpdir / "missing_matrix"
         shutil.copytree(fixture, missing_matrix, dirs_exist_ok=True)
@@ -307,7 +322,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=9")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
