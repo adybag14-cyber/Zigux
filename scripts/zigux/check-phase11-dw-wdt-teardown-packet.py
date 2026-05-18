@@ -10,7 +10,8 @@ from pathlib import Path
 
 REQUIRED_FILES = {
     "alignment_note": Path("Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md"),
-    "plan": Path("Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"),
+    "gap_note": Path("Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md"),
+    "plan": Path("Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md"),
     "manifest": Path("zigux/tests/phase11_dw_wdt_manifest.json"),
     "registration_scaffold": Path("zigux/tests/phase11_dw_wdt_registration_scaffold.zig"),
 }
@@ -22,15 +23,23 @@ ALIGNMENT_NOTE_MARKERS = [
     "- the next substantive non-doc move should remain one platform-backed acquisition scaffold only",
 ]
 
+GAP_NOTE_MARKERS = [
+    "current direct tree readback still materializes `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, and `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`",
+    "current direct tree readback did not rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, or `scripts/zigux/check-phase11-dw-wdt-packet.py`",
+    "`Documentation/zigux/phase11-driver-lane-sequencing.md` already keeps those missing helper, matrix, survey, slice, teardown, replay, and packet-checker surfaces framed as repo-reality gaps, but `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md` still narrates the next slice as if the direct helper pair and direct replay are current-head evidence",
+]
+
 PLAN_MARKERS = [
+    "current direct contents rereads do not rematerialize `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so keep them framed as last-known packet members or repo-reality gaps instead of current-head evidence",
+    "when `drivers/watchdog/dw_wdt.zig` rematerializes again, land only one timer-clock acquisition helper that records named-`tclk` success, shared-clock fallback success, and blocked-no-clock failure",
     "optional reset-control absence can still remain a ready-to-register scaffold branch while `reset_control_deassert` stays visible as an unrequested outcome rather than an implicit blocker",
-    "model reset-control availability and reset-release intent as explicit outcome-bearing steps while preserving the already-readable ready-to-register branch when reset control is absent",
+    "preserve the registration-scaffold proof that model reset-control availability and reset-release intent as explicit outcome-bearing steps while preserving the already-readable ready-to-register branch when reset control is absent",
     "keep optional reset-control absence explicit as a ready-to-register scaffold branch so the bounded packet does not overstate reset wiring as mandatory before host-free registration review",
 ]
 
 REGISTRATION_SCAFFOLD_MARKERS = [
-    'test "platform registration scaffold summary keeps optional reset-control absence explicit" {',
-    "dw_wdt.RegistrationScaffoldState.ready_to_register",
+    'test "platform registration scaffold summary keeps imported-running resetless registration explicit" {',
+    "dw_wdt.RegistrationScaffoldState.import_running_state_then_register",
     'try std.testing.expectEqualStrings("reset_control_deassert", summary.reset_release_call);',
     "try std.testing.expect(!summary.reset_release_requested);",
 ]
@@ -44,12 +53,14 @@ READY_NEXT_DESTINATION = "zigux/tests/phase11_dw_wdt.zig"
 
 MARKERS_BY_LABEL = {
     "alignment_note": ALIGNMENT_NOTE_MARKERS,
+    "gap_note": GAP_NOTE_MARKERS,
     "plan": PLAN_MARKERS,
     "registration_scaffold": REGISTRATION_SCAFFOLD_MARKERS,
 }
 
 SELF_TEST_CASES = (
     ("alignment_note_marker_missing", "alignment_note", ALIGNMENT_NOTE_MARKERS[1]),
+    ("gap_note_marker_missing", "gap_note", GAP_NOTE_MARKERS[1]),
     ("plan_marker_missing", "plan", PLAN_MARKERS[0]),
     (
         "registration_scaffold_marker_missing",
@@ -152,6 +163,7 @@ def seed_fixture(root: Path) -> None:
     for label, markers in MARKERS_BY_LABEL.items():
         (root / REQUIRED_FILES[label]).write_text("\n".join(markers), encoding="utf-8")
 
+    (root / REQUIRED_FILES["manifest"]).writeText = None
     (root / REQUIRED_FILES["manifest"]).write_text(
         json.dumps(
             {
