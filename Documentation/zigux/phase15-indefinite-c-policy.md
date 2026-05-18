@@ -33,6 +33,8 @@ This policy applies when all of the following are true:
 
 When an anchor is recorded under this policy, the reviewable record must keep all of the following explicit:
 
+Those ownership, validation, and rollback fields stay coupled to `Documentation/zigux/phase15-architecture-council-decision-record-template.md` so the stay-in-C closeout record reuses the same reviewable ownership vocabulary as the broader Phase 15 governance packet.
+
 - the Linux anchor path, roadmap phase, current status bucket, and requested decision bucket
 - the decision record ID, lane owner, required approver set, and rollback owner
 - the validation gate summary, benchmark-notes status, replay command, latest blocker disposition, and evidence archive path
@@ -89,7 +91,7 @@ The bounded reopen-trigger catalog for this packet is:
   - the freeze-in-C blocker posture changes
   - the review-process packet changes its required field inventory for a stay-in-C closeout
   - the parity scorecard changes the blocked-posture accounting that this policy references
-- next future target: keep this lane parked unless one of those packet-local conditions fires; if it does, reread `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/review-checklist.md` together, then keep the repair inside this policy packet and its direct companions only
+- next future target: keep this lane parked unless one of those packet-local conditions fires; if it does, reread `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/review-checklist.md` together, then keep the repair inside this policy packet and its direct companions only
 
 ## Recorded gaps
 
@@ -100,6 +102,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-policy-test`
 - landed `phase15-indefinite-c-roadmap-gap-restoration`
 - landed `phase15-indefinite-c-review-process-companion-sync`
+- landed `phase15-indefinite-c-ownership-template-sync`
 - blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`
 
 ## Next bounded step
