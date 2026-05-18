@@ -270,6 +270,44 @@ test "cpumask summaries keep reserved bytes zero for valid and invalid views" {
     try std.testing.expectEqual(@as(u32, 0), invalid.reserved);
 }
 
+test "cpumask projection stays aligned with bitmap helpers on bounded windows" {
+    var backing = [_]Word{
+        (@as(Word, 1) << 5) | (@as(Word, 1) << (bitmap.bits_per_word - 1)),
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 6) | (@as(Word, 1) << 10),
+    };
+    const view = viewFromWords(backing[0..], bitmap.bits_per_word + 11);
+    const projected = binding.asBitmap(view);
+    const cpumask_summary = summarize(view);
+    const bitmap_summary = bitmap.summarize(projected);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(bitmap.isValid(projected));
+    try std.testing.expectEqual(firstCpu(view), bitmap.firstSet(projected));
+    try std.testing.expectEqual(firstAbsentCpu(view), bitmap.firstZero(projected));
+    try std.testing.expectEqual(weight(view), bitmap.weight(projected));
+    try std.testing.expectEqual(cpumask_summary.first_set, bitmap_summary.first_set);
+    try std.testing.expectEqual(cpumask_summary.first_zero, bitmap_summary.first_zero);
+    try std.testing.expectEqual(cpumask_summary.weight, bitmap_summary.weight);
+    try std.testing.expectEqual(cpumask_summary.reserved, bitmap_summary.reserved);
+}
+
+test "cpumask empty sentinels project to bitmap empty sentinels unchanged" {
+    const empty = binding.initCpumaskView(1, 0, 0, 0);
+    const projected = binding.asBitmap(empty);
+    const cpumask_summary = summarize(empty);
+    const bitmap_summary = bitmap.summarize(projected);
+
+    try std.testing.expect(isValid(empty));
+    try std.testing.expect(bitmap.isValid(projected));
+    try std.testing.expectEqual(firstCpu(empty), bitmap.firstSet(projected));
+    try std.testing.expectEqual(firstAbsentCpu(empty), bitmap.firstZero(projected));
+    try std.testing.expectEqual(weight(empty), bitmap.weight(projected));
+    try std.testing.expectEqual(cpumask_summary.first_set, bitmap_summary.first_set);
+    try std.testing.expectEqual(cpumask_summary.first_zero, bitmap_summary.first_zero);
+    try std.testing.expectEqual(cpumask_summary.weight, bitmap_summary.weight);
+    try std.testing.expectEqual(cpumask_summary.reserved, bitmap_summary.reserved);
+}
+
 test "cpumask view empty sentinel behavior stays explicit" {
     const empty = viewFromWords(&.{}, 0);
     const summary = summarize(empty);
