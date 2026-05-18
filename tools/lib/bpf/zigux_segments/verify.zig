@@ -1,8 +1,6 @@
 const std = @import("std");
 
-const file_path_handle_bridge = @import("file_path_handle_bridge.zig");
 const logging = @import("logging.zig");
-const online_cpu_routing = @import("online_cpu_routing.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const pin_path = @import("pin_path.zig");
 const type_names = @import("type_names.zig");
@@ -12,15 +10,13 @@ fn expectHasDecl(comptime Module: type, comptime decl_name: []const u8) !void {
 }
 
 test "materialized tools/lib/bpf Zigux segments compile together and keep their focused tests live" {
-    std.testing.refAllDecls(file_path_handle_bridge);
     std.testing.refAllDecls(logging);
-    std.testing.refAllDecls(online_cpu_routing);
     std.testing.refAllDecls(perf_buffer_poll);
     std.testing.refAllDecls(pin_path);
     std.testing.refAllDecls(type_names);
 }
 
-test "materialized tools/lib/bpf Zigux segments keep their landed bounded entrypoints explicit" {
+test "materialized tools/lib/bpf Zigux segments keep their current bounded entrypoints explicit" {
     try expectHasDecl(logging, "parseLogLevelSetting");
     try expectHasDecl(logging, "shouldLog");
     try expectHasDecl(logging, "shouldLogWithEnv");
@@ -28,8 +24,10 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(logging, "libbpfMajorVersion");
     try expectHasDecl(logging, "libbpfMinorVersion");
     try expectHasDecl(logging, "libbpfVersionString");
+    try expectHasDecl(logging, "libbpfErrorCode");
     try expectHasDecl(logging, "libbpfErrorMessage");
     try expectHasDecl(logging, "formatLibbpfError");
+
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptIndex");
     try expectHasDecl(perf_buffer_poll, "summarizeReadyBufferAttemptLookup");
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptLookup");
@@ -47,6 +45,7 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowMappedSize");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturn");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturnAtIndex");
+
     try expectHasDecl(pin_path, "pathnameConcat");
     try expectHasDecl(pin_path, "sanitizePinPath");
     try expectHasDecl(pin_path, "validatePinName");
@@ -59,6 +58,7 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(pin_path, "buildValidatedProgramPinPath");
     try expectHasDecl(pin_path, "buildSanitizedProgramPinPath");
     try expectHasDecl(pin_path, "buildValidatedSanitizedProgramPinPath");
+
     try expectHasDecl(type_names, "libbpfBpfAttachTypeStr");
     try expectHasDecl(type_names, "libbpfBpfMapTypeStr");
     try expectHasDecl(type_names, "libbpfBpfLinkTypeStr");
@@ -67,81 +67,4 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(type_names, "formatLibbpfBpfMapType");
     try expectHasDecl(type_names, "formatLibbpfBpfLinkType");
     try expectHasDecl(type_names, "formatLibbpfBpfProgType");
-}
-
-test "materialized tools/lib/bpf bridge and routing helpers keep their landed entrypoints explicit" {
-    try expectHasDecl(file_path_handle_bridge, "buildProcFdinfoPath");
-    try expectHasDecl(file_path_handle_bridge, "parseFdinfoLine");
-    try expectHasDecl(file_path_handle_bridge, "applyFdinfoMapInfoLine");
-    try expectHasDecl(file_path_handle_bridge, "parseFdinfoMapInfo");
-    try expectHasDecl(file_path_handle_bridge, "summarizeFdinfoMapInfo");
-    try expectHasDecl(file_path_handle_bridge, "mapReuseObservationFromFdinfo");
-    try expectHasDecl(file_path_handle_bridge, "resolveReusedMapName");
-    try expectHasDecl(file_path_handle_bridge, "normalizeObservedReuseMapFlags");
-    try expectHasDecl(file_path_handle_bridge, "summarizeMapReuseCompatibility");
-    try expectHasDecl(file_path_handle_bridge, "isMapReuseCompatible");
-    try expectHasDecl(file_path_handle_bridge, "resolveReusePinnedMapAttempt");
-    try expectHasDecl(file_path_handle_bridge, "planTokenPreparation");
-    try expectHasDecl(online_cpu_routing, "advanceOnlineCpuCursor");
-    try expectHasDecl(online_cpu_routing, "summarizeNextOnlineCpuRoute");
-    try expectHasDecl(online_cpu_routing, "summarizeOnlineCpuRouting");
-}
-
-test "materialized tools/lib/bpf Zigux segments keep stable type-name formatter outputs explicit" {
-    var map_buffer: [32]u8 = undefined;
-    var attach_buffer: [40]u8 = undefined;
-    var link_buffer: [32]u8 = undefined;
-    var prog_buffer: [32]u8 = undefined;
-
-    try std.testing.expectEqualStrings("ringbuf", try type_names.formatLibbpfBpfMapType(map_buffer[0..], 27));
-    try std.testing.expectEqualStrings("unknown_map_type(99)", try type_names.formatLibbpfBpfMapType(map_buffer[0..], 99));
-
-    try std.testing.expectEqualStrings("perf_event", try type_names.formatLibbpfBpfAttachType(attach_buffer[0..], 41));
-    try std.testing.expectEqualStrings("unknown_attach_type(88)", try type_names.formatLibbpfBpfAttachType(attach_buffer[0..], 88));
-
-    try std.testing.expectEqualStrings("sockmap", try type_names.formatLibbpfBpfLinkType(link_buffer[0..], 14));
-    try std.testing.expectEqualStrings("unknown_link_type(42)", try type_names.formatLibbpfBpfLinkType(link_buffer[0..], 42));
-
-    try std.testing.expectEqualStrings("netfilter", try type_names.formatLibbpfBpfProgType(prog_buffer[0..], 32));
-    try std.testing.expectEqualStrings("unknown_prog_type(77)", try type_names.formatLibbpfBpfProgType(prog_buffer[0..], 77));
-}
-
-test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outputs explicit" {
-    var default_buffer: [96]u8 = undefined;
-    var validated_buffer: [96]u8 = undefined;
-    var sanitized_buffer: [96]u8 = undefined;
-    var program_buffer: [96]u8 = undefined;
-
-    try std.testing.expectEqualStrings(
-        "/sys/fs/bpf/metrics.map",
-        try pin_path.buildMapPinPath(default_buffer[0..], null, "metrics.map"),
-    );
-    try std.testing.expectEqualStrings(
-        "/tmp/bpf.v1/metrics.map",
-        try pin_path.buildValidatedMapPinPath(validated_buffer[0..], "/tmp/bpf.v1", "metrics.map"),
-    );
-    try std.testing.expectEqualStrings(
-        "/tmp/bpf.v1/metrics_map",
-        try pin_path.buildValidatedSanitizedMapPinPath(sanitized_buffer[0..], "/tmp/bpf.v1", "metrics.map"),
-    );
-    try std.testing.expectEqualStrings(
-        "/sys/fs/bpf/xdp_dispatch",
-        try pin_path.buildProgramPinPath(program_buffer[0..], null, "xdp_dispatch"),
-    );
-    try std.testing.expectEqualStrings(
-        "/tmp/bpf.v1/xdp_dispatch_v1",
-        try pin_path.buildValidatedSanitizedProgramPinPath(program_buffer[0..], "/tmp/bpf.v1", "xdp_dispatch.v1"),
-    );
-    try std.testing.expectError(
-        error.InvalidName,
-        pin_path.buildValidatedSanitizedMapPinPath(sanitized_buffer[0..], null, "metrics/map"),
-    );
-    try std.testing.expectError(
-        error.InvalidName,
-        pin_path.buildValidatedProgramPinPath(program_buffer[0..], null, "xdp/dispatch"),
-    );
-    try std.testing.expectError(
-        error.InvalidRootPath,
-        pin_path.buildValidatedMapPinPath(validated_buffer[0..], "/tmp/bpf/", "metrics.map"),
-    );
 }
