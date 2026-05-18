@@ -22,7 +22,7 @@ Public default-branch exact readback on 2026-05-18 still showed:
 - the shared helper catalog still comes from `tools/lib/bpf/zigux_segments/manifest.json`.
 - the shared landed helper packet still names `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`.
 - the shared landed helper packet still names `zigux/tests/phase8_bpf_type_names.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_perf_buffer_poll.zig`, `zigux/tests/phase8_perf_buffer_poll_only_build.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/tests/phase8_libbpf_segments_only_build.zig`.
-- the shared wrapper names still remain `make -C zigux phase8-libbpf-segments-test`, `make -C zigux phase8-perf-buffer-poll-test`, and `make -C zigux phase8-test`, while current raw build-file readback shows `zigux/tests/phase8_libbpf_segments_only_build.zig` now replays the dedicated `tools/lib/bpf/zigux_segments/verify.zig` shard rather than the older broader libbpf-segment-only packet, `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all` stays the focused perf-buffer poll replay, and `zig build test --build-file zigux/tests/phase8_build.zig --summary all` stays the shared aggregate replay.
+- the live focused replay routes are `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`, `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`, and the shared `make -C zigux phase8-test`; `zigux/tests/phase8_libbpf_segments_only_build.zig` replays the dedicated `tools/lib/bpf/zigux_segments/verify.zig` shard rather than the older broader libbpf-segment-only packet, while `zig build test --build-file zigux/tests/phase8_build.zig --summary all` stays the shared aggregate replay.
 - targeted readable helper blobs still include `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, and `tools/lib/bpf/zigux_segments/type_names.zig`, while `zigux/tests/phase8_pin_path.zig` remains readable even though authenticated contents reads from this environment still return `404` for `Documentation/zigux/phase8-pin-path-slice.md` and `tools/lib/bpf/zigux_segments/pin_path.zig`.
 - that mixed readback means the pin-path shard should stay framed as a review-surface split rather than a removed helper packet.
 - the live helper packet still keeps `fdinfo-map-info-helpers`, `map-reuse-compatibility`, `file-path-and-handle-bridge`, `perf-buffer-online-cpu-routing`, and `perf-buffer-poll-bookkeeping` explicit in the broader segmented catalog.
@@ -44,17 +44,13 @@ Those segments still keep the bounded fdinfo helper packet explicit while the re
 The deferred `perf-buffer-online-cpu-routing` segment also stays explicitly larger than the helper-local `online_cpu_routing.zig` evidence: the setup-side packet still covers sysfs reads, `perf_event_open()` setup, `mmap()`-backed ring state, per-CPU perf-event-array updates, epoll registration, and timeout-sensitive waits, while the landed helper-local cursor, single-attempt route summary, and routing-summary code remains smaller than that broader setup boundary.
 
 ## Current bounded gap
-The real current gap is now survey truthfulness about the already-landed checker packet, helper-local routing evidence, the timing-adjacent poll note, and the verify-only focused build shard, not environment-specific contents-route flakiness or a missing checker rule.
+The real current gap was stale survey wording about focused replay routes, not a missing checker rule or helper absence.
 
-The older mixed-source caveat is now too weak for this packet.
+Current `zigux/Makefile` still exposes only the shared `make -C zigux phase8-test` route for this libbpf packet, while the focused libbpf-segment and perf-buffer-poll replays stay as direct `zig build test --build-file ... --summary all` commands.
 
-Exact 2026-05-18 readback closes the earlier docs-root reopen cue: public Phase 8 readback still serves both `Documentation/zigux/phase8-bpf-type-names-slice.md` and `Documentation/zigux/phase8-file-path-handle-bridge-slice.md`, and `Documentation/zigux/README.md` now names the live file-path bridge note in the broad Phase 8 docs summary.
+Exact 2026-05-18 readback also keeps the already-landed checker packet, helper-local routing evidence, the timing-adjacent poll note, and the verify-only focused build shard explicit on `master`.
 
-Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.
-
-That same timing-adjacent note must stay explicit too: `Documentation/zigux/phase8-perf-buffer-poll-slice.md` and `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig` now keep `perf_buffer__poll(timeout_ms)` reviewable not only for wait-result shaping and upper-bound ready-buffer checks, but also for the full ready-buffer completion guard that a successful ready wait cannot stop before every helper-counted ready buffer is processed.
-
-That leaves the narrower same-lane task as keeping this survey parked and truthful about that already-landed checker coverage, the helper-local routing evidence, and the verify-only focused build shard instead of reopening the same checker-local step.
+That leaves the narrower same-lane task as keeping this survey parked and truthful about that already-landed checker coverage, the helper-local routing evidence, the timing-adjacent poll note, and the focused build-file routes instead of reopening the same checker-local step.
 
 ## Non-goals
 This survey slice does not yet claim:
@@ -72,5 +68,5 @@ Keep the libbpf survey packet parked after this survey-and-route sync unless a f
 
 Preferred order:
 1. re-read the dedicated Phase 8 libbpf shard files named by `zigux/tests/phase8_build.zig` before calling any helper packet removed
-2. confirm the shared bridge-boundary note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` still agree on the focused bridge and perf-buffer replay markers while the dedicated survey stays aligned with that already-landed checker state and the focused `phase8_libbpf_segments_only_build.zig` verify shard
+2. confirm the shared bridge-boundary note and `scripts/zigux/check-phase8-libbpf-shard-routes.py` still agree on the focused bridge and perf-buffer replay markers while the dedicated survey stays aligned with that already-landed checker state, the focused `phase8_libbpf_segments_only_build.zig` verify shard, and the current no-focused-make-wrapper route wording
 3. keep the helper-local `online_cpu_routing.zig` evidence explicit, keep the timing-adjacent poll slice explicit for the landed full ready-buffer completion guard, and stay smaller than deferred `perf-buffer-online-cpu-routing`, `perf_event_open()` setup, epoll registration, mmap-backed ring ownership, standalone timer or clockevent helper behavior, or broader timeout-sensitive routing behavior
