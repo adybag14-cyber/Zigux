@@ -252,3 +252,33 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.eraseCached(&cached_entries[1].node, &cached_root));
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.firstCached(&cached_root));
 }
+
+test "phase1 host-tools smoke keeps bitmap alias zero-size and empty-format edges aligned" {
+    var src = [_]find_bit.Word{~@as(find_bit.Word, 0)};
+
+    var direct_copy = [_]find_bit.Word{0x1357};
+    var alias_copy = [_]find_bit.Word{0x1357};
+    bitmap.copy(direct_copy[0..0], src[0..0], 0);
+    bitmap.bitmap_copy(alias_copy[0..0], src[0..0], 0);
+    try std.testing.expectEqualSlices(find_bit.Word, &direct_copy, &alias_copy);
+
+    var direct_clear = [_]find_bit.Word{0x2468};
+    var alias_clear = [_]find_bit.Word{0x2468};
+    bitmap.copyClearTail(direct_clear[0..0], src[0..0], 0);
+    bitmap.bitmap_copy_clear_tail(alias_clear[0..0], src[0..0], 0);
+    try std.testing.expectEqualSlices(find_bit.Word, &direct_clear, &alias_clear);
+
+    var direct_extend = [_]find_bit.Word{0xaaaa};
+    var alias_extend = [_]find_bit.Word{0xaaaa};
+    bitmap.copyAndExtend(direct_extend[0..0], src[0..0], 0, 0);
+    bitmap.bitmap_copy_and_extend(alias_extend[0..0], src[0..0], 0, 0);
+    try std.testing.expectEqualSlices(find_bit.Word, &direct_extend, &alias_extend);
+
+    const empty_map = [_]find_bit.Word{0};
+    var direct_buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    var alias_buffer = [_]u8{ 0xaa, 0xaa, 0xaa, 0xaa };
+    const direct_len = bitmap.scnprintf(&empty_map, 8, &direct_buffer);
+    const alias_len = bitmap.bitmap_scnprintf(&empty_map, 8, &alias_buffer);
+    try std.testing.expectEqual(direct_len, alias_len);
+    try std.testing.expectEqualSlices(u8, &direct_buffer, &alias_buffer);
+}
