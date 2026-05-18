@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import tempfile
 from pathlib import Path
 
@@ -376,7 +377,7 @@ EXPECTED_HARNESS_MARKERS = [
     'execv(tool_path, child_argv);',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 7
+EXPECTED_SELF_TEST_CASE_COUNT = 9
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -444,10 +445,12 @@ def validate_cases(payload: object) -> list[str]:
 def validate_checker_text(text: str) -> list[str]:
     issues: list[str] = []
     required_markers = [
-        'EXPECTED_SELF_TEST_CASE_COUNT = 7',
+        'EXPECTED_SELF_TEST_CASE_COUNT = 9',
         'GENKSYMS_HARNESS_REL = f"{FIXTURE_ROOT_REL}/genksyms_bridge_c_harness.c"',
         'print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")',
         'print("PHASE2_GENKSYMS_BRIDGE=pass")',
+        "PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT",
+        "runtime_compile_failed",
     ]
     for marker in required_markers:
         if marker not in text:
@@ -461,6 +464,100 @@ def validate_marker_counts(text: str, markers: list[str], label: str) -> list[st
         count = text.count(marker)
         if count != 1:
             issues.append(f"marker_count:{label}:{marker}:count={count}:expected=1")
+    return issues
+
+
+def run_process(args: list[str]) -> dict[str, object]:
+    completed = subprocess.run(
+        args,
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    return {
+        "stdout": completed.stdout,
+        "stderr": completed.stderr,
+        "exit_code": completed.returncode,
+    }
+
+
+def validate_runtime_observation(
+    case: dict[str, object], observation: dict[str, object], label: str
+) -> list[str]:
+    issues: list[str] = []
+    expected = EXPECTED_OUTPUTS[case["expected"]]
+
+    if case["mode"] == "stdout_json":
+        if observation.get("exit_code") != 0:
+            issues.append(f"{label}:exit_code:expected=0:actual={observation.get('exit_code')!r}")
+        if observation.get("stderr") != "":
+            issues.append(f"{label}:stderr:expected='':actual={observation.get('stderr')!r}")
+        try:
+            payload = json.loads(str(observation.get("stdout", "")))
+        except json.JSONDecodeError as exc:
+            issues.append(f"{label}:stdout:invalid_json:{exc.msg}")
+            return issues
+        if not isinstance(payload, dict):
+            issues.append(f"{label}:stdout:expected_object:actual={type(payload).__name__}")
+            return issues
+        issues.extend(validate_expected_object(payload, expected, f"{label}:stdout_json"))
+        return issues
+
+    expected_process = {
+        "stdout": expected["stdout"],
+        "stderr": expected["stderr"],
+        "exit_code": expected["exit_code"],
+    }
+    issues.extend(validate_expected_object(observation, expected_process, f"{label}:process_json"))
+    return issues
+
+
+def validate_runtime_repeat(
+    case: dict[str, object], first: dict[str, object], second: dict[str, object], label: str
+) -> list[str]:
+    if first == second:
+        return []
+    return [f"{label}:determinism:expected_identical_replay:{case['name']}"]
+
+
+def compile_zig_tool(root: Path, build_dir: Path) -> tuple[Path | None, list[str]]:
+    tool_path = root / GENKSYMS_TOOL_REL
+    zig = Path(subprocess.run(["bash", "-lc", "command -v zig"], check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True).stdout.strip())
+    if not zig or not zig.as_posix():
+        return None, ["runtime_compile_failed:zig_not_found"]
+
+    output_path = build_dir / "genksyms-zig"
+    completed = subprocess.run(
+        [str(zig), "build-exe", str(tool_path), f"-femit-bin={output_path}"],
+        check=False,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        cwd=root,
+    )
+    if completed.returncode != 0:
+        stderr = completed.stderr.strip().splitlines()
+        summary = stderr[-1] if stderr else "zig build-exe failed"
+        return None, [f"runtime_compile_failed:{summary}"]
+    return output_path, []
+
+
+def validate_runtime_replay(root: Path) -> list[str]:
+    issues: list[str] = []
+    with tempfile.TemporaryDirectory(prefix="genksyms_bridge_runtime_") as tmp:
+        output_path, compile_issues = compile_zig_tool(root, Path(tmp))
+        issues.extend(compile_issues)
+        if output_path is None:
+            return issues
+
+        for case in EXPECTED_CASES:
+            command = [str(output_path), *case["argv"]]
+            first = run_process(command)
+            second = run_process(command)
+            issues.extend(validate_runtime_observation(case, first, f"runtime:{case['name']}:run1"))
+            issues.extend(validate_runtime_observation(case, second, f"runtime:{case['name']}:run2"))
+            issues.extend(validate_runtime_repeat(case, first, second, f"runtime:{case['name']}"))
     return issues
 
 
@@ -497,33 +594,121 @@ def validate_repo(root: Path) -> list[str]:
     return issues
 
 
+def build_runtime_stdout_observation(expected_name: str) -> dict[str, object]:
+    return {
+        "stdout": json.dumps(EXPECTED_OUTPUTS[expected_name]) + "\n",
+        "stderr": "",
+        "exit_code": 0,
+    }
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="genksyms_bridge_selftest_") as tmp:
         root = Path(tmp)
-        (root / "scripts/zigux").mkdir(parents=True)
-        (root / FIXTURE_ROOT_REL).mkdir(parents=True)
-        (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
-        (root / GENKSYMS_TOOL_REL).write_text(
-            "\n".join(EXPECTED_TOOL_TESTS + [""]),
-            encoding="utf-8",
-        )
-        (root / GENKSYMS_HARNESS_REL).write_text(
-            "\n".join(EXPECTED_HARNESS_MARKERS + [""]),
-            encoding="utf-8",
-        )
-        (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
-        for name, payload in EXPECTED_OUTPUTS.items():
-            (root / FIXTURE_ROOT_REL / name).write_text(
-                json.dumps(payload, indent=2) + "\n",
+        def build_root() -> None:
+            (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
+            (root / FIXTURE_ROOT_REL).mkdir(parents=True, exist_ok=True)
+            (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
+            (root / GENKSYMS_TOOL_REL).write_text(
+                "\n".join(EXPECTED_TOOL_TESTS + [""]),
                 encoding="utf-8",
             )
+            (root / GENKSYMS_HARNESS_REL).write_text(
+                "\n".join(EXPECTED_HARNESS_MARKERS + [""]),
+                encoding="utf-8",
+            )
+            (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
+            for name, payload in EXPECTED_OUTPUTS.items():
+                (root / FIXTURE_ROOT_REL / name).write_text(
+                    json.dumps(payload, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+
+        checks_run = 0
+        build_root()
         issues = validate_repo(root)
         if issues:
             print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=fail")
             for issue in issues:
                 print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_ISSUE={issue}")
             return 1
+        checks_run += 1
 
+        if validate_runtime_observation(
+            EXPECTED_CASES[0],
+            build_runtime_stdout_observation("minimal_expected.json"),
+            "runtime:minimal",
+        ):
+            return 1
+        checks_run += 1
+
+        if validate_runtime_observation(
+            EXPECTED_CASES[4],
+            {
+                "stdout": "",
+                "stderr": "option '--d' is ambiguous\n",
+                "exit_code": 1,
+            },
+            "runtime:ambiguous",
+        ):
+            return 1
+        checks_run += 1
+
+        stdout_mismatch = validate_runtime_observation(
+            EXPECTED_CASES[0],
+            {"stdout": "[]\n", "stderr": "", "exit_code": 0},
+            "runtime:minimal-bad",
+        )
+        if not stdout_mismatch:
+            return 1
+        checks_run += 1
+
+        process_mismatch = validate_runtime_observation(
+            EXPECTED_CASES[4],
+            {"stdout": "", "stderr": "", "exit_code": 1},
+            "runtime:ambiguous-bad",
+        )
+        if not process_mismatch:
+            return 1
+        checks_run += 1
+
+        if validate_runtime_repeat(
+            EXPECTED_CASES[0],
+            build_runtime_stdout_observation("minimal_expected.json"),
+            build_runtime_stdout_observation("minimal_expected.json"),
+            "runtime:minimal-repeat",
+        ):
+            return 1
+        checks_run += 1
+
+        repeat_mismatch = validate_runtime_repeat(
+            EXPECTED_CASES[0],
+            build_runtime_stdout_observation("minimal_expected.json"),
+            {"stdout": "{}\n", "stderr": "", "exit_code": 0},
+            "runtime:minimal-repeat-bad",
+        )
+        if not repeat_mismatch:
+            return 1
+        checks_run += 1
+
+        build_root()
+        tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8")
+        (root / GENKSYMS_TOOL_REL).write_text(tool_text.replace(EXPECTED_TOOL_TESTS[0], "", 1), encoding="utf-8")
+        tool_issues = validate_repo(root)
+        if not any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in tool_issues):
+            return 1
+        checks_run += 1
+
+        build_root()
+        cases_payload = json.loads((root / GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
+        cases_payload.pop()
+        (root / GENKSYMS_CASES_REL).write_text(json.dumps(cases_payload, indent=2) + "\n", encoding="utf-8")
+        case_issues = validate_repo(root)
+        if not any(issue.startswith("genksyms_cases:case_count:") for issue in case_issues):
+            return 1
+        checks_run += 1
+
+    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}")
     return 0
@@ -531,6 +716,8 @@ def run_self_test() -> int:
 
 def run_validation(root: Path) -> int:
     issues = validate_repo(root)
+    if not issues:
+        issues.extend(validate_runtime_replay(root))
     if issues:
         print("PHASE2_GENKSYMS_BRIDGE=fail")
         for issue in issues:
@@ -540,6 +727,7 @@ def run_validation(root: Path) -> int:
     print("PHASE2_GENKSYMS_BRIDGE=pass")
     print(f"PHASE2_GENKSYMS_BRIDGE_CASE_COUNT={len(EXPECTED_CASES)}")
     print(f"PHASE2_GENKSYMS_BRIDGE_EXPECTED_COUNT={len(EXPECTED_OUTPUTS)}")
+    print(f"PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT={len(EXPECTED_CASES)}")
     return 0
 
 
