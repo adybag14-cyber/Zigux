@@ -63,6 +63,48 @@ REQUIRED_SHARED_DEPEND_STEPS = (
     "run_phase11_hvc_cleanup_tests",
 )
 
+REQUIRED_MODULE_ROOT_SOURCE_FILES = (
+    {
+        "module": "hvc_console_module",
+        "path": "../../drivers/tty/hvc/hvc_console.zig",
+    },
+    {
+        "module": "hvc_console_verify_module",
+        "path": "../../drivers/tty/hvc/hvc_console_verify.zig",
+    },
+    {
+        "module": "phase11_hvc_console_module",
+        "path": "phase11_hvc_console.zig",
+    },
+    {
+        "module": "phase11_hvc_cleanup_module",
+        "path": "phase11_hvc_cleanup.zig",
+    },
+    {
+        "module": "phase11_hvc_console_survey_module",
+        "path": "phase11_hvc_console_survey.zig",
+    },
+)
+
+REQUIRED_TEST_ROOT_MODULES = (
+    {
+        "test": "phase11-hvc-console-tests",
+        "root_module": "phase11_hvc_console_module",
+    },
+    {
+        "test": "phase11-hvc-console-verify-tests",
+        "root_module": "hvc_console_verify_module",
+    },
+    {
+        "test": "phase11-hvc-cleanup-tests",
+        "root_module": "phase11_hvc_cleanup_module",
+    },
+    {
+        "test": "phase11-hvc-console-survey-tests",
+        "root_module": "phase11_hvc_console_survey_module",
+    },
+)
+
 REQUIRED_DEDICATED_SURVEY_REPLAYS = (
     "zigux/tests/phase11_hvc_console_survey.zig",
 )
@@ -115,6 +157,17 @@ def expect_exact_string_list(label: str, actual: object, expected: tuple[str, ..
         raise CheckError(f"{label} does not match the current-head HVC continuity packet")
 
 
+def expect_exact_object_list(
+    label: str,
+    actual: object,
+    expected: tuple[dict[str, str], ...],
+) -> None:
+    if not isinstance(actual, list) or any(not isinstance(item, dict) for item in actual):
+        raise CheckError(f"expected object list for {label}")
+    if actual != list(expected):
+        raise CheckError(f"{label} does not match the current-head HVC continuity packet")
+
+
 def run_check(root: Path) -> None:
     survey_text = read_text(root, FILES["matrix_gap_note"])
     expect_markers("matrix_gap_note", survey_text, MARKERS["matrix_gap_note"])
@@ -133,6 +186,16 @@ def run_check(root: Path) -> None:
         "shared_test_depend_steps",
         inventory.get("shared_test_depend_steps"),
         REQUIRED_SHARED_DEPEND_STEPS,
+    )
+    expect_exact_object_list(
+        "module_root_source_files",
+        inventory.get("module_root_source_files"),
+        REQUIRED_MODULE_ROOT_SOURCE_FILES,
+    )
+    expect_exact_object_list(
+        "test_root_modules",
+        inventory.get("test_root_modules"),
+        REQUIRED_TEST_ROOT_MODULES,
     )
     expect_exact_string_list(
         "dedicated_survey_replays",
@@ -182,6 +245,8 @@ def build_self_test_fixture(root: Path) -> None:
             {
                 "build_test_names": list(REQUIRED_BUILD_TEST_NAMES),
                 "shared_test_depend_steps": list(REQUIRED_SHARED_DEPEND_STEPS),
+                "module_root_source_files": list(REQUIRED_MODULE_ROOT_SOURCE_FILES),
+                "test_root_modules": list(REQUIRED_TEST_ROOT_MODULES),
                 "dedicated_survey_replays": list(REQUIRED_DEDICATED_SURVEY_REPLAYS),
                 "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
             },
@@ -210,7 +275,10 @@ def run_self_test() -> None:
 
         required_cases = [
             ("matrix_gap_note", "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`"),
-            ("matrix_gap_note", "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`"),
+            (
+                "matrix_gap_note",
+                "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+            ),
         ]
         for idx, (label, marker) in enumerate(required_cases, start=1):
             case_root = tmpdir / f"required_{idx}"
@@ -242,8 +310,22 @@ def run_self_test() -> None:
         write(wrong_count_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_count_root, "shared_test_depend_steps does not match")
 
+        wrong_module_root_root = tmpdir / "wrong_module_root"
+        shutil.copytree(fixture_root, wrong_module_root_root, dirs_exist_ok=True)
+        inventory = json.loads((wrong_module_root_root / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["module_root_source_files"][4]["path"] = "phase11_hvc_cleanup.zig"
+        write(wrong_module_root_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_module_root_root, "module_root_source_files does not match")
+
+        wrong_test_root_root = tmpdir / "wrong_test_root"
+        shutil.copytree(fixture_root, wrong_test_root_root, dirs_exist_ok=True)
+        inventory = json.loads((wrong_test_root_root / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["test_root_modules"][3]["root_module"] = "phase11_hvc_cleanup_module"
+        write(wrong_test_root_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_test_root_root, "test_root_modules does not match")
+
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=4")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=6")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
