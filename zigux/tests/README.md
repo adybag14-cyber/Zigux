@@ -33,8 +33,10 @@ Key entrypoints
   * current shared Phase 2 kconfig route: `make -C zigux phase2-kconfig`
   * Phase 2 review packet:
     `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
+    `Documentation/zigux/phase2-closure.md`
     `Documentation/zigux/review-checklist.md`
     `scripts/zigux/README.md`
+    `scripts/zigux/validate-phase2.py`
     `scripts/zigux/check-zig-toolchain.py`
     `scripts/zigux/check-phase2-kbuild-routes.py`
     `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
@@ -48,6 +50,7 @@ Key entrypoints
     `scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
     `scripts/zigux/kconfig/conf_bridge.zig`
     `scripts/zigux/kconfig/confdata_bridge.zig`
+    `zigux/Makefile`
     `zigux/tests/fixtures/phase2_tool_manifest.json`
     `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
     `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
