@@ -231,6 +231,78 @@ test "phase3 unsafe policy keeps access boundaries explicit" {
     try std.testing.expect(permitsRawPointerBridge(.raw_pointer_bridge));
 }
 
+test "phase3 unsafe policy alias entrypoints stay synchronized" {
+    const known_scopes = [_]u8{
+        @intFromEnum(abi.UnsafeScope.none),
+        @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        9,
+    };
+    const reserved_values = [_]u8{ 0, 1 };
+
+    for (known_scopes) |scope| {
+        try std.testing.expectEqual(modeFromByte(scope), scopeFromByte(scope));
+        try std.testing.expectEqual(accessBoundaryFromByte(scope), accessBoundaryFromInteropPolicyBytes(scope, 0));
+        try std.testing.expectEqual(
+            allowsTypedOnlyAccessByte(scope),
+            permitsNoUnsafeByte(scope),
+        );
+        try std.testing.expectEqual(
+            requiresVolatileMmioAccessByte(scope),
+            permitsVolatileMmioByte(scope),
+        );
+        try std.testing.expectEqual(
+            requiresRawPointerBridgeByte(scope),
+            permitsRawPointerBridgeByte(scope),
+        );
+    }
+
+    for (known_scopes) |scope| {
+        for (reserved_values) |reserved| {
+            try std.testing.expectEqual(
+                modeFromInteropPolicyBytes(scope, reserved),
+                scopeFromInteropPolicyBytes(scope, reserved),
+            );
+            try std.testing.expectEqual(
+                allowsTypedOnlyAccessPolicyBytes(scope, reserved),
+                permitsNoUnsafePolicyBytes(scope, reserved),
+            );
+            try std.testing.expectEqual(
+                requiresVolatileMmioAccessPolicyBytes(scope, reserved),
+                permitsVolatileMmioPolicyBytes(scope, reserved),
+            );
+            try std.testing.expectEqual(
+                requiresRawPointerBridgePolicyBytes(scope, reserved),
+                permitsRawPointerBridgePolicyBytes(scope, reserved),
+            );
+        }
+    }
+
+    const policies = [_]abi.InteropPolicy{
+        .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 },
+        .{ .panic_mode = 1, .allocator_mode = 1, .unsafe_scope = 1, .reserved = 0 },
+        .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 0 },
+        .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 2, .reserved = 1 },
+        .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 9, .reserved = 0 },
+    };
+
+    for (policies) |policy| {
+        try std.testing.expectEqual(modeFromInteropPolicy(policy), scopeFromInteropPolicy(policy));
+        try std.testing.expectEqual(
+            allowsTypedOnlyAccessInteropPolicy(policy),
+            permitsNoUnsafeInteropPolicy(policy),
+        );
+        try std.testing.expectEqual(
+            requiresVolatileMmioAccessInteropPolicy(policy),
+            permitsVolatileMmioInteropPolicy(policy),
+        );
+        try std.testing.expectEqual(
+            requiresRawPointerBridgeInteropPolicy(policy),
+            permitsRawPointerBridgeInteropPolicy(policy),
+        );
+    }
+}
+
 test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), modeFromByte(0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), modeFromByte(1));
