@@ -421,6 +421,12 @@ pub fn build(b: *std.Build) void {
     );
     phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
 
+    const phase3_abi_dump_step = b.step(
+        "phase3-abi-dump",
+        "Run the dedicated shared Phase 3 ABI dump from zigux/tests",
+    );
+    phase3_abi_dump_step.dependOn(&phase3_abi_dump.step);
+
     const phase3_test_step = b.step(
         "phase3-test",
         "Run the current shared Phase 3 starter packet bundle from zigux/tests",
