@@ -61,6 +61,10 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explici
         survey_doc,
         "keep the deeper verify helper, sysrq helper, focused survey replay, manifest,",
     );
+    try expectContains(
+        survey_doc,
+        "`zigux/Makefile` still exposes no dedicated `make -C zigux phase11-hvc-survey` route",
+    );
     try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");
     try expectContains(cleanup_companion, "`scripts/zigux/check-phase11-hvc-survey-packet.py`");
     try expectContains(
@@ -95,6 +99,10 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff marker
     try expectContains(
         matrix_doc,
         "do not treat the deeper verify helper, sysrq helper, manifest, teardown note,",
+    );
+    try expectContains(
+        matrix_doc,
+        "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
     );
     try expectContains(
         verify_boundary,
