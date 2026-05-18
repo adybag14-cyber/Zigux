@@ -20,6 +20,10 @@ pub fn bitmapSize(nbits: usize) usize {
     return bitsToWords(nbits) * @sizeOf(Word);
 }
 
+pub fn bitmap_size(nbits: usize) usize {
+    return bitmapSize(nbits);
+}
+
 fn assertBitmapLen(bitmap: []const Word, nbits: usize) void {
     std.debug.assert(bitmap.len >= bitsToWords(nbits));
 }
@@ -32,6 +36,10 @@ pub fn zero(dst: []Word, nbits: usize) void {
     @memset(dst[0..bitsToWords(nbits)], 0);
 }
 
+pub fn bitmap_zero(dst: []Word, nbits: usize) void {
+    zero(dst, nbits);
+}
+
 pub fn fill(dst: []Word, nbits: usize) void {
     assertBitmapLen(dst, nbits);
     if (nbits == 0) {
@@ -41,6 +49,10 @@ pub fn fill(dst: []Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     @memset(dst[0..nwords], ~@as(Word, 0));
     dst[nwords - 1] = lastWordMask(nbits);
+}
+
+pub fn bitmap_fill(dst: []Word, nbits: usize) void {
+    fill(dst, nbits);
 }
 
 pub fn copy(dst: []Word, src: []const Word, nbits: usize) void {
@@ -90,9 +102,17 @@ pub fn empty(src: []const Word, nbits: usize) bool {
     return find_bit.findFirstBit(src, nbits) == nbits;
 }
 
+pub fn bitmap_empty(src: []const Word, nbits: usize) bool {
+    return empty(src, nbits);
+}
+
 pub fn full(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
     return find_bit.findFirstZeroBit(src, nbits) == nbits;
+}
+
+pub fn bitmap_full(src: []const Word, nbits: usize) bool {
+    return full(src, nbits);
 }
 
 pub fn weight(src: []const Word, nbits: usize) usize {
@@ -111,6 +131,10 @@ pub fn weight(src: []const Word, nbits: usize) usize {
     }
 
     return total;
+}
+
+pub fn bitmap_weight(src: []const Word, nbits: usize) usize {
+    return weight(src, nbits);
 }
 
 pub fn orBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
@@ -356,10 +380,18 @@ pub fn bitmapAlloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
     return allocator.alloc(Word, bitsToWords(nbits));
 }
 
+pub fn bitmap_alloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
+    return bitmapAlloc(allocator, nbits);
+}
+
 pub fn bitmapZalloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
     const map = try bitmapAlloc(allocator, nbits);
     @memset(map, 0);
     return map;
+}
+
+pub fn bitmap_zalloc(allocator: std.mem.Allocator, nbits: usize) ![]Word {
+    return bitmapZalloc(allocator, nbits);
 }
 
 pub fn bitmapFree(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
@@ -367,6 +399,10 @@ pub fn bitmapFree(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
         allocator.free(map);
         bitmap.* = null;
     }
+}
+
+pub fn bitmap_free(allocator: std.mem.Allocator, bitmap: *?[]Word) void {
+    bitmapFree(allocator, bitmap);
 }
 
 test "bitmap set clear weight and empty full helpers" {
@@ -659,4 +695,37 @@ test "bitmap allocation helpers size zero fill and reset optionals" {
     try std.testing.expect(plain == null);
     bitmapFree(allocator, &zeroed);
     try std.testing.expect(zeroed == null);
+}
+
+test "bitmap Linux-style aliases mirror primary allocation and state helpers" {
+    const allocator = std.testing.allocator;
+    const nbits = bits_per_long + 5;
+    const src = [_]Word{ ~@as(Word, 0), lastWordMask(nbits) | (@as(Word, 1) << 11) };
+    var work = [_]Word{ src[0], src[1] };
+
+    try std.testing.expectEqual(bitmapSize(nbits), bitmap_size(nbits));
+    try std.testing.expectEqual(weight(&src, nbits), bitmap_weight(&src, nbits));
+    try std.testing.expectEqual(empty(&src, nbits), bitmap_empty(&src, nbits));
+    try std.testing.expectEqual(full(&src, nbits), bitmap_full(&src, nbits));
+
+    bitmap_zero(&work, nbits);
+    try std.testing.expect(empty(&work, nbits));
+
+    bitmap_fill(&work, nbits);
+    try std.testing.expect(full(&work, nbits));
+
+    const plain = try bitmap_alloc(allocator, 0);
+    defer allocator.free(plain);
+    try std.testing.expectEqual(@as(usize, 0), plain.len);
+
+    const zeroed = try bitmap_zalloc(allocator, nbits);
+    var zeroed_opt: ?[]Word = zeroed;
+    defer bitmap_free(allocator, &zeroed_opt);
+    try std.testing.expectEqual(@as(usize, bitsToWords(nbits)), zeroed.len);
+    for (zeroed) |word| {
+        try std.testing.expectEqual(@as(Word, 0), word);
+    }
+
+    bitmap_free(allocator, &zeroed_opt);
+    try std.testing.expect(zeroed_opt == null);
 }
