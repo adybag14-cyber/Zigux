@@ -37,9 +37,9 @@ REQUIRED_MARKERS = {
     ],
     "Documentation/zigux/phase10-closure-evidence.md": [
         "`PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`",
-        "directly re-readable shared reminder surfaces now include `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
-        "directly re-readable helper, verify, build, and route-surface anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/Makefile`",
-        "directly re-readable packet manifests in this lane now include `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
+        "directly re-readable shared reminder surfaces now include `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
+        "directly re-readable helper, verify, build, and route-surface anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/validate-phase10-closure.py`, and `zigux/Makefile`",
+        "directly re-readable packet manifests in this lane now include `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
         "`zigux/Makefile` itself now rematerializes on current `master`, and its live body exposes the dedicated shared Phase 10 validate/test route stack, so keep the returned file and that returned build-gate posture explicit here rather than framing it as a repo-reality gap.",
         "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.",
         "`lab_only_driver_validation=starter_landed`",
@@ -49,7 +49,7 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
         "drivers/virtio/virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
-        "current `master` still does not materialize `scripts/zigux/validate-phase10.py` or `scripts/zigux/validate-phase10-closure.py` through the direct readback available in this lane, while `zigux/Makefile` now rematerializes and its live body exposes `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10`, so keep those still-missing dedicated validator-script names framed as last-known packet members or repo-reality gaps while treating the returned Makefile-backed route stack as the shared build gate",
+        "current `master` still does not materialize `scripts/zigux/validate-phase10.py` through the direct readback available in this lane, but it now rematerializes `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, and `zigux/Makefile`; keep the still-missing broader validator-script name framed as a last-known packet member or repo-reality gap while treating the returned closure validator, closure manifest, and Makefile-backed `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` route stack as the shared closure and build gate",
         "`zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig` are back as directly re-readable helper-local manifest and replay anchors",
         "Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
         "Treat the shared `zigux/tests/phase10_build.zig` route as already-landed validation evidence",
@@ -81,8 +81,10 @@ REQUIRED_MARKERS = {
         '"phase10-virtio-core-tests"',
         '"phase10-virtio-input-queue-callback-preflight-tests"',
         '"phase10-virtio-input-teardown-observation-tests"',
+        '"phase10-virtio-input-survey-tests"',
         '"phase10-virtio-input-verify-tests"',
         '"phase10-virtio-ring-verify-tests"',
+        '"phase10-virtio-ring-survey-tests"',
         '"phase10-virtio-mmio-verify-tests"',
         '"phase10-virtio-mmio-survey-tests"',
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
@@ -201,9 +203,21 @@ def run_self_test() -> int:
         cases = [
             (
                 "Documentation/zigux/phase10-closure-evidence.md",
+                "directly re-readable shared reminder surfaces now include `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
+                "directly re-readable shared reminder surfaces now include `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
+                "Documentation/zigux/phase10-closure-evidence.md:directly re-readable shared reminder surfaces now include `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-input-survey.md`, and `Documentation/zigux/phase10-virtio-mmio-survey.md`",
+            ),
+            (
+                "Documentation/zigux/phase10-closure-evidence.md",
+                "directly re-readable helper, verify, build, and route-surface anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/validate-phase10-closure.py`, and `zigux/Makefile`",
+                "directly re-readable helper, verify, build, and route-surface anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/Makefile`",
+                "Documentation/zigux/phase10-closure-evidence.md:directly re-readable helper, verify, build, and route-surface anchors now include `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, `drivers/virtio/virtio_input_verify.zig`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `scripts/zigux/validate-phase10-closure.py`, and `zigux/Makefile`",
+            ),
+            (
+                "Documentation/zigux/phase10-closure-evidence.md",
+                "directly re-readable packet manifests in this lane now include `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
                 "directly re-readable packet manifests in this lane now include `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
-                "directly re-readable packet manifests in this lane now include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`",
-                "Documentation/zigux/phase10-closure-evidence.md:forbidden:directly re-readable packet manifests in this lane now include `zigux/tests/phase10_virtio_ring_manifest.json` and `zigux/tests/phase10_virtio_input_manifest.json`",
+                "Documentation/zigux/phase10-closure-evidence.md:directly re-readable packet manifests in this lane now include `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
             ),
             (
                 "Documentation/zigux/phase10-closure-evidence.md",
@@ -216,6 +230,12 @@ def run_self_test() -> int:
                 "drivers/virtio/virtio_input_queue_callback_preflight.zig",
                 "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:drivers/virtio/virtio_input_queue_callback_preflight.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+                "current `master` still does not materialize `scripts/zigux/validate-phase10.py` through the direct readback available in this lane, but it now rematerializes `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, and `zigux/Makefile`; keep the still-missing broader validator-script name framed as a last-known packet member or repo-reality gap while treating the returned closure validator, closure manifest, and Makefile-backed `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` route stack as the shared closure and build gate",
+                "current `master` still does not materialize `scripts/zigux/validate-phase10.py` or `scripts/zigux/validate-phase10-closure.py` through the direct readback available in this lane, while `zigux/Makefile` now rematerializes and its live body exposes `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10`, so keep those still-missing dedicated validator-script names framed as last-known packet members or repo-reality gaps while treating the returned Makefile-backed route stack as the shared build gate",
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:current `master` still does not materialize `scripts/zigux/validate-phase10.py` through the direct readback available in this lane, but it now rematerializes `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, and `zigux/Makefile`; keep the still-missing broader validator-script name framed as a last-known packet member or repo-reality gap while treating the returned closure validator, closure manifest, and Makefile-backed `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` route stack as the shared closure and build gate",
             ),
             (
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
@@ -240,6 +260,18 @@ def run_self_test() -> int:
                 'test "phase10 virtio input verify keeps teardown wrapper parity explicit across reset" {',
                 'test "phase10 virtio input verify drift" {',
                 'drivers/virtio/virtio_input_verify.zig:test "phase10 virtio input verify keeps teardown wrapper parity explicit across reset" {',
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                '"phase10-virtio-input-survey-tests"',
+                '"phase10-virtio-input-survey-tests-missing"',
+                'zigux/tests/phase10_build.zig:"phase10-virtio-input-survey-tests"',
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                '"phase10-virtio-ring-survey-tests"',
+                '"phase10-virtio-ring-survey-tests-missing"',
+                'zigux/tests/phase10_build.zig:"phase10-virtio-ring-survey-tests"',
             ),
             (
                 "zigux/tests/phase10_build.zig",
@@ -273,7 +305,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=18")
     return 0
 
 
