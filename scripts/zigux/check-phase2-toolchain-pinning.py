@@ -112,6 +112,12 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2`",
 )
 
 BOOTSTRAP_WARNING_MARKERS = (
@@ -120,12 +126,16 @@ BOOTSTRAP_WARNING_MARKERS = (
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "Treat the absent validator-first, direct cross-route, and installer names as historical packet members",
+)
+
+BOOTSTRAP_GAP_FORBIDDEN_MARKERS = (
     "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-validate`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
-    "Treat the absent validator-first, direct cross-route, and installer names as historical packet members",
 )
 
 README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
@@ -212,6 +222,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_WARNING_MARKERS)
     + len(BOOTSTRAP_PRESENT_MARKERS)
     + len(BOOTSTRAP_WARNING_MARKERS)
+    + len(BOOTSTRAP_GAP_FORBIDDEN_MARKERS)
     + len(README_FORBIDDEN_MARKERS)
     + 3
     + (len(SURFACE_PATHS) - 1)
@@ -253,6 +264,20 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
 
 def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker in text]
+
+
+def extract_markdown_section(text: str, heading: str) -> str:
+    start = text.find(heading)
+    if start == -1:
+        return ""
+    start = text.find("\n", start)
+    if start == -1:
+        return ""
+    start += 1
+    end = text.find("\n## ", start)
+    if end == -1:
+        end = len(text)
+    return text[start:end]
 
 
 def load_policy(root: Path) -> object:
@@ -329,6 +354,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     readme_text = read_text(resolve_path(root, SCRIPTS_README))
     bootstrap_notes_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
+    bootstrap_present_text = extract_markdown_section(bootstrap_notes_text, "## Current direct packet")
+    bootstrap_gap_text = extract_markdown_section(bootstrap_notes_text, "## Current repo-reality gaps")
 
     issues.extend(collect_missing_markers(workflow_text, WORKFLOW_SETUP_MARKERS, "MISSING_WORKFLOW_SETUP_MARKERS"))
 
@@ -341,8 +368,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
     issues.extend(collect_missing_markers(readme_text, README_WARNING_MARKERS, "MISSING_README_WARNING_MARKERS"))
-    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"))
-    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_present_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_gap_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"))
+    issues.extend(collect_forbidden_markers(bootstrap_gap_text, BOOTSTRAP_GAP_FORBIDDEN_MARKERS, "FORBIDDEN_BOOTSTRAP_GAP_MARKERS"))
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
 
     for path in SURFACE_PATHS:
@@ -440,6 +468,13 @@ def mutate_json(path: Path, mutator) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
+def append_marker_to_section(text: str, heading: str, marker: str) -> str:
+    anchor = f"{heading}\n\n"
+    if anchor not in text:
+        raise AssertionError(f"section heading not found: {heading}")
+    return text.replace(anchor, f"{anchor}{marker}\n", 1)
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_toolchain_pinning_") as tmp_dir:
@@ -503,6 +538,16 @@ def run_self_test() -> int:
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_BOOTSTRAP_WARNING_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in BOOTSTRAP_GAP_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, BOOTSTRAP_NOTES)
+            mutated = replace_once(path.read_text(encoding="utf-8"), marker)
+            mutated = append_marker_to_section(mutated, "## Current repo-reality gaps", marker)
+            path.write_text(mutated, encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_BOOTSTRAP_GAP_MARKERS", marker) in issues
             checks_run += 1
 
         for marker in README_FORBIDDEN_MARKERS:
