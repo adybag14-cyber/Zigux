@@ -151,13 +151,15 @@ pub const perf_payload =
     "Phase 6 base64 perf gate payload keeps the helper wired to a real throughput check. " ++
     "This packet stays helper-local, avoids widening into neighboring leaf helpers, and " ++
     "exercises repeated encode and decode work over a stable review fixture. " ++
-    "Zigux uses the same payload for padded and unpadded standard and urlsafe runs.";
+    "Zigux uses the same payload for padded and unpadded standard, urlsafe, and imap runs.";
 
 pub const perf_cases = [_]PerfCase{
     .{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
     .{ .label = "STD_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
     .{ .label = "URLSAFE_PAD", .payload = perf_payload, .padding = true, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
     .{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "IMAP_PAD", .payload = perf_payload, .padding = true, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    .{ .label = "IMAP_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
 };
 
 pub const perf_payload_buf_size = perf_payload.len;
@@ -190,12 +192,16 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
         .{ .label = "STD_NO_PAD", .variant_name = "std", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
         .{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
         .{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "IMAP_PAD", .variant_name = "imap", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "IMAP_NO_PAD", .variant_name = "imap", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
     };
 
     var saw_std_pad = false;
     var saw_std_no_pad = false;
     var saw_urlsafe_pad = false;
     var saw_urlsafe_no_pad = false;
+    var saw_imap_pad = false;
+    var saw_imap_no_pad = false;
 
     try std.testing.expectEqual(expected.len, perf_cases.len);
     try std.testing.expectEqual(perf_payload.len, perf_payload_buf_size);
@@ -218,7 +224,7 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
         try std.testing.expect(perf_payload_buf_size >= case.payload.len);
         try std.testing.expect(perf_encoded_buf_size >= encodedChars(case.payload.len, case.padding));
         try std.testing.expect(
-            std.mem.eql(u8, case.variant_name, "std") or std.mem.eql(u8, case.variant_name, "urlsafe"),
+            std.mem.eql(u8, case.variant_name, "std") or std.mem.eql(u8, case.variant_name, "urlsafe") or std.mem.eql(u8, case.variant_name, "imap"),
         );
 
         if (std.mem.eql(u8, case.variant_name, "std")) {
@@ -229,13 +235,21 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
                 try std.testing.expect(!saw_std_no_pad);
                 saw_std_no_pad = true;
             }
-        } else {
+        } else if (std.mem.eql(u8, case.variant_name, "urlsafe")) {
             if (case.padding) {
                 try std.testing.expect(!saw_urlsafe_pad);
                 saw_urlsafe_pad = true;
             } else {
                 try std.testing.expect(!saw_urlsafe_no_pad);
                 saw_urlsafe_no_pad = true;
+            }
+        } else {
+            if (case.padding) {
+                try std.testing.expect(!saw_imap_pad);
+                saw_imap_pad = true;
+            } else {
+                try std.testing.expect(!saw_imap_no_pad);
+                saw_imap_no_pad = true;
             }
         }
 
@@ -248,4 +262,6 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     try std.testing.expect(saw_std_no_pad);
     try std.testing.expect(saw_urlsafe_pad);
     try std.testing.expect(saw_urlsafe_no_pad);
+    try std.testing.expect(saw_imap_pad);
+    try std.testing.expect(saw_imap_no_pad);
 }
