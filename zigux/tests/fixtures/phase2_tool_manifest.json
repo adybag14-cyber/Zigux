@@ -5,6 +5,7 @@
   "workflow": ".github/workflows/zigux-bootstrap.yml",
   "present_surfaces": {
     "review_surfaces": [
+      "Documentation/zigux/README.md",
       "Documentation/zigux/phase2-closure.md",
       "Documentation/zigux/review-checklist.md",
       "scripts/zigux/README.md",
