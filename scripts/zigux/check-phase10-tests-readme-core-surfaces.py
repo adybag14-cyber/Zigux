@@ -49,6 +49,12 @@ REQUIRED_REPO_REALITY_GAP_MARKERS = (
     "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
     "`zigux/tests/phase10_closure_manifest.json`",
     "`zigux/tests/phase10_virtio_core.zig`",
+    "`zigux/tests/phase10_virtio_core_reset_queue.zig`",
+    "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`",
+    "`drivers/virtio/virtio_driver_id.zig`",
+    "`drivers/virtio/virtio_verify.zig`",
+    "`zigux/tests/phase10_virtio_core_manifest.json`",
+    "`zigux/tests/phase10_virtio_core_survey.zig`",
     "`zigux/tests/phase10_virtio_mmio_manifest.json`",
     "last-known packet members or repo-reality gaps",
 )
@@ -123,7 +129,7 @@ Keep the current bounded virtio closure packet explicit through the shared remin
 - directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and `zigux/tests/phase10_build.zig`
 - directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig`
 - helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`
-- current `master` still does not materialize `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json` through the direct readback available in this lane, so keep them framed as last-known packet members or repo-reality gaps instead of direct current-head evidence.
+- current `master` still does not materialize `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json` through the direct readback available in this lane, so keep them framed as last-known packet members or repo-reality gaps instead of direct current-head evidence.
 
 The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.
 
@@ -153,6 +159,12 @@ Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` ow
     tests.append((good.replace("`Documentation/zigux/phase10-virtio-input-slice.md`", "`Documentation/zigux/phase10-virtio-input-slice-missing.md`", 1), "`Documentation/zigux/phase10-virtio-input-slice.md`"))
     tests.append((good.replace("`zigux/tests/phase10_virtio_input.zig`", "`zigux/tests/phase10_virtio_input_missing.zig`", 1), "`zigux/tests/phase10_virtio_input.zig`"))
     tests.append((good.replace("Wrapper ownership for the input lane stays split:", "Wrapper ownership for the input lane drifts:", 1), "Wrapper ownership for the input lane stays split:"))
+    tests.append((good.replace("`zigux/tests/phase10_virtio_core_reset_queue.zig`", "`zigux/tests/phase10_virtio_core_reset_queue_missing.zig`", 1), "`zigux/tests/phase10_virtio_core_reset_queue.zig`"))
+    tests.append((good.replace("`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`", "`zigux/tests/phase10_virtio_core_interrupt_compound_ack_missing.zig`", 1), "`zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`"))
+    tests.append((good.replace("`drivers/virtio/virtio_driver_id.zig`", "`drivers/virtio/virtio_driver_id_missing.zig`", 1), "`drivers/virtio/virtio_driver_id.zig`"))
+    tests.append((good.replace("`drivers/virtio/virtio_verify.zig`", "`drivers/virtio/virtio_verify_missing.zig`", 1), "`drivers/virtio/virtio_verify.zig`"))
+    tests.append((good.replace("`zigux/tests/phase10_virtio_core_manifest.json`", "`zigux/tests/phase10_virtio_core_manifest_missing.json`", 1), "`zigux/tests/phase10_virtio_core_manifest.json`"))
+    tests.append((good.replace("`zigux/tests/phase10_virtio_core_survey.zig`", "`zigux/tests/phase10_virtio_core_survey_missing.zig`", 1), "`zigux/tests/phase10_virtio_core_survey.zig`"))
     for text, expected in tests:
         try:
             check_text(text)
@@ -161,7 +173,7 @@ Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` ow
         else:
             raise AssertionError(f"expected failure for {expected}")
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
