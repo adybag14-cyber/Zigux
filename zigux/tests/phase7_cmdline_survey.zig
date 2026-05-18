@@ -61,6 +61,10 @@ test "phase 7 cmdline survey keeps the helper-plus-survey-manifest foothold trut
 
     try expectStringSliceContains(manifest.covered_helpers, "parseOptionStr");
     try expectStringSliceContains(manifest.covered_helpers, "parse_option_str");
+    try expectStringSliceContains(manifest.covered_helpers, "getOption");
+    try expectStringSliceContains(manifest.covered_helpers, "get_option");
+    try expectStringSliceContains(manifest.covered_helpers, "getOptions");
+    try expectStringSliceContains(manifest.covered_helpers, "get_options");
     try expectStringSliceContains(manifest.covered_helpers, "nextArg");
     try expectStringSliceContains(manifest.covered_helpers, "next_arg");
     try expectStringSliceContains(manifest.covered_helpers, "memparse");
@@ -72,6 +76,7 @@ test "phase 7 cmdline survey keeps the helper-plus-survey-manifest foothold trut
     try expectStringSliceContains(manifest.missing_paths, "scripts/zigux/validate-phase7.py");
 
     try expectStringSliceContains(manifest.ownership_focus, "parseOptionStr() keeps exact bare-option matching bounded to the exported option-string prefix");
+    try expectStringSliceContains(manifest.ownership_focus, "getOption() and getOptions() keep malformed-input clearing, range parsing, incomplete hex-prefix handling, and oversized wrap semantics bounded to the caller-provided option slice");
     try expectStringSliceContains(manifest.ownership_focus, "nextArg() and next_arg() keep quoted and unquoted argument parsing bounded to the first NUL while preserving the remaining tail for the caller");
     try expectStringSliceContains(manifest.ownership_focus, "memparse() keeps signed-prefix handling, suffix scaling, and saturation bounded to the caller-provided input slice");
     try expectStringSliceContains(manifest.ownership_focus, "same-lane follow-through stays inside the returned helper, survey, and manifest foothold until a fresh reread proves the slice, dedicated test, fixture, or shared Phase 7 build route returned on current master");
@@ -85,9 +90,17 @@ test "phase 7 cmdline survey keeps the helper-plus-survey-manifest foothold trut
 
     try expectContains(helper, "pub fn parseOptionStr");
     try expectContains(helper, "pub const parse_option_str = parseOptionStr;");
+    try expectContains(helper, "pub fn getOption");
+    try expectContains(helper, "pub const get_option = getOption;");
+    try expectContains(helper, "pub fn getOptions");
+    try expectContains(helper, "pub const get_options = getOptions;");
     try expectContains(helper, "pub fn nextArg");
     try expectContains(helper, "pub const next_arg = nextArg;");
     try expectContains(helper, "pub fn memparse");
+    try expectContains(helper, "test \"getOption and getOptions preserve Linux-style range parsing\"");
+    try expectContains(helper, "test \"getOption clears caller output on malformed signed and unsigned input\"");
+    try expectContains(helper, "test \"getOption preserves incomplete hex-prefix and descending-range behavior\"");
+    try expectContains(helper, "test \"getOption and getOptions preserve oversized wrap semantics\"");
     try expectContains(helper, "test \"memparse applies suffixes before signed clamping\"");
     try expectContains(helper, "test \"memparse keeps signed non-decimal prefixes aligned with suffix handling\"");
     try expectContains(helper, "test \"parseOptionStr matches only exact bare options\"");
