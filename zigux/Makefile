@@ -28,6 +28,7 @@ phase2-kconfig:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py
 
 phase2-cross:
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py
 
 phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross
