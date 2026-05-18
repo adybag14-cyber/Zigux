@@ -17,6 +17,7 @@ continuity remains parked under `P11-L16`.
 - current `master` still keeps the HVC lane reviewable through this survey note,
   `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,
   `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
+  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`,
   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
   `zigux/tests/fixtures/phase11_build_inventory.json`,
   `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
@@ -29,6 +30,10 @@ continuity remains parked under `P11-L16`.
   `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader
   starter-depth packet framed as survey-recorded same-lane archival vocabulary
   until a future reread proves those anchor paths returned again
+- current direct contents reads do rematerialize
+  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, so keep that
+  shared matrix explicit as returned current-head readback evidence instead of
+  folding it back into the missing starter-depth anchor set
 - current authenticated contents reads in this lane still do not rematerialize
   `scripts/zigux/check-phase11-hvc-survey-packet.py`, so keep that dedicated
   survey-checker path framed as a same-lane repo-reality gap until a future
@@ -45,6 +50,7 @@ inventory-backed and proof-backed packet below:
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
@@ -74,7 +80,6 @@ starter-depth packet for this lane:
 - `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
-- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
 Keep that packet visible as bounded survey-recorded archival vocabulary rather
 than direct current-head readback evidence until a future reread rematerializes
@@ -109,15 +114,16 @@ proof of live tty or hypervisor execution.
 
 This note records that the HVC simple-driver lane still has honest current-head
 continuity through the survey note, cleanup-alignment companion,
-verify-helper-boundary note, shared build inventory, and the surviving HVC
-proof shards above.
+verify-helper-boundary note, the returned HVC validation matrix, the shared
+build inventory, and the surviving HVC proof shards above.
 
 It does not claim tty-driver registration, notifier callback execution, khvcd
 polling execution, live sysrq dispatch, host-backed cleanup, or
 hardware-validated teardown parity.
 
 The survey still preserves the roadmap-facing starter-depth packet as archival
-continuity vocabulary, but the remaining same-lane work stays focused on
-truthfulness and later execution-facing follow-through rather than on claiming
-that the older direct-readback starter packet is fully back on current
-`master`.
+continuity vocabulary, while the returned validation matrix stays part of the
+current-head four-matrix packet rather than the missing starter-depth anchor
+set. The remaining same-lane work stays focused on truthfulness and later
+execution-facing follow-through rather than on claiming that the older
+direct-readback starter packet is fully back on current `master`.
