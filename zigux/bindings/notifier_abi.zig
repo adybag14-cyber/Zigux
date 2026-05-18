@@ -1,9 +1,14 @@
 const std = @import("std");
+const testing = std.testing;
+
+pub const NOTIFIER_DONE: u32 = 0;
+pub const NOTIFIER_OK: u32 = 1;
+pub const NOTIFIER_STOP: u32 = 2;
 
 pub const NotifierResult = enum(u32) {
-    done = 0,
-    ok = 1,
-    stop = 2,
+    done = NOTIFIER_DONE,
+    ok = NOTIFIER_OK,
+    stop = NOTIFIER_STOP,
 };
 
 pub const NotifierBlock = extern struct {
@@ -11,6 +16,25 @@ pub const NotifierBlock = extern struct {
     next: usize,
     priority: i32,
 };
+
+pub const notifier_block_align: usize = @alignOf(NotifierBlock);
+pub const notifier_block_size: usize = @sizeOf(NotifierBlock);
+pub const notifier_call_offset: usize = @offsetOf(NotifierBlock, "notifier_call");
+pub const next_offset: usize = @offsetOf(NotifierBlock, "next");
+pub const priority_offset: usize = @offsetOf(NotifierBlock, "priority");
+
+pub fn resultFromInt(value: u32) ?NotifierResult {
+    return switch (value) {
+        NOTIFIER_DONE => .done,
+        NOTIFIER_OK => .ok,
+        NOTIFIER_STOP => .stop,
+        else => null,
+    };
+}
+
+pub fn recognizesResult(value: u32) bool {
+    return resultFromInt(value) != null;
+}
 
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     var current = head orelse return true;
@@ -26,10 +50,36 @@ pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     return true;
 }
 
+comptime {
+    const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
+    const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
+
+    std.debug.assert(@intFromEnum(NotifierResult.done) == NOTIFIER_DONE);
+    std.debug.assert(@intFromEnum(NotifierResult.ok) == NOTIFIER_OK);
+    std.debug.assert(@intFromEnum(NotifierResult.stop) == NOTIFIER_STOP);
+    std.debug.assert(notifier_block_align == @alignOf(usize));
+    std.debug.assert(notifier_block_size == expected_size);
+    std.debug.assert(notifier_call_offset == 0);
+    std.debug.assert(next_offset == @sizeOf(usize));
+    std.debug.assert(priority_offset == (@sizeOf(usize) * 2));
+}
+
 test "notifier result constants stay aligned with the exported ABI values" {
-    try std.testing.expectEqual(@as(u32, 0), @intFromEnum(NotifierResult.done));
-    try std.testing.expectEqual(@as(u32, 1), @intFromEnum(NotifierResult.ok));
-    try std.testing.expectEqual(@as(u32, 2), @intFromEnum(NotifierResult.stop));
+    try testing.expectEqual(@as(u32, NOTIFIER_DONE), @intFromEnum(NotifierResult.done));
+    try testing.expectEqual(@as(u32, NOTIFIER_OK), @intFromEnum(NotifierResult.ok));
+    try testing.expectEqual(@as(u32, NOTIFIER_STOP), @intFromEnum(NotifierResult.stop));
+}
+
+test "notifier result helpers keep the raw ABI values explicit" {
+    try testing.expectEqual(@as(?NotifierResult, .done), resultFromInt(NOTIFIER_DONE));
+    try testing.expectEqual(@as(?NotifierResult, .ok), resultFromInt(NOTIFIER_OK));
+    try testing.expectEqual(@as(?NotifierResult, .stop), resultFromInt(NOTIFIER_STOP));
+    try testing.expectEqual(@as(?NotifierResult, null), resultFromInt(9));
+
+    try testing.expect(recognizesResult(NOTIFIER_DONE));
+    try testing.expect(recognizesResult(NOTIFIER_OK));
+    try testing.expect(recognizesResult(NOTIFIER_STOP));
+    try testing.expect(!recognizesResult(9));
 }
 
 test "notifier block layout stays aligned with the exported ABI header" {
@@ -39,15 +89,26 @@ test "notifier block layout stays aligned with the exported ABI header" {
         @alignOf(NotifierBlock),
     );
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
-    try std.testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
+    try testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
+    try testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
+    try testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
+    try testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
+    try testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
+}
+
+test "notifier block layout helpers preserve the published shape" {
+    const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
+    const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
+
+    try testing.expectEqual(@as(usize, @alignOf(usize)), notifier_block_align);
+    try testing.expectEqual(expected_size, notifier_block_size);
+    try testing.expectEqual(@as(usize, 0), notifier_call_offset);
+    try testing.expectEqual(@as(usize, @sizeOf(usize)), next_offset);
+    try testing.expectEqual(@as(usize, @sizeOf(usize) * 2), priority_offset);
 }
 
 test "notifier priority helper accepts empty chain" {
-    try std.testing.expect(chainHasNonincreasingPriority(null));
+    try testing.expect(chainHasNonincreasingPriority(null));
 }
 
 test "notifier priority helper accepts single node chain" {
@@ -57,7 +118,7 @@ test "notifier priority helper accepts single node chain" {
         .priority = 4,
     };
 
-    try std.testing.expect(chainHasNonincreasingPriority(&node));
+    try testing.expect(chainHasNonincreasingPriority(&node));
 }
 
 test "notifier priority helper accepts equal and descending priorities" {
@@ -77,7 +138,7 @@ test "notifier priority helper accepts equal and descending priorities" {
         .priority = 5,
     };
 
-    try std.testing.expect(chainHasNonincreasingPriority(&first));
+    try testing.expect(chainHasNonincreasingPriority(&first));
 }
 
 test "notifier priority helper rejects increasing priority" {
@@ -97,5 +158,5 @@ test "notifier priority helper rejects increasing priority" {
         .priority = 4,
     };
 
-    try std.testing.expect(!chainHasNonincreasingPriority(&first));
+    try testing.expect(!chainHasNonincreasingPriority(&first));
 }
