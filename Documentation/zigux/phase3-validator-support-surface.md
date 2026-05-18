@@ -71,7 +71,7 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 
 Keep the shared Phase 3 reminder packet anchored to those three current-tree-backed slices until additional validator, broader export/UAPI survey, or shared replay proof lands.
 
-Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, its starter export shim companion, its helper-local fixture-backed parity packet, the focused policy slice, or the adjacent export/UAPI layout replay pair as evidence that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
+Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, its starter export shim companion, its helper-local fixture-backed parity packet, the focused policy slice, or the adjacent export/UAPI layout replay pair as evidence that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, or shared Phase 3 replay packet already ship on `master`.
 
 ## Sampled broader gaps still absent on `master`
 
