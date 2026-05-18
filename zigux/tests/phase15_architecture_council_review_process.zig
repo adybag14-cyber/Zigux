@@ -9,6 +9,8 @@ const ReviewProcessManifest = struct {
     handoff_note: []const u8,
     shared_summary_gap_note: []const u8,
     checker: []const u8,
+    review_checklist_entry_prompt: []const u8,
+    review_checklist_boundary_rule: []const u8,
     required_review_fields: []const []const u8,
     stay_in_c_closeout_fields: []const []const u8,
     reopen_evidence_fields: []const []const u8,
@@ -53,6 +55,8 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-shared-summary-gap.md", manifest.shared_summary_gap_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-review-process-handoff.py", manifest.checker);
+    try std.testing.expectEqualStrings("if a freeze-map anchor is entering Architecture Council status review", manifest.review_checklist_entry_prompt);
+    try expectContains(manifest.review_checklist_boundary_rule, "exact Architecture Council field inventory stays owned by this note");
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_fields.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
@@ -103,6 +107,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "broader validator-first shared-summary surfaces remain gap-tracked");
     try expectContains(review_process, "focused review-process replay");
     try expectContains(review_process, "defaults that record to dated-master-readback provenance");
+    try expectContains(review_process, manifest.review_checklist_boundary_rule);
 
     for (manifest.required_review_fields) |field| {
         try expectContains(review_process, field);
@@ -140,6 +145,7 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
 
     try expectContains(checker, "shared-summary gap note claims materialized path is missing from repo");
     try expectContains(checker, "focused review-process Zig replay is missing from repo");
+    try expectContains(checker, "review-process note is missing the review-checklist boundary rule");
     try expectContains(checker, "repo_path = _marker_to_repo_path(marker)");
     try expectContains(checker, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectContains(checker, "PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass");
