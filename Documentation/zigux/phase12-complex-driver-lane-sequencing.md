@@ -33,7 +33,7 @@ It keeps the starter-present network packet and the storage-facing reminder surf
   - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
   - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
   - `make -C zigux phase12-validate`
-- Keep the current partial direct-read bridge explicit too: `Documentation/zigux/phase12-raw-github-coverage-survey.md` now records that `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `.github/workflows/zigux-bootstrap.yml`, and `scripts/zigux/README.md` are directly readable on current `master`, while `zigux/tests/phase12_build.zig` and `zigux/Makefile` still fail through the same bridge, so that readable checker-plus-workflow-plus-scripts quartet stays reminder evidence only rather than proof for the larger shared packet.
+- Keep the current partial direct-read bridge explicit too: `Documentation/zigux/phase12-raw-github-coverage-survey.md` now records that `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, and `zigux/Makefile` are directly readable on current `master`, while `zigux/tests/phase12_build.zig` still fails through the same bridge, so that readable checker-plus-workflow-plus-scripts-plus-Makefile set stays reminder evidence only rather than proof for the larger shared packet.
 
 ## Anti-Overlap Rules
 
