@@ -109,6 +109,10 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("phase14-rcu-tree-bridge-blocker", blocked_gap);
     try std.testing.expect(!live_bridge_claim);
     try std.testing.expectEqual(@as(usize, 7), review_packet.len);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_manifest.json", review_packet[0]);
+    try std.testing.expectEqualStrings("zigux/tests/phase14_rcu_tree_survey.zig", review_packet[1]);
+    try std.testing.expectEqualStrings("Documentation/zigux/phase14-rcu-tree-survey.md", review_packet[2]);
+    try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", review_packet[3]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-core-boundary-traceability.md", review_packet[4]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-end-to-end-smoke-survey.md", review_packet[5]);
     try std.testing.expectEqualStrings("zigux/tests/phase14_end_to_end_smoke_manifest.json", review_packet[6]);
