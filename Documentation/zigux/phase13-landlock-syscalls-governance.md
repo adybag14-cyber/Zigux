@@ -6,7 +6,7 @@ This note records the bounded governance and review-owner split for the shared P
 
 This note is for the syscall side of the active Phase 13 Landlock packet only.
 
-Current `master` now materializes `security/landlock/syscalls.zig` as a helper-local starter for the roadmap-owned `security/landlock/syscalls.c` anchor. Keep the helper-owned wording tightly scoped to descriptor-backed create-ruleset planning, the top-level create-ruleset initialization plus attr-presence wrapper checks, one planning-only ruleset-fd install helper that fixes the `anon_inode_getfd()` label, `O_RDWR | O_CLOEXEC` flags, and release-on-fd-failure discipline, and one planning-only ruleset-fd stub helper that keeps the dummy read or write mode discipline plus shared `-EINVAL` return reviewable as data, and do not present that helper packet as live FD installation, file-buffer handling, credential replacement, or full Landlock enforcement.
+Current `master` now materializes `security/landlock/syscalls.zig` as a helper-local starter for the roadmap-owned `security/landlock/syscalls.c` anchor. Keep the helper-owned wording tightly scoped to descriptor-backed create-ruleset planning, ABI-version query planning, the top-level create-ruleset initialization plus attr-presence wrapper checks, descriptor-backed add-rule planning, the top-level add-rule initialization plus attr-presence wrapper checks, one planning-only ruleset-fd install helper that fixes the `anon_inode_getfd()` label, `O_RDWR | O_CLOEXEC` flags, and release-on-fd-failure discipline, and one planning-only ruleset-fd stub helper that keeps the dummy read or write mode discipline plus shared `-EINVAL` return reviewable as data, and do not present that helper packet as live FD installation, file-buffer handling, credential replacement, or full Landlock enforcement.
 
 ## Current Repo Reality
 
@@ -36,7 +36,19 @@ Keep these neighboring surfaces distinct:
 
 ## Owned Review Surface
 
-When contributors touch the syscall-facing Landlock packet, keep this note aligned with:
+When contributors touch the syscall-facing Landlock packet, keep this note aligned first with the shipped helper-local packet:
+- `security/landlock/syscalls.zig`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+
+Treat the older direct survey, replay, reviewability, and manifest route as repo-reality gaps until current `master` materializes them again:
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
+- `zigux/tests/phase13_build.zig`
+
+Keep contributor guidance anchored to the broader shipped reminder packet instead of presenting those absent direct companions as independently shipped evidence:
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
@@ -44,7 +56,7 @@ When contributors touch the syscall-facing Landlock packet, keep this note align
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Keep `scripts/zigux/validate-phase13-release.py`, `zigux/Makefile`, `make -C zigux phase13-validate`, `make -C zigux phase13`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, and `zigux/tests/phase13_build.zig` framed as repo-reality gaps until current `master` materializes them again, and keep reviewer guidance anchored to the shipped docs-root and tests-root surfaces above instead of presenting those paths as independently shipped evidence.
+This keeps the ownership split explicit: the helper, slice note, and this governance note are the current helper-local review surface, while the absent direct companions remain gaps rather than silently inherited owners.
 
 The intent is simple: keep the syscall-facing policy packet reviewable as one bounded Phase 13 helper surface without implying that ruleset-helper ownership, notifier evidence, or broader release-packet sequencing moved into this note.
 
@@ -63,8 +75,8 @@ Keep this packet parked unless a future lane can add another equally bounded pla
 
 If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - the broad Phase 13 reminder surfaces keep this governance note explicit beside the ruleset-ownership note and the adjacent notifier evidence packet when they describe the active shared-helper tranche
-- no wording here implies extra shared replay steps beyond the shipped docs-root and tests-root reminder packet while the direct syscall companions remain absent
+- no wording here implies extra shared replay steps beyond the shipped helper, slice, and governance packet while the direct syscall companions remain absent
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
 - the packet remains active and reviewable rather than being described as closed or frozen
 - any still-missing direct syscall companions stay framed as repo-reality gaps rather than as shipped current-`master` evidence
-- helper-owned wording must match the current helper boundary: create-ruleset planning, ABI-version query planning, top-level create-ruleset initialization plus attr-presence wrapper checks, ruleset-fd install planning, ruleset-fd stub planning, handled-access plus attr-size plus flag validation, delegated ruleset-creation planning, and no live FD installation, file-buffer handling, or credential replacement
+- helper-owned wording must match the current helper boundary: create-ruleset planning, ABI-version query planning, top-level create-ruleset initialization plus attr-presence wrapper checks, add-rule planning, top-level add-rule initialization plus attr-presence wrapper checks, ruleset-fd install planning, ruleset-fd stub planning, handled-access plus attr-size plus flag validation, incoming-layer plus tree-walk validation, delegated ruleset creation plus rule-tree search plus rule insertion planning, and no live FD installation, file-buffer handling, or credential replacement
