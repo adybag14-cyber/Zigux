@@ -17,6 +17,7 @@ PHASE1_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequenc
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
@@ -31,6 +32,7 @@ REQUIRED_FILES = (
     DOCS_ROOT_REL,
     REVIEW_CHECKLIST_REL,
     SCRIPTS_README_REL,
+    BENCH_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
@@ -456,7 +458,7 @@ EXPECTED_MARKERS = {
         "Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,"
         "Documentation/zigux/review-checklist.md,scripts/zigux/README.md,"
         "scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,"
-        "scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,"
+        "scripts/zigux/check-phase1-bench.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,"
         "zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`"
     ),
     "gap_packet": (
@@ -794,8 +796,25 @@ def run_self_test() -> int:
             False,
         ),
         (
+            "missing_bench_packet_marker",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(
+                    load_text(root, PHASE1_CLOSURE_REL),
+                    "scripts/zigux/check-phase1-bench.py,",
+                    "",
+                ),
+            ),
+            False,
+        ),
+        (
             "missing_file",
             lambda root: (root / PHASE1_SMOKE_REL).unlink(),
+            False,
+        ),
+        (
+            "missing_bench_checker_file",
+            lambda root: (root / BENCH_CHECKER_REL).unlink(),
             False,
         ),
         (
