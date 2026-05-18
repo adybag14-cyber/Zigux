@@ -75,4 +75,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete parity, portability, or helper-surface truthfulness drift in the current generic, variant-pinned, or exact-span ownership packet. If the base64 family reopens for review-surface follow-through, keep it to one small truthfulness step inside this slice note or to one fresh direct-read recovery pass for the direct C parity companions, instead of widening into broader Phase 6 shared-note churn.
+Leave this helper parked unless fresh repo inspection shows a concrete parity, portability, or helper-surface truthfulness drift in the current generic, variant-pinned, or exact-fit buffer packet. If the base64 family reopens for review-surface follow-through, keep it to one small truthfulness step inside this slice note or to one fresh direct-read recovery pass for the direct C parity companions, instead of widening into broader Phase 6 shared-note churn.
