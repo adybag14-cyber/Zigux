@@ -95,8 +95,12 @@ pub fn libbpfVersionString(buffer: []u8) error{NoSpaceLeft}![]const u8 {
     return current_version.writeString(buffer);
 }
 
+pub fn libbpfErrorCode(err: i32) u32 {
+    return normalizeLibbpfErrno(err);
+}
+
 pub fn libbpfErrorMessage(err: i32) ?[]const u8 {
-    const normalized = normalizeLibbpfErrno(err);
+    const normalized = libbpfErrorCode(err);
 
     return switch (normalized) {
         @intFromEnum(LibbpfErrno.libelf) => "Something wrong in libelf",
@@ -122,7 +126,7 @@ pub fn formatLibbpfError(buffer: []u8, err: i32) error{NoSpaceLeft}![]const u8 {
         return std.fmt.bufPrint(buffer, "{s}", .{message});
     }
 
-    return std.fmt.bufPrint(buffer, "Unknown libbpf error {d}", .{normalizeLibbpfErrno(err)});
+    return std.fmt.bufPrint(buffer, "Unknown libbpf error {d}", .{libbpfErrorCode(err)});
 }
 
 test "log level parsing matches the base libbpf env contract" {
@@ -169,6 +173,13 @@ test "version helpers format the bounded libbpf release string" {
     try std.testing.expectEqualStrings("v1.7", try libbpfVersionString(buffer[0..]));
 }
 
+test "error-code helper keeps normalized libbpf magnitudes stable" {
+    try std.testing.expectEqual(@as(u32, @intFromEnum(LibbpfErrno.load)), libbpfErrorCode(@intFromEnum(LibbpfErrno.load)));
+    try std.testing.expectEqual(@as(u32, @intFromEnum(LibbpfErrno.load)), libbpfErrorCode(-@intFromEnum(LibbpfErrno.load)));
+    try std.testing.expectEqual(@as(u32, 4999), libbpfErrorCode(-4999));
+    try std.testing.expectEqual(@as(u32, 2147483648), libbpfErrorCode(std.math.minInt(i32)));
+}
+
 test "error helpers cover the bounded libbpf internal errno range" {
     try std.testing.expectEqualStrings(
         "Something wrong in libelf",
@@ -177,6 +188,10 @@ test "error helpers cover the bounded libbpf internal errno range" {
     try std.testing.expectEqualStrings(
         "Load program failure for unknown reason",
         libbpfErrorMessage(@intFromEnum(LibbpfErrno.load)).?,
+    );
+    try std.testing.expectEqual(
+        @as(u32, @intFromEnum(LibbpfErrno.nlparse)),
+        libbpfErrorCode(-@intFromEnum(LibbpfErrno.nlparse)),
     );
     try std.testing.expectEqualStrings(
         "Incorrect netlink message parsing",
@@ -195,6 +210,7 @@ test "unknown errors stay reviewable instead of silently disappearing" {
 test "error normalization stays defined for the i32 minimum edge" {
     var buffer: [40]u8 = undefined;
 
+    try std.testing.expectEqual(@as(u32, 2147483648), libbpfErrorCode(std.math.minInt(i32)));
     try std.testing.expect(libbpfErrorMessage(std.math.minInt(i32)) == null);
     try std.testing.expectEqualStrings(
         "Unknown libbpf error 2147483648",
