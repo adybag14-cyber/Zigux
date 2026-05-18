@@ -116,6 +116,16 @@ Key entrypoints
   * current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone
   * historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again
 
+## Phase 5 review packet
+
+Keep the current shared Phase 5 reminder packet explicit through `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
+
+Keep the current direct sample-root proof truthful here too: `samples/zigux/bytestream_fifo.zig` and `samples/zigux/kretprobe_example.zig` are the directly readable non-runtime sample-root ports on current `master`, while `samples/zigux/trace_events_string_formatting_sample.zig` is the bounded trace-events formatting companion rather than a returned full trace-events port, a standalone string-helper delivery, or a fifth Phase 5 sample. Keep `zigux/tests/phase5_build.zig` framed only as current public-tree-backed companion evidence until a fresh reread restores direct authenticated proof.
+
+Keep the string-sample boundary explicit in the tests root too: there is still no standalone Phase 5 `samples/zigux/*string*` reference sample on current `master` outside the bounded trace-events formatting companion and the shared reminder packet. Keep that bounded string cue tied to the roadmap-backed `samples/trace_events/trace-events-sample.c` anchor instead of treating it as helper-local delivery or as proof that a separate string sample landed under `samples/zigux`.
+
+Keep the same no-extra-sample boundaries explicit here: there is no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` reference sample on current `master`. Keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof.
+
 ## Phase 13 review packet
 
 Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` aligned with that stable handle as supporting shared reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.
