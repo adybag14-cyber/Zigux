@@ -52,7 +52,7 @@ REQUIRED_MARKERS = (
     "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, or `scripts/zigux/check-phase13-notifier-priority-signal.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
     "Current `master` does materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that guard explicit as shipped shared-summary evidence aligned with the contributor workflow guide and roadmap-traceability note instead of repeating it as a missing tests-root gap.",
     "Current `master` also materializes the adjacent notifier survey plus the direct-evidence shards `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, so keep those six paths explicit as shipped adjacent evidence without counting them as extra shared replay steps.",
-    "Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
+    "Current `master` does materialize `zigux/Makefile`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
 )
 
 REQUIRED_TEXT = (
@@ -60,7 +60,6 @@ REQUIRED_TEXT = (
 )
 
 FORBIDDEN_SHIPPED_LINES = (
-    "- `zigux/Makefile`",
     "- `make -C zigux phase13-validate`",
     "- `make -C zigux phase13`",
 )
@@ -70,6 +69,7 @@ FORBIDDEN_TEXT = (
     "Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands",
     "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note framed as an adjacent repo-reality gap rather than as shipped tests-root evidence.",
     "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
+    "Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
 )
 
 
@@ -228,13 +228,13 @@ def run_self_test() -> int:
         path.write_text(
             path.read_text(encoding="utf-8").replace(
                 "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n",
-                "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n- `zigux/Makefile`\n",
+                "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n- `make -C zigux phase13-validate`\n",
                 1,
             ),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("FORBIDDEN_SHIPPED_MARKER", "- `zigux/Makefile`") in issues
+        assert ("FORBIDDEN_SHIPPED_MARKER", "- `make -C zigux phase13-validate`") in issues
         checks_run += 1
 
         build_self_test_root(root)
