@@ -1,19 +1,21 @@
 {
   "lane_key": "P13-L08",
   "phase": "Phase 13",
-  "surveyed_commit": "master-readback-2026-05-17",
+  "surveyed_commit": "master-readback-2026-05-18",
   "anchor": "lib/devres.c",
   "packet": "phase13-devres-dmam-alloc-coherent-planner",
-  "status": "planning_only",
+  "status": "starter_landed",
   "adjacent_evidence": [
-    "Documentation/zigux/phase13-devres-slice.md",
+    "lib/devres.zig",
     "Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md",
+    "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
     "zigux/tests/phase13_devres_dma_coherent.zig"
   ],
   "required_markers": [
     "pure `dmam_alloc_coherent()` planning surface",
-    "detach-time cleanup intent",
-    "avoid retaining detach-time cleanup ownership",
+    "planManagedDmamAllocCoherent",
+    "detach-time cleanup ownership on success",
+    "failed allocation frees the release record",
     "dma_map_*",
     "dma_unmap_*",
     "dma_sync_*",
