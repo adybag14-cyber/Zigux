@@ -2,371 +2,201 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 import shutil
 import tempfile
 
-
-SELF_PATH = Path(__file__).resolve()
 SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
-TESTS_README_PATH = "zigux/tests/README.md"
-SAMPLES_README_PATH = "samples/zigux/README.md"
-SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
-UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
-REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
+MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"
+SURVEY_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
+MANIFEST_PATH = "zigux/tests/runtime_trace_events_manifest.json"
 
-
-def infer_repo_root() -> Path:
-    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
-        if (candidate / SEQUENCING_PATH).exists():
-            return candidate
-    return SELF_PATH.parent
-
-
-ROOT = infer_repo_root()
-
-TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
-UNREGISTERED_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
-REENTRY_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
-TRACE_EVENTS_PACKET_CHECKER_MARKER = "`scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
-SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
-LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
-FAIL_CLOSED_COMPANION_MARKER = "unregistered function-thread failures fail-closed"
-REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable before and after selftest"
-ABSENT_SHARED_LOADER_MARKER = "does not currently expose the broader shared runtime-loader packet"
-ABSENT_PHASE9_BUILD_MARKER = "`zigux/tests/phase9_build.zig`"
-ABSENT_RUNTIME_LOADER_KERNEL_MARKER = "`zigux/kernel/runtime_loader.zig`"
-ABSENT_RUNTIME_LOADER_CONTRACT_MARKER = "`zigux/kernel/runtime_loader_contract.zig`"
-ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER = "`samples/zigux/runtime_*_loader.zig` scaffolds"
-ABSENT_WORKFLOW_MARKER = "`.github/workflows/zigux-bootstrap.yml`"
-PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
-PHASE2_CONFDATA_BRIDGE_MARKER = "`scripts/zigux/kconfig/confdata_bridge.zig`"
-PHASE3_EXPORTS_MARKER = "`rust/exports.c`"
-PHASE3_EXPORT_SHIM_MARKER = "`zigux/kernel/export_shim.zig`"
-
-TESTS_README_BACKLOG_MARKER = (
-    "there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, "
-    "`make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`"
+REQUIRED_FILES = (
+    SEQUENCING_PATH,
+    MODULE_SLICE_PATH,
+    SURVEY_PATH,
+    MANIFEST_PATH,
 )
 
-SEQUENCING_UNREGISTERED_GATE_MARKER = (
-    "surviving fail-closed runtime companion: `samples/zigux/runtime_trace_events_unregistered_gate.zig`"
-)
-SEQUENCING_REENTRY_GATE_MARKER = (
-    "surviving registration-reentry runtime companion: `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
-)
-TESTS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
-TESTS_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
-SAMPLES_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
-SAMPLES_README_REENTRY_GATE_DETAIL_MARKER = (
-    "Treat `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as the same packet's balanced registration re-entry companion across the initialized and selftest_complete stages"
-)
-SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejections"
-SAMPLES_README_SUMMARY_STABILITY_MARKER = (
-    "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
+SHARED_PACKET_MARKERS = (
+    "`samples/zigux/runtime_trace_events_loader.zig`",
+    "`zigux/tests/runtime_trace_events_loader_substrate_drift.zig`",
+    "`zigux/tests/runtime_trace_events_survey.zig`",
+    "`zigux/tests/runtime_trace_events_manifest.json`",
+    "`zigux/tests/phase9_build.zig`",
+    "`zigux/kernel/runtime_loader.zig`",
 )
 
-SAMPLE_REQUIRED_MARKERS = [
-    '.name = "runtime_trace_events"',
-    '.anchor = "samples/trace_events/trace-events-sample.c"',
-    ".requires_runtime_substrate = true",
-    ".provides_selftest_hook = true",
-    "pub fn runSelftest(self: *Self) !EmissionSummary {",
-    "pub fn exit(self: *Self) !void {",
-    'test "trace-events sample rejects duplicate function-thread registration" {',
-    "error.FunctionThreadAlreadyRegistered",
-    "const before_duplicate = module.summary();",
-    "try std.testing.expectEqual(@as(usize, 1), before_duplicate.registration_depth);",
-    "const after_duplicate = module.summary();",
-    "try std.testing.expectEqual(before_duplicate.stage, after_duplicate.stage);",
-    "try std.testing.expectEqual(before_duplicate.total_events, after_duplicate.total_events);",
-    "try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);",
-    'test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {',
-    "try std.testing.expectEqual(ModuleStage.cold, module.stage());",
-    "try std.testing.expectEqual(ModuleStage.cold, module.stage());\n    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());",
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());",
-    "try std.testing.expect(selftest.conditional_paths_checked);",
-    "try std.testing.expect(selftest.registration_paths_checked);",
-    'test "trace-events sample keeps failed-exit rollback explicit after selftest-ready replay" {',
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);",
-    "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);",
-    "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);",
-    "try std.testing.expectError(error.OutstandingRegistration, module.exit());",
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, after_failed_exit.stage);",
-    "try std.testing.expectEqual(before_failed_exit.registration_depth, after_failed_exit.registration_depth);",
-    "try std.testing.expectEqual(before_failed_exit.total_events, after_failed_exit.total_events);",
-    "try std.testing.expectEqual(before_failed_exit.last_main_emitted_events, after_failed_exit.last_main_emitted_events);",
-    "try std.testing.expectEqual(before_failed_exit.last_fn_emitted_events, after_failed_exit.last_fn_emitted_events);",
-    "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);",
-    "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);",
-    "try std.testing.expectEqual(before_exit.init_runs, after_exit.init_runs);",
-    "try std.testing.expectEqual(before_exit.selftest_runs, after_exit.selftest_runs);",
-    "try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);",
-    'test "trace-events sample keeps rejected re-selftest rollback explicit" {',
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());",
-    "try std.testing.expectEqual(ModuleStage.exited, exited_summary.stage);",
-    "try std.testing.expectEqual(@as(usize, 1), exited_summary.init_runs);",
-    "try std.testing.expectEqual(@as(usize, 1), exited_summary.selftest_runs);",
-    "try std.testing.expectEqual(@as(usize, 1), exited_summary.exit_runs);",
-    "try std.testing.expectEqual(selftest_complete_summary.total_events, exited_summary.total_events);",
-    "try std.testing.expectEqual(selftest_complete_summary.registration_depth, exited_summary.registration_depth);",
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_summary.stage);",
-    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_summary.selftest_runs);",
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);",
-    "try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);",
-    "try std.testing.expectEqual(ModuleStage.exited, before_rejected_exit_selftest.stage);",
-    "try std.testing.expectEqual(@as(usize, 1), before_rejected_exit_selftest.exit_runs);",
-    "error.OutstandingRegistration",
-]
+BLOCKED_BOUNDARY_MARKERS = (
+    "runtime task ownership, polling and event-loop substrate, and polling-backed wake or dispatch behavior",
+    "`.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root publication",
+)
 
-UNREGISTERED_GATE_REQUIRED_MARKERS = [
-    'test "phase9 trace-events sample keeps unregistered function-thread failures fail-closed" {',
-    "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {",
-    "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);",
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));",
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\n    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
-    "try expectSummaryStable(initialized_before, initialized_after);",
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);",
-    "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.main_iterations);",
-    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.fn_iterations);",
-    "try std.testing.expectEqual(@as(usize, 10), selftest_complete_before.main_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.fn_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 1), selftest_complete_before.selftest_runs);",
-    "try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);",
-    "try std.testing.expectEqual(@as(i32, 5), selftest_complete_before.last_main_count);",
-    "try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);",
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));\n    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
-    "try expectSummaryStable(selftest_complete_before, selftest_complete_after);",
-    "try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);",
-    "try module.exit();",
-    "const exited_before = module.summary();",
-    "try std.testing.expectEqual(ModuleStage.exited, exited_before.stage);",
-    "try std.testing.expectEqual(@as(usize, 1), exited_before.exit_runs);",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(9));",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());",
-    "const exited_after = module.summary();",
-    "try expectSummaryStable(exited_before, exited_after);",
-]
+SEQUENCING_MARKERS = (
+    "`Documentation/zigux/phase9-runtime-trace-events-survey.md`",
+    "`Documentation/zigux/phase9-runtime-trace-events-module-slice.md`",
+    "reviewable family-local starter plus the adjacent shared loader-facing reminder packet",
+    "not an absent-loader story",
+    *SHARED_PACKET_MARKERS,
+    *BLOCKED_BOUNDARY_MARKERS,
+)
 
-REENTRY_GATE_REQUIRED_MARKERS = [
-    'test "phase9 trace-events sample keeps registration reentry reusable across initialized and selftest_complete stages" {',
-    "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);",
-    "try std.testing.expectEqual(@as(usize, 0), initialized_before.registration_depth);",
-    "try std.testing.expectEqual(@as(usize, 0), initialized_before.main_iterations);",
-    "try std.testing.expectEqual(@as(usize, 0), initialized_before.fn_iterations);",
-    "try std.testing.expectEqual(@as(usize, 0), initialized_before.fn_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 0), initialized_before.total_events);",
-    "try module.registerFunctionThread();",
-    "const initialized_replay = try module.emitFunctionIteration(3);",
-    "try std.testing.expectEqual(@as(usize, 2), initialized_replay);",
-    "try module.unregisterFunctionThread();",
-    "try std.testing.expectEqual(ModuleStage.initialized, initialized_after.stage);",
-    "try std.testing.expectEqual(@as(usize, 0), initialized_after.registration_depth);",
-    "try std.testing.expectEqual(@as(usize, 1), initialized_after.fn_iterations);",
-    "try std.testing.expectEqual(@as(usize, 2), initialized_after.fn_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 2), initialized_after.total_events);",
-    "try std.testing.expectEqual(@as(?usize, 2), initialized_after.last_fn_emitted_events);",
-    "try std.testing.expectEqual(@as(i32, 3), initialized_after.last_fn_count);",
-    'try std.testing.expectEqualStrings("foo_bar_reg", initialized_after.last_register_label orelse return error.ExpectedRegisterLabel);',
-    'try std.testing.expectEqualStrings("foo_bar_unreg", initialized_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);',
-    "_ = try module.runSelftest();",
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_before.stage);",
-    "try std.testing.expectEqual(@as(usize, 0), selftest_before.registration_depth);",
-    "try std.testing.expectEqual(@as(usize, 1), selftest_before.main_iterations);",
-    "try std.testing.expectEqual(@as(usize, 2), selftest_before.fn_iterations);",
-    "try std.testing.expectEqual(@as(usize, 4), selftest_before.fn_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 10), selftest_before.total_events);",
-    "try std.testing.expectEqual(@as(usize, 1), selftest_before.selftest_runs);",
-    "try std.testing.expectEqual(@as(i32, 1), selftest_before.last_fn_count);",
-    "const selftest_replay = try module.emitFunctionIteration(11);",
-    "try std.testing.expectEqual(@as(usize, 2), selftest_replay);",
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_after.stage);",
-    "try std.testing.expectEqual(@as(usize, 0), selftest_after.registration_depth);",
-    "try std.testing.expectEqual(@as(usize, 1), selftest_after.main_iterations);",
-    "try std.testing.expectEqual(@as(usize, 3), selftest_after.fn_iterations);",
-    "try std.testing.expectEqual(@as(usize, 6), selftest_after.fn_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 12), selftest_after.total_events);",
-    "try std.testing.expectEqual(@as(usize, 1), selftest_after.selftest_runs);",
-    "try std.testing.expectEqual(@as(?usize, 2), selftest_after.last_fn_emitted_events);",
-    "try std.testing.expectEqual(@as(i32, 11), selftest_after.last_fn_count);",
-    'try std.testing.expectEqualStrings("foo_bar_reg", selftest_after.last_register_label orelse return error.ExpectedRegisterLabel);',
-    'try std.testing.expectEqualStrings("foo_bar_unreg", selftest_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);',
-    "const before_exit = module.summary();",
-    "try std.testing.expectEqual(ModuleStage.selftest_complete, before_exit.stage);",
-    "try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);",
-    "try std.testing.expectEqual(@as(usize, 1), before_exit.main_iterations);",
-    "try std.testing.expectEqual(@as(usize, 3), before_exit.fn_iterations);",
-    "try std.testing.expectEqual(@as(usize, 6), before_exit.main_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 6), before_exit.fn_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 12), before_exit.total_events);",
-    "try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);",
-    "try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);",
-    "try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);",
-    "try std.testing.expectEqual(@as(?usize, 2), before_exit.last_fn_emitted_events);",
-    "try std.testing.expectEqual(@as(i32, 11), before_exit.last_fn_count);",
-    'try std.testing.expectEqualStrings("foo_bar_reg", before_exit.last_register_label orelse return error.ExpectedRegisterLabel);',
-    'try std.testing.expectEqualStrings("foo_bar_unreg", before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);',
-    "try module.exit();",
-    "const after_exit = module.summary();",
-    "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);",
-    "try std.testing.expectEqual(@as(usize, 1), after_exit.init_runs);",
-    "try std.testing.expectEqual(@as(usize, 1), after_exit.selftest_runs);",
-    "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);",
-    "try std.testing.expectEqual(before_exit.registration_depth, after_exit.registration_depth);",
-    "try std.testing.expectEqual(before_exit.main_iterations, after_exit.main_iterations);",
-    "try std.testing.expectEqual(before_exit.fn_iterations, after_exit.fn_iterations);",
-    "try std.testing.expectEqual(before_exit.main_thread_events, after_exit.main_thread_events);",
-    "try std.testing.expectEqual(before_exit.fn_thread_events, after_exit.fn_thread_events);",
-    "try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);",
-    "try std.testing.expectEqual(before_exit.last_fn_emitted_events, after_exit.last_fn_emitted_events);",
-    "try std.testing.expectEqual(before_exit.last_fn_count, after_exit.last_fn_count);",
-    "try std.testing.expectEqualStrings(before_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);",
-    "try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);",
-    "try std.testing.expectEqualStrings(before_exit.last_register_label orelse return error.ExpectedRegisterLabel, after_exit.last_register_label orelse return error.ExpectedRegisterLabel);",
-    "try std.testing.expectEqualStrings(before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel, after_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);",
-    "const exited_before_rejected_main = module.summary();",
-    "try std.testing.expectEqual(ModuleStage.exited, exited_before_rejected_main.stage);",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));",
-    "const exited_after_rejected_main = module.summary();",
-    "try std.testing.expect(std.meta.eql(exited_before_rejected_main, exited_after_rejected_main));",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());",
-]
+MODULE_SLICE_MARKERS = (
+    "PHASE9_SURVEYED_COMMIT=",
+    "`samples/zigux/runtime_trace_events.zig`",
+    "`zigux/tests/runtime_trace_events_diff.zig`",
+    "the broader runtime-substrate handoff remains a separate blocked step",
+    "the live runtime substrate is still missing",
+    "The family-local module gate owns the selftest-ready failed-exit rollback path that preserves lifecycle state until registration drain finishes, while still leaving the broader runtime-substrate handoff as a separate blocked step.",
+    "The family-local module gate also keeps rejected re-selftest rollback explicit, so invalid repeat selftest attempts leave both the selftest-complete and exited summaries stable while the broader runtime-substrate handoff stays blocked.",
+    "rejects non-idle registration state at the metadata-only handoff boundary, and keeps shared release failures from desynchronizing loader state",
+    "those alias and depmod surfaces remain review-only metadata boundaries rather than shipped trace-events-family evidence.",
+    "Do not invent `validate-phase9.py`, a trace-events-only validator, or a cleared runtime-substrate handoff.",
+    "the shared Phase 9 loader-facing packet is also shipped and reviewable",
+    "the remaining same-lane work should keep the packet-local notes and manifest aligned with the shipped family-local trace-events proof instead of drifting back to missing-file reminder wording",
+    "The next honest follow-through in the same `runtime-pilot` lane is to keep the packet-local survey note, module-slice note, and manifest aligned with the visible family-local trace-events packet, keep the bounded pilot-module contract explicit, and then leave broader follow-up to the separate shared runtime-substrate lanes until a real substrate step lands.",
+    *SHARED_PACKET_MARKERS,
+    *BLOCKED_BOUNDARY_MARKERS,
+)
 
-FILE_MARKERS = {
-    SEQUENCING_PATH: [
-        TRACE_EVENTS_SAMPLE_MARKER,
-        SELFTEST_HOOK_MARKER,
-        LIFECYCLE_MARKER,
-        SEQUENCING_UNREGISTERED_GATE_MARKER,
-        SEQUENCING_REENTRY_GATE_MARKER,
-        ABSENT_SHARED_LOADER_MARKER,
-        ABSENT_PHASE9_BUILD_MARKER,
-        ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
-        ABSENT_RUNTIME_LOADER_CONTRACT_MARKER,
-        ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
-    ],
-    TESTS_README_PATH: [
-        TRACE_EVENTS_SAMPLE_MARKER,
-        TESTS_README_UNREGISTERED_GATE_MARKER,
-        TESTS_README_REENTRY_GATE_MARKER,
-        SELFTEST_HOOK_MARKER,
-        LIFECYCLE_MARKER,
-        FAIL_CLOSED_COMPANION_MARKER,
-        REENTRY_COMPANION_MARKER,
-        TESTS_README_BACKLOG_MARKER,
-    ],
-    SAMPLES_README_PATH: [
-        TRACE_EVENTS_SAMPLE_MARKER,
-        UNREGISTERED_GATE_SAMPLE_MARKER,
-        SAMPLES_README_FAIL_CLOSED_MARKER,
-        REENTRY_GATE_SAMPLE_MARKER,
-        TRACE_EVENTS_PACKET_CHECKER_MARKER,
-        SELFTEST_HOOK_MARKER,
-        LIFECYCLE_MARKER,
-        REENTRY_COMPANION_MARKER,
-        SAMPLES_README_REENTRY_GATE_DETAIL_MARKER,
-        SAMPLES_README_POST_EXIT_REJECTION_MARKER,
-        SAMPLES_README_SUMMARY_STABILITY_MARKER,
-        ABSENT_SHARED_LOADER_MARKER,
-        ABSENT_PHASE9_BUILD_MARKER,
-        ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
-        ABSENT_RUNTIME_LOADER_CONTRACT_MARKER,
-        ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
-        ABSENT_WORKFLOW_MARKER,
-        PHASE2_CONF_BRIDGE_MARKER,
-        PHASE2_CONFDATA_BRIDGE_MARKER,
-        PHASE3_EXPORTS_MARKER,
-        PHASE3_EXPORT_SHIM_MARKER,
-    ],
-    SAMPLE_PATH: SAMPLE_REQUIRED_MARKERS,
-    UNREGISTERED_GATE_SAMPLE_PATH: UNREGISTERED_GATE_REQUIRED_MARKERS,
-    REENTRY_GATE_SAMPLE_PATH: REENTRY_GATE_REQUIRED_MARKERS,
-}
+SURVEY_MARKERS = (
+    "PHASE9_SURVEYED_COMMIT=",
+    "reviewable family-local starter plus the adjacent shared loader-facing reminder packet",
+    "The remaining blocker is the broader Phase 9 runtime substrate.",
+    *SHARED_PACKET_MARKERS,
+    *BLOCKED_BOUNDARY_MARKERS,
+)
 
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
-def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
-
-
-def build_fixture_text(rel_path: str, markers: list[str]) -> str:
-    if rel_path.endswith(".md"):
-        return "\n".join(["# fixture", "", *markers, ""])
-    return "\n".join(markers) + "\n"
+def parse_manifest(root: Path) -> dict:
+    return json.loads(read_text(root, MANIFEST_PATH))
 
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    for rel_path in FILE_MARKERS:
+    for rel_path in REQUIRED_FILES:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
     if failures:
         return failures
 
-    for rel_path, markers in FILE_MARKERS.items():
-        text = read_text(root, rel_path)
-        for marker in markers:
-            if marker not in text:
-                failures.append(f"missing_marker:{rel_path}:{marker}")
+    sequencing = read_text(root, SEQUENCING_PATH)
+    module_slice = read_text(root, MODULE_SLICE_PATH)
+    survey = read_text(root, SURVEY_PATH)
+    manifest = parse_manifest(root)
+
+    surveyed_commit = manifest.get("surveyed_commit", "")
+    if not surveyed_commit:
+        failures.append("missing_manifest_field:surveyed_commit")
+    else:
+        expected_marker = f"PHASE9_SURVEYED_COMMIT={surveyed_commit}"
+        if expected_marker not in module_slice:
+            failures.append(f"missing_marker:{MODULE_SLICE_PATH}:{expected_marker}")
+        if expected_marker not in survey:
+            failures.append(f"missing_marker:{SURVEY_PATH}:{expected_marker}")
+
+    for marker in SEQUENCING_MARKERS:
+        if marker not in sequencing:
+            failures.append(f"missing_marker:{SEQUENCING_PATH}:{marker}")
+    for marker in MODULE_SLICE_MARKERS:
+        if marker not in module_slice:
+            failures.append(f"missing_marker:{MODULE_SLICE_PATH}:{marker}")
+    for marker in SURVEY_MARKERS:
+        if marker not in survey:
+            failures.append(f"missing_marker:{SURVEY_PATH}:{marker}")
+
+    delivery_paths = {entry.get("path") for entry in manifest.get("delivery_evidence_catalog", []) if isinstance(entry, dict)}
+    for marker in (
+        "samples/zigux/runtime_trace_events_loader.zig",
+        "zigux/tests/runtime_trace_events_loader_substrate_drift.zig",
+        "zigux/tests/runtime_trace_events_survey.zig",
+        "zigux/tests/runtime_trace_events_manifest.json",
+        "zigux/tests/phase9_build.zig",
+    ):
+        if marker not in delivery_paths:
+            failures.append(f"missing_delivery_evidence:{marker}")
+
+    ownership_surfaces = {entry.get("surface") for entry in manifest.get("ownership_map", []) if isinstance(entry, dict)}
+    for marker in (
+        "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+        "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+        "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+        "zigux/tests/phase9_build.zig",
+    ):
+        if marker not in ownership_surfaces:
+            failures.append(f"missing_ownership_surface:{marker}")
+
     return failures
 
 
-def seed_fixture_tree(base: Path) -> None:
-    for rel_path, markers in FILE_MARKERS.items():
-        write_text(base / rel_path, build_fixture_text(rel_path, markers))
-
-
-def expect_failure(root: Path, expected: str) -> None:
-    failures = validate(root)
-    if expected not in failures:
-        raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
+def build_fixture(root: Path) -> None:
+    manifest = {
+        "surveyed_commit": "3c6c7d3fc8e721e8c50e84b512876cee6ad4e015",
+        "delivery_evidence_catalog": [
+            {"path": "samples/zigux/runtime_trace_events_loader.zig"},
+            {"path": "zigux/tests/runtime_trace_events_loader_substrate_drift.zig"},
+            {"path": "zigux/tests/runtime_trace_events_survey.zig"},
+            {"path": "zigux/tests/runtime_trace_events_manifest.json"},
+            {"path": "zigux/tests/phase9_build.zig"},
+        ],
+        "ownership_map": [
+            {"surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md"},
+            {"surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"},
+            {"surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"},
+            {"surface": "zigux/tests/phase9_build.zig"},
+        ],
+    }
+    for rel_path in REQUIRED_FILES:
+        path = root / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+    (root / MANIFEST_PATH).write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    (root / SURVEY_PATH).write_text(
+        "\n".join(
+            [
+                "# Survey",
+                "PHASE9_SURVEYED_COMMIT=3c6c7d3fc8e721e8c50e84b512876cee6ad4e015",
+                "reviewable family-local starter plus the adjacent shared loader-facing reminder packet",
+                "The remaining blocker is the broader Phase 9 runtime substrate.",
+                *SHARED_PACKET_MARKERS,
+                *BLOCKED_BOUNDARY_MARKERS,
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (root / SEQUENCING_PATH).write_text(
+        "\n".join(["# Sequencing", *SEQUENCING_MARKERS]) + "\n",
+        encoding="utf-8",
+    )
+    (root / MODULE_SLICE_PATH).write_text(
+        "\n".join(["# Module Slice", "PHASE9_SURVEYED_COMMIT=3c6c7d3fc8e721e8c50e84b512876cee6ad4e015", *MODULE_SLICE_MARKERS]) + "\n",
+        encoding="utf-8",
+    )
 
 
 def run_self_test() -> int:
-    base = Path(tempfile.mkdtemp(prefix="phase9-trace-events-runtime-packet-"))
+    temp_root = Path(tempfile.mkdtemp(prefix="phase9-trace-events-packet-"))
     try:
-        seed_fixture_tree(base)
-        failures = validate(base)
+        build_fixture(temp_root)
+        failures = validate(temp_root)
         if failures:
-            raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
-
-        for rel_path, markers in FILE_MARKERS.items():
-            for marker in markers:
-                seed_fixture_tree(base)
-                write_text(base / rel_path, "missing target marker fixture\n")
-                expect_failure(base, f"missing_marker:{rel_path}:{marker}")
-
-        for rel_path in FILE_MARKERS:
-            seed_fixture_tree(base)
-            (base / rel_path).unlink()
-            expect_failure(base, f"missing_file:{rel_path}")
-
+            for failure in failures:
+                print(failure)
+            return 1
         print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(FILE_MARKERS[TESTS_README_PATH])}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(FILE_MARKERS[SAMPLES_README_PATH])}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
-        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_REENTRY_GATE_MARKER_COUNT={len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}")
         return 0
     finally:
-        shutil.rmtree(base, ignore_errors=True)
+        shutil.rmtree(temp_root, ignore_errors=True)
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, default=ROOT)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
@@ -375,20 +205,15 @@ def main() -> int:
     args = parse_args()
     if args.self_test:
         return run_self_test()
-
     failures = validate(args.root)
     if failures:
         for failure in failures:
             print(failure)
         return 1
-
     print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET=pass")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_TESTS_README_MARKER_COUNT={len(FILE_MARKERS[TESTS_README_PATH])}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(FILE_MARKERS[SAMPLES_README_PATH])}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
-    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_REENTRY_GATE_MARKER_COUNT={len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(SEQUENCING_MARKERS)}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_MODULE_SLICE_MARKER_COUNT={len(MODULE_SLICE_MARKERS)}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SURVEY_MARKER_COUNT={len(SURVEY_MARKERS)}")
     return 0
 
 
