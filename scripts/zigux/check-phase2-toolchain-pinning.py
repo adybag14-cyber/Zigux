@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
@@ -33,6 +34,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "zigux" / "Makefile",
     POLICY_PATH,
+    DOCS_ROOT_README,
     BOOTSTRAP_NOTES,
     PHASE2_CLOSURE,
     REVIEW_CHECKLIST,
@@ -161,6 +163,7 @@ EXPECTED_TOOL_MANIFEST = {
     "workflow": ".github/workflows/zigux-bootstrap.yml",
     "present_surfaces": {
         "review_surfaces": [
+            "Documentation/zigux/README.md",
             "Documentation/zigux/phase2-closure.md",
             "Documentation/zigux/review-checklist.md",
             "scripts/zigux/README.md",
