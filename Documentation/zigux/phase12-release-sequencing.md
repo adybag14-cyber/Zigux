@@ -20,12 +20,12 @@ It records the shared validator-first then smoke-first order for the starter-pre
   * shared replay wiring: `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`
 
 ## Shared Release Order
-1. `make -C zigux phase12-validate`
+1. reminder-only wrapper vocabulary until it returns: `make -C zigux phase12-validate`
 2. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-3. `make -C zigux phase12-smoke`
+3. stale reminder vocabulary only until the wrapper returns: `make -C zigux phase12-smoke`
 4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-5. `make -C zigux phase12`
-6. If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, rerun only the shipped Make routes as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only route, a cross-build route, or another unshipped Phase 12 replay surface.
+5. stale reminder vocabulary only until the wrapper returns: `make -C zigux phase12`
+6. If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, keep the same reminder-only wrapper vocabulary explicit as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` without treating those names as shipped current-`master` proof until the wrappers return, instead of inventing a focused libbpf-only route, a cross-build route, or another unshipped Phase 12 replay surface.
 
 Current repo-reality override: `zigux/Makefile` no longer exposes `phase12-validate`, `phase12-smoke`, or `phase12` on current `master`, so the Make-route names retained in this section are stale reminder vocabulary rather than shipped wrapper proof until same-lane work rematerializes them. The directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
 
@@ -33,7 +33,7 @@ Keep the degraded-workflow validation trio explicit beside that same order too:
 
   * `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
   * `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
-  * `make -C zigux phase12-validate`
+  * reminder-only wrapper vocabulary until it returns: `make -C zigux phase12-validate`
 
 ## Packet Reading
   * The active shared packet on current `master` is the docs-root, checklist, scripts-root, tests-root, workflow, Makefile, and `zigux/tests/phase12_build.zig` bundle that now wires the starter-present `virtio_net` direct and syntax-lab packet beside the shipped `virtio_scsi` tranche replay, while `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig` stay explicit as the adjacent shared review surface for that same starter-present packet rather than as extra build outputs.
@@ -59,5 +59,5 @@ Keep the degraded-workflow validation trio explicit beside that same order too:
 ## Next Bounded Step
 When the shipped Phase 12 packet or its shared reminder packet changes, reread this note beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_manifest.json`, `zigux/tests/phase12_virtio_net_survey.zig`, `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci_survey.zig`, `scripts/zigux/README.md`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `zigux/tests/README.md`, then rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening PMO release wording.
 Current `master` now keeps the release-order note truthful about the shipped validator-first then smoke-first packet, the adjacent starter-present `virtio_net` review surface, the newer driver-local `virtio_scsi` rollback-lab survey companions, and the published-but-still-unwired NVMe foothold.
-The shared reminder packet has narrowed further on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now mirror the shipped `phase12-validate` support bundle, the repo-local `.zig-toolchain` then attached-Zig degraded rerun order, and the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard.
+The shared reminder packet has narrowed further on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now mirror the validator-side support bundle, its reminder-only `phase12-validate` wrapper vocabulary, the repo-local `.zig-toolchain` then attached-Zig degraded rerun order, and the dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard.
 The next honest same-lane follow-through is therefore to leave this sequencing note parked unless a fresh repo-first reread finds another equally small truthfulness drift across `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `scripts/zigux/README.md`, or `zigux/tests/README.md` before widening into new driver-local behavior, fallback-catalog changes, or adjacent complex-driver wording.
