@@ -5,6 +5,8 @@ const abi = @import("abi_bindings");
 const allocator_policy = @import("allocator_policy");
 const panic_policy = @import("panic_policy");
 const unsafe_policy = @import("unsafe_policy");
+const layout_assert = @import("layout_assert");
+const narrow_surface = @import("narrow_surface");
 
 test "policy starter packet decodes shared interop policy records" {
     const bug_heap = abi.InteropPolicy{
@@ -51,6 +53,51 @@ test "policy starter packet decodes shared interop policy records" {
     try testing.expect(!unsafe_policy.permitsNoUnsafeInteropPolicy(reserved));
     try testing.expect(!unsafe_policy.permitsVolatileMmioInteropPolicy(reserved));
     try testing.expect(!unsafe_policy.permitsRawPointerBridgeInteropPolicy(reserved));
+}
+
+test "policy starter packet keeps interop-policy layout explicit" {
+    try layout_assert.expectLayout(abi.InteropPolicy, 4, 1);
+    try layout_assert.expectFieldLayout(abi.InteropPolicy, "panic_mode", 0);
+    try layout_assert.expectFieldLayout(abi.InteropPolicy, "allocator_mode", 1);
+    try layout_assert.expectFieldLayout(abi.InteropPolicy, "unsafe_scope", 2);
+    try layout_assert.expectFieldLayout(abi.InteropPolicy, "reserved", 3);
+}
+
+test "policy starter packet keeps narrow-surface decoding aligned" {
+    const cases = [_]struct {
+        policy: abi.InteropPolicy,
+        expected: ?abi.UnsafeScope,
+        typed_only: bool,
+        volatile_mmio: bool,
+        raw_pointer_bridge: bool,
+    }{
+        .{ .policy = .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 }, .expected = .none, .typed_only = true, .volatile_mmio = false, .raw_pointer_bridge = false },
+        .{ .policy = .{ .panic_mode = 1, .allocator_mode = 1, .unsafe_scope = 1, .reserved = 0 }, .expected = .volatile_mmio, .typed_only = false, .volatile_mmio = true, .raw_pointer_bridge = false },
+        .{ .policy = .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 0 }, .expected = .raw_pointer_bridge, .typed_only = false, .volatile_mmio = false, .raw_pointer_bridge = true },
+        .{ .policy = .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 9, .reserved = 0 }, .expected = null, .typed_only = false, .volatile_mmio = false, .raw_pointer_bridge = false },
+        .{ .policy = .{ .panic_mode = 2, .allocator_mode = 2, .unsafe_scope = 2, .reserved = 1 }, .expected = null, .typed_only = false, .volatile_mmio = false, .raw_pointer_bridge = false },
+    };
+
+    for (cases) |case| {
+        const helper_scope = unsafe_policy.scopeFromInteropPolicy(case.policy);
+        const narrow_scope = narrow_surface.scopeFromInteropPolicy(case.policy);
+        try testing.expectEqual(case.expected, helper_scope);
+        try testing.expectEqual(case.expected, narrow_scope);
+        try testing.expectEqual(case.typed_only, unsafe_policy.allowsTypedOnlyAccessInteropPolicy(case.policy));
+        try testing.expectEqual(case.volatile_mmio, unsafe_policy.permitsVolatileMmioInteropPolicy(case.policy));
+        try testing.expectEqual(case.raw_pointer_bridge, unsafe_policy.permitsRawPointerBridgeInteropPolicy(case.policy));
+
+        if (narrow_scope) |scope| {
+            try testing.expectEqual(case.typed_only, scope == .none);
+            try testing.expectEqual(case.volatile_mmio, narrow_surface.allowsVolatileMmio(scope));
+            try testing.expectEqual(case.raw_pointer_bridge, narrow_surface.allowsRawPointerBridge(scope));
+            try testing.expectEqual(!case.typed_only, narrow_surface.requiresDedicatedAudit(scope));
+        } else {
+            try testing.expect(!case.typed_only);
+            try testing.expect(!case.volatile_mmio);
+            try testing.expect(!case.raw_pointer_bridge);
+        }
+    }
 }
 
 test "policy starter packet keeps unsafe alias symmetry explicit on shared records" {
