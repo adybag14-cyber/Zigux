@@ -69,6 +69,18 @@ pub fn isUnsafe(mode: abi.UnsafeScope) bool {
     return !allowsTypedOnlyAccess(mode);
 }
 
+pub fn isUnsafePolicyBytes(scope: u8, reserved: u8) bool {
+    return isUnsafe(modeFromInteropPolicyBytes(scope, reserved) orelse return false);
+}
+
+pub fn isUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
+    return isUnsafePolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn isUnsafeByte(scope: u8) bool {
+    return isUnsafePolicyBytes(scope, 0);
+}
+
 pub fn requiresDedicatedAudit(mode: abi.UnsafeScope) bool {
     return isUnsafe(mode);
 }
@@ -292,45 +304,58 @@ test "phase3 unsafe policy stays explicit" {
 
     try std.testing.expect(allowsTypedOnlyAccessByte(0));
     try std.testing.expect(permitsNoUnsafeByte(0));
+    try std.testing.expect(!isUnsafeByte(0));
     try std.testing.expect(!isUnsafe(modeFromByte(0).?));
     try std.testing.expect(!requiresDedicatedAuditByte(0));
     try std.testing.expect(!allowsTypedOnlyAccessByte(1));
     try std.testing.expect(!permitsNoUnsafeByte(1));
+    try std.testing.expect(isUnsafeByte(1));
     try std.testing.expect(isUnsafe(modeFromByte(1).?));
     try std.testing.expect(requiresDedicatedAuditByte(1));
     try std.testing.expect(!allowsTypedOnlyAccessByte(2));
     try std.testing.expect(!permitsNoUnsafeByte(2));
+    try std.testing.expect(isUnsafeByte(2));
     try std.testing.expect(isUnsafe(modeFromByte(2).?));
     try std.testing.expect(requiresDedicatedAuditByte(2));
     try std.testing.expect(!allowsTypedOnlyAccessByte(9));
     try std.testing.expect(!permitsNoUnsafeByte(9));
+    try std.testing.expect(!isUnsafeByte(9));
     try std.testing.expect(!requiresDedicatedAuditByte(9));
     try std.testing.expect(allowsTypedOnlyAccessPolicyBytes(0, 0));
     try std.testing.expect(permitsNoUnsafePolicyBytes(0, 0));
+    try std.testing.expect(!isUnsafePolicyBytes(0, 0));
     try std.testing.expect(!requiresDedicatedAuditPolicyBytes(0, 0));
     try std.testing.expect(!allowsTypedOnlyAccessPolicyBytes(1, 0));
     try std.testing.expect(!permitsNoUnsafePolicyBytes(1, 0));
+    try std.testing.expect(isUnsafePolicyBytes(1, 0));
     try std.testing.expect(requiresDedicatedAuditPolicyBytes(1, 0));
     try std.testing.expect(!allowsTypedOnlyAccessPolicyBytes(2, 0));
     try std.testing.expect(!permitsNoUnsafePolicyBytes(2, 0));
+    try std.testing.expect(isUnsafePolicyBytes(2, 0));
     try std.testing.expect(requiresDedicatedAuditPolicyBytes(2, 0));
     try std.testing.expect(!allowsTypedOnlyAccessPolicyBytes(2, 1));
     try std.testing.expect(!permitsNoUnsafePolicyBytes(2, 1));
+    try std.testing.expect(!isUnsafePolicyBytes(2, 1));
     try std.testing.expect(!requiresDedicatedAuditPolicyBytes(2, 1));
     try std.testing.expect(allowsTypedOnlyAccessInteropPolicy(safe_policy));
     try std.testing.expect(permitsNoUnsafeInteropPolicy(safe_policy));
+    try std.testing.expect(!isUnsafeInteropPolicy(safe_policy));
     try std.testing.expect(!requiresDedicatedAuditInteropPolicy(safe_policy));
     try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(mmio_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(mmio_policy));
+    try std.testing.expect(isUnsafeInteropPolicy(mmio_policy));
     try std.testing.expect(requiresDedicatedAuditInteropPolicy(mmio_policy));
     try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(raw_pointer_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(raw_pointer_policy));
+    try std.testing.expect(isUnsafeInteropPolicy(raw_pointer_policy));
     try std.testing.expect(requiresDedicatedAuditInteropPolicy(raw_pointer_policy));
     try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(reserved_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(reserved_policy));
+    try std.testing.expect(!isUnsafeInteropPolicy(reserved_policy));
     try std.testing.expect(!requiresDedicatedAuditInteropPolicy(reserved_policy));
     try std.testing.expect(!allowsTypedOnlyAccessInteropPolicy(unknown_policy));
     try std.testing.expect(!permitsNoUnsafeInteropPolicy(unknown_policy));
+    try std.testing.expect(!isUnsafeInteropPolicy(unknown_policy));
     try std.testing.expect(!requiresDedicatedAuditInteropPolicy(unknown_policy));
 
     try std.testing.expect(!requiresVolatileMmioAccessByte(0));
