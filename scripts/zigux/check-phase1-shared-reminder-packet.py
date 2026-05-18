@@ -207,6 +207,14 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_closure_shared_tests_route_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-closure.md",
+                MARKERS["Documentation/zigux/phase1-closure.md"][1],
+            ),
+        ),
+        (
             "missing_review_checklist_marker",
             lambda root: mutate_remove_marker(
                 root,
@@ -231,11 +239,35 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_scripts_bench_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/README.md",
+                MARKERS["scripts/zigux/README.md"][1],
+            ),
+        ),
+        (
             "duplicate_scripts_bench_marker",
             lambda root: mutate_duplicate_marker(
                 root,
                 "scripts/zigux/README.md",
                 MARKERS["scripts/zigux/README.md"][1],
+            ),
+        ),
+        (
+            "missing_bench_checksum_anchor",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-bench.py",
+                MARKERS["scripts/zigux/check-phase1-bench.py"][0],
+            ),
+        ),
+        (
+            "missing_bench_selftest_anchor",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-bench.py",
+                MARKERS["scripts/zigux/check-phase1-bench.py"][1],
             ),
         ),
         (
@@ -247,11 +279,35 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_validator_selftest_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/validate-phase1-closure.py",
+                MARKERS["scripts/zigux/validate-phase1-closure.py"][1],
+            ),
+        ),
+        (
+            "missing_tests_build_root_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][0],
+            ),
+        ),
+        (
             "missing_tests_build_route_marker",
             lambda root: mutate_remove_marker(
                 root,
                 "zigux/tests/build.zig",
                 MARKERS["zigux/tests/build.zig"][1],
+            ),
+        ),
+        (
+            "missing_tests_smoke_import_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][0],
             ),
         ),
         (
