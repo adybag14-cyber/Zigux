@@ -33,6 +33,20 @@ test "phase10 virtio mmio survey note keeps the dedicated survey gate explicit b
     try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");
 }
 
+test "phase10 virtio mmio survey gate keeps manifest lane identity and risky transport posture explicit" {
+    const allocator = std.testing.allocator;
+
+    const manifest = try readRepoRelative(
+        allocator,
+        "zigux/tests/phase10_virtio_mmio_manifest.json",
+    );
+    defer allocator.free(manifest);
+
+    try expectContains(manifest, "\"lane_key\": \"P10-L11\"");
+    try expectContains(manifest, "\"risky_transport_posture\": \"blocked_on_risky_transport\"");
+    try expectContains(manifest, "\"id\": \"phase10-virtio-mmio-survey-gate\"");
+}
+
 test "phase10 virtio mmio survey note keeps risky transport work blocked" {
     const allocator = std.testing.allocator;
 
