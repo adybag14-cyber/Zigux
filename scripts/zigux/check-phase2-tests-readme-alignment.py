@@ -32,7 +32,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`zigux/Makefile`",
-    "current `master` does materialize `zigux/Makefile` again, but its live body exposes only the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
+    "current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 8, Phase 10, and Phase 12 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
