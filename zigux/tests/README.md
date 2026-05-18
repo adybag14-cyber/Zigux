@@ -150,6 +150,8 @@ Current `master` also materializes the adjacent notifier survey plus the direct-
 
 Current `master` does materialize `zigux/Makefile`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.
 
+Keep `make -C zigux phase13-validate` explicit as the stable contributor-facing reminder handle for this shared packet even while the returned `zigux/Makefile` still lacks that shared build route, and keep blocked convenience route `make -C zigux phase13` framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.
+
 Keep `zigux/helpers/notifier_chain_view.zig` framed as an adjacent repo-reality gap rather than a shipped shared surface.
 
 Tests-root reviewer prompt:
