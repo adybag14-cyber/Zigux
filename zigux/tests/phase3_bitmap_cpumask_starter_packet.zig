@@ -160,6 +160,24 @@ test "bitmap starter helpers keep empty sentinels stable with a stray address" {
     try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "bitmap starter summaries keep reserved bytes zero for valid and invalid views" {
+    var backing = [_]usize{
+        (@as(usize, 1) << 1) | (@as(usize, 1) << 3),
+    };
+    const valid = bitmap_view.summarize(bitmap_view.viewFromWords(backing[0..], 8));
+    const invalid = bitmap_view.summarize(binding.initBitmapView(0, bitmap_view.bits_per_word + 1, 1));
+
+    try testing.expectEqual(@as(u32, 1), valid.first_set);
+    try testing.expectEqual(@as(u32, 0), valid.first_zero);
+    try testing.expectEqual(@as(u32, 2), valid.weight);
+    try testing.expectEqual(@as(u32, 0), valid.reserved);
+
+    try testing.expectEqual(@as(u32, 0), invalid.first_set);
+    try testing.expectEqual(@as(u32, 0), invalid.first_zero);
+    try testing.expectEqual(@as(u32, 0), invalid.weight);
+    try testing.expectEqual(@as(u32, 0), invalid.reserved);
+}
+
 test "cpumask starter helpers keep cpu membership reviewable" {
     var backing = [_]usize{
         (@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 7),
@@ -343,6 +361,24 @@ test "cpumask starter helpers fail closed on non-zero reserved bytes" {
     try testing.expectEqual(@as(u32, 0), summary.first_zero);
     try testing.expectEqual(@as(u32, 0), summary.weight);
     try testing.expectEqual(@as(u32, 0), summary.reserved);
+}
+
+test "cpumask starter summaries keep reserved bytes zero for valid and invalid views" {
+    var backing = [_]usize{
+        (@as(usize, 1) << 0) | (@as(usize, 1) << 2),
+    };
+    const valid = cpumask_view.summarize(cpumask_view.viewFromWords(backing[0..], 8));
+    const invalid = cpumask_view.summarize(binding.initCpumaskView(0, bitmap_view.bits_per_word + 1, 1, bitmap_view.bits_per_word + 1));
+
+    try testing.expectEqual(@as(u32, 0), valid.first_set);
+    try testing.expectEqual(@as(u32, 1), valid.first_zero);
+    try testing.expectEqual(@as(u32, 2), valid.weight);
+    try testing.expectEqual(@as(u32, 0), valid.reserved);
+
+    try testing.expectEqual(@as(u32, 0), invalid.first_set);
+    try testing.expectEqual(@as(u32, 0), invalid.first_zero);
+    try testing.expectEqual(@as(u32, 0), invalid.weight);
+    try testing.expectEqual(@as(u32, 0), invalid.reserved);
 }
 
 test "cpumask starter helpers fail closed when nr_cpu_ids drifts from nbits" {
