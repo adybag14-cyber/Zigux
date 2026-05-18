@@ -190,6 +190,10 @@ def mutate_duplicate_marker(root: Path, relative_path: str, marker: str) -> None
     target.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
 
+def mutate_append_forbidden_fragment(root: Path, relative_path: str) -> None:
+    write_text(root, relative_path, read_text(root, relative_path) + FORBIDDEN_FRAGMENTS[0] + "\n")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="phase1-shared-reminder-success-") as tmpdir:
         root = Path(tmpdir)
@@ -636,12 +640,20 @@ def run_self_test() -> int:
             ),
         ),
         (
-            "forbidden_fragment",
-            lambda root: write_text(
-                root,
-                "Documentation/zigux/README.md",
-                read_text(root, "Documentation/zigux/README.md") + FORBIDDEN_FRAGMENTS[0] + "\n",
-            ),
+            "forbidden_fragment_docs_root",
+            lambda root: mutate_append_forbidden_fragment(root, "Documentation/zigux/README.md"),
+        ),
+        (
+            "forbidden_fragment_review_checklist",
+            lambda root: mutate_append_forbidden_fragment(root, "Documentation/zigux/review-checklist.md"),
+        ),
+        (
+            "forbidden_fragment_scripts_readme",
+            lambda root: mutate_append_forbidden_fragment(root, "scripts/zigux/README.md"),
+        ),
+        (
+            "forbidden_fragment_tests_readme",
+            lambda root: mutate_append_forbidden_fragment(root, "zigux/tests/README.md"),
         ),
     ]
 
