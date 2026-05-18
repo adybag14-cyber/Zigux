@@ -110,8 +110,12 @@ test "phase9 trace-events sample keeps unregistered function-thread failures fai
     try std.testing.expectEqualStrings(selftest_complete_before.last_register_label orelse return error.ExpectedRegisterLabel, exited_before.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, exited_before.last_unregister_label orelse return error.ExpectedUnregisterLabel);
 
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(9));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(9));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(11));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 
     const exited_after = module.summary();
     try expectSummaryStable(exited_before, exited_after);
