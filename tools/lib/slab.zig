@@ -97,6 +97,19 @@ test "kfree ignores null slices without changing counters" {
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
 
+test "kfree ignores null while real allocations stay live" {
+    kmalloc_nr_allocated = 0;
+
+    const live = kmallocBytes(4, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(live);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
 test "zero-sized allocations stay freeable and keep counters balanced" {
     kmalloc_nr_allocated = 0;
 
