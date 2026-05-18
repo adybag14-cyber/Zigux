@@ -171,8 +171,9 @@ def main() -> int:
 
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "The remaining shared reminder follow-up from the older mixed-readback packet is now closed: `zigux/tests/README.md` now aligns with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` on the recovered note pair, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the broader checker, validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff.",
-                    "The remaining shared reminder follow-up is still unresolved.",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=15`",
+                    1,
                 ),
                 encoding="utf-8",
             )
@@ -181,7 +182,7 @@ def main() -> int:
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected shared-reminder follow-up drift to fail")
+                raise AssertionError("expected repo-warning self-test count drift to fail")
             note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
 
             warning_path.write_text(
@@ -201,6 +202,22 @@ def main() -> int:
 
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
+                    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8`",
+                    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=6`",
+                    1,
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected pin self-test count drift to fail")
+            note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
+
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
                     "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
                     "Current direct contents reads for the atomic64 pair drifted",
                 ),
@@ -213,20 +230,6 @@ def main() -> int:
             else:
                 raise AssertionError("expected atomic64 direct-readback drift to fail")
             note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
-
-            warning_path.write_text(
-                warning_path.read_text(encoding="utf-8").replace(
-                    "scripts/zigux/check-phase4-perf-baseline-packet.py",
-                    "scripts/zigux/check-phase4-perf-baseline-packet-drift.py",
-                ),
-                encoding="utf-8",
-            )
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected repo-warning perf-checker marker drift to fail")
 
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
         print(f"{PIN_SELF_TEST_COUNT_LABEL}={cases}")
