@@ -165,6 +165,15 @@ pub fn headerIsCompatible(header: BoundaryHeader) bool {
         headerHasCurrentAbiVersion(header.abi_version);
 }
 
+pub fn extendsBoundary(header: BoundaryHeader) bool {
+    return headerIsCompatible(header) and !headerIsCanonical(header);
+}
+
+pub fn requestedExtraBytes(header: BoundaryHeader) u32 {
+    if (!extendsBoundary(header)) return 0;
+    return header.size - @as(u32, @sizeOf(BoundaryHeader));
+}
+
 pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
     var canonical = header;
     canonical.size = @sizeOf(BoundaryHeader);
@@ -213,20 +222,30 @@ test "abi binding boundary header helpers keep compatibility explicit" {
     try std.testing.expect(headerHasCurrentAbiVersion(default_header.abi_version));
     try std.testing.expect(headerIsCanonical(default_header));
     try std.testing.expect(headerIsCompatible(default_header));
+    try std.testing.expect(!extendsBoundary(default_header));
+    try std.testing.expectEqual(@as(u32, 0), requestedExtraBytes(default_header));
 
     try std.testing.expect(!headerIsCanonical(expanded));
     try std.testing.expect(headerIsCompatible(expanded));
+    try std.testing.expect(extendsBoundary(expanded));
+    try std.testing.expectEqual(@as(u32, 8), requestedExtraBytes(expanded));
     try std.testing.expect(!headerIsCanonical(future));
     try std.testing.expect(headerIsCompatible(future));
+    try std.testing.expect(extendsBoundary(future));
+    try std.testing.expectEqual(@as(u32, 16), requestedExtraBytes(future));
 
     try std.testing.expect(!headerHasCurrentAbiVersion(stale.abi_version));
     try std.testing.expect(!headerIsCanonical(stale));
     try std.testing.expect(!headerIsCompatible(stale));
+    try std.testing.expect(!extendsBoundary(stale));
+    try std.testing.expectEqual(@as(u32, 0), requestedExtraBytes(stale));
 
     try std.testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), canonicalized.size);
     try std.testing.expectEqual(@as(u16, ABI_VERSION), canonicalized.abi_version);
     try std.testing.expectEqual(future.flags, canonicalized.flags);
     try std.testing.expect(headerIsCanonical(canonicalized));
+    try std.testing.expect(!extendsBoundary(canonicalized));
+    try std.testing.expectEqual(@as(u32, 0), requestedExtraBytes(canonicalized));
 }
 
 test "abi binding default interop policy stays safe by default" {
