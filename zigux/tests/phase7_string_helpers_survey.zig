@@ -20,6 +20,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "PHASE7_STATUS=starter_landed");
     try expectContains(slice_note, "PHASE7_SLICE=string-helpers-runtime-leaf");
     try expectContains(slice_note, "expanded starter packet");
+    try expectContains(slice_note, "`samples/zigux/README.md`");
     try expectContains(slice_note, "string_get_size()");
     try expectContains(slice_note, "stringEscapeMem()");
     try expectContains(slice_note, "string_escape_mem()");
@@ -56,6 +57,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "\"lane_key\": \"helper-local\"");
     try expectContains(manifest, "\"lane_key_note\": \"helper-local keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those shared-control lanes.\"");
     try expectContains(manifest, "\"current_master_state\": \"expanded_starter_packet\"");
+    try expectContains(manifest, "\"samples/zigux/README.md\"");
     try expectContains(manifest, "\"sysfsStreq\"");
     try expectContains(manifest, "\"sysfs_streq\"");
     try expectContains(manifest, "\"matchString\"");
@@ -92,6 +94,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
     try expectContains(manifest, "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix");
     try expectContains(manifest, "kstrdupQuotableCmdline() keeps returned storage caller-owned, collapses trailing and inter-argument NULL separators inside duplicated command-line storage, and only then applies quotable escaping");
+    try expectContains(manifest, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test");
     try expectContains(manifest, "in-place replacement inside the exported C-string prefix");
     try expectContains(manifest, "\"next_bounded_step\": \"Leave the current quotable helper packet parked unless a fresh reread finds helper-local drift across the slice note, helper-local manifest, dedicated survey, or dedicated no-string-sample boundary replay; if that packet stays aligned, the next same-lane reopen can decide whether `parse_int_array()` belongs in the same helper-local packet without widening into file-path or device-managed semantics.\"");
     try expectContains(manifest, "shared no-sample boundary and helper-local reviewability");
@@ -182,6 +185,14 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "string_helpers.kfreeStrarray(std.testing.allocator, &first);");
     try expectContains(helper_tests, "string_helpers.kfree_strarray(std.testing.allocator, &result);");
     try expectContains(helper_tests, "string_helpers.memcpy_and_pad(&truncated, \"alphabet\", 8, '.');");
+
+    const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
+    defer allocator.free(samples_readme);
+    try expectContains(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:");
+    try expectContains(samples_readme, "* `*string*`");
+    try expectContains(samples_readme, "* `*cmdline*`");
+    try expectContains(samples_readme, "* `*argv*`");
+    try expectContains(samples_readme, "* `*rbtree*`");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
