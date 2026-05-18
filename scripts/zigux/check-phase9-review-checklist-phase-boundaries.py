@@ -61,6 +61,7 @@ LANE_SEQUENCING_UNREGISTERED_GATE_MARKER = "surviving fail-closed runtime compan
 LANE_SEQUENCING_REENTRY_GATE_MARKER = "surviving registration-reentry runtime companion: `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 LANE_SEQUENCING_REENTRY_DETAIL_MARKER = "balanced registration re-entry replay in `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` across both the initialized and selftest_complete stages"
 LANE_SEQUENCING_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
+LANE_SEQUENCING_FREEZE_BOUNDARY_MARKER = "keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness"
 
 TESTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 TESTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
@@ -98,6 +99,7 @@ SCRIPTS_README_BOUNDARY_SELF_TEST_MARKER = "`python3 scripts/zigux/check-phase9-
 SCRIPTS_README_PACKET_SELF_TEST_MARKER = "`python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test`"
 SCRIPTS_README_BOUNDARY_LIVE_MARKER = "`python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`"
 SCRIPTS_README_PACKET_LIVE_MARKER = "`python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
+SCRIPTS_README_FREEZE_BOUNDARY_MARKER = "keep the freeze-map boundary explicit too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues"
 
 SAMPLES_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 SAMPLES_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
@@ -147,6 +149,7 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     LANE_SEQUENCING_REENTRY_GATE_MARKER,
     LANE_SEQUENCING_REENTRY_DETAIL_MARKER,
     LANE_SEQUENCING_BACKLOG_MARKER,
+    LANE_SEQUENCING_FREEZE_BOUNDARY_MARKER,
 ]
 
 TESTS_README_REQUIRED_MARKERS = [
@@ -191,6 +194,7 @@ SCRIPTS_README_REQUIRED_MARKERS = [
     SCRIPTS_README_FAIL_CLOSED_MARKER,
     SCRIPTS_README_REENTRY_COMPANION_MARKER,
     SCRIPTS_README_BACKLOG_MARKER,
+    SCRIPTS_README_FREEZE_BOUNDARY_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
@@ -316,6 +320,7 @@ def build_lane_sequencing_fixture_text() -> str:
 - {LANE_SEQUENCING_UNREGISTERED_GATE_MARKER}
 - {LANE_SEQUENCING_REENTRY_GATE_MARKER}
 - surviving companion boundaries inside the same narrow packet: the {LANE_SEQUENCING_REENTRY_DETAIL_MARKER}
+- {LANE_SEQUENCING_FREEZE_BOUNDARY_MARKER}
 
 Current `master` {LANE_SEQUENCING_BACKLOG_MARKER} that earlier reminder surfaces described.
 """
@@ -339,6 +344,7 @@ def build_scripts_readme_fixture_text() -> str:
 - {SCRIPTS_README_BOUNDARY_SELF_TEST_MARKER}, {SCRIPTS_README_PACKET_SELF_TEST_MARKER}, {SCRIPTS_README_BOUNDARY_LIVE_MARKER}, and {SCRIPTS_README_PACKET_LIVE_MARKER} replay the shipped bounded Phase 9 reminder checks
 - {SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER} remains the surviving direct runtime-module sample and still exposes {SCRIPTS_README_SELFTEST_HOOK_MARKER} together with {SCRIPTS_README_LIFECYCLE_MARKER}, while {SCRIPTS_README_UNREGISTERED_GATE_MARKER} keeps the same narrow packet's {SCRIPTS_README_FAIL_CLOSED_MARKER} and {SCRIPTS_README_REENTRY_GATE_MARKER} {SCRIPTS_README_REENTRY_COMPANION_MARKER}
 - {SCRIPTS_README_BACKLOG_MARKER}, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds, so treat those loader, build, kernel, workflow, and sample paths as absent backlog evidence until a fresh reread proves they returned
+- {SCRIPTS_README_FREEZE_BOUNDARY_MARKER}
 - keep the older non-owner boundaries explicit here too: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}
 """
 
