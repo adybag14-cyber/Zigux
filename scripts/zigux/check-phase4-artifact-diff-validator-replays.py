@@ -8,7 +8,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-VALIDATOR = ROOT / "scripts" / "zigux" / "validate-phase4.py"
+VALIDATOR_REL = Path("scripts/zigux/validate-phase4.py")
+NOTE_REL = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 
 EXPECTED_VALIDATOR_REPLAY_MARKERS = [
     '("ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"], "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass"),',
@@ -16,11 +17,18 @@ EXPECTED_VALIDATOR_REPLAY_MARKERS = [
     '("ARTIFACT_DIFF_CONTRACT_CHECK", ["scripts/zigux/check-artifact-diff-contract.py"], "ARTIFACT_DIFF_CONTRACT=pass"),',
 ]
 
+EXPECTED_HISTORICAL_GAP_MARKERS = [
+    "The broader Phase 4 validator, lab-matrix, and bitmap-diff companions are still repo-reality gaps in this run",
+    "`scripts/zigux/validate-phase4.py`",
+]
+
 EXPECTED_SELF_TEST_CASES = [
     "catalog_shape",
     "validator_marker_round_trip",
     "validator_marker_drift",
-    "validator_target_missing",
+    "historical_gap_marker_round_trip",
+    "historical_gap_marker_drift",
+    "historical_gap_note_missing",
 ]
 
 
@@ -30,20 +38,67 @@ def assert_markers(text: str, markers: list[str], label: str) -> None:
         raise AssertionError(f"{label} markers missing: {missing}")
 
 
-def read_validator_text(path: Path, display_path: str | None = None) -> str:
+def read_text(root: Path, rel: Path, *, missing_label: str) -> str:
+    path = root / rel
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
-        label = display_path
-        if label is None:
-            try:
-                label = path.relative_to(ROOT).as_posix()
-            except ValueError:
-                label = path.as_posix()
-        raise RuntimeError(
-            "current tree is missing the historical validator replay target: "
-            f"{label}"
-        ) from exc
+        raise RuntimeError(f"current tree is missing {missing_label}: {rel.as_posix()}") from exc
+
+
+def check(root: Path) -> tuple[str, list[str]]:
+    validator_path = root / VALIDATOR_REL
+    if validator_path.exists():
+        validator_text = read_text(
+            root,
+            VALIDATOR_REL,
+            missing_label="the historical validator replay target",
+        )
+        assert_markers(
+            validator_text,
+            EXPECTED_VALIDATOR_REPLAY_MARKERS,
+            "validator_surface",
+        )
+        return "validator_present", EXPECTED_VALIDATOR_REPLAY_MARKERS
+
+    note_text = read_text(
+        root,
+        NOTE_REL,
+        missing_label="the Phase 4 historical validator handoff note",
+    )
+    assert_markers(
+        note_text,
+        EXPECTED_HISTORICAL_GAP_MARKERS,
+        "historical_gap_surface",
+    )
+    return "historical_target_missing", EXPECTED_HISTORICAL_GAP_MARKERS
+
+
+def write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+
+
+def make_validator_fixture(root: Path) -> None:
+    write(
+        root / VALIDATOR_REL,
+        "\n".join(EXPECTED_VALIDATOR_REPLAY_MARKERS) + "\n",
+    )
+    write(root / NOTE_REL, "# note placeholder\n")
+
+
+def make_historical_gap_fixture(root: Path) -> None:
+    write(
+        root / NOTE_REL,
+        "\n".join(
+            [
+                "# Phase 4 Reversible Delivery Evidence",
+                EXPECTED_HISTORICAL_GAP_MARKERS[0],
+                EXPECTED_HISTORICAL_GAP_MARKERS[1],
+            ]
+        )
+        + "\n",
+    )
 
 
 def run_self_test() -> int:
@@ -54,46 +109,65 @@ def run_self_test() -> int:
 
     covered_cases: list[str] = ["catalog_shape"]
 
-    validator_text = "\n".join(EXPECTED_VALIDATOR_REPLAY_MARKERS)
-    assert_markers(
-        validator_text,
-        EXPECTED_VALIDATOR_REPLAY_MARKERS,
-        "validator_surface",
-    )
-    covered_cases.append("validator_marker_round_trip")
-
-    try:
-        assert_markers(
-            EXPECTED_VALIDATOR_REPLAY_MARKERS[0],
-            EXPECTED_VALIDATOR_REPLAY_MARKERS,
-            "validator_surface",
-        )
-    except AssertionError:
-        covered_cases.append("validator_marker_drift")
-    else:
-        raise AssertionError("expected validator_marker_drift to fail closed")
-
     with tempfile.TemporaryDirectory(prefix="phase4-validator-replays-") as tmp:
-        missing_root = Path(tmp)
-        missing_target = missing_root / "scripts" / "zigux" / "validate-phase4.py"
+        root = Path(tmp)
+
+        make_validator_fixture(root)
+        mode, markers = check(root)
+        if mode != "validator_present" or markers != EXPECTED_VALIDATOR_REPLAY_MARKERS:
+            raise AssertionError("validator_marker_round_trip")
+        covered_cases.append("validator_marker_round_trip")
+
+        make_validator_fixture(root)
+        write(root / VALIDATOR_REL, EXPECTED_VALIDATOR_REPLAY_MARKERS[0] + "\n")
         try:
-            read_validator_text(
-                missing_target,
-                display_path="scripts/zigux/validate-phase4.py",
-            )
+            check(root)
+        except AssertionError:
+            covered_cases.append("validator_marker_drift")
+        else:
+            raise AssertionError("expected validator_marker_drift to fail closed")
+
+        root = Path(tmp)
+        for rel in (VALIDATOR_REL, NOTE_REL):
+            path = root / rel
+            if path.exists():
+                path.unlink()
+        make_historical_gap_fixture(root)
+        mode, markers = check(root)
+        if (
+            mode != "historical_target_missing"
+            or markers != EXPECTED_HISTORICAL_GAP_MARKERS
+        ):
+            raise AssertionError("historical_gap_marker_round_trip")
+        covered_cases.append("historical_gap_marker_round_trip")
+
+        make_historical_gap_fixture(root)
+        write(root / NOTE_REL, EXPECTED_HISTORICAL_GAP_MARKERS[1] + "\n")
+        try:
+            check(root)
+        except AssertionError:
+            covered_cases.append("historical_gap_marker_drift")
+        else:
+            raise AssertionError("expected historical_gap_marker_drift to fail closed")
+
+        note_path = root / NOTE_REL
+        if note_path.exists():
+            note_path.unlink()
+        try:
+            check(root)
         except RuntimeError as exc:
             expected = (
-                "current tree is missing the historical validator replay target: "
-                "scripts/zigux/validate-phase4.py"
+                "current tree is missing the Phase 4 historical validator handoff "
+                f"note: {NOTE_REL.as_posix()}"
             )
             if str(exc) != expected:
                 raise AssertionError(
-                    "missing validator target message drifted: "
+                    "historical gap note missing message drifted: "
                     f"expected {expected!r}, got {str(exc)!r}"
                 ) from exc
-            covered_cases.append("validator_target_missing")
+            covered_cases.append("historical_gap_note_missing")
         else:
-            raise AssertionError("expected validator_target_missing to fail closed")
+            raise AssertionError("expected historical_gap_note_missing to fail closed")
 
     if covered_cases != EXPECTED_SELF_TEST_CASES:
         raise AssertionError(
@@ -115,9 +189,16 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that validate-phase4.py keeps rerunning the shipped "
-            "artifact-diff contract and determinism hooks."
+            "Check that the Phase 4 artifact-diff validator replay surface either "
+            "keeps the shipped validator hooks or explicitly stays historical in "
+            "the current repo-reality handoff."
         )
+    )
+    parser.add_argument(
+        "--root",
+        type=Path,
+        default=ROOT,
+        help="Repository root to inspect.",
     )
     parser.add_argument(
         "--self-test",
@@ -131,30 +212,23 @@ def main() -> int:
 
     try:
         run_self_test()
-        validator_text = read_validator_text(VALIDATOR)
-        assert_markers(
-            validator_text,
-            EXPECTED_VALIDATOR_REPLAY_MARKERS,
-            "validator_surface",
-        )
+        mode, markers = check(args.root.resolve())
     except RuntimeError as exc:
+        print(f"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=fail: {exc}", file=sys.stderr)
+        return 1
+    except AssertionError as exc:
         print(f"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=fail: {exc}", file=sys.stderr)
         return 1
 
     print("PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS=pass")
+    print(f"PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MODE={mode}")
     print(
         "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKER_COUNT="
-        f"{len(EXPECTED_VALIDATOR_REPLAY_MARKERS)}"
+        f"{len(markers)}"
     )
     print(
         "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS="
-        + ",".join(
-            [
-                "ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK",
-                "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CHECK",
-                "ARTIFACT_DIFF_CONTRACT_CHECK",
-            ]
-        )
+        + ",".join(markers)
     )
     return 0
 
