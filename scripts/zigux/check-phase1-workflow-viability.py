@@ -362,7 +362,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sampleRepo(root)
+        build_sample_repo(root)
         workflow_path = root / WORKFLOW_REL
         workflow_path.write_text(
             rewrite_once(
