@@ -1,12 +1,12 @@
 # Phase 3 Shared Reminder Gap
 
-This note records the current bounded Phase 3 shared-reminder status on `master`.
+This note records the current bounded Phase 3 shared-reminder drift on `master`.
 
 ## Current Status
 
-- `PHASE3_SHARED_REMINDER_GAP=current master now keeps the landed notifier binding companion plus one bounded kernel-export-shim note and focused export/UAPI layout replay explicit, but the shared docs-root and tests-root Phase 3 summaries drift in opposite directions: Documentation/zigux/README.md still overclaims absent export/UAPI survey and manifest companions while zigux/tests/README.md still frames the returned notifier-binding and layout replay packet as broader gaps`
-- `PHASE3_SHARED_REMINDER_GAP_DETAIL=direct current-head readback confirms the shared ABI packet through Documentation/zigux/phase3-abi-slice.md, Documentation/zigux/phase3-validator-support-surface.md, include/linux/zigux.h, include/zigux/dev_t.h, include/zigux/abi.h, zigux/uapi/version.zig, zigux/uapi/dev_t.zig, zigux/bindings/dev_t.zig, zigux/bindings/version.zig, zigux/bindings/abi.zig, zigux/bindings/notifier_abi.zig, zigux/kernel/export_shim.zig, Documentation/zigux/phase3-kernel-export-shim-governance.md, zigux/tests/phase3_dev_t_starter_packet.zig, zigux/tests/phase3_dev_t_starter_packet_build.zig, zigux/tests/phase3_dev_t_starter_packet_manifest.json, zigux/tests/phase3_export_uapi_layout.zig, and zigux/tests/phase3_export_uapi_layout_build.zig; it also confirms the focused helper slice through Documentation/zigux/phase3-errptr-xarray-slice.md, zigux/helpers/err_ptr.zig, zigux/helpers/xa_value.zig, zigux/tests/phase3_errptr_xarray_starter_packet.zig, zigux/tests/phase3_errptr_xarray_starter_packet_build.zig, zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json, and scripts/zigux/check-phase3-errptr-xarray-starter-packet.py, and the focused policy slice through Documentation/zigux/phase3-policy-slice.md, include/zigux/abi.h, zigux/bindings/abi.zig, zigux/bindings/notifier_abi.zig, zigux/helpers/panic_policy.zig, zigux/helpers/allocator_policy.zig, zigux/helpers/unsafe_policy.zig, zigux/tests/phase3_policy_starter_packet.zig, zigux/tests/phase3_policy_starter_packet_build.zig, zigux/tests/phase3_policy_starter_packet_manifest.json, and scripts/zigux/check-phase3-policy-starter-packet.py; repeated authenticated reads still return missing for Documentation/zigux/phase3-export-uapi-boundary-survey.md, Documentation/zigux/phase3-linux-zigux-header-governance.md, scripts/zigux/validate-phase3-export-uapi-survey.py, and zigux/tests/fixtures/phase3_abi_manifest.json`
-- `PHASE3_SHARED_REMINDER_NEXT_STEP=refresh one shared summary surface at a time, starting with Documentation/zigux/README.md so it swaps the absent export/UAPI survey and manifest claims for the returned phase3-kernel-export-shim-governance.md note, zigux/bindings/notifier_abi.zig, and the focused phase3_export_uapi_layout replay pair, then follow with the tests-root Phase 3 summary once the docs-root wording is honest again`
+- `PHASE3_SHARED_REMINDER_GAP=current master now ships the bounded xarray-slot helper-local slice plus its shared starter and dump routes, but the remaining shared reminder surfaces still undercount that packet`
+- `PHASE3_SHARED_REMINDER_GAP_DETAIL=direct current-head readback confirms the current shared Phase 3 packet through Documentation/zigux/phase3-abi-slice.md, Documentation/zigux/phase3-errptr-xarray-slice.md, Documentation/zigux/phase3-policy-slice.md, Documentation/zigux/phase3-validator-support-surface.md, Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/xarray_slot_view.zig, zigux/tests/phase3_xarray_slot_starter_packet.zig, zigux/tests/phase3_xarray_slot_dump.zig, zigux/tests/fixtures/phase3_xarray_slot_manifest.json, scripts/zigux/check-phase3-xarray-slot.py, zigux/tests/build.zig, and the shared routes zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig and zig build phase3-xarray-slot-dump --build-file zigux/tests/build.zig`
+- `PHASE3_SHARED_REMINDER_NEXT_STEP=refresh one shared summary surface at a time so Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md stop undercounting the current xarray-slot packet`
 
 ## Directly Readable Current Packet
 
@@ -14,61 +14,32 @@ This note records the current bounded Phase 3 shared-reminder status on `master`
 - `Documentation/zigux/phase3-errptr-xarray-slice.md`
 - `Documentation/zigux/phase3-policy-slice.md`
 - `Documentation/zigux/phase3-validator-support-surface.md`
-- `Documentation/zigux/phase3-kernel-export-shim-governance.md`
-- `include/linux/zigux.h`
-- `include/zigux/dev_t.h`
-- `include/zigux/abi.h`
-- `zigux/uapi/version.zig`
-- `zigux/uapi/dev_t.zig`
-- `zigux/bindings/dev_t.zig`
-- `zigux/bindings/version.zig`
-- `zigux/bindings/abi.zig`
-- `zigux/bindings/notifier_abi.zig`
-- `zigux/kernel/export_shim.zig`
-- `zigux/helpers/err_ptr.zig`
-- `zigux/helpers/xa_value.zig`
-- `zigux/helpers/panic_policy.zig`
-- `zigux/helpers/allocator_policy.zig`
-- `zigux/helpers/unsafe_policy.zig`
-- `zigux/tests/phase3_dev_t_starter_packet.zig`
-- `zigux/tests/phase3_dev_t_starter_packet_build.zig`
-- `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-dev-t-starter-packet.py`
-- `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
-- `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
-- `zigux/tests/phase3_errptr_xarray_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
-- `zigux/tests/phase3_policy_starter_packet.zig`
-- `zigux/tests/phase3_policy_starter_packet_build.zig`
-- `zigux/tests/phase3_policy_starter_packet_manifest.json`
-- `scripts/zigux/check-phase3-policy-starter-packet.py`
-- `zigux/tests/phase3_export_uapi_layout.zig`
-- `zigux/tests/phase3_export_uapi_layout_build.zig`
-- `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
+- `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
+- `zigux/helpers/xarray_slot_view.zig`
+- `zigux/tests/phase3_xarray_slot_starter_packet.zig`
+- `zigux/tests/phase3_xarray_slot_starter_packet_build.zig`
+- `zigux/tests/phase3_xarray_slot_dump.zig`
+- `zigux/tests/phase3_xarray_slot_dump_build.zig`
+- `zigux/tests/fixtures/phase3_xarray_slot/expected.json`
+- `zigux/tests/fixtures/phase3_xarray_slot/phase3_xarray_slot_c_harness.c`
+- `zigux/tests/fixtures/phase3_xarray_slot_manifest.json`
+- `scripts/zigux/check-phase3-xarray-slot-starter-packet.py`
+- `scripts/zigux/check-phase3-xarray-slot.py`
+- `zigux/tests/build.zig`
 
 ## Shared Reminder Surfaces
 
-- `Documentation/zigux/phase3-kernel-export-shim-governance.md` now keeps the kernel-facing export shim packet explicit without implying the broader export/UAPI survey stack has returned.
-- `Documentation/zigux/phase3-validator-support-surface.md` stays aligned with the bounded current-tree-backed starter, helper, policy, notifier-binding, and focused layout-replay packet.
-- `Documentation/zigux/README.md` is now the highest-value shared reminder drift because it still treats `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `zigux/tests/fixtures/phase3_abi_manifest.json` as live docs-root evidence even though authenticated reads still return them missing.
-- `zigux/tests/README.md` still needs a separate tests-root refresh so it stops treating `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, and the focused export/UAPI layout replay as broader gaps.
-- `scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up if that broader surface drifts again.
-
-## Sampled Missing Wider Packet Members
-
-- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
-- `Documentation/zigux/phase3-linux-zigux-header-governance.md`
-- `scripts/zigux/validate-phase3-export-uapi-survey.py`
-- `scripts/zigux/validate-phase3.py`
-- `scripts/zigux/phase3_catalog.py`
-- `zigux/tests/fixtures/phase3_abi_manifest.json`
+- `Documentation/zigux/README.md` still needs a docs-root refresh so the Phase 3 summary names the landed xarray-slot helper, starter packet, dump packet, checker, manifest, and shared build-step routes instead of stopping at the older `dev_t`, `err_ptr`/`xarray`, policy, export/UAPI, and low-level-wrapper reminders.
+- `zigux/tests/README.md` still needs a tests-root refresh so the shared Phase 3 packet includes the current `xarray_slot_view` helper, the starter and dump packet files, the fixture-backed manifest, and the shared `phase3-xarray-slot-starter-packet` plus `phase3-xarray-slot-dump` routes from `zigux/tests/build.zig`.
+- `Documentation/zigux/review-checklist.md` still needs a reminder-surface refresh so its shared Phase 3 validation question points at the current xarray-slot-aware packet instead of the older header-family and broad reminder framing.
+- `scripts/zigux/README.md` remains a separate scripts-root inventory surface and should stay outside this shared-summary follow-up unless the scripts-root inventory itself drifts again.
 
 ## Current Gap
 
-The earlier shared-reminder drift is no longer just a tests-root undercount.
+The remaining Lane 30 work is no longer about adding another helper-local proof.
 
-Current `master` does ship the notifier binding companion, the bounded kernel-export-shim governance note, and the focused export/UAPI layout replay pair, but the shared docs-root Phase 3 summary still overclaims absent export/UAPI survey and manifest companions while the shared tests-root summary still undercounts the returned notifier-binding and layout-replay packet. Future follow-through in this shared-summary lane should stay limited to those two reminder surfaces unless a fresh reread finds another same-packet drift.
+Current `master` already carries the xarray-slot helper-local slice, the shared starter route, the shared dump route, the fixture-backed parity packet, and the dedicated checker. The bounded shared-reminder gap is now that the docs root, tests root, and review checklist still lag behind that landed packet. Future same-lane follow-up should stay limited to those reminder surfaces instead of reopening the helper, starter, dump, or fixture packet itself.
 
 ## Scope
 
-This note is limited to the current shared-summary status for the bounded Phase 3 packet. It records the directly readable starter, helper, policy, notifier-binding, kernel-export-shim, and focused export/UAPI layout replay surfaces; marks the remaining docs-root and tests-root reminder drift explicitly; samples wider packet members that remain absent; and preserves the non-overlapping rule that any future scripts-root inventory follow-through stays separate. It does not claim that the broader Phase 3 export/UAPI survey, shared validator, catalog, IDR, IDA, or low-level-wrapper packet has returned.
+This note is limited to the current shared-summary status for the bounded Phase 3 packet. It keeps the landed xarray-slot helper, starter route, dump route, manifest, checker, and shared tests-root wiring explicit; records that the remaining drift lives in `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md`; and preserves the rule that any scripts-root inventory change should stay separate. It does not claim that the broader Phase 3 catalog, export/UAPI survey family, IDR, or IDA packet has returned beyond the bounded reminders and helpers named above.
