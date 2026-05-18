@@ -669,3 +669,34 @@ test "runGenksymsCrc trims carriage returns from a visible EOF continuation afte
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\\r") == null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
 }
+
+test "runGenksymsCrc trims carriage returns from a visible split continuation before the next line" {
+    var split_then_visible_crlf = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 6);
+    defer split_then_visible_crlf.deinit(std.testing.allocator);
+    try split_then_visible_crlf.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try split_then_visible_crlf.append(std.testing.allocator, 'b');
+    try split_then_visible_crlf.append(std.testing.allocator, '\r');
+    try split_then_visible_crlf.append(std.testing.allocator, '\r');
+    try split_then_visible_crlf.append(std.testing.allocator, '\n');
+    try split_then_visible_crlf.appendSlice(std.testing.allocator, "x\n");
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(split_then_visible_crlf.items, &capture);
+
+    const exact_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(split_then_visible_crlf.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(exact_crc);
+    const trimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("b")});
+    defer std.testing.allocator.free(trimmed_crc);
+    const untrimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("b\r\r")});
+    defer std.testing.allocator.free(untrimmed_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, exact_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trimmed_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, untrimmed_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 3);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"b\\r") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
+}
