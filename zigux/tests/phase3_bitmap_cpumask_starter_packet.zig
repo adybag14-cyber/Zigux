@@ -74,6 +74,23 @@ test "bitmap starter helpers keep a full bounded bitmap from leaking tail zeros"
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.weight);
 }
 
+test "bitmap starter helpers keep exact-word windows explicit" {
+    var backing = [_]usize{
+        ~@as(usize, 0),
+        (@as(usize, 1) << 5),
+    };
+    const view = bitmap_view.viewFromWords(backing[0..], bitmap_view.bits_per_word * 2);
+    const summary = bitmap_view.summarize(view);
+
+    try testing.expect(bitmap_view.isValid(view));
+    try testing.expectEqual(~@as(usize, 0), bitmap_view.lastWordMask(bitmap_view.bits_per_word * 2));
+    try testing.expect(bitmap_view.testBit(view, bitmap_view.bits_per_word + 5));
+    try testing.expect(!bitmap_view.testBit(view, bitmap_view.bits_per_word + 6));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(bitmap_view.bits_per_word, summary.first_zero);
+    try testing.expectEqual(bitmap_view.bits_per_word + 1, summary.weight);
+}
+
 test "bitmap starter helpers fail closed on malformed views" {
     const invalid = binding.initBitmapView(0, bitmap_view.bits_per_word + 1, 1);
     const summary = bitmap_view.summarize(invalid);
@@ -157,6 +174,26 @@ test "cpumask starter helpers keep a full bounded mask from leaking tail zeros" 
     try testing.expectEqual(@as(u32, 0), summary.first_set);
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.first_zero);
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.weight);
+}
+
+test "cpumask starter helpers keep exact-word windows explicit" {
+    var backing = [_]usize{
+        ~@as(usize, 0),
+        (@as(usize, 1) << 5),
+    };
+    const view = cpumask_view.viewFromWords(backing[0..], bitmap_view.bits_per_word * 2);
+    const summary = cpumask_view.summarize(view);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expectEqual(~@as(usize, 0), bitmap_view.lastWordMask(bitmap_view.bits_per_word * 2));
+    try testing.expect(cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 5));
+    try testing.expect(!cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 6));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(view));
+    try testing.expectEqual(bitmap_view.bits_per_word, cpumask_view.firstAbsentCpu(view));
+    try testing.expectEqual(bitmap_view.bits_per_word + 1, cpumask_view.weight(view));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(bitmap_view.bits_per_word, summary.first_zero);
+    try testing.expectEqual(bitmap_view.bits_per_word + 1, summary.weight);
 }
 
 test "cpumask starter helpers fail closed on malformed views" {
