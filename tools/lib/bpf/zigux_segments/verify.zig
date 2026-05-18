@@ -34,6 +34,7 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(perf_buffer_poll, "summarizeReadyBufferAttemptLookup");
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptLookup");
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptIndexReturn");
+    try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptLookupReturn");
     try expectHasDecl(perf_buffer_poll, "summarizePollExecutionResultFromWaitResult");
     try expectHasDecl(perf_buffer_poll, "resolvePollExecutionResultFromWaitResult");
     try expectHasDecl(perf_buffer_poll, "summarizeBufferFdLookup");
