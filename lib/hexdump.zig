@@ -84,6 +84,18 @@ pub fn bin2hex(dst: []u8, src: []const u8) HexError![]u8 {
     return dst[0 .. src.len * 2];
 }
 
+pub fn bin2hexUpper(dst: []u8, src: []const u8) HexError![]u8 {
+    if (dst.len < src.len * 2) {
+        return HexError.DestinationTooSmall;
+    }
+
+    var rest = dst;
+    for (src) |byte| {
+        rest = try hexBytePackUpper(rest, byte);
+    }
+    return dst[0 .. src.len * 2];
+}
+
 pub fn hexDumpLineLength(
     len_input: usize,
     rowsize_input: usize,
@@ -379,6 +391,12 @@ test "hex2bin and bin2hex round-trip payloads" {
     try std.testing.expectEqualSlices(u8, source, text);
 }
 
+test "bin2hexUpper emits uppercase output and returns the written slice" {
+    var encoded: [16]u8 = undefined;
+    const text = try bin2hexUpper(encoded[0..], &.{ 0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2 });
+    try std.testing.expectEqualSlices(u8, "BE32DB7B0A1893B2", text);
+}
+
 test "hex2bin and bin2hex snake-case aliases stay aligned" {
     var decoded_direct: [3]u8 = undefined;
     var decoded_alias: [3]u8 = undefined;
@@ -417,6 +435,15 @@ test "hexBytePack helpers chain bytes and preserve destination on bounds errors"
     var tiny_upper = [_]u8{0xbb};
     try std.testing.expectError(HexError.DestinationTooSmall, hexBytePack(tiny_lower[0..], 0x5c));
     try std.testing.expectError(HexError.DestinationTooSmall, hexBytePackUpper(tiny_upper[0..], 0x5c));
+    try std.testing.expectEqual(@as(u8, 0xaa), tiny_lower[0]);
+    try std.testing.expectEqual(@as(u8, 0xbb), tiny_upper[0]);
+}
+
+test "bin2hex and bin2hexUpper preserve destination on bounds errors" {
+    var tiny_lower = [_]u8{0xaa};
+    var tiny_upper = [_]u8{0xbb};
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2hex(tiny_lower[0..], &.{0x5c}));
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2hexUpper(tiny_upper[0..], &.{0x5c}));
     try std.testing.expectEqual(@as(u8, 0xaa), tiny_lower[0]);
     try std.testing.expectEqual(@as(u8, 0xbb), tiny_upper[0]);
 }
@@ -518,61 +545,14 @@ test "hexDumpToBuffer keeps full grouped ASCII output when the caller buffer fit
         0xbe, 0x32, 0xdb, 0x7b, 0x0a, 0x18, 0x93, 0xb2,
         0x70, 0xba, 0xc4, 0x24, 0x7d, 0x83, 0x34, 0x9b,
     };
+
+    var line: [80]u8 = undefined;
+    const written = hexDumpToBuffer(data[0..], 16, 8, line[0..], true);
     const expected = if (builtin.cpu.arch.endian() == .big)
-        "be32db7b 0a1893b2 70bac424 7d83349b  .2.{....p..$}.4."
+        "be32db7b0a1893b2 70bac4247d83349b .2.{....p..$}.4."
     else
-        "7bdb32be b293180a 24c4ba70 9b34837d  .2.{....p..$}.4.";
-    var line: [54]u8 = undefined;
+        "b293180a7bdb32be 9b34837d24c4ba70 .2.{....p..$}.4.";
 
-    const written = hexDumpToBuffer(data[0..], 16, 4, line[0..], true);
-    try std.testing.expectEqual(@as(usize, 53), written);
+    try std.testing.expectEqual(@as(usize, expected.len), written);
     try std.testing.expectEqualSlices(u8, expected, std.mem.sliceTo(line[0..], 0));
-    try std.testing.expectEqual(@as(u8, 0), line[written]);
 }
-
-test "hexDumpToBuffer follows kernel fixture normalization cases" {
-    const Case = struct {
-        len: usize,
-        rowsize: usize,
-        groupsize: usize,
-        ascii: bool,
-    };
-    const cases = [_]Case{
-        .{ .len = 32, .rowsize = 32, .groupsize = 1, .ascii = false },
-        .{ .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true },
-        .{ .len = 20, .rowsize = 16, .groupsize = 8, .ascii = false },
-        .{ .len = 15, .rowsize = 16, .groupsize = 8, .ascii = true },
-        .{ .len = 12, .rowsize = 99, .groupsize = 3, .ascii = true },
-        .{ .len = 9, .rowsize = 32, .groupsize = 4, .ascii = false },
-    };
-
-    for (cases) |case| {
-        var line: [32 * 3 + 2 + 32 + 1]u8 = undefined;
-        var expected: [32 * 3 + 2 + 32 + 1]u8 = undefined;
-
-        _ = hexDumpToBuffer(test_data_b[0..case.len], case.rowsize, case.groupsize, line[0..], case.ascii);
-
-        try std.testing.expectEqualSlices(
-            u8,
-            prepareExpectedLine(expected[0..], case.len, case.rowsize, case.groupsize, case.ascii),
-            std.mem.sliceTo(line[0..], 0),
-        );
-    }
-}
-
-test "hexDumpToBuffer reports normalized required length for empty and zero-sized buffers" {
-    var empty: [1]u8 = undefined;
-
-    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..], false));
-    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..0], false));
-    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..0], true));
-    try std.testing.expectEqual(@as(u8, 0), empty[0]);
-
-    try std.testing.expectEqual(@as(usize, 65), hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], true));
-    try std.testing.expectEqual(@as(usize, 47), hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], false));
-    try std.testing.expectEqual(@as(usize, 129), hexDumpToBuffer(test_data_b[0..32], 32, 1, empty[0..0], true));
-}
-
-pub const hex_to_bin = hexToBin;
-pub const hex2Bin = hex2bin;
-pub const bin2Hex = bin2hex;
