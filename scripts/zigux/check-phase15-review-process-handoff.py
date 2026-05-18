@@ -74,6 +74,8 @@ def collect_failures(root: Path) -> list[str]:
     for field in manifest["required_review_fields"]:
         if field not in review_process:
             failures.append(f"review-process note is missing required review field: {field}")
+        if field not in decision_record_template:
+            failures.append(f"decision-record template is missing required review field: {field}")
 
     checklist_entry_prompt = _line_containing(
         review_checklist, manifest["review_checklist_entry_prompt"]
@@ -376,9 +378,9 @@ def _sample_gap_note() -> str:
 
 
 def _sample_test_file() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
-test "placeholder focused review-process replay exists" {
+test \"placeholder focused review-process replay exists\" {
     try std.testing.expect(true);
 }
 """
@@ -415,6 +417,15 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected roadmap-phase failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / DECISION_RECORD_TEMPLATE_PATH,
+            _sample_decision_record_template().replace("- rollback owner:\n", "", 1),
+        )
+        failures = collect_failures(root)
+        if failures != ["decision-record template is missing required review field: rollback owner"]:
+            raise AssertionError(f"unexpected rollback-owner template failure: {failures}")
+
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
             root / DECISION_RECORD_TEMPLATE_PATH,
             _sample_decision_record_template().replace("exact-head provenance exception note:\n", "", 1),
