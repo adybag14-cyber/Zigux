@@ -42,6 +42,7 @@ Current `master` proves a sample-local init and function-thread registration bou
 - failed exit with outstanding registration still fails with `error.OutstandingRegistration`
 
 The paired family-local survey packet through `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` now keeps that pilot-module story directly reviewable under `zigux/tests/runtime_*` again without pretending the wider loader-backed family returned.
+That paired survey packet stays adjacent to the shared repo-level rerun guard in `.github/workflows/zigux-bootstrap.yml`, which reruns `zig test samples/zigux/runtime_trace_events.zig`, `zig test samples/zigux/runtime_trace_events_unregistered_gate.zig`, `zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, `zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig`, and `zig test zigux/tests/runtime_trace_events_survey.zig` without turning the workflow into dedicated `phase9-*` build-route proof.
 
 ## Still Absent
 
@@ -61,7 +62,7 @@ So this slice must keep saying plainly that the broader shared runtime-loader pa
 1. Keep the trace-events family tied to `samples/trace_events/trace-events-sample.c` and the Phase 9 runtime-pilot roadmap only.
 2. Keep the surviving four-file sample family explicit as current sample-local pilot-module proof.
 3. Keep `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` paired with this slice as family-local review witnesses.
-4. Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and the shared reminder packet adjacent rather than re-owned here.
+4. Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md` and `.github/workflows/zigux-bootstrap.yml` adjacent shared reminder surfaces rather than re-owned here.
 5. Do not treat the broader shared runtime-loader packet as returned evidence.
 6. Do not invent `validate-phase9.py`, a trace-events-only validator, or a loader-backed runtime-substrate claim that current `master` does not expose.
 
