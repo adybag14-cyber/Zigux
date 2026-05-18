@@ -30,6 +30,140 @@ REQUIRED_SOURCE_MARKERS = {
     ),
 }
 
+ABI_LAYOUT_STRUCTS = (
+    ("zigux_boundary_header", "BoundaryHeader"),
+    ("zigux_export_status", "ExportStatus"),
+    ("zigux_notifier_chain_priority_increase", "ChainPriorityIncrease"),
+    ("zigux_interop_policy", "InteropPolicy"),
+    (
+        "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
+        "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView",
+    ),
+    (
+        "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
+        "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary",
+    ),
+    (
+        "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
+        "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView",
+    ),
+    (
+        "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
+        "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary",
+    ),
+)
+
+C_TO_ZIG_TYPE_MAP = {
+    "uint8_t": "u8",
+    "uint16_t": "u16",
+    "uint32_t": "u32",
+    "int32_t": "i32",
+    "size_t": "usize",
+    "uintptr_t": "usize",
+}
+
+SELF_TEST_HEADER = """\
+#define ZIGUX_ABI_VERSION 1U
+#define ZIGUX_FACILITY_KERNEL 1U
+#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U
+typedef struct zigux_boundary_header {
+    uint32_t size;
+    uint16_t abi_version;
+    uint16_t flags;
+} zigux_boundary_header;
+struct zigux_interop_policy {
+    uint8_t panic_mode;
+    uint8_t allocator_mode;
+    uint8_t unsafe_scope;
+    uint8_t reserved;
+};
+struct zigux_export_status {
+    int32_t code;
+    uint16_t facility;
+    uint16_t flags;
+};
+typedef struct zigux_notifier_chain_priority_increase {
+    size_t previous_index;
+    size_t current_index;
+    int32_t previous_priority;
+    int32_t current_priority;
+} zigux_notifier_chain_priority_increase;
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view {
+    uint32_t ack_window;
+    uint32_t delivery_window;
+    uint32_t status;
+};
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
+    uint32_t applied;
+    uint32_t skipped;
+    uint32_t delivered;
+};
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view {
+    uint32_t budget;
+    uint32_t window;
+    uint32_t flags;
+};
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary {
+    uint32_t attempted;
+    uint32_t applied;
+    uint32_t skipped;
+};
+struct zigux_notifier_block {
+    uintptr_t notifier_call;
+    uintptr_t next;
+    int32_t priority;
+};
+"""
+
+SELF_TEST_BINDINGS = """\
+pub const ABI_VERSION: u16 = 1;
+pub const FACILITY_KERNEL: u16 = 1;
+pub const UNSAFE_RAW_POINTER_BRIDGE: u8 = 2;
+pub const BoundaryHeader = extern struct {
+    size: u32,
+    abi_version: u16,
+    flags: u16,
+};
+pub const ExportStatus = extern struct {
+    code: i32,
+    facility: u16,
+    flags: u16,
+};
+pub const InteropPolicy = extern struct {
+    panic_mode: u8,
+    allocator_mode: u8,
+    unsafe_scope: u8,
+    reserved: u8,
+};
+pub const ChainPriorityIncrease = extern struct {
+    previous_index: usize,
+    current_index: usize,
+    previous_priority: i32,
+    current_priority: i32,
+};
+pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView = extern struct {
+    ack_window: u32,
+    delivery_window: u32,
+    status: u32,
+};
+pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary = extern struct {
+    applied: u32,
+    skipped: u32,
+    delivered: u32,
+};
+pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView = extern struct {
+    budget: u32,
+    window: u32,
+    flags: u32,
+};
+pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = extern struct {
+    attempted: u32,
+    applied: u32,
+    skipped: u32,
+};
+pub const NotifierBlock = notifier_abi.NotifierBlock;
+"""
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -50,6 +184,77 @@ def _abi_binding_constant_names(text: str) -> set[str]:
     return set(
         re.findall(r"^\s*pub const\s+([A-Z0-9_]+)\s*:", text, flags=re.MULTILINE)
     )
+
+
+def _parse_c_struct_fields(text: str) -> dict[str, list[tuple[str, str]]]:
+    structs: dict[str, list[tuple[str, str]]] = {}
+    for match in re.finditer(
+        r"(?:typedef\s+)?struct\s+([a-z0-9_]+)\s*\{(?P<body>.*?)\}\s*(?:[a-z0-9_]+)?\s*;",
+        text,
+        flags=re.DOTALL,
+    ):
+        body = match.group("body")
+        fields = [
+            (field_name, field_type)
+            for field_type, field_name in re.findall(
+                r"^\s*([a-z0-9_]+)\s+([a-z0-9_]+)\s*;$",
+                body,
+                flags=re.MULTILINE,
+            )
+        ]
+        structs[match.group(1)] = fields
+    return structs
+
+
+def _parse_zig_extern_struct_fields(text: str) -> dict[str, list[tuple[str, str]]]:
+    structs: dict[str, list[tuple[str, str]]] = {}
+    for match in re.finditer(
+        r"pub const\s+([A-Za-z0-9_]+)\s*=\s*extern struct\s*\{(?P<body>.*?)\};",
+        text,
+        flags=re.DOTALL,
+    ):
+        body = match.group("body")
+        fields = re.findall(
+            r"^\s*([A-Za-z0-9_]+)\s*:\s*([A-Za-z0-9_]+)\s*,$",
+            body,
+            flags=re.MULTILINE,
+        )
+        structs[match.group(1)] = fields
+    return structs
+
+
+def _validate_layout_structs(header_text: str, bindings_text: str) -> list[str]:
+    issues: list[str] = []
+    c_structs = _parse_c_struct_fields(header_text)
+    zig_structs = _parse_zig_extern_struct_fields(bindings_text)
+
+    for c_name, zig_name in ABI_LAYOUT_STRUCTS:
+        c_fields = c_structs.get(c_name)
+        if c_fields is None:
+            issues.append(f"missing ABI header struct for layout comparison: {c_name}")
+            continue
+
+        zig_fields = zig_structs.get(zig_name)
+        if zig_fields is None:
+            issues.append(f"missing ABI binding extern struct for layout comparison: {zig_name}")
+            continue
+
+        expected_zig_fields: list[tuple[str, str]] = []
+        for field_name, c_type in c_fields:
+            zig_type = C_TO_ZIG_TYPE_MAP.get(c_type)
+            if zig_type is None:
+                issues.append(f"unsupported C field type in ABI header layout comparison: {c_name}.{field_name} uses {c_type}")
+                expected_zig_fields = []
+                break
+            expected_zig_fields.append((field_name, zig_type))
+
+        if expected_zig_fields and zig_fields != expected_zig_fields:
+            issues.append(
+                f"layout mismatch for {c_name} vs {zig_name}: "
+                f"header fields {expected_zig_fields!r}, binding fields {zig_fields!r}"
+            )
+
+    return issues
 
 
 def validate_repo(repo_root: Path) -> list[str]:
@@ -80,6 +285,7 @@ def validate_repo(repo_root: Path) -> list[str]:
                 "missing ABI binding constant for header define: "
                 f"ZIGUX_{name} -> {name}"
             )
+        issues.extend(_validate_layout_structs(header_text, bindings_text))
 
     return issues
 
@@ -90,11 +296,11 @@ def run_self_test() -> int:
 
         _write(
             root / ABI_HEADER_PATH,
-            "\n".join(REQUIRED_SOURCE_MARKERS[ABI_HEADER_PATH]) + "\n",
+            SELF_TEST_HEADER,
         )
         _write(
             root / ABI_BINDINGS_PATH,
-            "\n".join(REQUIRED_SOURCE_MARKERS[ABI_BINDINGS_PATH]) + "\n",
+            SELF_TEST_BINDINGS,
         )
 
         issues = validate_repo(root)
@@ -105,12 +311,11 @@ def run_self_test() -> int:
 
         _write(
             root / ABI_BINDINGS_PATH,
-            "\n".join(
-                marker
-                for marker in REQUIRED_SOURCE_MARKERS[ABI_BINDINGS_PATH]
-                if marker != "pub const ABI_VERSION: u16 = 1;"
-            )
-            + "\n",
+            SELF_TEST_BINDINGS.replace(
+                "pub const ABI_VERSION: u16 = 1;\n",
+                "",
+                1,
+            ),
         )
         issues = validate_repo(root)
         expected = (
@@ -122,8 +327,22 @@ def run_self_test() -> int:
             print("expected missing ABI binding constant was not reported")
             return 1
 
+        _write(
+            root / ABI_BINDINGS_PATH,
+            SELF_TEST_BINDINGS.replace(
+                "    facility: u16,\n    flags: u16,\n",
+                "    flags: u16,\n    facility: u16,\n",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        if not any("layout mismatch for zigux_export_status vs ExportStatus" in issue for issue in issues):
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected ABI layout mismatch was not reported")
+            return 1
+
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=2")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
@@ -150,7 +369,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_VALIDATION=pass")
-    print("PHASE3_SCOPE=shared-abi-binding-constants")
+    print("PHASE3_SCOPE=shared-abi-binding-constants-and-layout")
     return 0
 
 
