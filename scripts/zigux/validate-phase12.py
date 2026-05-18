@@ -15,6 +15,9 @@ REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
+RELEASE_CLOSURE_CHECKLIST_PATH = (
+    "Documentation/zigux/phase12-release-closure-checklist.md"
+)
 RELEASE_COORDINATION_MATRIX_PATH = (
     "Documentation/zigux/phase12-release-coordination-matrix.md"
 )
@@ -59,6 +62,7 @@ REQUIRED_FILES = [
     FREEZE_MAP_PATH,
     RELEASE_READINESS_SURVEY_PATH,
     RELEASE_SEQUENCING_PATH,
+    RELEASE_CLOSURE_CHECKLIST_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_PATH,
     VIRTIO_NET_SURVEY_PATH,
@@ -99,6 +103,14 @@ REQUIRED_MARKERS = {
         "the directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.",
         "while `make -C zigux phase12-validate` remains stale reminder vocabulary until same-lane work rematerializes the wrapper",
         "`Documentation/zigux/phase12-nvme-pci-reopen-governance.md` owner-map companion outside the wired shared release route",
+    ],
+    RELEASE_CLOSURE_CHECKLIST_PATH: [
+        "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
+        "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
+        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
+        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12 ZIG=<attached-zig-path>`",
+        "Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
@@ -232,6 +244,10 @@ FIXTURE_TEXT = {
         "# Phase 12 Release Sequencing",
         REQUIRED_MARKERS[RELEASE_SEQUENCING_PATH],
     ),
+    RELEASE_CLOSURE_CHECKLIST_PATH: marker_fixture(
+        "# Phase 12 Release Closure Checklist",
+        REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH],
+    ),
     RELEASE_COORDINATION_MATRIX_PATH: marker_fixture(
         "# Phase 12 Release Coordination Matrix",
         REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH],
@@ -314,6 +330,7 @@ def run_self_test() -> int:
 
         missing_file_cases = [
             RELEASE_READINESS_SURVEY_PATH,
+            RELEASE_CLOSURE_CHECKLIST_PATH,
             RAW_GITHUB_COVERAGE_PATH,
             VIRTIO_SCSI_PACKET_CHECKER_PATH,
             NVME_PACKET_CHECKER_PATH,
@@ -333,6 +350,14 @@ def run_self_test() -> int:
             (
                 RELEASE_READINESS_SURVEY_PATH,
                 REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][1],
+            ),
+            (
+                RELEASE_CLOSURE_CHECKLIST_PATH,
+                REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][0],
+            ),
+            (
+                RELEASE_CLOSURE_CHECKLIST_PATH,
+                REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][2],
             ),
             (RAW_GITHUB_COVERAGE_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH][2]),
             (RAW_GITHUB_COVERAGE_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH][3]),
