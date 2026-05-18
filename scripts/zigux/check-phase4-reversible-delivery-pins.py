@@ -91,7 +91,7 @@ WARNING_MARKERS = (
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff",
     "REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = \"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES\"",
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16",
-    "EXPECTED_PIN_SELF_TEST_CASES = 8",
+    "EXPECTED_PIN_SELF_TEST_CASES = 14",
     "The remaining shared reminder follow-up from the older mixed-readback packet is now closed: `zigux/tests/README.md` now aligns with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` on the recovered note pair, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the broader checker, validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff.",
 )
 
@@ -303,7 +303,7 @@ def main() -> int:
 
             warning_path.write_text(
                 warning_path.read_text(encoding="utf-8").replace(
-                    "EXPECTED_PIN_SELF_TEST_CASES = 8",
+                    "EXPECTED_PIN_SELF_TEST_CASES = 14",
                     "EXPECTED_PIN_SELF_TEST_CASES = 12",
                 ),
                 encoding="utf-8",
