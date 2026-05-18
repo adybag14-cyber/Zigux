@@ -30,6 +30,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
     ROOT / "scripts" / "zigux" / "validate-phase2.py",
+    ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "zigux" / "Makefile",
@@ -86,6 +87,7 @@ README_PRESENT_MARKERS = (
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
+    "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-tools`",
@@ -120,6 +122,7 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
     "`make -C zigux phase2-toolchain`",
@@ -241,7 +244,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 2
-    + len(EXPECTED_TOOL_MANIFEST["present_surfaces"]) 
+    + len(EXPECTED_TOOL_MANIFEST["present_surfaces"])
     + 1
     + 1
     + 1
