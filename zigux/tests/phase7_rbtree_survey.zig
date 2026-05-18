@@ -10,7 +10,7 @@ const Manifest = struct {
     visible_paths: []const []const u8,
     readable_non_owner_paths: []const []const u8,
     missing_paths: []const []const u8,
-    absent_makefile_markers: []const []const u8,
+    readable_makefile_markers: []const []const u8,
     absent_workflow_markers: []const []const u8,
     ownership_focus: []const []const u8,
     next_bounded_step: []const u8,
@@ -90,21 +90,21 @@ test "phase 7 rbtree survey keeps the surviving anchor packet truthful" {
     try expectStringSliceContains(manifest.missing_paths, "zigux/tests/phase7_build.zig");
     try expectStringSliceContains(manifest.missing_paths, "scripts/zigux/validate-phase7.py");
 
-    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7-validate:");
-    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");
-    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-survey:");
-    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7-test:");
-    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7:");
+    try expectStringSliceContains(manifest.readable_makefile_markers, "phase7-validate:");
+    try expectStringSliceContains(manifest.readable_makefile_markers, "phase7-rbtree-test:");
+    try expectStringSliceContains(manifest.readable_makefile_markers, "phase7-rbtree-survey:");
+    try expectStringSliceContains(manifest.readable_makefile_markers, "phase7-test:");
+    try expectStringSliceContains(manifest.readable_makefile_markers, "phase7:");
 
     try expectStringSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
     try expectStringSliceContains(manifest.absent_workflow_markers, "Run Phase 7 runtime helper tests");
     try expectStringSliceContains(manifest.absent_workflow_markers, "make -C zigux phase7-validate");
     try expectStringSliceContains(manifest.absent_workflow_markers, "make -C zigux phase7-test");
 
-    try expectStringSliceContains(manifest.ownership_focus, "the surviving survey-plus-manifest anchor must not be presented as proof that the broader rbtree helper, dedicated test, fixture, checker, or shared build routes have returned on current master");
+    try expectStringSliceContains(manifest.ownership_focus, "the surviving survey-plus-manifest anchor must not be presented as proof that the broader rbtree helper, dedicated test, fixture, checker, or shared build files have returned on current master");
     try expectStringSliceContains(manifest.ownership_focus, "same-lane follow-through stays inside the surviving survey and manifest anchors until a fresh reread proves another rbtree companion returned on current master");
     try expectStringSliceContains(manifest.ownership_focus, "cross-helper truthfulness must keep the landed string_helpers packet explicit instead of repeating the older blocked-by-missing-string-helper claim");
-    try expectStringSliceContains(manifest.ownership_focus, "build-graph truthfulness must keep readable non-owner surfaces explicit: `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` are current readable evidence, but their missing `phase7-*` route markers still block any claim that the shared rbtree build packet returned");
+    try expectStringSliceContains(manifest.ownership_focus, "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` now exposes the current `phase7-*` wrapper routes, `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps, and the missing helper, dedicated test, checker, and shared build files still block any claim that the broader rbtree build packet returned");
     try expectContains(manifest.next_bounded_step, "survey-or-manifest truthfulness");
 
     try expectContains(sequencing_note, "rbtree currently survives through the direct anchors `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json`.");
@@ -112,11 +112,11 @@ test "phase 7 rbtree survey keeps the surviving anchor packet truthful" {
     try expectContains(sequencing_note, "instead of repeating the older blocked-by-missing-string-helpers story");
     try expectContains(sequencing_note, "shared wrapper stack as parked reminder vocabulary until those files rematerialize");
 
-    try expectNotContains(makefile, "phase7-validate:");
-    try expectNotContains(makefile, "phase7-rbtree-test:");
-    try expectNotContains(makefile, "phase7-rbtree-survey:");
-    try expectNotContains(makefile, "phase7-test:");
-    try expectNotContains(makefile, "phase7:");
+    try expectContains(makefile, "phase7-validate:");
+    try expectContains(makefile, "phase7-rbtree-test:");
+    try expectContains(makefile, "phase7-rbtree-survey:");
+    try expectContains(makefile, "phase7-test:");
+    try expectContains(makefile, "phase7:");
 
     try expectNotContains(workflow, "Validate Phase 7 runtime helper gates");
     try expectNotContains(workflow, "Run Phase 7 runtime helper tests");
