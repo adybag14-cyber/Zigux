@@ -20,12 +20,24 @@ pub fn emptyListHead() ListHead {
     return .{ .next = 0, .prev = 0 };
 }
 
+pub fn initListHead(next: usize, prev: usize) ListHead {
+    return .{ .next = next, .prev = prev };
+}
+
 pub fn emptyHListHead() HListHead {
     return .{ .first = 0 };
 }
 
+pub fn initHListHead(first: usize) HListHead {
+    return .{ .first = first };
+}
+
 pub fn emptyHListNode() HListNode {
     return .{ .next = 0, .pprev = 0 };
+}
+
+pub fn initHListNode(next: usize, pprev: usize) HListNode {
+    return .{ .next = next, .pprev = pprev };
 }
 
 comptime {
@@ -72,4 +84,23 @@ test "uapi list/hlist empty constructors zero every field" {
     try std.testing.expectEqual(@as(usize, 0), hhead.first);
     try std.testing.expectEqual(@as(usize, 0), hnode.next);
     try std.testing.expectEqual(@as(usize, 0), hnode.pprev);
+}
+
+test "uapi list/hlist raw constructors keep explicit link values" {
+    const shift = @bitSizeOf(usize) / 2;
+    const list_next = (@as(usize, 0x11) << shift) | 0x22;
+    const list_prev = (@as(usize, 0x33) << shift) | 0x44;
+    const hfirst = (@as(usize, 0x55) << shift) | 0x66;
+    const hnext = (@as(usize, 0x77) << shift) | 0x88;
+    const hpprev = (@as(usize, 0x99) << shift) | 0xAA;
+
+    const list = initListHead(list_next, list_prev);
+    const hhead = initHListHead(hfirst);
+    const hnode = initHListNode(hnext, hpprev);
+
+    try std.testing.expectEqual(list_next, list.next);
+    try std.testing.expectEqual(list_prev, list.prev);
+    try std.testing.expectEqual(hfirst, hhead.first);
+    try std.testing.expectEqual(hnext, hnode.next);
+    try std.testing.expectEqual(hpprev, hnode.pprev);
 }
