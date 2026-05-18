@@ -14,6 +14,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-zig-toolchain.py",
+    "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-kbuild-routes.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-tests-readme-alignment.py",
@@ -31,6 +32,10 @@ REQUIRED_PATHS = (
 REQUIRED_WORKFLOW_LINE = "run: python3 scripts/zigux/validate-phase2.py"
 REQUIRED_MAKEFILE_LINES = (
     ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2",
+    "phase2-kconfig:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
 )
