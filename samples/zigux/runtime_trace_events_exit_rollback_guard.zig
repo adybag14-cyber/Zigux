@@ -40,12 +40,38 @@ test "phase9 trace-events sample keeps exit rollback explicit after reusable sel
     const after_failed_exit = module.summary();
     try expectSummaryStable(before_failed_exit, after_failed_exit);
 
+    const replayed_fn_after_failed_exit = try module.emitFunctionIteration(17);
+    try std.testing.expectEqual(@as(usize, 2), replayed_fn_after_failed_exit);
+
+    const before_unregister = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_unregister.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_unregister.registration_depth);
+    try std.testing.expectEqual(@as(usize, 2), before_unregister.main_iterations);
+    try std.testing.expectEqual(@as(usize, 3), before_unregister.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 10), before_unregister.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 6), before_unregister.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 16), before_unregister.total_events);
+    try std.testing.expectEqual(@as(usize, 2), before_unregister.register_transitions);
+    try std.testing.expectEqual(@as(usize, 1), before_unregister.unregister_transitions);
+    try std.testing.expectEqual(@as(usize, 1), before_unregister.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), before_unregister.exit_runs);
+    try std.testing.expectEqual(@as(i32, 5), before_unregister.last_main_count);
+    try std.testing.expectEqual(@as(i32, 17), before_unregister.last_fn_count);
+    try std.testing.expectEqualStrings("foo_bar_reg", before_unregister.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqualStrings("foo_bar_unreg", before_unregister.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+    try std.testing.expectEqualStrings("Look at me", before_unregister.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("Look at me too", before_unregister.last_function_template_message orelse return error.ExpectedFunctionPayload);
+
     try module.unregisterFunctionThread();
     const before_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, before_exit.stage);
     try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);
     try std.testing.expectEqual(@as(usize, 2), before_exit.unregister_transitions);
-    try std.testing.expectEqual(@as(usize, 14), before_exit.total_events);
+    try std.testing.expectEqual(@as(usize, 16), before_exit.total_events);
+    try std.testing.expectEqual(@as(usize, 3), before_exit.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 6), before_exit.fn_thread_events);
+    try std.testing.expectEqual(@as(?usize, 2), before_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(i32, 17), before_exit.last_fn_count);
     try std.testing.expectEqualStrings("foo_bar_reg", before_exit.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings("foo_bar_unreg", before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
 
@@ -71,6 +97,8 @@ test "phase9 trace-events sample keeps exit rollback explicit after reusable sel
     try std.testing.expectEqual(before_exit.last_fn_count, after_exit.last_fn_count);
     try std.testing.expectEqualStrings(before_exit.last_register_label orelse return error.ExpectedRegisterLabel, after_exit.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings(before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel, after_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+    try std.testing.expectEqualStrings(before_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);
 
     const exited_before_rejected_ops = module.summary();
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(17));
