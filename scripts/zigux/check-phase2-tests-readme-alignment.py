@@ -59,7 +59,7 @@ FORBIDDEN_TESTS_README_MARKERS = (
 REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "now keep the current directly readable Phase 2 toolchain, kbuild, and kconfig bridge packet visible from the docs root",
-    "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the pinned toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, and the current kconfig fixture roster",
+    "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the pinned Zig toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, the current kconfig fixture roster, and the current reminder routes `make -C zigux phase2-validate` plus `make -C zigux phase2`",
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`zigux/tests/README.md`",
     "`zigux/Makefile`",
