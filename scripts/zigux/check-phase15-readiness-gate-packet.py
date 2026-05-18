@@ -146,8 +146,12 @@ Current directly readable packet:
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
+- `zigux/tests/phase15_parity_scorecard.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
 Blocked broader paths:
@@ -191,8 +195,12 @@ def _sample_manifest() -> str:
                 "scripts/zigux/check-phase15-readiness-gate-packet.py",
                 "zigux/tests/README.md",
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+                "zigux/tests/phase15_architecture_council_review_process.zig",
                 "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
                 "zigux/tests/phase15_governance_lane_sequencing.zig",
+                "zigux/tests/phase15_parity_scorecard.zig",
+                "zigux/tests/phase15_indefinite_c_policy.json",
+                "zigux/tests/phase15_indefinite_c_policy.zig",
                 "zigux/tests/phase15_readiness_gate_manifest.json"
             ],
             "still_missing_broader_paths": [
@@ -252,8 +260,12 @@ def _seed_repo(root: Path) -> None:
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         "zigux/tests/README.md",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+        "zigux/tests/phase15_architecture_council_review_process.zig",
         "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
         "zigux/tests/phase15_governance_lane_sequencing.zig",
+        "zigux/tests/phase15_parity_scorecard.zig",
+        "zigux/tests/phase15_indefinite_c_policy.json",
+        "zigux/tests/phase15_indefinite_c_policy.zig",
         "zigux/Makefile",
     ):
         _write(root / rel, "present\n")
