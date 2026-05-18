@@ -32,9 +32,9 @@ TESTS_README_MARKERS = (
 )
 
 KBUILD_ROUTE_MARKERS = (
-    "\"`python3 scripts/zigux/check-phase2-cross.py --self-test`\",",
+    "\"`scripts/zigux/check-phase2-cross-selftest-alignment.py`\",",
     "\"`make -C zigux phase2`\",",
-    "\"historical packet members\",",
+    "\"- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so treat those installer and direct cross-route names as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence\",",
 )
 
 TOOLCHAIN_PINNING_MARKERS = (
@@ -154,12 +154,6 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, KBUILD_ROUTES), "\n".join(KBUILD_ROUTE_MARKERS) + "\n")
     write_text(resolve_path(root, TOOLCHAIN_PINNING), "\n".join(TOOLCHAIN_PINNING_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_ALIGNMENT), "\n".join(TESTS_ALIGNMENT_MARKERS) + "\n")
-
-
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
 
 
 def remove_marker_occurrence(text: str, marker: str) -> str:
