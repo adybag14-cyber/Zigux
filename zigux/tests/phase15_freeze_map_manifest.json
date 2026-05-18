@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L04",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-17",
+  "surveyed_commit": "current-master-readback-2026-05-18",
   "surveyed_commit_mode": "dated_master_readback",
   "surveyed_commit_mode_reason": "This freeze-map packet now uses a dated master-readback marker because the previously recorded exact head drifted behind current master while the freeze anchor set and blocker posture stayed the same.",
   "anchor": "Documentation/zigux/freeze-map.md",
@@ -176,7 +176,7 @@
       "the freeze-in-C or study-only anchor set changes in Documentation/zigux/freeze-map.md",
       "the checker-backed shared reminder packet or an adjacent Phase 15 governance packet drifts enough to change the per-anchor evidence-archive, replay-command, stay-in-C, or no-silent-exception posture recorded here"
     ],
-    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-shared-summary-gap.md, Documentation/zigux/phase15-study-only-anchor-accounting.md, zigux/tests/phase15_freeze_map_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, scripts/zigux/check-phase15-docs-readme-alignment.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and scripts/zigux/check-phase15-shared-summary-gap.py together, then re-check whether shared reminder surfaces still name scripts/zigux/validate-phase15.py, zigux/tests/phase15_build.zig, or zigux/Makefile only as repo-reality gaps before keeping the repair inside the freeze-map packet and its direct machine-checkable guard."
+    "next_future_target": "stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is freeze-map-local, reread Documentation/zigux/freeze-map.md, Documentation/zigux/phase15-freeze-map-governance.md, Documentation/zigux/phase15-parity-scorecard.md, Documentation/zigux/phase15-architecture-council-review-process.md, Documentation/zigux/phase15-indefinite-c-policy.md, Documentation/zigux/phase15-shared-summary-gap.md, Documentation/zigux/phase15-study-only-anchor-accounting.md, zigux/tests/phase15_freeze_map_manifest.json, zigux/tests/phase15_freeze_map_governance.zig, scripts/zigux/check-phase15-docs-readme-alignment.py, scripts/zigux/check-phase15-scripts-readme-alignment.py, scripts/zigux/check-phase15-review-process-handoff.py, and scripts/zigux/check-phase15-shared-summary-gap.py together, then re-check whether shared reminder surfaces still name scripts/zigux/validate-phase15.py and zigux/tests/phase15_build.zig as missing paths and whether zigux/Makefile still lacks any phase15 routes before keeping the repair inside the freeze-map packet and its direct machine-checkable guard."
   },
   "gaps": [
     {
@@ -296,7 +296,7 @@
       "status": "repo_reality_gap_confirmed",
       "kind": "shared_route_gap",
       "zigux_destination": "zigux/Makefile",
-      "why_now": "Direct current-master contents reads still return not-found for zigux/Makefile, so the freeze-map packet must keep the `make -C zigux phase15*` wrapper routes framed as shared repo-reality gaps instead of landed evidence."
+      "why_now": "Direct current-master contents reads now resolve zigux/Makefile, but the file still does not define `phase15-validate`, `phase15-test`, or `phase15`, so the freeze-map packet must keep those wrapper routes framed as shared repo-reality gaps instead of landed evidence."
     },
     {
       "id": "phase15-deep-core-status-change-blocker",
