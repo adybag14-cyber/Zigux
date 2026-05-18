@@ -51,8 +51,8 @@ validation matrices named by the roadmap.
 `zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower
 current-head HVC continuity packet.
 
-The shared build inventory still carries 4 HVC archival build test names, 3
-shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays.
+The shared build inventory now carries 3 HVC proof-backed build tests, 0 shared
+ depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.
 That inventory does not stand in for a whole-Phase-11 replay roster while the
 three watchdog-local matrix notes remain missing from direct readback.
 
@@ -75,10 +75,11 @@ three watchdog-local matrix notes remain missing from direct readback.
   matrix note path framed as a repo-reality gap rather than current-head matrix
   proof until a future reread recovers it.
 - `hvc_console`: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-  is directly readable on current `master`, and the narrowed build inventory
-  still keeps the HVC current-head continuity packet explicit through
-  `phase11-hvc-console-tests`, `phase11-hvc-console-verify-tests`,
-  `phase11-hvc-cleanup-tests`, and `phase11-hvc-console-survey-tests`.
+  is directly readable on current `master`, and the narrowed build inventory now
+  keeps the HVC current-head continuity packet explicit through
+  `phase11-hvc-hv-ops-layout-proof-tests`,
+  `phase11-hvc-export-surface-layout-proof-tests`, and
+  `phase11-hvc-cleanup-packet-proof`.
 - `dw_wdt`: current direct contents reads do not rematerialize
   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so keep the
   DesignWare matrix note path framed as a repo-reality gap; the surviving
