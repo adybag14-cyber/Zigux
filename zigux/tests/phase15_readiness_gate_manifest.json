@@ -1,6 +1,6 @@
 {
   "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit": "current-master-readback-2026-05-17",
+  "surveyed_commit": "current-master-readback-2026-05-18",
   "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
   "direct_packet_paths": [
     "Documentation/zigux/freeze-map.md",
@@ -17,6 +17,8 @@
     "scripts/zigux/check-phase15-readiness-gate-packet.py",
     "zigux/tests/README.md",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json"
   ],
   "still_missing_broader_paths": [
@@ -30,6 +32,8 @@
     "phase15_validator_script_present": false,
     "phase15_docs_readme_checker_present": true,
     "phase15_tests_readme_checker_present": true,
+    "phase15_governance_lane_manifest_present": true,
+    "phase15_governance_lane_replay_present": true,
     "phase15_handoff_manifest_present": false,
     "phase15_build_zig_present": false,
     "phase15_indefinite_c_lane_owner_alignment_present": false,
