@@ -70,6 +70,25 @@ test "phase10 virtio mmio records feature mismatches without claiming live negot
     try std.testing.expect(!summary.negotiation_possible);
 }
 
+test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {
+    var device = try virtio_mmio.VirtioMmioLab.init(95, &[_]u16{ 8, 16 });
+    device.stageInterruptStatus(0b111);
+
+    const summary = device.interruptAckDispositionSummary(0b111);
+    try std.testing.expectEqualStrings(virtio_mmio.anchor_path, summary.anchor);
+    try std.testing.expectEqual(@as(u32, 0b111), summary.requested_bits);
+    try std.testing.expectEqual(@as(u32, 0b111), summary.pending_bits);
+    try std.testing.expectEqual(@as(u32, 0b011), summary.acknowledged_bits);
+    try std.testing.expectEqual(@as(u32, 0b100), summary.ignored_bits);
+    try std.testing.expectEqual(@as(u32, 0b100), summary.remaining_pending_bits);
+    try std.testing.expect(summary.has_acknowledgements);
+
+    _ = try device.writeRegister(.interrupt_ack, 0b001);
+    const queue_only = device.interruptAckDispositionSummary(0b011);
+    try std.testing.expectEqual(@as(u32, 0b001), queue_only.acknowledged_bits);
+    try std.testing.expectEqual(@as(u32, 0b010), queue_only.ignored_bits);
+}
+
 test "phase10 virtio mmio keeps config-write disposition planning-only across restaging" {
     var device = try virtio_mmio.VirtioMmioLab.init(94, &[_]u16{ 8, 16 });
     try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
