@@ -144,6 +144,11 @@ const Processor = struct {
         const visible_text = bytesBeforeFirstNull(text);
         var index: usize = 0;
         while (std.mem.indexOfPos(u8, visible_text, index, "CONFIG_")) |start| {
+            if (start > 0 and isIdentByte(visible_text[start - 1])) {
+                index = start + 7;
+                continue;
+            }
+
             var end: usize = start + 7;
             while (end < visible_text.len and isIdentByte(visible_text[end])) : (end += 1) {}
 
@@ -416,7 +421,7 @@ test "config parsing trims _MODULE and deduplicates symbols" {
     );
 }
 
-test "config parsing keeps prefixed CONFIG tokens for fixdep parity" {
+test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {
     const Capture = struct {
         list: std.ArrayList(u8),
         allocator: std.mem.Allocator,
@@ -451,7 +456,7 @@ test "config parsing keeps prefixed CONFIG tokens for fixdep parity" {
     );
 
     try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_CORE) \\\n    $(wildcard include/config/ZIGUX_DEBUG) \\\n",
+        "",
         capture.list.items,
     );
 }
