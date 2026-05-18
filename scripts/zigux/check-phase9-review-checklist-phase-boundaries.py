@@ -118,6 +118,7 @@ SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejecti
 SAMPLES_README_SUMMARY_STABILITY_MARKER = "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
 
 MODULE_SLICE_PHASE_BOUNDARY_HEADING = "Keep earlier-phase references in their own lanes:"
+MODULE_SLICE_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited sample-local lifecycle tracking"
 MODULE_SLICE_PHASE2_BOUNDARY_MARKER = "remain Phase 2 references"
 MODULE_SLICE_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references."
 
@@ -171,7 +172,7 @@ MODULE_SLICE_REQUIRED_MARKERS = [
     UNREGISTERED_GATE_SAMPLE_MARKER,
     REENTRY_GATE_SAMPLE_MARKER,
     SELFTEST_HOOK_MARKER,
-    LIFECYCLE_MARKER,
+    MODULE_SLICE_LIFECYCLE_MARKER,
     ABSENT_SHARED_LOADER_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
@@ -369,7 +370,7 @@ Current `master` {LANE_SEQUENCING_BACKLOG_MARKER} that earlier reminder surfaces
 def build_module_slice_fixture_text() -> str:
     return f"""# Phase 9 Runtime Trace-Events Module Slice
 
-Current `master` keeps a narrow direct trace-events runtime packet through {TRACE_EVENTS_SAMPLE_MARKER}, {UNREGISTERED_GATE_SAMPLE_MARKER}, {REENTRY_GATE_SAMPLE_MARKER}, and {TRACE_EVENTS_PACKET_CHECKER_MARKER}, with {SELFTEST_HOOK_MARKER} together with {LIFECYCLE_MARKER} while current `master` {ABSENT_SHARED_LOADER_MARKER} that older Phase 9 reminder surfaces described.
+Current `master` keeps a narrow direct trace-events runtime packet through {TRACE_EVENTS_SAMPLE_MARKER}, {UNREGISTERED_GATE_SAMPLE_MARKER}, {REENTRY_GATE_SAMPLE_MARKER}, and {TRACE_EVENTS_PACKET_CHECKER_MARKER}, with {SELFTEST_HOOK_MARKER} together with {MODULE_SLICE_LIFECYCLE_MARKER} while current `master` {ABSENT_SHARED_LOADER_MARKER} that older Phase 9 reminder surfaces described.
 
 - {MODULE_SLICE_PHASE_BOUNDARY_HEADING} {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {MODULE_SLICE_PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {MODULE_SLICE_PHASE3_BOUNDARY_MARKER}
 """
