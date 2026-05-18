@@ -112,6 +112,12 @@ EXPECTED_CASES = [
         "expected": "version_before_invalid_short_option_expected.json",
     },
     {
+        "name": "long_version_before_invalid_short_option",
+        "argv": ["--version", "-x"],
+        "mode": "process_json",
+        "expected": "version_before_invalid_short_option_expected.json",
+    },
+    {
         "name": "version_before_missing_short_option_argument",
         "argv": ["-Vr"],
         "mode": "process_json",
@@ -388,6 +394,7 @@ EXPECTED_TOOL_TESTS = [
     'test "parseArgs reports ambiguous abbreviated long options"',
     'test "genksyms bridge canonicalizes unexpected long option argument failures"',
     'test "genksyms bridge preserves version side effects before later parse failures"',
+    'test "genksyms bridge preserves long version side effects before later short parse failures"',
     'test "genksyms bridge renders unexpected long option argument like the fixture"',
     'test "genksyms bridge keeps version side effect before long help"',
     'test "genksyms bridge keeps long version side effect before short help"',
