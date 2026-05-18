@@ -34,8 +34,8 @@ phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross
 phase2: phase2-validate
 
 phase3-validate:
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test
-	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase3-low-level-wrapper-survey.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate_phase3_selftest.py
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/run-phase3-checks.py
 
 phase3: phase3-validate
 
