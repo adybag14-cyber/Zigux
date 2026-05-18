@@ -30,7 +30,6 @@ REQUIRED_PRESENT_PATHS = (
 
 REQUIRED_ABSENT_PATHS = (
     "Documentation/zigux/phase13-landlock-syscalls-survey.md",
-    "lib/devres.zig",
     "scripts/zigux/validate-phase13-release.py",
     "zigux/helpers/notifier_chain_view.zig",
     "zigux/tests/phase13_landlock_syscalls.zig",
@@ -47,7 +46,6 @@ REQUIRED_MARKERS = (
     "Keep the helper-owned wording tightly scoped to descriptor-backed create-ruleset planning, ruleset-fd install planning, and ruleset-fd stub discipline planning, and keep `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` framed as repo-reality gaps until current `master` materializes them again so the reminder packet does not overstate the live syscall helper surface.",
     "Keep `zigux/helpers/notifier_chain_view.zig` framed as a repo-reality gap here too, and keep the returned `zigux/Makefile` file distinct from `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` while the missing shared build companion keeps the broader make-route handle from qualifying as current adjacent evidence.",
     "- `scripts/zigux/validate-phase13-release.py`",
-    "- `lib/devres.zig`",
     "- `Documentation/zigux/phase13-landlock-syscalls-survey.md`",
     "- `zigux/tests/phase13_landlock_syscalls.zig`",
     "- `zigux/helpers/notifier_chain_view.zig`",
@@ -161,7 +159,6 @@ Keep `zigux/helpers/notifier_chain_view.zig` framed as a repo-reality gap here t
 ## Repo-Reality Gaps
 
 - `scripts/zigux/validate-phase13-release.py`
-- `lib/devres.zig`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/helpers/notifier_chain_view.zig`
@@ -191,12 +188,6 @@ def run_self_test() -> int:
         (tempdir / "zigux/helpers/list_view.zig").unlink()
         issues = collect_issues(tempdir)
         assert "missing_present_path:zigux/helpers/list_view.zig" in issues
-        populate_root(tempdir)
-        checks_run += 1
-
-        write_text(tempdir / "lib/devres.zig", "unexpected\n")
-        issues = collect_issues(tempdir)
-        assert "unexpected_present_gap:lib/devres.zig" in issues
         populate_root(tempdir)
         checks_run += 1
 
