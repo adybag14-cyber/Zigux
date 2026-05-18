@@ -13,11 +13,13 @@ PHASE10_END = "## Phase 11 tests-root packet"
 REQUIRED_DIRECT_MARKERS = (
     "`Documentation/zigux/phase10-closure-evidence.md`",
     "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+    "`scripts/zigux/check-phase10-bootstrap-route.py`",
     "`scripts/zigux/check-phase10-ring-packet.py`",
     "`scripts/zigux/check-phase10-input-packet.py`",
     "`scripts/zigux/check-phase10-mmio-packet.py`",
     "`scripts/zigux/check-phase10-harness-coverage.py`",
     "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "`.github/workflows/zigux-bootstrap.yml`",
     "`Documentation/zigux/phase10-virtio-ring-survey.md`",
     "`Documentation/zigux/phase10-virtio-ring-slice.md`",
     "`drivers/virtio/virtio_ring.zig`",
@@ -68,6 +70,7 @@ REQUIRED_ALIGNMENT_MARKERS = (
     "allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family",
     "shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`",
     "Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
+    "workflow-backed bootstrap route",
 )
 REQUIRED_WRAPPER_SPLIT_MARKERS = (
     "Wrapper ownership for the input lane stays split:",
@@ -125,7 +128,7 @@ def run_self_test() -> int:
 ## Phase 10 tests-root packet
 
 Keep the current bounded virtio closure packet explicit through the shared reminder surfaces, the directly re-readable ring packet anchors, the directly re-readable input packet, the helper-local MMIO packet, and the shared build gate:
-- shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml`
+- shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `.github/workflows/zigux-bootstrap.yml`
 - directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and `zigux/tests/phase10_build.zig`
 - directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig`
 - helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`
@@ -136,7 +139,7 @@ The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux
 Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.
 
 Tests-root reviewer prompt:
-- Do the docs-root notes, scripts-root guards, tests-root packet, the shared closure note, the lane-sequencing note, the ring survey and slice notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and the shared `zigux/tests/phase10_build.zig` gate, the input slice, input module slice, input survey, direct input helpers, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the helper-local MMIO survey plus `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`, while keeping `zigux/tests/phase10_virtio_mmio_manifest.json` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as last-known packet members or repo-reality gaps, the blocked risky-transport posture, the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay aligned on the same bounded virtio story?
+- Do the docs-root notes, scripts-root guards, tests-root packet, the workflow-backed bootstrap route through `scripts/zigux/check-phase10-bootstrap-route.py` and `.github/workflows/zigux-bootstrap.yml`, the shared closure note, the lane-sequencing note, the ring survey and slice notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and the shared `zigux/tests/phase10_build.zig` gate, the input slice, input module slice, input survey, direct input helpers, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the helper-local MMIO survey plus `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`, while keeping `zigux/tests/phase10_virtio_mmio_manifest.json` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as last-known packet members or repo-reality gaps, the blocked risky-transport posture, the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay aligned on the same bounded virtio story?
 
 Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` owns shared device-status bookkeeping, `drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning, and `drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning, so transport-facing queue work, registration lifecycle, IRQ delivery, DMA behavior, and broader probe or remove follow-through stay parked outside this tests-root reminder.
 
@@ -146,6 +149,9 @@ Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` ow
     tests = []
     tests.append((good.replace("## Phase 10 tests-root packet", "## Phase Ten tests-root packet", 1), "`## Phase 10 tests-root packet`"))
     tests.append((good.replace("## Phase 11 tests-root packet", "## Phase Eleven tests-root packet", 1), "`## Phase 11 tests-root packet`"))
+    tests.append((good.replace("`scripts/zigux/check-phase10-bootstrap-route.py`", "`scripts/zigux/check-phase10-bootstrap-route-missing.py`", 1), "`scripts/zigux/check-phase10-bootstrap-route.py`"))
+    tests.append((good.replace("`.github/workflows/zigux-bootstrap.yml`", "`.github/workflows/zigux-bootstrap-route-missing.yml`", 1), "`.github/workflows/zigux-bootstrap.yml`"))
+    tests.append((good.replace("workflow-backed bootstrap route", "workflow route", 1), "workflow-backed bootstrap route"))
     tests.append((good.replace("`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`", "`zigux/tests/phase10_virtio_ring_delayed_callback_budget_missing.zig`"), "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`"))
     tests.append((good.replace("`make -C zigux phase10-test`", "`make -C zigux phase10-test-missing`", 3), "`make -C zigux phase10-test`"))
     tests.append((good.replace("Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes,", "Current `master` does materialize the phase10 wrapper surface,", 1), "Current `master` does materialize `zigux/Makefile`"))
@@ -173,7 +179,7 @@ Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` ow
         else:
             raise AssertionError(f"expected failure for {expected}")
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=20")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=23")
     return 0
 
 
