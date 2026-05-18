@@ -41,7 +41,7 @@ REMAINING_GAP_PACKET = (
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 12
-EXPECTED_PIN_SELF_TEST_CASES = 7
+EXPECTED_PIN_SELF_TEST_CASES = 8
 PERF_CHECKER_MARKER = (
     "Current direct-readback dedicated local-only perf checker: "
     "`scripts/zigux/check-phase4-perf-baseline-packet.py`"
@@ -59,7 +59,7 @@ NOTE_REQ = (
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here",
     PERF_CHECKER_MARKER,
 )
 
@@ -142,7 +142,7 @@ def baseline_note() -> str:
         f"Current direct-readback packet members: {direct_packet}.",
         f"Current direct-readback dedicated local-only perf checker: `{PERF_BASELINE_CHECKER.as_posix()}`.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` on current `master`.",
-        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here.",
+        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here.",
         f"The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run: authenticated contents reads returned missing for {gap_packet}.",
         "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff.",
         "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up.",
@@ -150,7 +150,7 @@ def baseline_note() -> str:
         "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence.",
         "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
         "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12`",
-        "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
+        "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8`",
     ]) + "\n"
 
 
@@ -269,7 +269,7 @@ def main() -> int:
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
+                    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8`",
                     "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=6`",
                 ),
                 encoding="utf-8",
