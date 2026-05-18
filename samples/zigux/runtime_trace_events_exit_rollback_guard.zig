@@ -101,6 +101,7 @@ test "phase9 trace-events sample keeps exit rollback explicit after reusable sel
     try std.testing.expectEqualStrings(before_exit.last_function_template_message orelse return error.ExpectedFunctionPayload, after_exit.last_function_template_message orelse return error.ExpectedFunctionPayload);
 
     const exited_before_rejected_ops = module.summary();
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(17));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(19));
