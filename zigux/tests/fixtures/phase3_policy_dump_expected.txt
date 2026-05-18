@@ -1,0 +1,4 @@
+safe-default|panic=abort|allocator=caller_provided|unsafe=none|typed_only=true|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|narrow=none
+mmio-bug|panic=bug|allocator=kernel_heap|unsafe=volatile_mmio|typed_only=false|global_fallback=true|warn_only=false|mmio=true|raw_bridge=false|audit=true|narrow=volatile_mmio
+raw-bridge-warn|panic=warn|allocator=arena|unsafe=raw_pointer_bridge|typed_only=false|global_fallback=true|warn_only=true|mmio=false|raw_bridge=true|audit=true|narrow=raw_pointer_bridge
+reserved-invalid|panic=invalid|allocator=invalid|unsafe=invalid|typed_only=false|global_fallback=false|warn_only=false|mmio=false|raw_bridge=false|audit=false|narrow=invalid
