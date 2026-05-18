@@ -1,4 +1,10 @@
 {
+  "proof_build_file": "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+  "proof_replay_command": "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+  "proof_step_name": "test",
+  "proof_step_description": "Run the focused Phase 11 HVC cleanup packet proof",
+  "proof_test_artifact_name": "phase11-hvc-cleanup-packet-proof",
+  "proof_root_source_file": "phase11_hvc_cleanup_packet_proof.zig",
   "build_test_names": [
     "phase11-hvc-hv-ops-layout-proof-tests",
     "phase11-hvc-export-surface-layout-proof-tests",
