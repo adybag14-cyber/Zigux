@@ -52,6 +52,7 @@ Current `samples/zigux/README.md` says the sample root directly exposes:
 - `samples/zigux/kretprobe_example.zig`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `samples/zigux/runtime_trace_events.zig`
+- `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 - `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
