@@ -26,6 +26,8 @@ WORKFLOW_LINES = (
 
 REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
+DEFAULT_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate")
+DEFAULT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in DEFAULT_REQUIRED_MAKE_ROUTES)
 
 MAKEFILE_MARKERS = (
     "phase2-toolchain:",
@@ -74,8 +76,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(MAKEFILE_MARKERS)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
-    + (len(MINIMAL_SURFACE_MARKERS) + 2) * len(POLICY_ROUTE_SURFACE_CODES)
-    + 5
+    + (len(MINIMAL_SURFACE_MARKERS) + len(DEFAULT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
+    + 6
 )
 
 
@@ -196,7 +198,7 @@ def build_self_test_root(root: Path) -> None:
                 "upgrade_policy": {
                     "channel_minimum_lockstep": True,
                     "archive_target_scope": ["x86_64-linux"],
-                    "required_make_routes": ["phase2-toolchain", "phase2-validate"],
+                    "required_make_routes": list(DEFAULT_REQUIRED_MAKE_ROUTES),
                 },
             },
             indent=2,
@@ -210,10 +212,7 @@ def build_self_test_root(root: Path) -> None:
     for path, _, _ in FULL_ROUTE_SURFACE_CODES:
         write_text(resolve_path(root, path), full_marker_text + "\n")
 
-    tests_marker_text = "\n".join(
-        MINIMAL_SURFACE_MARKERS
-        + ("`make -C zigux phase2-toolchain`", "`make -C zigux phase2-validate`")
-    )
+    tests_marker_text = "\n".join(MINIMAL_SURFACE_MARKERS + DEFAULT_POLICY_ROUTE_MARKERS)
     for path, _, _ in POLICY_ROUTE_SURFACE_CODES:
         write_text(resolve_path(root, path), tests_marker_text + "\n")
 
@@ -319,7 +318,7 @@ def run_self_test() -> int:
                 checks_run += 1
 
         for path, gap_code, route_code in POLICY_ROUTE_SURFACE_CODES:
-            for marker in MINIMAL_SURFACE_MARKERS + ("`make -C zigux phase2-toolchain`", "`make -C zigux phase2-validate`"):
+            for marker in MINIMAL_SURFACE_MARKERS + DEFAULT_POLICY_ROUTE_MARKERS:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
                 resolved.write_text(
@@ -332,6 +331,14 @@ def run_self_test() -> int:
                 else:
                     assert (route_code, marker) in issues
                 checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy_payload["upgrade_policy"]["required_make_routes"].append("phase2-cross")
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        assert ("MISSING_TESTS_ROUTE_MARKERS", "`make -C zigux phase2-cross`") in collect_issues(root)
+        checks_run += 1
 
         for path in (TOOLCHAIN_POLICY, WORKFLOW, MAKEFILE):
             build_self_test_root(root)
