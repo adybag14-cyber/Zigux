@@ -28,12 +28,21 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(logging, "libbpfErrorMessage");
     try expectHasDecl(logging, "formatLibbpfError");
 
+    try expectHasDecl(perf_buffer_poll, "classifyObservedWaitResult");
+    try expectHasDecl(perf_buffer_poll, "classifyWaitClass");
+    try expectHasDecl(perf_buffer_poll, "advanceReadyBufferCursor");
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptIndex");
     try expectHasDecl(perf_buffer_poll, "summarizeReadyBufferAttemptLookup");
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptLookup");
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptAtIndex");
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptIndexReturn");
     try expectHasDecl(perf_buffer_poll, "resolveReadyBufferAttemptLookupReturn");
+    try expectHasDecl(perf_buffer_poll, "summarizeReadyBuffers");
+    try expectHasDecl(perf_buffer_poll, "summarizeProcessRecords");
+    try expectHasDecl(perf_buffer_poll, "summarizePoll");
+    try expectHasDecl(perf_buffer_poll, "summarizePollFromWaitResult");
+    try expectHasDecl(perf_buffer_poll, "summarizePollExecution");
+    try expectHasDecl(perf_buffer_poll, "summarizePollExecutionFromWaitResult");
     try expectHasDecl(perf_buffer_poll, "summarizePollExecutionResultFromWaitResult");
     try expectHasDecl(perf_buffer_poll, "resolvePollExecutionResultFromWaitResult");
     try expectHasDecl(perf_buffer_poll, "summarizeBufferFdLookup");
