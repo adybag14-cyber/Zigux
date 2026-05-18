@@ -52,7 +52,7 @@ validation matrices named by the roadmap.
 current-head HVC continuity packet.
 
 The shared build inventory now carries 3 HVC proof-backed build tests, 0 shared
- depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.
+depend steps, 0 dedicated survey replays, and 3 proof adjunct replays.
 That inventory does not stand in for a whole-Phase-11 replay roster while the
 three watchdog-local matrix notes remain missing from direct readback.
 
