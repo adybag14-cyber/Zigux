@@ -509,6 +509,12 @@ test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace
     try std.testing.expectEqualSlices(u8, &[_]u8{ ' ', 'a', 'b', 0, ' ', '\n', 'z' }, &strstrip_buf);
 }
 
+test "phase 1 string replaceChar stops at embedded NUL" {
+    var replace_cstr_buf = [_]u8{ 'a', '-', 0, '-', 'z' };
+    try std.testing.expectEqual(@as(usize, 2), replaceChar(&replace_cstr_buf, '-', '_'));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 'a', '_', 0, '-', 'z' }, &replace_cstr_buf);
+}
+
 test "strreplace mirrors replaceChar C-string semantics" {
     var replace_buf = [_]u8{ 'a', '-', 'b' };
     try std.testing.expectEqual(@as(usize, 3), strreplace(&replace_buf, '-', '_'));
