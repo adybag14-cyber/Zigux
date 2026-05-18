@@ -293,7 +293,7 @@ def main() -> int:
             build_baseline_tree(root)
             readme_path = root / README
             readme_path.write_text(
-                note_path.read_text(encoding="utf-8").replace(
+                readme_path.read_text(encoding="utf-8").replace(
                     "recovered current-head broader Phase 4 note companions: `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md`",
                     "recovered current-head broader Phase 4 note companions: `Documentation/zigux/phase4-gate-evidence.md` only",
                 ),
