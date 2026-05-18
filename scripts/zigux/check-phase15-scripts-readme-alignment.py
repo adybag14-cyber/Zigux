@@ -40,6 +40,7 @@ REQUIRED_FILES = (
     SCRIPTS_CHECKER_REL,
     HANDOFF_CHECKER_REL,
     GAP_CHECKER_REL,
+    READINESS_CHECKER_REL,
     READINESS_MANIFEST_REL,
     REVIEW_PROCESS_MANIFEST_REL,
     MAKEFILE_REL,
@@ -69,6 +70,7 @@ README_PHASE15_MARKERS = (
     "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
     "`zigux/tests/phase15_build.zig`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
 )
 
@@ -121,17 +123,10 @@ MISSING_BROADER_PATHS = (
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
-STALE_README_MARKERS = (
-    "make -C zigux phase15-validate",
-    "make -C zigux phase15-test",
-    "make -C zigux phase15",
-)
-
-UNEXPECTED_PHASE15_MAKEFILE_MARKERS = (
-    "phase15-validate:",
-    "phase15-test:",
-    "phase15:",
-    ".PHONY: phase15",
+STALE_PRESENT_ROUTE_MARKERS = (
+    "directly readable replay paths",
+    "shipped replay paths",
+    "direct tests-root evidence",
 )
 
 
@@ -187,13 +182,19 @@ def validate(root: Path) -> list[str]:
         if (root / rel).exists():
             failures.append(f"missing_gap_path_returned:{rel}")
 
-    for marker in UNEXPECTED_PHASE15_MAKEFILE_MARKERS:
+    for marker in STALE_PRESENT_ROUTE_MARKERS:
+        stale_phrase = f"keep those route names as {marker}"
+        if stale_phrase in readme:
+            failures.append(f"readme:stale_phase15_route_claim:{stale_phrase}")
+
+    for marker in (
+        "phase15-validate:",
+        "phase15-test:",
+        "phase15:",
+        ".PHONY: phase15",
+    ):
         if marker in makefile:
             failures.append(f"makefile:unexpected_phase15_route:{marker}")
-
-    for marker in STALE_README_MARKERS:
-        if marker in readme:
-            failures.append(f"readme:stale_phase15_route:{marker}")
 
     return failures
 
@@ -213,6 +214,7 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`, `scripts/zigux/check-phase15-scripts-readme-alignment.py`, `scripts/zigux/check-phase15-review-process-handoff.py`, `scripts/zigux/check-phase15-shared-summary-gap.py`, and `scripts/zigux/check-phase15-readiness-gate-packet.py` keep the shipped docs-root, scripts-root, handoff, shared-summary, and readiness packet guards explicit from the scripts root
 - `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_readiness_gate_manifest.json` keep the current directly readable governance packet explicit from the scripts root
 - repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, handoff-manifest, build, and lane-owner companions framed as repo-reality gaps instead of shipped scripts-root evidence
+- although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths
 - no Architecture Council approval is currently recorded for a freeze-map status change, and any future follow-through should tighten the smallest truthful reminder surface first instead of widening into a status-change claim
 """
 
@@ -299,16 +301,23 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected missing-phase15-marker failure: {failures}")
 
-        stale = root / "stale"
-        _seed(stale)
-        _write(stale / README_REL, _read(stale / README_REL) + "\n- make -C zigux phase15-validate\n")
-        failures = validate(stale)
+        stale_claim = root / "stale_claim"
+        _seed(stale_claim)
+        _write(
+            stale_claim / README_REL,
+            _read(stale_claim / README_REL).replace(
+                "keep those route names as blocked route vocabulary rather than directly readable replay paths",
+                "keep those route names as directly readable replay paths",
+                1,
+            ),
+        )
+        failures = validate(stale_claim)
         expected = [
-            "readme:stale_phase15_route:make -C zigux phase15-validate",
-            "readme:stale_phase15_route:make -C zigux phase15",
+            "readme_phase15:missing:although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths",
+            "readme:stale_phase15_route_claim:keep those route names as directly readable replay paths",
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected stale-route failure: {failures}")
+            raise AssertionError(f"unexpected stale-claim failure: {failures}")
 
         returned_gap = root / "returned_gap"
         _seed(returned_gap)
