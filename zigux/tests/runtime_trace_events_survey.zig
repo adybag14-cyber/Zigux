@@ -96,6 +96,14 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     );
     defer std.testing.allocator.free(sequencing_note);
 
+    const workflow_file = try cwd.readFileAlloc(
+        io_instance.io(),
+        ".github/workflows/zigux-bootstrap.yml",
+        std.testing.allocator,
+        .limited(48 * 1024),
+    );
+    defer std.testing.allocator.free(workflow_file);
+
     const sample_file = try cwd.readFileAlloc(
         io_instance.io(),
         "samples/zigux/runtime_trace_events.zig",
@@ -199,7 +207,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         manifest.roadmap_gap_summary.next_gate,
     );
 
-    try std.testing.expectEqual(@as(usize, 5), manifest.ownership_map.len);
+    try std.testing.expectEqual(@as(usize, 6), manifest.ownership_map.len);
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-trace-events-survey.md", manifest.ownership_map[0].surface);
     try std.testing.expectEqualStrings("survey_note", manifest.ownership_map[0].role);
     try std.testing.expectEqualStrings("P9-L09", manifest.ownership_map[0].owner);
@@ -212,6 +220,9 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try std.testing.expectEqualStrings("Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md", manifest.ownership_map[4].surface);
     try std.testing.expectEqualStrings("adjacent_shared_reminder", manifest.ownership_map[4].role);
     try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[4].owner);
+    try std.testing.expectEqualStrings(".github/workflows/zigux-bootstrap.yml", manifest.ownership_map[5].surface);
+    try std.testing.expectEqualStrings("adjacent_shared_workflow_guard", manifest.ownership_map[5].role);
+    try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[5].owner);
 
     try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events.zig`");
@@ -243,6 +254,15 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`");
     try expectContains(sequencing_note, "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`");
     try expectContains(sequencing_note, "does not currently expose the broader shared runtime-loader packet");
+
+    try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test");
+    try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py");
+    try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test");
+    try expectContains(workflow_file, "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py");
+    try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events.zig");
+    try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig");
+    try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig");
+    try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig");
 
     try expectContains(sample_file, ".provides_selftest_hook = true");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !EmissionSummary {");
