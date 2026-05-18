@@ -69,8 +69,10 @@ DISALLOWED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/genksyms.zig",
 )
 
+REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2"
+REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
+
 REQUIRED_MAKEFILE_LINES = (
-    ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2",
     "phase2-toolchain:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
@@ -105,6 +107,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(DISALLOWED_WORKFLOW_LINES)
+    + 2
     + len(REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
     + len(DISALLOWED_MAKEFILE_LINES)
@@ -153,10 +156,18 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
+def phony_targets_present(text: str) -> set[str]:
+    targets: set[str] = set()
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith(".PHONY:"):
+            _, suffix = stripped.split(":", 1)
+            targets.update(token for token in suffix.strip().split() if token)
+    return targets
+
+
+def has_required_phase2_phony_targets(text: str) -> bool:
+    return set(REQUIRED_PHASE2_PHONY_TARGETS).issubset(phony_targets_present(text))
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -175,6 +186,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         count = count_exact_lines(workflow_text, marker)
         if count != 0:
             issues.append(("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count={count}"))
+
+    if not has_required_phase2_phony_targets(makefile_text):
+        issues.append(("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -210,10 +224,7 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_self_test_root(root: Path) -> None:
-    workflow_lines = [
-        "name: zigux-bootstrap",
-        *REQUIRED_WORKFLOW_LINES,
-    ]
+    workflow_lines = ["name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES]
     write_text(root, WORKFLOW, "\n".join(workflow_lines) + "\n")
     write_text(
         root,
@@ -224,15 +235,15 @@ def build_self_test_root(root: Path) -> None:
                 "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
                 "ZIGUX_ROOT := ..",
                 "",
+                REQUIRED_PHASE2_PHONY_LINE,
                 *REQUIRED_MAKEFILE_LINES,
             ]
         )
         + "\n",
     )
     for rel in REQUIRED_PATHS:
-        if rel == MAKEFILE:
-            continue
-        write_text(root, rel, "present\n")
+        if rel != MAKEFILE:
+            write_text(root, rel, "present\n")
 
 
 def run_self_test() -> int:
@@ -277,6 +288,32 @@ def run_self_test() -> int:
             )
             assert ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1") in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        makefile_path = path_under(root, MAKEFILE)
+        makefile_path.write_text(
+            replace_exact_line(
+                makefile_path.read_text(encoding="utf-8"),
+                REQUIRED_PHASE2_PHONY_LINE,
+                "# removed for self-test",
+            ),
+            encoding="utf-8",
+        )
+        assert ("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        makefile_path = path_under(root, MAKEFILE)
+        makefile_path.write_text(
+            replace_exact_line(
+                makefile_path.read_text(encoding="utf-8"),
+                REQUIRED_PHASE2_PHONY_LINE,
+                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3",
+            ),
+            encoding="utf-8",
+        )
+        assert collect_issues(root) == []
+        checks_run += 1
 
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
