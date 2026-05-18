@@ -65,6 +65,10 @@ pub fn tcpUdpNofold(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     return normalize(result);
 }
 
+pub fn tcpUdpMagic(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u16 {
+    return fold(tcpUdpNofold(sum, saddr, daddr, len, proto));
+}
+
 pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u32 {
     var result = normalize(sum);
 
@@ -78,6 +82,10 @@ pub fn tcpUdpV6Nofold(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len:
     result = add(result, len & 0xffff);
     result = add(result, proto);
     return normalize(result);
+}
+
+pub fn tcpUdpV6Magic(sum: u32, saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) u16 {
+    return fold(tcpUdpV6Nofold(sum, saddr, daddr, len, proto));
 }
 
 pub fn partial(bytes: []const u8, seed: u32) u32 {
@@ -318,6 +326,7 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v4 = add(manual_v4, 17);
     manual_v4 = add(manual_v4, 6);
     try std.testing.expectEqual(normalize(manual_v4), v4_result);
+    try std.testing.expectEqual(fold(v4_result), tcpUdpMagic(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17));
 
     const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
     const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
@@ -336,6 +345,7 @@ test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     manual_v6 = add(manual_v6, v6_len & 0xffff);
     manual_v6 = add(manual_v6, v6_proto);
     try std.testing.expectEqual(normalize(manual_v6), v6_result);
+    try std.testing.expectEqual(fold(v6_result), tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto));
 }
 
 test "ipFastCsum stays aligned with compute across aligned IPv4 headers" {
