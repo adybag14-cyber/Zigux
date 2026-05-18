@@ -86,7 +86,7 @@ MARKERS = {
         "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
     ],
     "zigux/tests/phase10_virtio_ring_manifest.json": [
-        '"lane_key": "P10-L10"',
+        '"lane_key": "P10-L05"',
         '"id": "phase10-virtio-ring-survey-gate"',
         '"status": "repo_reality_gap"',
         '"id": "phase10-virtqueue-shape-helper"',
@@ -405,7 +405,7 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_manifest.json",
-            '"lane_key": "P10-L10"',
+            '"lane_key": "P10-L05"',
         )
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_manifest.json",
