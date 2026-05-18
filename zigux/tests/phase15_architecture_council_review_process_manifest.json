@@ -7,6 +7,7 @@
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
   "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
   "checker": "scripts/zigux/check-phase15-review-process-handoff.py",
+  "build_gate": "zigux/tests/phase15_architecture_council_review_process_build.zig",
   "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
   "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
   "required_review_fields": [
@@ -63,6 +64,7 @@
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`Documentation/zigux/phase15-shared-summary-gap.md`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+    "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "one focused review-process checker, one focused tests-readme checker, and the shared-summary gap checker"
@@ -77,6 +79,7 @@
     "`zigux/tests/phase15_indefinite_c_policy.json`",
     "`zigux/tests/phase15_indefinite_c_policy.zig`",
     "`zigux/tests/phase15_architecture_council_review_process.zig`",
+    "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`"
   ],
