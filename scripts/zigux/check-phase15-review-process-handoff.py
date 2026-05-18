@@ -15,7 +15,6 @@ HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.
 SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 TEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process.zig")
-CHECKLIST_ENTRY_REVIEW_PROMPT = "if a freeze-map anchor is entering Architecture Council status review"
 
 
 def _read_text(path: Path) -> str:
@@ -58,6 +57,9 @@ def collect_failures(root: Path) -> list[str]:
     if manifest["decision_record_template"] not in handoff_note:
         failures.append("handoff note is missing the decision-record template path")
 
+    if manifest["review_checklist_boundary_rule"] not in review_process:
+        failures.append("review-process note is missing the review-checklist boundary rule")
+
     for marker in (
         "PHASE15_STATUS=architecture_council_review_process_landed",
         "PHASE15_LANE_KEY=P15-L08",
@@ -72,18 +74,14 @@ def collect_failures(root: Path) -> list[str]:
     for field in manifest["required_review_fields"]:
         if field not in review_process:
             failures.append(f"review-process note is missing required review field: {field}")
-        if field not in decision_record_template:
-            failures.append(f"decision-record template is missing required review field: {field}")
 
-    checklist_entry_prompt = _line_containing(review_checklist, CHECKLIST_ENTRY_REVIEW_PROMPT)
+    checklist_entry_prompt = _line_containing(
+        review_checklist, manifest["review_checklist_entry_prompt"]
+    )
     if checklist_entry_prompt is None:
         failures.append(
             "review checklist is missing the Phase 15 Architecture Council entry-review prompt"
         )
-    else:
-        for field in manifest["required_review_fields"]:
-            if field not in checklist_entry_prompt:
-                failures.append(f"review checklist prompt is missing required review field: {field}")
 
     for field in manifest["stay_in_c_closeout_fields"]:
         if field not in review_process:
@@ -96,6 +94,10 @@ def collect_failures(root: Path) -> list[str]:
             failures.append(f"review-process note is missing reopen-evidence field: {field}")
         if field not in decision_record_template:
             failures.append(f"decision-record template is missing reopen-evidence field: {field}")
+
+    for marker in manifest["decision_record_template_required_markers"]:
+        if marker not in decision_record_template:
+            failures.append(f"decision-record template is missing required marker: {marker}")
 
     for marker in manifest["handoff_required_markers"]:
         if marker not in handoff_note:
@@ -133,6 +135,8 @@ def _sample_manifest() -> str:
             "phase": "Phase 15",
             "surveyed_commit": "current-master-readback-2026-05-18",
             "decision_record_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+            "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
+            "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
             "required_review_fields": [
                 "exact Linux anchor path",
                 "roadmap phase",
@@ -173,6 +177,13 @@ def _sample_manifest() -> str:
                 "the blocker disposition being challenged",
                 "the narrower seam or policy change that makes the new review safe to consider",
             ],
+            "decision_record_template_required_markers": [
+                "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
+                "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
+                "exact-head provenance exception note:",
+                "Prefer the dated master readback form for parked governance and stay-in-C review packets.",
+                "Only record an exact head when the linked review needs it to anchor a named published decision",
+            ],
             "handoff_required_markers": [
                 "`Documentation/zigux/review-checklist.md`",
                 "`Documentation/zigux/README.md`",
@@ -185,14 +196,23 @@ def _sample_manifest() -> str:
                 "one focused review-process checker, one focused tests-readme checker, and the shared-summary gap checker",
             ],
             "shared_gap_expected_present_paths": [
+                "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
+                "`Documentation/zigux/phase15-readiness-gate-survey.md`",
+                "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
+                "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+                "`zigux/tests/phase15_freeze_map_governance.zig`",
+                "`zigux/tests/phase15_parity_scorecard.zig`",
+                "`zigux/tests/phase15_indefinite_c_policy.json`",
+                "`zigux/tests/phase15_indefinite_c_policy.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
             ],
             "shared_gap_expected_missing_paths": [
                 "`scripts/zigux/validate-phase15.py`",
-                "`zigux/tests/phase15_build.zig`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+                "`zigux/tests/phase15_build.zig`",
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
             ],
         },
         indent=2,
@@ -207,6 +227,7 @@ def _sample_review_process() -> str:
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
 - this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, and the focused Zig replay are landed through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig`
+- `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 
 Any freeze-map anchor entering Architecture Council status review must keep all of the following explicit:
 - exact Linux anchor path
@@ -253,6 +274,19 @@ A later reopen request must not rely on generic intent alone. It must cite:
 def _sample_decision_record_template() -> str:
     return """# Phase 15 Architecture Council Decision Record Template
 
+Use this template when a freeze-map anchor enters Architecture Council status review.
+
+This is a review packet template, not approval by itself.
+
+- `DECISION_RECORD_ID=<replace-with-stable-id>`
+- decision record ID:
+- `PHASE=Phase 15`
+- `LANE_KEY=P15-L08`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
+- `SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`
+- exact-head provenance exception note:
+- `REVIEW_STATUS=<blocked_review|stay_in_c|approved_status_bucket_change>`
+
 - `DECISION_RECORD_ID=<replace-with-stable-id>`
 
 - exact Linux anchor path:
@@ -291,6 +325,9 @@ def _sample_decision_record_template() -> str:
 - refreshed evidence by path:
 - the blocker disposition being challenged:
 - the narrower seam or policy change that makes the new review safe to consider:
+
+- Prefer the dated master readback form for parked governance and stay-in-C review packets.
+- Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance note.
 """
 
 
@@ -320,12 +357,21 @@ def _sample_handoff_note() -> str:
 def _sample_gap_note() -> str:
     return """# Phase 15 Shared Summary Gap
 
+- `Documentation/zigux/phase15-parity-scorecard-survey.md`
+- `Documentation/zigux/phase15-readiness-gate-survey.md`
+- `Documentation/zigux/phase15-governance-lane-sequencing.md`
+- `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `zigux/tests/phase15_freeze_map_governance.zig`
+- `zigux/tests/phase15_parity_scorecard.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/validate-phase15.py`
-- `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `zigux/tests/phase15_build.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 """
 
 
@@ -349,6 +395,12 @@ def run_self_test() -> int:
         _write(root / MANIFEST_PATH, _sample_manifest())
         _write(root / Path("scripts/zigux/check-phase15-review-process-handoff.py"), "# fixture\n")
         _write(root / TEST_PATH, _sample_test_file())
+        sample_manifest = json.loads(_sample_manifest())
+        for marker in sample_manifest["shared_gap_expected_present_paths"]:
+            repo_path = _marker_to_repo_path(marker)
+            if repo_path is None or (root / repo_path).exists():
+                continue
+            _write(root / repo_path, "# fixture\n")
 
         failures = collect_failures(root)
         if failures:
@@ -365,11 +417,11 @@ def run_self_test() -> int:
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
             root / DECISION_RECORD_TEMPLATE_PATH,
-            _sample_decision_record_template().replace("- roadmap phase:\n", "", 1),
+            _sample_decision_record_template().replace("exact-head provenance exception note:\n", "", 1),
         )
         failures = collect_failures(root)
-        if failures != ["decision-record template is missing required review field: roadmap phase"]:
-            raise AssertionError(f"unexpected decision-template review-field failure: {failures}")
+        if failures != ["decision-record template is missing required marker: exact-head provenance exception note:"]:
+            raise AssertionError(f"unexpected decision-template marker failure: {failures}")
 
         _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
@@ -386,12 +438,24 @@ def run_self_test() -> int:
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
-            root / REVIEW_CHECKLIST_PATH,
-            _sample_review_checklist().replace("exact Linux anchor path, ", "", 1),
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace(
+                "- `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`\n",
+                "",
+                1,
+            ),
         )
         failures = collect_failures(root)
-        if failures != ["review checklist prompt is missing required review field: exact Linux anchor path"]:
-            raise AssertionError(f"unexpected checklist failure: {failures}")
+        if failures != ["review-process note is missing the review-checklist boundary rule"]:
+            raise AssertionError(f"unexpected checklist-boundary failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(root / REVIEW_CHECKLIST_PATH, "# Zigux Review Checklist\n\n  * some other review prompt\n")
+        failures = collect_failures(root)
+        if failures != [
+            "review checklist is missing the Phase 15 Architecture Council entry-review prompt"
+        ]:
+            raise AssertionError(f"unexpected checklist-prompt failure: {failures}")
 
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(
