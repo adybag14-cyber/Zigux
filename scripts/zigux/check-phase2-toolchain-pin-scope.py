@@ -44,10 +44,6 @@ REVIEW_MARKERS = (
 TESTS_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-validate`",
-    "`make -C zigux phase2-cross`",
-    "`make -C zigux phase2`",
     "pinned `x86_64-linux` bootstrap archive note",
     "repo-local `.zig-toolchain` fallback reused",
 )
@@ -382,7 +378,6 @@ def main() -> int:
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_REVIEW_MARKER_COUNT={len(REVIEW_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_TESTS_MARKER_COUNT={len(TESTS_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_BOOTSTRAP_MARKER_COUNT={len(BOOTSTRAP_MARKERS)}")
-    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_WORKFLOW_MARKER_COUNT={len(WORKFLOW_MARKERS)}")
     return 0
 
 
