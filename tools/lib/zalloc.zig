@@ -94,3 +94,19 @@ test "zfreeValue supports repeated free after destroying an allocated value" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zallocValue zeroes aggregate storage across arrays and optionals" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        bytes: [4]u8,
+        flags: [2]bool,
+        maybe_count: ?usize,
+    };
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, &value.?.bytes);
+    try std.testing.expectEqualSlices(bool, &.{ false, false }, &value.?.flags);
+    try std.testing.expect(value.?.maybe_count == null);
+}
