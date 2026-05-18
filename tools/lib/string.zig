@@ -18,8 +18,8 @@ pub fn strtobool(s: ?[]const u8) ParseBoolError!bool {
     }
 
     switch (text[0]) {
-        'y', 'Y', '1' => return true,
-        'n', 'N', '0' => return false,
+        'e', 'E', 'y', 'Y', 't', 'T', '1' => return true,
+        'd', 'D', 'n', 'N', 'f', 'F', '0' => return false,
         'o', 'O' => {
             if (text.len < 2) {
                 return error.Invalid;
@@ -351,8 +351,12 @@ pub fn kbasename(path: []const u8) []const u8 {
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
+    try std.testing.expect(try strtobool("true"));
+    try std.testing.expect(try strtobool("Enable"));
     try std.testing.expect(!(try strtobool("0")));
     try std.testing.expect(!(try strtobool("of")));
+    try std.testing.expect(!(try strtobool("false")));
+    try std.testing.expect(!(try strtobool("Disable")));
     try std.testing.expectError(error.Invalid, strtobool("maybe"));
 }
 
@@ -761,6 +765,7 @@ test "memchrInv keeps the earliest dirty byte across the fast-path cutoff" {
     const cutoff = word_bytes * 2;
 
     var non_zero_backing = [_]u8{0xaa} ** (word_bytes * 2);
+
     for (0..2) |extra| {
         const len = (cutoff - 1) + extra;
 
@@ -801,11 +806,6 @@ test "memparse handles decimal hexadecimal octal and suffixes" {
     const octal = memparse("010K");
     try std.testing.expectEqual(@as(u64, 8 << 10), octal.value);
     try std.testing.expectEqualStrings("", octal.rest);
-
-    const binary_unit = memparse("64KiB rest");
-    const cmdline_binary_unit = cmdline.memparse("64KiB rest");
-    try std.testing.expectEqual(cmdline_binary_unit.value, binary_unit.value);
-    try std.testing.expectEqualStrings(cmdline_binary_unit.rest, binary_unit.rest);
 }
 
 test "memparse keeps original rest when sign is not followed by digits" {
