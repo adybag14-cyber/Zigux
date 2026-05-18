@@ -538,6 +538,26 @@ test "split-read 32-bit ELF input exits with stdout and ignores trailing bytes" 
     try std.testing.expectEqualStrings("", stderr.list.items);
 }
 
+test "split-read exact 32-bit ELF header exits with stdout at EOF" {
+    var reader = SplitReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 5, 4, 7 },
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
 test "split-read empty input exits with stderr after immediate EOF" {
     var reader = SplitReader{
         .bytes = &[_]u8{},
