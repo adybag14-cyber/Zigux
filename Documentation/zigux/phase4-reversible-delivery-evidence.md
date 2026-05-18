@@ -24,7 +24,7 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=049c1f90422a49ea83b5e50bf9f9fde9aa5bb501`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=2e16726fec8500136f25afae73e415dbc977faa7`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`
-  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12`
+  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8`
 ## Current Packet
 
@@ -49,7 +49,7 @@ Current direct contents reads in this run also confirmed the roadmap-backed diff
 
 Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` on current `master`, so the broader review packet has partially recovered past the older all-missing state even though the coupled checker, validator, build, and bitmap replay companions have not all returned through authenticated direct reads yet.
 
-The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
+The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
 
 The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
 
