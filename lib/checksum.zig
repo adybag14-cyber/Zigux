@@ -189,6 +189,39 @@ test "shift and block helpers preserve odd-byte carry discipline" {
     try std.testing.expectEqual(seed, blockSub(odd_added, fragment, 1));
 }
 
+test "incremental helper exports keep large odd offsets and 16-bit carries aligned" {
+    const seed = 0x1357_9bdf;
+    const fragment = 0x2468_ace0;
+
+    try std.testing.expectEqual(fragment, shift(fragment, 256));
+    try std.testing.expectEqual(std.math.rotr(u32, fragment, 8), shift(fragment, 255));
+    try std.testing.expectEqual(add(seed, fragment), blockAdd(seed, fragment, 256));
+    try std.testing.expectEqual(add(seed, std.math.rotr(u32, fragment, 8)), blockAdd(seed, fragment, 255));
+    try std.testing.expectEqual(seed, blockSub(blockAdd(seed, fragment, 255), fragment, 255));
+
+    const fold_cases = [_]u32{ 0, 1, 0x0001_0000, 0x1234_5678, 0xffff_ffff };
+    for (fold_cases) |sum| {
+        try std.testing.expectEqual(from32to16(sum), unfold(~fold(sum)));
+    }
+
+    const add16_cases = [_]struct {
+        sum: u16,
+        addend: u16,
+        expected_add: u16,
+        expected_sub: u16,
+    }{
+        .{ .sum = 0x0000, .addend = 0x0000, .expected_add = 0x0000, .expected_sub = 0xffff },
+        .{ .sum = 0xffff, .addend = 0x0001, .expected_add = 0x0001, .expected_sub = 0xfffe },
+        .{ .sum = 0x7fff, .addend = 0x8000, .expected_add = 0xffff, .expected_sub = 0xfffe },
+        .{ .sum = 0xfffe, .addend = 0x0003, .expected_add = 0x0002, .expected_sub = 0xfffb },
+    };
+
+    for (add16_cases) |case| {
+        try std.testing.expectEqual(case.expected_add, add16(case.sum, case.addend));
+        try std.testing.expectEqual(case.expected_sub, sub16(case.sum, case.addend));
+    }
+}
+
 fn referencePartial(bytes: []const u8, seed: u32) u32 {
     var sum: u64 = seed;
     var index: usize = 0;
