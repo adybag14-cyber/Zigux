@@ -88,6 +88,16 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - slice note: `Documentation/zigux/phase6-hexdump-slice.md`
 - current review posture: direct helper-local evidence is readable again through `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders, while the perf-matrix preflight, helper-local checker, perf refresh note, and slice note still need fresh direct reads before they are presented as current shipped evidence
 
+## Roadmap perf-gap readback
+
+The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bounded `lib/base64.c`, `lib/bsearch.c`, `lib/checksum.c`, and `lib/hexdump.c` packet. Current direct-readback measurement coverage on surveyed head `61e026c` is therefore mixed rather than uniform:
+
+- `base64` keeps a dedicated helper-local slowdown replay in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` still centralizes six fixture-owned encode and decode cases across standard, URL-safe, and IMAP variants.
+- `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed `64B` and `1501B` threshold matrix still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`.
+- `hexdump` keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`, with the current fixture matrix in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still covering four formatting cases from `16B-plain-g1` through `16B-ascii-g8`.
+- `bsearch` still measures bounded search cost through `zigux/tests/phase6_bsearch_c_abi_budget.zig` and the deterministic `perf_cases` plus seeded query corpus in `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, which hold raw C ABI search and equal-range comparisons to logarithmic budgets across representative lengths instead of using a dedicated wall-clock slowdown harness.
+- the remaining roadmap-aligned measurement gap is shared survey truthfulness rather than new helper semantics: `Documentation/zigux/phase6-perf-gate-survey.md` is still absent on current `master`, and `bsearch` still lacks a directly readable dedicated slowdown replay comparable to the base64, checksum, and hexdump helper-local gates.
+
 ## Last-known shared replay inventory
 
 - `python3 scripts/zigux/check-phase6-base64-c-parity.py`
