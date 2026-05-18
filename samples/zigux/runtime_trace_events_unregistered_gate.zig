@@ -37,11 +37,68 @@ test "phase9 trace-events sample keeps unregistered function-thread failures fai
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_before.last_register_label);
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_before.last_unregister_label);
 
+    try module.registerFunctionThread();
+
+    const initialized_registered_before_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized_registered_before_exit.stage);
+    try std.testing.expectEqual(@as(usize, 1), initialized_registered_before_exit.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_exit.main_iterations);
+    try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_exit.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_exit.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_exit.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_exit.total_events);
+    try std.testing.expectEqual(@as(?usize, null), initialized_registered_before_exit.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), initialized_registered_before_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), initialized_registered_before_exit.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 1), initialized_registered_before_exit.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_registered_before_exit.exit_runs);
+    try std.testing.expectEqual(@as(i32, -1), initialized_registered_before_exit.last_main_count);
+    try std.testing.expectEqual(@as(i32, -1), initialized_registered_before_exit.last_fn_count);
+    try std.testing.expect(!initialized_registered_before_exit.saw_vararg_payload);
+    try std.testing.expect(!initialized_registered_before_exit.saw_rel_loc_payload);
+    try std.testing.expect(!initialized_registered_before_exit.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", initialized_registered_before_exit.main_thread_label orelse return error.ExpectedMainThreadLabel);
+    try std.testing.expectEqualStrings("event-sample-fn", initialized_registered_before_exit.function_thread_label orelse return error.ExpectedFunctionThreadLabel);
+    try std.testing.expectEqualStrings("foo_bar_reg", initialized_registered_before_exit.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqual(@as(?[]const u8, null), initialized_registered_before_exit.last_unregister_label);
+
+    try std.testing.expectError(error.OutstandingRegistration, module.exit());
+
+    const initialized_registered_after_exit = module.summary();
+    try expectSummaryStable(initialized_registered_before_exit, initialized_registered_after_exit);
+
+    try module.unregisterFunctionThread();
+
+    const initialized_fail_closed_before = module.summary();
+    try std.testing.expectEqual(ModuleStage.initialized, initialized_fail_closed_before.stage);
+    try std.testing.expectEqual(@as(usize, 0), initialized_fail_closed_before.registration_depth);
+    try std.testing.expectEqual(@as(usize, 0), initialized_fail_closed_before.main_iterations);
+    try std.testing.expectEqual(@as(usize, 0), initialized_fail_closed_before.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 0), initialized_fail_closed_before.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), initialized_fail_closed_before.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 0), initialized_fail_closed_before.total_events);
+    try std.testing.expectEqual(@as(?usize, null), initialized_fail_closed_before.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), initialized_fail_closed_before.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, null), initialized_fail_closed_before.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 1), initialized_fail_closed_before.init_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_fail_closed_before.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 0), initialized_fail_closed_before.exit_runs);
+    try std.testing.expectEqual(@as(i32, -1), initialized_fail_closed_before.last_main_count);
+    try std.testing.expectEqual(@as(i32, -1), initialized_fail_closed_before.last_fn_count);
+    try std.testing.expect(!initialized_fail_closed_before.saw_vararg_payload);
+    try std.testing.expect(!initialized_fail_closed_before.saw_rel_loc_payload);
+    try std.testing.expect(!initialized_fail_closed_before.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", initialized_fail_closed_before.main_thread_label orelse return error.ExpectedMainThreadLabel);
+    try std.testing.expectEqualStrings("event-sample-fn", initialized_fail_closed_before.function_thread_label orelse return error.ExpectedFunctionThreadLabel);
+    try std.testing.expectEqualStrings("foo_bar_reg", initialized_fail_closed_before.last_register_label orelse return error.ExpectedRegisterLabel);
+    try std.testing.expectEqualStrings("foo_bar_unreg", initialized_fail_closed_before.last_unregister_label orelse return error.ExpectedUnregisterLabel);
+
     try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));
     try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());
 
     const initialized_after = module.summary();
-    try expectSummaryStable(initialized_before, initialized_after);
+    try expectSummaryStable(initialized_fail_closed_before, initialized_after);
 
     _ = try module.runSelftest();
     _ = try module.emitMainIteration(5);
@@ -65,6 +122,8 @@ test "phase9 trace-events sample keeps unregistered function-thread failures fai
     try std.testing.expect(selftest_complete_before.saw_vararg_payload);
     try std.testing.expect(selftest_complete_before.saw_rel_loc_payload);
     try std.testing.expect(selftest_complete_before.saw_conditional_path);
+    try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.register_transitions);
+    try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.unregister_transitions);
     try std.testing.expectEqualStrings("foo_bar_reg", selftest_complete_before.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings("foo_bar_unreg", selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel);
     try std.testing.expectEqualStrings("hello", selftest_complete_before.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
@@ -104,6 +163,8 @@ test "phase9 trace-events sample keeps unregistered function-thread failures fai
     try std.testing.expectEqual(@as(usize, 1), exited_before.selftest_runs);
     try std.testing.expectEqual(@as(i32, 5), exited_before.last_main_count);
     try std.testing.expectEqual(@as(i32, 1), exited_before.last_fn_count);
+    try std.testing.expectEqual(@as(usize, 2), exited_before.register_transitions);
+    try std.testing.expectEqual(@as(usize, 2), exited_before.unregister_transitions);
     try std.testing.expect(selftest_complete_before.saw_vararg_payload == exited_before.saw_vararg_payload);
     try std.testing.expect(selftest_complete_before.saw_rel_loc_payload == exited_before.saw_rel_loc_payload);
     try std.testing.expect(selftest_complete_before.saw_conditional_path == exited_before.saw_conditional_path);
