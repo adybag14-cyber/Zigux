@@ -10,6 +10,11 @@ deps_module/sample2.o := \
   zigux/tests/fixtures/fixdep/sample2-config.h \
     $(wildcard include/config/ZIGUX_SECOND) \
   zigux/tests/fixtures/fixdep/sample2.so \
+  zigux/tests/fixtures/fixdep/escaped\ space-config.h \
+    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \
+  zigux/tests/fixtures/fixdep/shared:config.h \
+    $(wildcard include/config/ZIGUX_COLON) \
+    $(wildcard include/config/ZIGUX_SHARED_COLON) \
 
 module/sample2.o: $(deps_module/sample2.o)
 
