@@ -28,25 +28,11 @@ REQUIRED_TESTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
-    "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, and toolchain reminder set",
-    "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
-    "`scripts/zigux/validate-phase2.py`",
-    "`scripts/zigux/validate-phase2-closure.py`",
-    "`zigux/Makefile`",
-    "`scripts/zigux/install-zig.py`",
-    "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross.py`",
-    "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-validate`",
-    "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
-    "`make -C zigux phase2-cross`",
-    "`make -C zigux phase2`",
-    "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "pinned `x86_64-linux` bootstrap archive note",
-    "repo-local `.zig-toolchain` fallback reused",
+    "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "keep the pinned `x86_64-linux` bootstrap archive note and repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
     "historical packet members rather than direct tests-root evidence",
     "keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
@@ -57,14 +43,24 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
+    "`scripts/zigux/validate-phase2.py`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2`",
 )
 REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
-    "now keep the current directly readable Phase 2 toolchain, kbuild, and kconfig bridge packet visible from the docs root",
-    "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the pinned Zig toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, the current kconfig fixture roster, and the current reminder routes `make -C zigux phase2-validate` plus `make -C zigux phase2`",
+    "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "now keep the current directly readable Phase 2 toolchain, kbuild, kconfig bridge, make-wrapper, and artifact-support packet visible from the docs root instead of rebuilding the older closure-side validator stack from missing current-`master` paths.",
+    "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the docs-shared-reminder checker, the required-make-route guard, the pinned Zig toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, `zigux/Makefile`, the current artifact-support manifest, the current kconfig fixture roster, and the current reminder routes `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2`.",
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`zigux/tests/README.md`",
     "`zigux/Makefile`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 )
 
 
@@ -140,10 +136,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
 
 
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
+def remove_marker(text: str, marker: str) -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
+    return text.replace(marker, "")
 
 
 def run_self_test() -> int:
@@ -163,7 +159,7 @@ def run_self_test() -> int:
         for marker in REQUIRED_TESTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
@@ -177,7 +173,7 @@ def run_self_test() -> int:
         for marker in REQUIRED_DOCS_ROOT_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, DOCS_ROOT_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_DOCS_ROOT_MARKERS", marker) in issues
             checks_run += 1
