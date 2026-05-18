@@ -94,6 +94,9 @@ REQUIRED_MARKERS = {
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
+        "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
+        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
+        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12 ZIG=<attached-zig-path>`",
         "Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
@@ -200,7 +203,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 58
+EXPECTED_SELF_TEST_CASE_COUNT = 61
 
 
 def write_fixture_tree(root: Path) -> None:
