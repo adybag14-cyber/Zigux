@@ -105,6 +105,9 @@ SAMPLES_README_BACKLOG_MARKER = "does not currently expose the broader shared ru
 SAMPLES_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 SAMPLES_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 SAMPLES_README_REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable before and after selftest"
+SAMPLES_README_REENTRY_DETAIL_MARKER = "balanced registration re-entry companion across the initialized and selftest_complete stages"
+SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejections"
+SAMPLES_README_SUMMARY_STABILITY_MARKER = "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
 
 CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
@@ -202,8 +205,11 @@ SAMPLES_README_REQUIRED_MARKERS = [
     SAMPLES_README_LIFECYCLE_MARKER,
     SAMPLES_README_BACKLOG_MARKER,
     SAMPLES_README_UNREGISTERED_GATE_MARKER,
+    SAMPLES_README_POST_EXIT_REJECTION_MARKER,
+    SAMPLES_README_SUMMARY_STABILITY_MARKER,
     SAMPLES_README_REENTRY_GATE_MARKER,
     SAMPLES_README_REENTRY_COMPANION_MARKER,
+    SAMPLES_README_REENTRY_DETAIL_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
@@ -348,7 +354,7 @@ Keep saying clearly that current `master` {SAMPLES_README_BACKLOG_MARKER}, so `z
 
 Keep older cross-phase non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}.
 
-Treat {SAMPLES_README_UNREGISTERED_GATE_MARKER} as a companion reminder inside that same narrow runtime packet's fail-closed boundary, not as proof that the broader shared loader family has returned. Treat {SAMPLES_README_REENTRY_GATE_MARKER} as the same packet's registration-reentry companion that keeps {SAMPLES_README_REENTRY_COMPANION_MARKER}, not as proof that the broader shared loader family has returned.
+Treat {SAMPLES_README_UNREGISTERED_GATE_MARKER} as the same narrow runtime packet's fail-closed companion for unregistered function-thread failures and {SAMPLES_README_POST_EXIT_REJECTION_MARKER}, including the {SAMPLES_README_SUMMARY_STABILITY_MARKER}, and treat {SAMPLES_README_REENTRY_GATE_MARKER} as the same packet's {SAMPLES_README_REENTRY_DETAIL_MARKER} that keeps {SAMPLES_README_REENTRY_COMPANION_MARKER}, not as proof that the broader shared loader family has returned.
 """
 
 
