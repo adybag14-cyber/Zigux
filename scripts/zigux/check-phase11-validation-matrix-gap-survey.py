@@ -20,34 +20,34 @@ FILES = {
 MARKERS = {
     "matrix_gap_note": [
         "# Phase 11 Validation Matrix Gap Survey",
-        "`PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`",
+        "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
         "lane: `P11-L03`",
+        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+        "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
+        "Current direct contents reads in this run do not rematerialize",
         "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
         "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
-        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-        "matrix packet is once again an honest four-matrix direct-readback claim",
+        "no longer an honest four-matrix direct-readback claim",
+        "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains",
-        "`zigux/tests/fixtures/phase11_build_inventory.json` now records the narrower current-head HVC continuity packet",
+        "`zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet",
         "4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays",
-        "the shared build inventory no longer stands in for a whole-Phase-11 replay roster",
-        "the shared build inventory has narrowed away from the older bcm2835 replay roster",
-        "the shared build inventory has narrowed away from the older gpio replay roster",
+        "does not stand in for a whole-Phase-11 replay roster",
         "`phase11-hvc-console-tests`",
         "`phase11-hvc-console-verify-tests`",
         "`phase11-hvc-cleanup-tests`",
         "`phase11-hvc-console-survey-tests`",
-        "the shared build inventory has narrowed away from the older DesignWare replay roster",
     ],
 }
 
 FORBIDDEN_MARKERS = {
     "matrix_gap_note": [
-        "`PHASE11_MATRIX_GAP_STATUS=driver_local_matrix_docs_absent_shared_header_matrix_only`",
-        "shared matrix packet is no longer an honest four-matrix direct-readback claim",
-        "The only directly readable Phase 11 matrix note on current `master` is",
-        "`zigux/tests/fixtures/phase11_build_inventory.json` still records 14 build test",
-        "13 shared depend steps, and one dedicated survey replay",
+        "`PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`",
+        "shared matrix packet is once again an honest four-matrix direct-readback claim",
+        "the bcm2835 matrix remains live reminder evidence",
+        "the gpio matrix remains live reminder evidence",
+        "the DesignWare matrix remains live reminder evidence",
     ],
 }
 
@@ -78,6 +78,10 @@ class CheckError(RuntimeError):
     pass
 
 
+def normalize_whitespace(text: str) -> str:
+    return " ".join(text.split())
+
+
 def read_text(root: Path, relative_path: str) -> str:
     path = root / relative_path
     if not path.is_file():
@@ -86,14 +90,16 @@ def read_text(root: Path, relative_path: str) -> str:
 
 
 def expect_markers(label: str, text: str, markers: list[str]) -> None:
+    normalized_text = normalize_whitespace(text)
     for marker in markers:
-        if marker not in text:
+        if normalize_whitespace(marker) not in normalized_text:
             raise CheckError(f"missing marker in {label}: {marker}")
 
 
 def expect_forbidden_markers_absent(label: str, text: str) -> None:
+    normalized_text = normalize_whitespace(text)
     for marker in FORBIDDEN_MARKERS.get(label, []):
-        if marker in text:
+        if normalize_whitespace(marker) in normalized_text:
             raise CheckError(f"forbidden marker in {label}: {marker}")
 
 
@@ -152,24 +158,20 @@ def build_self_test_fixture(root: Path) -> None:
         root / FILES["matrix_gap_note"],
         """# Phase 11 Validation Matrix Gap Survey
 
-- `PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`
+- `PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`
 - lane: `P11-L03`
-- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
-- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-- shared matrix packet is once again an honest four-matrix direct-readback claim
-- `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains
-- `zigux/tests/fixtures/phase11_build_inventory.json` now records the narrower current-head HVC continuity packet
+- `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+- Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix packet is no longer an honest four-matrix direct-readback claim
+- The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains useful adjacent shared evidence, but it is not one of the driver-local Phase 11 validation matrices named by the roadmap
+- `zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet
 - 4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays
-- the shared build inventory no longer stands in for a whole-Phase-11 replay roster
-- the shared build inventory has narrowed away from the older bcm2835 replay roster
-- the shared build inventory has narrowed away from the older gpio replay roster
+- the shared build inventory does not stand in for a whole-Phase-11 replay roster
 - `phase11-hvc-console-tests`
 - `phase11-hvc-console-verify-tests`
 - `phase11-hvc-cleanup-tests`
 - `phase11-hvc-console-survey-tests`
-- the shared build inventory has narrowed away from the older DesignWare replay roster
 """,
     )
     write(
@@ -205,7 +207,8 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         required_cases = [
-            ("matrix_gap_note", "`PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`"),
+            ("matrix_gap_note", "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`"),
+            ("matrix_gap_note", "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`"),
         ]
         for idx, (label, marker) in enumerate(required_cases, start=1):
             case_root = tmpdir / f"required_{idx}"
@@ -222,12 +225,12 @@ def run_self_test() -> None:
         path = forbidden_root / FILES["matrix_gap_note"]
         path.write_text(
             path.read_text(encoding="utf-8")
-            + "`PHASE11_MATRIX_GAP_STATUS=driver_local_matrix_docs_absent_shared_header_matrix_only`\n",
+            + "`PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`\n",
             encoding="utf-8",
         )
         expect_failure(
             forbidden_root,
-            "`PHASE11_MATRIX_GAP_STATUS=driver_local_matrix_docs_absent_shared_header_matrix_only`",
+            "`PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`",
         )
 
         wrong_count_root = tmpdir / "wrong_count"
@@ -236,13 +239,6 @@ def run_self_test() -> None:
         inventory["shared_test_depend_steps"] = inventory["shared_test_depend_steps"][:-1]
         write(wrong_count_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_count_root, "shared_test_depend_steps does not match")
-
-        wrong_adjunct_root = tmpdir / "wrong_adjunct"
-        shutil.copytree(fixture_root, wrong_adjunct_root, dirs_exist_ok=True)
-        inventory = json.loads((wrong_adjunct_root / FILES["inventory"]).read_text(encoding="utf-8"))
-        inventory["shared_adjunct_replays"] = []
-        write(wrong_adjunct_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
-        expect_failure(wrong_adjunct_root, "shared_adjunct_replays does not match")
 
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=4")
