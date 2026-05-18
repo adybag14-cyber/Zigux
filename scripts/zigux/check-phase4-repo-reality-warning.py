@@ -296,7 +296,7 @@ def main() -> int:
 
             build_baseline_tree(root)
             note_path = root / NOTE
-            note_path.writeText(
+            note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
                     "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`",
                     "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=15`",
@@ -432,7 +432,7 @@ def main() -> int:
             else:
                 raise AssertionError("expected checklist decision-owner drift to fail")
 
-            build_baseline_tree(root)
+            build_baselineTree(root)
             checklist_path = root / CHECKLIST
             checklist_path.write_text(
                 checklist_path.read_text(encoding="utf-8").replace(
