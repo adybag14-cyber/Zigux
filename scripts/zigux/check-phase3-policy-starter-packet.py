@@ -56,7 +56,6 @@ REQUIRED_REPO_REALITY_GAPS = (
     "zigux/tests/phase3_abi_dump.zig",
     "scripts/zigux/check-phase3-abi.py",
     "scripts/zigux/validate-phase3.py",
-    "zigux/tests/phase3_export_uapi_layout.zig",
 )
 
 EXPECTED_MANIFEST_FIELDS = {
@@ -295,8 +294,7 @@ SAMPLE_FILES[MANIFEST_PATH] = """{
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump.zig",
     "scripts/zigux/check-phase3-abi.py",
-    "scripts/zigux/validate-phase3.py",
-    "zigux/tests/phase3_export_uapi_layout.zig"
+    "scripts/zigux/validate-phase3.py"
   ],
   "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
