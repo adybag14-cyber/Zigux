@@ -8,7 +8,7 @@ This note restores the missing Lane 15 closure record in a current-master-safe f
 - `PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`
 - `PHASE1_HELPER_COUNT=13`
 - manifest: `zigux/tests/fixtures/phase1_helper_manifest.json`
-- current authority: the committed helper manifest, this closure note, the narrow closure validator, the shipped bench checker, the live owner-map reminders, and the shared tests-root smoke route remain the trustworthy current-master sources for the closed helper tranche
+- current authority: the committed helper manifest, this closure note, the narrow closure validator, the live closure-gates checker, the shipped bench checker, the live owner-map reminders, and the shared tests-root smoke route remain the trustworthy current-master sources for the closed helper tranche
 
 The bounded Phase 1 helper tranche is still the same thirteen helper ports named in the committed manifest, but the broader closure-side validator and replay stack is not fully materialized on current `master`.
 
@@ -24,13 +24,14 @@ The currently reviewable Phase 1 reminder packet is:
 - `scripts/zigux/check-phase1-string-review-packet.py`
 - `scripts/zigux/check-phase1-direct-owner-markers.py`
 - `scripts/zigux/check-phase1-bench.py`
+- `scripts/zigux/check-phase1-closure-gates.py`
 - `scripts/zigux/validate-phase1-closure.py`
 - `zigux/tests/README.md`
 - `zigux/tests/build.zig`
 - `zigux/tests/phase1_host_tools_smoke.zig`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
+- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-closure-gates.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
 
 ## Current Repo-Reality Gaps
 
@@ -45,9 +46,9 @@ Current `master` still does not directly materialize the older validator-first a
 
 - `PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`
 
-Current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate`, `phase3`, `phase10-validate`, `phase10-test`, and `phase10` routes. It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`, so treat the returned file as current repo evidence while those older Phase 1 wrapper names remain historical packet members rather than active closure proof.
+Current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate`, `phase3`, `phase8-validate`, `phase8-exec-cmd-test`, `phase8-test`, and `phase10-validate`, `phase10-test`, and `phase10` routes. It still does not expose `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, or `make -C zigux phase1`, so treat the returned file as current repo evidence while those older Phase 1 wrapper names remain historical packet members rather than active closure proof.
 
-Restoring this note does not claim that those broader replay routes are back. It restores the Lane 15 closure anchor itself, records the exact repo-reality gap that still separates the closed helper tranche from the older full closure stack, and keeps the already-landed shared tests-root smoke route plus the shipped bench checker visible as part of the narrower packet that current `master` can honestly support.
+Restoring this note does not claim that those broader replay routes are back. It restores the Lane 15 closure anchor itself, records the exact repo-reality gap that still separates the closed helper tranche from the older full closure stack, and keeps the already-landed shared tests-root smoke route plus the shipped bench checker and closure-gates checker visible as part of the narrower packet that current `master` can honestly support.
 
 ## Closure Validation
 
@@ -55,14 +56,15 @@ The current shared tests-root closure route is narrow on purpose:
 
 - `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
 
-That route keeps a minimal shared import-and-wire smoke check alive for the current helper packet while the dedicated closure validator keeps the restored closure note aligned with the committed helper manifest and the shipped reminder packet on current `master`.
+That route keeps a minimal shared import-and-wire smoke check alive for the current helper packet while the dedicated closure validator and closure-gates checker keep the restored closure note aligned with the committed helper manifest and the shipped reminder packet on current `master`.
 
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
+- `PHASE1_CLOSURE_GATES=python3 scripts/zigux/check-phase1-closure-gates.py`
 - `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
 - `PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`
 
 ## Next Step
 
-The next bounded same-lane follow-through is to sync one shared reminder surface or one helper-family tie-breaker against this restored closure note, the closure validator, the shared tests-root smoke route, and the helper-specific `next_safe_step_note` entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.
+The next bounded same-lane follow-through is to sync one shared reminder surface or one helper-family tie-breaker against this restored closure note, the closure validator, the closure-gates checker, the shared tests-root smoke route, and the helper-specific `next_safe_step_note` entries in the committed manifest rather than widening back into the older validator-first or replay-side closure stack.
 
-- `PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, closure validator, shared tests-root smoke route, and the helper-specific next_safe_step_note entries in zigux/tests/fixtures/phase1_helper_manifest.json`
+- `PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker against the restored closure note, closure validator, closure-gates checker, shared tests-root smoke route, and the helper-specific next_safe_step_note entries in zigux/tests/fixtures/phase1_helper_manifest.json`
