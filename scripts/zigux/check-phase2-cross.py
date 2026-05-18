@@ -75,6 +75,11 @@ def build_matrix_entries(targets: list[str], zig_test_files: list[str]) -> list[
     return [f"{target}:{rel_path}" for target in targets for rel_path in zig_test_files]
 
 
+def emit_target_summary(targets: list[str]) -> None:
+    print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
+    print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
+
+
 def emit_matrix_summary(targets: list[str], zig_test_files: list[str]) -> None:
     matrix_entries = build_matrix_entries(targets, zig_test_files)
     print(f"PHASE2_CROSS_MATRIX_ENTRY_COUNT={len(matrix_entries)}")
@@ -201,6 +206,7 @@ def run_cross_compile(
     print("PHASE2_CROSS=pass")
     print("PHASE2_CROSS_REPLAY_MODE=single-target")
     print(f"PHASE2_CROSS_TARGET={target}")
+    emit_target_summary([target])
     print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
     emit_matrix_summary([target], zig_test_files)
     return 0
@@ -223,8 +229,7 @@ def run_all_targets(
 
     print("PHASE2_CROSS=pass")
     print("PHASE2_CROSS_REPLAY_MODE=all-targets")
-    print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
-    print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
+    emit_target_summary(targets)
     print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
     emit_matrix_summary(targets, zig_test_files)
     return 0
@@ -295,6 +300,8 @@ def run_self_test() -> int:
         assert validate_fixture(root) == []
         baseline_code, baseline_output = run_main(["--root", str(root)])
         assert baseline_code == 0
+        assert "PHASE2_CROSS_TARGET_COUNT=3" in baseline_output
+        assert "PHASE2_CROSS_TARGETS=x86_64-linux-musl,aarch64-linux-musl,riscv64-linux-musl" in baseline_output
         assert "PHASE2_CROSS_MATRIX_ENTRY_COUNT=6" in baseline_output
         assert (
             "PHASE2_CROSS_MATRIX_ENTRIES="
@@ -684,6 +691,8 @@ def run_self_test() -> int:
         assert any("-target x86_64-linux-musl --test-no-exec" in line for line in success_lines)
         assert any("-target aarch64-linux-musl --test-no-exec" in line for line in success_lines)
         assert any("-target riscv64-linux-musl --test-no-exec" in line for line in success_lines)
+        assert "PHASE2_CROSS_TARGET_COUNT=3" in all_targets_output
+        assert "PHASE2_CROSS_TARGETS=x86_64-linux-musl,aarch64-linux-musl,riscv64-linux-musl" in all_targets_output
         assert "PHASE2_CROSS_MATRIX_ENTRY_COUNT=6" in all_targets_output
         assert (
             "PHASE2_CROSS_MATRIX_ENTRIES="
@@ -716,6 +725,8 @@ def run_self_test() -> int:
         single_lines = single_log.read_text(encoding="utf-8").splitlines()
         assert len(single_lines) == len(EXPECTED_ZIG_TEST_FILES)
         assert all(f"-target {EXPECTED_TARGETS[1]} --test-no-exec" in line for line in single_lines)
+        assert "PHASE2_CROSS_TARGET_COUNT=1" in single_output
+        assert f"PHASE2_CROSS_TARGETS={EXPECTED_TARGETS[1]}" in single_output
         assert "PHASE2_CROSS_MATRIX_ENTRY_COUNT=2" in single_output
         assert (
             "PHASE2_CROSS_MATRIX_ENTRIES="
@@ -901,8 +912,7 @@ def main(argv: list[str] | None = None) -> int:
     targets = payload["targets"]
     zig_test_files = payload["zig_test_files"]
     print("PHASE2_CROSS=pass")
-    print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
-    print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
+    emit_target_summary(targets)
     print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
     emit_matrix_summary(targets, zig_test_files)
     return 0
