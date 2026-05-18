@@ -12,7 +12,7 @@ Authenticated sample-root readback still directly exposes this bounded non-runti
 
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 
-Fresh public-tree reread on 2026-05-18 also reconfirmed that current `master` exposes the broader non-runtime trace-events sample packet through:
+Fresh shared-packet reread on 2026-05-18 reconfirmed that the broader non-runtime trace-events sample-local companions still need fresh reread proof before they can be treated as returned direct current-`master` evidence:
 
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `samples/zigux/trace_events_sample.zig`
@@ -25,20 +25,15 @@ The shared `zigux/tests/phase5_build.zig` route remains useful support material 
 Keep the approved formatting idiom bounded to the current landed reminder packet:
 
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
-- `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
-- `samples/zigux/trace_events_sample.zig`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
-- `zigux/tests/phase5_trace_events_sample.zig`
-- `zigux/tests/phase5_trace_events_sample_manifest.json`
-- `zigux/tests/phase5_trace_events_sample_survey.zig`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the full non-runtime trace-events sample packet is again readable through the public tree, the bounded formatting companion remains directly readable through the authenticated sample-root route, and the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof.
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the older non-runtime trace-events sample-local companions stay in the repo-reality-gap or public-tree-backed companion bucket until a fresh reread proves they returned directly on `master`, and the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof.
 
 ## Exact checks run on 2026-05-18
 
@@ -75,4 +70,4 @@ Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/v
 
 ## Next bounded step
 
-Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still treats the returned non-runtime sample packet as absent, loses the selected-string plus `iter=%d` cue, stops mentioning the bounded destination failure check, or stops framing `zigux/tests/phase5_build.zig` as public-tree-backed companion evidence while authenticated contents reread still misses that path.
+Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still treats the narrower formatting companion as a returned full trace-events packet, loses the selected-string plus `iter=%d` cue, stops mentioning the bounded destination failure check, or stops framing `zigux/tests/phase5_build.zig` and the older sample-local companions as public-tree-backed companion evidence or repo-reality gaps while authenticated contents reread still misses those paths.
