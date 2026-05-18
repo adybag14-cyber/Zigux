@@ -249,14 +249,28 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             root,
+            "Documentation/zigux/phase10-virtio-mmio-survey.md",
+            "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
+            "zig test zigux/tests/phase10_virtio_mmio_missing.zig",
+            "survey_note:zig test zigux/tests/phase10_virtio_mmio_survey.zig",
+        )
+        expect_missing_marker(
+            root,
             "zigux/tests/phase10_build.zig",
             "run_phase10_virtio_mmio_verify_tests.step",
             "run_phase10_virtio_mmio_verify_drift.step",
             "build_file:run_phase10_virtio_mmio_verify_tests.step",
         )
+        expect_missing_marker(
+            root,
+            "zigux/tests/phase10_build.zig",
+            "run_phase10_virtio_mmio_survey_tests.step",
+            "run_phase10_virtio_mmio_survey_drift.step",
+            "build_file:run_phase10_virtio_mmio_survey_tests.step",
+        )
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
