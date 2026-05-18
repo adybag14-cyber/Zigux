@@ -10,6 +10,7 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+MAKEFILE_PATH = "zigux/Makefile"
 NOTE_PATH = "Documentation/zigux/phase12-bootstrap-lane-contract.md"
 
 NOTE_MARKERS = [
@@ -17,69 +18,28 @@ NOTE_MARKERS = [
     "lane owner: `Lane 05`",
     "workflow anchor: `.github/workflows/zigux-bootstrap.yml`",
     "checker anchor: `scripts/zigux/check-phase12-bootstrap-contract.py`",
-    "the current bootstrap workflow still begins with `Compile current scripts`",
-    "the current Phase 12 slice sits after the current Zig toolchain, Phase 2, Phase 1, Phase 4, Phase 7, Phase 10, and Phase 11 packets",
-    "the current Phase 12 bootstrap segment reruns `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `make -C zigux phase12-validate`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
-    "`make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all` are current bootstrap-lane evidence on `master`",
-    "the current bootstrap tail still ends with `make -C zigux phase8-validate`, `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`, and `Check current docs-root sanity markers`",
-    "the shipped docs guard is still the inline `Check current docs-root sanity markers` step from `.github/workflows/zigux-bootstrap.yml`",
-    "`Check current Phase 12 build-only surface`, `Self-test current Phase 12 bootstrap docs sanity checker`, `Check current Phase 12 docs-root sanity markers`, `Self-test current Phase 12 bootstrap lane checker`, and `Check current Phase 12 bootstrap lane shape` belong to the active Lane 05 workflow review branch, not current `master`",
+    "the current bootstrap workflow now keeps the shared Phase 12 packet explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `make -C zigux phase12-validate`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
+    "the same live bootstrap workflow now continues straight into `make -C zigux phase13-validate`, `make -C zigux phase13-test`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, `make -C zigux phase15-validate`, and `make -C zigux phase15-test`",
+    "current `master` no longer materializes `phase12-validate`, `phase12-smoke`, `phase12-test`, `phase12`, `phase13-validate`, `phase13-test`, `phase13`, `phase14-validate`, `phase14-smoke`, `phase14-test`, `phase14`, `phase15-validate`, `phase15-test`, or `phase15` in `zigux/Makefile`, so those bootstrap route names are a live Lane 05 workflow-viability gap rather than shipped current-`master` evidence",
+    "until same-lane work rematerializes those shared Make routes, the honest contract is that `.github/workflows/zigux-bootstrap.yml` overstates current shared Phase 12 through Phase 15 route viability",
+    "`Self-test current Phase 12 bootstrap docs sanity checker`, `Check current Phase 12 docs-root sanity markers`, `Self-test current Phase 12 bootstrap lane checker`, and `Check current Phase 12 bootstrap lane shape` still belong only to the open Lane 05 review branches, not current `master`",
 ]
 
-REQUIRED_STEP_ORDER = [
-    "Compile current scripts",
-    "Self-test current Zig toolchain checker",
-    "Check current Zig toolchain policy packet",
-    "Check current pinned Zig archive packet",
-    "Self-test current Phase 2 kconfig bridge checker",
-    "Check current Phase 2 kconfig bridge packet",
-    "Self-test current Phase 2 kbuild routes checker",
-    "Check current Phase 2 kbuild packet",
-    "Self-test current Phase 2 tests README checker",
-    "Check current Phase 2 tests README packet",
-    "Self-test current Phase 2 cross selftest alignment checker",
-    "Check current Phase 2 cross alignment packet",
-    "Self-test current Phase 2 toolchain pinning checker",
-    "Check current Phase 2 toolchain pinning packet",
-    "Self-test current Phase 2 toolchain pin-scope checker",
-    "Check current Phase 2 toolchain pin-scope packet",
-    "Self-test current Phase 2 required make-routes checker",
-    "Check current Phase 2 required make routes",
-    "Self-test current Phase 1 direct-owner checker",
-    "Check current Phase 1 direct-owner markers",
-    "Self-test current Phase 1 string review checker",
-    "Check current Phase 1 string review packet",
-    "Self-test current Phase 1 bench checker",
-    "Self-test current Phase 1 shared reminder checker",
-    "Check current Phase 1 shared reminder packet",
-    "Self-test current Phase 4 repo-reality warning checker",
-    "Check current Phase 4 repo-reality warning packet",
-    "Self-test current Phase 4 reversible-delivery pin checker",
-    "Check current Phase 4 reversible-delivery pin packet",
-    "Self-test current Phase 4 tests README checker",
-    "Check current Phase 4 tests README packet",
-    "Self-test current Phase 7 shared-control gap checker",
-    "Check current Phase 7 shared-control gap packet",
-    "Self-test current Phase 10 bootstrap route checker",
-    "Check current Phase 10 bootstrap route",
-    "Validate Phase 10 checker-backed review packet",
-    "Run Phase 10 helper tests",
-    "Self-test current Phase 11 HVC cleanup current-head checker",
-    "Check current Phase 11 HVC cleanup current-head packet",
-    "Self-test current Phase 11 build inventory checker",
-    "Check current Phase 11 build inventory packet",
-    "Self-test current Phase 11 matrix-gap survey checker",
-    "Check current Phase 11 matrix-gap survey packet",
-    "Self-test current Phase 12 build-only surface checker",
-    "Check current Phase 12 build-only surface",
-    "Self-test current Phase 12 release-readiness packet checker",
+WORKFLOW_STEP_ORDER = [
+    "Self-test Phase 12 build-only surface checker",
+    "Check Phase 12 build-only surface",
+    "Self-test Phase 12 release-readiness packet checker",
     "Validate Phase 12 degraded-workflow bundle",
-    "Check current Phase 12 release-readiness packet",
+    "Check Phase 12 release-readiness packet",
     "Run focused Phase 12 smoke shard",
     "Run Phase 12 complex driver tests",
-    "Validate Phase 8 tooling gates",
-    "Run focused Phase 8 libbpf segment survey tests",
-    "Check current docs-root sanity markers",
+    "Validate Phase 13 release-discipline packet",
+    "Run Phase 13 shared helper tests",
+    "Validate Phase 14 shared smoke packet",
+    "Run focused Phase 14 smoke shard",
+    "Run Phase 14 internal bridge tests",
+    "Validate Phase 15 governance packet",
+    "Run Phase 15 governance tests",
 ]
 
 WORKFLOW_REQUIRED_MARKERS = [
@@ -90,17 +50,37 @@ WORKFLOW_REQUIRED_MARKERS = [
     "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
     "make -C zigux phase12-smoke",
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
-    "make -C zigux phase8-validate",
-    "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+    "make -C zigux phase13-validate",
+    "make -C zigux phase13-test",
+    "make -C zigux phase14-validate",
+    "make -C zigux phase14-smoke",
+    "make -C zigux phase14-test",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
 ]
 
 WORKFLOW_FORBIDDEN_MARKERS = [
-    "scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
-    "scripts/zigux/check-phase12-bootstrap-lane-shape.py",
     "Self-test current Phase 12 bootstrap docs sanity checker",
     "Check current Phase 12 docs-root sanity markers",
     "Self-test current Phase 12 bootstrap lane checker",
     "Check current Phase 12 bootstrap lane shape",
+]
+
+MAKEFILE_FORBIDDEN_MARKERS = [
+    "phase12-validate:",
+    "phase12-smoke:",
+    "phase12-test:",
+    "phase12: phase12-validate phase12-smoke phase12-test",
+    "phase13-validate:",
+    "phase13-test:",
+    "phase13: phase13-validate phase13-test",
+    "phase14-validate:",
+    "phase14-smoke:",
+    "phase14-test:",
+    "phase14: phase14-validate phase14-smoke phase14-test",
+    "phase15-validate:",
+    "phase15-test:",
+    "phase15: phase15-validate phase15-test",
 ]
 
 
@@ -124,7 +104,7 @@ def read_text(root: Path, rel_path: str) -> str:
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
 
-    for rel_path in [WORKFLOW_PATH, NOTE_PATH]:
+    for rel_path in [WORKFLOW_PATH, MAKEFILE_PATH, NOTE_PATH]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
 
@@ -138,7 +118,7 @@ def validate(root: Path) -> list[str]:
 
     workflow_text = read_text(root, WORKFLOW_PATH)
     last_index = -1
-    for step in REQUIRED_STEP_ORDER:
+    for step in WORKFLOW_STEP_ORDER:
         current_index = workflow_text.find(step)
         if current_index == -1:
             failures.append(f"workflow_missing:{step}")
@@ -155,6 +135,11 @@ def validate(root: Path) -> list[str]:
         if marker in workflow_text:
             failures.append(f"workflow_forbidden:{marker}")
 
+    makefile_text = read_text(root, MAKEFILE_PATH)
+    for marker in MAKEFILE_FORBIDDEN_MARKERS:
+        if marker in makefile_text:
+            failures.append(f"makefile_forbidden:{marker}")
+
     return failures
 
 
@@ -166,9 +151,8 @@ def write_text(path: Path, content: str) -> None:
 def fixture_note() -> str:
     return """# Phase 12 Bootstrap Lane Contract
 
-This note records the current Phase 12 portion of the bootstrap workflow without
-rewriting the broader reminder packet or reopening the live workflow file in this
-lane.
+This note records the current Lane 05 bootstrap viability reading on `master`
+without widening into a workflow replay.
 
 ## Status
 
@@ -179,42 +163,47 @@ lane.
 
 ## Current Bootstrap Contract
 
-- the current bootstrap workflow still begins with `Compile current scripts`
-- the current Phase 12 slice sits after the current Zig toolchain, Phase 2, Phase 1, Phase 4, Phase 7, Phase 10, and Phase 11 packets
-- the current Phase 12 bootstrap segment reruns `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `make -C zigux phase12-validate`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-- `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all` are current bootstrap-lane evidence on `master`
-- the current bootstrap tail still ends with `make -C zigux phase8-validate`, `zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`, and `Check current docs-root sanity markers`
-- the shipped docs guard is still the inline `Check current docs-root sanity markers` step from `.github/workflows/zigux-bootstrap.yml`
-- `Check current Phase 12 build-only surface`, `Self-test current Phase 12 bootstrap docs sanity checker`, `Check current Phase 12 docs-root sanity markers`, `Self-test current Phase 12 bootstrap lane checker`, and `Check current Phase 12 bootstrap lane shape` belong to the active Lane 05 workflow review branch, not current `master`
-- until the workflow changes again, Lane 05 should keep this contract companion aligned to the broader current-`master` bootstrap segment instead of the older smaller-tail packet or the active branch-only checker pair
+- the current bootstrap workflow now keeps the shared Phase 12 packet explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-build-only-phase12-surface.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `make -C zigux phase12-validate`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
+- the same live bootstrap workflow now continues straight into `make -C zigux phase13-validate`, `make -C zigux phase13-test`, `make -C zigux phase14-validate`, `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, `make -C zigux phase15-validate`, and `make -C zigux phase15-test`
+- current `master` no longer materializes `phase12-validate`, `phase12-smoke`, `phase12-test`, `phase12`, `phase13-validate`, `phase13-test`, `phase13`, `phase14-validate`, `phase14-smoke`, `phase14-test`, `phase14`, `phase15-validate`, `phase15-test`, or `phase15` in `zigux/Makefile`, so those bootstrap route names are a live Lane 05 workflow-viability gap rather than shipped current-`master` evidence
+- until same-lane work rematerializes those shared Make routes, the honest contract is that `.github/workflows/zigux-bootstrap.yml` overstates current shared Phase 12 through Phase 15 route viability
+- `Self-test current Phase 12 bootstrap docs sanity checker`, `Check current Phase 12 docs-root sanity markers`, `Self-test current Phase 12 bootstrap lane checker`, and `Check current Phase 12 bootstrap lane shape` still belong only to the open Lane 05 review branches, not current `master`
 """
 
 
 def fixture_workflow() -> str:
-    command_by_step = {
-        "Self-test current Phase 12 build-only surface checker": "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
-        "Check current Phase 12 build-only surface": "python3 scripts/zigux/check-build-only-phase12-surface.py",
-        "Self-test current Phase 12 release-readiness packet checker": "python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
-        "Validate Phase 12 degraded-workflow bundle": "make -C zigux phase12-validate",
-        "Check current Phase 12 release-readiness packet": "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
-        "Run focused Phase 12 smoke shard": "make -C zigux phase12-smoke",
-        "Run Phase 12 complex driver tests": "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
-        "Validate Phase 8 tooling gates": "make -C zigux phase8-validate",
-        "Run focused Phase 8 libbpf segment survey tests": "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
-    }
-    rendered_steps = []
-    for index, step in enumerate(REQUIRED_STEP_ORDER, start=1):
-        command = command_by_step.get(step, f"echo {index}")
-        rendered_steps.append(f"      - name: {step}\n        run: {command}")
-    steps = "\n\n".join(rendered_steps)
-    return (
-        "name: zigux-bootstrap\n\n"
-        "jobs:\n"
-        "  bootstrap:\n"
-        "    runs-on: ubuntu-latest\n"
-        "    steps:\n"
-        f"{steps}\n"
-    )
+    steps = []
+    for step in WORKFLOW_STEP_ORDER:
+        command = "echo ok"
+        for marker in WORKFLOW_REQUIRED_MARKERS:
+            if step in marker or marker.endswith(step):
+                command = marker
+                break
+        command_map = {
+            "Self-test Phase 12 build-only surface checker": "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+            "Check Phase 12 build-only surface": "python3 scripts/zigux/check-build-only-phase12-surface.py",
+            "Self-test Phase 12 release-readiness packet checker": "python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+            "Validate Phase 12 degraded-workflow bundle": "make -C zigux phase12-validate",
+            "Check Phase 12 release-readiness packet": "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
+            "Run focused Phase 12 smoke shard": "make -C zigux phase12-smoke",
+            "Run Phase 12 complex driver tests": "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
+            "Validate Phase 13 release-discipline packet": "make -C zigux phase13-validate",
+            "Run Phase 13 shared helper tests": "make -C zigux phase13-test",
+            "Validate Phase 14 shared smoke packet": "make -C zigux phase14-validate",
+            "Run focused Phase 14 smoke shard": "make -C zigux phase14-smoke",
+            "Run Phase 14 internal bridge tests": "make -C zigux phase14-test",
+            "Validate Phase 15 governance packet": "make -C zigux phase15-validate",
+            "Run Phase 15 governance tests": "make -C zigux phase15-test",
+        }
+        steps.append(f"      - name: {step}\n        run: {command_map[step]}")
+    return "name: zigux-bootstrap\njobs:\n  bootstrap:\n    runs-on: ubuntu-latest\n    steps:\n" + "\n".join(steps) + "\n"
+
+
+def fixture_makefile() -> str:
+    return """PHONY += phase2-toolchain phase2-validate phase2
+PHONY += phase8-validate phase8-test phase8
+PHONY += phase10-validate phase10-test phase10
+"""
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -228,6 +217,7 @@ def run_self_test() -> int:
     try:
         write_text(base / NOTE_PATH, fixture_note())
         write_text(base / WORKFLOW_PATH, fixture_workflow())
+        write_text(base / MAKEFILE_PATH, fixture_makefile())
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
@@ -242,32 +232,25 @@ def run_self_test() -> int:
         write_text(
             base / WORKFLOW_PATH,
             fixture_workflow().replace(
-                "      - name: Validate Phase 12 degraded-workflow bundle\n        run: make -C zigux phase12-validate\n",
+                "      - name: Validate Phase 13 release-discipline packet\n        run: make -C zigux phase13-validate\n",
                 "",
                 1,
             ),
         )
-        expect_failure(
-            base,
-            "workflow_missing:Validate Phase 12 degraded-workflow bundle",
-        )
+        expect_failure(base, "workflow_missing:Validate Phase 13 release-discipline packet")
 
+        write_text(base / WORKFLOW_PATH, fixture_workflow())
         write_text(
-            base / WORKFLOW_PATH,
-            fixture_workflow().replace(
-                "      - name: Validate Phase 10 checker-backed review packet\n        run: echo 36\n\n"
-                "      - name: Run Phase 10 helper tests\n        run: echo 37\n",
-                "      - name: Run Phase 10 helper tests\n        run: echo 37\n\n"
-                "      - name: Validate Phase 10 checker-backed review packet\n        run: echo 36\n",
-                1,
-            ),
+            base / MAKEFILE_PATH,
+            fixture_makefile() + "phase12-validate:\n",
         )
-        expect_failure(base, "workflow_order:Run Phase 10 helper tests")
+        expect_failure(base, "makefile_forbidden:phase12-validate:")
 
+        write_text(base / MAKEFILE_PATH, fixture_makefile())
         write_text(
             base / WORKFLOW_PATH,
             fixture_workflow()
-            + "\n      - name: Self-test current Phase 12 bootstrap lane checker\n        run: echo stale\n",
+            + "      - name: Self-test current Phase 12 bootstrap lane checker\n        run: echo stale\n",
         )
         expect_failure(
             base,
@@ -309,7 +292,7 @@ def main() -> int:
 
     print("PHASE12_BOOTSTRAP_CONTRACT=pass")
     print(f"PHASE12_BOOTSTRAP_CONTRACT_NOTE_MARKER_COUNT={len(NOTE_MARKERS)}")
-    print(f"PHASE12_BOOTSTRAP_CONTRACT_STEP_COUNT={len(REQUIRED_STEP_ORDER)}")
+    print(f"PHASE12_BOOTSTRAP_CONTRACT_STEP_COUNT={len(WORKFLOW_STEP_ORDER)}")
     return 0
 
 
