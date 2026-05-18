@@ -47,7 +47,7 @@ test "phase 15 governance-lane sequencing manifest records the new direct replay
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("arch-council", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-Y06", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-18", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-governance-lane-sequencing.md", manifest.sequencing_note);
@@ -78,7 +78,7 @@ test "phase 15 governance-lane sequencing note names the direct replay and remai
     const manifest = parsed.value;
 
     try expectContains(sequencing_note, "PHASE15_STATUS=governance_lane_sequencing_packet_landed");
-    try expectContains(sequencing_note, "PHASE15_LANE_KEY=arch-council");
+    try expectContains(sequencing_note, "PHASE15_LANE_KEY=P15-Y06");
     try expectContains(sequencing_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(sequencing_note, manifest.surveyed_commit);
     try expectContains(sequencing_note, "dedicated governance-lane sequencing manifest plus focused replay are now landed");
