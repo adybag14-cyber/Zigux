@@ -77,10 +77,10 @@ The following representative Phase 3 routes still read as absent on the live tre
 - `scripts/zigux/phase3_catalog.py`
 - `zigux/tests/phase3_export_uapi_layout.zig`
 - `zigux/tests/phase3_export_uapi_layout_build.zig`
-- `zigux/tests/phase3_low_level_wrappers.zig`
-- `zigux/tests/phase3_low_level_wrappers_build.zig`
 - `Documentation/zigux/phase3-abi-header-family-survey.md`
 - `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
+
+Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, but that separate wrapper reminder should not be used here to imply that the broader validator-support or export/UAPI replay packet has returned.
 
 ## Shared reminder follow-up
 
@@ -94,4 +94,4 @@ Keep any remaining follow-up focused on separate scripts-root inventory drift if
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, the helper-local fixture-backed parity packet, and the focused policy slice explicit, marks representative broader validator and export-boundary routes as current gaps, records the now-aligned docs-root, checklist, and tests-root reminder surfaces, and keeps scripts-root follow-through separate. This note does not claim that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, the helper-local fixture-backed parity packet, and the focused policy slice explicit, marks representative broader validator and export-boundary routes as current gaps, records the separately landed low-level-wrapper packet without promoting it into broader validator support, records the now-aligned docs-root, checklist, and tests-root reminder surfaces, and keeps scripts-root follow-through separate. This note does not claim that the broader Phase 3 ABI substrate, export/UAPI layout packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
