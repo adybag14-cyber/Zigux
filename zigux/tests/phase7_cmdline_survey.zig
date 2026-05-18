@@ -67,6 +67,14 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectNotContains(helper, "pub fn argvSplit");
     try expectNotContains(helper, "pub fn kstrdupQuotable");
 
+    const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_cmdline_sample_boundary.zig");
+    defer allocator.free(sample_boundary);
+    try expectContains(sample_boundary, "phase 7 cmdline boundary keeps the no-standalone-cmdline-sample policy helper-local");
+    try expectContains(sample_boundary, "phase 7 cmdline boundary stays rooted in the helper-local packet");
+    try expectContains(sample_boundary, "no-standalone-cmdline-sample boundary");
+    try expectContains(sample_boundary, "\"samples/zigux/README.md\"");
+    try expectContains(sample_boundary, "* `*cmdline*`");
+
     const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_readme);
     try expectContains(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:");
