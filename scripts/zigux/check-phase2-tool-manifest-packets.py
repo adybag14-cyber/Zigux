@@ -82,8 +82,24 @@ EXPECTED_SHARED_PRESENT_FILES = [
     "scripts/zigux/check-zig-toolchain.py",
 ]
 
+EXPECTED_MANIFEST_FIELDS = {
+    "packet",
+    "phase",
+    "status",
+    "toolchain_bootstrap_doc",
+    "closure_validator",
+    "closure_doc",
+    "shared_validator",
+    "tool_manifest_checker",
+    "makefile",
+    "present_files",
+    "missing_files",
+    "master_present_branch_missing_files",
+    "workflow_surface",
+}
+
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 31
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -120,6 +136,17 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_duplicate_manifest_entries(values: object, code: str) -> list[tuple[str, str]]:
+    if not isinstance(values, list):
+        return []
+
+    counts: dict[str, int] = {}
+    for value in values:
+        key = value if isinstance(value, str) else repr(value)
+        counts[key] = counts.get(key, 0) + 1
+    return [(code, f"{key}:count={count}") for key, count in counts.items() if count > 1]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     closure_doc_text = read_text(root, CLOSURE_DOC)
@@ -150,6 +177,23 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS",
         )
     )
+
+    unexpected_fields = sorted(set(manifest) - EXPECTED_MANIFEST_FIELDS)
+    if unexpected_fields:
+        issues.extend(("UNEXPECTED_MANIFEST_FIELD", field) for field in unexpected_fields)
+
+    present_files = manifest.get("present_files")
+    missing_files = manifest.get("missing_files")
+
+    issues.extend(collect_duplicate_manifest_entries(present_files, "DUPLICATE_PRESENT_FILE_ENTRY"))
+    issues.extend(collect_duplicate_manifest_entries(missing_files, "DUPLICATE_MISSING_FILE_ENTRY"))
+    if isinstance(present_files, list) and isinstance(missing_files, list):
+        present_set = {value for value in present_files if isinstance(value, str)}
+        missing_set = {value for value in missing_files if isinstance(value, str)}
+        issues.extend(
+            ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", value)
+            for value in sorted(present_set & missing_set)
+        )
 
     if manifest.get("packet") != "phase2_tool_manifest":
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
@@ -317,6 +361,34 @@ def run_self_test() -> int:
             write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
             assert ("INVALID_MANIFEST_FIELD", field) in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["unexpected"] = "value"
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("UNEXPECTED_MANIFEST_FIELD", "unexpected") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["present_files"] = EXPECTED_PRESENT_FILES + [EXPECTED_PRESENT_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("DUPLICATE_PRESENT_FILE_ENTRY", f"{EXPECTED_PRESENT_FILES[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_MISSING_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("DUPLICATE_MISSING_FILE_ENTRY", f"{EXPECTED_MISSING_FILES[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_PRESENT_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
+        checks_run += 1
 
         build_self_test_root(root)
         bad = json.loads(manifest_json())
