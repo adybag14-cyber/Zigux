@@ -59,6 +59,7 @@ Keep the bytestream and kobject anchors in shared-reminder or repo-reality-gap w
 
 For the tracing and probe lane, keep follow-through aligned with these bounded reminder surfaces:
 
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/review-checklist.md`
