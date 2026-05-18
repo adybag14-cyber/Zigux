@@ -146,8 +146,12 @@ UNREGISTERED_GATE_REQUIRED_MARKERS = [
     "const exited_before = module.summary();",
     "try std.testing.expectEqual(ModuleStage.exited, exited_before.stage);",
     "try std.testing.expectEqual(@as(usize, 1), exited_before.exit_runs);",
-    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(9));",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(9));",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(11));",
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());",
     "const exited_after = module.summary();",
     "try expectSummaryStable(exited_before, exited_after);",
 ]
