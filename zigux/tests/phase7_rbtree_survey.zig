@@ -41,6 +41,9 @@ test "phase 7 rbtree survey keeps the surviving anchor scoped to rbtree only" {
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_rbtree_manifest.json");
     defer allocator.free(manifest_json);
 
+    const direct_anchor_note = try readRepoFile(allocator, "Documentation/zigux/phase7-rbtree-direct-anchor-note.md");
+    defer allocator.free(direct_anchor_note);
+
     const sequencing_note = try readRepoFile(allocator, "Documentation/zigux/phase7-helper-lane-sequencing.md");
     defer allocator.free(sequencing_note);
 
@@ -84,6 +87,29 @@ test "phase 7 rbtree survey keeps the surviving anchor scoped to rbtree only" {
     try expectStringSliceContains(manifest.ownership_focus, "cross-helper truthfulness must keep the landed string_helpers packet explicit instead of repeating the older blocked-by-missing-string-helper claim");
     try expectStringSliceContains(manifest.ownership_focus, "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` is directly readable again but still lacks dedicated `phase7-*` wrapper routes, `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps, and the missing helper, dedicated test, checker, and shared build files still block any claim that the broader rbtree build packet returned");
     try expectContains(manifest.next_bounded_step, "survey-or-manifest truthfulness");
+
+    try expectContains(direct_anchor_note, "Current direct-readback Phase 7 rbtree anchor: `zigux/tests/phase7_rbtree_survey.zig`");
+    try expectContains(direct_anchor_note, "Fresh same-lane readback also keeps `zigux/tests/phase7_rbtree_manifest.json` directly readable as the surviving companion anchor for the current rbtree packet.");
+    try expectContains(direct_anchor_note, "Current directly readable same-lane Phase 7 sibling evidence also includes:");
+    try expectContains(direct_anchor_note, "`Documentation/zigux/phase7-string-helpers-slice.md`");
+    try expectContains(direct_anchor_note, "`zigux/tests/phase7_string_helpers_manifest.json`");
+    try expectContains(direct_anchor_note, "`samples/zigux/README.md`");
+    try expectContains(direct_anchor_note, "Repo-reality warning for the broader Phase 7 rbtree packet:");
+    try expectContains(direct_anchor_note, "`Documentation/zigux/phase7-rbtree-slice.md`");
+    try expectContains(direct_anchor_note, "`scripts/zigux/check-phase7-rbtree-parity.py`");
+    try expectContains(direct_anchor_note, "`zigux/tests/phase7_rbtree.zig`");
+    try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree.json`");
+    try expectContains(direct_anchor_note, "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`");
+    try expectContains(direct_anchor_note, "`zigux/tests/phase7_build.zig`");
+    try expectContains(direct_anchor_note, "`string_helpers` stays the only directly readable full helper-local Phase 7 packet in this lane today");
+    try expectContains(direct_anchor_note, "`cmdline` stays reviewable through the parked Phase 1 helper packet");
+    try expectContains(direct_anchor_note, "`lib/argv_split.zig` is directly readable again on current `master`, but the dedicated Phase 7 `argv_split` slice, survey, manifest, and shared build-route packet still need a fresh same-lane reread or republish before they can count as a full helper-local review surface");
+    try expectContains(direct_anchor_note, "do not present the broader `argv_split` review packet or the broader `rbtree` helper-local slice, checker, dedicated test, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`");
+    try expectContains(direct_anchor_note, "Do not widen this note into broader validator, checker, fixture, or make-wrapper claims without a fresh same-lane reread of those sibling review surfaces.");
+    try expectNotContains(
+        direct_anchor_note,
+        "Repo-reality warning for the broader Phase 7 rbtree packet:\n- `Documentation/zigux/phase7-rbtree-slice.md`\n- `zigux/tests/phase7_rbtree_manifest.json`",
+    );
 
     try expectContains(sequencing_note, "`rbtree` currently survives through the direct anchors `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json`.");
     try expectContains(sequencing_note, "keep same-lane work anchored to those two surviving files");
