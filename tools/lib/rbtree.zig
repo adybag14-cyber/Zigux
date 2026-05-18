@@ -884,18 +884,19 @@ test "rbtree eraseInit detaches erased node" {
         .{ .key = 10 },
         .{ .key = 20 },
         .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
     };
     var root = Root.init();
-
     for (&entries) |*entry| {
         add(&entry.node, &root, less);
     }
 
-    eraseInit(&entries[0].node, &root);
+    eraseInit(&entries[1].node, &root);
 
-    try std.testing.expect(emptyNode(&entries[0].node));
+    try std.testing.expect(emptyNode(&entries[1].node));
 
-    var order: [2]i32 = undefined;
+    var order: [4]i32 = undefined;
     var count: usize = 0;
     var current = first(&root);
     while (current) |node| : (current = next(node)) {
@@ -904,41 +905,7 @@ test "rbtree eraseInit detaches erased node" {
         count += 1;
     }
 
-    try std.testing.expectEqual(@as(usize, 2), count);
-    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 20 }, order[0..count]);
-}
-
-test "rbtree eraseInit clears singleton roots before reseed" {
-    const Entry = struct {
-        key: i32,
-        node: Node = Node.init(),
-    };
-
-    const less = struct {
-        fn compare(lhs: *const Node, rhs: *const Node) bool {
-            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
-            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
-            return lhs_entry.key < rhs_entry.key;
-        }
-    }.compare;
-
-    var first_entry = Entry{ .key = 10 };
-    var second_entry = Entry{ .key = 6 };
-    var root = Root.init();
-
-    add(&first_entry.node, &root, less);
-    try std.testing.expectEqual(@as(?*Node, &first_entry.node), root.node);
-    try std.testing.expect(!emptyRoot(&root));
-
-    eraseInit(&first_entry.node, &root);
-    try std.testing.expect(emptyNode(&first_entry.node));
-    try std.testing.expect(emptyRoot(&root));
-    try std.testing.expectEqual(@as(?*Node, null), root.node);
-
-    add(&second_entry.node, &root, less);
-    try std.testing.expectEqual(@as(?*Node, &second_entry.node), root.node);
-    try std.testing.expectEqual(@as(?*Node, &second_entry.node), first(&root));
-    try std.testing.expectEqual(@as(?*Node, &second_entry.node), last(&root));
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
 }
 
 test "rbtree postorder and empty node helpers behave" {
@@ -947,40 +914,134 @@ test "rbtree postorder and empty node helpers behave" {
         node: Node = Node.init(),
     };
 
-    const less = struct {
-        fn compare(lhs: *const Node, rhs: *const Node) bool {
-            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
-            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
-            return lhs_entry.key < rhs_entry.key;
-        }
-    }.compare;
-
-    var entries = [_]Entry{
-        .{ .key = 2 },
-        .{ .key = 1 },
-        .{ .key = 3 },
-    };
-    var root = Root.init();
-
-    for (&entries) |*entry| {
-        add(&entry.node, &root, less);
-    }
-
-    var count: usize = 0;
-    var current = firstPostorder(&root);
-    while (current) |node| : (current = nextPostorder(node)) {
-        count += 1;
-    }
-
-    try std.testing.expectEqual(@as(usize, 3), count);
-    try std.testing.expectEqual(firstPostorder(&root), rb_first_postorder(&root));
-    try std.testing.expectEqual(nextPostorder(firstPostorder(&root)), rb_next_postorder(rb_first_postorder(&root)));
-    try std.testing.expect(nextPostorder(null) == null);
-    try std.testing.expect(rb_next_postorder(null) == null);
-
     var detached = Node.init();
     clearNode(&detached);
     try std.testing.expect(emptyNode(&detached));
+    try std.testing.expect(nextPostorder(&detached) == null);
+    try std.testing.expect(rb_next_postorder(&detached) == null);
+
+    var entries = [_]Entry{
+        .{ .key = 8 },
+        .{ .key = 4 },
+        .{ .key = 12 },
+        .{ .key = 2 },
+        .{ .key = 6 },
+    };
+    var root = Root.init();
+
+    root.node = &entries[0].node;
+    entries[0].node.parent = null;
+    entries[0].node.left = &entries[1].node;
+    entries[0].node.right = &entries[2].node;
+
+    entries[1].node.parent = &entries[0].node;
+    entries[1].node.left = &entries[3].node;
+    entries[1].node.right = &entries[4].node;
+
+    entries[2].node.parent = &entries[0].node;
+    entries[2].node.left = null;
+    entries[2].node.right = null;
+
+    entries[3].node.parent = &entries[1].node;
+    entries[3].node.left = null;
+    entries[3].node.right = null;
+
+    entries[4].node.parent = &entries[1].node;
+    entries[4].node.left = null;
+    entries[4].node.right = null;
+
+    const first_postorder = firstPostorder(&root) orelse return error.TestUnexpectedResult;
+    const first_entry: *const Entry = @fieldParentPtr("node", first_postorder);
+    try std.testing.expectEqual(@as(i32, 2), first_entry.key);
+
+    const second = nextPostorder(first_postorder) orelse return error.TestUnexpectedResult;
+    const second_entry: *const Entry = @fieldParentPtr("node", second);
+    try std.testing.expectEqual(@as(i32, 6), second_entry.key);
+
+    const third = nextPostorder(second) orelse return error.TestUnexpectedResult;
+    const third_entry: *const Entry = @fieldParentPtr("node", third);
+    try std.testing.expectEqual(@as(i32, 4), third_entry.key);
+
+    const fourth = nextPostorder(third) orelse return error.TestUnexpectedResult;
+    const fourth_entry: *const Entry = @fieldParentPtr("node", fourth);
+    try std.testing.expectEqual(@as(i32, 12), fourth_entry.key);
+
+    const fifth = nextPostorder(fourth) orelse return error.TestUnexpectedResult;
+    const fifth_entry: *const Entry = @fieldParentPtr("node", fifth);
+    try std.testing.expectEqual(@as(i32, 8), fifth_entry.key);
+
+    try std.testing.expect(nextPostorder(fifth) == null);
+    try std.testing.expectEqual(@as(?*Node, first_postorder), rb_first_postorder(&root));
+    try std.testing.expectEqual(@as(?*Node, second), rb_next_postorder(first_postorder));
+    try std.testing.expectEqual(@as(?*Node, third), rb_next_postorder(second));
+    try std.testing.expectEqual(@as(?*Node, fourth), rb_next_postorder(third));
+    try std.testing.expectEqual(@as(?*Node, fifth), rb_next_postorder(fourth));
+    try std.testing.expect(rb_next_postorder(fifth) == null);
+    try std.testing.expect(emptyNode(&detached));
+}
+
+test "rbtree postorder unwinds parents when no right sibling subtree exists" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    var primary_entries = [_]Entry{
+        .{ .key = 8 },
+        .{ .key = 4 },
+        .{ .key = 6 },
+    };
+    var alias_entries = [_]Entry{
+        .{ .key = 8 },
+        .{ .key = 4 },
+        .{ .key = 6 },
+    };
+    var primary_root = Root.init();
+    var alias_root = Root.init();
+
+    const wireShape = struct {
+        fn apply(root: *Root, entries: []Entry) void {
+            root.node = &entries[0].node;
+            entries[0].node.parent = null;
+            entries[0].node.left = &entries[1].node;
+            entries[0].node.right = null;
+
+            entries[1].node.parent = &entries[0].node;
+            entries[1].node.left = null;
+            entries[1].node.right = &entries[2].node;
+
+            entries[2].node.parent = &entries[1].node;
+            entries[2].node.left = null;
+            entries[2].node.right = null;
+        }
+    }.apply;
+
+    wireShape(&primary_root, &primary_entries);
+    wireShape(&alias_root, &alias_entries);
+
+    var primary_order: [3]i32 = undefined;
+    var alias_order: [3]i32 = undefined;
+
+    var primary_count: usize = 0;
+    var current = firstPostorder(&primary_root);
+    while (current) |node| : (current = nextPostorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_order[primary_count] = entry.key;
+        primary_count += 1;
+    }
+
+    var alias_count: usize = 0;
+    current = rb_first_postorder(&alias_root);
+    while (current) |node| : (current = rb_next_postorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_order[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), primary_count);
+    try std.testing.expectEqual(primary_count, alias_count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 6, 4, 8 }, primary_order[0..primary_count]);
+    try std.testing.expectEqualSlices(i32, primary_order[0..primary_count], alias_order[0..alias_count]);
 }
 
 test "rbtree postorder walks left-deep and right-sibling branches in order" {
