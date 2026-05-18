@@ -9,6 +9,8 @@
     "Documentation/zigux/phase15-parity-scorecard.md",
     "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "Documentation/zigux/phase15-study-only-anchor-accounting.md",
     "Documentation/zigux/review-checklist.md"
   ],
   "record_metadata_fields": [
@@ -55,6 +57,8 @@
     "the narrower seam or policy change that makes the new review safe to consider:"
   ],
   "supporting_context_fields": [
+    "governance lane sequencing link or explicit scope note:",
+    "study-only anchor accounting link or explicit freeze-map-anchor confirmation:",
     "parity scorecard link or blocker record:",
     "indefinite-C policy link or explicit non-applicability note:",
     "explicit non-goals:",
@@ -68,6 +72,7 @@
   "usage_rules_required_terms": [
     "Prefer the dated master readback form",
     "Only record an exact head",
+    "Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review",
     "keep the request blocked and leave the C implementation as the product source of truth",
     "A stay-in-C closeout must keep the retained `freeze_in_c` decision",
     "A reopen request must cite the exact reopen trigger being exercised"
