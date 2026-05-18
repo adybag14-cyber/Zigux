@@ -187,11 +187,16 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
             if (summary.completed_ready_buffer_count == 0 and summary.processed_record_count != 0) break :blk false;
 
             if (summary.first_process_error_index) |index| {
+                const first_ready_index = summary.poll.first_ready_index.?;
+                const failure_ready_index = summary.first_process_error_ready_index.?;
+
                 break :blk summary.first_process_error != null and
                     summary.first_process_error_ready_index != null and
                     summary.completed_ready_buffer_count < summary.attempted_ready_buffer_count and
                     summary.attempted_ready_buffer_count == index + 1 and
-                    index == summary.completed_ready_buffer_count;
+                    index == summary.completed_ready_buffer_count and
+                    failure_ready_index >= first_ready_index and
+                    (index != 0 or failure_ready_index == first_ready_index);
             }
 
             break :blk summary.first_process_error == null and
@@ -760,6 +765,30 @@ test "phase8 perf-buffer poll rejects ready waits without processing attempts" {
             },
             &.{},
         ),
+    );
+}
+
+test "phase8 perf-buffer poll rejects hand-built failures that point before the first ready slot" {
+    const impossible_failure = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 2,
+            .first_ready_index = 3,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 2,
+        .completed_ready_buffer_count = 1,
+        .processed_record_count = 6,
+        .first_process_error_index = 1,
+        .first_process_error_ready_index = 1,
+        .first_process_error = -11,
+    };
+
+    try std.testing.expectError(
+        PollError.InconsistentProcessingAccountingSummary,
+        resolvePollExecutionResultFromWaitResult(2, impossible_failure),
     );
 }
 
