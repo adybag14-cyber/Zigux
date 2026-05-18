@@ -245,6 +245,20 @@ test "bitmap validity rejects malformed word counts and closes helpers" {
     try std.testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "bitmap validity rejects zero-bit stray storage and closes helpers" {
+    const invalid = binding.initBitmapView(1, 0, 1);
+    const summary = summarize(invalid);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!testBit(invalid, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstSet(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstZero(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap view empty sentinel behavior stays explicit" {
     const empty = viewFromWords(&.{}, 0);
     const summary = summarize(empty);
