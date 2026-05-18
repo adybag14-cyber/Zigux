@@ -398,7 +398,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_lane_selftest_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         lane_check_block = (
@@ -411,7 +411,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_lane_check_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         note_text = load_text(root, NOTE_REL)
         write_file(root, NOTE_REL, rewrite_once(note_text, PHASE9_BUFFER_NOTE_LINE + "\n"))
@@ -420,7 +420,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase9_buffer_note")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         note_text = load_text(root, NOTE_REL)
         write_file(root, NOTE_REL, rewrite_once(note_text, PHASE12_TAIL_NOTE_LINE + "\n"))
@@ -429,7 +429,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_tail_note")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
@@ -471,7 +471,7 @@ def run_self_test() -> int:
             print("self-test:broken_phase1_prebuffer_chain_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
@@ -497,7 +497,7 @@ def run_self_test() -> int:
             print("self-test:broken_lane_adjacency_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
@@ -527,7 +527,7 @@ def run_self_test() -> int:
             print("self-test:broken_phase12_tail_chain_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, workflow_text + "\n        run: make -C zigux phase1-test\n")
@@ -536,7 +536,7 @@ def run_self_test() -> int:
             print("self-test:forbidden_phase1_route_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, workflow_text + "\n" + LIVE_BENCH_LINE + "\n")
