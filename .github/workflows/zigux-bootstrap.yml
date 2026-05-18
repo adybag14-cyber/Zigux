@@ -54,7 +54,7 @@ jobs:
       - name: Setup pinned Zig toolchain
         run: |
           set -euxo pipefail
-          eval "$(python3 - <<'PY'
+          eval "$(python3 - <<'PY2'
           import json
           from pathlib import Path
 
@@ -70,7 +70,7 @@ jobs:
           print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
           print(f"ZIGUX_ZIG_FILENAME='{filename}'")
           print(f"ZIGUX_ZIG_URL='{url}'")
-          PY
+          PY2
           )"
           mkdir -p .zig-toolchain
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
@@ -188,6 +188,9 @@ jobs:
 
       - name: Check current Phase 2 toolchain pin-scope packet
         run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py
+
+      - name: Run current Phase 2 toolchain make route
+        run: make -C zigux phase2-toolchain
 
       - name: Self-test current Phase 2 required-make-routes checker
         run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
