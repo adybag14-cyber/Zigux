@@ -99,6 +99,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectNotContains(manifest, "validator-backed reviewability");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
+    try expectNotContains(manifest, "\"kstrdupQuotableFile\"");
+    try expectNotContains(manifest, "\"kstrdup_quotable_file\"");
+    try expectNotContains(manifest, "\"devmKasprintfStrarray\"");
+    try expectNotContains(manifest, "\"devm_kasprintf_strarray\"");
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
@@ -147,6 +151,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper, "pub fn string_upper");
     try expectContains(helper, "pub fn stringLower");
     try expectContains(helper, "pub fn string_lower");
+    try expectNotContains(helper, "pub fn kstrdupQuotableFile");
+    try expectNotContains(helper, "pub fn kstrdup_quotable_file");
+    try expectNotContains(helper, "pub fn devmKasprintfStrarray");
+    try expectNotContains(helper, "pub fn devm_kasprintf_strarray");
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
@@ -185,6 +193,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "string_helpers.kfreeStrarray(std.testing.allocator, &first);");
     try expectContains(helper_tests, "string_helpers.kfree_strarray(std.testing.allocator, &result);");
     try expectContains(helper_tests, "string_helpers.memcpy_and_pad(&truncated, \"alphabet\", 8, '.');");
+    try expectNotContains(helper_tests, "kstrdupQuotableFile");
+    try expectNotContains(helper_tests, "kstrdup_quotable_file");
+    try expectNotContains(helper_tests, "devmKasprintfStrarray");
+    try expectNotContains(helper_tests, "devm_kasprintf_strarray");
 
     const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_readme);
