@@ -11,6 +11,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
@@ -28,11 +29,13 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
+    ROOT / "scripts" / "zigux" / "install-zig.py",
     ROOT / "scripts" / "zigux" / "validate-phase2.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "zigux" / "Makefile",
     POLICY_PATH,
+    DOCS_ROOT_README,
     BOOTSTRAP_NOTES,
     PHASE2_CLOSURE,
     REVIEW_CHECKLIST,
@@ -92,23 +95,24 @@ README_PRESENT_MARKERS = (
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
+    "`scripts/zigux/install-zig.py`",
 )
 
 README_WARNING_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/validate-phase2-closure.py`",
-    "`scripts/zigux/install-zig.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "historical packet members",
+    "still-unhooked installer self-test and direct cross-route names",
 )
 
 BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`.github/workflows/zigux-bootstrap.yml`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
@@ -125,14 +129,15 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
+    "`scripts/zigux/install-zig.py`",
 )
 
 BOOTSTRAP_WARNING_MARKERS = (
     "Repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/install-zig.py`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "Treat the absent validator-first, direct cross-route, and installer names as historical packet members",
+    "Treat the still-unhooked installer self-test and direct cross-route names as historical packet members",
 )
 
 BOOTSTRAP_GAP_FORBIDDEN_MARKERS = (
@@ -142,9 +147,14 @@ BOOTSTRAP_GAP_FORBIDDEN_MARKERS = (
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`",
+    "Treat the absent installer and direct cross-route names as historical packet members",
 )
 
-README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
+README_FORBIDDEN_MARKERS = (
+    "`scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`",
+    "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`",
+)
 
 EXPECTED_POLICY = {
     "phase": "Phase 2",
@@ -195,7 +205,7 @@ EXPECTED_TOOL_MANIFEST = {
             "make -C zigux phase2-kconfig",
             "make -C zigux phase2-cross",
             "make -C zigux phase2-validate",
-            "make -C zigux phase2"
+            "make -C zigux phase2",
         ],
         "artifact_support": [
             "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
@@ -207,16 +217,16 @@ EXPECTED_TOOL_MANIFEST = {
         ],
     },
     "repo_reality_gaps": [
-        "scripts/zigux/validate-phase2-closure.py",
-        "scripts/zigux/install-zig.py",
         "scripts/zigux/check-phase2-cross.py",
         "zigux/tests/fixtures/phase2_cross_targets.json",
     ],
     "notes": [
-        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
+        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the directly readable installer helper, the docs-shared-reminder checker, the required make-route guard, the kbuild routes checker, the cross-selftest checker, the kconfig bridge fixture roster, and the restored tranche-closure note.",
+        "Keep scripts/zigux/validate-phase2-closure.py out of the repo-reality-gap list because the closure validator is directly readable on current master and the closure-side packet depends on it as a live validation surface.",
+        "Keep scripts/zigux/install-zig.py out of the repo-reality-gap list because the installer helper is directly readable on current master even though its `python3 scripts/zigux/install-zig.py --self-test` hook is still absent from the live bootstrap action path.",
         "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
-        "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished.",
+        "Do not treat the still-missing direct cross-route names or the still-unhooked installer self-test route as directly readable current-master evidence until they are republished.",
     ],
 }
 
@@ -582,7 +592,9 @@ def run_self_test() -> int:
         for marker in BOOTSTRAP_GAP_FORBIDDEN_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
-            mutated = replace_once(path.read_text(encoding="utf-8"), marker)
+            mutated = path.read_text(encoding="utf-8")
+            if marker in mutated:
+                mutated = replace_once(mutated, marker)
             mutated = append_marker_to_section(mutated, "## Current repo-reality gaps", marker)
             path.write_text(mutated, encoding="utf-8")
             issues = collect_issues(root)
