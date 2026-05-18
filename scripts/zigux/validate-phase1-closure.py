@@ -23,6 +23,7 @@ PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
 RBTREE_HELPER_REL = Path("tools/lib/rbtree.zig")
+STRING_HELPER_REL = Path("tools/lib/string.zig")
 
 REQUIRED_FILES = (
     PHASE1_CLOSURE_REL,
@@ -36,6 +37,7 @@ REQUIRED_FILES = (
     MANIFEST_REL,
     FIND_BIT_HELPER_REL,
     RBTREE_HELPER_REL,
+    STRING_HELPER_REL,
 )
 
 EXPECTED_HELPERS = [
@@ -264,6 +266,184 @@ EXPECTED_RBTREE_REVIEW_FIELDS = {
     ),
 }
 
+
+EXPECTED_STRING_PACKET = {
+    "helper_test_anchors": [
+        'test "strtobool accepts common Linux forms"',
+        'test "strlcpy copies and returns the source length"',
+        'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
+        'test "strscpyPad zero-pads the tail after a short source"',
+        'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
+        'test "strscpyPad preserves strscpy truncation semantics"',
+        'test "strscpy_pad mirrors strscpyPad padding semantics"',
+        'test "strscpy and strscpyPad keep one-byte destinations terminated"',
+        'test "streq matches C-string equality semantics"',
+        'test "skip trim remove and replace spaces work in place"',
+        'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+        'test "strreplace mirrors replaceChar C-string semantics"',
+        'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+        'test "strstarts mirrors the header-level prefix helper"',
+        'test "strEndsWith honors C-string boundaries"',
+        'test "kbasename returns the final path component with C-string semantics"',
+        'test "sysfsStreq treats trailing newline and NUL as equivalent"',
+        'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+        'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+        'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
+        'test "matchString finds C-string matches and preserves first-match order"',
+        'test "match_string mirrors matchString for empty and matched lists"',
+        'test "memdup and memchrInv preserve byte content"',
+        'test "memchr_inv mirrors memchrInv byte-search semantics"',
+        'test "memchrInv keeps long-buffer first-dirty-byte results stable"',
+        'test "memchrInv follows the earliest dirty byte as long buffers change"',
+        'test "memchrInv dirty-word shortcut handles zero-value scans at word boundaries"',
+        'test "memchrInv zero-value scans keep the earliest dirty byte across every prefix alignment"',
+        'test "memchrInv keeps the earliest dirty byte for long non-zero scans across alignments"',
+        'test "memchrInv keeps the earliest dirty byte for long zero-value scans across alignments"',
+        'test "memchrInv short zero-value scans stay byte-accurate"',
+        'test "memchrInv keeps the earliest dirty byte across the fast-path cutoff"',
+        'test "memparse handles decimal hexadecimal octal and suffixes"',
+        'test "memparse keeps original rest when sign is not followed by digits"',
+        'test "memparse saturates signed overflow instead of trapping"',
+        'test "memparse clamps explicit positive signed overflow"',
+        'test "memparse keeps signed values and their trailing rest aligned"',
+        'test "memparse consumes suffix after saturation"',
+        'test "memparse applies suffixes before signed clamping"',
+        'test "strnchr honors count and C-string boundaries"',
+        'test "strnchrNul returns the first match, NUL, or count boundary"',
+    ],
+    "memparse_review_anchors": [
+        'test "memparse handles decimal hexadecimal octal and suffixes"',
+        'test "memparse keeps original rest when sign is not followed by digits"',
+        'test "memparse saturates signed overflow instead of trapping"',
+        'test "memparse clamps explicit positive signed overflow"',
+        'test "memparse keeps signed values and their trailing rest aligned"',
+        'test "memparse consumes suffix after saturation"',
+        'test "memparse applies suffixes before signed clamping"',
+    ],
+    "memparse_review_summary": (
+        "helper-local memparse safety anchors stay explicit through the direct string tests so "
+        "sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split "
+        "aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of "
+        "trapping, and suffixes are still consumed after saturation"
+    ),
+    "prefix_suffix_review_anchors": [
+        'test "strHasPrefix returns the matched prefix length with C-string semantics"',
+        'test "strstarts mirrors the header-level prefix helper"',
+        'test "strEndsWith honors C-string boundaries"',
+    ],
+    "prefix_suffix_review_summary": (
+        "helper-local prefix and suffix boundary anchors stay explicit through the direct string "
+        "tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity "
+        "rather than dedicated prefix or suffix fixture fields, so strHasPrefix and str_has_prefix "
+        "plus strstarts plus strEndsWith and str_ends_with plus strends remain review-visible at "
+        "the helper surface"
+    ),
+    "sysfs_review_anchors": [
+        'test "sysfsStreq treats trailing newline and NUL as equivalent"',
+        'test "sysfs_streq mirrors sysfsStreq newline and NUL equivalence"',
+        'test "sysfsMatchString finds newline-aware matches and preserves first-match order"',
+        'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
+    ],
+    "sysfs_review_summary": (
+        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through "
+        "the direct string tests because the shared Phase 1 replay still carries no dedicated "
+        "sysfs fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString and "
+        "sysfs_match_string remain review-visible at the helper surface"
+    ),
+    "lookup_review_anchors": [
+        'test "matchString finds C-string matches and preserves first-match order"',
+        'test "match_string mirrors matchString for empty and matched lists"',
+    ],
+    "lookup_review_summary": (
+        "helper-local string lookup anchors stay explicit through the direct string tests because "
+        "the shared Phase 1 replay still does not carry dedicated matchString() or "
+        "match_string() fixture keys, so C-string list lookup order and the Linux-style alias "
+        "remain review-visible at the helper surface"
+    ),
+    "strscpy_review_anchors": [
+        'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
+        'test "strscpyPad zero-pads the tail after a short source"',
+        'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
+        'test "strscpyPad preserves strscpy truncation semantics"',
+        'test "strscpy_pad mirrors strscpyPad padding semantics"',
+        'test "strscpy and strscpyPad keep one-byte destinations terminated"',
+    ],
+    "strscpy_review_summary": (
+        "helper-local string copy-and-pad anchors stay explicit through the direct string tests "
+        "because the shared Phase 1 replay still does not carry dedicated strscpy() or "
+        "strscpyPad() fixture keys"
+    ),
+    "counted_search_review_anchors": [
+        'test "strnchr honors count and C-string boundaries"',
+        'test "strnchrNul returns the first match, NUL, or count boundary"',
+    ],
+    "strnchr_review_anchor": 'test "strnchr honors count and C-string boundaries"',
+    "strnchrnul_review_anchor": 'test "strnchrNul returns the first match, NUL, or count boundary"',
+    "strnchr_review_summary": (
+        "the direct counted-search follow-up stays explicit because the shared Phase 1 replay "
+        "still does not carry dedicated counted-search fixture keys, so strnchr() count-limited "
+        "scanning and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned "
+        "by the helper-local anchors"
+    ),
+    "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
+    "basename_review_summary": (
+        "helper-local basename path-tail anchor stays explicit through the direct string tests "
+        "because the shared Phase 1 replay still does not carry dedicated kbasename fixture keys, "
+        "so final path-component extraction at the first C-string terminator remains review-visible "
+        "at the helper surface"
+    ),
+    "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+    "trim_nul_review_summary": (
+        "the direct trim follow-up stays explicit because the shared Phase 1 string fixture "
+        "records the trimmed bytes but not the preserved tail bytes beyond the first embedded "
+        "terminator"
+    ),
+    "phase1_trim_cstr_replay_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
+    "phase1_trim_cstr_replay_summary": (
+        "the shared Phase 1 string replay still only locks the plain trailing-whitespace "
+        "trimSpaces bytes from the committed fixture, while the direct helper-local trim "
+        "follow-up keeps embedded-NUL trimming for trimSpaces and strim plus strstrip and "
+        "preserved tail-byte review explicit because the shared packet still does not exercise "
+        "every trim alias or every post-NUL byte position"
+    ),
+    "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
+    "memchr_moving_dirty_review_summary": (
+        "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins "
+        "one fixed dirty index and the clean case, but not the moving earliest-mismatch ownership "
+        "as later dirty bytes become the next live divergence"
+    ),
+    "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
+    "shared_replace_char_cstr_review_summary": (
+        "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, "
+        "trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated "
+        "embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without "
+        "widening helper-local memparse ownership"
+    ),
+    "parity_fixture_keys": [
+        "strtobool_y",
+        "strtobool_on",
+        "strtobool_zero",
+        "strtobool_off",
+        "strtobool_invalid",
+        "strlcpy_len",
+        "strlcpy_buffer",
+        "skip_spaces",
+        "trim_spaces",
+        "remove_spaces",
+        "replace_char",
+        "replace_char_end",
+        "replace_char_cstr_end",
+        "replace_char_cstr_bytes",
+        "memchr_inv_index",
+        "memchr_inv_none",
+    ],
+    "next_safe_step_note": (
+        "If this helper lane reopens, keep the helper-local sysfs review anchors aligned across "
+        "the string review packet and this lane note unless dedicated shared sysfs fixture keys "
+        "land; do not reopen missing closure-side validator names by default."
+    ),
+}
+
 EXPECTED_MARKERS = {
     "status": "`PHASE1_STATUS=parked`",
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
@@ -449,6 +629,22 @@ def collect_failures(root: Path) -> list[str]:
             )
         )
 
+    string_review = review_anchors.get("tools/lib/string.zig")
+    if not isinstance(string_review, dict):
+        failures.append(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/string.zig:expected=dict:actual={type(string_review).__name__}"
+        )
+        return failures
+
+    for key, expected in EXPECTED_STRING_PACKET.items():
+        failures.extend(
+            require_exact_value(
+                f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/string.zig:{key}",
+                string_review.get(key),
+                expected,
+            )
+        )
+
     find_bit_text = load_text(root, FIND_BIT_HELPER_REL)
     for anchor in EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS:
         failures.extend(
@@ -473,6 +669,16 @@ def collect_failures(root: Path) -> list[str]:
             require_exact_occurrence(
                 rbtree_text,
                 f"{RBTREE_HELPER_REL.as_posix()}:helper_test_anchor",
+                anchor,
+            )
+        )
+
+    string_text = load_text(root, STRING_HELPER_REL)
+    for anchor in EXPECTED_STRING_PACKET["helper_test_anchors"]:
+        failures.extend(
+            require_exact_occurrence(
+                string_text,
+                f"{STRING_HELPER_REL.as_posix()}:helper_test_anchor",
                 anchor,
             )
         )
@@ -534,6 +740,7 @@ def make_fixture_tree(root: Path) -> None:
                         "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
                         **EXPECTED_RBTREE_REVIEW_FIELDS,
                     },
+                    "tools/lib/string.zig": EXPECTED_STRING_PACKET,
                 },
             },
             indent=2,
@@ -547,6 +754,10 @@ def make_fixture_tree(root: Path) -> None:
     write_text(
         root / RBTREE_HELPER_REL,
         "\n".join(EXPECTED_RBTREE_HELPER_TEST_ANCHORS) + "\n",
+    )
+    write_text(
+        root / STRING_HELPER_REL,
+        "\n".join(EXPECTED_STRING_PACKET["helper_test_anchors"]) + "\n",
     )
 
 
@@ -853,6 +1064,49 @@ def run_self_test() -> int:
                 replace_once(
                     load_text(root, RBTREE_HELPER_REL),
                     EXPECTED_RBTREE_HELPER_TEST_ANCHORS[3] + "\n",
+                    "",
+                ),
+            ),
+            False,
+        ),
+        (
+            "bad_string_review_field",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        "phase": "Phase 1",
+                        "status": "closed",
+                        "helper_count": len(EXPECTED_HELPERS),
+                        "helpers": EXPECTED_HELPERS,
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                                **EXPECTED_RBTREE_REVIEW_FIELDS,
+                            },
+                            "tools/lib/string.zig": EXPECTED_STRING_PACKET | {"basename_review_anchor": "drift"},
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+            False,
+        ),
+        (
+            "missing_string_source_anchor",
+            lambda root: write_text(
+                root / STRING_HELPER_REL,
+                replace_once(
+                    load_text(root, STRING_HELPER_REL),
+                    EXPECTED_STRING_PACKET["helper_test_anchors"][15] + "\n",
                     "",
                 ),
             ),
