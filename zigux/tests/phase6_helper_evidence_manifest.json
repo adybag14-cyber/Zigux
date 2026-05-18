@@ -26,10 +26,10 @@
       "focused_helper_replay": "zigux/tests/phase6_base64.zig",
       "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",
       "fixture_surfaces": [
-        "zigux/tests/fixtures/phase6_base64_vectors.zig",
-        "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"
+        "zigux/tests/fixtures/phase6_base64_vectors.zig"
       ],
       "checker_surfaces": [
+        "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
         "zigux/tests/phase6_base64_c_parity.zig",
         "zigux/tests/phase6_base64_c_casegen.zig",
         "zigux/tests/fixtures/phase6_base64_c_harness.c",
@@ -97,6 +97,10 @@
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "zigux/tests/phase6_helper_parity_manifest.json",
+    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+    "zigux/tests/phase6_base64_c_parity.zig",
+    "zigux/tests/phase6_base64_c_casegen.zig",
+    "zigux/tests/fixtures/phase6_base64_c_harness.c",
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
     "scripts/zigux/check-phase6-base64-c-parity.py",
     "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
