@@ -159,6 +159,11 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectNotContains(helper, "pub fn devmKasprintfStrarray");
     try expectNotContains(helper, "pub fn devm_kasprintf_strarray");
 
+    const c_helper = try readRepoFile(allocator, "lib/string_helpers.c");
+    defer allocator.free(c_helper);
+    try expectContains(c_helper, "char *kstrdup_quotable_file(");
+    try expectContains(c_helper, "char **devm_kasprintf_strarray(");
+
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
     try expectContains(helper_tests, "phase 7 string helpers starter covers whitespace trimming and prefix skipping");
