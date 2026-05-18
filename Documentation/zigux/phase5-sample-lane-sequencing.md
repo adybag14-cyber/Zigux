@@ -60,7 +60,7 @@ So the current direct sample-root evidence for the roadmap-backed non-runtime Ph
 Treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
-Keep the kobject anchor in shared-reminder or repo-reality-gap wording until a fresh reread proves `samples/zigux/kobject_example.zig` returned directly on current `master`.
+Keep the kobject anchor in shared-reminder, current public-tree-backed companion, or repo-reality-gap wording until a fresh reread proves `samples/zigux/kobject_example.zig` returned directly on current `master`.
 
 ## Tracing and probe packet
 
