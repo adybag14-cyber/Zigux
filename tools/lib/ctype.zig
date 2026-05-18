@@ -141,6 +141,25 @@ test "ctype latin1 table anchors preserve case mapping" {
     try std.testing.expectEqual(upper_a_grave, toupper(lower_a_grave));
 }
 
+test "ctype latin1 non-letter gaps stay unchanged" {
+    const multiplication_sign: u8 = 0xD7;
+    const division_sign: u8 = 0xF7;
+
+    try std.testing.expect(!isalpha(multiplication_sign));
+    try std.testing.expect(!isupper(multiplication_sign));
+    try std.testing.expect(!islower(multiplication_sign));
+    try std.testing.expectEqual(multiplication_sign, tolower(multiplication_sign));
+    try std.testing.expectEqual(multiplication_sign, fastTolower(multiplication_sign));
+    try std.testing.expectEqual(multiplication_sign, toupper(multiplication_sign));
+
+    try std.testing.expect(!isalpha(division_sign));
+    try std.testing.expect(!isupper(division_sign));
+    try std.testing.expect(!islower(division_sign));
+    try std.testing.expectEqual(division_sign, tolower(division_sign));
+    try std.testing.expectEqual(division_sign, fastTolower(division_sign));
+    try std.testing.expectEqual(division_sign, toupper(division_sign));
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
