@@ -20,16 +20,16 @@ FILES = {
 MARKERS = {
     "matrix_gap_note": [
         "# Phase 11 Validation Matrix Gap Survey",
-        "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
+        "`PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`",
         "lane: `P11-L03`",
-        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-        "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
-        "Current direct contents reads in this run do not rematerialize",
         "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
         "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
+        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-        "no longer an honest four-matrix direct-readback claim",
-        "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+        "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
+        "Current direct contents reads in this run do rematerialize",
+        "shared matrix packet is again an honest four-matrix direct-readback claim",
+        "The directly readable driver-local Phase 11 matrix notes on current `master` are",
         "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains",
         "`zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet",
         "4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays",
@@ -43,11 +43,10 @@ MARKERS = {
 
 FORBIDDEN_MARKERS = {
     "matrix_gap_note": [
-        "`PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`",
-        "shared matrix packet is once again an honest four-matrix direct-readback claim",
-        "the bcm2835 matrix remains live reminder evidence",
-        "the gpio matrix remains live reminder evidence",
-        "the DesignWare matrix remains live reminder evidence",
+        "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
+        "Current direct contents reads in this run do not rematerialize",
+        "no longer an honest four-matrix direct-readback claim",
+        "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     ],
 }
 
@@ -158,12 +157,15 @@ def build_self_test_fixture(root: Path) -> None:
         root / FILES["matrix_gap_note"],
         """# Phase 11 Validation Matrix Gap Survey
 
-- `PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`
+- `PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`
 - lane: `P11-L03`
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
-- Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix packet is no longer an honest four-matrix direct-readback claim
-- The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- Current direct contents reads in this run do rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix packet is again an honest four-matrix direct-readback claim
+- The directly readable driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains useful adjacent shared evidence, but it is not one of the driver-local Phase 11 validation matrices named by the roadmap
 - `zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet
 - 4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays
@@ -207,8 +209,8 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         required_cases = [
-            ("matrix_gap_note", "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`"),
-            ("matrix_gap_note", "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`"),
+            ("matrix_gap_note", "`PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`"),
+            ("matrix_gap_note", "The directly readable driver-local Phase 11 matrix notes on current `master` are"),
         ]
         for idx, (label, marker) in enumerate(required_cases, start=1):
             case_root = tmpdir / f"required_{idx}"
@@ -225,12 +227,12 @@ def run_self_test() -> None:
         path = forbidden_root / FILES["matrix_gap_note"]
         path.write_text(
             path.read_text(encoding="utf-8")
-            + "`PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`\n",
+            + "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`\n",
             encoding="utf-8",
         )
         expect_failure(
             forbidden_root,
-            "`PHASE11_MATRIX_GAP_STATUS=four_matrix_direct_readback_restored`",
+            "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
         )
 
         wrong_count_root = tmpdir / "wrong_count"
