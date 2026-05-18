@@ -390,7 +390,6 @@ def run_self_test() -> int:
         expect_failure("reversible delivery marker drift", lambda: check(root))
         covered_cases.append("reversible_delivery_marker_drift")
 
-        build_fixtureTree = None
         build_fixture_tree(root)
         survey_path = root / SURVEY
         write_text(
