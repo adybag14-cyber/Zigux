@@ -103,6 +103,9 @@ pub fn bitmap_copy_and_extend(dst: []Word, src: []const Word, count: usize, size
 
 pub fn empty(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
+    if (nbits == 0) {
+        return true;
+    }
     return find_bit.findFirstBit(src, nbits) == nbits;
 }
 
@@ -112,6 +115,9 @@ pub fn bitmap_empty(src: []const Word, nbits: usize) bool {
 
 pub fn full(src: []const Word, nbits: usize) bool {
     assertBitmapLen(src, nbits);
+    if (nbits == 0) {
+        return true;
+    }
     return find_bit.findFirstZeroBit(src, nbits) == nbits;
 }
 
@@ -121,6 +127,9 @@ pub fn bitmap_full(src: []const Word, nbits: usize) bool {
 
 pub fn weight(src: []const Word, nbits: usize) usize {
     assertBitmapLen(src, nbits);
+    if (nbits == 0) {
+        return 0;
+    }
 
     var total: usize = 0;
     const lim = nbits / bits_per_long;
@@ -181,6 +190,9 @@ pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     var result: Word = 0;
@@ -207,6 +219,9 @@ pub fn andNotBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: us
     assertBitmapLen(dst, nbits);
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     var result: Word = 0;
@@ -232,6 +247,9 @@ pub fn bitmap_andnot(dst: []Word, src1: []const Word, src2: []const Word, nbits:
 pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return true;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -257,6 +275,9 @@ pub fn bitmap_equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
 pub fn intersects(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return false;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -282,6 +303,9 @@ pub fn bitmap_intersects(src1: []const Word, src2: []const Word, nbits: usize) b
 pub fn subset(src1: []const Word, src2: []const Word, nbits: usize) bool {
     assertBitmapLen(src1, nbits);
     assertBitmapLen(src2, nbits);
+    if (nbits == 0) {
+        return true;
+    }
 
     const lim = nbits / bits_per_long;
     for (0..lim) |idx| {
@@ -381,6 +405,9 @@ fn appendUnsigned(buffer: []u8, written: *usize, value: usize) void {
 
 pub fn scnprintf(bitmap: []const Word, nbits: usize, buffer: []u8) usize {
     assertBitmapLen(bitmap, nbits);
+    if (nbits == 0) {
+        return 0;
+    }
 
     var written: usize = 0;
     var first = true;
@@ -551,6 +578,31 @@ test "bitmap copy helpers keep zero-sized destination views untouched" {
 
     copyAndExtend(extend_dst[0..0], src[0..0], 0, 0);
     try std.testing.expectEqual(@as(Word, 0xf0f0), extend_dst[0]);
+}
+
+test "bitmap zero-bit logical helpers stay explicit" {
+    const lhs = [_]Word{~@as(Word, 0)};
+    const rhs = [_]Word{0x1234};
+    var and_dst = [_]Word{0x55aa};
+    var andnot_dst = [_]Word{0xaa55};
+    var buffer = [_]u8{ 0xcc, 0xcc, 0xcc };
+
+    try std.testing.expect(!andBits(and_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(Word, 0x55aa), and_dst[0]);
+
+    try std.testing.expect(!andNotBits(andnot_dst[0..0], lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(@as(Word, 0xaa55), andnot_dst[0]);
+
+    try std.testing.expect(empty(lhs[0..0], 0));
+    try std.testing.expect(full(lhs[0..0], 0));
+    try std.testing.expectEqual(@as(usize, 0), weight(lhs[0..0], 0));
+    try std.testing.expect(equal(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(!intersects(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expect(subset(lhs[0..0], rhs[0..0], 0));
+
+    const len = scnprintf(lhs[0..0], 0, &buffer);
+    try std.testing.expectEqual(@as(usize, 0), len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xcc, 0xcc }, &buffer);
 }
 
 test "bitmap and andnot equal intersects subset" {
