@@ -59,4 +59,4 @@ Historical broader packet references still include `Documentation/zigux/artifact
 
 Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence even while the broader checker, validator, build, and bitmap replay companions stay in the authenticated-readback gap bucket.
 
-The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up so they stop overstating `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` as missing-current-head companions.
+The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` still need a same-family follow-up so they stop overstating `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` as missing-current-head companions.
