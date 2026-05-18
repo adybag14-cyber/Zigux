@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import tempfile
 from pathlib import Path
 
@@ -132,6 +131,13 @@ EXPECTED_CASES = [
     {
         "name": "long_version_before_invalid_long_option",
         "argv": ["--version", "--unknown"],
+        "mode": "process_json",
+        "expected": "version_before_invalid_long_option_expected.json",
+        "normalize_stderr": True,
+    },
+    {
+        "name": "abbreviated_long_version_before_invalid_long_option",
+        "argv": ["--ver", "--unknown"],
         "mode": "process_json",
         "expected": "version_before_invalid_long_option_expected.json",
         "normalize_stderr": True,
@@ -426,6 +432,7 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge canonicalizes unexpected long option argument failures"',
     'test "genksyms bridge preserves version side effects before later parse failures"',
     'test "genksyms bridge preserves long version side effects before later parse failures"',
+    'test "genksyms bridge preserves abbreviated long version side effects before later parse failures"',
     'test "genksyms bridge preserves long version side effects before later short parse failures"',
     'test "genksyms bridge renders unexpected long option argument like the fixture"',
     'test "genksyms bridge keeps version side effect before long help"',
@@ -445,7 +452,7 @@ EXPECTED_HARNESS_MARKERS = [
     'execv(tool_path, child_argv);',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -498,13 +505,13 @@ def validate_cases(payload: object) -> list[str]:
 def validate_checker_text(text: str) -> list[str]:
     issues: list[str] = []
     required_markers = [
-        'EXPECTED_SELF_TEST_CASE_COUNT = 11',
+        'EXPECTED_SELF_TEST_CASE_COUNT = 12',
         'GENKSYMS_HARNESS_REL = f"{FIXTURE_ROOT_REL}/genksyms_bridge_c_harness.c"',
         'print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")',
         'print("PHASE2_GENKSYMS_BRIDGE=pass")',
         'PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT',
         'runtime_compile_failed',
-        '"name": "long_version_before_invalid_long_option"',
+        '"name": "abbreviated_long_version_before_invalid_long_option"',
         '"expected": "version_before_invalid_long_option_expected.json"',
     ]
     for marker in required_markers:
@@ -587,7 +594,14 @@ def run_self_test() -> int:
         ):
             return 1
         checks_run += 1
-        if validate_runtime_observation(EXPECTED_CASES[22], {"stdout": "", "stderr": "genksyms version 2.5.60\ngenksyms version 2.5.60\n", "exit_code": 0}, "runtime:repeated-long-version"):
+        if validate_runtime_observation(
+            EXPECTED_CASES[14],
+            {"stdout": "", "stderr": "genksyms version 2.5.60\nunrecognized option '--unknown'\n", "exit_code": 1},
+            "runtime:abbreviated-long-version-invalid-long-option",
+        ):
+            return 1
+        checks_run += 1
+        if validate_runtime_observation(EXPECTED_CASES[23], {"stdout": "", "stderr": "genksyms version 2.5.60\ngenksyms version 2.5.60\n", "exit_code": 0}, "runtime:repeated-long-version"):
             return 1
         checks_run += 1
         if not validate_runtime_observation(EXPECTED_CASES[0], {"stdout": "[]\n", "stderr": "", "exit_code": 0}, "runtime:minimal-bad"):
