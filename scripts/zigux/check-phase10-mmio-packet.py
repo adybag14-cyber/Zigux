@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 import tempfile
 from pathlib import Path
 
@@ -12,31 +11,22 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 FILES = [
     "scripts/zigux/check-phase10-mmio-packet.py",
-    "Documentation/zigux/phase10-virtio-mmio-slice.md",
     "Documentation/zigux/phase10-virtio-mmio-survey.md",
     "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
     "drivers/virtio/virtio_mmio.zig",
     "drivers/virtio/virtio_mmio_verify.zig",
-    "zigux/tests/phase10_virtio_mmio_manifest.json",
+    "zigux/tests/phase10_virtio_mmio.zig",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "zigux/tests/phase10_build.zig",
-    "zigux/Makefile",
-]
-
-SLICE_MARKERS = [
-    "# Phase 10 Virtio MMIO Slice",
-    "drivers/virtio/virtio_mmio.zig",
-    "drivers/virtio/virtio_mmio_verify.zig",
-    "config-write disposition summary",
-    "selected-queue readiness summary",
-    "zig test drivers/virtio/virtio_mmio_verify.zig",
 ]
 
 SURVEY_NOTE_MARKERS = [
     "# Phase 10 Virtio MMIO Survey",
     "PHASE10_STATUS=parked",
     "drivers/virtio/virtio_mmio.zig",
-    "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
+    "drivers/virtio/virtio_mmio_verify.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_survey.zig",
     "config-write disposition reporting",
     "feature-negotiation deltas",
     "transport identity readback",
@@ -45,8 +35,15 @@ SURVEY_NOTE_MARKERS = [
 ]
 
 COMPANION_MARKERS = [
-    "config-write disposition",
-    "changed-byte mask",
+    "# Phase 10 virtio MMIO Config-Write Disposition Companion",
+    "surveyed against current `master` readback on `2026-05-18`",
+    "Current `master` readback keeps this narrower MMIO packet explicit through:",
+    "`drivers/virtio/virtio_mmio.zig` carries the richer config-write disposition observation helper",
+    "`drivers/virtio/virtio_mmio_verify.zig` keeps the changed-byte-count and queue-readiness wrapper proof explicit beside the helper",
+    "`Documentation/zigux/phase10-virtio-mmio-survey.md` keeps the bounded transport-identity, queue-readiness, feature-negotiation, and config-write-disposition survey aligned with the same blocked lifecycle-and-IRQ boundary",
+    "`zigux/tests/phase10_virtio_mmio.zig` keeps the helper-local probe-gating, queue-readiness, feature-negotiation, and config-write-disposition replays explicit",
+    "`zigux/tests/phase10_virtio_mmio_survey.zig` rereads the parked survey note together with the shared `zigux/tests/phase10_build.zig` gate",
+    "repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-mmio-slice.md` and `zigux/tests/phase10_virtio_mmio_manifest.json`",
 ]
 
 HELPER_MARKERS = [
@@ -79,46 +76,36 @@ VERIFY_MARKERS = [
     'test "phase10 virtio mmio verify counts changed config bytes without mutating staged data" {',
 ]
 
+HELPER_TEST_MARKERS = [
+    'test "phase10 virtio mmio keeps probe gating anchored below transport-backed claims" {',
+    'test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory register state" {',
+    'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
+    'test "phase10 virtio mmio keeps config-write disposition planning-only across restaging" {',
+]
+
 SURVEY_GATE_MARKERS = [
-    'test "phase10 virtio mmio survey manifest records the landed identity-backed packet" {',
-    'try std.testing.expectEqualStrings("P10-L10", manifest.lane_key);',
-    'try std.testing.expectEqualStrings("Phase 10", manifest.phase);',
-    'try std.testing.expectEqualStrings("drivers/virtio/virtio_mmio.c", manifest.anchor);',
-    'try std.testing.expectEqualStrings("blocked_on_risky_transport", manifest.risky_transport_posture);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/virtio/virtio_mmio_verify.zig") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "config-write disposition summary") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, survey_note, "selected-queue readiness summary") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, build_file, "../../drivers/virtio/virtio_mmio_verify.zig") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-mmio-verify-tests") != null);',
-    'try std.testing.expect(std.mem.indexOf(u8, build_file, "run_phase10_virtio_mmio_verify_tests.step") != null);',
+    'test "phase10 virtio mmio survey note keeps the dedicated survey gate explicit beside the helper-local packet" {',
+    'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");',
+    'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");',
+    'try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");',
+    'try expectContains(build_file, "phase10_virtio_mmio_survey_module");',
+    'try expectContains(build_file, "\\"phase10-virtio-mmio-survey-tests\\"");',
+    'try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");',
+    'test "phase10 virtio mmio survey note keeps risky transport work blocked" {',
+    'try expectContains(survey_note, "transport-backed queue setup or queue reset execution");',
+    'try expectContains(survey_note, "shared IRQ delivery parity");',
 ]
 
 BUILD_MARKERS = [
+    "../../drivers/virtio/virtio_mmio.zig",
     "../../drivers/virtio/virtio_mmio_verify.zig",
+    '"phase10-virtio-mmio-tests"',
     '"phase10-virtio-mmio-verify-tests"',
+    '"phase10-virtio-mmio-survey-tests"',
+    "run_phase10_virtio_mmio_tests.step",
     "run_phase10_virtio_mmio_verify_tests.step",
+    "run_phase10_virtio_mmio_survey_tests.step",
 ]
-
-MAKEFILE_MARKERS = [
-    "scripts/zigux/check-phase10-mmio-packet.py --self-test",
-    "scripts/zigux/check-phase10-mmio-packet.py",
-]
-
-EXPECTED_GAPS = {
-    "phase10-build-gate": "starter_landed",
-    "phase10-virtio-mmio-survey-gate": "starter_landed",
-    "phase10-virtio-mmio-survey-note": "starter_landed",
-    "phase10-mmio-register-window-helper": "starter_landed",
-    "phase10-mmio-queue-size-helper": "starter_landed",
-    "phase10-mmio-feature-word-selector-helper": "starter_landed",
-    "phase10-mmio-config-window-helper": "starter_landed",
-    "phase10-mmio-config-write-plan-helper": "starter_landed",
-    "phase10-mmio-transport-identity-helper": "starter_landed",
-    "phase10-mmio-probe-preflight-helper": "starter_landed",
-    "phase10-mmio-config-write-disposition-helper": "starter_landed",
-    "phase10-mmio-selected-queue-readiness-helper": "starter_landed",
-    "phase10-mmio-lifecycle-and-irq-paths": "blocked_on_risky_transport",
-}
 
 
 def read_text(root: Path, rel_path: str) -> str:
@@ -137,13 +124,6 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         return missing_files, []
 
     missing_markers: list[str] = []
-
-    check_markers(
-        missing_markers,
-        "slice_note",
-        read_text(root, "Documentation/zigux/phase10-virtio-mmio-slice.md"),
-        SLICE_MARKERS,
-    )
     check_markers(
         missing_markers,
         "survey_note",
@@ -170,6 +150,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     )
     check_markers(
         missing_markers,
+        "helper_tests",
+        read_text(root, "zigux/tests/phase10_virtio_mmio.zig"),
+        HELPER_TEST_MARKERS,
+    )
+    check_markers(
+        missing_markers,
         "survey_gate",
         read_text(root, "zigux/tests/phase10_virtio_mmio_survey.zig"),
         SURVEY_GATE_MARKERS,
@@ -180,69 +166,20 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         read_text(root, "zigux/tests/phase10_build.zig"),
         BUILD_MARKERS,
     )
-    check_markers(
-        missing_markers,
-        "makefile",
-        read_text(root, "zigux/Makefile"),
-        MAKEFILE_MARKERS,
-    )
-
-    manifest = json.loads(read_text(root, "zigux/tests/phase10_virtio_mmio_manifest.json"))
-    if manifest.get("lane_key") != "P10-L10":
-        missing_markers.append("manifest:lane_key=P10-L10")
-    if manifest.get("phase") != "Phase 10":
-        missing_markers.append("manifest:phase=Phase 10")
-    if manifest.get("anchor") != "drivers/virtio/virtio_mmio.c":
-        missing_markers.append("manifest:anchor=drivers/virtio/virtio_mmio.c")
-    if manifest.get("risky_transport_posture") != "blocked_on_risky_transport":
-        missing_markers.append("manifest:risky_transport_posture=blocked_on_risky_transport")
-    if manifest.get("freeze_boundary_status") != "aligned":
-        missing_markers.append("manifest:freeze_boundary_status=aligned")
-
-    gap_index = {
-        gap.get("id"): gap
-        for gap in manifest.get("gaps", [])
-        if isinstance(gap, dict) and "id" in gap
-    }
-    for gap_id, status in EXPECTED_GAPS.items():
-        gap = gap_index.get(gap_id)
-        if gap is None:
-            missing_markers.append(f"manifest:gap:{gap_id}")
-            continue
-        if gap.get("status") != status:
-            missing_markers.append(f"manifest:gap_status:{gap_id}={gap.get('status')}")
-
     return [], missing_markers
-
-
-def fixture_manifest() -> str:
-    return json.dumps(
-        {
-            "lane_key": "P10-L10",
-            "phase": "Phase 10",
-            "anchor": "drivers/virtio/virtio_mmio.c",
-            "risky_transport_posture": "blocked_on_risky_transport",
-            "freeze_boundary_status": "aligned",
-            "gaps": [{"id": gap_id, "status": status} for gap_id, status in EXPECTED_GAPS.items()],
-        },
-        indent=2,
-    ) + "\n"
 
 
 def write_fixture_files(root: Path) -> None:
     files = {
-        "scripts/zigux/check-phase10-mmio-packet.py": "\n".join(MAKEFILE_MARKERS) + "\n",
-        "Documentation/zigux/phase10-virtio-mmio-slice.md": "\n".join(SLICE_MARKERS) + "\n",
+        "scripts/zigux/check-phase10-mmio-packet.py": "fixture\n",
         "Documentation/zigux/phase10-virtio-mmio-survey.md": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md": "\n".join(COMPANION_MARKERS) + "\n",
         "drivers/virtio/virtio_mmio.zig": "\n".join(HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_mmio_verify.zig": "\n".join(VERIFY_MARKERS) + "\n",
-        "zigux/tests/phase10_virtio_mmio_manifest.json": fixture_manifest(),
+        "zigux/tests/phase10_virtio_mmio.zig": "\n".join(HELPER_TEST_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_mmio_survey.zig": "\n".join(SURVEY_GATE_MARKERS) + "\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
-        "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
     }
-
     for rel_path, content in files.items():
         target = root / rel_path
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -277,6 +214,13 @@ def run_self_test() -> int:
 
         expect_missing_marker(
             root,
+            "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
+            "`zigux/tests/phase10_virtio_mmio.zig` keeps the helper-local probe-gating, queue-readiness, feature-negotiation, and config-write-disposition replays explicit",
+            "`zigux/tests/phase10_virtio_mmio_missing.zig` keeps the helper-local probe-gating, queue-readiness, feature-negotiation, and config-write-disposition replays explicit",
+            "companion_note:`zigux/tests/phase10_virtio_mmio.zig` keeps the helper-local probe-gating, queue-readiness, feature-negotiation, and config-write-disposition replays explicit",
+        )
+        expect_missing_marker(
+            root,
             "drivers/virtio/virtio_mmio.zig",
             "self.pending_config_write = null;",
             "self.pending_config_write = stale_plan;",
@@ -285,34 +229,34 @@ def run_self_test() -> int:
         expect_missing_marker(
             root,
             "drivers/virtio/virtio_mmio_verify.zig",
-            "pub const FeatureNegotiationSummary = virtio_mmio.FeatureNegotiationSummary;",
-            "pub const FeatureNegotiationDrift = virtio_mmio.FeatureNegotiationSummary;",
-            "verify_helper:pub const FeatureNegotiationSummary = virtio_mmio.FeatureNegotiationSummary;",
+            'test "phase10 virtio mmio verify keeps queue readiness wrapper below transport claims" {',
+            'test "phase10 virtio mmio verify keeps queue readiness wrapper drift" {',
+            'verify_helper:test "phase10 virtio mmio verify keeps queue readiness wrapper below transport claims" {',
+        )
+        expect_missing_marker(
+            root,
+            "zigux/tests/phase10_virtio_mmio.zig",
+            'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
+            'test "phase10 virtio mmio records feature drift" {',
+            'helper_tests:test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
         )
         expect_missing_marker(
             root,
             "zigux/tests/phase10_virtio_mmio_survey.zig",
-            'try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-mmio-verify-tests") != null);',
-            'try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-mmio-verify-drift") != null);',
-            'survey_gate:try std.testing.expect(std.mem.indexOf(u8, build_file, "phase10-virtio-mmio-verify-tests") != null);',
+            'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");',
+            'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_missing.zig");',
+            'survey_gate:try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");',
         )
         expect_missing_marker(
             root,
-            "zigux/tests/phase10_virtio_mmio_manifest.json",
-            '"phase10-mmio-transport-identity-helper"',
-            '"phase10-mmio-transport-identity-drift"',
-            "manifest:gap:phase10-mmio-transport-identity-helper",
-        )
-        expect_missing_marker(
-            root,
-            "zigux/Makefile",
-            "scripts/zigux/check-phase10-mmio-packet.py --self-test",
-            "scripts/zigux/check-phase10-mmio-packet.py --fixture-test",
-            "makefile:scripts/zigux/check-phase10-mmio-packet.py --self-test",
+            "zigux/tests/phase10_build.zig",
+            "run_phase10_virtio_mmio_verify_tests.step",
+            "run_phase10_virtio_mmio_verify_drift.step",
+            "build_file:run_phase10_virtio_mmio_verify_tests.step",
         )
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
@@ -323,12 +267,17 @@ def main() -> int:
         action="store_true",
         help="Run built-in synthetic drift tests for the packet checker.",
     )
+    parser.add_argument(
+        "--root",
+        default=str(ROOT),
+        help="Repository root to validate. Defaults to the checker's inferred repo root.",
+    )
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    missing_files, missing_markers = validate(ROOT)
+    missing_files, missing_markers = validate(Path(args.root))
     if missing_files:
         print("PHASE10_MMIO_PACKET=fail")
         print("MISSING_PHASE10_MMIO_FILES_START")
@@ -349,7 +298,7 @@ def main() -> int:
     print(f"PHASE10_MMIO_REQUIRED_FILE_COUNT={len(FILES)}")
     print(
         "PHASE10_MMIO_REQUIRED_MARKER_COUNT="
-        f"{len(SLICE_MARKERS) + len(SURVEY_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(HELPER_MARKERS) + len(VERIFY_MARKERS) + len(SURVEY_GATE_MARKERS) + len(BUILD_MARKERS) + len(MAKEFILE_MARKERS) + len(EXPECTED_GAPS) + 5}"
+        f"{len(SURVEY_NOTE_MARKERS) + len(COMPANION_MARKERS) + len(HELPER_MARKERS) + len(VERIFY_MARKERS) + len(HELPER_TEST_MARKERS) + len(SURVEY_GATE_MARKERS) + len(BUILD_MARKERS)}"
     )
     return 0
 
