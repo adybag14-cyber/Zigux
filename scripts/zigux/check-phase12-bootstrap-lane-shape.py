@@ -53,6 +53,8 @@ WORKFLOW_STEP_NAMES = [
     "Run Phase 12 complex driver tests",
     "Self-test current Phase 12 bootstrap lane checker",
     "Check current Phase 12 bootstrap lane shape",
+    "Validate Phase 8 tooling gates",
+    "Run focused Phase 8 libbpf segment survey tests",
 ]
 
 WORKFLOW_COMMAND_MARKERS = [
@@ -81,12 +83,16 @@ WORKFLOW_COMMAND_MARKERS = [
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py",
+    "make -C zigux phase8-validate",
+    "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
 ]
 
 WORKFLOW_EXACT_LINES = [
     "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
     "        run: make -C zigux phase12-validate",
+    "        run: make -C zigux phase8-validate",
+    "        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
 ]
 
 WORKFLOW_FORBIDDEN_MARKERS = [
@@ -221,6 +227,10 @@ jobs:
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test
       - name: Check current Phase 12 bootstrap lane shape
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
+      - name: Validate Phase 8 tooling gates
+        run: make -C zigux phase8-validate
+      - name: Run focused Phase 8 libbpf segment survey tests
+        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
 """
 
 
@@ -302,8 +312,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_step:Check current Phase 11 matrix-gap survey packet")
 
-        write_fixtureTree = write_fixture_tree
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -318,7 +327,7 @@ def run_self_test() -> int:
             "workflow_exact_line:run: python3 scripts/zigux/check-build-only-phase12-surface.py:expected=1:actual=0",
         )
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -333,7 +342,7 @@ def run_self_test() -> int:
             "workflow_exact_line:run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:expected=1:actual=0",
         )
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -348,7 +357,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_step:Setup Python")
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_text = workflow_path.read_text(encoding="utf-8")
         docs_block = (
@@ -369,7 +378,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_order:bootstrap-step-order")
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -381,7 +390,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_marker:workflow_dispatch:")
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -396,7 +405,7 @@ def run_self_test() -> int:
             "workflow_marker:cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
         )
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -412,7 +421,7 @@ def run_self_test() -> int:
             "workflow_step:Self-test current Phase 12 release-readiness packet checker",
         )
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
@@ -425,7 +434,63 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_step:Validate Phase 12 degraded-workflow bundle")
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "- name: Validate Phase 8 tooling gates\n"
+                "        run: make -C zigux phase8-validate\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Validate Phase 8 tooling gates")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "- name: Run focused Phase 8 libbpf segment survey tests\n"
+                "        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Run focused Phase 8 libbpf segment survey tests")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "        run: make -C zigux phase8-validate\n",
+                "        run: echo skip-phase8-validate\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_exact_line:run: make -C zigux phase8-validate:expected=1:actual=0",
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all\n",
+                "        run: echo skip-phase8-tests\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_exact_line:run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all:expected=1:actual=0",
+        )
+
+        write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8")
@@ -438,7 +503,7 @@ def run_self_test() -> int:
         )
         expect_failure(base, "workflow_forbidden_marker:Check current docs-root sanity markers")
 
-        write_fixtureTree(base)
+        write_fixture_tree(base)
         survey_path = base / SURVEY_PATH
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
@@ -449,7 +514,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=13")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=17")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -460,8 +525,8 @@ def main() -> int:
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the "
             "workflow keeps the shipped Zig archive, current Phase 11 checks, "
-            "and the Phase 12 build-only plus release-readiness bundle intact "
-            "while layering the dedicated docs-sanity and lane-shape guards on top."
+            "the dedicated docs-sanity guards, and the current Phase 8 tail "
+            "intact while layering the dedicated lane-shape guard on top."
         )
     )
     parser.add_argument(
