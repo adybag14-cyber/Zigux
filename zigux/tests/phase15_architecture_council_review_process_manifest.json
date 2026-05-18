@@ -74,6 +74,7 @@
     "`Documentation/zigux/phase15-readiness-gate-survey.md`",
     "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
     "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "`zigux/tests/phase15_freeze_map_governance.zig`",
     "`zigux/tests/phase15_parity_scorecard.zig`",
     "`zigux/tests/phase15_indefinite_c_policy.json`",
