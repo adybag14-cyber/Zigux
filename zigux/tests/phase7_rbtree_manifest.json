@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-18T01:18:41Z",
+  "verified_on_utc": "2026-05-18T11:14:24Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
@@ -11,6 +11,10 @@
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json"
+  ],
+  "readable_non_owner_paths": [
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml"
   ],
   "missing_paths": [
     "Documentation/zigux/phase7-rbtree-slice.md",
@@ -22,10 +26,24 @@
     "zigux/tests/phase7_build.zig",
     "scripts/zigux/validate-phase7.py"
   ],
+  "absent_makefile_markers": [
+    "phase7-validate:",
+    "phase7-rbtree-test:",
+    "phase7-rbtree-survey:",
+    "phase7-test:",
+    "phase7:"
+  ],
+  "absent_workflow_markers": [
+    "Validate Phase 7 runtime helper gates",
+    "Run Phase 7 runtime helper tests",
+    "make -C zigux phase7-validate",
+    "make -C zigux phase7-test"
+  ],
   "ownership_focus": [
     "the surviving survey-plus-manifest anchor must not be presented as proof that the broader rbtree helper, dedicated test, fixture, checker, or shared build routes have returned on current master",
     "same-lane follow-through stays inside the surviving survey and manifest anchors until a fresh reread proves another rbtree companion returned on current master",
-    "cross-helper truthfulness must keep the landed string_helpers packet explicit instead of repeating the older blocked-by-missing-string-helper claim"
+    "cross-helper truthfulness must keep the landed string_helpers packet explicit instead of repeating the older blocked-by-missing-string-helper claim",
+    "build-graph truthfulness must keep readable non-owner surfaces explicit: `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` are current readable evidence, but their missing `phase7-*` route markers still block any claim that the shared rbtree build packet returned"
   ],
   "next_bounded_step": "Keep same-lane follow-through limited to survey-or-manifest truthfulness until a fresh reread proves the rbtree slice note, helper, dedicated test, fixtures, checker, or shared Phase 7 build route returned on current master."
 }
