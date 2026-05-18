@@ -100,3 +100,30 @@ test "materialized tools/lib/bpf Zigux segments keep stable type-name formatter 
     try std.testing.expectEqualStrings("netfilter", try type_names.formatLibbpfBpfProgType(prog_buffer[0..], 32));
     try std.testing.expectEqualStrings("unknown_prog_type(77)", try type_names.formatLibbpfBpfProgType(prog_buffer[0..], 77));
 }
+
+test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outputs explicit" {
+    var default_buffer: [96]u8 = undefined;
+    var validated_buffer: [96]u8 = undefined;
+    var sanitized_buffer: [96]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/metrics.map",
+        try pin_path.buildMapPinPath(default_buffer[0..], null, "metrics.map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/metrics.map",
+        try pin_path.buildValidatedMapPinPath(validated_buffer[0..], "/tmp/bpf.v1", "metrics.map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/metrics_map",
+        try pin_path.buildValidatedSanitizedMapPinPath(sanitized_buffer[0..], "/tmp/bpf.v1", "metrics.map"),
+    );
+    try std.testing.expectError(
+        error.InvalidName,
+        pin_path.buildValidatedSanitizedMapPinPath(sanitized_buffer[0..], null, "metrics/map"),
+    );
+    try std.testing.expectError(
+        error.InvalidRootPath,
+        pin_path.buildValidatedMapPinPath(validated_buffer[0..], "/tmp/bpf/", "metrics.map"),
+    );
+}
