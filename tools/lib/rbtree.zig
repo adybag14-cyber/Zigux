@@ -1,1 +1,1606 @@
-Y29uc3Qgc3RkID0gQGltcG9ydCgic3RkIik7CgpwdWIgY29uc3QgQ29sb3IgPSBlbnVtIHsKICAgIHJlZCwKICAgIGJsYWNrLAp9OwoKcHViIGNvbnN0IE5vZGUgPSBzdHJ1Y3QgewogICAgcGFyZW50OiA/Kk5vZGUgPSBudWxsLAogICAgbGVmdDogPypOb2RlID0gbnVsbCwKICAgIHJpZ2h0OiA/Kk5vZGUgPSBudWxsLAogICAgY29sb3I6IENvbG9yID0gLnJlZCwKCiAgICBwdWIgZm4gaW5pdCgpIE5vZGUgewogICAgICAgIHJldHVybiAue307CiAgICB9Cn07CgpwdWIgY29uc3QgUm9vdCA9IHN0cnVjdCB7CiAgICBub2RlOiA/Kk5vZGUgPSBudWxsLAoKICAgIHB1YiBmbiBpbml0KCkgUm9vdCB7CiAgICAgICAgcmV0dXJuIC57fTsKICAgIH0KfTsKCnB1YiBjb25zdCBSb290Q2FjaGVkID0gc3RydWN0IHsKICAgIHJvb3Q6IFJvb3QgPSAue30sCiAgICBsZWZ0bW9zdDogPypOb2RlID0gbnVsbCwKCiAgICBwdWIgZm4gaW5pdCgpIFJvb3RDYWNoZWQgewogICAgICAgIHJldHVybiAue307CiAgICB9Cn07CgpwdWIgY29uc3QgTWF0Y2hJdGVyYXRvciA9IHN0cnVjdCB7CiAgICBrZXk6ICpjb25zdCBhbnlvcGFxdWUsCiAgICBjbXA6IENtcEtleUZuLAogICAgY3VycmVudDogPypOb2RlLAoKICAgIHB1YiBmbiBuZXh0KHNlbGY6ICpNYXRjaEl0ZXJhdG9yKSA/Kk5vZGUgewogICAgICAgIGNvbnN0IG5vZGUgPSBzZWxmLmN1cnJlbnQgb3JlbHNlIHJldHVybiBudWxsOwogICAgICAgIHNlbGYuY3VycmVudCA9IG5leHRNYXRjaChzZWxmLmtleSwgbm9kZSwgc2VsZi5jbXApOwogICAgICAgIHJldHVybiBub2RlOwogICAgfQp9OwoKcHViIGNvbnN0IExlc3NGbiA9ICpjb25zdCBmbiAoKmNvbnN0IE5vZGUsICpjb25zdCBOb2RlKSBib29sOwpwdWIgY29uc3QgQ21wTm9kZUZuID0gKmNvbnN0IGZuICgqY29uc3QgTm9kZSwgKmNvbnN0IE5vZGUpIGkzMjsKcHViIGNvbnN0IENtcEtleUZuID0gKmNvbnN0IGZuICgqY29uc3QgYW55b3BhcXVlLCAqY29uc3QgTm9kZSkgaTMyOwoKcHViIGZuIGVtcHR5Um9vdChyb290OiAqY29uc3QgUm9vdCkgYm9vbCB7CiAgICByZXR1cm4gcm9vdC5ub2RlID09IG51bGw7Cn0KCnB1YiBmbiBlbXB0eU5vZGUobm9kZTogKmNvbnN0IE5vZGUpIGJvb2wgewogICAgcmV0dXJuIG5vZGUucGFyZW50ID09IG5vZGU7Cn0KCnB1YiBmbiBjbGVhck5vZGUobm9kZTogKk5vZGUpIHZvaWQgewogICAgbm9kZS5wYXJlbnQgPSBub2RlOwogICAgbm9kZS5sZWZ0ID0gbnVsbDsKICAgIG5vZGUucmlnaHQgPSBudWxsOwogICAgbm9kZS5jb2xvciA9IC5yZWQ7Cn0KCnB1YiBmbiBsaW5rTm9kZShub2RlOiAqTm9kZSwgcGFyZW50OiA/Kk5vZGUsIGxpbms6ICo/Kk5vZGUpIHZvaWQgewogICAgbm9kZS5wYXJlbnQgPSBwYXJlbnQ7CiAgICBub2RlLmxlZnQgPSBudWxsOwogICAgbm9kZS5yaWdodCA9IG51bGw7CiAgICBub2RlLmNvbG9yID0gLnJlZDsKICAgIGxpbmsuKiA9IG5vZGU7Cn0KCmZuIGNvbG9yT2Yobm9kZTogPypOb2RlKSBDb2xvciB7CiAgICByZXR1cm4gaWYgKG5vZGUpIHxufCBuLmNvbG9yIGVsc2UgLmJsYWNrOwp9CgpmbiBsZWZ0T2Yobm9kZTogPypOb2RlKSA/Kk5vZGUgewogICAgcmV0dXJuIGlmIChub2RlKSB8bnwgbi5sZWZ0IGVsc2UgbnVsbDsKfQoKZm4gcmlnaHRPZihub2RlOiA/Kk5vZGUpID8qTm9kZSB7CiAgICByZXR1cm4gaWYgKG5vZGUpIHxufCBuLnJpZ2h0IGVsc2UgbnVsbDsKfQoKZm4gbWluaW11bShub2RlOiAqTm9kZSkgKk5vZGUgewogICAgdmFyIGN1cnJlbnQgPSBub2RlOwogICAgd2hpbGUgKGN1cnJlbnQubGVmdCkgfGxlZnR8IHsKICAgICAgICBjdXJyZW50ID0gbGVmdDsKICAgIH0KICAgIHJldHVybiBjdXJyZW50Owp9CgpmbiBtYXhpbXVtKG5vZGU6ICpOb2RlKSAqTm9kZSB7CiAgICB2YXIgY3VycmVudCA9IG5vZGU7CiAgICB3aGlsZSAoY3VycmVudC5yaWdodCkgfHJpZ2h0fCB7CiAgICAgICAgY3VycmVudCA9IHJpZ2h0OwogICAgfQogICAgcmV0dXJuIGN1cnJlbnQ7Cn0KCmZuIGxlZnRSb3RhdGUocm9vdDogKlJvb3QsIG5vZGU6ICpOb2RlKSB2b2lkIHsKICAgIHZhciBwaXZvdCA9IG5vZGUucmlnaHQgb3JlbHNlIHVucmVhY2hhYmxlOwoKICAgIG5vZGUucmlnaHQgPSBwaXZvdC5sZWZ0OwogICAgaWYgKHBpdm90LmxlZnQpIHxjaGlsZHwgewogICAgICAgIGNoaWxkLnBhcmVudCA9IG5vZGU7CiAgICB9CgogICAgcGl2b3QucGFyZW50ID0gbm9kZS5wYXJlbnQ7CiAgICBpZiAobm9kZS5wYXJlbnQgPT0gbnVsbCkgewogICAgICAgIHJvb3Qubm9kZSA9IHBpdm90OwogICAgfSBlbHNlIGlmIChub2RlLnBhcmVudC4/LmxlZnQgPT0gbm9kZSkgewogICAgICAgIG5vZGUucGFyZW50Lj8ubGVmdCA9IHBpdm90OwogICAgfSBlbHNlIHsKICAgICAgICBub2RlLnBhcmVudC4/LnJpZ2h0ID0gcGl2b3Q7CiAgICB9CgogICAgcGl2b3QubGVmdCA9IG5vZGU7CiAgICBub2RlLnBhcmVudCA9IHBpdm90Owp9CgpmbiByaWdodFJvdGF0ZShyb290OiAqUm9vdCwgbm9kZTogKk5vZGUpIHZvaWQgewogICAgdmFyIHBpdm90ID0gbm9kZS5sZWZ0IG9yZWxzZSB1bnJlYWNoYWJsZTsKCiAgICBub2RlLmxlZnQgPSBwaXZvdC5yaWdodDsKICAgIGlmIChwaXZvdC5yaWdodCkgfGNoaWxkfCB7CiAgICAgICAgY2hpbGQucGFyZW50ID0gbm9kZTsKICAgIH0KCiAgICBwaXZvdC5wYXJlbnQgPSBub2RlLnBhcmVudDsKICAgIGlmIChub2RlLnBhcmVudCA9PSBudWxsKSB7CiAgICAgICAgcm9vdC5ub2RlID0gcGl2b3Q7CiAgICB9IGVsc2UgaWYgKG5vZGUucGFyZW50Lj8ucmlnaHQgPT0gbm9kZSkgewogICAgICAgIG5vZGUucGFyZW50Lj8ucmlnaHQgPSBwaXZvdDsKICAgIH0gZWxzZSB7CiAgICAgICAgbm9kZS5wYXJlbnQuPy5sZWZ0ID0gcGl2b3Q7CiAgICB9CgogICAgcGl2b3QucmlnaHQgPSBub2RlOwogICAgbm9kZS5wYXJlbnQgPSBwaXZvdDsKfQoKcHViIGZuIGluc2VydENvbG9yKG5vZGU6ICpOb2RlLCByb290OiAqUm9vdCkgdm9pZCB7CiAgICB2YXIgY3VycmVudCA9IG5vZGU7CgogICAgd2hpbGUgKGNvbG9yT2YoY3VycmVudC5wYXJlbnQpID09IC5yZWQpIHsKICAgICAgICB2YXIgcGFyZW50ID0gY3VycmVudC5wYXJlbnQuPzsKICAgICAgICB2YXIgZ3JhbmRwYXJlbnQgPSBwYXJlbnQucGFyZW50Lj87CgogICAgICAgIGlmIChncmFuZHBhcmVudC5sZWZ0ID09IHBhcmVudCkgewogICAgICAgICAgICBjb25zdCB1bmNsZSA9IGdyYW5kcGFyZW50LnJpZ2h0OwogICAgICAgICAgICBpZiAoY29sb3JPZih1bmNsZSkgPT0gLnJlZCkgewogICAgICAgICAgICAgICAgcGFyZW50LmNvbG9yID0gLmJsYWNrOwogICAgICAgICAgICAgICAgdW5jbGUuPy5jb2xvciA9IC5ibGFjazsKICAgICAgICAgICAgICAgIGdyYW5kcGFyZW50LmNvbG9yID0gLnJlZDsKICAgICAgICAgICAgICAgIGN1cnJlbnQgPSBncmFuZHBhcmVudDsKICAgICAgICAgICAgICAgIGNvbnRpbnVlOwogICAgICAgICAgICB9CgogICAgICAgICAgICBpZiAocGFyZW50LnJpZ2h0ID09IGN1cnJlbnQpIHsKICAgICAgICAgICAgICAgIGN1cnJlbnQgPSBwYXJlbnQ7CiAgICAgICAgICAgICAgICBsZWZ0Um90YXRlKHJvb3QsIGN1cnJlbnQpOwogICAgICAgICAgICAgICAgcGFyZW50ID0gY3VycmVudC5wYXJlbnQuPzsKICAgICAgICAgICAgICAgIGdyYW5kcGFyZW50ID0gcGFyZW50LnBhcmVudC4/OwogICAgICAgICAgICB9CgogICAgICAgICAgICBwYXJlbnQuY29sb3IgPSAuYmxhY2s7CiAgICAgICAgICAgIGdyYW5kcGFyZW50LmNvbG9yID0gLnJlZDsKICAgICAgICAgICAgcmlnaHRSb3RhdGUocm9vdCwgZ3JhbmRwYXJlbnQpOwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgIGNvbnN0IHVuY2xlID0gZ3JhbmRwYXJlbnQubGVmdDsKICAgICAgICAgICAgaWYgKGNvbG9yT2YodW5jbGUpID09IC5yZWQpIHsKICAgICAgICAgICAgICAgIHBhcmVudC5jb2xvciA9IC5ibGFjazsKICAgICAgICAgICAgICAgIHVuY2xlLj8uY29sb3IgPSAuYmxhY2s7CiAgICAgICAgICAgICAgICBncmFuZHBhcmVudC5jb2xvciA9IC5yZWQ7CiAgICAgICAgICAgICAgICBjdXJyZW50ID0gZ3JhbmRwYXJlbnQ7CiAgICAgICAgICAgICAgICBjb250aW51ZTsKICAgICAgICAgICAgfQoKICAgICAgICAgICAgaWYgKHBhcmVudC5sZWZ0ID09IGN1cnJlbnQpIHsKICAgICAgICAgICAgICAgIGN1cnJlbnQgPSBwYXJlbnQ7CiAgICAgICAgICAgICAgICByaWdodFJvdGF0ZShyb290LCBjdXJyZW50KTsKICAgICAgICAgICAgICAgIHBhcmVudCA9IGN1cnJlbnQucGFyZW50Lj87CiAgICAgICAgICAgICAgICBncmFuZHBhcmVudCA9IHBhcmVudC5wYXJlbnQuPzsKICAgICAgICAgICAgfQoKICAgICAgICAgICAgcGFyZW50LmNvbG9yID0gLmJsYWNrOwogICAgICAgICAgICBncmFuZHBhcmVudC5jb2xvciA9IC5yZWQ7CiAgICAgICAgICAgIGxlZnRSb3RhdGUocm9vdCwgZ3JhbmRwYXJlbnQpOwogICAgICAgIH0KICAgIH0KCiAgICBpZiAocm9vdC5ub2RlKSB8cm9vdF9ub2RlfCB7CiAgICAgICAgcm9vdF9ub2RlLmNvbG9yID0gLmJsYWNrOwogICAgfQp9CgpwdWIgZm4gaW5zZXJ0Q29sb3JDYWNoZWQobm9kZTogKk5vZGUsIHJvb3Q6ICpSb290Q2FjaGVkLCBsZWZ0bW9zdDogYm9vbCkgdm9pZCB7CiAgICBpZiAobGVmdG1vc3QpIHsKICAgICAgICByb290LmxlZnRtb3N0ID0gbm9kZTsKICAgIH0KICAgIGluc2VydENvbG9yKG5vZGUsICZyb290LnJvb3QpOwp9CgpwdWIgZm4gcmJfaW5zZXJ0X2NvbG9yX2NhY2hlZChub2RlOiAqTm9kZSwgcm9vdDogKlJvb3RDYWNoZWQsIGxlZnRtb3N0OiBib29sKSB2b2lkIHsKICAgIGluc2VydENvbG9yQ2FjaGVkKG5vZGUsIHJvb3QsIGxlZnRtb3N0KTsKfQoKcHViIGZuIGFkZChub2RlOiAqTm9kZSwgcm9vdDogKlJvb3QsIGxlc3M6IExlc3NGbikgdm9pZCB7CiAgICB2YXIgbGluayA9ICZyb290Lm5vZGU7CiAgICB2YXIgcGFyZW50OiA/Kk5vZGUgPSBudWxsOwoKICAgIHdoaWxlIChsaW5rLiopIHxjdXJyZW50fCB7CiAgICAgICAgcGFyZW50ID0gY3VycmVudDsKICAgICAgICBpZiAobGVzcyhub2RlLCBjdXJyZW50KSkgewogICAgICAgICAgICBsaW5rID0gJmN1cnJlbnQubGVmdDsKICAgICAgICB9IGVsc2UgewogICAgICAgICAgICBsaW5rID0gJmN1cnJlbnQucmlnaHQ7CiAgICAgICAgfQogICAgfQoKICAgIGxpbmtOb2RlKG5vZGUsIHBhcmVudCwgbGluayk7CiAgICBpbnNlcnRDb2xvcihub2RlLCByb290KTsKfQoKcHViIGZuIGFkZENhY2hlZChub2RlOiAqTm9kZSwgcm9vdDogKlJvb3RDYWNoZWQsIGxlc3M6IExlc3NGbikgPypOb2RlIHsKICAgIHZhciBsaW5rID0gJnJvb3Qucm9vdC5ub2RlOwogICAgdmFyIHBhcmVudDogPypOb2RlID0gbnVsbDsKICAgIHZhciBsZWZ0bW9zdCA9IHRydWU7CgogICAgd2hpbGUgKGxpbmsuKikgfGN1cnJlbnR8IHsKICAgICAgICBwYXJlbnQgPSBjdXJyZW50OwogICAgICAgIGlmIChsZXNzKG5vZGUsIGN1cnJlbnQpKSB7CiAgICAgICAgICAgIGxpbmsgPSAmY3VycmVudC5sZWZ0OwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgIGxpbmsgPSAmY3VycmVudC5yaWdodDsKICAgICAgICAgICAgbGVmdG1vc3QgPSBmYWxzZTsKICAgICAgICB9CiAgICB9CgogICAgbGlua05vZGUobm9kZSwgcGFyZW50LCBsaW5rKTsKICAgIGluc2VydENvbG9yQ2FjaGVkKG5vZGUsIHJvb3QsIGxlZnRtb3N0KTsKICAgIHJldHVybiBpZiAobGVmdG1vc3QpIG5vZGUgZWxzZSBudWxsOwp9CgpwdWIgZm4gcmJfYWRkX2NhY2hlZChub2RlOiAqTm9kZSwgcm9vdDogKlJvb3RDYWNoZWQsIGxlc3M6IExlc3NGbikgPypOb2RlIHsKICAgIHJldHVybiBhZGRDYWNoZWQobm9kZSwgcm9vdCwgbGVzcyk7Cn0KCnB1YiBmbiBmaW5kQWRkKG5vZGU6ICpOb2RlLCByb290OiAqUm9vdCwgY21wOiBDbXBOb2RlRm4pID8qTm9kZSB7CiAgICB2YXIgbGluayA9ICZyb290Lm5vZGU7CiAgICB2YXIgcGFyZW50OiA/Kk5vZGUgPSBudWxsOwoKICAgIHdoaWxlIChsaW5rLiopIHxjdXJyZW50fCB7CiAgICAgICAgcGFyZW50ID0gY3VycmVudDsKICAgICAgICBjb25zdCBvcmRlciA9IGNtcChub2RlLCBjdXJyZW50KTsKICAgICAgICBpZiAob3JkZXIgPCAwKSB7CiAgICAgICAgICAgIGxpbmsgPSAmY3VycmVudC5sZWZ0OwogICAgICAgIH0gZWxzZSBpZiAob3JkZXIgPiAwKSB7CiAgICAgICAgICAgIGxpbmsgPSAmY3VycmVudC5yaWdodDsKICAgICAgICB9IGVsc2UgewogICAgICAgICAgICByZXR1cm4gY3VycmVudDsKICAgICAgICB9CiAgICB9CgogICAgbGlua05vZGUobm9kZSwgcGFyZW50LCBsaW5rKTsKICAgIGluc2VydENvbG9yKG5vZGUsIHJvb3QpOwogICAgcmV0dXJuIG51bGw7Cn0KCnB1YiBmbiBmaW5kQWRkQ2FjaGVkKG5vZGU6ICpOb2RlLCByb290OiAqUm9vdENhY2hlZCwgY21wOiBDbXBOb2RlRm4pID8qTm9kZSB7CiAgICB2YXIgbGluayA9ICZyb290LnJvb3Qubm9kZTsKICAgIHZhciBwYXJlbnQ6ID8qTm9kZSA9IG51bGw7CiAgICB2YXIgbGVmdG1vc3QgPSB0cnVlOwoKICAgIHdoaWxlIChsaW5rLiopIHxjdXJyZW50fCB7CiAgICAgICAgcGFyZW50ID0gY3VycmVudDsKICAgICAgICBjb25zdCBvcmRlciA9IGNtcChub2RlLCBjdXJyZW50KTsKICAgICAgICBpZiAob3JkZXIgPCAwKSB7CiAgICAgICAgICAgIGxpbmsgPSAmY3VycmVudC5sZWZ0OwogICAgICAgIH0gZWxzZSBpZiAob3JkZXIgPiAwKSB7CiAgICAgICAgICAgIGxpbmsgPSAmY3VycmVudC5yaWdodDsKICAgICAgICAgICAgbGVmdG1vc3QgPSBmYWxzZTsKICAgICAgICB9IGVsc2UgewogICAgICAgICAgICByZXR1cm4gY3VycmVudDsKICAgICAgICB9CiAgICB9CgogICAgbGlua05vZGUobm9kZSwgcGFyZW50LCBsaW5rKTsKICAgIGluc2VydENvbG9yQ2FjaGVkKG5vZGUsIHJvb3QsIGxlZnRtb3N0KTsKICAgIHJldHVybiBudWxsOwp9CgpwdWIgZm4gcmJfZmluZF9hZGRfY2FjaGVkKG5vZGU6ICpOb2RlLCByb290OiAqUm9vdENhY2hlZCwgY21wOiBDbXBOb2RlRm4pID8qTm9kZSB7CiAgICByZXR1cm4gZmluZEFkZENhY2hlZChub2RlLCByb290LCBjbXApOwp9CgpwdWIgZm4gZmluZChrZXk6ICpjb25zdCBhbnlvcGFxdWUsIHJvb3Q6ICpjb25zdCBSb290LCBjbXA6IENtcEtleUZuKSA/Kk5vZGUgewogICAgdmFyIG5vZGUgPSByb290Lm5vZGU7CgogICAgd2hpbGUgKG5vZGUpIHxjdXJyZW50fCB7CiAgICAgICAgY29uc3Qgb3JkZXIgPSBjbXAoa2V5LCBjdXJyZW50KTsKICAgICAgICBpZiAob3JkZXIgPCAwKSB7CiAgICAgICAgICAgIG5vZGUgPSBjdXJyZW50LmxlZnQ7CiAgICAgICAgfSBlbHNlIGlmIChvcmRlciA+IDApIHsKICAgICAgICAgICAgbm9kZSA9IGN1cnJlbnQucmlnaHQ7CiAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgcmV0dXJuIGN1cnJlbnQ7CiAgICAgICAgfQogICAgfQoKICAgIHJldHVybiBudWxsOwp9CgpwdWIgZm4gZmluZEZpcnN0KGtleTogKmNvbnN0IGFueW9wYXF1ZSwgcm9vdDogKmNvbnN0IFJvb3QsIGNtcDogQ21wS2V5Rm4pID8qTm9kZSB7CiAgICB2YXIgbm9kZSA9IHJvb3Qubm9kZTsKICAgIHZhciBtYXRjaDogPypOb2RlID0gbnVsbDsKCiAgICB3aGlsZSAobm9kZSkgfGN1cnJlbnR8IHsKICAgICAgICBjb25zdCBvcmRlciA9IGNtcChrZXksIGN1cnJlbnQpOwogICAgICAgIGlmIChvcmRlciA8PSAwKSB7CiAgICAgICAgICAgIGlmIChvcmRlciA9PSAwKSB7CiAgICAgICAgICAgICAgICBtYXRjaCA9IGN1cnJlbnQ7CiAgICAgICAgICAgIH0KICAgICAgICAgICAgbm9kZSA9IGN1cnJlbnQubGVmdDsKICAgICAgICB9IGVsc2UgewogICAgICAgICAgICBub2RlID0gY3VycmVudC5yaWdodDsKICAgICAgICB9CiAgICB9CgogICAgcmV0dXJuIG1hdGNoOwp9CgpwdWIgZm4gbmV4dE1hdGNoKGtleTogKmNvbnN0IGFueW9wYXF1ZSwgbm9kZTogKmNvbnN0IE5vZGUsIGNtcDogQ21wS2V5Rm4pID8qTm9kZSB7CiAgICBjb25zdCBjYW5kaWRhdGUgPSBuZXh0KG5vZGUpIG9yZWxzZSByZXR1cm4gbnVsbDsKICAgIGlmIChjbXAoa2V5LCBjYW5kaWRhdGUpICE9IDApIHsKICAgICAgICByZXR1cm4gbnVsbDsKICAgIH0KICAgIHJldHVybiBjYW5kaWRhdGU7Cn0KCnB1YiBmbiBtYXRjaEl0ZXJhdG9yKGtleTogKmNvbnN0IGFueW9wYXF1ZSwgcm9vdDogKmNvbnN0IFJvb3QsIGNtcDogQ21wS2V5Rm4pIE1hdGNoSXRlcmF0b3IgewogICAgcmV0dXJuIC57CiAgICAgICAgLmtleSA9IGtleSwKICAgICAgICAuY21wID0gY21wLAogICAgICAgIC5jdXJyZW50ID0gZmluZEZpcnN0KGtleSwgcm9vdCwgY21wKSwKICAgIH07Cn0KCmZuIHRyYW5zcGxhbnQocm9vdDogKlJvb3QsIHZpY3RpbTogKk5vZGUsIHJlcGxhY2VtZW50OiA/Kk5vZGUpIHZvaWQgewogICAgaWYgKHZpY3RpbS5wYXJlbnQgPT0gbnVsbCkgewogICAgICAgIHJvb3Qubm9kZSA9IHJlcGxhY2VtZW50OwogICAgfSBlbHNlIGlmICh2aWN0aW0ucGFyZW50Lj8ubGVmdCA9PSB2aWN0aW0pIHsKICAgICAgICB2aWN0aW0ucGFyZW50Lj8ubGVmdCA9IHJlcGxhY2VtZW50OwogICAgfSBlbHNlIHsKICAgICAgICB2aWN0aW0ucGFyZW50Lj8ucmlnaHQgPSByZXBsYWNlbWVudDsKICAgIH0KCiAgICBpZiAocmVwbGFjZW1lbnQpIHxub2RlfCB7CiAgICAgICAgbm9kZS5wYXJlbnQgPSB2aWN0aW0ucGFyZW50OwogICAgfQp9CgpmbiBkZWxldGVGaXh1cChyb290OiAqUm9vdCwgaW5pdGlhbF9ub2RlOiA/Kk5vZGUsIGluaXRpYWxfcGFyZW50OiA/Kk5vZGUpIHZvaWQgewogICAgdmFyIG5vZGUgPSBpbml0aWFsX25vZGU7CiAgICB2YXIgcGFyZW50ID0gaW5pdGlhbF9wYXJlbnQ7CgogICAgd2hpbGUgKG5vZGUgIT0gcm9vdC5ub2RlIGFuZCBjb2xvck9mKG5vZGUpID09IC5ibGFjaykgewogICAgICAgIGNvbnN0IGN1cnJlbnRfcGFyZW50ID0gcGFyZW50IG9yZWxzZSBicmVhazsKCiAgICAgICAgaWYgKGN1cnJlbnRfcGFyZW50LmxlZnQgPT0gbm9kZSkgewogICAgICAgICAgICB2YXIgc2libGluZyA9IGN1cnJlbnRfcGFyZW50LnJpZ2h0OwoKICAgICAgICAgICAgaWYgKGNvbG9yT2Yoc2libGluZykgPT0gLnJlZCkgewogICAgICAgICAgICAgICAgc2libGluZy4/LmNvbG9yID0gLmJsYWNrOwogICAgICAgICAgICAgICAgY3VycmVudF9wYXJlbnQuY29sb3IgPSAucmVkOwogICAgICAgICAgICAgICAgbGVmdFJvdGF0ZShyb290LCBjdXJyZW50X3BhcmVudCk7CiAgICAgICAgICAgICAgICBzaWJsaW5nID0gY3VycmVudF9wYXJlbnQucmlnaHQ7CiAgICAgICAgICAgIH0KCiAgICAgICAgICAgIGlmIChjb2xvck9mKGxlZnRPZihzaWJsaW5nKSkgPT0gLmJsYWNrIGFuZCBjb2xvck9mKHJpZ2h0T2Yoc2libGluZykpID09IC5ibGFjaykgewogICAgICAgICAgICAgICAgaWYgKHNpYmxpbmcpIHxzfCB7CiAgICAgICAgICAgICAgICAgICAgcy5jb2xvciA9IC5yZWQ7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBub2RlID0gY3VycmVudF9wYXJlbnQ7CiAgICAgICAgICAgICAgICBwYXJlbnQgPSBjdXJyZW50X3BhcmVudC5wYXJlbnQ7CiAgICAgICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgICAgICBpZiAoY29sb3JPZihyaWdodE9mKHNpYmxpbmcpKSA9PSAuYmxhY2spIHsKICAgICAgICAgICAgICAgICAgICBpZiAobGVmdE9mKHNpYmxpbmcpKSB8bGVmdHwgewogICAgICAgICAgICAgICAgICAgICAgICBsZWZ0LmNvbG9yID0gLmJsYWNrOwogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBpZiAoc2libGluZykgfHN8IHsKICAgICAgICAgICAgICAgICAgICAgICAgcy5jb2xvciA9IC5yZWQ7CiAgICAgICAgICAgICAgICAgICAgICAgIHJpZ2h0Um90YXRlKHJvb3QsIHMpOwogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBzaWJsaW5nID0gY3VycmVudF9wYXJlbnQucmlnaHQ7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBpZiAoc2libGluZykgfHN8IHsKICAgICAgICAgICAgICAgICAgICBzLmNvbG9yID0gY3VycmVudF9wYXJlbnQuY29sb3I7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBjdXJyZW50X3BhcmVudC5jb2xvciA9IC5ibGFjazsKICAgICAgICAgICAgICAgIGlmIChyaWdodE9mKHNpYmxpbmcpKSB8cmlnaHR8IHsKICAgICAgICAgICAgICAgICAgICByaWdodC5jb2xvciA9IC5ibGFjazsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIGxlZnRSb3RhdGUocm9vdCwgY3VycmVudF9wYXJlbnQpOwogICAgICAgICAgICAgICAgbm9kZSA9IHJvb3Qubm9kZTsKICAgICAgICAgICAgICAgIHBhcmVudCA9IG51bGw7CiAgICAgICAgICAgIH0KICAgICAgICB9IGVsc2UgewogICAgICAgICAgICB2YXIgc2libGluZyA9IGN1cnJlbnRfcGFyZW50LmxlZnQ7CgogICAgICAgICAgICBpZiAoY29sb3JPZihzaWJsaW5nKSA9PSAucmVkKSB7CiAgICAgICAgICAgICAgICBzaWJsaW5nLj8uY29sb3IgPSAuYmxhY2s7CiAgICAgICAgICAgICAgICBjdXJyZW50X3BhcmVudC5jb2xvciA9IC5yZWQ7CiAgICAgICAgICAgICAgICByaWdodFJvdGF0ZShyb290LCBjdXJyZW50X3BhcmVudCk7CiAgICAgICAgICAgICAgICBzaWJsaW5nID0gY3VycmVudF9wYXJlbnQubGVmdDsKICAgICAgICAgICAgfQoKICAgICAgICAgICAgaWYgKGNvbG9yT2YobGVmdE9mKHNpYmxpbmcpKSA9PSAuYmxhY2sgYW5kIGNvbG9yT2YocmlnaHRPZihzaWJsaW5nKSkgPT0gLmJsYWNrKSB7CiAgICAgICAgICAgICAgICBpZiAoc2libGluZykgfHN8IHsKICAgICAgICAgICAgICAgICAgICBzLmNvbG9yID0gLnJlZDsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIG5vZGUgPSBjdXJyZW50X3BhcmVudDsKICAgICAgICAgICAgICAgIHBhcmVudCA9IGN1cnJlbnRfcGFyZW50LnBhcmVudDsKICAgICAgICAgICAgfSBlbHNlIHsKICAgICAgICAgICAgICAgIGlmIChjb2xvck9mKGxlZnRPZihzaWJsaW5nKSkgPT0gLmJsYWNrKSB7CiAgICAgICAgICAgICAgICAgICAgaWYgKHJpZ2h0T2Yoc2libGluZykpIHxyaWdodHwgewogICAgICAgICAgICAgICAgICAgICAgICByaWdodC5jb2xvciA9IC5ibGFjazsKICAgICAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICAgICAgaWYgKHNpYmxpbmcpIHxzfCB7CiAgICAgICAgICAgICAgICAgICAgICAgIHMuY29sb3IgPSAucmVkOwogICAgICAgICAgICAgICAgICAgICAgICBsZWZ0Um90YXRlKHJvb3QsIHMpOwogICAgICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgICAgICBzaWJsaW5nID0gY3VycmVudF9wYXJlbnQubGVmdDsKICAgICAgICAgICAgICAgIH0KCiAgICAgICAgICAgICAgICBpZiAoc2libGluZykgfHN8IHsKICAgICAgICAgICAgICAgICAgICBzLmNvbG9yID0gY3VycmVudF9wYXJlbnQuY29sb3I7CiAgICAgICAgICAgICAgICB9CiAgICAgICAgICAgICAgICBjdXJyZW50X3BhcmVudC5jb2xvciA9IC5ibGFjazsKICAgICAgICAgICAgICAgIGlmIChsZWZ0T2Yoc2libGluZykpIHxsZWZ0fCB7CiAgICAgICAgICAgICAgICAgICAgbGVmdC5jb2xvciA9IC5ibGFjazsKICAgICAgICAgICAgICAgIH0KICAgICAgICAgICAgICAgIHJpZ2h0Um90YXRlKHJvb3QsIGN1cnJlbnRfcGFyZW50KTsKICAgICAgICAgICAgICAgIG5vZGUgPSByb290Lm5vZGU7CiAgICAgICAgICAgICAgICBwYXJlbnQgPSBudWxsOwogICAgICAgICAgICB9CiAgICAgICAgfQogICAgfQoKICAgIGlmIChub2RlKSB8bnwgewogICAgICAgIG4uY29sb3IgPSAuYmxhY2s7CiAgICB9Cn0KCnB1YiBmbiBlcmFzZShub2RlOiAqTm9kZSwgcm9vdDogKlJvb3QpIHZvaWQgewogICAgdmFyIHJlcGxhY2VtZW50ID0gbm9kZTsKICAgIHZhciByZXBsYWNlbWVudF9jb2xvciA9IHJlcGxhY2VtZW50LmNvbG9yOwogICAgdmFyIGNoaWxkOiA/Kk5vZGUgPSBudWxsOwogICAgdmFyIHBhcmVudDogPypOb2RlID0gbnVsbDsKCiAgICBpZiAobm9kZS5sZWZ0ID09IG51bGwpIHsKICAgICAgICBjaGlsZCA9IG5vZGUucmlnaHQ7CiAgICAgICAgcGFyZW50ID0gbm9kZS5wYXJlbnQ7CiAgICAgICAgdHJhbnNwbGFudChyb290LCBub2RlLCBub2RlLnJpZ2h0KTsKICAgIH0gZWxzZSBpZiAobm9kZS5yaWdodCA9PSBudWxsKSB7CiAgICAgICAgY2hpbGQgPSBub2RlLmxlZnQ7CiAgICAgICAgcGFyZW50ID0gbm9kZS5wYXJlbnQ7CiAgICAgICAgdHJhbnNwbGFudChyb290LCBub2RlLCBub2RlLmxlZnQpOwogICAgfSBlbHNlIHsKICAgICAgICByZXBsYWNlbWVudCA9IG1pbmltdW0obm9kZS5yaWdodC4/KTsKICAgICAgICByZXBsYWNlbWVudF9jb2xvciA9IHJlcGxhY2VtZW50LmNvbG9yOwogICAgICAgIGNoaWxkID0gcmVwbGFjZW1lbnQucmlnaHQ7CgogICAgICAgIGlmIChyZXBsYWNlbWVudC5wYXJlbnQgPT0gbm9kZSkgewogICAgICAgICAgICBwYXJlbnQgPSByZXBsYWNlbWVudDsKICAgICAgICB9IGVsc2UgewogICAgICAgICAgICBwYXJlbnQgPSByZXBsYWNlbWVudC5wYXJlbnQ7CiAgICAgICAgICAgIHRyYW5zcGxhbnQocm9vdCwgcmVwbGFjZW1lbnQsIHJlcGxhY2VtZW50LnJpZ2h0KTsKICAgICAgICAgICAgcmVwbGFjZW1lbnQucmlnaHQgPSBub2RlLnJpZ2h0OwogICAgICAgICAgICByZXBsYWNlbWVudC5yaWdodC4/LnBhcmVudCA9IHJlcGxhY2VtZW50OwogICAgICAgIH0KCiAgICAgICAgdHJhbnNwbGFudChyb290LCBub2RlLCByZXBsYWNlbWVudCk7CiAgICAgICAgcmVwbGFjZW1lbnQubGVmdCA9IG5vZGUubGVmdDsKICAgICAgICByZXBsYWNlbWVudC5sZWZ0Lj8ucGFyZW50ID0gcmVwbGFjZW1lbnQ7CiAgICAgICAgcmVwbGFjZW1lbnQuY29sb3IgPSBub2RlLmNvbG9yOwogICAgfQoKICAgIGlmIChyZXBsYWNlbWVudF9jb2xvciA9PSAuYmxhY2spIHsKICAgICAgICBkZWxldGVGaXh1cChyb290LCBjaGlsZCwgcGFyZW50KTsKICAgIH0KfQoKcHViIGZuIGVyYXNlQ2FjaGVkKG5vZGU6ICpOb2RlLCByb290OiAqUm9vdENhY2hlZCkgPypOb2RlIHsKICAgIGlmIChyb290LmxlZnRtb3N0ID09IG5vZGUpIHsKICAgICAgICBjb25zdCBsZWZ0bW9zdCA9IG5leHQobm9kZSk7CiAgICAgICAgcm9vdC5sZWZ0bW9zdCA9IGxlZnRtb3N0OwogICAgICAgIGVyYXNlKG5vZGUsICZyb290LnJvb3QpOwogICAgICAgIHJldHVybiBsZWZ0bW9zdDsKICAgIH0KCiAgICBlcmFzZShub2RlLCAmcm9vdC5yb290KTsKICAgIHJldHVybiBudWxsOwp9CgpwdWIgZm4gcmJfZXJhc2VfY2FjaGVkKG5vZGU6ICpOb2RlLCByb290OiAqUm9vdENhY2hlZCkgPypOb2RlIHsKICAgIHJldHVybiBlcmFzZUNhY2hlZChub2RlLCByb290KTsKfQoKcHViIGZuIGVyYXNlSW5pdChub2RlOiAqTm9kZSwgcm9vdDogKlJvb3QpIHZvaWQgewogICAgZXJhc2Uobm9kZSwgcm9vdCk7CiAgICBjbGVhck5vZGUobm9kZSk7Cn0KCnB1YiBmbiBlcmFzZUluaXRDYWNoZWQobm9kZTogKk5vZGUsIHJvb3Q6ICpSb290Q2FjaGVkKSB2b2lkIHsKICAgIF8gPSBlcmFzZUNhY2hlZChub2RlLCByb290KTsKICAgIGNsZWFyTm9kZShub2RlKTsKfQoKcHViIGZuIHJiX2VyYXNlX2luaXRfY2FjaGVkKG5vZGU6ICpOb2RlLCByb290OiAqUm9vdENhY2hlZCkgdm9pZCB7CiAgICBlcmFzZUluaXRDYWNoZWQobm9kZSwgcm9vdCk7Cn0KCnB1YiBmbiBmaXJzdChyb290OiAqY29uc3QgUm9vdCkgPypOb2RlIHsKICAgIGNvbnN0IG5vZGUgPSByb290Lm5vZGUgb3JlbHNlIHJldHVybiBudWxsOwogICAgcmV0dXJuIG1pbmltdW0obm9kZSk7Cn0KCnB1YiBmbiByYl9maXJzdChyb290OiAqY29uc3QgUm9vdCkgPypOb2RlIHsKICAgIHJldHVybiBmaXJzdChyb290KTsKfQoKcHViIGZuIGZpcnN0Q2FjaGVkKHJvb3Q6ICpjb25zdCBSb290Q2FjaGVkKSA/Kk5vZGUgewogICAgcmV0dXJuIHJvb3QubGVmdG1vc3Q7Cn0KCnB1YiBmbiByYl9maXJzdF9jYWNoZWQocm9vdDogKmNvbnN0IFJvb3RDYWNoZWQpID8qTm9kZSB7CiAgICByZXR1cm4gZmlyc3RDYWNoZWQocm9vdCk7Cn0KCnB1YiBmbiBsYXN0KHJvb3Q6ICpjb25zdCBSb290KSA/Kk5vZGUgewogICAgY29uc3Qgbm9kZSA9IHJvb3Qubm9kZSBvcmVsc2UgcmV0dXJuIG51bGw7CiAgICByZXR1cm4gbWF4aW11bShub2RlKTsKfQoKcHViIGZuIHJiX2xhc3Qocm9vdDogKmNvbnN0IFJvb3QpID8qTm9kZSB7CiAgICByZXR1cm4gbGFzdChyb290KTsKfQoKcHViIGZuIG5leHQobm9kZTogKmNvbnN0IE5vZGUpID8qTm9kZSB7CiAgICBpZiAoZW1wdHlOb2RlKG5vZGUpKSB7CiAgICAgICAgcmV0dXJuIG51bGw7CiAgICB9CgogICAgaWYgKG5vZGUucmlnaHQpIHxyaWdodHwgewogICAgICAgIHJldHVybiBtaW5pbXVtKHJpZ2h0KTsKICAgIH0KCiAgICB2YXIgY3VycmVudDogKmNvbnN0IE5vZGUgPSBub2RlOwogICAgdmFyIHBhcmVudCA9IGN1cnJlbnQucGFyZW50OwogICAgd2hpbGUgKHBhcmVudCAhPSBudWxsIGFuZCBwYXJlbnQuPy5yaWdodCA9PSBjdXJyZW50KSB7CiAgICAgICAgY3VycmVudCA9IHBhcmVudC4/OwogICAgICAgIHBhcmVudCA9IGN1cnJlbnQucGFyZW50OwogICAgfQoKICAgIHJldHVybiBwYXJlbnQ7Cn0KCnB1YiBmbiByYl9uZXh0KG5vZGU6ICpjb25zdCBOb2RlKSA/Kk5vZGUgewogICAgcmV0dXJuIG5leHQobm9kZSk7Cn0KCnB1YiBmbiBwcmV2KG5vZGU6ICpjb25zdCBOb2RlKSA/Kk5vZGUgewogICAgaWYgKGVtcHR5Tm9kZShub2RlKSkgewogICAgICAgIHJldHVybiBudWxsOwogICAgfQoKICAgIGlmIChub2RlLmxlZnQpIHxsZWZ0fCB7CiAgICAgICAgcmV0dXJuIG1heGltdW0obGVmdCk7CiAgICB9CgogICAgdmFyIGN1cnJlbnQ6ICpjb25zdCBOb2RlID0gbm9kZTsKICAgIHZhciBwYXJlbnQgPSBjdXJyZW50LnBhcmVudDsKICAgIHdoaWxlIChwYXJlbnQgIT0gbnVsbCBhbmQgcGFyZW50Lj8ubGVmdCA9PSBjdXJyZW50KSB7CiAgICAgICAgY3VycmVudCA9IHBhcmVudC4/OwogICAgICAgIHBhcmVudCA9IGN1cnJlbnQucGFyZW50OwogICAgfQoKICAgIHJldHVybiBwYXJlbnQ7Cn0KCnB1YiBmbiByYl9wcmV2KG5vZGU6ICpjb25zdCBOb2RlKSA/Kk5vZGUgewogICAgcmV0dXJuIHByZXYobm9kZSk7Cn0KCnB1YiBmbiByZXBsYWNlTm9kZSh2aWN0aW06ICpOb2RlLCBuZXc6ICpOb2RlLCByb290OiAqUm9vdCkgdm9pZCB7CiAgICBjb25zdCBwYXJlbnQgPSB2aWN0aW0ucGFyZW50OwogICAgbmV3LnBhcmVudCA9IHBhcmVudDsKICAgIG5ldy5sZWZ0ID0gdmljdGltLmxlZnQ7CiAgICBuZXcucmlnaHQgPSB2aWN0aW0ucmlnaHQ7CiAgICBuZXcuY29sb3IgPSB2aWN0aW0uY29sb3I7CgogICAgaWYgKHZpY3RpbS5sZWZ0KSB8bGVmdHwgewogICAgICAgIGxlZnQucGFyZW50ID0gbmV3OwogICAgfQogICAgaWYgKHZpY3RpbS5yaWdodCkgfHJpZ2h0fCB7CiAgICAgICAgcmlnaHQucGFyZW50ID0gbmV3OwogICAgfQoKICAgIGlmIChwYXJlbnQgPT0gbnVsbCkgewogICAgICAgIHJvb3Qubm9kZSA9IG5ldzsKICAgIH0gZWxzZSBpZiAocGFyZW50Lj8ubGVmdCA9PSB2aWN0aW0pIHsKICAgICAgICBwYXJlbnQuPy5sZWZ0ID0gbmV3OwogICAgfSBlbHNlIHsKICAgICAgICBwYXJlbnQuPy5yaWdodCA9IG5ldzsKICAgIH0KfQoKcHViIGZuIHJiX3JlcGxhY2Vfbm9kZSh2aWN0aW06ICpOb2RlLCBuZXc6ICpOb2RlLCByb290OiAqUm9vdCkgdm9pZCB7CiAgICByZXBsYWNlTm9kZSh2aWN0aW0sIG5ldywgcm9vdCk7Cn0KCnB1YiBmbiByZXBsYWNlTm9kZUNhY2hlZCh2aWN0aW06ICpOb2RlLCBuZXc6ICpOb2RlLCByb290OiAqUm9vdENhY2hlZCkgdm9pZCB7CiAgICBpZiAocm9vdC5sZWZ0bW9zdCA9PSB2aWN0aW0pIHsKICAgICAgICByb290LmxlZnRtb3N0ID0gbmV3OwogICAgfQogICAgcmVwbGFjZU5vZGUodmljdGltLCBuZXcsICZyb290LnJvb3QpOwp9CgpwdWIgZm4gcmJfcmVwbGFjZV9ub2RlX2NhY2hlZCh2aWN0aW06ICpOb2RlLCBuZXc6ICpOb2RlLCByb290OiAqUm9vdENhY2hlZCkgdm9pZCB7CiAgICByZXBsYWNlTm9kZUNhY2hlZCh2aWN0aW0sIG5ldywgcm9vdCk7Cn0KCmZuIGxlZnREZWVwZXN0Tm9kZShub2RlOiAqY29uc3QgTm9kZSkgKk5vZGUgewogICAgdmFyIGN1cnJlbnQ6ICpjb25zdCBOb2RlID0gbm9kZTsKICAgIHdoaWxlICh0cnVlKSB7CiAgICAgICAgaWYgKGN1cnJlbnQubGVmdCkgfGxlZnR8IHsKICAgICAgICAgICAgY3VycmVudCA9IGxlZnQ7CiAgICAgICAgfSBlbHNlIGlmIChjdXJyZW50LnJpZ2h0KSB8cmlnaHR8IHsKICAgICAgICAgICAgY3VycmVudCA9IHJpZ2h0OwogICAgICAgIH0gZWxzZSB7CiAgICAgICAgICAgIHJldHVybiBAY29uc3RDYXN0KGN1cnJlbnQpOwogICAgICAgIH0KICAgIH0KfQoKcHViIGZuIGZpcnN0UG9zdG9yZGVyKHJvb3Q6ICpjb25zdCBSb290KSA/Kk5vZGUgewogICAgY29uc3Qgbm9kZSA9IHJvb3Qubm9kZSBvcmVsc2UgcmV0dXJuIG51bGw7CiAgICByZXR1cm4gbGVmdERlZXBlc3ROb2RlKG5vZGUpOwp9CgpwdWIgZm4gcmJfZmlyc3RfcG9zdG9yZGVyKHJvb3Q6ICpjb25zdCBSb290KSA/Kk5vZGUgewogICAgcmV0dXJuIGZpcnN0UG9zdG9yZGVyKHJvb3QpOwp9CgpwdWIgZm4gbmV4dFBvc3RvcmRlcihub2RlOiA/KmNvbnN0IE5vZGUpID8qTm9kZSB7CiAgICBjb25zdCBjdXJyZW50ID0gbm9kZSBvcmVsc2UgcmV0dXJuIG51bGw7CiAgICBjb25zdCBwYXJlbnQgPSBjdXJyZW50LnBhcmVudDsKICAgIGlmIChwYXJlbnQgIT0gbnVsbCBhbmQgcGFyZW50Lj8ubGVmdCA9PSBjdXJyZW50IGFuZCBwYXJlbnQuPy5yaWdodCAhPSBudWxsKSB7CiAgICAgICAgcmV0dXJuIGxlZnREZWVwZXN0Tm9kZShwYXJlbnQuPy5yaWdodC4/KTsKICAgIH0KICAgIHJldHVybiBwYXJlbnQ7Cn0KCnB1YiBmbiByYl9uZXh0X3Bvc3RvcmRlcihub2RlOiA/KmNvbnN0IE5vZGUpID8qTm9kZSB7CiAgICByZXR1cm4gbmV4dFBvc3RvcmRlcihub2RlKTsKfQoKdGVzdCAicmJ0cmVlIGluc2VydHMgYW5kIHRyYXZlcnNlcyBpbiBzb3J0ZWQgb3JkZXIiIHsKICAgIGNvbnN0IEVudHJ5ID0gc3RydWN0IHsKICAgICAgICBrZXk6IGkzMiwKICAgICAgICBub2RlOiBOb2RlID0gTm9kZS5pbml0KCksCiAgICB9OwoKICAgIGNvbnN0IGxlc3MgPSBzdHJ1Y3QgewogICAgICAgIGZuIGNvbXBhcmUobGhzOiAqY29uc3QgTm9kZSwgcmhzOiAqY29uc3QgTm9kZSkgYm9vbCB7CiAgICAgICAgICAgIGNvbnN0IGxoc19lbnRyeTogKmNvbnN0IEVudHJ5ID0gQGZpZWxkUGFyZW50UHRyKCJub2RlIiwgbGhzKTsKICAgICAgICAgICAgY29uc3QgcmhzX2VudHJ5OiAqY29uc3QgRW50cnkgPSBAZmllbGRQYXJlbnRQdHIoIm5vZGUiLCByaHMpOwogICAgICAgICAgICByZXR1cm4gbGhzX2VudHJ5LmtleSA8IHJoc19lbnRyeS5rZXk7CiAgICAgICAgfQogICAgfS5jb21wYXJlOwoKICAgIHZhciBlbnRyaWVzID0gW19dRW50cnl7CiAgICAgICAgLnsgLmtleSA9IDEwIH0sCiAgICAgICAgLnsgLmtleSA9IDIwIH0sCiAgICAgICAgLnsgLmtleSA9IDUgfSwKICAgICAgICAueyAua2V5ID0gMTUgfSwKICAgICAgICAueyAua2V5ID0gMjUgfSwKICAgIH07CiAgICB2YXIgcm9vdCA9IFJvb3QuaW5pdCgpOwoKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3QoZW1wdHlSb290KCZyb290KSk7CgogICAgZm9yICgmZW50cmllcykgfCplbnRyeXwgewogICAgICAgIGFkZCgmZW50cnkubm9kZSwgJnJvb3QsIGxlc3MpOwogICAgfQoKICAgIHZhciBvcmRlcjogWzVdaTMyID0gdW5kZWZpbmVkOwogICAgdmFyIGNvdW50OiB1c2l6ZSA9IDA7CiAgICB2YXIgY3VycmVudCA9IGZpcnN0KCZyb290KTsKICAgIHdoaWxlIChjdXJyZW50KSB8bm9kZXwgOiAoY3VycmVudCA9IG5leHQobm9kZSkpIHsKICAgICAgICBjb25zdCBlbnRyeTogKmNvbnN0IEVudHJ5ID0gQGZpZWxkUGFyZW50UHRyKCJub2RlIiwgbm9kZSk7CiAgICAgICAgb3JkZXJbY291bnRdID0gZW50cnkua2V5OwogICAgICAgIGNvdW50ICs9IDE7CiAgICB9CgogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsKEBhcyh1c2l6ZSwgNSksIGNvdW50KTsKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbFNsaWNlcyhpMzIsICZbXWkzMnsgNSwgMTAsIDE1LCAyMCwgMjUgfSwgb3JkZXJbMC4uY291bnRdKTsKCiAgICB2YXIgcmV2ZXJzZV9vcmRlcjogWzVdaTMyID0gdW5kZWZpbmVkOwogICAgdmFyIHJldmVyc2VfY291bnQ6IHVzaXplID0gMDsKICAgIGN1cnJlbnQgPSBsYXN0KCZyb290KTsKICAgIHdoaWxlIChjdXJyZW50KSB8bm9kZXwgOiAoY3VycmVudCA9IHByZXYobm9kZSkpIHsKICAgICAgICBjb25zdCBlbnRyeTogKmNvbnN0IEVudHJ5ID0gQGZpZWxkUGFyZW50UHRyKCJub2RlIiwgbm9kZSk7CiAgICAgICAgcmV2ZXJzZV9vcmRlcltyZXZlcnNlX2NvdW50XSA9IGVudHJ5LmtleTsKICAgICAgICByZXZlcnNlX2NvdW50ICs9IDE7CiAgICB9CgogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsKEBhcyh1c2l6ZSwgNSksIHJldmVyc2VfY291bnQpOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU2xpY2VzKGkzMiwgJltfaTMyeyAyNSwgMjAsIDE1LCAxMCwgNSB9LCByZXZlcnNlX29yZGVyWzAuLnJldmVyc2VfY291bnRdKTsKfQoKdGVzdCAicmJ0cmVlIGVyYXNlIGFuZCByZXBsYWNlIGtlZXAgdHJhdmVyc2FsIGNvbnNpc3RlbnQiIHsKICAgIGNvbnN0IEVudHJ5ID0gc3RydWN0IHsKICAgICAgICBrZXk6IGkzMiwKICAgICAgICBub2RlOiBOb2RlID0gTm9kZS5pbml0KCksCiAgICB9OwoKICAgIGNvbnN0IGxlc3MgPSBzdHJ1Y3QgewogICAgICAgIGZuIGNvbXBhcmUobGhzOiAqY29uc3QgTm9kZSwgcmhzOiAqY29uc3QgTm9kZSkgYm9vbCB7CiAgICAgICAgICAgIGNvbnN0IGxoc19lbnRyeTogKmNvbnN0IEVudHJ5ID0gQGZpZWxkUGFyZW50UHRyKCJub2RlIiwgbGhzKTsKICAgICAgICAgICAgY29uc3QgcmhzX2VudHJ5OiAqY29uc3QgRW50cnkgPSBAZmllbGRQYXJlbnRQdHIoIm5vZGUiLCByaHMpOwogICAgICAgICAgICByZXR1cm4gbGhzX2VudHJ5LmtleSA8IHJoc19lbnRyeS5rZXk7CiAgICAgICAgfQogICAgfS5jb21wYXJlOwoKICAgIHZhciBlbnRyaWVzID0gW19dRW50cnl7CiAgICAgICAgLnsgLmtleSA9IDEwIH0sCiAgICAgICAgLnsgLmtleSA9IDIwIH0sCiAgICAgICAgLnsgLmtleSA9IDUgfSwKICAgICAgICAueyAua2V5ID0gMTUgfSwKICAgICAgICAueyAua2V5ID0gMjUgfSwKICAgIH07CiAgICB2YXIgcmVwbGFjZW1lbnQgPSBFbnRyeXsgLmtleSA9IDEwIH07CiAgICB2YXIgcm9vdCA9IFJvb3QuaW5pdCgpOwoKICAgIGZvciAoJmVudHJpZXMpIHwqZW50cnl8IHsKICAgICAgICBhZGQoJmVudHJ5Lm5vZGUsICZyb290LCBsZXNzKTsKICAgIH0KCiAgICBlcmFzZSgmZW50cmllc1sxXS5ub2RlLCAmcm9vdCk7CiAgICByZXBsYWNlTm9kZSgmZW50cmllc1swXS5ub2RlLCAmcmVwbGFjZW1lbnQubm9kZSwgJnJvb3QpOwoKICAgIHZhciBvcmRlcjogWzRdaTMyID0gdW5kZWZpbmVkOwogICAgdmFyIGNvdW50OiB1c2l6ZSA9IDA7CiAgICB2YXIgY3VycmVudCA9IGZpcnN0KCZyb290KTsKICAgIHdoaWxlIChjdXJyZW50KSB8bm9kZXwgOiAoY3VycmVudCA9IG5leHQobm9kZSkpIHsKICAgICAgICBjb25zdCBlbnRyeTogKmNvbnN0IEVudHJ5ID0gQGZpZWxkUGFyZW50UHRyKCJub2RlIiwgbm9kZSk7CiAgICAgICAgb3JkZXJbY291bnRdID0gZW50cnkua2V5OwogICAgICAgIGNvdW50ICs9IDE7CiAgICB9CgogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU2xpY2VzKGkzMiwgJltfaTMyeyA1LCAxMCwgMTUsIDI1IH0sIG9yZGVyWzAuLmNvdW50XSk7Cn0KCnRlc3QgInJidHJlZSBvcmRlcmVkIExpbnV4LXN0eWxlIGFsaWFzZXMgbWlycm9yIHRyYXZlcnNhbCBhbmQgcmVwbGFjZW1lbnQgaGVscGVycyIgewogICAgY29uc3QgRW50cnkgPSBzdHJ1Y3QgewogICAgICAgIGtleTogaTMyLAogICAgICAgIG5vZGU6IE5vZGUgPSBOb2RlLmluaXQoKSwKICAgIH07CgogICAgY29uc3QgbGVzcyA9IHN0cnVjdCB7CiAgICAgICAgZm4gY29tcGFyZShsaHM6ICpjb25zdCBOb2RlLCByaHM6ICpjb25zdCBOb2RlKSBib29sIHsKICAgICAgICAgICAgY29uc3QgbGhzX2VudHJ5OiAqY29uc3QgRW50cnkgPSBAZmllbGRQYXJlbnRQdHIoIm5vZGUiLCBsaHMpOwogICAgICAgICAgICBjb25zdCByaHNfZW50cnk6ICpjb25zdCBFbnRyeSA9IEBmaWVsZFBhcmVudFB0cigibm9kZSIsIHJocyk7CiAgICAgICAgICAgIHJldHVybiBsaHNfZW50cnkua2V5IDwgcmhzX2VudHJ5LmtleTsKICAgICAgICB9CiAgICB9LmNvbXBhcmU7CgogICAgdmFyIHByaW1hcnlfZW50cmllcyA9IFtfXUVudHJ5ewogICAgICAgIC57IC5rZXkgPSAxMCB9LAogICAgICAgIC57IC5rZXkgPSAyMCB9LAogICAgICAgIC57IC5rZXkgPSA1IH0sCiAgICAgICAgLnsgLmtleSA9IDE1IH0sCiAgICB9OwogICAgdmFyIGFsaWFzX2VudHJpZXMgPSBbX11FbnRyeXsKICAgICAgICAueyAua2V5ID0gMTAgfSwKICAgICAgICAueyAua2V5ID0gMjAgfSwKICAgICAgICAueyAua2V5ID0gNSB9LAogICAgICAgIC57IC5rZXkgPSAxNSB9LAogICAgfTsKICAgIHZhciBwcmltYXJ5X3JlcGxhY2VtZW50ID0gRW50cnl7IC5rZXkgPSAxMCB9OwogICAgdmFyIGFsaWFzX3JlcGxhY2VtZW50ID0gRW50cnl7IC5rZXkgPSAxMCB9OwogICAgdmFyIHByaW1hcnlfcm9vdCA9IFJvb3QuaW5pdCgpOwogICAgdmFyIGFsaWFzX3Jvb3QgPSBSb290LmluaXQoKTsKICAgIGZvciAoJnByaW1hcnlfZW50cmllcywgJmFsaWFzX2VudHJpZXMpIHwqcHJpbWFyeV9lbnRyeSwgKmFsaWFzX2VudHJ5fCB7CiAgICAgICAgYWRkKCZwcmltYXJ5X2VudHJ5Lm5vZGUsICZwcmltYXJ5X3Jvb3QsIGxlc3MpOwogICAgICAgIGFkZCgmYWxpYXNfZW50cnkubm9kZSwgJmFsaWFzX3Jvb3QsIGxlc3MpOwogICAgfQoKICAgIHZhciBwcmltYXJ5X2ZvcndhcmQ6IFs0XWkzMiA9IHVuZGVmaW5lZDsKICAgIHZhciBhbGlhc19mb3J3YXJkOiBbNF1pMzIgPSB1bmRlZmluZWQ7CiAgICB2YXIgY291bnQ6IHVzaXplID0gMDsKICAgIHZhciBjdXJyZW50ID0gZmlyc3QoJnByaW1hcnlfcm9vdCk7CiAgICB3aGlsZSAoY3VycmVudCkgfG5vZGV8IDogKGN1cnJlbnQgPSBuZXh0KG5vZGUpKSB7CiAgICAgICAgY29uc3QgZW50cnk6ICpjb25zdCBFbnRyeSA9IEBmaWVsZFBhcmVudFB0cigibm9kZSIsIG5vZGUpOwogICAgICAgIHByaW1hcnlfZm9yd2FyZFtjb3VudF0gPSBlbnRyeS5rZXk7CiAgICAgICAgY291bnQgKz0gMTsKICAgIH0KCiAgICB2YXIgYWxpYXNfY291bnQ6IHVzaXplID0gMDsKICAgIGN1cnJlbnQgPSByYl9maXJzdCgmYWxpYXNfcm9vdCk7CiAgICB3aGlsZSAoY3VycmVudCkgfG5vZGV8IDogKGN1cnJlbnQgPSByYl9uZXh0KG5vZGUpKSB7CiAgICAgICAgY29uc3QgZW50cnk6ICpjb25zdCBFbnRyeSA9IEBmaWVsZFBhcmVudFB0cigibm9kZSIsIG5vZGUpOwogICAgICAgIGFsaWFzX2ZvcndhcmRbYWxpYXNfY291bnRdID0gZW50cnkua2V5OwogICAgICAgIGFsaWFzX2NvdW50ICs9IDE7CiAgICB9CgogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsKGNvdW50LCBhbGlhc19jb3VudCk7CiAgICB0cnkgc3RkLnRlc3RpbmcuZXhwZWN0RXF1YWxTbGljZXMoaTMyLCBwcmltYXJ5X2ZvcndhcmRbMC4uY291bnRdLCBhbGlhc19mb3J3YXJkWzAuLmFsaWFzX2NvdW50XSk7CgogICAgdmFyIHByaW1hcnlfcmV2ZXJzZTogWzRdaTMyID0gdW5kZWZpbmVkOwogICAgdmFyIGFsaWFzX3JldmVyc2U6IFs0XWkzMiA9IHVuZGVmaW5lZDsKICAgIGNvdW50ID0gMDsKICAgIGN1cnJlbnQgPSBsYXN0KCZwcmltYXJ5X3Jvb3QpOwogICAgd2hpbGUgKGN1cnJlbnQpIHxub2RlfCA6IChjdXJyZW50ID0gcHJldihub2RlKSkgewogICAgICAgIGNvbnN0IGVudHJ5OiAqY29uc3QgRW50cnkgPSBAZmllbGRQYXJlbnRQdHIoIm5vZGUiLCBub2RlKTsKICAgICAgICBwcmltYXJ5X3JldmVyc2VbY291bnRdID0gZW50cnkua2V5OwogICAgICAgIGNvdW50ICs9IDE7CiAgICB9CgogICAgYWxpYXNfY291bnQgPSAwOwogICAgY3VycmVudCA9IHJiX2xhc3QoJmFsaWFzX3Jvb3QpOwogICAgd2hpbGUgKGN1cnJlbnQpIHxub2RlfCA6IChjdXJyZW50ID0gcmJfcHJldihub2RlKSkgewogICAgICAgIGNvbnN0IGVudHJ5OiAqY29uc3QgRW50cnkgPSBAZmllbGRQYXJlbnRQdHIoIm5vZGUiLCBub2RlKTsKICAgICAgICBhbGlhc19yZXZlcnNlW2FsaWFzX2NvdW50XSA9IGVudHJ5LmtleTsKICAgICAgICBhbGlhc19jb3VudCArPSAxOwogICAgfQoKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbChjb3VudCwgYWxpYXNfY291bnQpOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU2xpY2VzKGkzMiwgcHJpbWFyeV9yZXZlcnNlWzAuLmNvdW50XSwgYWxpYXNfcmV2ZXJzZVswLi5hbGlhc19jb3VudF0pOwoKICAgIHJlcGxhY2VOb2RlKCZwcmltYXJ5X2VudHJpZXNbMF0ubm9kZSwgJnByaW1hcnlfcmVwbGFjZW1lbnQubm9kZSwgJnByaW1hcnlfcm9vdCk7CiAgICByYl9yZXBsYWNlX25vZGUoJmFsaWFzX2VudHJpZXNbMF0ubm9kZSwgJmFsaWFzX3JlcGxhY2VtZW50Lm5vZGUsICZhbGlhc19yb290KTsKCiAgICBjb3VudCA9IDA7CiAgICBjdXJyZW50ID0gZmlyc3QoJnByaW1hcnlfcm9vdCk7CiAgICB3aGlsZSAoY3VycmVudCkgfG5vZGV8IDogKGN1cnJlbnQgPSBuZXh0KG5vZGUpKSB7CiAgICAgICAgY29uc3QgZW50cnk6ICpjb25zdCBFbnRyeSA9IEBmaWVsZFBhcmVudFB0cigibm9kZSIsIG5vZGUpOwogICAgICAgIHByaW1hcnlfZm9yd2FyZFtjb3VudF0gPSBlbnRyeS5rZXk7CiAgICAgICAgY291bnQgKz0gMTsKICAgIH0KCiAgICBhbGlhc19jb3VudCA9IDA7CiAgICBjdXJyZW50ID0gcmJfZmlyc3QoJmFsaWFzX3Jvb3QpOwogICAgd2hpbGUgKGN1cnJlbnQpIHxub2RlfCA6IChjdXJyZW50ID0gcmJfbmV4dChub2RlKSkgewogICAgICAgIGNvbnN0IGVudHJ5OiAqY29uc3QgRW50cnkgPSBAZmllbGRQYXJlbnRQdHIoIm5vZGUiLCBub2RlKTsKICAgICAgICBhbGlhc19mb3J3YXJkW2FsaWFzX2NvdW50XSA9IGVudHJ5LmtleTsKICAgICAgICBhbGlhc19jb3VudCArPSAxOwogICAgfQoKICAgIHRyeSBzdGQudGVzdGluZy5leHBlY3RFcXVhbChjb3VudCwgYWxpYXNfY291bnQpOwogICAgdHJ5IHN0ZC50ZXN0aW5nLmV4cGVjdEVxdWFsU2xpY2VzKGkzMiwgcHJpbWFyeV9mb3J3YXJkWzAuLmNvdW50XSwgYWxpYXNfZm9yd2FyZFs
+const std = @import("std");
+
+pub const Color = enum {
+    red,
+    black,
+};
+
+pub const Node = struct {
+    parent: ?*Node = null,
+    left: ?*Node = null,
+    right: ?*Node = null,
+    color: Color = .red,
+
+    pub fn init() Node {
+        return .{};
+    }
+};
+
+pub const Root = struct {
+    node: ?*Node = null,
+
+    pub fn init() Root {
+        return .{};
+    }
+};
+
+pub const RootCached = struct {
+    root: Root = .{},
+    leftmost: ?*Node = null,
+
+    pub fn init() RootCached {
+        return .{};
+    }
+};
+
+pub const MatchIterator = struct {
+    key: *const anyopaque,
+    cmp: CmpKeyFn,
+    current: ?*Node,
+
+    pub fn next(self: *MatchIterator) ?*Node {
+        const node = self.current orelse return null;
+        self.current = nextMatch(self.key, node, self.cmp);
+        return node;
+    }
+};
+
+pub const LessFn = *const fn (*const Node, *const Node) bool;
+pub const CmpNodeFn = *const fn (*const Node, *const Node) i32;
+pub const CmpKeyFn = *const fn (*const anyopaque, *const Node) i32;
+
+pub fn emptyRoot(root: *const Root) bool {
+    return root.node == null;
+}
+
+pub fn emptyNode(node: *const Node) bool {
+    return node.parent == node;
+}
+
+pub fn clearNode(node: *Node) void {
+    node.parent = node;
+    node.left = null;
+    node.right = null;
+    node.color = .red;
+}
+
+pub fn linkNode(node: *Node, parent: ?*Node, link: *?*Node) void {
+    node.parent = parent;
+    node.left = null;
+    node.right = null;
+    node.color = .red;
+    link.* = node;
+}
+
+fn colorOf(node: ?*Node) Color {
+    return if (node) |n| n.color else .black;
+}
+
+fn leftOf(node: ?*Node) ?*Node {
+    return if (node) |n| n.left else null;
+}
+
+fn rightOf(node: ?*Node) ?*Node {
+    return if (node) |n| n.right else null;
+}
+
+fn minimum(node: *Node) *Node {
+    var current = node;
+    while (current.left) |left| {
+        current = left;
+    }
+    return current;
+}
+
+fn maximum(node: *Node) *Node {
+    var current = node;
+    while (current.right) |right| {
+        current = right;
+    }
+    return current;
+}
+
+fn leftRotate(root: *Root, node: *Node) void {
+    var pivot = node.right orelse unreachable;
+
+    node.right = pivot.left;
+    if (pivot.left) |child| {
+        child.parent = node;
+    }
+
+    pivot.parent = node.parent;
+    if (node.parent == null) {
+        root.node = pivot;
+    } else if (node.parent.?.left == node) {
+        node.parent.?.left = pivot;
+    } else {
+        node.parent.?.right = pivot;
+    }
+
+    pivot.left = node;
+    node.parent = pivot;
+}
+
+fn rightRotate(root: *Root, node: *Node) void {
+    var pivot = node.left orelse unreachable;
+
+    node.left = pivot.right;
+    if (pivot.right) |child| {
+        child.parent = node;
+    }
+
+    pivot.parent = node.parent;
+    if (node.parent == null) {
+        root.node = pivot;
+    } else if (node.parent.?.right == node) {
+        node.parent.?.right = pivot;
+    } else {
+        node.parent.?.left = pivot;
+    }
+
+    pivot.right = node;
+    node.parent = pivot;
+}
+
+pub fn insertColor(node: *Node, root: *Root) void {
+    var current = node;
+
+    while (colorOf(current.parent) == .red) {
+        var parent = current.parent.?;
+        var grandparent = parent.parent.?;
+
+        if (grandparent.left == parent) {
+            const uncle = grandparent.right;
+            if (colorOf(uncle) == .red) {
+                parent.color = .black;
+                uncle.?.color = .black;
+                grandparent.color = .red;
+                current = grandparent;
+                continue;
+            }
+
+            if (parent.right == current) {
+                current = parent;
+                leftRotate(root, current);
+                parent = current.parent.?;
+                grandparent = parent.parent.?;
+            }
+
+            parent.color = .black;
+            grandparent.color = .red;
+            rightRotate(root, grandparent);
+        } else {
+            const uncle = grandparent.left;
+            if (colorOf(uncle) == .red) {
+                parent.color = .black;
+                uncle.?.color = .black;
+                grandparent.color = .red;
+                current = grandparent;
+                continue;
+            }
+
+            if (parent.left == current) {
+                current = parent;
+                rightRotate(root, current);
+                parent = current.parent.?;
+                grandparent = parent.parent.?;
+            }
+
+            parent.color = .black;
+            grandparent.color = .red;
+            leftRotate(root, grandparent);
+        }
+    }
+
+    if (root.node) |root_node| {
+        root_node.color = .black;
+    }
+}
+
+pub fn insertColorCached(node: *Node, root: *RootCached, leftmost: bool) void {
+    if (leftmost) {
+        root.leftmost = node;
+    }
+    insertColor(node, &root.root);
+}
+
+pub fn rb_insert_color_cached(node: *Node, root: *RootCached, leftmost: bool) void {
+    insertColorCached(node, root, leftmost);
+}
+
+pub fn add(node: *Node, root: *Root, less: LessFn) void {
+    var link = &root.node;
+    var parent: ?*Node = null;
+
+    while (link.*) |current| {
+        parent = current;
+        if (less(node, current)) {
+            link = &current.left;
+        } else {
+            link = &current.right;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColor(node, root);
+}
+
+pub fn addCached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        if (less(node, current)) {
+            link = &current.left;
+        } else {
+            link = &current.right;
+            leftmost = false;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColorCached(node, root, leftmost);
+    return if (leftmost) node else null;
+}
+
+pub fn rb_add_cached(node: *Node, root: *RootCached, less: LessFn) ?*Node {
+    return addCached(node, root, less);
+}
+
+pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
+    var link = &root.node;
+    var parent: ?*Node = null;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColor(node, root);
+    return null;
+}
+
+pub fn findAddCached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {
+    var link = &root.root.node;
+    var parent: ?*Node = null;
+    var leftmost = true;
+
+    while (link.*) |current| {
+        parent = current;
+        const order = cmp(node, current);
+        if (order < 0) {
+            link = &current.left;
+        } else if (order > 0) {
+            link = &current.right;
+            leftmost = false;
+        } else {
+            return current;
+        }
+    }
+
+    linkNode(node, parent, link);
+    insertColorCached(node, root, leftmost);
+    return null;
+}
+
+pub fn rb_find_add_cached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {
+    return findAddCached(node, root, cmp);
+}
+
+pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
+    var node = root.node;
+
+    while (node) |current| {
+        const order = cmp(key, current);
+        if (order < 0) {
+            node = current.left;
+        } else if (order > 0) {
+            node = current.right;
+        } else {
+            return current;
+        }
+    }
+
+    return null;
+}
+
+pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
+    var node = root.node;
+    var match: ?*Node = null;
+
+    while (node) |current| {
+        const order = cmp(key, current);
+        if (order <= 0) {
+            if (order == 0) {
+                match = current;
+            }
+            node = current.left;
+        } else {
+            node = current.right;
+        }
+    }
+
+    return match;
+}
+
+pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {
+    const candidate = next(node) orelse return null;
+    if (cmp(key, candidate) != 0) {
+        return null;
+    }
+    return candidate;
+}
+
+pub fn matchIterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {
+    return .{
+        .key = key,
+        .cmp = cmp,
+        .current = findFirst(key, root, cmp),
+    };
+}
+
+fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
+    if (victim.parent == null) {
+        root.node = replacement;
+    } else if (victim.parent.?.left == victim) {
+        victim.parent.?.left = replacement;
+    } else {
+        victim.parent.?.right = replacement;
+    }
+
+    if (replacement) |node| {
+        node.parent = victim.parent;
+    }
+}
+
+fn deleteFixup(root: *Root, initial_node: ?*Node, initial_parent: ?*Node) void {
+    var node = initial_node;
+    var parent = initial_parent;
+
+    while (node != root.node and colorOf(node) == .black) {
+        const current_parent = parent orelse break;
+
+        if (current_parent.left == node) {
+            var sibling = current_parent.right;
+
+            if (colorOf(sibling) == .red) {
+                sibling.?.color = .black;
+                current_parent.color = .red;
+                leftRotate(root, current_parent);
+                sibling = current_parent.right;
+            }
+
+            if (colorOf(leftOf(sibling)) == .black and colorOf(rightOf(sibling)) == .black) {
+                if (sibling) |s| {
+                    s.color = .red;
+                }
+                node = current_parent;
+                parent = current_parent.parent;
+            } else {
+                if (colorOf(rightOf(sibling)) == .black) {
+                    if (leftOf(sibling)) |left| {
+                        left.color = .black;
+                    }
+                    if (sibling) |s| {
+                        s.color = .red;
+                        rightRotate(root, s);
+                    }
+                    sibling = current_parent.right;
+                }
+                if (sibling) |s| {
+                    s.color = current_parent.color;
+                }
+                current_parent.color = .black;
+                if (rightOf(sibling)) |right| {
+                    right.color = .black;
+                }
+                leftRotate(root, current_parent);
+                node = root.node;
+                parent = null;
+            }
+        } else {
+            var sibling = current_parent.left;
+
+            if (colorOf(sibling) == .red) {
+                sibling.?.color = .black;
+                current_parent.color = .red;
+                rightRotate(root, current_parent);
+                sibling = current_parent.left;
+            }
+
+            if (colorOf(leftOf(sibling)) == .black and colorOf(rightOf(sibling)) == .black) {
+                if (sibling) |s| {
+                    s.color = .red;
+                }
+                node = current_parent;
+                parent = current_parent.parent;
+            } else {
+                if (colorOf(leftOf(sibling)) == .black) {
+                    if (rightOf(sibling)) |right| {
+                        right.color = .black;
+                    }
+                    if (sibling) |s| {
+                        s.color = .red;
+                        leftRotate(root, s);
+                    }
+                    sibling = current_parent.left;
+                }
+
+                if (sibling) |s| {
+                    s.color = current_parent.color;
+                }
+                current_parent.color = .black;
+                if (leftOf(sibling)) |left| {
+                    left.color = .black;
+                }
+                rightRotate(root, current_parent);
+                node = root.node;
+                parent = null;
+            }
+        }
+    }
+
+    if (node) |n| {
+        n.color = .black;
+    }
+}
+
+pub fn erase(node: *Node, root: *Root) void {
+    var replacement = node;
+    var replacement_color = replacement.color;
+    var child: ?*Node = null;
+    var parent: ?*Node = null;
+
+    if (node.left == null) {
+        child = node.right;
+        parent = node.parent;
+        transplant(root, node, node.right);
+    } else if (node.right == null) {
+        child = node.left;
+        parent = node.parent;
+        transplant(root, node, node.left);
+    } else {
+        replacement = minimum(node.right.?);
+        replacement_color = replacement.color;
+        child = replacement.right;
+
+        if (replacement.parent == node) {
+            parent = replacement;
+        } else {
+            parent = replacement.parent;
+            transplant(root, replacement, replacement.right);
+            replacement.right = node.right;
+            replacement.right.?.parent = replacement;
+        }
+
+        transplant(root, node, replacement);
+        replacement.left = node.left;
+        replacement.left.?.parent = replacement;
+        replacement.color = node.color;
+    }
+
+    if (replacement_color == .black) {
+        deleteFixup(root, child, parent);
+    }
+}
+
+pub fn eraseCached(node: *Node, root: *RootCached) ?*Node {
+    if (root.leftmost == node) {
+        const leftmost = next(node);
+        root.leftmost = leftmost;
+        erase(node, &root.root);
+        return leftmost;
+    }
+
+    erase(node, &root.root);
+    return null;
+}
+
+pub fn rb_erase_cached(node: *Node, root: *RootCached) ?*Node {
+    return eraseCached(node, root);
+}
+
+pub fn eraseInit(node: *Node, root: *Root) void {
+    erase(node, root);
+    clearNode(node);
+}
+
+pub fn eraseInitCached(node: *Node, root: *RootCached) void {
+    _ = eraseCached(node, root);
+    clearNode(node);
+}
+
+pub fn rb_erase_init_cached(node: *Node, root: *RootCached) void {
+    eraseInitCached(node, root);
+}
+
+pub fn first(root: *const Root) ?*Node {
+    const node = root.node orelse return null;
+    return minimum(node);
+}
+
+pub fn rb_first(root: *const Root) ?*Node {
+    return first(root);
+}
+
+pub fn firstCached(root: *const RootCached) ?*Node {
+    return root.leftmost;
+}
+
+pub fn rb_first_cached(root: *const RootCached) ?*Node {
+    return firstCached(root);
+}
+
+pub fn last(root: *const Root) ?*Node {
+    const node = root.node orelse return null;
+    return maximum(node);
+}
+
+pub fn rb_last(root: *const Root) ?*Node {
+    return last(root);
+}
+
+pub fn next(node: *const Node) ?*Node {
+    if (emptyNode(node)) {
+        return null;
+    }
+
+    if (node.right) |right| {
+        return minimum(right);
+    }
+
+    var current: *const Node = node;
+    var parent = current.parent;
+    while (parent != null and parent.?.right == current) {
+        current = parent.?;
+        parent = current.parent;
+    }
+
+    return parent;
+}
+
+pub fn rb_next(node: *const Node) ?*Node {
+    return next(node);
+}
+
+pub fn prev(node: *const Node) ?*Node {
+    if (emptyNode(node)) {
+        return null;
+    }
+
+    if (node.left) |left| {
+        return maximum(left);
+    }
+
+    var current: *const Node = node;
+    var parent = current.parent;
+    while (parent != null and parent.?.left == current) {
+        current = parent.?;
+        parent = current.parent;
+    }
+
+    return parent;
+}
+
+pub fn rb_prev(node: *const Node) ?*Node {
+    return prev(node);
+}
+
+pub fn replaceNode(victim: *Node, new: *Node, root: *Root) void {
+    const parent = victim.parent;
+    new.parent = parent;
+    new.left = victim.left;
+    new.right = victim.right;
+    new.color = victim.color;
+
+    if (victim.left) |left| {
+        left.parent = new;
+    }
+    if (victim.right) |right| {
+        right.parent = new;
+    }
+
+    if (parent == null) {
+        root.node = new;
+    } else if (parent.?.left == victim) {
+        parent.?.left = new;
+    } else {
+        parent.?.right = new;
+    }
+}
+
+pub fn rb_replace_node(victim: *Node, new: *Node, root: *Root) void {
+    replaceNode(victim, new, root);
+}
+
+pub fn replaceNodeCached(victim: *Node, new: *Node, root: *RootCached) void {
+    if (root.leftmost == victim) {
+        root.leftmost = new;
+    }
+    replaceNode(victim, new, &root.root);
+}
+
+pub fn rb_replace_node_cached(victim: *Node, new: *Node, root: *RootCached) void {
+    replaceNodeCached(victim, new, root);
+}
+
+fn leftDeepestNode(node: *const Node) *Node {
+    var current: *const Node = node;
+    while (true) {
+        if (current.left) |left| {
+            current = left;
+        } else if (current.right) |right| {
+            current = right;
+        } else {
+            return @constCast(current);
+        }
+    }
+}
+
+pub fn firstPostorder(root: *const Root) ?*Node {
+    const node = root.node orelse return null;
+    return leftDeepestNode(node);
+}
+
+pub fn rb_first_postorder(root: *const Root) ?*Node {
+    return firstPostorder(root);
+}
+
+pub fn nextPostorder(node: ?*const Node) ?*Node {
+    const current = node orelse return null;
+    const parent = current.parent;
+    if (parent != null and parent.?.left == current and parent.?.right != null) {
+        return leftDeepestNode(parent.?.right.?);
+    }
+    return parent;
+}
+
+pub fn rb_next_postorder(node: ?*const Node) ?*Node {
+    return nextPostorder(node);
+}
+
+test "rbtree inserts and traverses in sorted order" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var root = Root.init();
+
+    try std.testing.expect(emptyRoot(&root));
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    var order: [5]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 5), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20, 25 }, order[0..count]);
+
+    var reverse_order: [5]i32 = undefined;
+    var reverse_count: usize = 0;
+    current = last(&root);
+    while (current) |node| : (current = prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        reverse_order[reverse_count] = entry.key;
+        reverse_count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 5), reverse_count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 25, 20, 15, 10, 5 }, reverse_order[0..reverse_count]);
+}
+
+test "rbtree erase and replace keep traversal consistent" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+        .{ .key = 25 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    erase(&entries[1].node, &root);
+    replaceNode(&entries[0].node, &replacement.node, &root);
+
+    var order: [4]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 25 }, order[0..count]);
+}
+
+test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var primary_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var alias_entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var primary_replacement = Entry{ .key = 10 };
+    var alias_replacement = Entry{ .key = 10 };
+    var primary_root = Root.init();
+    var alias_root = Root.init();
+    for (&primary_entries, &alias_entries) |*primary_entry, *alias_entry| {
+        add(&primary_entry.node, &primary_root, less);
+        add(&alias_entry.node, &alias_root, less);
+    }
+
+    var primary_forward: [4]i32 = undefined;
+    var alias_forward: [4]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&primary_root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_forward[count] = entry.key;
+        count += 1;
+    }
+
+    var alias_count: usize = 0;
+    current = rb_first(&alias_root);
+    while (current) |node| : (current = rb_next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_forward[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(count, alias_count);
+    try std.testing.expectEqualSlices(i32, primary_forward[0..count], alias_forward[0..alias_count]);
+
+    var primary_reverse: [4]i32 = undefined;
+    var alias_reverse: [4]i32 = undefined;
+    count = 0;
+    current = last(&primary_root);
+    while (current) |node| : (current = prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_reverse[count] = entry.key;
+        count += 1;
+    }
+
+    alias_count = 0;
+    current = rb_last(&alias_root);
+    while (current) |node| : (current = rb_prev(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_reverse[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(count, alias_count);
+    try std.testing.expectEqualSlices(i32, primary_reverse[0..count], alias_reverse[0..alias_count]);
+
+    replaceNode(&primary_entries[0].node, &primary_replacement.node, &primary_root);
+    rb_replace_node(&alias_entries[0].node, &alias_replacement.node, &alias_root);
+
+    count = 0;
+    current = first(&primary_root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_forward[count] = entry.key;
+        count += 1;
+    }
+
+    alias_count = 0;
+    current = rb_first(&alias_root);
+    while (current) |node| : (current = rb_next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_forward[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(count, alias_count);
+    try std.testing.expectEqualSlices(i32, primary_forward[0..count], alias_forward[0..alias_count]);
+}
+
+test "rbtree eraseInit detaches erased node" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 20 },
+        .{ .key = 5 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    eraseInit(&entries[0].node, &root);
+
+    try std.testing.expect(emptyNode(&entries[0].node));
+
+    var order: [2]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 2), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 20 }, order[0..count]);
+}
+
+test "rbtree eraseInit clears singleton roots before reseed" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var first_entry = Entry{ .key = 10 };
+    var second_entry = Entry{ .key = 6 };
+    var root = Root.init();
+
+    add(&first_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), root.node);
+    try std.testing.expect(!emptyRoot(&root));
+
+    eraseInit(&first_entry.node, &root);
+    try std.testing.expect(emptyNode(&first_entry.node));
+    try std.testing.expect(emptyRoot(&root));
+    try std.testing.expectEqual(@as(?*Node, null), root.node);
+
+    add(&second_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), root.node);
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), first(&root));
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), last(&root));
+}
+
+test "rbtree postorder and empty node helpers behave" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 2 },
+        .{ .key = 1 },
+        .{ .key = 3 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    var count: usize = 0;
+    var current = firstPostorder(&root);
+    while (current) |node| : (current = nextPostorder(node)) {
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqual(firstPostorder(&root), rb_first_postorder(&root));
+    try std.testing.expectEqual(nextPostorder(firstPostorder(&root)), rb_next_postorder(rb_first_postorder(&root)));
+    try std.testing.expect(nextPostorder(null) == null);
+    try std.testing.expect(rb_next_postorder(null) == null);
+
+    var detached = Node.init();
+    clearNode(&detached);
+    try std.testing.expect(emptyNode(&detached));
+}
+
+test "rbtree postorder walks left-deep and right-sibling branches in order" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    var primary_entries = [_]Entry{
+        .{ .key = 8 },
+        .{ .key = 4 },
+        .{ .key = 2 },
+        .{ .key = 6 },
+        .{ .key = 12 },
+        .{ .key = 10 },
+    };
+    var alias_entries = [_]Entry{
+        .{ .key = 8 },
+        .{ .key = 4 },
+        .{ .key = 2 },
+        .{ .key = 6 },
+        .{ .key = 12 },
+        .{ .key = 10 },
+    };
+    var primary_root = Root.init();
+    var alias_root = Root.init();
+
+    const wireShape = struct {
+        fn apply(root: *Root, entries: []Entry) void {
+            root.node = &entries[0].node;
+            entries[0].node.parent = null;
+            entries[0].node.left = &entries[1].node;
+            entries[0].node.right = &entries[4].node;
+
+            entries[1].node.parent = &entries[0].node;
+            entries[1].node.left = &entries[2].node;
+            entries[1].node.right = &entries[3].node;
+
+            entries[2].node.parent = &entries[1].node;
+            entries[2].node.left = null;
+            entries[2].node.right = null;
+
+            entries[3].node.parent = &entries[1].node;
+            entries[3].node.left = null;
+            entries[3].node.right = null;
+
+            entries[4].node.parent = &entries[0].node;
+            entries[4].node.left = &entries[5].node;
+            entries[4].node.right = null;
+
+            entries[5].node.parent = &entries[4].node;
+            entries[5].node.left = null;
+            entries[5].node.right = null;
+        }
+    }.apply;
+
+    wireShape(&primary_root, &primary_entries);
+    wireShape(&alias_root, &alias_entries);
+
+    var primary_order: [6]i32 = undefined;
+    var alias_order: [6]i32 = undefined;
+
+    var primary_count: usize = 0;
+    var current = firstPostorder(&primary_root);
+    while (current) |node| : (current = nextPostorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        primary_order[primary_count] = entry.key;
+        primary_count += 1;
+    }
+
+    var alias_count: usize = 0;
+    current = rb_first_postorder(&alias_root);
+    while (current) |node| : (current = rb_next_postorder(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        alias_order[alias_count] = entry.key;
+        alias_count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 6), primary_count);
+    try std.testing.expectEqual(primary_count, alias_count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 6, 4, 10, 12, 8 }, primary_order[0..primary_count]);
+    try std.testing.expectEqualSlices(i32, primary_order[0..primary_count], alias_order[0..alias_count]);
+}
+
+test "rbtree findAdd keeps the first duplicate and inserts new keys" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 10, .serial = 3 },
+        .{ .key = 15, .serial = 4 },
+    };
+    var root = Root.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[0].node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[1].node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[2].node, &root, cmp));
+
+    const existing = findAdd(&entries[3].node, &root, cmp) orelse return error.TestUnexpectedResult;
+    const existing_entry: *const Entry = @fieldParentPtr("node", existing);
+    try std.testing.expectEqual(@as(i32, 10), existing_entry.key);
+    try std.testing.expectEqual(@as(usize, 0), existing_entry.serial);
+
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&entries[4].node, &root, cmp));
+
+    var order: [4]i32 = undefined;
+    var count: usize = 0;
+    var current = first(&root);
+    while (current) |node| : (current = next(node)) {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        order[count] = entry.key;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 4), count);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 15, 20 }, order[0..count]);
+}
+
+test "rbtree nextMatch walks the duplicate range in order" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    const wanted = @as(i32, 15);
+    const found = find(&wanted, &root, cmp) orelse return error.TestUnexpectedResult;
+    const found_entry: *const Entry = @fieldParentPtr("node", found);
+    try std.testing.expectEqual(@as(i32, 15), found_entry.key);
+
+    const missing = @as(i32, 17);
+    try std.testing.expect(find(&missing, &root, cmp) == null);
+
+    const duplicate = @as(i32, 10);
+    const first_match = findFirst(&duplicate, &root, cmp) orelse return error.TestUnexpectedResult;
+    const first_match_entry: *const Entry = @fieldParentPtr("node", first_match);
+    try std.testing.expectEqual(@as(usize, 0), first_match_entry.serial);
+
+    var serials: [3]usize = undefined;
+    var count: usize = 0;
+    var cursor = first_match;
+    while (true) {
+        const entry: *const Entry = @fieldParentPtr("node", cursor);
+        serials[count] = entry.serial;
+        count += 1;
+        cursor = nextMatch(&duplicate, cursor, cmp) orelse break;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, serials[0..count]);
+    try std.testing.expect(nextMatch(&duplicate, cursor, cmp) == null);
+}
+
+test "rbtree matchIterator walks the duplicate range in order" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 20, .serial = 1 },
+        .{ .key = 10, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+        .{ .key = 10, .serial = 4 },
+        .{ .key = 15, .serial = 5 },
+    };
+    var root = Root.init();
+
+    for (&entries) |*entry| {
+        add(&entry.node, &root, less);
+    }
+
+    const duplicate = @as(i32, 10);
+    var iter = matchIterator(&duplicate, &root, cmp);
+    var serials: [3]usize = undefined;
+    var count: usize = 0;
+    while (iter.next()) |node| {
+        const entry: *const Entry = @fieldParentPtr("node", node);
+        serials[count] = entry.serial;
+        count += 1;
+    }
+
+    try std.testing.expectEqual(@as(usize, 3), count);
+    try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, serials[0..count]);
+
+    const missing = @as(i32, 17);
+    var missing_iter = matchIterator(&missing, &root, cmp);
+    try std.testing.expect(missing_iter.next() == null);
+}
+
+test "rbtree addCached returns the inserted node only when it becomes leftmost" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    var first_entry = Entry{ .key = 10, .serial = 0 };
+    var larger_entry = Entry{ .key = 12, .serial = 1 };
+    var smaller_entry = Entry{ .key = 5, .serial = 2 };
+    var duplicate_entry = Entry{ .key = 5, .serial = 3 };
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), addCached(&first_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), addCached(&larger_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), addCached(&smaller_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), addCached(&duplicate_entry.node, &root, less));
+    try std.testing.expectEqual(@as(?*Node, &smaller_entry.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree findAddCached keeps cached leftmost stable while inserting misses" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var leftmost = Entry{ .key = 5, .serial = 0 };
+    var root_entry = Entry{ .key = 10, .serial = 1 };
+    var larger_entry = Entry{ .key = 15, .serial = 2 };
+    var duplicate_entries = [_]Entry{.{ .key = 10, .serial = 3 }};
+    var root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&root_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &root_entry.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&leftmost.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &leftmost.node), firstCached(&root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&larger_entry.node, &root, cmp));
+    try std.testing.expectEqual(@as(?*Node, &leftmost.node), firstCached(&root));
+
+    const duplicate = findAddCached(&duplicate_entries[0].node, &root, cmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &root_entry.node), duplicate);
+    try std.testing.expectEqual(@as(?*Node, &leftmost.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree cached root keeps the leftmost pointer in sync" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 20 },
+        .{ .key = 15 },
+    };
+    var replacement = Entry{ .key = 10 };
+    var new_leftmost = Entry{ .key = 3 };
+    var root = RootCached.init();
+
+    try std.testing.expect(firstCached(&root) == null);
+
+    for (&entries) |*entry| {
+        _ = addCached(&entry.node, &root, less);
+    }
+
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    const initial_leftmost = firstCached(&root) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &entries[1].node), initial_leftmost);
+
+    try std.testing.expect(eraseCached(&entries[2].node, &root) == null);
+    try std.testing.expectEqual(@as(*Node, &entries[1].node), firstCached(&root).?);
+
+    const promoted_leftmost = eraseCached(&entries[1].node, &root) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(*Node, &entries[0].node), promoted_leftmost);
+    try std.testing.expectEqual(@as(*Node, &entries[0].node), firstCached(&root).?);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    replaceNodeCached(&entries[0].node, &replacement.node, &root);
+    try std.testing.expectEqual(@as(*Node, &replacement.node), firstCached(&root).?);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    _ = addCached(&new_leftmost.node, &root, less);
+    try std.testing.expectEqual(@as(*Node, &new_leftmost.node), firstCached(&root).?);
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree cached-root Linux-style aliases mirror the primary helpers" {
+    const Entry = struct {
+        key: i32,
+        serial: usize,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key != rhs_entry.key) {
+                return lhs_entry.key < rhs_entry.key;
+            }
+            return lhs_entry.serial < rhs_entry.serial;
+        }
+    }.compare;
+
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    const firstKey = struct {
+        fn read(root: *const RootCached) ?i32 {
+            const node = firstCached(root) orelse return null;
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            return entry.key;
+        }
+    }.read;
+
+    const returnedIdentity = struct {
+        fn read(node: ?*Node) ?struct { i32, usize } {
+            const current = node orelse return null;
+            const entry: *const Entry = @fieldParentPtr("node", current);
+            return .{ entry.key, entry.serial };
+        }
+    }.read;
+
+    var primary_first = Entry{ .key = 10, .serial = 0 };
+    var alias_first = Entry{ .key = 10, .serial = 0 };
+    var primary_second = Entry{ .key = 5, .serial = 1 };
+    var alias_second = Entry{ .key = 5, .serial = 1 };
+    var primary_third = Entry{ .key = 15, .serial = 2 };
+    var alias_third = Entry{ .key = 15, .serial = 2 };
+    var primary_duplicate = Entry{ .key = 10, .serial = 3 };
+    var alias_duplicate = Entry{ .key = 10, .serial = 3 };
+    var primary_replacement = Entry{ .key = 10, .serial = 4 };
+    var alias_replacement = Entry{ .key = 10, .serial = 4 };
+
+    var primary_root = RootCached.init();
+    var alias_root = RootCached.init();
+
+    try std.testing.expectEqual(@as(?*Node, &primary_first.node), addCached(&primary_first.node, &primary_root, less));
+    try std.testing.expectEqual(@as(?*Node, &alias_first.node), rb_add_cached(&alias_first.node, &alias_root, less));
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&primary_second.node, &primary_root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), rb_find_add_cached(&alias_second.node, &alias_root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), findAddCached(&primary_third.node, &primary_root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), rb_find_add_cached(&alias_third.node, &alias_root, cmp));
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    const primary_existing = findAddCached(&primary_duplicate.node, &primary_root, cmp) orelse return error.TestUnexpectedResult;
+    const alias_existing = rb_find_add_cached(&alias_duplicate.node, &alias_root, cmp) orelse return error.TestUnexpectedResult;
+    const primary_existing_entry: *const Entry = @fieldParentPtr("node", primary_existing);
+    const alias_existing_entry: *const Entry = @fieldParentPtr("node", alias_existing);
+    try std.testing.expectEqual(primary_existing_entry.key, alias_existing_entry.key);
+    try std.testing.expectEqual(primary_existing_entry.serial, alias_existing_entry.serial);
+
+    try std.testing.expectEqual(
+        returnedIdentity(eraseCached(&primary_second.node, &primary_root)),
+        returnedIdentity(rb_erase_cached(&alias_second.node, &alias_root)),
+    );
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    replaceNodeCached(&primary_first.node, &primary_replacement.node, &primary_root);
+    rb_replace_node_cached(&alias_first.node, &alias_replacement.node, &alias_root);
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    try std.testing.expectEqual(@as(?struct { i32, usize }, null), returnedIdentity(eraseCached(&primary_third.node, &primary_root)));
+    try std.testing.expectEqual(@as(?struct { i32, usize }, null), returnedIdentity(rb_erase_cached(&alias_third.node, &alias_root)));
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    eraseInitCached(&primary_replacement.node, &primary_root);
+    rb_erase_init_cached(&alias_replacement.node, &alias_root);
+    try std.testing.expectEqual(firstKey(&primary_root), firstKey(&alias_root));
+
+    var manual_root = RootCached.init();
+    var manual_entry = Entry{ .key = 1, .serial = 0 };
+    linkNode(&manual_entry.node, null, &manual_root.root.node);
+    insertColorCached(&manual_entry.node, &manual_root, true);
+
+    var manual_alias_root = RootCached.init();
+    var manual_alias_entry = Entry{ .key = 1, .serial = 0 };
+    linkNode(&manual_alias_entry.node, null, &manual_alias_root.root.node);
+    rb_insert_color_cached(&manual_alias_entry.node, &manual_alias_root, true);
+
+    try std.testing.expectEqual(firstKey(&manual_root), firstKey(&manual_alias_root));
+}
+
+test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 20 },
+    };
+    var replacement = Entry{ .key = 20 };
+    var root = RootCached.init();
+
+    for (&entries) |*entry| {
+        _ = addCached(&entry.node, &root, less);
+    }
+
+    try std.testing.expectEqual(@as(?*Node, &entries[1].node), firstCached(&root));
+
+    replaceNodeCached(&entries[2].node, &replacement.node, &root);
+
+    try std.testing.expectEqual(@as(?*Node, &entries[1].node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+    try std.testing.expectEqual(@as(?*Node, &replacement.node), last(&root.root));
+}
+
+test "rbtree eraseCached returns null for a singleton cached tree" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entry = Entry{ .key = 7 };
+    var root = RootCached.init();
+
+    _ = addCached(&entry.node, &root, less);
+
+    try std.testing.expectEqual(@as(*Node, &entry.node), firstCached(&root).?);
+    try std.testing.expect(eraseCached(&entry.node, &root) == null);
+    try std.testing.expect(firstCached(&root) == null);
+    try std.testing.expect(root.root.node == null);
+}
+
+test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var entries = [_]Entry{
+        .{ .key = 10 },
+        .{ .key = 5 },
+        .{ .key = 15 },
+    };
+    var root = RootCached.init();
+
+    for (&entries) |*entry| {
+        _ = addCached(&entry.node, &root, less);
+    }
+
+    eraseInitCached(&entries[1].node, &root);
+    try std.testing.expect(emptyNode(&entries[1].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[0].node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+
+    eraseInitCached(&entries[0].node, &root);
+    try std.testing.expect(emptyNode(&entries[0].node));
+    try std.testing.expectEqual(@as(?*Node, &entries[2].node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
+
+test "rbtree eraseInitCached clears singleton cached roots before reseed" {
+    const Entry = struct {
+        key: i32,
+        node: Node = Node.init(),
+    };
+
+    const less = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) bool {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            return lhs_entry.key < rhs_entry.key;
+        }
+    }.compare;
+
+    var first_entry = Entry{ .key = 10 };
+    var second_entry = Entry{ .key = 6 };
+    var root = RootCached.init();
+
+    _ = addCached(&first_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*Node, &first_entry.node), firstCached(&root));
+
+    eraseInitCached(&first_entry.node, &root);
+    try std.testing.expect(emptyNode(&first_entry.node));
+    try std.testing.expectEqual(@as(?*Node, null), root.root.node);
+    try std.testing.expectEqual(@as(?*Node, null), firstCached(&root));
+
+    _ = addCached(&second_entry.node, &root, less);
+    try std.testing.expectEqual(@as(?*Node, &second_entry.node), firstCached(&root));
+    try std.testing.expectEqual(first(&root.root), firstCached(&root));
+}
