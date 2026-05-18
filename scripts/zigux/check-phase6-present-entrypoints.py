@@ -195,6 +195,14 @@ def require_snippets(path: Path, content: str, snippets: list[str]) -> None:
             )
 
 
+def require_missing_paths(repo_root: Path, paths: list[str]) -> None:
+    for relative_path in paths:
+        if (repo_root / relative_path).exists():
+            raise ValidationError(
+                f"expected repo-reality gap path to remain absent: {relative_path}"
+            )
+
+
 def extract_catalog_surveyed_head(content: str) -> str:
     match = CATALOG_SURVEYED_HEAD_PATTERN.search(content)
     if match is None:
@@ -237,6 +245,8 @@ def validate(repo_root: Path) -> None:
         != EXPECTED_LAST_KNOWN_SHARED_REPLAY_INVENTORY
     ):
         raise ValidationError("Phase 6 shared replay inventory mismatch")
+
+    require_missing_paths(repo_root, manifest["current_repo_reality_gaps"])
 
     for helper_path in REQUIRED_HELPER_PATHS:
         if not (repo_root / helper_path).is_file():
@@ -503,6 +513,20 @@ def run_self_test() -> None:
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "repo-reality gaps mismatch")
         cases_run += 1
+        scaffold_repo(root)
+
+        first_gap_path = root / EXPECTED_CURRENT_REPO_REALITY_GAPS[0]
+        write(first_gap_path, "# returned gap path\n")
+        expect_failure(root, EXPECTED_CURRENT_REPO_REALITY_GAPS[0])
+        cases_run += 1
+        first_gap_path.unlink()
+        scaffold_repo(root)
+
+        last_gap_path = root / EXPECTED_CURRENT_REPO_REALITY_GAPS[-1]
+        write(last_gap_path, "#!/usr/bin/env python3\n")
+        expect_failure(root, EXPECTED_CURRENT_REPO_REALITY_GAPS[-1])
+        cases_run += 1
+        last_gap_path.unlink()
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
