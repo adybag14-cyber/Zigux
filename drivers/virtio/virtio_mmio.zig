@@ -89,6 +89,16 @@ pub const SelectedQueueReadinessSummary = struct {
     queue_ready_for_handoff: bool,
 };
 
+pub const InterruptAckDispositionSummary = struct {
+    anchor: []const u8,
+    requested_bits: u32,
+    pending_bits: u32,
+    acknowledged_bits: u32,
+    ignored_bits: u32,
+    remaining_pending_bits: u32,
+    has_acknowledgements: bool,
+};
+
 const QueueState = struct {
     advertised_size: u16 = 0,
     programmed_size: u16 = 0,
@@ -103,6 +113,7 @@ pub const VirtioMmioLab = struct {
     device_id: u32 = 0,
     vendor_id: u32 = default_vendor_id,
     interrupt_ack_mask: u32 = 0x3,
+    interrupt_status: u32 = 0,
     legacy_guest_page_size: u32 = 0,
     selected_queue: u16 = 0,
     selected_device_feature_word: u32 = 0,
@@ -152,6 +163,10 @@ pub const VirtioMmioLab = struct {
         if (index >= self.driver_feature_words.len) return error.FeatureWordOutOfRange;
         self.driver_feature_words[index] = value;
         self.driver_feature_words_known[index] = true;
+    }
+
+    pub fn stageInterruptStatus(self: *Self, bits: u32) void {
+        self.interrupt_status = bits;
     }
 
     pub fn bumpConfigGeneration(self: *Self) void {
@@ -251,6 +266,22 @@ pub const VirtioMmioLab = struct {
             .selected_queue = self.selected_queue,
             .queue_size_programmed = queue.programmed_size != 0,
             .queue_ready_for_handoff = queue.programmed_size != 0 and queue.ready,
+        };
+    }
+
+    pub fn interruptAckDispositionSummary(
+        self: *const Self,
+        requested_bits: u32,
+    ) InterruptAckDispositionSummary {
+        const acknowledged_bits = requested_bits & self.interrupt_status & self.interrupt_ack_mask;
+        return .{
+            .anchor = anchor_path,
+            .requested_bits = requested_bits,
+            .pending_bits = self.interrupt_status,
+            .acknowledged_bits = acknowledged_bits,
+            .ignored_bits = requested_bits & ~acknowledged_bits,
+            .remaining_pending_bits = self.interrupt_status & ~acknowledged_bits,
+            .has_acknowledgements = acknowledged_bits != 0,
         };
     }
 
@@ -445,6 +476,26 @@ test "phase10 virtio mmio legacy probe preflight requires guest-page-size progra
     summary = device.probePreflightSummary();
     try std.testing.expect(summary.legacy_guest_page_size_ready);
     try std.testing.expect(summary.ready_for_probe_handoff);
+}
+
+test "phase10 virtio mmio interrupt-ack disposition keeps bounded queue and config bits explicit" {
+    var device = try VirtioMmioLab.init(77, &[_]u16{ 8, 16 });
+    device.stageInterruptStatus(0b111);
+
+    const summary = device.interruptAckDispositionSummary(0b111);
+    try std.testing.expectEqual(@as(u32, 0b111), summary.requested_bits);
+    try std.testing.expectEqual(@as(u32, 0b111), summary.pending_bits);
+    try std.testing.expectEqual(@as(u32, 0b011), summary.acknowledged_bits);
+    try std.testing.expectEqual(@as(u32, 0b100), summary.ignored_bits);
+    try std.testing.expectEqual(@as(u32, 0b100), summary.remaining_pending_bits);
+    try std.testing.expect(summary.has_acknowledgements);
+    try std.testing.expectEqual(@as(u32, 0b111), device.interrupt_status);
+
+    _ = try device.writeRegister(.interrupt_ack, 0b001);
+    const queue_only = device.interruptAckDispositionSummary(0b011);
+    try std.testing.expectEqual(@as(u32, 0b001), queue_only.acknowledged_bits);
+    try std.testing.expectEqual(@as(u32, 0b010), queue_only.ignored_bits);
+    try std.testing.expectEqual(@as(u32, 0b110), queue_only.remaining_pending_bits);
 }
 
 test "phase10 virtio mmio disposition reports byte-level deltas without mutating config bytes" {
