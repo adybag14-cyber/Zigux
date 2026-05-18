@@ -184,8 +184,7 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        seed_fixtureTree = seed_fixture_tree
-        seed_fixtureTree(root)
+        seed_fixture_tree(root)
         write_text(
             root / SLICE_PATH,
             "\n".join(
@@ -202,7 +201,7 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        seed_fixtureTree(root)
+        seed_fixture_tree(root)
         write_text(
             root / PLANNER_NOTE_PATH,
             "\n".join(
@@ -219,7 +218,7 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        seed_fixtureTree(root)
+        seed_fixture_tree(root)
         write_text(
             root / DMA_REPLAY_PATH,
             "\n".join(
@@ -236,24 +235,24 @@ def run_self_test() -> int:
         )
         case_count += 1
 
-        seed_fixtureTree(root)
+        seed_fixture_tree(root)
         write_text(
             root / PLANNER_REPLAY_PATH,
             "\n".join(
                 marker
                 for marker in PLANNER_REPLAY_MARKERS
-                if marker != 'planning_only'
+                if marker != "planning_only"
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ['planner_replay:missing_marker:planning_only'],
+            ["planner_replay:missing_marker:planning_only"],
             "planner_replay_missing_status_failed",
         )
         case_count += 1
 
-        seed_fixtureTree(root)
+        seed_fixture_tree(root)
         write_text(
             root / PLANNER_MANIFEST_PATH,
             "\n".join(
