@@ -90,3 +90,64 @@ test "kmallocArray fail paths keep allocation counters unchanged" {
     try std.testing.expect(kmallocArray(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
+
+test "kfree ignores null slices without changing counters" {
+    kmalloc_nr_allocated = 0;
+    kfree(null);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
+test "kfree ignores null while real allocations stay live" {
+    kmalloc_nr_allocated = 0;
+
+    const live = kmallocBytes(4, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    kfree(live);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
+test "zero-sized allocations stay freeable and keep counters balanced" {
+    kmalloc_nr_allocated = 0;
+
+    const zero_bytes = kmallocBytes(0, GFP_KERNEL | __GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_bytes.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    kfree(zero_bytes);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    const zero_array = kmallocArray(0, 8, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_array.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    kfree(zero_array);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
+test "kmallocArray treats zero-sized elements as freeable zero-sized allocations" {
+    kmalloc_nr_allocated = 0;
+
+    const zero_sized = kmallocArray(std.math.maxInt(usize), 0, GFP_KERNEL) orelse
+        return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_sized.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    kfree(zero_sized);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
+
+test "kmallocArray zeroes fresh allocations after earlier dirty frees" {
+    kmalloc_nr_allocated = 0;
+
+    const first = kmallocArray(4, 1, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    @memset(first, 0xaa);
+    kfree(first);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    const second = kmallocArray(4, 1, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(second);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, second);
+}
