@@ -51,7 +51,7 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_survey.zig");
     try expectContains(
         survey_note,
-        "the direct input gate, the probe-preflight replay, the queue-callback-preflight replay, the registration-preflight replay, the status-drain replay, the teardown-observation replay, and the wrapper-facing verify replay into one bounded shared gate for the live input packet.",
+        "the direct input gate, the probe-preflight replay, the queue-callback-preflight replay, the registration-preflight replay, the status-drain replay, the teardown-observation replay, the dedicated survey replay, and the wrapper-facing verify replay into one bounded shared gate for the live input packet.",
     );
     try expectContains(
         survey_note,
