@@ -13,8 +13,11 @@ SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 DOCS_README_MARKERS = (
     "Phase 2 notes",
     "- `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "- `Documentation/zigux/phase2-closure.md`",
     "- `Documentation/zigux/review-checklist.md`",
     "- `scripts/zigux/README.md`",
+    "- `scripts/zigux/validate-phase2.py`",
+    "- `scripts/zigux/validate-phase2-closure.py`",
     "- `scripts/zigux/check-zig-toolchain.py`",
     "- `scripts/zigux/check-phase2-kbuild-routes.py`",
     "- `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -37,14 +40,11 @@ DOCS_README_MARKERS = (
     "- `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
     "- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
     "- `zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "current directly readable Phase 2 toolchain, kbuild, kconfig bridge, make-wrapper, and artifact-support packet",
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`",
-    "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-phase2-cross.py`",
-    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "current directly readable Phase 2 toolchain, closure-side, kbuild, kconfig bridge, make-wrapper, and artifact-support packet",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
     "historical packet members until same-lane work rematerializes them on `master`",
     "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the docs-shared-reminder checker, the required-make-route guard, the pinned Zig toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, `zigux/Makefile`, the current artifact-support manifest, the current kconfig fixture roster, and the current reminder routes `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2`.",
-    "keep the pinned policy-only and archive-integrity replays explicit without reviving missing closure, cross-target, or installer proof text",
+    "keep the pinned policy-only and archive-integrity replays explicit without reviving missing installer or direct cross-route proof text",
 )
 
 DOCS_README_FORBIDDEN_MARKERS = (
@@ -76,6 +76,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "current directly readable Phase 2 toolchain, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
     "`Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
+    "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
@@ -104,7 +105,7 @@ REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
 
 SCRIPTS_README_MARKERS = (
     "## Phase 2",
-    "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live `conf_bridge` and `confdata_bridge` helper surfaces, the manifest-backed kconfig fixture roster, the shipped make-wrapper packet, and the surviving Phase 2 alignment guards instead of rebuilding the older closure-side validator stack from paths that current `master` no longer serves",
+    "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live `conf_bridge` and `confdata_bridge` helper surfaces, the restored closure-side validator packet, the manifest-backed kconfig fixture roster, the shipped make-wrapper packet, and the surviving Phase 2 alignment guards instead of rebuilding the older installer and direct cross-route stack from paths that current `master` no longer serves",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`zigux/Makefile`",
@@ -115,9 +116,10 @@ SCRIPTS_README_MARKERS = (
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
-    "keep the shipped closure-side reminder, validator entrypoint, make-wrapper, and artifact-support packet explicit from the scripts root beside the surviving checker set",
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
-    "treat those validator-first follow-through, installer, and direct cross-route names as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence",
+    "`scripts/zigux/validate-phase2-closure.py`",
+    "keep the shipped closure-side reminder, closure-validator, validator entrypoint, make-wrapper, and artifact-support packet explicit from the scripts root beside the surviving checker set",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
+    "treat those installer and direct cross-route names as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence",
 )
 
 SCRIPTS_README_FORBIDDEN_MARKERS = (
