@@ -152,13 +152,13 @@
     {
       "anchor": "kernel/rcu/tree.c",
       "roadmap_basis": "Phase 15 keeps Tree RCU frozen unless a narrower-than-freeze follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker and keeps Tree RCU parked in a freeze-in-C posture, while shared reminder surfaces still carry the missing Phase 15 validator, dedicated-build, and make-wrapper companions as repo-reality gaps rather than direct current-master evidence.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L14 still records blocked phase14-rcu-tree-bridge-blocker and keeps Tree RCU parked in a freeze-in-C posture, while shared reminder surfaces still carry the missing Phase 15 validator, dedicated-build, and make-wrapper companions as repo-reality gaps rather than direct current-master evidence.",
       "current_blocker": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
     },
     {
       "anchor": "net/core/skbuff.c",
       "roadmap_basis": "Phase 15 keeps skbuff frozen unless a narrower-than-lifetime follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L11 still records blocked phase14-skbuff-live-ownership-blocker and keeps the surviving skbuff packet review-first and boundary_map_only, while Documentation/zigux/phase14-core-boundary-traceability.md still keeps skbuff in retained-in-C posture and warns against treating the packet as a live bridge or status-change claim; shared reminder surfaces still carry the missing Phase 15 validator, dedicated-build, and make-wrapper companions as repo-reality gaps rather than direct current-master evidence.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-skbuff-bridge-survey.md, where lane P14-L11 still records repo-readback gap phase14-skbuff-anchor-packet-missing while keeping the surviving skbuff packet review-first and boundary_map_only and stating that the retained live ownership and packet-lifetime seam remains the underlying stay-in-C boundary, while Documentation/zigux/phase14-core-boundary-traceability.md still keeps skbuff in retained-in-C posture and warns against treating the packet as a live bridge or status-change claim; shared reminder surfaces still carry the missing Phase 15 validator, dedicated-build, and make-wrapper companions as repo-reality gaps rather than direct current-master evidence.",
       "current_blocker": "blocked_packet_lifetime_boundary_still_too_wide"
     }
   ],
