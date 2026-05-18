@@ -95,11 +95,13 @@ Key entrypoints
     `scripts/zigux/check-phase3-dev-t-starter-packet.py`
     `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
     `scripts/zigux/check-phase3-policy-starter-packet.py`
+    `scripts/zigux/validate-phase3.py`
   * keep the current bounded Phase 3 packet explicit in the tests root: the directly readable starter packet, focused helper-local `err_ptr` / `xarray` slice, and focused policy slice are shipped current-`master` evidence here
   * keep the returned notifier-binding and focused export/UAPI layout replay pair explicit here instead of leaving `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/phase3_export_uapi_layout_build.zig` framed as broader repo-reality gaps
   * current bounded low-level-wrapper reminder packet: `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`
+  * keep the separately readable shared validator entrypoint explicit here too: `scripts/zigux/validate-phase3.py` is current direct-readback evidence for the bounded Phase 3 packet even while the broader export/UAPI survey and catalog packet stays missing
   * instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence
-  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/validate-phase3.py`, `scripts/zigux/phase3_catalog.py`, and `zigux/tests/fixtures/phase3_abi_manifest.json`, so keep those broader export/UAPI survey, shared validator, and catalog routes framed as repo-reality gaps rather than direct tests-root evidence
+  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/phase3_catalog.py`, and `zigux/tests/fixtures/phase3_abi_manifest.json`, so keep those broader export/UAPI survey, shared validator, and catalog routes framed as repo-reality gaps rather than direct tests-root evidence
   * roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`
   * current direct-readback Phase 4 rollback packet:
     `Documentation/zigux/phase4-reversible-delivery-evidence.md`
