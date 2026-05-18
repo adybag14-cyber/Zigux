@@ -25,8 +25,8 @@ SCRIPTS_README_MARKERS = (
 TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster",
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
     "keep the pinned `x86_64-linux` bootstrap archive note",
     "historical packet members rather than direct tests-root evidence",
 )
@@ -43,8 +43,8 @@ TOOLCHAIN_PINNING_MARKERS = (
 )
 
 TESTS_ALIGNMENT_MARKERS = (
-    "\"the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster\",",
-    "\"repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`\",",
+    "\"the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster\",",
+    "\"repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`\",",
     "\"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`\",",
     "\"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`\",",
     "\"`make -C zigux phase2-cross`\",",
@@ -162,6 +162,18 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def remove_marker_occurrence(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            del lines[index]
+            updated = "\n".join(lines) + "\n"
+            if marker in updated:
+                return updated.replace(marker, "")
+            return updated
+    return text.replace(marker, "")
+
+
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -199,7 +211,7 @@ def run_self_test() -> int:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
                 resolved.write_text(
-                    replace_once(resolved.read_text(encoding="utf-8"), marker),
+                    remove_marker_occurrence(resolved.read_text(encoding="utf-8"), marker),
                     encoding="utf-8",
                 )
                 issues = collect_issues(root)
