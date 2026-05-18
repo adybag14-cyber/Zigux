@@ -76,6 +76,37 @@ EXPECTED_ANTI_OVERLAP_RULE = (
     "helpers reopen only for their existing helper-local anchors or already-committed "
     "shared fixture keys."
 )
+EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE = (
+    "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
+    "direct-anchor drift inside the current helper-local packet or committed shared "
+    "replay drift in the bitmap parity fields; current master still ships direct "
+    "fill-tail clamp, copy-alias, truncation, cross-word scnprintf, empty-buffer, and "
+    "allocator-reset anchors here, while zero-bit and Linux-style alias follow-through "
+    "no longer live in the helper-local packet, and if the separate bitmap "
+    "closure-validator anchor-sync repair is still outstanding, treat that as the only "
+    "other bitmap follow-through."
+)
+EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE = (
+    "If this helper lane reopens, keep find_bit parked unless a fresh reread finds "
+    "direct-anchor drift inside same-word start-mask, inclusive-boundary, zero-window, "
+    "zero-sized short-circuit, past-nbits, clump8, getValue8(), findLastBit(), "
+    "underscore-alias, Linux-style alias, or tail-word skip anchors, or committed "
+    "tail-clamped replay drift; do not reopen older saved validator cues or "
+    "neighboring helper families."
+)
+EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE = (
+    "If this helper lane reopens, keep the already-landed shared-replay promotion for "
+    "`cached_leftmost_return_serials` aligned across the committed fixture, shared "
+    "replay, and direct cached-root anchors; until another committed cached-root field "
+    "lands, insert-miss, leftmost-sync, cached-root alias, singleton-erase, "
+    "replacement, detach, and reseed behavior stay owned by direct helper-local "
+    "anchors."
+)
+EXPECTED_STRING_NEXT_SAFE_STEP_NOTE = (
+    "If this helper lane reopens, keep the helper-local sysfs review anchors aligned "
+    "across the string review packet and this lane note unless dedicated shared sysfs "
+    "fixture keys land; do not reopen missing closure-side validator names by default."
+)
 
 REQUIRED_EXACT_LINES = {
     LANE_NOTE_REL: {
@@ -135,6 +166,10 @@ MANIFEST_EXPECTATIONS = {
     ("lane_sequencing", "direct_anchor_followup_helpers"): EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS,
     ("lane_sequencing", "rule_summary"): EXPECTED_RULE_SUMMARY,
     ("lane_sequencing", "anti_overlap_rule"): EXPECTED_ANTI_OVERLAP_RULE,
+    ("review_anchors", "tools/lib/bitmap.zig", "next_safe_step_note"): EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
+    ("review_anchors", "tools/lib/find_bit.zig", "next_safe_step_note"): EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
+    ("review_anchors", "tools/lib/rbtree.zig", "next_safe_step_note"): EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
+    ("review_anchors", "tools/lib/string.zig", "next_safe_step_note"): EXPECTED_STRING_NEXT_SAFE_STEP_NOTE,
 }
 
 
@@ -213,6 +248,20 @@ def sample_manifest() -> str:
                     "rule_summary": EXPECTED_RULE_SUMMARY,
                     "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
                 },
+                "review_anchors": {
+                    "tools/lib/bitmap.zig": {
+                        "next_safe_step_note": EXPECTED_BITMAP_NEXT_SAFE_STEP_NOTE,
+                    },
+                    "tools/lib/find_bit.zig": {
+                        "next_safe_step_note": EXPECTED_FIND_BIT_NEXT_SAFE_STEP_NOTE,
+                    },
+                    "tools/lib/rbtree.zig": {
+                        "next_safe_step_note": EXPECTED_RBTREE_NEXT_SAFE_STEP_NOTE,
+                    },
+                    "tools/lib/string.zig": {
+                        "next_safe_step_note": EXPECTED_STRING_NEXT_SAFE_STEP_NOTE,
+                    },
+                },
             },
             indent=2,
         )
@@ -262,7 +311,8 @@ def run_self_test() -> int:
         ]
     )
     for name, relative_path, needle, operation in cases:
-        with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{name}-") as tmpdir:
+        safe_name = name.replace("/", "_")
+        with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{safe_name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
             if relative_path:
