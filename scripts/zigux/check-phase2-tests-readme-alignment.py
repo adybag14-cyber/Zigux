@@ -11,8 +11,10 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REQUIRED_TESTS_README_MARKERS = (
     "Phase 2 review packet",
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
+    "`Documentation/zigux/phase2-closure.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`scripts/zigux/README.md`",
+    "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -26,6 +28,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
+    "`zigux/Makefile`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
@@ -47,7 +50,6 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
-    "`scripts/zigux/validate-phase2.py`",
 )
 REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
