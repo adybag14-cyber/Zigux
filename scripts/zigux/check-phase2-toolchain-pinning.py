@@ -131,6 +131,7 @@ EXPECTED_TOOL_MANIFEST = {
             "scripts/zigux/check-zig-toolchain.py",
             "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
             "scripts/zigux/check-phase2-kbuild-routes.py",
+            "scripts/zigux/check-phase2-tests-readme-alignment.py",
             "scripts/zigux/check-phase2-cross-selftest-alignment.py",
             "scripts/zigux/check-phase2-toolchain-pinning.py",
             "scripts/zigux/check-phase2-toolchain-pin-scope.py",
