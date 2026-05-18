@@ -48,14 +48,19 @@ Key entrypoints
     `scripts/zigux/check-phase2-toolchain-pin-scope.py`
     `scripts/zigux/check-phase2-docs-shared-reminder.py`
     `scripts/zigux/check-phase2-required-make-routes.py`
+    `scripts/zigux/install-zig.py`
+    `scripts/zigux/check-phase2-cross.py`
     `python3 scripts/zigux/check-zig-toolchain.py --self-test`
     `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`
     `scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
+    `python3 scripts/zigux/install-zig.py --self-test`
+    `python3 scripts/zigux/check-phase2-cross.py --self-test`
     `scripts/zigux/kconfig/conf_bridge.zig`
     `scripts/zigux/kconfig/confdata_bridge.zig`
     `zigux/Makefile`
     `zigux/tests/fixtures/phase2_tool_manifest.json`
     `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
+    `zigux/tests/fixtures/phase2_cross_targets.json`
     `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
     `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
     `make -C zigux phase2-toolchain`
@@ -65,10 +70,10 @@ Key entrypoints
     `make -C zigux phase2-validate`
     `make -C zigux phase2`
     `zigux/tests/fixtures/kconfig_bridge/cases.json`
-  * the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster
+  * the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster
   * keep `scripts/zigux/zig-toolchain-policy.json`, the pinned `x86_64-linux` bootstrap archive note, the live `python3 scripts/zigux/check-zig-toolchain.py --policy-only` plus `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` replays, and the repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet
-  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep those older installer and direct cross-route names framed as historical packet members rather than direct tests-root evidence
-  * keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
+  * current `master` now directly materializes `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep that returned installer, direct cross-route, and cross-target fixture packet explicit here instead of leaving it in the historical-gap bucket
+  * keep the fixture-backed tool-manifest, artifact-tools, cross-target, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
 
 ## Phase 3 review packet
 
