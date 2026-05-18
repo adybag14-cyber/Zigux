@@ -46,15 +46,20 @@ It stays branch-scoped: live `master` still lacks parts of the broader Phase 2 p
 
 - repeated authenticated current-branch reads still returned missing for:
   - `scripts/zigux/check-phase2-cross.py`
-  - `scripts/zigux/check-genksyms-bridge.py`
   - `scripts/zigux/install-zig.py`
-- `scripts/zigux/check-phase2-toolchain-pin-scope.py` is now replayed on this lane branch as well as current `master`, so the remaining branch-side gaps are the broader direct-cross, genksyms-wrapper, and installer-backed helper packet members
-- treat the broader direct-cross, genksyms-wrapper, and installer-backed helper packet as the remaining Phase 2 closure gaps on this branch until those files are re-materialized here too
+- current `master` now also carries broader shared Phase 2 companions that this lane branch still does not replay:
+  - `scripts/zigux/check-genksyms-bridge.py`
+  - `scripts/zigux/check-phase2-docs-shared-reminder.py`
+  - `scripts/zigux/check-phase2-required-make-routes.py`
+  - `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
+- `zigux/tests/fixtures/phase2_tool_manifest.json` now keeps those four current-master-only surfaces in `master_present_branch_missing_files` so the closure packet stays honest about current-master growth without pretending those helpers are already back on PR `#789`
+- treat the direct cross route and installer-backed helper as the remaining broader Phase 2 gaps on both current `master` and this branch, while the genksyms, docs-shared-reminder, required-make-route, and artifact-support companions are current-master-only growth still pending branch replay
 
 ## Review Notes
 
 - `zigux/tests/fixtures/phase2_tool_manifest.json` now keeps the restacked branch packet explicit as a present-versus-missing inventory and no longer leaves `scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/check-zig-toolchain.py`, or `scripts/zigux/check-phase2-toolchain-pin-scope.py` in the missing bucket after those helpers became directly readable on the lane branch
 - `scripts/zigux/check-phase2-tool-manifest-packets.py` now keeps `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/check-phase2-kconfig-readme-alignment.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, and `zigux/tests/fixtures/phase2_tool_manifest.json` aligned around the branch-local manifest packet without claiming the broader missing helper set is already back
+- the same manifest packet now records `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-required-make-routes.py`, and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json` as current-master-present companions that still need a fresh branch replay instead of flattening them into the same always-missing bucket as the cross and installer gaps
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md` now records the same branch-local validator, checker, pin-scope, and Makefile packet while treating `scripts/zigux/check-zig-toolchain.py` as present shared toolchain evidence and treating `scripts/zigux/install-zig.py` as the remaining installer-backed gap
 - the shared reminder surfaces still carry the broader Phase 2 vocabulary they already shipped with; this closure note is the bounded branch-local source of truth for which closure-side pieces are materialized together on PR `#789`
 - `PHASE2_NEXT_STEP=restore one remaining broader checker or installer-backed helper packet at a time now that the closure note, bootstrap companion, shared validator, dedicated kconfig README checker, dedicated toolchain pin-scope guard, manifest checker, and Linux-style Makefile routes are replayed together on the lane branch`
