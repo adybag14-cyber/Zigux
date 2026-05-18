@@ -26,11 +26,13 @@ That gap is now closed through these shipped surfaces:
 
 ## Remaining Follow-Up
 
-The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.
+The remaining follow-up is no longer a generic README-and-tests-root refresh. Fresh authenticated file checks in this run narrow the next same-lane work to the tests-root packet and its dedicated alignment checker.
 
-Fresh authenticated file checks in this run keep that follow-up narrower than the older reminder packet. `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` now materialize on current `master`, so they should stay recorded as returned adjacent notifier evidence rather than as repo-reality gaps.
+Fresh authenticated file checks in this run keep `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` materialized on current `master`, so they should stay recorded as returned adjacent notifier evidence rather than as repo-reality gaps.
 
 Fresh authenticated file checks in this run also resolve `zigux/Makefile`, so keep the file itself explicit as returned build-surface evidence while leaving only `make -C zigux phase13-validate` and `make -C zigux phase13` in the remaining repo-reality-gap route list.
+
+Fresh authenticated file checks in this run now also keep `zigux/tests/phase13_devres_dma_coherent.zig` materialized on current `master`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` still return missing. That means the next truthful shared-subsystems follow-through is to refresh `zigux/tests/README.md` and `scripts/zigux/check-phase13-tests-readme-alignment.py` together so they stop treating the missing direct Landlock syscall packet as shipped tests-root evidence and stop leaving the returned direct devres DMA replay in the gap bucket.
 
 Keep these paths recorded as repo-reality gaps until current `master` rematerializes them:
 
@@ -45,6 +47,10 @@ Keep these paths recorded as repo-reality gaps until current `master` rematerial
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `include/zigux/notifier_abi.h`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
 
 ## Review Use
 
@@ -52,7 +58,7 @@ Keep these paths recorded as repo-reality gaps until current `master` rematerial
 2. Run `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`.
 3. Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned adjacent notifier evidence without turning them into part of the stable shared replay handle.
 4. Keep `zigux/Makefile` explicit as a returned file, but keep `make -C zigux phase13-validate`, `make -C zigux phase13`, and the still-missing notifier and build companions recorded as repo-reality gaps rather than promoting them into shipped contributor workflow evidence.
-5. Treat broader docs-root, scripts-root, and tests-root refresh as a separate same-lane follow-up step.
+5. Treat the next same-lane follow-through as a paired `zigux/tests/README.md` plus `scripts/zigux/check-phase13-tests-readme-alignment.py` truthfulness refresh so the tests-root packet matches the returned direct devres DMA replay and the still-missing direct Landlock syscall companions before widening into broader docs-root or helper-local work.
 
 ## Boundaries
 
