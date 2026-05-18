@@ -67,11 +67,13 @@ It is no longer truthful to describe `scripts/zigux/validate-phase14.py` as a pl
 
 The current productization gap is therefore the mismatch between the recovered shared-smoke documentation packet, the blob-readable validator body, the now-readable Phase 2-only Makefile body, and the still-missing executable layer beneath them.
 
-That means this lane should preserve truthful productization evidence by recording the changed Makefile posture first and leaving any wider docs-root, checklist, or tests-root rewrite to a later run that edits those shared reminder surfaces directly.
+That mismatch is now narrow enough to name the next lagging reminder surface precisely: the Phase 14 section in `zigux/tests/README.md` already carries the right Phase-2-only Makefile warning in its lower shared-smoke paragraph, but its top-level reminder packet still undercounts part of the recovered study-only documentation layer by omitting `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/freeze-map.md`, and `Documentation/zigux/phase14-skbuff-bridge-survey.md`.
+
+That means this lane should preserve truthful productization evidence by pinning that specific tests-root undercount first and leaving any wider docs-root or checklist rewrite to a later run that edits those shared reminder surfaces directly.
 
 ## Next Bounded Step
 
-If a later run regains a safe exact-file write path for the broader shared reminder surfaces, narrow `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` so they stop presenting the current `zigux/Makefile` body as if it still ships the older `phase14-*` rerun routes.
+If a later run regains a safe exact-file write path for the broader shared reminder surfaces, narrow `zigux/tests/README.md` first so its top-level Phase 14 reminder packet explicitly names `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/freeze-map.md`, and `Documentation/zigux/phase14-skbuff-bridge-survey.md` beside the already-recorded shared smoke notes and the readable Phase-2-only `zigux/Makefile` posture.
 
 If a later run also restores direct current-master evidence for `phase14-validate`, `phase14-smoke`, or the dedicated Phase 14 build and manifest files, re-evaluate whether the parked one-file validator hardening should be revived or replaced before widening elsewhere.
 
