@@ -152,6 +152,7 @@ SCRIPTS_README_MARKERS = (
     "zigux/bindings/abi.zig",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
+    "zigux/helpers/xarray_slot_view.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
@@ -174,6 +175,7 @@ SCRIPTS_README_MARKERS = (
 SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
     'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
@@ -182,6 +184,8 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
+    "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST=pass",
+    "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST_CASES=",
     "PHASE3_VALIDATE_SELFTEST=pass",
 )
 
@@ -254,7 +258,6 @@ def _populate_repo(root: Path) -> None:
     _write(root / VALIDATOR_SUPPORT_PATH, "\n".join(VALIDATOR_SUPPORT_MARKERS) + "\n")
     _write(root / SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     _write(root / SELFTEST_DRIVER_PATH, "\n".join(SELFTEST_DRIVER_MARKERS) + "\n")
-
 def _expect_issue(issues: list[str], expected: str) -> bool:
     return expected in issues
 
@@ -346,6 +349,7 @@ def run_self_test() -> int:
         (SCRIPTS_README_PATH, "zigux/helpers/atomic.zig", "scripts README"),
         (SCRIPTS_README_PATH, "zigux/tests/phase3_low_level_wrappers.zig", "scripts README"),
         (SCRIPTS_README_PATH, "zigux/tests/phase3_low_level_wrappers_build.zig", "scripts README"),
+        (SCRIPTS_README_PATH, "zigux/helpers/xarray_slot_view.zig", "scripts README"),
         (SCRIPTS_README_PATH, "scripts/zigux/check-phase3-catalog-selftest.py", "scripts README"),
         (SCRIPTS_README_PATH, "scripts/zigux/phase3_catalog.py", "scripts README"),
         (SCRIPTS_README_PATH, "scripts/zigux/generate-phase3-check-wrappers.py", "scripts README"),
@@ -363,6 +367,9 @@ def run_self_test() -> int:
             'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
             "selftest driver",
         ),
+        (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")', "selftest driver"),
+        (SELFTEST_DRIVER_PATH, "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST=pass", "selftest driver"),
+        (SELFTEST_DRIVER_PATH, "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST_CASES=", "selftest driver"),
         (SELFTEST_DRIVER_PATH, "PHASE3_VALIDATE_SELFTEST=pass", "selftest driver"),
     )
 
