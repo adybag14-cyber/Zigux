@@ -116,5 +116,5 @@ This expanded starter slice does not yet claim:
 
 ## Next Bounded Step
 
-The next bounded follow-through should realign the dedicated survey and sample-boundary replays so they treat `parse_int_array()` as landed and keep only `kstrdup_quotable_file()` plus `devm_kasprintf_strarray()` parked as the remaining helper-local non-goals.
+Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`.
 Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes only after a fresh same-family reread proves those broader reminders are directly readable again on current `master`.
