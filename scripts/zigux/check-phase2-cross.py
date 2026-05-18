@@ -666,17 +666,20 @@ def run_self_test() -> int:
         assert any(issue.startswith("fixture:zig_test_files:empty_string:") for issue in issues)
         case_count += 1
 
-        build_self_test_root(root)
-        (root / "scripts/zigux/kconfig/conf_bridge.zig").unlink()
-        missing = require_files(root)
-        assert "scripts/zigux/kconfig/conf_bridge.zig" in missing
-        case_count += 1
-
-        build_self_test_root(root)
-        (root / "scripts/zigux/kconfig/confdata_bridge.zig").unlink()
-        missing = require_files(root)
-        assert "scripts/zigux/kconfig/confdata_bridge.zig" in missing
-        case_count += 1
+        for missing_rel in (
+            FIXTURE_REL,
+            Path("scripts/zigux/kconfig/conf_bridge.zig"),
+            Path("scripts/zigux/kconfig/confdata_bridge.zig"),
+        ):
+            build_self_test_root(root)
+            (root / missing_rel).unlink()
+            missing_code, missing_output = run_main(["--root", str(root)])
+            assert missing_code == 1
+            assert "PHASE2_CROSS=fail" in missing_output
+            assert "PHASE2_CROSS_MISSING_FILES_START" in missing_output
+            assert str(missing_rel) in missing_output
+            assert "PHASE2_CROSS_MISSING_FILES_END" in missing_output
+            case_count += 1
 
         build_self_test_root(root)
         success_log = root / "success-zig.log"
