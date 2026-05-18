@@ -7,6 +7,7 @@ test "phase3 barrier wrappers compile" {
     full();
     acquireRelease();
     fullFence();
+    storeLoad();
 }
 
 test "phase3 barrier wrappers keep compiler fences reviewable" {
@@ -36,6 +37,7 @@ test "phase3 barrier wrappers keep barrier locality reviewable" {
     release();
     full();
     acquireRelease();
+    storeLoad();
 
     try std.testing.expectEqual(before_left, left);
     try std.testing.expectEqual(before_right, right);
@@ -44,6 +46,7 @@ test "phase3 barrier wrappers keep barrier locality reviewable" {
     compiler();
     right +%= 2;
     acquireRelease();
+    storeLoad();
 
     try std.testing.expectEqual(@as(u8, 8), left);
     try std.testing.expectEqual(@as(u8, 21), right);
@@ -67,6 +70,7 @@ test "phase3 barrier wrappers stay side-effect free on unrelated storage" {
     release();
     full();
     acquireRelease();
+    storeLoad();
 
     try std.testing.expectEqual(before.ready, packet.ready);
     try std.testing.expectEqual(before.value, packet.value);
@@ -99,6 +103,7 @@ test "phase3 barrier wrappers keep barrier handoff reviewable" {
     compiler();
     packet.mirror = packet.value;
     acquireRelease();
+    storeLoad();
 
     try std.testing.expectEqual(@as(u32, 41), packet.mirror);
 
@@ -135,6 +140,29 @@ test "phase3 barrier wrappers keep non-mutating full fences reviewable" {
     try std.testing.expectEqual(packet.published, packet.consumed);
 }
 
+test "phase3 barrier wrappers keep named store-load fences reviewable" {
+    const Packet = struct {
+        published: u32,
+        observed: u32,
+        ready: bool,
+    };
+
+    var packet = Packet{
+        .published = 9,
+        .observed = 0,
+        .ready = false,
+    };
+
+    packet.published = 44;
+    release();
+    packet.ready = true;
+
+    storeLoad();
+    try std.testing.expect(packet.ready);
+    packet.observed = packet.published;
+    try std.testing.expectEqual(@as(u32, 44), packet.observed);
+}
+
 pub fn compiler() void {
     asm volatile ("" ::: .{ .memory = true });
 }
@@ -160,6 +188,11 @@ pub fn acquireRelease() void {
 }
 
 pub fn fullFence() void {
+    var word: u8 = 0;
+    _ = @atomicRmw(u8, &word, .Xchg, 0, .seq_cst);
+}
+
+pub fn storeLoad() void {
     var word: u8 = 0;
     _ = @atomicRmw(u8, &word, .Xchg, 0, .seq_cst);
 }
