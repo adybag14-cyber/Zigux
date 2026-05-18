@@ -390,6 +390,88 @@ test "selftest path still records both conditional families at count zero" {
     try std.testing.expectEqualStrings("prints other times", replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
 }
 
+test "trace-events sample keeps conditional replay explicit after selftest" {
+    var module = RuntimeTraceEventsSample{};
+    try module.init();
+    _ = try module.runSelftest();
+
+    const before_conditional_replay = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, before_conditional_replay.stage);
+    try std.testing.expectEqual(@as(usize, 1), before_conditional_replay.main_iterations);
+    try std.testing.expectEqual(@as(usize, 1), before_conditional_replay.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 6), before_conditional_replay.main_thread_events);
+    try std.testing.expectEqual(@as(usize, 2), before_conditional_replay.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 8), before_conditional_replay.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), before_conditional_replay.last_main_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), before_conditional_replay.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), before_conditional_replay.last_main_conditional_event_count);
+    try std.testing.expectEqual(@as(usize, 1), before_conditional_replay.selftest_runs);
+    try std.testing.expectEqual(@as(i32, 0), before_conditional_replay.last_main_count);
+    try std.testing.expectEqual(@as(i32, 1), before_conditional_replay.last_fn_count);
+    try std.testing.expectEqualStrings("Some times print", before_conditional_replay.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("prints other times", before_conditional_replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+
+    const replayed_main = try module.emitMainIteration(40);
+    try std.testing.expectEqual(@as(usize, 6), replayed_main);
+
+    const after_conditional_replay = module.summary();
+    try std.testing.expectEqual(ModuleStage.selftest_complete, after_conditional_replay.stage);
+    try std.testing.expectEqual(@as(usize, 2), after_conditional_replay.main_iterations);
+    try std.testing.expectEqual(before_conditional_replay.fn_iterations, after_conditional_replay.fn_iterations);
+    try std.testing.expectEqual(@as(usize, 12), after_conditional_replay.main_thread_events);
+    try std.testing.expectEqual(before_conditional_replay.fn_thread_events, after_conditional_replay.fn_thread_events);
+    try std.testing.expectEqual(@as(usize, 14), after_conditional_replay.total_events);
+    try std.testing.expectEqual(@as(?usize, 6), after_conditional_replay.last_main_emitted_events);
+    try std.testing.expectEqual(before_conditional_replay.last_fn_emitted_events, after_conditional_replay.last_fn_emitted_events);
+    try std.testing.expectEqual(@as(?usize, 2), after_conditional_replay.last_main_conditional_event_count);
+    try std.testing.expectEqual(before_conditional_replay.register_transitions, after_conditional_replay.register_transitions);
+    try std.testing.expectEqual(before_conditional_replay.unregister_transitions, after_conditional_replay.unregister_transitions);
+    try std.testing.expectEqual(before_conditional_replay.init_runs, after_conditional_replay.init_runs);
+    try std.testing.expectEqual(before_conditional_replay.selftest_runs, after_conditional_replay.selftest_runs);
+    try std.testing.expectEqual(before_conditional_replay.exit_runs, after_conditional_replay.exit_runs);
+    try std.testing.expectEqual(@as(i32, 40), after_conditional_replay.last_main_count);
+    try std.testing.expectEqual(before_conditional_replay.last_fn_count, after_conditional_replay.last_fn_count);
+    try std.testing.expect(after_conditional_replay.saw_conditional_path);
+    try std.testing.expectEqualStrings("event-sample", after_conditional_replay.main_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("event-sample-fn", after_conditional_replay.function_thread_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_reg", after_conditional_replay.last_register_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("foo_bar_unreg", after_conditional_replay.last_unregister_label orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("hello", after_conditional_replay.last_main_foo_bar_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Mother Goose", after_conditional_replay.last_main_random_choice_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqual(@as(usize, 0), after_conditional_replay.last_main_vararg_array_length orelse return error.ExpectedMainPayload);
+    try std.testing.expect(after_conditional_replay.last_main_vararg_array_terminator_zero orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("HELLO", after_conditional_replay.last_main_template_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Some times print", after_conditional_replay.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("prints other times", after_conditional_replay.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("I have to be different", after_conditional_replay.last_main_template_print_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings("Hello __rel_loc", after_conditional_replay.last_main_relative_location_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings(before_conditional_replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload, after_conditional_replay.last_function_foo_bar_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings(before_conditional_replay.last_function_template_message orelse return error.ExpectedFunctionPayload, after_conditional_replay.last_function_template_message orelse return error.ExpectedFunctionPayload);
+    try std.testing.expectEqualStrings("iter=%d", after_conditional_replay.last_format_template orelse return error.ExpectedMainPayload);
+
+    try module.exit();
+
+    const after_exit = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);
+    try std.testing.expectEqual(after_conditional_replay.main_iterations, after_exit.main_iterations);
+    try std.testing.expectEqual(after_conditional_replay.fn_iterations, after_exit.fn_iterations);
+    try std.testing.expectEqual(after_conditional_replay.main_thread_events, after_exit.main_thread_events);
+    try std.testing.expectEqual(after_conditional_replay.fn_thread_events, after_exit.fn_thread_events);
+    try std.testing.expectEqual(after_conditional_replay.total_events, after_exit.total_events);
+    try std.testing.expectEqual(after_conditional_replay.last_main_emitted_events, after_exit.last_main_emitted_events);
+    try std.testing.expectEqual(after_conditional_replay.last_fn_emitted_events, after_exit.last_fn_emitted_events);
+    try std.testing.expectEqual(after_conditional_replay.last_main_conditional_event_count, after_exit.last_main_conditional_event_count);
+    try std.testing.expectEqual(after_conditional_replay.register_transitions, after_exit.register_transitions);
+    try std.testing.expectEqual(after_conditional_replay.unregister_transitions, after_exit.unregister_transitions);
+    try std.testing.expectEqual(after_conditional_replay.init_runs, after_exit.init_runs);
+    try std.testing.expectEqual(after_conditional_replay.selftest_runs, after_exit.selftest_runs);
+    try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);
+    try std.testing.expectEqual(after_conditional_replay.last_main_count, after_exit.last_main_count);
+    try std.testing.expectEqual(after_conditional_replay.last_fn_count, after_exit.last_fn_count);
+    try std.testing.expectEqualStrings(after_conditional_replay.last_main_conditional_message orelse return error.ExpectedMainPayload, after_exit.last_main_conditional_message orelse return error.ExpectedMainPayload);
+    try std.testing.expectEqualStrings(after_conditional_replay.last_main_template_cond_message orelse return error.ExpectedMainPayload, after_exit.last_main_template_cond_message orelse return error.ExpectedMainPayload);
+}
+
 test "mixed replay keeps explicit event totals honest across direct and selftest paths" {
     var module = RuntimeTraceEventsSample{};
     try module.init();
