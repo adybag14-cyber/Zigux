@@ -14,7 +14,7 @@ This note keeps the current directly readable Phase 2 toolchain packet honest fr
 ## Current repo-reality gaps
 
 - Repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`.
-- Treat the absent validator-first, direct cross-route, and installer names as historical packet members until same-lane work rematerializes them on `master`.
+- Treat the absent validator-first, cross-route, installer, and Linux-style make replay names as historical packet members until same-lane work rematerializes them on `master`.
 
 ## Follow-through
 
