@@ -4,6 +4,7 @@
   "surveyed_commit": "current-master-readback-2026-05-18",
   "review_process_note": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "decision_record_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+  "indefinite_c_policy_note": "Documentation/zigux/phase15-indefinite-c-policy.md",
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
   "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
   "checker": "scripts/zigux/check-phase15-review-process-handoff.py",
@@ -49,6 +50,12 @@
     "refreshed evidence by path",
     "the blocker disposition being challenged",
     "the narrower seam or policy change that makes the new review safe to consider"
+  ],
+  "indefinite_c_policy_required_markers": [
+    "required approver set",
+    "automatic return-to-blocked trigger",
+    "trigger-specific evidence refresh",
+    "parity scorecard link or blocker record"
   ],
   "decision_record_template_required_markers": [
     "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
