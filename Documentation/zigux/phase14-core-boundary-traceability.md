@@ -49,9 +49,9 @@ The honest current statement is freeze-in-C boundary evidence only, not a live b
 
 ## Shared packet status
 
-- treat the current shared smoke packet as live shared evidence for the validator-first route, the focused smoke shard, and the full replay entrypoints named above
-- do not use that packet to claim direct ownership transfer, parity, or unfrozen delivery for workqueue, ring buffer, skbuff, or RCU tree
-- the shared packet wording is now aligned on this point: `Documentation/zigux/phase14-end-to-end-smoke-survey.md` keeps `scripts/zigux/check-phase14-tests-readme-smoke-summary.py --self-test` and `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` framed as shared packet evidence rather than part of `make -C zigux phase14-validate`, which matches the current `zigux/Makefile` readback above
+- treat the current shared smoke packet as live shared evidence for the recovered documentation layer, the mixed-source validator readback, and the packet-local rerun vocabulary preserved in the shared smoke note
+- do not use that packet to claim current wrapper-backed replay, executable-layer recovery, direct ownership transfer, parity, or unfrozen delivery for workqueue, ring buffer, skbuff, or RCU tree
+- the shared packet wording is now aligned on this point: `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, and `Documentation/zigux/phase14-shared-smoke-current-master-gap.md` keep the older `phase14-*` commands framed as packet-local rerun vocabulary while the readable `zigux/Makefile` body stays on the returned Phase 2, Phase 3, and Phase 10 routes and the build, manifest, checker, and bridge companions remain separate readback gaps
 - if a future direct readback loses any of the shared survey, manifest, validator, Makefile, or build-file anchors again, narrow this note back to a truthfulness-only retained-in-C summary and update the shared packet wording immediately
 - any future expansion beyond this shared reminder packet still needs explicit re-read evidence for the anchor-local files it names, plus the existing freeze-map discipline
 
