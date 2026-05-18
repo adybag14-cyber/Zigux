@@ -46,7 +46,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "pinned `x86_64-linux` bootstrap archive note",
     "repo-local `.zig-toolchain` fallback reused",
     "historical packet members rather than direct tests-root evidence",
-    "keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
+    "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
 FORBIDDEN_TESTS_README_MARKERS = (
     "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
@@ -55,8 +55,6 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "  * `zigux/tests/fixtures/phase2_cross_targets.json`",
-    "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
 REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
