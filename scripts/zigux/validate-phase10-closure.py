@@ -75,6 +75,8 @@ READY_TRANSPORT_FOLLOWUPS = {
 }
 
 LANDED_HELPER_FIELDS = {
+    "landed_core_helper_evidence": "zigux/tests/phase10_virtio_core_manifest.json",
+    "landed_ring_helper_evidence": "zigux/tests/phase10_virtio_ring_manifest.json",
     "landed_input_helper_evidence": "zigux/tests/phase10_virtio_input_manifest.json",
     "landed_mmio_helper_evidence": "zigux/tests/phase10_virtio_mmio_manifest.json",
 }
@@ -218,6 +220,18 @@ def write_fixture(root: Path) -> None:
                     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
                     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
                 },
+                "landed_core_helper_evidence": {
+                    "zigux/tests/phase10_virtio_core_manifest.json": [
+                        "phase10-queue-shape-bookkeeping-helper",
+                        "phase10-reset-replay-bookkeeping-helper",
+                    ]
+                },
+                "landed_ring_helper_evidence": {
+                    "zigux/tests/phase10_virtio_ring_manifest.json": [
+                        "phase10-virtqueue-shape-helper",
+                        "phase10-notify-prepare-helper",
+                    ]
+                },
                 "landed_input_helper_evidence": {
                     "zigux/tests/phase10_virtio_input_manifest.json": [
                         "phase10-virtio-input-capability-setup-helper",
@@ -233,10 +247,24 @@ def write_fixture(root: Path) -> None:
             }
         ),
         "zigux/tests/phase10_virtio_core_manifest.json": json.dumps(
-            {"lane_key": "P10-L01", "surveyed_commit": "core-sha", "gaps": []}
+            {
+                "lane_key": "P10-L01",
+                "surveyed_commit": "core-sha",
+                "gaps": [
+                    {"id": "phase10-queue-shape-bookkeeping-helper", "status": "starter_landed"},
+                    {"id": "phase10-reset-replay-bookkeeping-helper", "status": "starter_landed"},
+                ],
+            }
         ),
         "zigux/tests/phase10_virtio_ring_manifest.json": json.dumps(
-            {"lane_key": "P10-L10", "surveyed_commit": "ring-sha", "gaps": []}
+            {
+                "lane_key": "P10-L10",
+                "surveyed_commit": "ring-sha",
+                "gaps": [
+                    {"id": "phase10-virtqueue-shape-helper", "status": "starter_landed"},
+                    {"id": "phase10-notify-prepare-helper", "status": "starter_landed"},
+                ],
+            }
         ),
         "zigux/tests/phase10_virtio_input_manifest.json": json.dumps(
             {
@@ -312,6 +340,18 @@ def run_self_test() -> int:
         closure.write_text(json.dumps(original_closure), encoding="utf-8")
 
         broken = dict(original_closure)
+        broken["landed_ring_helper_evidence"] = dict(original_closure["landed_ring_helper_evidence"])
+        broken["landed_ring_helper_evidence"]["zigux/tests/phase10_virtio_ring_manifest.json"] = [
+            "phase10-virtqueue-shape-helper",
+            "phase10-callback-delay-helper",
+        ]
+        closure.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "landed_ring_helper_evidence:zigux/tests/phase10_virtio_ring_manifest.json:'phase10-callback-delay-helper':not_starter_landed" not in drift:
+            raise SystemExit("phase10-closure-self-test:ring_helper_drift_not_detected")
+        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+
+        broken = dict(original_closure)
         broken["landed_input_helper_evidence"] = dict(original_closure["landed_input_helper_evidence"])
         broken["landed_input_helper_evidence"]["zigux/tests/phase10_virtio_input_manifest.json"] = [
             "phase10-virtio-input-capability-setup-helper",
@@ -347,7 +387,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
