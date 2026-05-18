@@ -23,13 +23,25 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig",
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/tests/README.md",
+    "zigux/tests/fixtures/kconfig_bridge/cases.json",
+    "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
+    "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     MAKEFILE,
 )
 
-REQUIRED_WORKFLOW_LINE = "run: python3 scripts/zigux/validate-phase2.py"
+REQUIRED_WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "run: python3 scripts/zigux/validate-phase2.py",
+)
+
 REQUIRED_MAKEFILE_LINES = (
     ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2",
     "phase2-kconfig:",
@@ -53,13 +65,21 @@ def read_text(root: Path, rel: str) -> str:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(root, WORKFLOW)
     makefile_text = read_text(root, MAKEFILE)
 
-    if REQUIRED_WORKFLOW_LINE not in workflow_text:
-        issues.append(("MISSING_WORKFLOW_LINE", REQUIRED_WORKFLOW_LINE))
+    for marker in REQUIRED_WORKFLOW_LINES:
+        count = count_exact_lines(workflow_text, marker)
+        if count == 0:
+            issues.append(("MISSING_WORKFLOW_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
 
     for marker in REQUIRED_MAKEFILE_LINES:
         if marker not in makefile_text:
@@ -97,6 +117,7 @@ def main() -> int:
 
     print("PHASE2_VALIDATION=pass")
     print(f"PHASE2_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
+    print(f"PHASE2_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     return 0
 
