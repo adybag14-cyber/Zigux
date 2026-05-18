@@ -5,5 +5,11 @@
   "tracked_file_count": 1,
   "tracked_paths": [
     "tools/lib/bpf/zigux_segments/pin_path.zig"
+  ],
+  "files": [
+    {
+      "path": "tools/lib/bpf/zigux_segments/pin_path.zig",
+      "blob_sha": "4a69376e359382ebe488d2a5b132b2da31a02522"
+    }
   ]
 }
