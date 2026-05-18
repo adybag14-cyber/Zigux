@@ -133,6 +133,12 @@ jobs:
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
 
+      - name: Self-test current kconfig bridge checker
+        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
+
+      - name: Check current kconfig bridge packet
+        run: python3 scripts/zigux/check-kconfig-bridge.py
+
       - name: Self-test current Phase 2 kconfig bridge checker
         run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
 
