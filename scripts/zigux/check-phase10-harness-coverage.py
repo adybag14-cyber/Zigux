@@ -67,6 +67,13 @@ LANE_SEQUENCING_MARKERS = [
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "ring lane `P10-L10` owns the queue-local wrapper packet",
     "Use the directly re-readable ring, input, and MMIO anchors before widening shared wording",
+    "`zigux/tests/phase10_virtio_mmio.zig` is back as a directly re-readable helper-local replay anchor",
+    "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, and `zigux/tests/phase10_virtio_mmio.zig` still materialize here",
+]
+
+LANE_SEQUENCING_FORBIDDEN_MARKERS = [
+    "`Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` should stay framed as last-known packet members until a fresh direct reread proves they materialize again on current `master`",
+    "`Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig`",
 ]
 
 MODULE_SLICE_MARKERS = [
@@ -188,6 +195,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     check_markers(missing_markers, "tests_root_companion", companion, COMPANION_MARKERS)
     check_markers(missing_markers, "phase10_closure_evidence", closure_evidence, CLOSURE_EVIDENCE_MARKERS)
     check_markers(missing_markers, "phase10_lane_sequencing", lane_sequencing, LANE_SEQUENCING_MARKERS)
+    check_absent_markers(missing_markers, "phase10_lane_sequencing", lane_sequencing, LANE_SEQUENCING_FORBIDDEN_MARKERS)
     check_markers(missing_markers, "phase10_input_module_slice", module_slice, MODULE_SLICE_MARKERS)
     check_markers(missing_markers, "phase10_build", build, BUILD_MARKERS)
     check_markers(missing_markers, "virtio_input_registration_preflight", registration_helper, REGISTRATION_HELPER_MARKERS)
@@ -267,6 +275,9 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-prepare-kick-idempotent-tests"', '"phase10-virtio-ring-drift-tests"', 'phase10_build:"phase10-virtio-ring-prepare-kick-idempotent-tests"')
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-input-module-slice.md", "zigux/tests/phase10_virtio_input_survey.zig", "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig", "phase10_input_module_slice:zigux/tests/phase10_virtio_input_survey.zig")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-input-module-slice.md", "queued status completions reclaimable in memory", "queued status completions drain directly to the transport", "phase10_input_module_slice:queued status completions reclaimable in memory")
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", "`zigux/tests/phase10_virtio_mmio.zig` is back as a directly re-readable helper-local replay anchor", "`zigux/tests/phase10_virtio_mmio.zig` remains a gap", "phase10_lane_sequencing:`zigux/tests/phase10_virtio_mmio.zig` is back as a directly re-readable helper-local replay anchor")
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, and `zigux/tests/phase10_virtio_mmio.zig` still materialize here", "`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md` still materialize here", "phase10_lane_sequencing:`Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`, and `zigux/tests/phase10_virtio_mmio.zig` still materialize here")
+        expect_missing_marker(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", "Use the directly re-readable ring, input, and MMIO anchors before widening shared wording", "Use the directly re-readable ring, input, and MMIO anchors before widening shared wording\n`Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` should stay framed as last-known packet members until a fresh direct reread proves they materialize again on current `master`", "phase10_lane_sequencing:forbidden:`Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` should stay framed as last-known packet members until a fresh direct reread proves they materialize again on current `master`")
         expect_missing_marker(root, "scripts/zigux/README.md", "shared closure-packet vocabulary and public-tree-backed companions rather than as absent current-`master` scripts-root evidence", "absent scripts-root evidence", "scripts_readme:shared closure-packet vocabulary and public-tree-backed companions rather than as absent current-`master` scripts-root evidence")
         expect_missing_marker(root, "scripts/zigux/README.md", "scripts/zigux/check-phase10-harness-coverage.py", "scripts/zigux/check-phase10-harness-coverage-missing.py", "scripts_readme:scripts/zigux/check-phase10-harness-coverage.py")
         expect_missing_marker(root, "drivers/virtio/virtio_input_registration_preflight.zig", "pub const RegistrationBlocker = virtio_input.RegistrationBlocker;", "pub const RegistrationGate = virtio_input.RegistrationBlocker;", "virtio_input_registration_preflight:pub const RegistrationBlocker = virtio_input.RegistrationBlocker;")
@@ -278,7 +289,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
         print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=15")
+        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=18")
         return 0
 
 
@@ -310,7 +321,7 @@ def main() -> int:
     print("PHASE10_HARNESS_COVERAGE=pass")
     print(f"PHASE10_HARNESS_COVERAGE_REQUIRED_FILE_COUNT={len(FILES)}")
     print("PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT=" f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(LANE_SEQUENCING_MARKERS) + len(CLOSURE_EVIDENCE_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(SHARED_FREEZE_BOUNDARY_MARKERS) + len(SCRIPTS_README_MARKERS)}")
-    print("PHASE10_HARNESS_COVERAGE_FORBIDDEN_MARKER_COUNT=" f"{len(SCRIPTS_README_FORBIDDEN_MARKERS)}")
+    print("PHASE10_HARNESS_COVERAGE_FORBIDDEN_MARKER_COUNT=" f"{len(LANE_SEQUENCING_FORBIDDEN_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS)}")
     return 0
 
 
