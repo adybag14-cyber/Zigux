@@ -153,7 +153,7 @@ def _sample_manifest() -> str:
                 "replay command",
                 "rollback threshold",
                 "automatic return-to-blocked trigger",
-                "retained discussion state",
+                "`retired_from_active_discussion` state",
                 "reopen triggers",
                 "trigger-specific evidence refresh",
                 "parity scorecard link or blocker record",
@@ -245,7 +245,7 @@ Any freeze-map anchor entering Architecture Council status review must keep all 
 - replay command
 - rollback threshold
 - automatic return-to-blocked trigger
-- retained discussion state
+- `retired_from_active_discussion` state
 - reopen triggers
 - trigger-specific evidence refresh
 - parity scorecard link or blocker record
@@ -304,7 +304,7 @@ This is a review packet template, not approval by itself.
 - replay command:
 - rollback threshold:
 - automatic return-to-blocked trigger:
-- retained discussion state:
+- `retired_from_active_discussion` state:
 - reopen triggers:
 - trigger-specific evidence refresh:
 - parity scorecard link or blocker record:
@@ -334,7 +334,7 @@ This is a review packet template, not approval by itself.
 def _sample_review_checklist() -> str:
     return """# Zigux Review Checklist
 
-  * if a freeze-map anchor is entering Architecture Council status review, are the exact Linux anchor path, roadmap phase, decision record ID, lane owner, current status bucket, requested decision bucket, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, automatic return-to-blocked trigger, retained discussion state, reopen triggers, trigger-specific evidence refresh, parity scorecard link or blocker record, indefinite-C policy link or explicit non-applicability note, explicit non-goals, and written rationale explicit?
+  * if a freeze-map anchor is entering Architecture Council status review, are the exact Linux anchor path, roadmap phase, decision record ID, lane owner, current status bucket, requested decision bucket, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, parity scorecard link or blocker record, indefinite-C policy link or explicit non-applicability note, explicit non-goals, and written rationale explicit?
 """
 
 
