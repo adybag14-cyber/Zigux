@@ -9,7 +9,7 @@ This note records the current bounded Phase 15 shared-summary drift between the 
 - `PHASE15_SLICE=materialized-governance-packet-truthfulness-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
-- role: keep the current Phase 15 governance packet honest now that both the broader governance notes and the focused review-process replay companion are materialized, while the remaining work stays narrowed to shared-summary truthfulness rather than stale missing-path carryover or implied approval
+- role: keep the current Phase 15 governance packet honest now that both the broader governance notes, the focused review-process replay companion, and the focused tests-root alignment companion are materialized, while the remaining work stays narrowed to shared-summary truthfulness rather than stale missing-path carryover or implied approval
 
 ## Why this note exists
 
@@ -17,7 +17,7 @@ Phase 15 is supposed to govern the mixed-language steady state honestly. Current
 
 The current same-lane truthfulness task is no longer to treat the previously parked focused review-process replay companion as missing. It is to keep the broad reminder surfaces aligned with the now-materialized packet while still refusing to imply Architecture Council approval or direct deep-core delivery just because more review companions are landed.
 
-This refresh closes the note's dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-18 governance packet, including the now-current stay-in-C policy companion, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
+This refresh closes the note's dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-18 governance packet, including the now-current stay-in-C policy companion and the focused tests-root alignment guard, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
 
 ## Materialized Phase 15 governance assets
 
@@ -27,6 +27,7 @@ The following paths now count as present governance evidence on current `master`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_indefinite_c_policy.json`
@@ -34,11 +35,12 @@ The following paths now count as present governance evidence on current `master`
 
 ## Materialized focused companions on current master
 
-Direct current-`master` reads now materialize this focused review-process companion, so the shared-gap packet must keep it visible as present governance evidence instead of carrying it as missing-path reminder text:
+Direct current-`master` reads now materialize these focused companions, so the shared-gap packet must keep them visible as present governance evidence instead of carrying them as missing-path reminder text:
 
 - `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-tests-readme-alignment.py`
 
 ## Still-missing broader validator-first companions on current master
 
@@ -63,6 +65,7 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`
+- `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
