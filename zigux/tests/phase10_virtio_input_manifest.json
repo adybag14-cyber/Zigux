@@ -126,15 +126,15 @@
       "id": "phase10-virtio-input-queue-callback-preflight-helper",
       "status": "starter_landed",
       "kind": "lab_driver_starter",
-      "zigux_destination": "drivers/virtio/virtio_input.zig",
-      "why_now": "The direct helper now reports whether queue setup, buffer fill, and ready-state gating have converged before any transport-backed callback work."
+      "zigux_destination": "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+      "why_now": "The dedicated queue-callback-preflight helper keeps queue setup, buffer fill, ready-state blockers, and blocker tags explicit beside the direct replay without widening into transport-backed callback work."
     },
     {
       "id": "phase10-virtio-input-queue-callback-preflight-replay",
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
-      "why_now": "The dedicated replay keeps queue-callback readiness ordering explicit before the risky registration-lifecycle bridge."
+      "why_now": "The dedicated replay keeps queue-callback readiness ordering and wrapper-facing blocker tags explicit before the risky registration-lifecycle bridge."
     },
     {
       "id": "phase10-virtio-input-registration-preflight-helper",
