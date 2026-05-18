@@ -58,6 +58,7 @@ The current tests check:
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
+- exact fixture-owned corpus counts on current `master`: 22 standard encode cases, 18 variant encode cases, 22 standard decode cases, 12 variant decode cases, 16 invalid decode cases, and 6 perf replay cases, all centralized in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by `zigux/tests/phase6_base64.zig` or `zigux/tests/phase6_base64_perf.zig`
 - fixture-backed variant decode parity for URL-safe and IMAP sample payloads, including one-byte and two-byte tails with and without padding
 - invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs
 - extra kernel KUnit parity vectors for uppercase, lowercase, and digit-heavy standard cases
