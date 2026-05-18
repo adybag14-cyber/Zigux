@@ -183,6 +183,11 @@ test "partialCrc32 composes across split input" {
     try std.testing.expectEqual(crc32("VMLINUX_SYMBOL_STR(sample_symbol)"), suffix);
 }
 
+test "normalizeCHarnessChunk truncates at the first NUL before trimming carriage returns" {
+    const nul_then_final_carriage = [_]u8{ 'b', '\r', 0, 'c', '\r' };
+    try std.testing.expectEqualStrings("b", normalizeCHarnessChunk(&nul_then_final_carriage));
+}
+
 test "runGenksymsCrc emits bounded json output" {
     var capture = try Capture(64).init(std.testing.allocator);
     defer capture.deinit();
