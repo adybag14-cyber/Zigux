@@ -725,6 +725,35 @@ test "getValue8 reads aligned bytes from bitmap words" {
     try std.testing.expectEqual(@as(u8, 0x11), getValue8(&bitmap, bits_per_long + 8));
 }
 
+test "getValue8 bridges the last aligned byte into the next word" {
+    const bitmap = [_]Word{
+        @as(Word, 0xaa) << @intCast(bits_per_long - 8),
+        @as(Word, 0x55),
+    };
+
+    try std.testing.expectEqual(@as(u8, 0xaa), getValue8(&bitmap, bits_per_long - 8));
+}
+
+test "findNextClump8 keeps cross-word tail bytes reachable" {
+    const nbits = bits_per_long + 8;
+    const bitmap = [_]Word{
+        @as(Word, 0xaa) << @intCast(bits_per_long - 8),
+        @as(Word, 0x55),
+    };
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long - 8), findFirstClump8(&clump, &bitmap, nbits));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long - 8), findNextClump8(&clump, &bitmap, nbits, bits_per_long - 4));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long), findNextClump8(&clump, &bitmap, nbits, bits_per_long));
+    try std.testing.expectEqual(@as(u8, 0x55), clump);
+}
+
 test "head-word boundary scans keep the last in-range bit reachable from an inclusive start" {
     const boundary = bits_per_long - 1;
     const nbits = bits_per_long * 2;
