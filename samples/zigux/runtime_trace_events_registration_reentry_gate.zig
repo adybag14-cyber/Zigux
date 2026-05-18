@@ -227,6 +227,11 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings(before_exit.last_register_label orelse return error.ExpectedRegisterLabel, after_exit.last_register_label orelse return error.ExpectedRegisterLabel);
     try std.testing.expectEqualStrings(before_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel, after_exit.last_unregister_label orelse return error.ExpectedUnregisterLabel);
     try std.testing.expectEqualStrings(before_exit.last_format_template orelse return error.ExpectedMainPayload, after_exit.last_format_template orelse return error.ExpectedMainPayload);
+    const exited_before_rejected_main = module.summary();
+    try std.testing.expectEqual(ModuleStage.exited, exited_before_rejected_main.stage);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));
+    const exited_after_rejected_main = module.summary();
+    try std.testing.expect(std.meta.eql(exited_before_rejected_main, exited_after_rejected_main));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
