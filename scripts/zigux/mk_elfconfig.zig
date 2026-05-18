@@ -189,6 +189,15 @@ test "classifies unsupported ELF class silently" {
     try std.testing.expectEqual(Outcome.invalid_class, classify(&header));
 }
 
+test "classifies unsupported ELF class with trailing bytes silently" {
+    const header = [_]u8{
+        0x7f, 'E',  'L',  'F', 3, 1, 1, 0,
+        0,    0,    0,    0,   0, 0, 0, 0,
+        0xaa, 0xbb, 0xcc,
+    };
+    try std.testing.expectEqual(Outcome.invalid_class, classify(&header));
+}
+
 test "classifies valid ELF input even when trailing bytes are present" {
     const header = [_]u8{
         0x7f, 'E',  'L',  'F', elfclass64, 1, 1, 0,
