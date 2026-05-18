@@ -84,6 +84,7 @@ TESTS_README_MARKERS = (
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
     "instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence",
+    "keep the returned notifier-binding and focused export/UAPI layout replay pair explicit here instead of leaving `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/phase3_export_uapi_layout_build.zig` framed as broader repo-reality gaps",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
@@ -284,6 +285,11 @@ def run_self_test() -> int:
         (
             TESTS_README_PATH,
             "instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence",
+            "tests README",
+        ),
+        (
+            TESTS_README_PATH,
+            "keep the returned notifier-binding and focused export/UAPI layout replay pair explicit here instead of leaving `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/phase3_export_uapi_layout_build.zig` framed as broader repo-reality gaps",
             "tests README",
         ),
         (
