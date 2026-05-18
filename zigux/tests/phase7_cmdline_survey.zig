@@ -37,6 +37,9 @@ test "phase 7 cmdline survey keeps the helper-plus-survey-manifest foothold trut
     const sequencing_note = try readRepoFile(allocator, "Documentation/zigux/phase7-leaf-helper-lane-sequencing.md");
     defer allocator.free(sequencing_note);
 
+    const helper_lane_note = try readRepoFile(allocator, "Documentation/zigux/phase7-helper-lane-sequencing.md");
+    defer allocator.free(helper_lane_note);
+
     const helper = try readRepoFile(allocator, "lib/cmdline.zig");
     defer allocator.free(helper);
 
@@ -54,6 +57,7 @@ test "phase 7 cmdline survey keeps the helper-plus-survey-manifest foothold trut
     try std.testing.expect(manifest.verified_on_utc.len != 0);
 
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-leaf-helper-lane-sequencing.md");
+    try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
     try expectStringSliceContains(manifest.review_surfaces, "lib/cmdline.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_survey.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_cmdline_manifest.json");
@@ -79,13 +83,18 @@ test "phase 7 cmdline survey keeps the helper-plus-survey-manifest foothold trut
     try expectStringSliceContains(manifest.ownership_focus, "getOption() and getOptions() keep malformed-input clearing, range parsing, incomplete hex-prefix handling, and oversized wrap semantics bounded to the caller-provided option slice");
     try expectStringSliceContains(manifest.ownership_focus, "nextArg() and next_arg() keep quoted and unquoted argument parsing bounded to the first NUL while preserving the remaining tail for the caller");
     try expectStringSliceContains(manifest.ownership_focus, "memparse() keeps signed-prefix handling, suffix scaling, and saturation bounded to the caller-provided input slice");
-    try expectStringSliceContains(manifest.ownership_focus, "same-lane follow-through stays inside the returned helper, survey, and manifest foothold until a fresh reread proves the slice, dedicated test, fixture, or shared Phase 7 build route returned on current master");
-    try expectContains(manifest.next_bounded_step, "helper-local survey-or-manifest truthfulness");
+    try expectStringSliceContains(manifest.ownership_focus, "same-lane follow-through stays inside the returned helper, survey, manifest, and shared helper-lane owner map until a fresh reread proves the slice, dedicated test, fixture, or shared Phase 7 build route returned on current master");
+    try expectContains(manifest.next_bounded_step, "helper-local survey-or-manifest truthfulness across the returned cmdline helper, survey, manifest, shared helper-lane owner map, leaf-helper note, and sample-root boundary");
 
     try expectContains(sequencing_note, "`lib/cmdline.zig` plus `zigux/tests/phase7_cmdline_survey.zig` and `zigux/tests/phase7_cmdline_manifest.json` are directly readable again on current `master`");
     try expectContains(sequencing_note, "treat it as a helper-plus-survey-manifest foothold until those companion reminders return");
     try expectContains(sequencing_note, "if a shared reminder still frames the helper as missing or broader than the returned foothold");
     try expectContains(sequencing_note, "`lib/cmdline.zig`: helper-local drift in borrowed-slice parsing, `nextArg()` quoting, or `memparse()` ownership behavior");
+
+    try expectContains(helper_lane_note, "- cmdline packet, lane `P7-L05`:");
+    try expectContains(helper_lane_note, "  - `lib/cmdline.zig`");
+    try expectContains(helper_lane_note, "- `P7-L05` owns only cmdline helper-local parity, survey, manifest, fixture, or same-slice reminder drift;");
+    try expectContains(helper_lane_note, "keep same-lane work limited to that returned helper-plus-survey-manifest foothold");
 
     try expectContains(helper, "pub fn parseOptionStr");
     try expectContains(helper, "pub const parse_option_str = parseOptionStr;");
