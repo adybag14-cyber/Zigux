@@ -14,8 +14,8 @@ HELPER_PATH = "fs/libfs.zig"
 REPLAY_PATH = "zigux/tests/phase13_libfs.zig"
 REVIEWABILITY_PATH = "zigux/tests/phase13_libfs_reviewability.zig"
 
-EXPECTED_LANE = "P13-Y01"
-EXPECTED_COMMIT = "master-readback-2026-05-15"
+FIXTURE_LANE = "P13-Y01"
+FIXTURE_COMMIT = "master-readback-2026-05-15"
 EXPECTED_GAP_COUNT = 13
 EXPECTED_STARTER_COUNT = 10
 EXPECTED_BLOCKED_COUNT = 3
@@ -36,14 +36,12 @@ EXPECTED_GAPS = {
     "phase13-libfs-live-inode-state": "blocked_on_inode_state",
 }
 
-SURVEY_MARKERS = [
-    EXPECTED_COMMIT,
+SURVEY_STATIC_MARKERS = [
     "`PHASE13_SLICE=libfs-helper-filesystem-boundary-survey`",
     "`fs/libfs.zig`",
     "`zigux/tests/phase13_libfs.zig`",
     "`zigux/tests/phase13_libfs_reviewability.zig`",
     "`zigux/tests/phase13_libfs_manifest.json`",
-    "helper-local governance for this packet is tracked under `P13-Y01`",
     "simple_offset_add()",
     "simple_offset_remove()",
     "simple_transaction_get()",
@@ -66,9 +64,8 @@ HELPER_MARKERS = [
     "pub fn planOffsetReaddir(",
 ]
 
-REPLAY_MARKERS = [
+REPLAY_STATIC_MARKERS = [
     "phase13 libfs manifest records the current helper-first filesystem packet",
-    "\"lane_key\": \"P13-Y01\"",
     "\"phase13-libfs-offset-remove-planner\"",
     "\"phase13-libfs-offset-rename-planner\"",
     "\"phase13-libfs-transaction-release-helper\"",
@@ -85,6 +82,21 @@ REVIEWABILITY_MARKERS = [
     "offset rename exchange planning keeps managed-slot swap and rollback expectations explicit",
     "addressability planner stays reviewable without implying live page-cache ownership",
 ]
+
+
+def survey_markers(expected_commit: str, expected_lane: str) -> list[str]:
+    return [
+        expected_commit,
+        *SURVEY_STATIC_MARKERS,
+        f"helper-local governance for this packet is tracked under `{expected_lane}`",
+    ]
+
+
+def replay_markers(expected_lane: str) -> list[str]:
+    return [
+        *REPLAY_STATIC_MARKERS,
+        f"\"lane_key\": \"{expected_lane}\"",
+    ]
 
 
 def read_text(path: Path) -> str:
@@ -131,10 +143,15 @@ def validate(root: Path) -> list[str]:
     except json.JSONDecodeError as exc:
         return [f"manifest:json_decode:{exc.msg}"]
 
-    if manifest.get("lane_key") != EXPECTED_LANE:
-        errors.append(f"manifest:lane_key_mismatch:{manifest.get('lane_key')}")
-    if manifest.get("surveyed_commit") != EXPECTED_COMMIT:
-        errors.append(f"manifest:surveyed_commit_mismatch:{manifest.get('surveyed_commit')}")
+    lane_key = manifest.get("lane_key")
+    if not isinstance(lane_key, str) or not lane_key:
+        errors.append("manifest:lane_key_missing")
+        lane_key = ""
+
+    surveyed_commit = manifest.get("surveyed_commit")
+    if not isinstance(surveyed_commit, str) or not surveyed_commit:
+        errors.append("manifest:surveyed_commit_missing")
+        surveyed_commit = ""
 
     gaps = manifest.get("gaps")
     if not isinstance(gaps, list):
@@ -155,27 +172,28 @@ def validate(root: Path) -> list[str]:
     if blocked_count != EXPECTED_BLOCKED_COUNT:
         errors.append(f"manifest:blocked_count_mismatch:{blocked_count}")
 
-    require_markers(survey_text, "survey", SURVEY_MARKERS, errors)
+    if lane_key and surveyed_commit:
+        require_markers(survey_text, "survey", survey_markers(surveyed_commit, lane_key), errors)
+        require_markers(replay_text, "replay", replay_markers(lane_key), errors)
     require_markers(helper_text, "helper", HELPER_MARKERS, errors)
-    require_markers(replay_text, "replay", REPLAY_MARKERS, errors)
     require_markers(reviewability_text, "reviewability", REVIEWABILITY_MARKERS, errors)
     return errors
 
 
-def render_manifest_fixture() -> str:
+def render_manifest_fixture(lane_key: str = FIXTURE_LANE, surveyed_commit: str = FIXTURE_COMMIT) -> str:
     fixture = {
-        "lane_key": EXPECTED_LANE,
-        "surveyed_commit": EXPECTED_COMMIT,
+        "lane_key": lane_key,
+        "surveyed_commit": surveyed_commit,
         "gaps": [{"id": gap_id, "status": status} for gap_id, status in EXPECTED_GAPS.items()],
     }
     return json.dumps(fixture, indent=2) + "\n"
 
 
-def seed_fixture_tree(root: Path) -> None:
-    write_text(root / MANIFEST_PATH, render_manifest_fixture())
-    write_text(root / SURVEY_PATH, "\n".join(SURVEY_MARKERS) + "\n")
+def seed_fixture_tree(root: Path, lane_key: str = FIXTURE_LANE, surveyed_commit: str = FIXTURE_COMMIT) -> None:
+    write_text(root / MANIFEST_PATH, render_manifest_fixture(lane_key, surveyed_commit))
+    write_text(root / SURVEY_PATH, "\n".join(survey_markers(surveyed_commit, lane_key)) + "\n")
     write_text(root / HELPER_PATH, "\n".join(HELPER_MARKERS) + "\n")
-    write_text(root / REPLAY_PATH, "\n".join(REPLAY_MARKERS) + "\n")
+    write_text(root / REPLAY_PATH, "\n".join(replay_markers(lane_key)) + "\n")
     write_text(root / REVIEWABILITY_PATH, "\n".join(REVIEWABILITY_MARKERS) + "\n")
 
 
@@ -204,8 +222,19 @@ def run_self_test() -> int:
         write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         assert_only(
             validate(root),
-            ["manifest:lane_key_mismatch:P13-L01"],
-            "manifest_lane_key_failed",
+            ['survey:missing_marker:helper-local governance for this packet is tracked under `P13-L01`', 'replay:missing_marker:"lane_key": "P13-L01"'],
+            "manifest_lane_alignment_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        manifest = json.loads(read_text(root / MANIFEST_PATH))
+        manifest["surveyed_commit"] = "master-readback-2026-05-18"
+        write_text(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        assert_only(
+            validate(root),
+            ["survey:missing_marker:master-readback-2026-05-18"],
+            "manifest_commit_alignment_failed",
         )
         case_count += 1
 
@@ -226,7 +255,7 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(root / SURVEY_PATH, "broken\n")
-        expected = [f"survey:missing_marker:{marker}" for marker in SURVEY_MARKERS]
+        expected = [f"survey:missing_marker:{marker}" for marker in survey_markers(FIXTURE_COMMIT, FIXTURE_LANE)]
         assert_only(validate(root), expected, "survey_missing_markers_failed")
         case_count += 1
 
@@ -245,7 +274,7 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         write_text(
             root / REPLAY_PATH,
-            "\n".join(marker for marker in REPLAY_MARKERS if marker != "\"phase13-libfs-offset-rename-planner\"") + "\n",
+            "\n".join(marker for marker in replay_markers(FIXTURE_LANE) if marker != "\"phase13-libfs-offset-rename-planner\"") + "\n",
         )
         assert_only(
             validate(root),
