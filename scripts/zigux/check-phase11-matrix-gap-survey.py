@@ -13,7 +13,7 @@ from pathlib import Path
 SURVEY_PATH = "Documentation/zigux/phase11-validation-matrix-gap-survey.md"
 
 REQUIRED_MARKERS = [
-    "`PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`",
+    "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
     "lane: `P11-L03`",
     "`Documentation/zigux/phase11-driver-lane-sequencing.md`",
     "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
@@ -26,39 +26,36 @@ REQUIRED_MARKERS = [
     "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
     "`python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
     "`scripts/zigux/check-phase11-build-inventory.py`",
-    "Current direct contents reads in this run do rematerialize",
-    "shared matrix packet is again an honest four-matrix direct-readback claim",
-    "The directly readable driver-local Phase 11 matrix notes on current `master` are",
+    "Current direct contents reads in this run do not rematerialize",
+    "shared matrix packet is no longer an honest four-matrix direct-readback claim",
+    "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains useful adjacent shared evidence, but it is not one of the driver-local Phase 11 validation matrices named by the roadmap",
     "`zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet",
     "4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays",
-    "does not stand in for a whole-Phase-11 replay roster",
+    "does not stand in for a whole-Phase-11 replay roster while the three watchdog-local matrix notes remain missing from direct readback",
     "`phase11-hvc-console-tests`",
     "`phase11-hvc-console-verify-tests`",
     "`phase11-hvc-cleanup-tests`",
     "`phase11-hvc-console-survey-tests`",
-    "`bcm2835_wdt`: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    "`gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
+    "`bcm2835_wdt`: current direct contents reads do not rematerialize",
+    "`gpio_wdt`: current direct contents reads do not rematerialize",
     "`hvc_console`: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-    "`dw_wdt`: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "`dw_wdt`: current direct contents reads do not rematerialize",
     "`Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`",
     "`zigux/tests/phase11_dw_wdt_manifest.json`",
     "`zigux/tests/phase11_dw_wdt_registration_scaffold.zig`",
 ]
 
 FORBIDDEN_MARKERS = [
-    "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
-    "do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
-    "no longer an honest four-matrix direct-readback claim",
-    "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
-    "the bcm2835 matrix remains live reminder evidence",
-    "the gpio matrix remains live reminder evidence",
-    "the DesignWare matrix remains live reminder evidence",
+    "`PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`",
+    "Current direct contents reads in this run do rematerialize",
+    "shared matrix packet is again an honest four-matrix direct-readback claim",
+    "The directly readable driver-local Phase 11 matrix notes on current `master` are",
 ]
 
 FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
 
-- `PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`
+- `PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`
 - lane: `P11-L03`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
@@ -71,20 +68,20 @@ FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
-- Current direct contents reads in this run do rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix packet is again an honest four-matrix direct-readback claim
-- The directly readable driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix packet is no longer an honest four-matrix direct-readback claim
+- The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains useful adjacent shared evidence, but it is not one of the driver-local Phase 11 validation matrices named by the roadmap
 - `zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet
 - 4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays
-- the shared build inventory does not stand in for a whole-Phase-11 replay roster
+- the shared build inventory does not stand in for a whole-Phase-11 replay roster while the three watchdog-local matrix notes remain missing from direct readback
 - `phase11-hvc-console-tests`
 - `phase11-hvc-console-verify-tests`
 - `phase11-hvc-cleanup-tests`
 - `phase11-hvc-console-survey-tests`
-- `bcm2835_wdt`: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
-- `gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `bcm2835_wdt`: current direct contents reads do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `gpio_wdt`: current direct contents reads do not rematerialize `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `hvc_console`: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-- `dw_wdt`: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
+- `dw_wdt`: current direct contents reads do not rematerialize `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
@@ -175,7 +172,7 @@ def run_self_test() -> None:
         expect_failure(missing_file_root, SURVEY_PATH)
 
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=15")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=12")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
