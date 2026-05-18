@@ -8,6 +8,7 @@ pub const MemparseResult = struct {
 pub const NextArgResult = struct {
     param: []const u8,
     value: ?[]const u8,
+    rest: []const u8,
     remaining: []const u8,
 };
 
@@ -128,15 +129,29 @@ fn cStringPrefix(text: []const u8) []const u8 {
     return text[0 .. std.mem.indexOfScalar(u8, text, 0) orelse text.len];
 }
 
-pub fn nextArg(args: []const u8) ?NextArgResult {
+pub fn nextArg(args: []const u8) NextArgResult {
     const current = cStringPrefix(args);
-    const start = skipLeadingSpaces(current, 0);
-    if (start >= current.len) {
-        return null;
+    if (current.len == 0) {
+        return .{
+            .param = current[0..0],
+            .value = null,
+            .rest = current[0..0],
+            .remaining = current[0..0],
+        };
     }
 
-    const quoted_prefix = current[start] == '"';
-    const token_start = if (quoted_prefix) start + 1 else start;
+    if (std.ascii.isWhitespace(current[0])) {
+        const rest = current[skipLeadingSpaces(current, 1)..];
+        return .{
+            .param = current[0..0],
+            .value = null,
+            .rest = rest,
+            .remaining = rest,
+        };
+    }
+
+    const quoted_prefix = current[0] == '"';
+    const token_start: usize = if (quoted_prefix) 1 else 0;
 
     var idx = token_start;
     var equals_idx: ?usize = null;
@@ -155,8 +170,11 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
         }
     }
 
-    const remaining_start = skipLeadingSpaces(current, idx);
     const token_end = if (quoted_prefix and idx > token_start and current[idx - 1] == '"') idx - 1 else idx;
+    const rest = if (idx < current.len and std.ascii.isWhitespace(current[idx]))
+        current[skipLeadingSpaces(current, idx + 1)..]
+    else
+        current[idx..];
 
     if (equals_idx) |eq| {
         var value_start = eq + 1;
@@ -171,14 +189,16 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
         return .{
             .param = current[token_start..eq],
             .value = current[value_start..value_end],
-            .remaining = current[remaining_start..],
+            .rest = rest,
+            .remaining = rest,
         };
     }
 
     return .{
         .param = current[token_start..token_end],
         .value = null,
-        .remaining = current[remaining_start..],
+        .rest = rest,
+        .remaining = rest,
     };
 }
 
@@ -297,61 +317,83 @@ test "parseOptionStr matches only exact bare options" {
     try std.testing.expect(parse_option_str("quiet,debug,nohlt", "quiet"));
 }
 
-test "nextArg returns null for blank input" {
-    try std.testing.expect(nextArg(" \t \n") == null);
+test "nextArg keeps empty input borrowed from the caller slice" {
+    var empty = [_]u8{};
+    const empty_args = empty[0..];
+    const parsed = nextArg(empty_args);
+
+    try std.testing.expectEqualStrings("", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("", parsed.rest);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(empty_args.ptr)), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(empty_args.ptr)), @as(usize, @intFromPtr(parsed.rest.ptr)));
 }
 
-test "nextArg treats whitespace before the first NUL as blank input" {
-    try std.testing.expect(nextArg(" \t\n\x00ignored tail") == null);
+test "nextArg keeps the Linux-style empty sentinel token for leading whitespace" {
+    var leading_whitespace = [_]u8{ ' ', '\t', 'f', 'o', 'o', '=', '1', 0 };
+    const parsed = nextArg(&leading_whitespace);
+
+    try std.testing.expectEqualStrings("", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("foo=1", parsed.rest);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&leading_whitespace[0])), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&leading_whitespace[2])), @as(usize, @intFromPtr(parsed.rest.ptr)));
+}
+
+test "nextArg keeps whitespace-only input as an empty sentinel before the first NUL" {
+    const parsed = nextArg(" \t\n\x00ignored tail");
+    try std.testing.expectEqualStrings("", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("", parsed.rest);
 }
 
 test "nextArg parses bare parameters and keeps the remaining text" {
-    const first = nextArg(" debug nohlt") orelse return error.TestUnexpectedResult;
+    const first = nextArg("debug nohlt");
     try std.testing.expectEqualStrings("debug", first.param);
     try std.testing.expect(first.value == null);
     try std.testing.expectEqualStrings("nohlt", first.remaining);
 }
 
 test "nextArg stays inside the first NUL for bare and key value tokens" {
-    const bare = nextArg("debug\x00 nohlt") orelse return error.TestUnexpectedResult;
+    const bare = nextArg("debug\x00 nohlt");
     try std.testing.expectEqualStrings("debug", bare.param);
     try std.testing.expect(bare.value == null);
     try std.testing.expectEqualStrings("", bare.remaining);
 
-    const keyed = nextArg("console=ttyS0\x00 root=/dev/vda") orelse return error.TestUnexpectedResult;
+    const keyed = nextArg("console=ttyS0\x00 root=/dev/vda");
     try std.testing.expectEqualStrings("console", keyed.param);
     try std.testing.expectEqualStrings("ttyS0", keyed.value.?);
     try std.testing.expectEqualStrings("", keyed.remaining);
 }
 
 test "nextArg parses key value pairs and quoted values" {
-    const parsed = nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1") orelse return error.TestUnexpectedResult;
+    const parsed = nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1");
     try std.testing.expectEqualStrings("console", parsed.param);
     try std.testing.expectEqualStrings("ttyS0,115200", parsed.value.?);
     try std.testing.expectEqualStrings("root=\"/dev/sda1 quiet\" panic=-1", parsed.remaining);
 
-    const second = nextArg(parsed.remaining) orelse return error.TestUnexpectedResult;
+    const second = nextArg(parsed.remaining);
     try std.testing.expectEqualStrings("root", second.param);
     try std.testing.expectEqualStrings("/dev/sda1 quiet", second.value.?);
     try std.testing.expectEqualStrings("panic=-1", second.remaining);
 }
 
 test "nextArg handles a quoted full token that contains a key value pair" {
-    const parsed = next_arg("\"mode=fast path\" tail") orelse return error.TestUnexpectedResult;
+    const parsed = next_arg("\"mode=fast path\" tail");
     try std.testing.expectEqualStrings("mode", parsed.param);
     try std.testing.expectEqualStrings("fast path", parsed.value.?);
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
 test "nextArg keeps quoted bare tokens together and preserves the following remainder" {
-    const parsed = nextArg("\"two words\" tail") orelse return error.TestUnexpectedResult;
+    const parsed = nextArg("\"two words\" tail");
     try std.testing.expectEqualStrings("two words", parsed.param);
     try std.testing.expect(parsed.value == null);
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
 test "nextArg keeps quoted empty values explicit without swallowing the next token" {
-    const parsed = nextArg("flag=\"\" next") orelse return error.TestUnexpectedResult;
+    const parsed = nextArg("flag=\"\" next");
     try std.testing.expectEqualStrings("flag", parsed.param);
     try std.testing.expectEqualStrings("", parsed.value.?);
     try std.testing.expectEqualStrings("next", parsed.remaining);
