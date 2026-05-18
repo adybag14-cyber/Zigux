@@ -1,0 +1,55 @@
+{
+  "lane_key": "P15-L08",
+  "phase": "Phase 15",
+  "surveyed_commit": "current-master-readback-2026-05-18",
+  "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+  "checker": "scripts/zigux/check-phase15-handoff-note-alignment.py",
+  "present_paths": [
+    "Documentation/zigux/freeze-map.md",
+    "Documentation/zigux/review-checklist.md",
+    "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
+    "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+    "Documentation/zigux/phase15-indefinite-c-policy.md",
+    "Documentation/zigux/phase15-parity-scorecard.md",
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
+    "Documentation/zigux/phase15-readiness-gate-survey.md",
+    "Documentation/zigux/phase15-governance-lane-sequencing.md",
+    "Documentation/zigux/phase15-study-only-anchor-accounting.md",
+    "Documentation/zigux/phase15-shared-summary-gap.md",
+    "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_architecture_council_review_process_build.zig",
+    "zigux/tests/phase15_readiness_gate_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-tests-readme-alignment.py",
+    "scripts/zigux/check-phase15-shared-summary-gap.py",
+    "scripts/zigux/check-phase15-handoff-note-alignment.py"
+  ],
+  "still_missing_paths": [
+    "zigux/tests/phase15_handoff_next_steps.zig",
+    "scripts/zigux/validate-phase15.py",
+    "zigux/tests/phase15_build.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+  ],
+  "required_markers": [
+    "PHASE15_STATUS=handoff_next_steps_survey_landed",
+    "PHASE15_LANE_KEY=P15-L08",
+    "PHASE15_PROVENANCE_MODE=dated_master_readback",
+    "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` is directly materialized on current `master`",
+    "no dedicated handoff-specific Zig replay is directly materialized on current `master`",
+    "treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` as the handoff-specific source of truth until that replay lands",
+    "an Architecture Council approval workflow implementation",
+    "a direct port-readiness decision for any Phase 15 anchor"
+  ],
+  "checker_group_markers": [
+    "one focused review-process checker",
+    "one focused tests-readme checker",
+    "the shared-summary gap checker",
+    "the focused handoff-note checker"
+  ],
+  "handoff_rule_markers": [
+    "if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts",
+    "if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here"
+  ]
+}
