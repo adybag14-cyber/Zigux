@@ -16,6 +16,7 @@ REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+MAKEFILE = ROOT / "zigux" / "Makefile"
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 TOOLCHAIN_CHECKER = ROOT / "scripts" / "zigux" / "check-zig-toolchain.py"
 
@@ -65,6 +66,14 @@ WORKFLOW_MARKERS = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
 )
 
+MAKEFILE_MARKERS = (
+    "phase2-toolchain:",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
+)
+
 TOOLCHAIN_CHECKER_MARKERS = (
     'TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"',
     "def load_min_version(",
@@ -87,9 +96,10 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(TESTS_MARKERS)
     + len(BOOTSTRAP_MARKERS)
     + len(WORKFLOW_MARKERS)
+    + len(MAKEFILE_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + 3
-    + 7
+    + 8
 )
 
 
@@ -202,6 +212,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     issues.extend(
         collect_missing_markers(
+            read_text(resolve_path(root, MAKEFILE)),
+            MAKEFILE_MARKERS,
+            "MISSING_MAKEFILE_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
             read_text(resolve_path(root, TOOLCHAIN_CHECKER)),
             TOOLCHAIN_CHECKER_MARKERS,
             "MISSING_TOOLCHAIN_CHECKER_MARKERS",
@@ -239,6 +256,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TESTS_README), "\n".join(["# tests", *TESTS_MARKERS]) + "\n")
     write_text(resolve_path(root, BOOTSTRAP_NOTES), "\n".join(["# bootstrap", *BOOTSTRAP_MARKERS]) + "\n")
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_MARKERS) + "\n")
+    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_MARKERS) + "\n")
     write_text(
         resolve_path(root, TOOLCHAIN_CHECKER),
         "\n".join(["#!/usr/bin/env python3", *TOOLCHAIN_CHECKER_MARKERS]) + "\n",
@@ -307,6 +325,13 @@ def run_self_test() -> int:
             assert ("MISSING_WORKFLOW_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in MAKEFILE_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_MAKEFILE_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
         for marker in TOOLCHAIN_CHECKER_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TOOLCHAIN_CHECKER)
@@ -343,6 +368,7 @@ def run_self_test() -> int:
             TESTS_README,
             BOOTSTRAP_NOTES,
             WORKFLOW,
+            MAKEFILE,
             TOOLCHAIN_CHECKER,
             TOOLCHAIN_POLICY,
         ):
@@ -379,6 +405,7 @@ def main() -> int:
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_REVIEW_MARKER_COUNT={len(REVIEW_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_TESTS_MARKER_COUNT={len(TESTS_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_MAKEFILE_MARKER_COUNT={len(MAKEFILE_MARKERS)}")
     return 0
 
 
