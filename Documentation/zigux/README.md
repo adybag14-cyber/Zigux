@@ -167,3 +167,25 @@ now keep the current Phase 13 docs-root reminder packet explicit from the docume
   * keep adjacent notifier evidence explicit through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` without promoting that adjacent packet into a fifth shared-helper anchor.
   * current `master` does materialize `zigux/Makefile`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep the returned file distinct from those still-missing Phase 13 route names instead of treating it as a shared build handle.
   * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_libfs_addressability.zig`, `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/validate-phase13-release.py`, `zigux/tests/phase13_build.zig`, `zigux/helpers/notifier_chain_view.zig`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `scripts/zigux/check-phase13-notifier-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `include/zigux/notifier_abi.h`, so keep those helper-local direct companions, validator-first helpers, build handles, and adjacent notifier helpers framed as repo-reality gaps rather than current docs-root evidence.
+Phase 10 notes
+- `Documentation/zigux/phase10-closure-evidence.md`
+- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/check-phase10-bootstrap-route.py`
+- `scripts/zigux/check-phase10-harness-coverage.py`
+- `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `scripts/zigux/validate-phase10-closure.py`
+- `zigux/Makefile`
+- `zigux/tests/phase10_closure_manifest.json`
+- `Documentation/zigux/phase10-virtio-core-survey.md`
+- `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-slice.md`
+- `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+now keep the current shared Phase 10 virtio reminder packet explicit from the docs root instead of leaving the later-lane shared closure story to neighboring notes alone.
+  * current `master` now materializes `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/Makefile`, and the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep those returned closure-side, MMIO-side, and shared build-gate surfaces explicit here rather than as repo-reality gaps.
+  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase10.py`, `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig`, so keep those broader validator-first, core-side, and ring-survey companions framed as last-known packet members or repo-reality gaps until a fresh reread rematerializes them together.
+  * keep the shared Phase 10 docs-root reminder bounded to VM-friendly lab validation, the returned closure validator and closure manifest, the shared tests-root packet, the returned Makefile-backed route stack, the directly re-readable core survey, ring survey, input survey, MMIO slice, and MMIO survey surfaces, and the blocked risky-transport posture rather than widening into probe/remove lifecycle, IRQ, DMA, or Architecture Council status-change claims.
