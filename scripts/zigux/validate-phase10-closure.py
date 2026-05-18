@@ -81,6 +81,18 @@ LANDED_HELPER_FIELDS = {
     "landed_mmio_helper_evidence": "zigux/tests/phase10_virtio_mmio_manifest.json",
 }
 
+FOCUSED_HARNESS_REPLAY_FILES = [
+    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+    "zigux/tests/phase10_virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+    "zigux/tests/phase10_virtio_input_status_drain.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+]
+
 COMMANDS = [
     ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
     ["scripts/zigux/check-phase10-harness-coverage.py"],
@@ -165,6 +177,29 @@ def collect_manifest_drift(root: Path) -> list[str]:
             if helper_id not in landed:
                 drift.append(f"{field}:{path}:{helper_id!r}:not_starter_landed")
 
+    tests = closure.get("tests")
+    if not isinstance(tests, list) or not tests:
+        drift.append("tests:missing")
+        test_set: set[str] = set()
+    else:
+        test_set = {item for item in tests if isinstance(item, str) and item}
+
+    focused_harness_replays = closure.get("focused_harness_replays")
+    if not isinstance(focused_harness_replays, dict) or not focused_harness_replays:
+        drift.append("focused_harness_replays:missing")
+    else:
+        for path in FOCUSED_HARNESS_REPLAY_FILES:
+            replay_labels = focused_harness_replays.get(path)
+            if not isinstance(replay_labels, list) or not replay_labels:
+                drift.append(f"focused_harness_replays:{path}:missing")
+                continue
+            if path not in test_set:
+                drift.append(f"focused_harness_replays:{path}:not_listed_in_tests")
+            for replay_label in replay_labels:
+                if not isinstance(replay_label, str) or not replay_label.strip():
+                    drift.append(f"focused_harness_replays:{path}:blank_label")
+                    break
+
     return drift
 
 
@@ -244,6 +279,47 @@ def write_fixture(root: Path) -> None:
                         "phase10-mmio-selected-queue-readiness-helper",
                     ]
                 },
+                "focused_harness_replays": {
+                    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig": [
+                        "phase10 core interrupt-compound-ack replay"
+                    ],
+                    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
+                        "phase10 core reset-queue replay"
+                    ],
+                    "zigux/tests/phase10_virtio_driver_id.zig": [
+                        "phase10 driver-id review path replay"
+                    ],
+                    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+                        "phase10 ring drained-reset reuse replay"
+                    ],
+                    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
+                        "phase10 input queue-callback-preflight replay"
+                    ],
+                    "zigux/tests/phase10_virtio_input_status_drain.zig": [
+                        "phase10 input status-drain replay"
+                    ],
+                    "zigux/tests/phase10_virtio_input_probe_preflight.zig": [
+                        "phase10 input probe-preflight replay"
+                    ],
+                    "zigux/tests/phase10_virtio_input_registration_preflight.zig": [
+                        "phase10 input registration-preflight replay"
+                    ],
+                    "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
+                        "phase10 input teardown-observation replay"
+                    ],
+                },
+                "tests": [
+                    "zigux/tests/phase10_virtio_core.zig",
+                    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
+                    "zigux/tests/phase10_virtio_core_reset_queue.zig",
+                    "zigux/tests/phase10_virtio_driver_id.zig",
+                    "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                    "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
+                    "zigux/tests/phase10_virtio_input_status_drain.zig",
+                    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
+                    "zigux/tests/phase10_virtio_input_registration_preflight.zig",
+                    "zigux/tests/phase10_virtio_input_teardown_observation.zig"
+                ],
             }
         ),
         "zigux/tests/phase10_virtio_core_manifest.json": json.dumps(
@@ -383,6 +459,36 @@ def run_self_test() -> int:
             raise SystemExit("phase10-closure-self-test:input_helper_drift_not_detected")
         closure.write_text(json.dumps(original_closure), encoding="utf-8")
 
+        broken = dict(original_closure)
+        broken["focused_harness_replays"] = dict(original_closure["focused_harness_replays"])
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_input_status_drain.zig"] = []
+        closure.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "focused_harness_replays:zigux/tests/phase10_virtio_input_status_drain.zig:missing" not in drift:
+            raise SystemExit("phase10-closure-self-test:focused_replay_missing_not_detected")
+        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+
+        broken = dict(original_closure)
+        broken["tests"] = [
+            item
+            for item in original_closure["tests"]
+            if item != "zigux/tests/phase10_virtio_ring_reset_reuse.zig"
+        ]
+        closure.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "focused_harness_replays:zigux/tests/phase10_virtio_ring_reset_reuse.zig:not_listed_in_tests" not in drift:
+            raise SystemExit("phase10-closure-self-test:focused_replay_test_membership_drift_not_detected")
+        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+
+        broken = dict(original_closure)
+        broken["focused_harness_replays"] = dict(original_closure["focused_harness_replays"])
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_input_probe_preflight.zig"] = ["   "]
+        closure.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "focused_harness_replays:zigux/tests/phase10_virtio_input_probe_preflight.zig:blank_label" not in drift:
+            raise SystemExit("phase10-closure-self-test:focused_replay_blank_label_not_detected")
+        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+
         makefile = root / "zigux/Makefile"
         makefile.write_text("", encoding="utf-8")
         if "make:PHONY += phase10-validate phase10-test phase10" not in collect_missing_markers(root):
@@ -407,7 +513,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
@@ -465,6 +571,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_PROVENANCE_PACKET_COUNT={len(SURVEY_MANIFESTS)}")
     print(f"PHASE10_CLOSURE_READY_FOLLOWUP_COUNT={len(READY_TRANSPORT_FOLLOWUPS)}")
     print(f"PHASE10_CLOSURE_LANDED_HELPER_PACKET_COUNT={len(LANDED_HELPER_FIELDS)}")
+    print(f"PHASE10_CLOSURE_FOCUSED_HARNESS_REPLAY_COUNT={len(FOCUSED_HARNESS_REPLAY_FILES)}")
     return 0
 
 
