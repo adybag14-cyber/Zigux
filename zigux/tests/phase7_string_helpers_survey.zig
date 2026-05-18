@@ -45,7 +45,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "reject overflow before sizing the NULL-terminated pointer view");
     try expectContains(slice_note, "quoted cmdline duplication that collapses trailing NULs, replaces inter-argument NULs with spaces, and then reuses the quotable escape path inside caller-owned output");
     try expectContains(slice_note, "the broader full-family packet that still leaves `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
-    try expectNotContains(slice_note, "`parse_int_array()` can join the same helper-local packet");
+    try expectContains(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectNotContains(slice_note, "The next bounded follow-through should realign the dedicated survey and sample-boundary replays so they treat `parse_int_array()` as landed and keep only `kstrdup_quotable_file()` plus `devm_kasprintf_strarray()` parked as the remaining helper-local non-goals.");
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
@@ -96,6 +97,8 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "parseIntArray() and parse_int_array() keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set");
     try expectContains(manifest, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test");
     try expectContains(manifest, "shared no-sample boundary and helper-local reviewability");
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`");
     try expectNotContains(manifest, "validator-backed reviewability");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
@@ -212,6 +215,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
     try expectContains(sample_boundary, "pub fn parseIntArray");
     try expectContains(sample_boundary, "\"parseIntArray\"");
+    try expectContains(sample_boundary, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons");
 }
 
 test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
@@ -229,7 +233,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(slice_note, "quoted cmdline duplication that collapses trailing NULs, replaces inter-argument NULs with spaces, and then reuses the quotable escape path inside caller-owned output");
     try expectContains(slice_note, "the broader full-family packet that still leaves `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectNotContains(slice_note, "restored starter packet");
-    try expectNotContains(slice_note, "`parse_int_array()` can join the same helper-local packet");
+    try expectContains(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectNotContains(slice_note, "The next bounded follow-through should realign the dedicated survey and sample-boundary replays so they treat `parse_int_array()` as landed and keep only `kstrdup_quotable_file()` plus `devm_kasprintf_strarray()` parked as the remaining helper-local non-goals.");
 
     const helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(helper);
@@ -287,6 +292,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "\"stringLower\"");
     try expectContains(manifest, "\"string_lower\"");
     try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons");
+    try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
 }
