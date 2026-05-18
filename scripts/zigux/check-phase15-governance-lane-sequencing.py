@@ -70,7 +70,7 @@ def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-ndef _read_manifest(path: Path) -> dict:
+def _read_manifest(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
