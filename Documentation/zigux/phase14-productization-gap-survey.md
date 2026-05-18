@@ -56,7 +56,7 @@ Current `master` does expose the shared smoke note, the cross-anchor traceabilit
 
 It also now matters that the three non-doc companion layers split in different ways:
 
-- `zigux/Makefile` is readable again on current `master`, but its live body currently exposes only the Phase 2 toolchain and kbuild routes and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
+- `zigux/Makefile` is readable again on current `master`, and its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes, but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
 - `scripts/zigux/validate-phase14.py` is still not returned by the same path-based contents bridge, but it is recoverable again through pinned blob readback and now carries a real shared-smoke validator surface rather than the older placeholder-only body
 - `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` are directly readable again as the workqueue-local reviewability shard, so this productization note should keep that study-only foothold explicit instead of leaving part of it in the missing executable layer
 
@@ -74,7 +74,7 @@ Direct GitHub contents reads in this lane still return missing-path results for 
 - `net/core/skbuff_bridge.zig`
 
 This means the current productization gap is narrower and more specific than the older note claimed.
-The remaining drift is the split between the directly readable shared-smoke documentation surfaces, the blob-readable validator body, the readable-but-Phase-2-only Makefile body, the directly readable workqueue reviewability shard, and the still-unrecovered executable survey, manifest, checker, and skbuff-side bridge layer beneath them.
+The remaining drift is the split between the directly readable shared-smoke documentation surfaces, the blob-readable validator body, the readable non-owner Makefile body with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no Phase 14 targets, the directly readable workqueue reviewability shard, and the still-unrecovered executable survey, manifest, checker, and skbuff-side bridge layer beneath them.
 
 ## Product Judgment
 
@@ -89,4 +89,4 @@ Reviewers should therefore treat the shared smoke documentation packet as direct
 
 Stay in the same core-adjacent lane and keep the surviving shared reminder packet aligned around this 2026-05-18 readback split.
 
-The next honest follow-up is no longer another tests-root reminder rewrite unless a fresh reread finds drift there again. Instead, re-evaluate the smallest same-lane surface only if one of the current reminder notes stops keeping the recovered documentation packet, the blob-readable validator surface, the directly readable workqueue reviewability shard, and the readable-but-Phase-2-only Makefile posture aligned, or if the missing executable packet members above return through exact current-`master` readback.
+The next honest follow-up is no longer another tests-root reminder rewrite unless a fresh reread finds drift there again. Instead, re-evaluate the smallest same-lane surface only if one of the current reminder notes stops keeping the recovered documentation packet, the blob-readable validator surface, the directly readable workqueue reviewability shard, and the readable non-owner Makefile posture with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no Phase 14 targets aligned, or if the missing executable packet members above return through exact current-`master` readback.
