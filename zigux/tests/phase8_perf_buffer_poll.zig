@@ -89,6 +89,41 @@ test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet 
     );
 }
 
+test "phase 8 perf-buffer poll helper keeps direct ready-buffer attempt wrappers aligned" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 1),
+        try perf_buffer_poll.resolveReadyBufferAttemptAtIndex(&buffers, 0),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        try perf_buffer_poll.resolveReadyBufferAttemptAtIndex(&buffers, 1),
+    );
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        perf_buffer_poll.resolveReadyBufferAttemptAtIndex(&buffers, 2),
+    );
+
+    try std.testing.expectEqual(
+        @as(i32, 1),
+        perf_buffer_poll.resolveReadyBufferAttemptIndexReturn(&buffers, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 3),
+        perf_buffer_poll.resolveReadyBufferAttemptIndexReturn(&buffers, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferAttemptIndexReturn(&buffers, 2),
+    );
+}
+
 test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {
     const success = try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
         12,
@@ -239,6 +274,33 @@ test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact
     );
 }
 
+test "phase 8 perf-buffer poll helper resolves direct fd and mapped-window lookups without summary plumbing" {
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+
+    try std.testing.expectEqual(@as(i32, 21), try perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 2));
+    try std.testing.expectError(error.MissingFd, perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 1));
+    try std.testing.expectError(error.InvalidIndex, perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 4));
+
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(
+        @as(usize, 8192),
+        try perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 2),
+    );
+    try std.testing.expectError(
+        error.MissingWindow,
+        perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 1),
+    );
+    try std.testing.expectError(
+        error.InvalidIndex,
+        perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 4),
+    );
+}
+
 test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
     const resolvePollExecutionResultFromWaitResult =
         perf_buffer_poll.resolvePollExecutionResultFromWaitResult;
@@ -252,6 +314,7 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
             .{ .ready = true },
         },
         &.{
+            .{ .records_processed = 1 },
             .{ .records_processed = 1 },
         },
     );
