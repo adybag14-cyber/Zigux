@@ -176,6 +176,36 @@ fn countPhase15GovernanceOnlyAnchors(anchors: []const Anchor) usize {
     return anchors.len - countPhase14CoupledAnchors(anchors);
 }
 
+fn expectEvidenceArchiveTruthfulness(manifest: Manifest) !void {
+    for (manifest.anchors) |anchor| {
+        const archive_doc = try readRepoFile(anchor.evidence_archive.decision_record_path, 12 * 1024);
+        defer std.testing.allocator.free(archive_doc);
+
+        try expectContains(archive_doc, "`PHASE=Phase 15`");
+        try expectContains(archive_doc, "`LANE_KEY=P15-L03`");
+        try expectContains(archive_doc, "`SURVEYED_COMMIT=current-master-readback-2026-05-18`");
+        try expectContains(archive_doc, "`REVIEW_STATUS=blocked_review`");
+        try expectContains(archive_doc, "current Architecture Council status-change approval: `not_recorded`");
+        try expectContains(archive_doc, anchor.path);
+        try expectContains(archive_doc, anchor.lane_owner);
+        try expectContains(archive_doc, anchor.phase);
+        try expectContains(archive_doc, anchor.current_status_bucket);
+        try expectContains(archive_doc, anchor.required_approver_set);
+        try expectContains(archive_doc, anchor.rollback_owner);
+        try expectContains(archive_doc, anchor.validation_gate_summary);
+        try expectContains(archive_doc, anchor.evidence_archive.decision_record_path);
+        try expectContains(archive_doc, anchor.evidence_archive.latest_blocker_disposition);
+        try expectContains(archive_doc, anchor.evidence_archive.benchmark_notes_status);
+        try expectContains(archive_doc, anchor.evidence_archive.replay_command);
+        try expectContains(archive_doc, "Documentation/zigux/phase15-parity-scorecard.md");
+        try expectContains(archive_doc, "Documentation/zigux/phase15-indefinite-c-policy.md");
+
+        for (anchor.evidence_archive.linked_evidence) |linked_evidence| {
+            try expectContains(archive_doc, linked_evidence);
+        }
+    }
+}
+
 test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     const manifest_json = try readRepoFile("zigux/tests/phase15_parity_scorecard.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
@@ -332,4 +362,16 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
         try expectAnchorPacketAlignment(scorecard_doc, governance_note, anchor);
         try expectContains(freeze_map, anchor.path);
     }
+}
+
+test "phase 15 parity scorecard evidence archives stay aligned with the dated readback packet" {
+    const manifest_json = try readRepoFile("zigux/tests/phase15_parity_scorecard.json", 24 * 1024);
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{
+        .ignore_unknown_fields = true,
+    });
+    defer parsed.deinit();
+
+    try expectEvidenceArchiveTruthfulness(parsed.value);
 }
