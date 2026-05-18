@@ -132,6 +132,20 @@ test "bitmap starter helpers fail closed on malformed views" {
     try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "bitmap starter helpers fail closed on zero-bit stray storage" {
+    const invalid = binding.initBitmapView(1, 0, 1);
+    const summary = bitmap_view.summarize(invalid);
+
+    try testing.expect(!bitmap_view.isValid(invalid));
+    try testing.expect(!bitmap_view.testBit(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstSet(invalid));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstZero(invalid));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.weight(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask starter helpers keep cpu membership reviewable" {
     var backing = [_]usize{
         (@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 7),
@@ -267,6 +281,20 @@ test "cpumask starter helpers fail closed on malformed views" {
     try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
+test "cpumask starter helpers fail closed on zero-bit stray storage" {
+    const invalid = binding.initCpumaskView(1, 0, 1, 0);
+    const summary = cpumask_view.summarize(invalid);
+
+    try testing.expect(!cpumask_view.isValid(invalid));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid));
     try testing.expectEqual(@as(u32, 0), summary.first_set);
     try testing.expectEqual(@as(u32, 0), summary.first_zero);
     try testing.expectEqual(@as(u32, 0), summary.weight);
