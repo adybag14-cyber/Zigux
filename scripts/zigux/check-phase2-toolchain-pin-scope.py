@@ -69,7 +69,7 @@ EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
 EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-EXPECTED_SELF_TEST_CASE_COUNT = 44
+EXPECTED_SELF_TEST_CASE_COUNT = 45
 
 
 def read_text(path: Path) -> str:
