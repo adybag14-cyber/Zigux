@@ -226,6 +226,14 @@ FILE_CASES = (
     (XARRAY_SLOT_STARTER_FILE, "expected missing xarray-slot starter file was not reported"),
     (SHARED_TESTS_BUILD_FILE, "expected missing shared tests build file was not reported"),
     (SHARED_VALIDATOR_FILE, "expected missing shared validator file was not reported"),
+    (Path("Documentation/zigux/phase3-policy-slice.md"), "expected missing policy-slice file was not reported"),
+    (Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"), "expected missing low-level-wrapper survey note was not reported"),
+    (Path("include/zigux/abi.h"), "expected missing ABI header file was not reported"),
+    (Path("zigux/helpers/unsafe_policy.zig"), "expected missing unsafe-policy helper file was not reported"),
+    (Path("zigux/helpers/atomic.zig"), "expected missing atomic helper file was not reported"),
+    (Path("zigux/helpers/barrier.zig"), "expected missing barrier helper file was not reported"),
+    (Path("zigux/helpers/mmio.zig"), "expected missing MMIO helper file was not reported"),
+    (Path("zigux/kernel/export_shim.zig"), "expected missing export-shim file was not reported"),
 )
 
 
