@@ -13,10 +13,14 @@
 - `PHASE1_WORKFLOW_PHASE8_BUFFER=Validate Phase 8 tooling routes,Run focused Phase 8 exec-cmd tests,Run Phase 8 tooling tests`
 - `PHASE1_WORKFLOW_PHASE9_BUFFER=Self-test current Phase 9 review-checklist boundaries checker,Check current Phase 9 review-checklist boundaries packet,Self-test current Phase 9 trace-events runtime packet checker,Check current Phase 9 trace-events runtime packet,Run current Phase 9 trace-events runtime sample tests,Run current Phase 9 unregistered gate companion tests,Run current Phase 9 exit rollback guard companion tests,Run current Phase 9 registration reentry companion tests`
 - `PHASE1_WORKFLOW_PHASE7_HANDOFF=Self-test current Phase 7 shared-control gap checker,Check current Phase 7 shared-control gap packet`
+- `PHASE1_WORKFLOW_PHASE10_PHASE12_TAIL=Self-test current Phase 10 bootstrap route checker,Check current Phase 10 bootstrap route,Validate Phase 10 checker-backed review packet,Run Phase 10 helper tests,Self-test current Phase 11 HVC cleanup current-head checker,Check current Phase 11 HVC cleanup current-head packet,Run current Phase 12 throughput-parity anchor`
+- `PHASE1_WORKFLOW_PHASE12_TAIL_GUARD=scripts/zigux/check-phase1-workflow-phase12-tail.py`
 - `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/validate-phase1-closure.py,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench,python3 scripts/zigux/check-phase1-bench.py`
 - keep the lane scoped to the current Phase 1 workflow-viability pair instead of reviving the older closure-side Phase 1 validator routes.
 - run the lightweight Lane 17 preflight after Setup Python so this branch still emits lane-local signal even when the external pinned-Zig archive step fails first.
 - keep the current direct-owner, string-review, bench-selftest, and shared-reminder ladder intact before the lane-local viability pair.
 - keep the workflow-viability pair immediately after the current Phase 1 shared reminder packet, then preserve the current Phase 3 buffer before the shared Phase 1 smoke route.
 - keep the current Phase 4 artifact-diff helper and validator replay block ahead of the current Phase 8 tooling routes, then preserve the current Phase 9 review-checklist, trace-events packet, and companion sample tests before the Phase 7 shared-control pair.
+- keep the current Phase 10 bootstrap route, Phase 11 HVC cleanup packet, and Phase 12 throughput-parity anchor explicit at the bootstrap tail.
+- keep the dedicated Phase 12 tail guard scoped to this inherited bootstrap tail instead of widening the broader lane checker again.
 - if the workflow moves again, refresh this same three-file packet first instead of widening into unrelated reminder or closure lanes.
