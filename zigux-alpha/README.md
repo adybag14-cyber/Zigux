@@ -14,6 +14,7 @@ It does not exist to become a permanent parallel subsystem tree.
 Rules
 - Keep product planning and bootstrap artifacts here first.
 - Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.
+- The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.
 - Move actual product code into the native Linux locations or the small `zigux/` support root once a slice is approved.
 - Do not create `zigux-alpha/ports/` or any mirror-tree equivalent.
 - Treat ZAR as the research and proving repo and Zigux as the product repo.
