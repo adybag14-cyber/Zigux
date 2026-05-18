@@ -18,11 +18,15 @@ WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
+DIRECT_OWNER_MARKERS_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 
 REQUIRED_FILES = (
     PHASE1_CLOSURE_REL,
     LANE_NOTE_REL,
     WORKFLOW_REL,
+    STRING_REVIEW_CHECKER_REL,
+    DIRECT_OWNER_MARKERS_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
     MANIFEST_REL,
