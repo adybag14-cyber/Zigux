@@ -68,3 +68,13 @@ test "xa_value cutoff stays ordered as inline value, pointer gap, then err_ptr" 
     try std.testing.expect(err_ptr.isErrValue(err_raw));
     try std.testing.expect((err_raw & value_tag_mask) == value_tag_mask);
 }
+
+test "first rejected inline value would alias err_ptr floor" {
+    const rejected_value = safe_inline_limit + 1;
+    const overlapping_raw = (rejected_value << 1) | value_tag_mask;
+
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(rejected_value));
+    try std.testing.expectEqual(err_ptr.err_floor, overlapping_raw);
+    try std.testing.expect(err_ptr.isErrValue(overlapping_raw));
+    try std.testing.expect(!isValue(overlapping_raw));
+}
