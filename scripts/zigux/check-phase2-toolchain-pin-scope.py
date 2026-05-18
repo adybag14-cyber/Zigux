@@ -32,6 +32,7 @@ DOCS_ROOT_MARKERS = (
 REVIEW_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2-tools`",
@@ -44,6 +45,7 @@ REVIEW_MARKERS = (
 TESTS_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "pinned `x86_64-linux` bootstrap archive note",
     "repo-local `.zig-toolchain` fallback reused",
 )
@@ -359,9 +361,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Check that the current directly readable Phase 2 toolchain pin-scope packet stays aligned."
-    )
+    parser = argparse.ArgumentParser(description="Check that the current directly readable Phase 2 toolchain pin-scope packet stays aligned.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
@@ -374,10 +374,9 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_TOOLCHAIN_PIN_SCOPE=pass")
-    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_DOCS_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_DOCS_ROOT_MARKER_COUNT={len(DOCS_ROOT_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_REVIEW_MARKER_COUNT={len(REVIEW_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_TESTS_MARKER_COUNT={len(TESTS_MARKERS)}")
-    print(f"PHASE2_TOOLCHAIN_PIN_SCOPE_BOOTSTRAP_MARKER_COUNT={len(BOOTSTRAP_MARKERS)}")
     return 0
 
 
