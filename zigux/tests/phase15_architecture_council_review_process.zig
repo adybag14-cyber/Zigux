@@ -12,6 +12,7 @@ const ReviewProcessManifest = struct {
     required_review_fields: []const []const u8,
     stay_in_c_closeout_fields: []const []const u8,
     reopen_evidence_fields: []const []const u8,
+    decision_record_template_required_markers: []const []const u8,
     handoff_required_markers: []const []const u8,
     shared_gap_expected_present_paths: []const []const u8,
     shared_gap_expected_missing_paths: []const []const u8,
@@ -55,7 +56,8 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_fields.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
-    try std.testing.expectEqual(@as(usize, 8), manifest.handoff_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 9), manifest.handoff_required_markers.len);
     try std.testing.expectEqual(@as(usize, 11), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.shared_gap_expected_missing_paths.len);
 
@@ -100,6 +102,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "the focused Zig replay are landed");
     try expectContains(review_process, "broader validator-first shared-summary surfaces remain gap-tracked");
     try expectContains(review_process, "focused review-process replay");
+    try expectContains(review_process, "defaults that record to dated-master-readback provenance");
 
     for (manifest.required_review_fields) |field| {
         try expectContains(review_process, field);
@@ -110,6 +113,9 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     }
     for (manifest.reopen_evidence_fields) |field| {
         try expectContains(review_process, field);
+    }
+    for (manifest.decision_record_template_required_markers) |marker| {
+        try expectContains(decision_record_template, marker);
     }
     for (manifest.handoff_required_markers) |marker| {
         try expectContains(handoff_note, marker);
