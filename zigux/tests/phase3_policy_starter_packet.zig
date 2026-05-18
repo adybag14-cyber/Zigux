@@ -63,6 +63,16 @@ test "policy starter packet keeps interop-policy layout explicit" {
     try layout_assert.expectFieldLayout(abi.InteropPolicy, "reserved", 3);
 }
 
+test "policy starter packet exercises exported layout assertion guards" {
+    try layout_assert.assertBoundaryHeaderLayout();
+    try layout_assert.assertExportStatusLayout();
+    try layout_assert.assertInteropPolicyLayout();
+    try layout_assert.assertNotifierBlockLayout();
+    try layout_assert.assertNotifierChainPriorityIncreaseLayout();
+    layout_assert.assertInteropPolicyModeValues();
+    layout_assert.assertNotifierResultValues();
+}
+
 test "policy starter packet keeps narrow-surface decoding aligned" {
     const cases = [_]struct {
         policy: abi.InteropPolicy,
