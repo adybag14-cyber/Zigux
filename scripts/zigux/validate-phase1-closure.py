@@ -153,6 +153,7 @@ EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS = [
     'test "clump8 scans keep tail bytes reachable from partial final words"',
     'test "clump8 scans mask tail bits beyond nbits"',
     'test "clump8 scans leave the caller byte untouched when no set bit remains"',
+    'test "clump8 zero-bit and past-end windows leave the caller byte untouched"',
     'test "getValue8 reads aligned bytes from bitmap words"',
     'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
