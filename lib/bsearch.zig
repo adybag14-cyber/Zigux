@@ -188,6 +188,18 @@ pub fn upperBoundIndex(comptime Key: type, comptime T: type, key: *const Key, it
     return start;
 }
 
+pub fn upperBound(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) ?*const T {
+    const index = upperBoundIndex(Key, T, key, items, compare);
+    if (index == items.len) return null;
+    return &items[index];
+}
+
+pub fn upperBoundMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) ?*T {
+    const index = upperBoundIndex(Key, T, key, items, compare);
+    if (index == items.len) return null;
+    return &items[index];
+}
+
 pub fn equalRangeIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) IndexRange {
     return .{
         .lower = lowerBoundIndex(Key, T, key, items, compare),
@@ -261,6 +273,18 @@ pub fn bsearchUpperBoundIndex(key: *const anyopaque, base: [*]const u8, num: usi
         advanceUpperBoundWindow(&start, &count, pivot_index, normalizeCompareResult(compare(key, pivot_ptr)));
     }
     return start;
+}
+
+pub fn bsearchUpperBound(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) ?*const anyopaque {
+    const index = bsearchUpperBoundIndex(key, base, num, size, compare);
+    if (index == num) return null;
+    return @ptrCast(base + (index * size));
+}
+
+pub fn bsearchUpperBoundMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) ?*anyopaque {
+    const index = bsearchUpperBoundIndex(key, base, num, size, compare);
+    if (index == num) return null;
+    return @ptrCast(base + (index * size));
 }
 
 pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {
@@ -409,22 +433,31 @@ test "raw c abi bounds keep duplicate spans and insertion points aligned" {
     try expectRawCAbiRange(descending[0..], 5, .{ .lower = 2, .upper = 2 }, compareCOpaqueDescendingInt);
 }
 
-test "lower bound wrappers return first insertion-site elements across typed and raw comparators" {
+test "lower and upper bound wrappers return insertion-site elements across typed and raw comparators" {
     const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
 
-    const typed_hit_key = @as(i32, 4);
-    const typed_hit = lowerBound(i32, i32, &typed_hit_key, ascending[0..], compareCInt) orelse return error.TestUnexpectedResult;
-    try std.testing.expectEqual(@as(i32, 4), typed_hit.*);
-    try std.testing.expectEqual(@intFromPtr(&ascending[1]), @intFromPtr(typed_hit));
+    const typed_lower_hit_key = @as(i32, 4);
+    const typed_lower_hit = lowerBound(i32, i32, &typed_lower_hit_key, ascending[0..], compareCInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 4), typed_lower_hit.*);
+    try std.testing.expectEqual(@intFromPtr(&ascending[1]), @intFromPtr(typed_lower_hit));
+
+    const typed_upper_hit = upperBound(i32, i32, &typed_lower_hit_key, ascending[0..], compareCInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 9), typed_upper_hit.*);
+    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(typed_upper_hit));
 
     const typed_mid_key = @as(i32, 5);
     const typed_mid = lowerBound(i32, i32, &typed_mid_key, ascending[0..], compareCInt) orelse return error.TestUnexpectedResult;
     try std.testing.expectEqual(@as(i32, 9), typed_mid.*);
     try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(typed_mid));
 
+    const typed_upper_mid = upperBound(i32, i32, &typed_mid_key, ascending[0..], compareCInt) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 9), typed_upper_mid.*);
+    try std.testing.expectEqual(@intFromPtr(&ascending[4]), @intFromPtr(typed_upper_mid));
+
     const typed_tail_key = @as(i32, 20);
     try std.testing.expectEqual(@as(?*const i32, null), lowerBound(i32, i32, &typed_tail_key, ascending[0..], compareCInt));
+    try std.testing.expectEqual(@as(?*const i32, null), upperBound(i32, i32, &typed_tail_key, ascending[0..], compareCInt));
 
     const raw_hit_key = @as(i32, 4);
     const raw_hit = bsearchLowerBound(&raw_hit_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
@@ -432,17 +465,28 @@ test "lower bound wrappers return first insertion-site elements across typed and
     try std.testing.expectEqual(@as(i32, 4), typed_raw_hit.*);
     try std.testing.expectEqual(@intFromPtr(&descending[2]), @intFromPtr(typed_raw_hit));
 
+    const raw_upper_hit = bsearchUpperBound(&raw_hit_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
+    const typed_raw_upper_hit: *const i32 = @ptrCast(@alignCast(raw_upper_hit));
+    try std.testing.expectEqual(@as(i32, 1), typed_raw_upper_hit.*);
+    try std.testing.expectEqual(@intFromPtr(&descending[5]), @intFromPtr(typed_raw_upper_hit));
+
     const raw_mid_key = @as(i32, 5);
     const raw_mid = bsearchLowerBound(&raw_mid_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
     const typed_raw_mid: *const i32 = @ptrCast(@alignCast(raw_mid));
     try std.testing.expectEqual(@as(i32, 4), typed_raw_mid.*);
     try std.testing.expectEqual(@intFromPtr(&descending[2]), @intFromPtr(typed_raw_mid));
 
+    const raw_upper_mid = bsearchUpperBound(&raw_mid_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
+    const typed_raw_upper_mid: *const i32 = @ptrCast(@alignCast(raw_upper_mid));
+    try std.testing.expectEqual(@as(i32, 4), typed_raw_upper_mid.*);
+    try std.testing.expectEqual(@intFromPtr(&descending[2]), @intFromPtr(typed_raw_upper_mid));
+
     const raw_tail_key = @as(i32, 0);
     try std.testing.expectEqual(@as(?*const anyopaque, null), bsearchLowerBound(&raw_tail_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt));
+    try std.testing.expectEqual(@as(?*const anyopaque, null), bsearchUpperBound(&raw_tail_key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt));
 }
 
-test "mutable wrappers keep write-through aliases" {
+test "mutable lower and upper bound wrappers keep write-through aliases" {
     var values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
     const key = @as(i32, 11);
 
@@ -463,9 +507,18 @@ test "mutable wrappers keep write-through aliases" {
     typed_lower.* = 5;
     try std.testing.expectEqual(@as(i32, 5), typed_duplicates[1]);
 
+    const typed_upper = upperBoundMutable(i32, i32, &duplicate_key, typed_duplicates[0..], compareInt) orelse return error.TestUnexpectedResult;
+    typed_upper.* = 10;
+    try std.testing.expectEqual(@as(i32, 10), typed_duplicates[4]);
+
     var raw_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const raw_lower = bsearchLowerBoundMutable(&duplicate_key, @ptrCast(raw_duplicates[0..].ptr), raw_duplicates.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
     const typed_raw_lower: *i32 = @ptrCast(@alignCast(raw_lower));
     typed_raw_lower.* = 6;
     try std.testing.expectEqual(@as(i32, 6), raw_duplicates[1]);
+
+    const raw_upper = bsearchUpperBoundMutable(&duplicate_key, @ptrCast(raw_duplicates[0..].ptr), raw_duplicates.len, @sizeOf(i32), compareOpaqueInt) orelse return error.TestUnexpectedResult;
+    const typed_raw_upper: *i32 = @ptrCast(@alignCast(raw_upper));
+    typed_raw_upper.* = 10;
+    try std.testing.expectEqual(@as(i32, 10), raw_duplicates[4]);
 }
