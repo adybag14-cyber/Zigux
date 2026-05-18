@@ -145,6 +145,7 @@ REQUIRED_EXACT_LINES = {
         "phase1_direct_packet": "  * current direct-readback Phase 1 reminder packet:",
         "phase1_historical_warning": "  * repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
         "phase1_bench_checker_present": "  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+        "phase1_makefile_readback": "  * current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 8, Phase 10, and Phase 12 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
         "phase1_followthrough_alignment": "  * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`",
     },
     SCRIPTS_README_REL: {
@@ -314,7 +315,7 @@ def run_self_test() -> int:
         safe_name = name.replace("/", "_")
         with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{safe_name}-") as tmpdir:
             root = Path(tmpdir)
-            build_sample_repo(root)
+            build_sampleRepo(root)
             if relative_path:
                 target = root / relative_path
                 if operation == "missing_file":
