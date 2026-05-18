@@ -2,7 +2,7 @@
 
 This note records the current validator-facing Phase 3 surface on live `master`.
 
-Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice with both starter-packet and fixture-backed parity coverage, one focused helper-local policy slice, and one adjacent export/UAPI layout replay pair. It does not currently ship the broader validator, export/UAPI survey, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
+Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice with both starter-packet and fixture-backed parity coverage, one focused helper-local policy slice with a reusable layout guard and bounded narrow-surface cross-check, and one adjacent export/UAPI layout replay pair. It does not currently ship the broader validator, export/UAPI survey, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
 
 ## Current starter packet present on `master`
 
@@ -50,9 +50,11 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 - `include/zigux/abi.h`
 - `zigux/bindings/abi.zig`
 - `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/layout_assert.zig`
 - `zigux/helpers/panic_policy.zig`
 - `zigux/helpers/allocator_policy.zig`
 - `zigux/helpers/unsafe_policy.zig`
+- `zigux/unsafe/narrow.zig`
 - `zigux/tests/phase3_policy_starter_packet.zig`
 - `zigux/tests/phase3_policy_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_starter_packet_manifest.json`
