@@ -391,6 +391,7 @@ def build_sample_repo(root: Path) -> None:
 
 
 def run_self_test() -> int:
+    case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase1-string-review-ok-") as tmpdir:
         root = Path(tmpdir)
         build_sample_repo(root)
@@ -400,6 +401,7 @@ def run_self_test() -> int:
             for item in failures:
                 print(item)
             return 1
+        case_count += 1
 
     mutation_specs = [
         ("lane_rule_removed", "lane_rule", "remove"),
@@ -408,11 +410,17 @@ def run_self_test() -> int:
         ("counted_search_rule_duplicated", "counted_search_rule", "duplicate"),
         ("next_safe_step_removed", "next_safe_step", "remove"),
         ("next_safe_step_duplicated", "next_safe_step", "duplicate"),
-        ("source_symbol_removed", "source_symbol", "remove"),
-        ("source_symbol_duplicated", "source_symbol", "duplicate"),
-        ("helper_anchor_removed", "helper_anchor", "remove"),
-        ("helper_anchor_duplicated", "helper_anchor", "duplicate"),
     ]
+    mutation_specs.extend(
+        (f"source_symbol_{idx}_{kind}", ("source_symbol", symbol), kind)
+        for idx, symbol in enumerate(EXPECTED_STRING_SOURCE_SYMBOLS)
+        for kind in ("remove", "duplicate")
+    )
+    mutation_specs.extend(
+        (f"helper_anchor_{idx}_{kind}", ("helper_anchor", anchor), kind)
+        for idx, anchor in enumerate(EXPECTED_STRING_PACKET["helper_test_anchors"])
+        for kind in ("remove", "duplicate")
+    )
     mutation_specs.extend((f"{field}_mutated", field, "manifest") for field in LIST_FIELDS)
     mutation_specs.extend((f"{field}_mutated", field, "manifest") for field in SCALAR_FIELDS)
 
@@ -455,9 +463,9 @@ def run_self_test() -> int:
                     else:
                         text = text.replace(marker, marker + "\n" + marker, 1)
                     path.write_text(text, encoding="utf-8")
-                elif target == "source_symbol":
+                elif isinstance(target, tuple) and target[0] == "source_symbol":
                     path = root / STRING_HELPER_REL
-                    marker = EXPECTED_STRING_SOURCE_SYMBOLS[0]
+                    marker = target[1]
                     text = path.read_text(encoding="utf-8")
                     if kind == "remove":
                         text = text.replace(marker + "\n", "", 1)
@@ -466,7 +474,8 @@ def run_self_test() -> int:
                     path.write_text(text, encoding="utf-8")
                 else:
                     path = root / STRING_HELPER_REL
-                    marker = EXPECTED_STRING_PACKET["helper_test_anchors"][0]
+                    assert isinstance(target, tuple) and target[0] == "helper_anchor"
+                    marker = target[1]
                     text = path.read_text(encoding="utf-8")
                     if kind == "remove":
                         text = text.replace(marker + "\n", "", 1)
@@ -487,8 +496,10 @@ def run_self_test() -> int:
             if not failures:
                 print(f"self-test:{name}:expected_failure")
                 return 1
+            case_count += 1
 
-    print("self-test:ok")
+    print("PHASE1_STRING_REVIEW_PACKET_SELF_TEST=pass")
+    print(f"PHASE1_STRING_REVIEW_PACKET_SELF_TEST_CASE_COUNT={case_count}")
     return 0
 
 
