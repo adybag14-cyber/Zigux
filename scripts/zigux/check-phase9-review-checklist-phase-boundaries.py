@@ -119,6 +119,12 @@ SAMPLES_README_REENTRY_DETAIL_MARKER = "balanced registration re-entry companion
 SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejections"
 SAMPLES_README_SUMMARY_STABILITY_MARKER = "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
 
+TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
+UNREGISTERED_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+REENTRY_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
+SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
+ABSENT_SHARED_LOADER_MARKER = "does not currently expose the broader shared runtime-loader packet"
+
 MODULE_SLICE_PHASE_BOUNDARY_HEADING = "Keep earlier-phase references in their own lanes:"
 MODULE_SLICE_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited sample-local lifecycle tracking"
 MODULE_SLICE_PHASE2_BOUNDARY_MARKER = "remain Phase 2 references"
