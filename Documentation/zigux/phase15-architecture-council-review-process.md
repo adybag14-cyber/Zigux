@@ -93,7 +93,7 @@ The current honest packet is therefore docs-root governance plus gap tracking:
 
 - `Documentation/zigux/phase15-freeze-map-governance.md` keeps the freeze anchor inventory, blocker posture, required approver sets, rollback owners, and evidence-archive paths explicit
 - `Documentation/zigux/phase15-parity-scorecard.md` keeps the blocked-posture accounting explicit
-- `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit
+- `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit
 - `Documentation/zigux/phase15-architecture-council-decision-record-template.md` keeps the review record shape explicit for future Architecture Council requests, defaults that record to dated-master-readback provenance, and requires an explicit exception note before exact-head provenance is used
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json` keeps the dedicated review-packet field inventory machine-readable
@@ -110,7 +110,7 @@ This packet should stay narrow.
 
 If a future lane reopens it, prefer one of these equally bounded follow-ups:
 
-- align one missing review field between this note and `Documentation/zigux/review-checklist.md`
+- keep the shared entry-review prompt in `Documentation/zigux/review-checklist.md` pointed at this note without treating the broad checklist as the owner of the exact Architecture Council field inventory
 - keep `Documentation/zigux/phase15-architecture-council-decision-record-template.md` aligned with this note before widening into broader Phase 15 prose
 - keep the dedicated review-process manifest, the focused Zig replay, and the focused handoff checker aligned with this note before widening into broader Phase 15 prose
 - keep the restored dedicated indefinite-C policy companion aligned without widening into unrelated Phase 15 prose
