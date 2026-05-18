@@ -28,6 +28,14 @@ SELFTEST_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py"),
+        ("--self-test",),
+        (
+            "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST=pass",
+            "PHASE3_XARRAY_SLOT_STARTER_PACKET_SELF_TEST_CASES=",
+        ),
+    ),
+    (
         Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
         ("--self-test",),
         (
@@ -181,7 +189,6 @@ def _populate_repo(root: Path) -> None:
         _write_synthetic_script(path, output_markers[0], output_markers[1])
 
 
-
 def _expect_missing(root: Path, index: int, message: str) -> int:
     _populate_repo(root)
     missing_path = SELFTEST_COMMANDS[index][0]
@@ -211,19 +218,20 @@ def run_self_test() -> int:
 
         missing_cases = (
             (0, "expected missing leading script was not reported"),
-            (3, "expected shared ABI validator omission was not reported"),
-            (4, "expected shared-routes script omission was not reported"),
-            (6, "expected runner omission was not reported"),
-            (7, "expected validator-support script omission was not reported"),
-            (8, "expected low-level-wrapper script omission was not reported"),
-            (9, "expected missing trailing script was not reported"),
+            (2, "expected xarray-slot script omission was not reported"),
+            (4, "expected shared ABI validator omission was not reported"),
+            (5, "expected shared-routes script omission was not reported"),
+            (7, "expected runner omission was not reported"),
+            (8, "expected validator-support script omission was not reported"),
+            (9, "expected low-level-wrapper script omission was not reported"),
+            (10, "expected missing trailing script was not reported"),
         )
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
                 return 1
 
         _populate_repo(root)
-        failing_path = root / SELFTEST_COMMANDS[8][0]
+        failing_path = root / SELFTEST_COMMANDS[9][0]
         _write_synthetic_script(
             failing_path,
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
@@ -236,7 +244,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_pass_path = root / SELFTEST_COMMANDS[6][0]
+        missing_pass_path = root / SELFTEST_COMMANDS[7][0]
         _write_synthetic_script(
             missing_pass_path,
             None,
@@ -248,7 +256,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_count_path = root / SELFTEST_COMMANDS[3][0]
+        missing_count_path = root / SELFTEST_COMMANDS[4][0]
         _write_synthetic_script(
             missing_count_path,
             "PHASE3_VALIDATION_SELF_TEST=pass",
@@ -260,7 +268,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
-        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=11")
+        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=12")
         return 0
 
 
