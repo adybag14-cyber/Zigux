@@ -7,6 +7,9 @@ pub const CompareExchangeError = error{
 pub const LoadError = error{
     InvalidLoadOrdering,
 };
+pub const RmwError = error{
+    InvalidRmwOrdering,
+};
 
 fn failureStrength(order: Ordering) ?u8 {
     return switch (order) {
@@ -55,6 +58,13 @@ pub fn loadOrderAllowed(order: Ordering) bool {
     };
 }
 
+pub fn rmwOrderAllowed(order: Ordering) bool {
+    return switch (order) {
+        .monotonic, .acquire, .release, .acq_rel, .seq_cst => true,
+        .unordered => false,
+    };
+}
+
 pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {
     if (comptime !loadOrderAllowed(order)) {
         return error.InvalidLoadOrdering;
@@ -67,7 +77,10 @@ pub fn exchange(
     ptr: *T,
     value: T,
     comptime order: Ordering,
-) T {
+) RmwError!T {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
+    }
     return @atomicRmw(T, ptr, .Xchg, value, order);
 }
 
@@ -104,7 +117,10 @@ pub fn fetchNand(
     ptr: *T,
     operand: T,
     comptime order: Ordering,
-) T {
+) RmwError!T {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
+    }
     return @atomicRmw(T, ptr, .Nand, operand, order);
 }
 
@@ -144,6 +160,16 @@ test "phase3 atomic helper keeps load ordering rules explicit" {
     try std.testing.expect(!loadOrderAllowed(.acq_rel));
 }
 
+test "phase3 atomic helper keeps RMW ordering rules explicit" {
+    try std.testing.expect(rmwOrderAllowed(.monotonic));
+    try std.testing.expect(rmwOrderAllowed(.acquire));
+    try std.testing.expect(rmwOrderAllowed(.release));
+    try std.testing.expect(rmwOrderAllowed(.acq_rel));
+    try std.testing.expect(rmwOrderAllowed(.seq_cst));
+
+    try std.testing.expect(!rmwOrderAllowed(.unordered));
+}
+
 test "phase3 atomic helper wraps atomic loads without widening ordering semantics" {
     var value: u32 = 0x1234_5678;
 
@@ -158,13 +184,15 @@ test "phase3 atomic helper wraps atomic loads without widening ordering semantic
 test "phase3 atomic helper keeps exchange ordering explicit" {
     var value: u32 = 1;
 
-    try std.testing.expectEqual(@as(u32, 1), exchange(u32, &value, 7, .release));
+    try std.testing.expectEqual(@as(u32, 1), try exchange(u32, &value, 7, .release));
     try std.testing.expectEqual(@as(u32, 7), value);
 
-    try std.testing.expectEqual(@as(u32, 7), exchange(u32, &value, 19, .acq_rel));
+    try std.testing.expectEqual(@as(u32, 7), try exchange(u32, &value, 19, .acq_rel));
     try std.testing.expectEqual(@as(u32, 19), value);
 
-    try std.testing.expectEqual(@as(u32, 19), exchange(u32, &value, 23, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 19), try exchange(u32, &value, 23, .seq_cst));
+    try std.testing.expectEqual(@as(u32, 23), value);
+    try std.testing.expectError(error.InvalidRmwOrdering, exchange(u32, &value, 29, .unordered));
     try std.testing.expectEqual(@as(u32, 23), value);
 }
 
@@ -191,9 +219,11 @@ test "phase3 atomic helper wraps compare-exchange without widening failure seman
 test "phase3 atomic helper keeps fetch-nand updates explicit" {
     var value: u8 = 0b1111_0000;
 
-    try std.testing.expectEqual(@as(u8, 0b1111_0000), fetchNand(u8, &value, 0b1100_1100, .seq_cst));
+    try std.testing.expectEqual(@as(u8, 0b1111_0000), try fetchNand(u8, &value, 0b1100_1100, .seq_cst));
     try std.testing.expectEqual(@as(u8, 0b0011_1111), value);
 
-    try std.testing.expectEqual(@as(u8, 0b0011_1111), fetchNand(u8, &value, 0b0000_1111, .monotonic));
+    try std.testing.expectEqual(@as(u8, 0b0011_1111), try fetchNand(u8, &value, 0b0000_1111, .monotonic));
+    try std.testing.expectEqual(@as(u8, 0b1111_0000), value);
+    try std.testing.expectError(error.InvalidRmwOrdering, fetchNand(u8, &value, 0b1111_1111, .unordered));
     try std.testing.expectEqual(@as(u8, 0b1111_0000), value);
 }
