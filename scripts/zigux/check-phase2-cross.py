@@ -71,6 +71,16 @@ def collect_list_issues(payload: object, issue_prefix: str) -> tuple[list[str], 
     return [], payload
 
 
+def build_matrix_entries(targets: list[str], zig_test_files: list[str]) -> list[str]:
+    return [f"{target}:{rel_path}" for target in targets for rel_path in zig_test_files]
+
+
+def emit_matrix_summary(targets: list[str], zig_test_files: list[str]) -> None:
+    matrix_entries = build_matrix_entries(targets, zig_test_files)
+    print(f"PHASE2_CROSS_MATRIX_ENTRY_COUNT={len(matrix_entries)}")
+    print("PHASE2_CROSS_MATRIX_ENTRIES=" + ",".join(matrix_entries))
+
+
 def validate_fixture(root: Path) -> list[str]:
     issues: list[str] = []
     payload = load_fixture(fixture_path(root))
@@ -192,6 +202,7 @@ def run_cross_compile(
     print("PHASE2_CROSS_REPLAY_MODE=single-target")
     print(f"PHASE2_CROSS_TARGET={target}")
     print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
+    emit_matrix_summary([target], zig_test_files)
     return 0
 
 
@@ -205,7 +216,7 @@ def run_all_targets(
         return 1
 
     for target in targets:
-        result = replay_target(root, target, zig, zig_test_files, timeout_seconds=timeout_seconds)
+        result = replay_target(root, target, zig=zig, zig_test_files=zig_test_files, timeout_seconds=timeout_seconds)
         if result != 0:
             print("PHASE2_CROSS_REPLAY_MODE=all-targets")
             return result
@@ -215,6 +226,7 @@ def run_all_targets(
     print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
     print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
     print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
+    emit_matrix_summary(targets, zig_test_files)
     return 0
 
 
@@ -281,6 +293,18 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert require_files(root) == []
         assert validate_fixture(root) == []
+        baseline_code, baseline_output = run_main(["--root", str(root)])
+        assert baseline_code == 0
+        assert "PHASE2_CROSS_MATRIX_ENTRY_COUNT=6" in baseline_output
+        assert (
+            "PHASE2_CROSS_MATRIX_ENTRIES="
+            "x86_64-linux-musl:scripts/zigux/kconfig/conf_bridge.zig,"
+            "x86_64-linux-musl:scripts/zigux/kconfig/confdata_bridge.zig,"
+            "aarch64-linux-musl:scripts/zigux/kconfig/conf_bridge.zig,"
+            "aarch64-linux-musl:scripts/zigux/kconfig/confdata_bridge.zig,"
+            "riscv64-linux-musl:scripts/zigux/kconfig/conf_bridge.zig,"
+            "riscv64-linux-musl:scripts/zigux/kconfig/confdata_bridge.zig"
+        ) in baseline_output
         case_count += 1
 
         build_self_test_root(root)
@@ -593,7 +617,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (fixture_path(root)).write_text(
+        (fixture_path(root)).writeText(
             json.dumps(
                 {
                     "phase": EXPECTED_PHASE,
@@ -651,12 +675,25 @@ def run_self_test() -> int:
         success_log = root / "success-zig.log"
         success_zig = root / "fake-zig-success.sh"
         make_fake_zig(success_zig, success_log)
-        assert run_all_targets(root, str(success_zig)) == 0
+        all_targets_code, all_targets_output = run_main(
+            ["--root", str(root), "--all-targets", "--zig", str(success_zig)]
+        )
+        assert all_targets_code == 0
         success_lines = success_log.read_text(encoding="utf-8").splitlines()
         assert len(success_lines) == len(EXPECTED_TARGETS) * len(EXPECTED_ZIG_TEST_FILES)
         assert any("-target x86_64-linux-musl --test-no-exec" in line for line in success_lines)
         assert any("-target aarch64-linux-musl --test-no-exec" in line for line in success_lines)
         assert any("-target riscv64-linux-musl --test-no-exec" in line for line in success_lines)
+        assert "PHASE2_CROSS_MATRIX_ENTRY_COUNT=6" in all_targets_output
+        assert (
+            "PHASE2_CROSS_MATRIX_ENTRIES="
+            "x86_64-linux-musl:scripts/zigux/kconfig/conf_bridge.zig,"
+            "x86_64-linux-musl:scripts/zigux/kconfig/confdata_bridge.zig,"
+            "aarch64-linux-musl:scripts/zigux/kconfig/conf_bridge.zig,"
+            "aarch64-linux-musl:scripts/zigux/kconfig/confdata_bridge.zig,"
+            "riscv64-linux-musl:scripts/zigux/kconfig/conf_bridge.zig,"
+            "riscv64-linux-musl:scripts/zigux/kconfig/confdata_bridge.zig"
+        ) in all_targets_output
         case_count += 1
 
         build_self_test_root(root)
@@ -672,10 +709,19 @@ def run_self_test() -> int:
         single_log = root / "single-zig.log"
         single_zig = root / "fake-zig-single.sh"
         make_fake_zig(single_zig, single_log)
-        assert run_cross_compile(root, EXPECTED_TARGETS[1], str(single_zig)) == 0
+        single_code, single_output = run_main(
+            ["--root", str(root), "--target", EXPECTED_TARGETS[1], "--zig", str(single_zig)]
+        )
+        assert single_code == 0
         single_lines = single_log.read_text(encoding="utf-8").splitlines()
         assert len(single_lines) == len(EXPECTED_ZIG_TEST_FILES)
         assert all(f"-target {EXPECTED_TARGETS[1]} --test-no-exec" in line for line in single_lines)
+        assert "PHASE2_CROSS_MATRIX_ENTRY_COUNT=2" in single_output
+        assert (
+            "PHASE2_CROSS_MATRIX_ENTRIES="
+            "aarch64-linux-musl:scripts/zigux/kconfig/conf_bridge.zig,"
+            "aarch64-linux-musl:scripts/zigux/kconfig/confdata_bridge.zig"
+        ) in single_output
         case_count += 1
 
         build_self_test_root(root)
@@ -858,6 +904,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
     print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
     print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
+    emit_matrix_summary(targets, zig_test_files)
     return 0
 
 
