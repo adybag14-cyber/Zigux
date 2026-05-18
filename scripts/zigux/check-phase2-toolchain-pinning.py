@@ -103,7 +103,12 @@ BOOTSTRAP_WARNING_MARKERS = (
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "Treat the absent validator-first, direct cross-route, and installer names as historical packet members",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2`",
+    "Treat the absent validator-first, cross-route, installer, and Linux-style make replay names as historical packet members",
 )
 
 README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
@@ -182,7 +187,7 @@ EXPECTED_TOOL_MANIFEST = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 104
+EXPECTED_SELF_TEST_CASE_COUNT = 109
 
 
 def read_text(path: Path) -> str:
