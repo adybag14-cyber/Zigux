@@ -263,6 +263,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig");
     try expectContains(workflow_file, "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig");
+    try expectContains(workflow_file, "zig test zigux/tests/runtime_trace_events_survey.zig");
 
     try expectContains(sample_file, ".provides_selftest_hook = true");
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !EmissionSummary {");
