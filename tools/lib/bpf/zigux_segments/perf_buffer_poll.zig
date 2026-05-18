@@ -150,6 +150,7 @@ pub const PollError = error{
     FailedObservationHasBufferState,
     ReadyBufferProcessingExceedsReadyCount,
     ReadyBufferProcessingExceedsObservedEvents,
+    ReadyBufferProcessingFallsShortOfReadyCount,
     NonReadyWaitHasProcessedRecords,
     InconsistentPollSummary,
     InconsistentProcessingFailureSummary,
@@ -217,6 +218,7 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
 
             break :blk summary.first_process_error == null and
                 summary.first_process_error_ready_index == null and
+                summary.attempted_ready_buffer_count == summary.poll.ready_count and
                 summary.completed_ready_buffer_count == summary.attempted_ready_buffer_count;
         },
     };
@@ -466,6 +468,9 @@ pub fn summarizePollExecution(
             }
             if (process.attempted_count > poll.ready_count) {
                 return PollError.ReadyBufferProcessingExceedsReadyCount;
+            }
+            if (process.first_error_index == null and process.attempted_count != 0 and process.attempted_count < poll.ready_count) {
+                return PollError.ReadyBufferProcessingFallsShortOfReadyCount;
             }
             if (process.first_error_index != null and first_process_error_ready_index == null) {
                 return PollError.ReadyBufferProcessingExceedsReadyCount;
@@ -850,6 +855,23 @@ test "phase8 perf-buffer poll rejects ready waits without processing attempts" {
     );
 }
 
+test "phase8 perf-buffer poll rejects successful ready waits that stop before every ready buffer" {
+    try std.testing.expectError(
+        PollError.ReadyBufferProcessingFallsShortOfReadyCount,
+        summarizePollExecutionResultFromWaitResult(
+            12,
+            2,
+            &.{
+                .{ .ready = true },
+                .{ .ready = true },
+            },
+            &.{
+                .{ .records_processed = 1 },
+            },
+        ),
+    );
+}
+
 test "phase8 perf-buffer poll rejects hand-built failures that point before the first ready slot" {
     const impossible_failure = PollExecutionSummary{
         .poll = .{
@@ -1024,6 +1046,7 @@ test "phase8 perf-buffer poll rejects mismatched wait-result replays" {
             .{ .ready = true },
         },
         &.{
+            .{ .records_processed = 1 },
             .{ .records_processed = 1 },
         },
     );
