@@ -58,9 +58,12 @@ Restoring this note does not claim that those broader closure-validator, install
 
 ## Closure Validation
 
-The current closure packet is intentionally narrow and replayable:
+The current closure packet is intentionally narrow and replayable, and it now names the policy-only, archive-integrity, and dedicated toolchain-pinning probes that the live bootstrap packet already runs beside the shared make-wrapper routes:
 
 - `python3 scripts/zigux/check-zig-toolchain.py --self-test`
+- `python3 scripts/zigux/check-zig-toolchain.py --policy-only`
+- `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`
+- `python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test`
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test`
 - `python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test`
@@ -70,7 +73,7 @@ The current closure packet is intentionally narrow and replayable:
 - `make -C zigux phase2-validate`
 - `make -C zigux phase2`
 
-- `PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/check-zig-toolchain.py --self-test,python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test,python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test,python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test,python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test,python3 scripts/zigux/validate-phase2.py`
+- `PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/check-zig-toolchain.py --self-test,python3 scripts/zigux/check-zig-toolchain.py --policy-only,python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing,python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test,python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test,python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test,python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test,python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test,python3 scripts/zigux/validate-phase2.py`
 - `PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-validate,make -C zigux phase2`
 
 ## Next Step
