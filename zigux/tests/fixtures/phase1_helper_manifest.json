@@ -79,7 +79,7 @@
         "partial_xor_nbits",
         "partial_xor_masked_values"
       ],
-      "scnprintf_cross_word_anchor": "test \"bitmap scnprintf handles terminator-only and zero-length caller views\"",
+      "scnprintf_cross_word_anchor": "test \"bitmap scnprintf keeps contiguous ranges merged across word boundaries\"",
       "scnprintf_truncation_anchor": "test \"bitmap scnprintf truncates and keeps a terminator slot\"",
       "empty_buffer_anchor": "test \"bitmap scnprintf leaves the caller buffer untouched for an empty bitmap\"",
       "copy_alias_anchor": "test \"bitmap copy aliases preserve tail clearing and extension semantics\"",
