@@ -57,8 +57,15 @@ REQUIRED_PATHS = (
 
 WORKFLOW_SUBSTRING_MARKERS = (
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+    'tar -xJf "$archive_path" -C .zig-toolchain',
     'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
+    'echo "$extract_root" >> "$GITHUB_PATH"',
+    '"$zig_path" version',
 )
+
+# Keep the setup block fail-closed on the verification sequence inside the shell
+# step, not just on whether the marker strings still exist somewhere.
+WORKFLOW_SUBSTRING_ORDER_MARKERS = WORKFLOW_SUBSTRING_MARKERS
 
 WORKFLOW_LINE_MARKERS = (
     "- name: Setup pinned Zig toolchain",
@@ -142,7 +149,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + (len(REQUIRED_PATHS) - 1)
-    + 19
+    + 22
 )
 
 
@@ -230,6 +237,27 @@ def collect_workflow_order_issues(workflow_text: str) -> list[tuple[str, str]]:
             issues.append(
                 (
                     "OUT_OF_ORDER_WORKFLOW_MARKER",
+                    f"{previous_marker} -> {current_marker}",
+                )
+            )
+    return issues
+
+
+def collect_workflow_substring_order_issues(workflow_text: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    positions: list[tuple[str, int]] = []
+    for marker in WORKFLOW_SUBSTRING_ORDER_MARKERS:
+        count = workflow_text.count(marker)
+        if count == 1:
+            positions.append((marker, workflow_text.index(marker)))
+    for (previous_marker, previous_index), (current_marker, current_index) in zip(
+        positions,
+        positions[1:],
+    ):
+        if previous_index >= current_index:
+            issues.append(
+                (
+                    "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
                     f"{previous_marker} -> {current_marker}",
                 )
             )
@@ -325,6 +353,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 issues.append(("MISSING_WORKFLOW_MARKER", marker))
             elif count != 1:
                 issues.append(("DUPLICATE_WORKFLOW_MARKER", f"{marker}:count={count}"))
+
+        issues.extend(collect_workflow_substring_order_issues(workflow_text))
 
         for marker in WORKFLOW_LINE_MARKERS:
             count = count_exact_lines(workflow_text, marker)
@@ -463,6 +493,54 @@ def run_self_test() -> int:
             )
             assert ("DUPLICATE_WORKFLOW_MARKER", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+                'tar -xJf "$archive_path" -C .zig-toolchain',
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
+            'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET" -> tar -xJf "$archive_path" -C .zig-toolchain',
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
+                'echo "$extract_root" >> "$GITHUB_PATH"',
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
+            'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path" -> echo "$extract_root" >> "$GITHUB_PATH"',
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                'echo "$extract_root" >> "$GITHUB_PATH"',
+                '"$zig_path" version',
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
+            'echo "$extract_root" >> "$GITHUB_PATH" -> "$zig_path" version',
+        ) in collect_issues(root)
+        checks_run += 1
 
         build_self_test_root(root)
         workflow_path = path_under(root, WORKFLOW)
