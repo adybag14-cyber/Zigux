@@ -49,6 +49,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: make -C zigux phase2-toolchain",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -84,6 +85,7 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2-kconfig:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
     "phase2-cross:",
@@ -280,6 +282,7 @@ def run_self_test() -> int:
         for marker in DISALLOWED_WORKFLOW_LINES:
             build_self_test_root(root)
             workflow_path = path_under(root, WORKFLOW)
+            workflow_path.writeText = None
             workflow_path.write_text(
                 workflow_path.read_text(encoding="utf-8") + marker + "\n",
                 encoding="utf-8",
