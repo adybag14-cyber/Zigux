@@ -112,3 +112,14 @@ test "zero-sized allocations stay freeable and keep counters balanced" {
     kfree(zero_array);
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
+
+test "kmallocArray treats zero-sized elements as freeable zero-sized allocations" {
+    kmalloc_nr_allocated = 0;
+
+    const zero_sized = kmallocArray(std.math.maxInt(usize), 0, GFP_KERNEL) orelse
+        return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 0), zero_sized.len);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    kfree(zero_sized);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+}
