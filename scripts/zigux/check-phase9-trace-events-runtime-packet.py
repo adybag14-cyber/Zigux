@@ -60,6 +60,7 @@ SAMPLES_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-
 SAMPLES_README_REENTRY_GATE_DETAIL_MARKER = (
     "Treat `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as the same packet's balanced registration re-entry companion across the initialized and selftest_complete stages"
 )
+SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejections"
 
 SAMPLE_REQUIRED_MARKERS = [
     '.name = "runtime_trace_events"',
@@ -261,6 +262,7 @@ FILE_MARKERS = {
         LIFECYCLE_MARKER,
         REENTRY_COMPANION_MARKER,
         SAMPLES_README_REENTRY_GATE_DETAIL_MARKER,
+        SAMPLES_README_POST_EXIT_REJECTION_MARKER,
         ABSENT_SHARED_LOADER_MARKER,
         ABSENT_PHASE9_BUILD_MARKER,
         ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
