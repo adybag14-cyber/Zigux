@@ -299,6 +299,25 @@ test "argvSplit tokens stay inside the owned storage copy" {
     }
 }
 
+test "argvSplit truncates owned storage at the first NUL and ignores the tail" {
+    const input = "alpha beta\x00ignored tail";
+    var split = try argvSplit(std.testing.allocator, input);
+    defer split.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 2), countArgc(input));
+    try std.testing.expectEqual(@as(usize, "alpha beta".len), split.storage.len);
+    try std.testing.expectEqualStrings("alpha", split.storage[0..5]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[5]);
+    try std.testing.expectEqualStrings("beta", split.storage[6..10]);
+    try std.testing.expectEqual(@as(u8, 0), split.storage[split.storage.len]);
+    try std.testing.expect(std.mem.indexOf(u8, split.storage[0..split.storage.len], "ignored tail") == null);
+    try std.testing.expectEqual(@as(usize, 2), split.argv.len);
+    try std.testing.expectEqualStrings("alpha", split.argv[0]);
+    try std.testing.expectEqualStrings("beta", split.argv[1]);
+    try std.testing.expectEqualStrings("beta", std.mem.span(split.cArgv()[1].?));
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[2]);
+}
+
 test "argvSplit zeroes copied whitespace separators across the tokenized buffer" {
     var split = try argvSplit(std.testing.allocator, " alpha  beta\tgamma\n");
     defer split.deinit(std.testing.allocator);
