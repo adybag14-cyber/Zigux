@@ -12,6 +12,7 @@ import tempfile
 CHECK_COMMANDS = (
     (Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"), ()),
     (Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"), ()),
+    (Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py"), ()),
     (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ()),
     (Path("scripts/zigux/validate-phase3.py"), ()),
     (Path("scripts/zigux/check-phase3-shared-tests-routes.py"), ()),
@@ -23,12 +24,13 @@ CHECK_COMMANDS = (
 
 SELF_TEST_MISSING_CASES = (
     (0, "expected missing leading script was not reported"),
-    (3, "expected shared ABI validator omission was not reported"),
-    (4, "expected shared-tests-routes script omission was not reported"),
-    (5, "expected readme-tooling script omission was not reported"),
-    (6, "expected validator-support script omission was not reported"),
-    (7, "expected low-level-wrapper script omission was not reported"),
-    (8, "expected selftest-surface script omission was not reported"),
+    (2, "expected xarray-slot script omission was not reported"),
+    (4, "expected shared ABI validator omission was not reported"),
+    (5, "expected shared-tests-routes script omission was not reported"),
+    (6, "expected readme-tooling script omission was not reported"),
+    (7, "expected validator-support script omission was not reported"),
+    (8, "expected low-level-wrapper script omission was not reported"),
+    (9, "expected selftest-surface script omission was not reported"),
 )
 
 
