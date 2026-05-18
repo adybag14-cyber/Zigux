@@ -282,7 +282,7 @@ test "abi binding exports direct layout constants for published structs" {
 
     try std.testing.expectEqual(
         @as(usize, 12),
-        chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_view_size,
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_size,
     );
     try std.testing.expectEqual(
         @as(usize, 4),
