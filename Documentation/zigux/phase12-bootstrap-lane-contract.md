@@ -12,6 +12,9 @@ without reopening the live workflow file in the same change.
 
 ## Current Bootstrap Contract
 
+- the current shipped bootstrap lane still declares unfiltered `push` coverage for `master`
+- the current shipped bootstrap lane still keeps path-filtered `pull_request` coverage for the Zigux-owned lane files
+- the open trigger-gap investigation is therefore a runtime attachment problem rather than a missing trigger stanza in the committed workflow file
 - the current shipped bootstrap lane still compiles `scripts/zigux/*.py` before any lane checks run
 - the current shipped lane still keeps the pinned Zig archive check and the Phase 11 build-inventory plus matrix-gap survey checks
 - the current shipped Phase 12 slice still includes the build-only surface pair, the release-readiness pair, `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
