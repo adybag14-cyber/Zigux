@@ -114,7 +114,6 @@ EXPECTED_CURRENT_REPO_REALITY_GAPS = [
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "zigux/tests/phase6_helper_parity_manifest.json",
-    "zigux/tests/fixtures/phase6_checksum_vectors.zig",
     "zigux/tests/phase6_hexdump.zig",
     "zigux/tests/phase6_hexdump_perf.zig",
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
@@ -150,7 +149,6 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `Documentation/zigux/phase6-hexdump-slice.md`",
     "- `Documentation/zigux/phase6-hexdump-perf-refresh.md`",
     "- `zigux/tests/phase6_helper_parity_manifest.json`",
-    "- `zigux/tests/fixtures/phase6_checksum_vectors.zig`",
     "- `zigux/tests/phase6_hexdump_perf.zig`",
     "- `zigux/tests/phase6_hexdump_perf_matrix.zig`",
     "- `zigux/tests/fixtures/phase6_hexdump_vectors.zig`",
@@ -160,7 +158,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- focused C ABI replays: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
     "- last-known companion packet members still needing fresh direct reads: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     "- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`, while the dedicated corpus checker still needs fresh direct reads before it is presented as current shipped evidence",
-    "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence now includes `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders; the fixture surface, slice note, and direct C parity members still need fresh direct reads before they are presented as current shipped evidence",
+    "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence now includes `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders; the slice note and direct C parity members still need fresh direct reads before they are presented as current shipped evidence",
     "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, dedicated slowdown replay, perf-matrix preflight, checker, perf refresh note, and slice note again",
     "## Last-known shared replay inventory",
     "- `make -C zigux phase6-hexdump-perf`",
@@ -237,7 +235,7 @@ def scaffold_catalog() -> str:
         "",
         "This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.",
         "",
-        "- surveyed head: `840f388`",
+        "- surveyed head: `61e026c`",
         "",
         *REQUIRED_CATALOG_SNIPPETS,
         "",
@@ -249,7 +247,7 @@ def scaffold_manifest() -> str:
         {
             "packet": EXPECTED_PACKET,
             "phase": EXPECTED_PHASE,
-            "surveyed_head": "840f388",
+            "surveyed_head": "61e026c",
             "lane_scope": EXPECTED_LANE_SCOPE,
             "current_direct_readback_companions": REQUIRED_DIRECT_READBACK_COMPANIONS,
             "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
@@ -312,17 +310,17 @@ def run_self_test() -> None:
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[19] + "\n", "", 1))
-        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[19])
+        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[17] + "\n", "", 1))
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[17])
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[20] + "\n", "", 1))
-        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[20])
+        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[18] + "\n", "", 1))
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[18])
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace("- surveyed head: `840f388`\n", "", 1))
+        write(catalog_path, read_text(catalog_path).replace("- surveyed head: `61e026c`\n", "", 1))
         expect_failure(root, "- surveyed head: `<sha>`")
         cases_run += 1
         scaffold_repo(root)
