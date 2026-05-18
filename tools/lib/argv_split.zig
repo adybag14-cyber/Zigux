@@ -157,3 +157,13 @@ test "argvSplit treats a NUL after leading whitespace as end of input" {
     try std.testing.expectEqual(@as(usize, 0), result.argc());
     try std.testing.expectEqual(@as(usize, 0), result.argv.len);
 }
+
+test "argvSplit treats a NUL reached while skipping separator whitespace as end of input" {
+    const source = [_]u8{ 'a', 'l', 'p', 'h', 'a', ' ', '\t', 0, 'b', 'e', 't', 'a' };
+    var result = try argvSplit(std.testing.allocator, source[0..]);
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 1), result.argc());
+    try std.testing.expectEqual(@as(usize, 1), result.argv.len);
+    try std.testing.expectEqualStrings("alpha", result.argv[0]);
+}
