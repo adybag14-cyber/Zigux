@@ -149,6 +149,33 @@ test "cutoff boundary keeps value, pointer-like gap, then err in order" {
     try std.testing.expectEqual(@as(?usize, null), err_slot.pointerValue());
 }
 
+test "constructor helpers keep the cutoff boundary lanes distinct" {
+    const value_slot = try fromValue(xa_value.safe_inline_limit);
+    const gap_slot = fromPointer(err_ptr.err_floor - 1);
+    const err_slot = fromErrorCode(-4095);
+
+    try std.testing.expectEqual(err_ptr.err_floor - 2, value_slot.rawValue());
+    try std.testing.expectEqual(value_slot.rawValue() + 1, gap_slot.rawValue());
+    try std.testing.expectEqual(gap_slot.rawValue() + 1, err_slot.rawValue());
+
+    try std.testing.expectEqual(SlotKind.value, value_slot.kind());
+    try std.testing.expectEqual(@as(?usize, xa_value.safe_inline_limit), value_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), value_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), value_slot.pointerValue());
+
+    try std.testing.expectEqual(SlotKind.pointer, gap_slot.kind());
+    try std.testing.expectEqual(@as(?usize, err_ptr.err_floor - 1), gap_slot.pointerValue());
+    try std.testing.expectEqual(@as(?usize, null), gap_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), gap_slot.errorCode());
+    try std.testing.expect(!isTaggedInternalEntry(gap_slot.rawValue()));
+
+    try std.testing.expectEqual(SlotKind.err, err_slot.kind());
+    try std.testing.expectEqual(@as(?isize, -4095), err_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), err_slot.value());
+    try std.testing.expectEqual(@as(?usize, null), err_slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(err_slot.rawValue()));
+}
+
 test "low boundary keeps null, inline zero, then pointer-like in order" {
     const null_raw: usize = 0;
     const value_raw = try xa_value.makeValue(0);
