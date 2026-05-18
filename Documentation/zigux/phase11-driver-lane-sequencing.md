@@ -34,7 +34,7 @@ Current direct rereads in this run still kept the HVC continuity packet readable
 
 Current direct rereads in this run still did not rematerialize `drivers/tty/hvc/hvc_console.zig`, `zigux/tests/phase11_hvc_console_manifest.json`, or `scripts/zigux/check-phase11-hvc-survey-packet.py`, so keep those direct starter-depth anchors and the dedicated survey-checker path framed as HVC-local repo-reality gaps until a future reread proves they returned.
 
-Current direct rereads in this run did not rematerialize `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, or `zigux/tests/phase11_build.zig`. Current `master` does rematerialize `zigux/Makefile`, but its live body still does not expose a dedicated Phase 11 route, so shared-note repairs should keep the returned file distinct from the still-missing Phase 11 build handles instead of presenting the file itself as a repo-reality gap.
+Current direct rereads in this run did not rematerialize `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/validate-phase11.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, or `zigux/tests/phase11_build.zig`. Current `master` does rematerialize `zigux/Makefile`, but its live body still does not expose a dedicated Phase 11 route, so shared-note repairs should keep the returned file distinct from the still-missing Phase 11 build handles instead of presenting the file itself as a repo-reality gap.
 
 ## Sequencing Rules
 
@@ -54,6 +54,6 @@ Use this note to keep the bounded work order honest:
 This note does not widen Phase 11 into:
 
 - a claim that the overall simple-driver tranche is closed
-- a claim that the older shared replay-contract, closure-note, shared-summary checker, shared build file, or Makefile routes are still directly present on current `master`
+- a claim that the older shared replay-contract, shared validator, closure-note, shared-summary checker, shared build file, or Makefile routes are still directly present on current `master`
 - broader hardware-backed watchdog validation, tty registration parity, notifier execution, sysrq dispatch, or khvcd execution
 - a migration of driver-local reminder ownership into the shared packet
