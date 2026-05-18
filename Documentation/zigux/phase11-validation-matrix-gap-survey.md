@@ -5,13 +5,13 @@ Phase 11 simple-driver packet on `master`.
 
 ## Status
 
-- `PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`
+- `PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`
 - lane: `P11-L03`
 - reviewed against live `master`
 - scope: verify the current driver-local matrix packet against the directly
-  readable HVC matrix, the adjacent shared header-boundary matrix, and the
-  narrowed HVC continuity inventory without reopening driver-local
-  implementation, DesignWare continuity, or HVC cleanup-alignment follow-through
+  readable bcm2835, gpio, DesignWare, and HVC matrices plus the adjacent shared
+  header-boundary matrix, without reopening driver-local implementation or
+  platform-backed execution
 
 ## Roadmap Anchor
 
@@ -25,32 +25,40 @@ Phase 11 simple-driver packet on `master`.
 
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-build-inventory.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 
-Current direct contents reads in this run do not rematerialize
+Current direct contents reads in this run do rematerialize
 `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`,
-`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, or
+`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`,
+`Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and
 `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix
-packet is no longer an honest four-matrix direct-readback claim.
+packet is again an honest four-matrix direct-readback claim.
 
-The only directly readable driver-local Phase 11 matrix note on current
-`master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`.
+The directly readable driver-local Phase 11 matrix notes on current `master`
+are `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`,
+`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`,
+`Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and
+`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`.
 
 `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains
 useful adjacent shared evidence, but it is not one of the driver-local Phase 11
 validation matrices named by the roadmap.
 
 `zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower
-current-head HVC continuity packet: 4 HVC archival build test names, 3 shared
-depend steps, 1 dedicated survey replay, and 2 proof adjunct replays. That
-shared build inventory does not stand in for a whole-Phase-11 replay roster;
-it now exists to keep the surviving HVC continuity packet explicit while the
-other driver-local matrix notes remain missing on current `master`.
+current-head HVC continuity packet.
+
+The shared build inventory still carries 4 HVC archival build test names, 3
+shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays.
+That inventory does not stand in for a whole-Phase-11 replay roster even though
+all four driver-local validation matrices are directly readable again.
 
 ## Validation Gate
 
@@ -63,20 +71,22 @@ other driver-local matrix notes remain missing on current `master`.
 ## Matrix Survey
 
 - `bcm2835_wdt`: `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
-  does not rematerialize on current `master`, so keep bcm2835 matrix coverage
-  framed as a repo-reality gap rather than live reminder evidence.
-- `gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` does
-  not rematerialize on current `master`, so keep gpio matrix coverage framed as
-  a repo-reality gap rather than live reminder evidence.
+  is directly readable on current `master`, and it keeps the bcm2835 starter,
+  dedicated replay, verify helper, dedicated survey gate, manifest-backed
+  reminder packet, and teardown note explicit as a bounded review packet.
+- `gpio_wdt`: `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` is
+  directly readable on current `master`, and it keeps the visible starter, the
+  focused platform-drvdata replay, the dedicated survey gate, and the archived
+  reminder packet explicit while still framing the main replay and shared build
+  route as missing.
 - `hvc_console`: `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
   is directly readable on current `master`, and the narrowed build inventory
-  still keeps the HVC archival continuity packet explicit through
+  still keeps the HVC current-head continuity packet explicit through
   `phase11-hvc-console-tests`, `phase11-hvc-console-verify-tests`,
   `phase11-hvc-cleanup-tests`, and `phase11-hvc-console-survey-tests`.
-- `dw_wdt`: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` does not
-  rematerialize on current `master`, so the DesignWare matrix is again a
-  repo-reality gap even though the narrower owner packet still survives through
-  `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
+- `dw_wdt`: `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` is
+  directly readable on current `master`, and the current DesignWare packet also
+  stays coupled through `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`,
   `zigux/tests/phase11_dw_wdt_manifest.json`, and
   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`.
 
@@ -84,9 +94,12 @@ other driver-local matrix notes remain missing on current `master`.
 
 - Treat this survey as current-head driver-local matrix truthfulness only, not
   as proof of full platform-backed closure for any Phase 11 driver lane.
-- Do not use the surviving HVC matrix or the adjacent header-parity matrix to
-  overclaim broader GPIO, watchdog, notifier, khvcd, sysrq, MMIO, or
-  host-backed execution.
-- If one or more missing driver-local matrix notes rematerialize later, update
-  this survey and both matrix-gap checkers in the same bounded pass so the
-  shared-packet description stays honest.
+- Do not use the returned four-matrix packet or the adjacent header-parity
+  matrix to overclaim broader GPIO descriptor execution, watchdog-core
+  registration side effects, notifier execution, khvcd execution, sysrq
+  dispatch, MMIO behavior, or host-backed teardown.
+- Keep `zigux/tests/fixtures/phase11_build_inventory.json` framed as the
+  narrower HVC continuity packet rather than as a cross-driver replay roster.
+- If one or more driver-local matrix notes disappears again or materially
+  changes scope, update this survey and both matrix-gap checkers in the same
+  bounded pass so the shared-packet description stays honest.
