@@ -26,16 +26,17 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 
 The Phase 10 roadmap names `drivers/virtio/virtio_ring.c` as a primary anchor and asks Zigux to prove queue-local virtqueue wrappers up to the lab-driver threshold before widening into transport-backed lifecycle work.
 
-Fresh repo-first inspection against the live Phase 10 manifest plus the shared closure packet, lane note, tests-root review companion, scripts-root summary, and ring freeze-boundary note shows the ring packet now has a mixed but directly reviewable posture on current `master`: direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, and the focused queue-local replays `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing on current `master`.
+Fresh repo-first inspection against the live Phase 10 manifest plus the shared closure packet, lane note, tests-root review companion, scripts-root summary, and ring freeze-boundary note shows the ring packet now has a mixed but directly reviewable posture on current `master`: direct contents reads rematerialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, the focused queue-local replays `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and the dedicated survey replay `zigux/tests/phase10_virtio_ring_survey.zig`, while `zigux/tests/phase10_virtio_ring.zig` still returns missing on current `master`.
 
-This survey therefore exists to keep the remaining directly re-readable ring packet truthful and reviewable while the dedicated survey gate and transport-backed bridge stay blocked. The directly re-readable ring packet surfaces on current `master` now include `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, `scripts/zigux/check-phase10-ring-packet.py`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, and `zigux/tests/phase10_virtio_ring_manifest.json`.
+This survey therefore exists to keep the remaining directly re-readable ring packet truthful and reviewable while the broader core replay, the dedicated ring packet checker follow-through, and the transport-backed bridge stay blocked. The directly re-readable ring packet surfaces on current `master` now include `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `scripts/zigux/check-phase10-ring-packet.py`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, and `zigux/tests/phase10_virtio_ring_manifest.json`.
 
 ## Survey findings
 - `drivers/virtio/virtio_ring.c` remains the Linux anchor for this lane, and `zigux/tests/phase10_virtio_ring_manifest.json` still records `e42103fc02f544e1bd23a5ec2e5b584734f5af7d` as the surveyed Phase 10 ring snapshot.
 - the shared Phase 10 packet still keeps the ring survey note, the ring slice note, the ring freeze-boundary survey, the ring manifest, the shared closure packet, the shared lane note, the shared tests-root review companion, the dedicated ring checker, and the shared build gate explicit on current `master`.
-- the live manifest now records the direct repo reality honestly: the broader core foothold, the queue-local ring helper ladder, the wrapper-facing verify replay, and the focused prepare-kick, reset-reuse, broken-queue, and delayed-callback replays are directly readable again on current `master`, while the dedicated ring survey replay remains absent.
+- the live manifest now records the direct repo reality honestly: the broader core foothold, the queue-local ring helper ladder, the wrapper-facing verify replay, the focused prepare-kick, reset-reuse, broken-queue, and delayed-callback replays, and the dedicated survey replay are directly readable again on current `master`, while the broader `zigux/tests/phase10_virtio_ring.zig` replay remains absent.
 - the queue-local helper ladder still matters as bounded ring-lane vocabulary: `phase10-virtqueue-shape-helper`, `phase10-used-buffer-polling-helper`, `phase10-callback-enable-helper`, `phase10-callback-delay-helper`, `phase10-notify-prepare-helper`, `phase10-notification-data-summary-helper`, `phase10-broken-queue-poll-guard`, `phase10-queue-reset-helper`, and `phase10-queue-reset-readiness-helper` remain the reviewable helper targets that the restored ring helper now carries.
-- `Documentation/zigux/phase10-virtio-ring-slice.md` now carries that vocabulary in one packet-local note while keeping the still-missing dedicated survey replay path explicit as the remaining direct gap.
+- `Documentation/zigux/phase10-virtio-ring-slice.md` now carries that vocabulary in one packet-local note while keeping the newly landed dedicated survey replay explicit and the still-missing broader core replay separate.
+- `zigux/tests/phase10_virtio_ring_survey.zig` now gives the ring lane one dedicated VM-friendly survey replay that keeps the survey note, manifest, slice note, freeze-boundary note, and build gate aligned without widening into transport-backed execution claims.
 - the ring lane still stays below transport-backed work: the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet, so this survey does not claim transport-backed queue discovery, IRQ acknowledgement, queue reset execution, DMA paths, or probe/remove lifecycle behavior.
 
 ## Recorded gaps
@@ -43,7 +44,7 @@ This survey therefore exists to keep the remaining directly re-readable ring pac
 Fresh repo inspection supports these narrower conclusions:
 - the landed `phase10-build-gate`
 - the landed `phase10-virtio-core-lab-starter` as neighboring Phase 10 evidence, not ring-owned delivery
-- the direct repo-reality gap `phase10-virtio-ring-survey-gate`
+- the landed `phase10-virtio-ring-survey-gate`
 - the landed `phase10-virtio-ring-survey-note`
 - the landed `phase10-virtqueue-shape-helper`
 - the landed `phase10-used-buffer-polling-helper`
@@ -58,7 +59,7 @@ Fresh repo inspection supports these narrower conclusions:
 - the landed `phase10-virtio-ring-slice-note`
 - the still-blocked `phase10-ring-lab-driver-bridge`
 
-That keeps the ring lane concrete and reviewable without overstating progress: the packet now treats the restored helper, wrapper-facing verify replay, and focused replays as current repo reality while keeping the dedicated survey replay surface explicit as the remaining same-lane direct gap. The next same-lane follow-through should stay inside one ring-only checker, manifest, or reminder-surface truthfulness repair rather than widening into risky transport work.
+That keeps the ring lane concrete and reviewable without overstating progress: the packet now treats the dedicated survey replay, the restored helper, the wrapper-facing verify replay, and the focused replays as current repo reality while keeping the broader core replay and the MMIO-owned transport bridge outside this bounded packet. The next same-lane follow-through should stay inside one ring-only checker, manifest, or reminder-surface truthfulness repair rather than widening into risky transport work.
 
 ## Freeze boundary
 - `Documentation/zigux/freeze-map.md` is the governing boundary note for this queue-local survey packet.
@@ -66,7 +67,7 @@ That keeps the ring lane concrete and reviewable without overstating progress: t
 - rollback owner: keep this survey note, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, and `Documentation/zigux/freeze-map.md` aligned before widening this queue-local note.
 - this ring survey stays inside `drivers/virtio/*.zig`; it does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain Phase 14 study-only anchors under the freeze map.
 - the Phase 15 freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, and `net/core/skbuff.c` also remain outside this lane; this survey does not claim scheduler, MM, RCU, or skbuff ownership, parity, or Architecture Council reopen authority.
-- the allowed evidence here is the current manifest, this survey note, the ring slice note, the ring freeze-boundary survey, the dedicated ring checker, the shared closure packet, the shared lane note, the shared tests-root review companion, the shared scripts-root summary, the freeze-map boundary note, and live repo readback; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
+- the allowed evidence here is the current manifest, this survey note, the ring slice note, the ring freeze-boundary survey, the dedicated ring survey replay, the shared build gate, the dedicated ring checker, the shared closure packet, the shared lane note, the shared tests-root review companion, the shared scripts-root summary, the freeze-map boundary note, and live repo readback; this survey does not claim a freeze-map status change or an attached Architecture Council reopen request.
 
 ## Non-goals
 This survey slice does not claim:
@@ -79,7 +80,8 @@ Do not reopen MMIO helper growth, DMA, interrupt delivery, queue discovery, rese
 
 ## Gates
 Current `master` keeps this ring lane reviewable through the bounded packet:
-1. rerun the dedicated ring checker
+1. rerun the dedicated ring survey replay and the dedicated ring checker when focused readback remains aligned
+- `zig test zigux/tests/phase10_virtio_ring_survey.zig`
 - `python3 scripts/zigux/check-phase10-ring-packet.py --self-test`
 - `python3 scripts/zigux/check-phase10-ring-packet.py`
 2. rerun the shared Phase 10 build and Linux-style make routes when focused readback remains aligned
@@ -90,4 +92,4 @@ Current `master` keeps this ring lane reviewable through the bounded packet:
 Do not claim a transport-backed Phase 10 ring compile or lifecycle replay from this survey until the MMIO-owned bridge itself changes.
 
 ## Next bounded step
-Keep the broader Phase 10 virtio lane parked unless fresh repo inspection finds one directly coupled same-lane follow-through. Inside this ring lane, the next honest bounded step is to keep `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, this survey note, and `scripts/zigux/check-phase10-ring-packet.py` aligned around the remaining dedicated survey-replay gap while keeping the restored wrapper-facing verify replay, queue-local helper ladder, and focused replays framed as the current directly readable ring packet on `master`.
+Keep the broader Phase 10 virtio lane parked unless fresh repo inspection finds one directly coupled same-lane follow-through. Inside this ring lane, the next honest bounded step is to keep `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, this survey note, `zigux/tests/phase10_virtio_ring_survey.zig`, and `scripts/zigux/check-phase10-ring-packet.py` aligned around the landed survey replay while keeping the broader `zigux/tests/phase10_virtio_ring.zig` absence and the MMIO-owned bridge framed as the remaining out-of-scope gaps on current `master`.
