@@ -6,6 +6,7 @@ pub const ProbePreflightSummary = virtio_mmio.ProbePreflightSummary;
 pub const SelectedQueueReadinessSummary = virtio_mmio.SelectedQueueReadinessSummary;
 pub const ConfigWriteDispositionSummary = virtio_mmio.ConfigWriteDispositionSummary;
 pub const FeatureNegotiationSummary = virtio_mmio.FeatureNegotiationSummary;
+pub const InterruptAckDispositionSummary = virtio_mmio.InterruptAckDispositionSummary;
 
 pub fn summarizeTransportIdentity(device: *const virtio_mmio.VirtioMmioLab) TransportIdentitySummary {
     return device.transportIdentitySummary();
@@ -27,12 +28,23 @@ pub fn summarizeConfigWriteDisposition(device: *const virtio_mmio.VirtioMmioLab)
     return device.configWriteDispositionSummary();
 }
 
+pub fn summarizeInterruptAckDisposition(
+    device: *const virtio_mmio.VirtioMmioLab,
+    requested_bits: u32,
+) InterruptAckDispositionSummary {
+    return device.interruptAckDispositionSummary(requested_bits);
+}
+
 pub fn changedByteCount(summary: ConfigWriteDispositionSummary) u3 {
     return @popCount(summary.changed_byte_mask);
 }
 
 pub fn negotiatedFeatureBitCount(summary: FeatureNegotiationSummary) u6 {
     return @popCount(summary.negotiated_feature_word);
+}
+
+pub fn acknowledgedInterruptCount(summary: InterruptAckDispositionSummary) u6 {
+    return @popCount(summary.acknowledged_bits);
 }
 
 pub fn hasFeatureNegotiationDrift(summary: FeatureNegotiationSummary) bool {
@@ -112,4 +124,21 @@ test "phase10 virtio mmio verify counts changed config bytes without mutating st
     try std.testing.expectEqual(@as(u3, 2), changedByteCount(summary));
     try std.testing.expect(summary.has_changes);
     try std.testing.expectEqual(@as(u32, 0x0203_0405), summary.previous_value);
+}
+
+test "phase10 virtio mmio verify keeps interrupt-ack disposition below IRQ-delivery claims" {
+    var device = try virtio_mmio.VirtioMmioLab.init(82, &[_]u16{ 8, 16 });
+    device.stageInterruptStatus(0b111);
+
+    var summary = summarizeInterruptAckDisposition(&device, 0b111);
+    try std.testing.expectEqual(@as(u32, 0b011), summary.acknowledged_bits);
+    try std.testing.expectEqual(@as(u32, 0b100), summary.remaining_pending_bits);
+    try std.testing.expectEqual(@as(u6, 2), acknowledgedInterruptCount(summary));
+    try std.testing.expect(summary.has_acknowledgements);
+
+    _ = try device.writeRegister(.interrupt_ack, 0b001);
+    summary = summarizeInterruptAckDisposition(&device, 0b011);
+    try std.testing.expectEqual(@as(u32, 0b001), summary.acknowledged_bits);
+    try std.testing.expectEqual(@as(u32, 0b010), summary.ignored_bits);
+    try std.testing.expectEqual(@as(u6, 1), acknowledgedInterruptCount(summary));
 }
