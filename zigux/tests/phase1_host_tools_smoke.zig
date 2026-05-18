@@ -60,6 +60,13 @@ test "phase1 host-tools smoke imports the live helper modules" {
 }
 
 test "phase1 host-tools smoke exercises live helper behavior" {
+    var split = try argv_split.argv_split(std.testing.allocator, "  zigux   host\ttools  ");
+    defer argv_split.argv_free(&split);
+    try std.testing.expectEqual(@as(usize, 3), split.argc());
+    try std.testing.expectEqualStrings("zigux", split.argv[0]);
+    try std.testing.expectEqualStrings("host", split.argv[1]);
+    try std.testing.expectEqualStrings("tools", split.argv[2]);
+
     const parsed = cmdline.memparse("64K tail");
     try std.testing.expectEqual(@as(u64, 64 << 10), parsed.value);
     try std.testing.expectEqualStrings(" tail", parsed.rest);
