@@ -13,7 +13,8 @@ from pathlib import Path
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
-FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+FIXTURE_REL = Path("zigux/tests/fixtures/phase2_cross_targets.json")
+FIXTURE = ROOT / FIXTURE_REL
 
 EXPECTED_STATUS = "closed"
 EXPECTED_TARGETS = [
@@ -28,7 +29,7 @@ EXPECTED_ZIG_TEST_FILES = [
 
 def require_files(root: Path) -> list[str]:
     required = [
-        Path("zigux/tests/fixtures/phase2_cross_targets.json"),
+        FIXTURE_REL,
         Path("scripts/zigux/fixdep.zig"),
     ]
     return [str(rel) for rel in required if not (root / rel).is_file()]
@@ -43,7 +44,7 @@ def load_fixture(path: Path) -> dict[str, object]:
 
 def validate_fixture(root: Path) -> list[str]:
     issues: list[str] = []
-    payload = load_fixture(root / "zigux/tests/fixtures/phase2_cross_targets.json")
+    payload = load_fixture(root / FIXTURE_REL)
 
     if payload.get("phase") != "Phase 2":
         issues.append(f"fixture:phase:{payload.get('phase')!r}")
@@ -69,7 +70,7 @@ def resolve_zig(override: str | None) -> str | None:
 
 
 def run_cross_compile(root: Path, target: str, zig: str) -> int:
-    payload = load_fixture(root / "zigux/tests/fixtures/phase2_cross_targets.json")
+    payload = load_fixture(root / FIXTURE_REL)
     targets = payload.get("targets")
     if not isinstance(targets, list) or target not in targets:
         print("PHASE2_CROSS=fail")
@@ -101,6 +102,17 @@ def run_cross_compile(root: Path, target: str, zig: str) -> int:
     return 0
 
 
+def summarize_packet(root: Path) -> int:
+    payload = load_fixture(root / FIXTURE_REL)
+    targets = payload["targets"]
+    zig_test_files = payload["zig_test_files"]
+    print("PHASE2_CROSS=pass")
+    print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
+    print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
+    print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
+    return 0
+
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
@@ -108,7 +120,7 @@ def write_text(path: Path, content: str) -> None:
 
 def write_fixture(root: Path, payload: object) -> None:
     write_text(
-        root / "zigux/tests/fixtures/phase2_cross_targets.json",
+        root / FIXTURE_REL,
         json.dumps(payload, indent=2) + "\n",
     )
 
@@ -134,6 +146,13 @@ def capture_cross_compile(root: Path, target: str, zig: str) -> tuple[int, str]:
     return result, stdout.getvalue()
 
 
+def capture_packet_summary(root: Path) -> tuple[int, str]:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        result = summarize_packet(root)
+    return result, stdout.getvalue()
+
+
 def run_self_test() -> int:
     case_count = 0
     with tempfile.TemporaryDirectory(prefix="phase2_cross_") as tmp_dir:
@@ -141,6 +160,11 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert require_files(root) == []
         assert validate_fixture(root) == []
+        result, output = capture_packet_summary(root)
+        assert result == 0
+        assert "PHASE2_CROSS=pass" in output
+        assert f"PHASE2_CROSS_TARGET_COUNT={len(EXPECTED_TARGETS)}" in output
+        assert f"PHASE2_CROSS_TARGETS={','.join(EXPECTED_TARGETS)}" in output
         case_count += 1
 
         build_self_test_root(root)
@@ -205,7 +229,7 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text("{\n", encoding="utf-8")
+        (root / FIXTURE_REL).write_text("{\n", encoding="utf-8")
         try:
             validate_fixture(root)
         except json.JSONDecodeError:
@@ -246,9 +270,9 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").unlink()
+        (root / FIXTURE_REL).unlink()
         missing = require_files(root)
-        assert "zigux/tests/fixtures/phase2_cross_targets.json" in missing
+        assert str(FIXTURE_REL) in missing
         case_count += 1
 
         build_self_test_root(root)
@@ -266,6 +290,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Validate the Phase 2 cross-target matrix packet and optionally replay one cross compile target."
     )
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage.")
     parser.add_argument("--target", help="Run cross-target Zig test replays for one configured target.")
     parser.add_argument("--zig", help="Path to the Zig executable for target-mode replays.")
@@ -274,7 +299,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    missing = require_files(ROOT)
+    missing = require_files(args.root)
     if missing:
         print("PHASE2_CROSS=fail")
         print("PHASE2_CROSS_MISSING_FILES_START")
@@ -284,7 +309,7 @@ def main() -> int:
         return 1
 
     try:
-        issues = validate_fixture(ROOT)
+        issues = validate_fixture(args.root)
     except json.JSONDecodeError as exc:
         print("PHASE2_CROSS=fail")
         print(f"PHASE2_CROSS_NOTE=invalid fixture JSON: {exc.msg}")
@@ -308,16 +333,9 @@ def main() -> int:
             print("PHASE2_CROSS=fail")
             print("PHASE2_CROSS_NOTE=zig not found on PATH")
             return 1
-        return run_cross_compile(ROOT, args.target, zig)
+        return run_cross_compile(args.root, args.target, zig)
 
-    payload = load_fixture(FIXTURE)
-    targets = payload["targets"]
-    zig_test_files = payload["zig_test_files"]
-    print("PHASE2_CROSS=pass")
-    print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")
-    print(f"PHASE2_CROSS_TARGETS={','.join(targets)}")
-    print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
-    return 0
+    return summarize_packet(args.root)
 
 
 if __name__ == "__main__":
