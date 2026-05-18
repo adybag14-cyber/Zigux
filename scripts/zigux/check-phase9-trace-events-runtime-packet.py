@@ -36,6 +36,7 @@ REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable befor
 ABSENT_SHARED_LOADER_MARKER = "does not currently expose the broader shared runtime-loader packet"
 ABSENT_PHASE9_BUILD_MARKER = "`zigux/tests/phase9_build.zig`"
 ABSENT_RUNTIME_LOADER_KERNEL_MARKER = "`zigux/kernel/runtime_loader.zig`"
+ABSENT_RUNTIME_LOADER_CONTRACT_MARKER = "`zigux/kernel/runtime_loader_contract.zig`"
 ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER = "`samples/zigux/runtime_*_loader.zig` scaffolds"
 ABSENT_WORKFLOW_MARKER = "`.github/workflows/zigux-bootstrap.yml`"
 PHASE2_CONF_BRIDGE_MARKER = "`scripts/zigux/kconfig/conf_bridge.zig`"
@@ -248,6 +249,7 @@ FILE_MARKERS = {
         ABSENT_SHARED_LOADER_MARKER,
         ABSENT_PHASE9_BUILD_MARKER,
         ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
+        ABSENT_RUNTIME_LOADER_CONTRACT_MARKER,
         ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
     ],
     TESTS_README_PATH: [
@@ -275,6 +277,7 @@ FILE_MARKERS = {
         ABSENT_SHARED_LOADER_MARKER,
         ABSENT_PHASE9_BUILD_MARKER,
         ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
+        ABSENT_RUNTIME_LOADER_CONTRACT_MARKER,
         ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
         ABSENT_WORKFLOW_MARKER,
         PHASE2_CONF_BRIDGE_MARKER,
