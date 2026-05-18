@@ -10,9 +10,13 @@ from pathlib import Path
 REQUIRED_FILES = [
     "Documentation/zigux/phase12-virtio-net-survey.md",
     "drivers/net/virtio_net.zig",
+    "drivers/net/virtio_net_queue_resume.zig",
     "drivers/net/virtio_net_transmit_recycle.zig",
+    "drivers/net/virtio_net_post_reset_replay.zig",
     "zigux/tests/phase12_virtio_net.zig",
+    "zigux/tests/phase12_virtio_net_queue_resume.zig",
     "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
+    "zigux/tests/phase12_virtio_net_post_reset_replay.zig",
     "zigux/tests/phase12_virtio_net_syntax_lab.zig",
     "zigux/tests/phase12_virtio_net_survey.zig",
     "zigux/tests/phase12_virtio_net_manifest.json",
@@ -21,41 +25,56 @@ REQUIRED_FILES = [
 ]
 
 MANIFEST_MARKERS = [
-    '"lane_key": "P12-L04"',
+    '"lane_key": "P12-L02"',
     '"phase": "Phase 12"',
     '"anchor": "drivers/net/virtio_net.c"',
-    '"status": "starter_control_queue_payload_shape_refill_and_transmit_recycle_present_throughput_gate_missing"',
+    '"status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_and_post_reset_replay_present_direct_gate_present_shared_smoke_present"',
+    '"status": "starter_control_queue_payload_shape_refill_transmit_recycle_and_post_reset_replay_present_runtime_completion_missing"',
     '"id": "phase12-build-gate"',
     '"status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay"',
-    '"id": "phase12-virtio-net-queue-recovery-followup"',
-    '"id": "phase12-virtio-net-transmit-recycle-followup"',
+    '"id": "phase12-virtio-net-post-reset-replay-followup"',
+    '"zigux_destination": "drivers/net/virtio_net_post_reset_replay.zig"',
     '"id": "phase12-virtio-net-runtime-data-path"',
     '"status": "blocked_on_dma_transport_runtime"',
 ]
 
 SURVEY_NOTE_MARKERS = [
-    "`PHASE12_STATUS=starter-present-transmit-recycle-followup`",
-    "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`",
-    "freezeForReset()",
-    "recoveryQueuePlan()",
-    "restoreAfterReset()",
-    "summarizeTransmitRecycle()",
-    "current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig`",
-    "throughput and recovery parity remain roadmap requirements",
+    "`PHASE12_STATUS=starter-present-post-reset-replay-followup`",
+    "lane owner: `P12-L02`",
+    "drivers/net/virtio_net_queue_resume.zig",
+    "drivers/net/virtio_net_transmit_recycle.zig",
+    "drivers/net/virtio_net_post_reset_replay.zig",
+    "summarizeQueueTopology()",
+    "planControlQueuePayloadShape()",
+    "summarizePostResetReplay()",
+    "shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable",
     "still does not claim live DMA-safe receive ownership",
 ]
 
 SURVEY_GATE_MARKERS = [
-    "phase12 virtio net survey manifest keeps the bounded transmit-recycle packet truthful",
-    "phase12 virtio net survey note stays aligned with the bounded transmit-recycle follow-up",
+    "phase12 virtio net survey manifest keeps the bounded post reset replay packet truthful",
+    "phase12 virtio net survey note stays aligned with the bounded post reset replay follow-up",
     "phase12 virtio net survey gate keeps present lane files explicit",
     "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit",
-    "Documentation/zigux/phase12-virtio-net-survey.md",
+    "phase12 virtio net survey gate keeps transmit recycle helper and replay markers explicit",
+    'try std.testing.expectEqualStrings("P12-L02", manifest.lane_key);',
+    "drivers/net/virtio_net_queue_resume.zig",
     "drivers/net/virtio_net_transmit_recycle.zig",
+    "drivers/net/virtio_net_post_reset_replay.zig",
+    "zigux/tests/phase12_virtio_net_queue_resume.zig",
+    "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
+    "zigux/tests/phase12_virtio_net_post_reset_replay.zig",
+    "summarizePostResetReplay()",
+]
+
+SYNTAX_LAB_MARKERS = [
+    "phase12 virtio net syntax lab keeps control queue payload shaping separate from runtime commands",
+    "phase12 virtio net syntax lab keeps rss payload shaping aligned with tunnel-header recovery",
     "planControlQueuePayloadShape",
     "controlQueueRecoveryPlan",
+    "rss_config_payload_bytes",
+    "requires_hash_report_payload",
     "requires_mergeable_buffer_refill",
-    "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
 ]
 
 BUILD_MARKERS = [
@@ -77,7 +96,7 @@ BUILD_MARKERS = [
 MAKEFILE_MARKERS = [
     "phase12-smoke",
     "phase12-test",
-    "phase12-validate",
+    "phase12:",
 ]
 
 
@@ -107,8 +126,8 @@ def run_check(root: Path) -> None:
     require_markers(manifest_text, "zigux/tests/phase12_virtio_net_manifest.json", MANIFEST_MARKERS)
 
     manifest = json.loads(manifest_text)
-    if manifest.get("lane_key") != "P12-L04":
-        raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: lane_key drifted from P12-L04")
+    if manifest.get("lane_key") != "P12-L02":
+        raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: lane_key drifted from P12-L02")
     if manifest.get("phase") != "Phase 12":
         raise CheckError("zigux/tests/phase12_virtio_net_manifest.json: phase drifted from Phase 12")
 
@@ -117,6 +136,9 @@ def run_check(root: Path) -> None:
 
     survey_gate = read_text(root, "zigux/tests/phase12_virtio_net_survey.zig")
     require_markers(survey_gate, "zigux/tests/phase12_virtio_net_survey.zig", SURVEY_GATE_MARKERS)
+
+    syntax_lab = read_text(root, "zigux/tests/phase12_virtio_net_syntax_lab.zig")
+    require_markers(syntax_lab, "zigux/tests/phase12_virtio_net_syntax_lab.zig", SYNTAX_LAB_MARKERS)
 
     build_text = read_text(root, "zigux/tests/phase12_build.zig")
     require_markers(build_text, "zigux/tests/phase12_build.zig", BUILD_MARKERS)
@@ -129,29 +151,38 @@ def make_fixture_tree(root: Path) -> None:
     file_payloads = {
         "Documentation/zigux/phase12-virtio-net-survey.md": "\n".join(SURVEY_NOTE_MARKERS) + "\n",
         "drivers/net/virtio_net.zig": "// fixture\n",
+        "drivers/net/virtio_net_queue_resume.zig": "// fixture\n",
         "drivers/net/virtio_net_transmit_recycle.zig": "// fixture\n",
+        "drivers/net/virtio_net_post_reset_replay.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_queue_resume.zig": "// fixture\n",
         "zigux/tests/phase12_virtio_net_transmit_recycle.zig": "// fixture\n",
-        "zigux/tests/phase12_virtio_net_syntax_lab.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_post_reset_replay.zig": "// fixture\n",
+        "zigux/tests/phase12_virtio_net_syntax_lab.zig": "\n".join(SYNTAX_LAB_MARKERS) + "\n",
         "zigux/tests/phase12_virtio_net_survey.zig": "\n".join(f"// {marker}" for marker in SURVEY_GATE_MARKERS) + "\n",
         "zigux/tests/phase12_build.zig": "\n".join(BUILD_MARKERS) + "\n",
         "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
         "zigux/tests/phase12_virtio_net_manifest.json": json.dumps(
             {
-                "lane_key": "P12-L04",
+                "lane_key": "P12-L02",
                 "phase": "Phase 12",
                 "anchor": "drivers/net/virtio_net.c",
-                "gaps": [
-                    {
-                        "id": "phase12-virtio-net-queue-recovery-followup",
-                        "status": "starter_landed",
+                "roadmap_gap_check": {
+                    "queueing_correctness": {
+                        "status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_and_post_reset_replay_present_direct_gate_present_shared_smoke_present"
                     },
+                    "throughput_and_recovery_parity": {
+                        "status": "starter_control_queue_payload_shape_refill_transmit_recycle_and_post_reset_replay_present_runtime_completion_missing"
+                    },
+                },
+                "gaps": [
                     {
                         "id": "phase12-build-gate",
                         "status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay",
                     },
                     {
-                        "id": "phase12-virtio-net-transmit-recycle-followup",
+                        "id": "phase12-virtio-net-post-reset-replay-followup",
+                        "zigux_destination": "drivers/net/virtio_net_post_reset_replay.zig",
                         "status": "landed_on_master",
                     },
                     {
@@ -159,11 +190,6 @@ def make_fixture_tree(root: Path) -> None:
                         "status": "blocked_on_dma_transport_runtime",
                     },
                 ],
-                "roadmap_gap_check": {
-                    "throughput_and_recovery_parity": {
-                        "status": "starter_control_queue_payload_shape_refill_and_transmit_recycle_present_throughput_gate_missing"
-                    }
-                },
             },
             indent=2,
         )
@@ -199,7 +225,7 @@ def run_self_test() -> None:
         make_fixture_tree(root)
         broken_manifest = root / "zigux/tests/phase12_virtio_net_manifest.json"
         broken_manifest.write_text(
-            broken_manifest.read_text(encoding="utf-8").replace("blocked_on_dma_transport_runtime", "missing"),
+            broken_manifest.read_text(encoding="utf-8").replace("P12-L02", "P12-L04"),
             encoding="utf-8",
         )
         try:
@@ -221,6 +247,30 @@ def run_self_test() -> None:
                 raise
         else:
             raise AssertionError("expected survey-gate marker failure")
+        case_count += 1
+
+        make_fixture_tree(root)
+        broken_syntax_lab = root / "zigux/tests/phase12_virtio_net_syntax_lab.zig"
+        broken_syntax_lab.write_text("broken\n", encoding="utf-8")
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "phase12_virtio_net_syntax_lab.zig" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected syntax-lab marker failure")
+        case_count += 1
+
+        make_fixture_tree(root)
+        broken_makefile = root / "zigux/Makefile"
+        broken_makefile.write_text("phase12-smoke\nphase12-test\n", encoding="utf-8")
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "zigux/Makefile" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected makefile marker failure")
         case_count += 1
 
     print("PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass")
