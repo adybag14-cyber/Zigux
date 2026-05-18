@@ -47,9 +47,9 @@ test "phase 7 string helpers survey keeps the helper-local packet truthful" {
 
     const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(helper_tests);
-    try expectContains(helper_tests, "phase 7 string helpers starter parses bounded comma lists and positive ranges");
-    try expectContains(helper_tests, "phase 7 string helpers starter stops at invalid trailing tokens while respecting count and first NUL");
-    try expectContains(helper_tests, "phase 7 string helpers starter reports NoEntry when no integers are available");
+    try expectContains(helper_tests, "parseIntArray parses bounded comma lists and positive ranges");
+    try expectContains(helper_tests, "parseIntArray stops at invalid trailing tokens while respecting count and first NUL");
+    try expectContains(helper_tests, "parseIntArray reports NoEntry when no integers are available");
     try expectContains(helper_tests, "runParseIntArrayWithFailingAllocator");
     try expectContains(helper_tests, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
     try expectContains(helper_tests, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
