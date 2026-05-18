@@ -232,7 +232,7 @@ def duplicate_marker(path: Path, marker: str) -> None:
 
 def expect_marker_failure(root: Path, rel_path: str, marker_index: int) -> None:
     marker = REQUIRED_MARKERS[rel_path][marker_index]
-    write_fixtureTree(root)
+    write_fixture_tree(root)
     remove_marker(root / rel_path, marker)
     expect_failure(root, f"{rel_path}:{marker}")
 
