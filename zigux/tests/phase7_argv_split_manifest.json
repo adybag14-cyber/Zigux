@@ -8,8 +8,7 @@
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "lib/argv_split.zig",
     "zigux/tests/phase7_argv_split_survey.zig",
-    "zigux/tests/phase7_argv_split_manifest.json",
-    "samples/zigux/README.md"
+    "zigux/tests/phase7_argv_split_manifest.json"
   ],
   "covered_helpers": [
     "countArgc",
