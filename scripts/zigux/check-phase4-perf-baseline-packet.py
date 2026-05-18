@@ -24,7 +24,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 49
+EXPECTED_SELF_TEST_CASES = 51
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -378,7 +378,9 @@ def run_self_test() -> int:
         shared_variants = (
             (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are unapproved today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
             (MATRIX, "any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners", "any future shared CI perf-promotion claim must name the ABI and Runtime Team as the decision owner and the Shared Subsystems Pod as coordination owners", "matrix_marker:any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners"),
+            (REVIEW_CHECKLIST, "keep the directly readable local-only perf packet explicit", "keep the local-only perf packet implicit", "review_checklist_marker:keep the directly readable local-only perf packet explicit"),
             (REVIEW_CHECKLIST, "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion", "keep the ABI and Runtime Team as the decision owner for any broader shared-CI perf promotion", "review_checklist_marker:keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion"),
+            (REVIEW_CHECKLIST, "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call", "keep the ABI and Replay Team plus Shared Queue Pod as coordination owners for that policy call", "review_checklist_marker:keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call"),
             (REVIEW_CHECKLIST, "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval", "keep the pending shared-CI perf-promotion posture implicit", "review_checklist_marker:keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval"),
             (NOTE, "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.", "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet-drift.py`.", "note_marker:Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`."),
             (NOTE, "Current direct-readback dedicated local-only perf companion members:", "Current direct-readback dedicated local-only perf companion set:", "note_marker:Current direct-readback dedicated local-only perf companion members:"),
