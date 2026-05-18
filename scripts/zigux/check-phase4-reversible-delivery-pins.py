@@ -36,11 +36,10 @@ MISSING_BROADER_PACKET = (
     "`Documentation/zigux/phase4-validation-matrix.md`",
     "`scripts/zigux/check-phase4-gate-evidence.py`",
     "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
-    "`scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "`scripts/zigux/validate-phase4.py`",
     "`zigux/tests/phase4_build.zig`",
-    "`zigux/tests/phase4_perf_baseline_manifest.json`",
-    "`zigux/tests/phase4_perf_baseline_survey.zig`",
+    "`zigux/tests/bitmap_diff.zig`",
+    "`zigux/tests/phase4_bitmap_live_helper_replay.zig`",
 )
 
 ATOMIC64_GAP_MARKERS = (
@@ -51,7 +50,7 @@ ATOMIC64_GAP_MARKERS = (
 )
 
 NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + ATOMIC64_GAP_MARKERS + (
-    "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, lab-matrix, and bitmap-diff companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
 )
@@ -73,7 +72,8 @@ README_MARKERS = (
     "current direct-readback Phase 4 rollback packet",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
+    "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
+    "repo-reality warning for the broader Phase 4 validator, lab-matrix, and bitmap-diff packet",
     "historical provenance for that missing broader packet",
 ) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS + README_PUBLIC_FALLBACK_MARKERS
 
@@ -99,7 +99,7 @@ WARNING_MARKERS = (
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
-    "The broader Phase 4 validator, lab-matrix, local-only perf, and bitmap-diff companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, lab-matrix, and bitmap-diff companions are still repo-reality gaps in this run",
     "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
     'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 11",
@@ -107,13 +107,11 @@ WARNING_MARKERS = (
     "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
 ) + README_OWNER_MARKERS
 
-
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
-
 
 def read(root: Path, rel: Path) -> str:
     try:
@@ -121,29 +119,17 @@ def read(root: Path, rel: Path) -> str:
     except FileNotFoundError as exc:
         raise RuntimeError(f"missing required file: {rel.as_posix()}") from exc
 
-
 def require(text: str, markers: tuple[str, ...], label: str) -> None:
     missing = [marker for marker in markers if marker not in text]
     if missing:
         raise RuntimeError(f"{label} is missing required fragments: {missing}")
 
-
-def require_exact_self_test_count(
-    text: str,
-    label: str,
-    count_label: str,
-    expected: int,
-) -> None:
+def require_exact_self_test_count(text: str, label: str, count_label: str, expected: int) -> None:
     matches = re.findall(rf"`{count_label}=(\d+)`", text)
     if not matches:
-        raise RuntimeError(
-            f"{label} is missing a numeric `{count_label}=...` marker"
-        )
+        raise RuntimeError(f"{label} is missing a numeric `{count_label}=...` marker")
     if any(int(value) != expected for value in matches):
-        raise RuntimeError(
-            f"{label} must carry `{count_label}={expected}` exactly"
-        )
-
+        raise RuntimeError(f"{label} must carry `{count_label}={expected}` exactly")
 
 def check(root: Path) -> None:
     note = read(root, NOTE)
@@ -154,19 +140,8 @@ def check(root: Path) -> None:
     require(readme, README_MARKERS, README.as_posix())
     require(scripts_readme, SCRIPTS_README_MARKERS, SCRIPTS_README.as_posix())
     require(repo_warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
-    require_exact_self_test_count(
-        note,
-        NOTE.as_posix(),
-        REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL,
-        EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES,
-    )
-    require_exact_self_test_count(
-        note,
-        NOTE.as_posix(),
-        PIN_SELF_TEST_COUNT_LABEL,
-        EXPECTED_PIN_SELF_TEST_CASES,
-    )
-
+    require_exact_self_test_count(note, NOTE.as_posix(), REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL, EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES)
+    require_exact_self_test_count(note, NOTE.as_posix(), PIN_SELF_TEST_COUNT_LABEL, EXPECTED_PIN_SELF_TEST_CASES)
 
 def main() -> int:
     args = parse_args()
@@ -181,132 +156,58 @@ def main() -> int:
                 dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
             check(root)
             cases += 1
-
-            note_path = root / NOTE
-            note_path.write_text(
-                note_path.read_text(encoding="utf-8").replace(
-                    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`",
-                    "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=0`",
-                ),
-                encoding="utf-8",
-            )
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected non-positive pin self-test count to fail")
-
-            note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
-            note_path.write_text(
-                note_path.read_text(encoding="utf-8").replace(
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11`",
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=0`",
-                ),
-                encoding="utf-8",
-            )
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError(
-                    "expected repo-reality warning self-test count drift to fail"
-                )
-
-            note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
-            readme_path = root / README
-            readme_path.write_text(
-                readme_path.read_text(encoding="utf-8").replace(
-                    README_ATOMIC64_GAP_MARKERS[0],
-                    "roadmap-backed Phase 4 differential-gate warning drifted",
-                ),
-                encoding="utf-8",
-            )
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected README atomic64 gap drift to fail")
-
-            readme_path.write_text((args.root.resolve() / README).read_text(encoding="utf-8"), encoding="utf-8")
             scripts_readme_path = root / SCRIPTS_README
-            scripts_readme_path.write_text(
-                scripts_readme_path.read_text(encoding="utf-8").replace(
-                    SCRIPTS_README_MARKERS[6],
-                    "perf checker reminder drifted",
-                ),
-                encoding="utf-8",
-            )
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected scripts README perf checker drift to fail")
-
-            scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
-            scripts_readme_path.write_text(
-                scripts_readme_path.read_text(encoding="utf-8").replace(
-                    SCRIPTS_README_MARKERS[7],
-                    "atomic64 reminder drifted",
-                ),
-                encoding="utf-8",
-            )
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected scripts README atomic64 drift to fail")
-
-            scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
-            scripts_readme_path.write_text(
-                scripts_readme_path.read_text(encoding="utf-8").replace(
-                    SCRIPTS_README_MARKERS[0],
-                    "Phase 4 flow drifted",
-                ),
-                encoding="utf-8",
-            )
+            scripts_readme_path.write_text(scripts_readme_path.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[0], "Phase 4 flow drifted"), encoding="utf-8")
             try:
                 check(root)
             except RuntimeError:
                 cases += 1
             else:
                 raise AssertionError("expected scripts README packet summary drift to fail")
-
             scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
-            repo_warning_path = root / REPO_REALITY_WARNING
-            repo_warning_path.write_text(
-                repo_warning_path.read_text(encoding="utf-8").replace(
-                    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
-                    "scripts/zigux/check-phase4-gap-matrix-drifted.py",
-                ),
-                encoding="utf-8",
-            )
+            readme_path = root / README
+            readme_path.write_text(readme_path.read_text(encoding="utf-8").replace(README_MARKERS[3], "direct perf companion marker drifted"), encoding="utf-8")
             try:
                 check(root)
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected repo-reality warning drift to fail")
-
-            repo_warning_path.write_text((args.root.resolve() / REPO_REALITY_WARNING).read_text(encoding="utf-8"), encoding="utf-8")
-            note_path.write_text(
-                note_path.read_text(encoding="utf-8").replace(
-                    ATOMIC64_GAP_MARKERS[2],
-                    "atomic64 next-step wording drifted",
-                ),
-                encoding="utf-8",
-            )
+                raise AssertionError("expected tests README direct perf companion drift to fail")
+            readme_path.write_text((args.root.resolve() / README).read_text(encoding="utf-8"), encoding="utf-8")
+            note_path = root / NOTE
+            note_path.write_text(note_path.read_text(encoding="utf-8").replace(ATOMIC64_GAP_MARKERS[2], "atomic64 next-step wording drifted"), encoding="utf-8")
             try:
                 check(root)
             except RuntimeError:
                 cases += 1
             else:
                 raise AssertionError("expected note atomic64 next-step drift to fail")
-
+            note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
+            repo_warning_path = root / REPO_REALITY_WARNING
+            repo_warning_path.write_text(repo_warning_path.read_text(encoding="utf-8").replace(WARNING_MARKERS[5], "phase4 repo-reality wording drifted"), encoding="utf-8")
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected repo-reality warning wording drift to fail")
+            repo_warning_path.write_text((args.root.resolve() / REPO_REALITY_WARNING).read_text(encoding="utf-8"), encoding="utf-8")
+            readme_path.write_text(readme_path.read_text(encoding="utf-8").replace(README_MARKERS[4], "tests README broader packet wording drifted"), encoding="utf-8")
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected tests README broader packet wording drift to fail")
+            readme_path.write_text((args.root.resolve() / README).read_text(encoding="utf-8"), encoding="utf-8")
+            repo_warning_path = root / REPO_REALITY_WARNING
+            repo_warning_path.write_text(repo_warning_path.read_text(encoding="utf-8").replace("scripts/zigux/check-phase4-remaining-gap-matrix.py", "scripts/zigux/check-phase4-gap-matrix-drifted.py"), encoding="utf-8")
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected repo-reality warning drift to fail")
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
         print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
         return 0
@@ -317,7 +218,6 @@ def main() -> int:
         return 1
     print("PHASE4_REVERSIBLE_DELIVERY_PINS=pass")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
