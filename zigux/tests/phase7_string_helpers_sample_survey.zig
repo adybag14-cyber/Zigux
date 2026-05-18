@@ -165,7 +165,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("P5-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
-    try std.testing.expectEqualStrings("96d29f9f68ad5ec6aba8f87af3b153e8d1a1ea1f", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("d9ef77ab8ba69735614b7b04e42d3335f002c708", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/string_helpers.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/string_helpers.zig", manifest.roadmap_destinations[0]);
