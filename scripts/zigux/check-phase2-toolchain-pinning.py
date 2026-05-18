@@ -129,7 +129,6 @@ BOOTSTRAP_PRESENT_MARKERS = (
 
 BOOTSTRAP_WARNING_MARKERS = (
     "Repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/validate-phase2-closure.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
@@ -161,6 +160,7 @@ EXPECTED_TOOL_MANIFEST = {
     "workflow": ".github/workflows/zigux-bootstrap.yml",
     "present_surfaces": {
         "review_surfaces": [
+            "Documentation/zigux/README.md",
             "Documentation/zigux/phase2-closure.md",
             "Documentation/zigux/review-checklist.md",
             "scripts/zigux/README.md",
@@ -220,6 +220,14 @@ EXPECTED_TOOL_MANIFEST = {
     ],
 }
 
+TRACKED_REPO_GAP_PATHS = tuple(EXPECTED_TOOL_MANIFEST["repo_reality_gaps"])
+README_TRACKED_REPO_GAP_PATHS = tuple(
+    rel_path for rel_path in TRACKED_REPO_GAP_PATHS if f"`{rel_path}`" in README_WARNING_MARKERS
+)
+BOOTSTRAP_TRACKED_REPO_GAP_PATHS = tuple(
+    rel_path for rel_path in TRACKED_REPO_GAP_PATHS if f"`{rel_path}`" in BOOTSTRAP_WARNING_MARKERS
+)
+
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(WORKFLOW_SETUP_MARKERS)
@@ -245,6 +253,9 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 2
+    + len(TRACKED_REPO_GAP_PATHS)
+    + len(README_TRACKED_REPO_GAP_PATHS)
+    + len(BOOTSTRAP_TRACKED_REPO_GAP_PATHS)
 )
 
 
@@ -294,6 +305,18 @@ def load_policy(root: Path) -> object:
 
 def load_tool_manifest(root: Path) -> object:
     return json.loads(read_text(resolve_path(root, TOOL_MANIFEST_PATH)))
+
+
+def resolve_repo_gap_path(root: Path, rel_path: str) -> Path:
+    return root / Path(rel_path)
+
+
+def collect_stale_repo_gap_markers(text: str, root: Path, code: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for rel_path in TRACKED_REPO_GAP_PATHS:
+        if resolve_repo_gap_path(root, rel_path).exists() and f"`{rel_path}`" in text:
+            issues.append((code, rel_path))
+    return issues
 
 
 def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
@@ -351,6 +374,12 @@ def collect_tool_manifest_issues(root: Path) -> list[tuple[str, str]]:
     if payload.get("repo_reality_gaps") != EXPECTED_TOOL_MANIFEST["repo_reality_gaps"]:
         issues.append(("TOOL_MANIFEST_REPO_GAPS_MISMATCH", f"actual={payload.get('repo_reality_gaps')!r}:expected={EXPECTED_TOOL_MANIFEST['repo_reality_gaps']!r}"))
 
+    repo_reality_gaps = payload.get("repo_reality_gaps")
+    if isinstance(repo_reality_gaps, list):
+        for rel_path in repo_reality_gaps:
+            if isinstance(rel_path, str) and resolve_repo_gap_path(root, rel_path).exists():
+                issues.append(("STALE_TOOL_MANIFEST_REPO_GAPS", rel_path))
+
     if payload.get("notes") != EXPECTED_TOOL_MANIFEST["notes"]:
         issues.append(("TOOL_MANIFEST_NOTES_MISMATCH", f"actual={payload.get('notes')!r}:expected={EXPECTED_TOOL_MANIFEST['notes']!r}"))
 
@@ -380,6 +409,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_missing_markers(bootstrap_gap_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"))
     issues.extend(collect_forbidden_markers(bootstrap_gap_text, BOOTSTRAP_GAP_FORBIDDEN_MARKERS, "FORBIDDEN_BOOTSTRAP_GAP_MARKERS"))
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
+    issues.extend(collect_stale_repo_gap_markers(readme_text, root, "STALE_README_REPO_GAP_MARKERS"))
+    issues.extend(collect_stale_repo_gap_markers(bootstrap_gap_text, root, "STALE_BOOTSTRAP_REPO_GAP_MARKERS"))
 
     for path in SURFACE_PATHS:
         if not resolve_path(root, path).exists():
@@ -696,6 +727,19 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("INVALID_TOOL_MANIFEST_PAYLOAD", "list") in issues
         checks_run += 1
+
+        for rel_path in TRACKED_REPO_GAP_PATHS:
+            build_self_test_root(root)
+            write_text(resolve_repo_gap_path(root, rel_path), "restored\n")
+            issues = collect_issues(root)
+            assert ("STALE_TOOL_MANIFEST_REPO_GAPS", rel_path) in issues
+            checks_run += 1
+            if rel_path in README_TRACKED_REPO_GAP_PATHS:
+                assert ("STALE_README_REPO_GAP_MARKERS", rel_path) in issues
+                checks_run += 1
+            if rel_path in BOOTSTRAP_TRACKED_REPO_GAP_PATHS:
+                assert ("STALE_BOOTSTRAP_REPO_GAP_MARKERS", rel_path) in issues
+                checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
