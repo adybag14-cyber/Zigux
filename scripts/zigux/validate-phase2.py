@@ -36,7 +36,7 @@ EXPECTED_PRESENT_FILE_MARKERS = (
 EXPECTED_MAKEFILE_LINES = (
     ".PHONY: phase2-validate phase2-toolchain phase2-fixdep phase2-tools phase2-kconfig phase2-cross phase2",
     "phase2-toolchain:",
-    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig \"$(ZIG)\"',
+    'cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-zig-toolchain.py --zig "$(ZIG)"',
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "phase2-fixdep: phase2-toolchain",
@@ -75,7 +75,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 22
+EXPECTED_SELF_TEST_CASE_COUNT = 28
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -260,23 +260,24 @@ def run_self_test() -> int:
             ("MISSING_TESTS_README_MARKERS", "DUPLICATE_TESTS_README_MARKERS", TESTS_README),
             ("MISSING_REVIEW_CHECKLIST_MARKERS", "DUPLICATE_REVIEW_CHECKLIST_MARKERS", REVIEW_CHECKLIST),
         ):
-            build_self_test_root(root)
-            target = resolve_path(root, path)
-            target.write_text(
-                replace_once(target.read_text(encoding="utf-8"), EXPECTED_PRESENT_FILE_MARKERS[0]),
-                encoding="utf-8",
-            )
-            assert (code, EXPECTED_PRESENT_FILE_MARKERS[0]) in collect_issues(root)
-            checks_run += 1
+            for marker in EXPECTED_PRESENT_FILE_MARKERS:
+                build_self_test_root(root)
+                target = resolve_path(root, path)
+                target.write_text(
+                    replace_once(target.read_text(encoding="utf-8"), marker),
+                    encoding="utf-8",
+                )
+                assert (code, marker) in collect_issues(root)
+                checks_run += 1
 
-            build_self_test_root(root)
-            target = resolve_path(root, path)
-            target.write_text(
-                duplicate_once(target.read_text(encoding="utf-8"), EXPECTED_PRESENT_FILE_MARKERS[0]),
-                encoding="utf-8",
-            )
-            assert (duplicate_code, f"{EXPECTED_PRESENT_FILE_MARKERS[0]}:count=2") in collect_issues(root)
-            checks_run += 1
+                build_self_test_root(root)
+                target = resolve_path(root, path)
+                target.write_text(
+                    duplicate_once(target.read_text(encoding="utf-8"), marker),
+                    encoding="utf-8",
+                )
+                assert (duplicate_code, f"{marker}:count=2") in collect_issues(root)
+                checks_run += 1
 
         for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
             build_self_test_root(root)
