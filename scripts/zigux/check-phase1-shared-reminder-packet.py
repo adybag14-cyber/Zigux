@@ -63,6 +63,7 @@ MARKERS = {
     ),
     ".github/workflows/zigux-bootstrap.yml": (
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+        "run: python3 scripts/zigux/validate-phase1-closure.py",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
     ),
@@ -278,22 +279,6 @@ def run_self_test() -> int:
             ),
         ),
         (
-            "missing_workflow_shared_reminder_selftest",
-            lambda root: mutate_remove_marker(
-                root,
-                ".github/workflows/zigux-bootstrap.yml",
-                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
-            ),
-        ),
-        (
-            "duplicate_workflow_shared_reminder_selftest",
-            lambda root: mutate_duplicate_marker(
-                root,
-                ".github/workflows/zigux-bootstrap.yml",
-                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
-            ),
-        ),
-        (
             "missing_workflow_bench_selftest",
             lambda root: mutate_remove_marker(
                 root,
@@ -302,7 +287,31 @@ def run_self_test() -> int:
             ),
         ),
         (
-            "duplicate_workflow_shared_reminder_live_check",
+            "missing_workflow_closure_validator",
+            lambda root: mutate_remove_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
+            ),
+        ),
+        (
+            "duplicate_workflow_closure_validator",
+            lambda root: mutate_duplicate_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
+            ),
+        ),
+        (
+            "missing_workflow_shared_reminder_selftest",
+            lambda root: mutate_remove_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][2],
+            ),
+        ),
+        (
+            "duplicate_workflow_shared_reminder_selftest",
             lambda root: mutate_duplicate_marker(
                 root,
                 ".github/workflows/zigux-bootstrap.yml",
@@ -310,11 +319,19 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "duplicate_workflow_shared_reminder_live_check",
+            lambda root: mutate_duplicate_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][3],
+            ),
+        ),
+        (
             "missing_workflow_shared_reminder_live_check",
             lambda root: mutate_remove_marker(
                 root,
                 ".github/workflows/zigux-bootstrap.yml",
-                MARKERS[".github/workflows/zigux-bootstrap.yml"][2],
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][3],
             ),
         ),
         (
