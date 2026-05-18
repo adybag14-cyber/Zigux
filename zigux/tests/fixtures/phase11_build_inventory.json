@@ -1,75 +1,47 @@
 {
   "build_test_names": [
-    "phase11-hvc-console-tests",
-    "phase11-hvc-console-verify-tests",
-    "phase11-hvc-cleanup-tests",
-    "phase11-hvc-console-survey-tests"
+    "phase11-hvc-hv-ops-layout-proof-tests",
+    "phase11-hvc-export-surface-layout-proof-tests",
+    "phase11-hvc-cleanup-packet-proof"
   ],
-  "shared_test_depend_steps": [
-    "run_phase11_hvc_console_tests",
-    "run_hvc_console_verify_tests",
-    "run_phase11_hvc_cleanup_tests"
-  ],
+  "shared_test_depend_steps": [],
   "module_root_source_files": [
     {
-      "module": "hvc_console_module",
-      "path": "../../drivers/tty/hvc/hvc_console.zig"
+      "module": "hv_ops_proof_module",
+      "path": "phase11_hvc_hv_ops_layout_proof.zig"
     },
     {
-      "module": "hvc_console_verify_module",
-      "path": "../../drivers/tty/hvc/hvc_console_verify.zig"
+      "module": "export_surface_proof_module",
+      "path": "phase11_hvc_export_surface_layout_proof.zig"
     },
     {
-      "module": "phase11_hvc_console_module",
-      "path": "phase11_hvc_console.zig"
-    },
-    {
-      "module": "phase11_hvc_cleanup_module",
-      "path": "phase11_hvc_cleanup.zig"
-    },
-    {
-      "module": "phase11_hvc_console_survey_module",
-      "path": "phase11_hvc_console_survey.zig"
+      "module": "proof_module",
+      "path": "phase11_hvc_cleanup_packet_proof.zig"
     }
   ],
   "test_root_modules": [
     {
-      "test": "phase11-hvc-console-tests",
-      "root_module": "phase11_hvc_console_module"
+      "test": "phase11-hvc-hv-ops-layout-proof-tests",
+      "root_module": "hv_ops_proof_module"
     },
     {
-      "test": "phase11-hvc-console-verify-tests",
-      "root_module": "hvc_console_verify_module"
+      "test": "phase11-hvc-export-surface-layout-proof-tests",
+      "root_module": "export_surface_proof_module"
     },
     {
-      "test": "phase11-hvc-cleanup-tests",
-      "root_module": "phase11_hvc_cleanup_module"
-    },
-    {
-      "test": "phase11-hvc-console-survey-tests",
-      "root_module": "phase11_hvc_console_survey_module"
+      "test": "phase11-hvc-cleanup-packet-proof",
+      "root_module": "proof_module"
     }
   ],
   "forbidden_markers": [
     "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);"
   ],
-  "dedicated_survey_replays": [
-    "zigux/tests/phase11_hvc_console_survey.zig"
-  ],
+  "dedicated_survey_replays": [],
   "shared_split_replays": [],
   "shared_adjunct_replays": [
+    "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
-    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig"
   ],
-  "shared_replay_markers": [
-    {
-      "path": "zigux/tests/phase11_hvc_console_modem_control_split.zig",
-      "marker": " try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);"
-    },
-    {
-      "path": "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-      "marker": " try std.testing.expect(dispatch.invokes_sysrq_handler);"
-    }
-  ]
+  "shared_replay_markers": []
 }
