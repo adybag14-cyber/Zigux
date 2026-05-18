@@ -4,6 +4,9 @@ const RepoEvidence = struct {
     phase15_readiness_packet_checker_present: bool,
     phase15_validator_script_present: bool,
     phase15_docs_readme_checker_present: bool,
+    phase15_tests_readme_checker_present: bool,
+    phase15_governance_lane_manifest_present: bool,
+    phase15_governance_lane_replay_present: bool,
     phase15_handoff_manifest_present: bool,
     phase15_build_zig_present: bool,
     phase15_indefinite_c_lane_owner_alignment_present: bool,
@@ -45,48 +48,51 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-17", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-18", manifest.surveyed_commit);
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         manifest.readiness_packet_checker,
     );
-    try std.testing.expectEqual(@as(usize, 13), manifest.direct_packet_paths.len);
+    try std.testing.expectEqual(@as(usize, 26), manifest.direct_packet_paths.len);
     try std.testing.expectEqualStrings(
         "Documentation/zigux/freeze-map.md",
         manifest.direct_packet_paths[0],
     );
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
-        manifest.direct_packet_paths[10],
+        manifest.direct_packet_paths[16],
     );
     try std.testing.expectEqualStrings(
         "zigux/tests/phase15_readiness_gate_manifest.json",
-        manifest.direct_packet_paths[12],
+        manifest.direct_packet_paths[25],
     );
-    try std.testing.expectEqual(@as(usize, 5), manifest.still_missing_broader_paths.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.still_missing_broader_paths.len);
     try std.testing.expectEqualStrings(
-        "zigux/Makefile",
-        manifest.still_missing_broader_paths[4],
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
+        manifest.still_missing_broader_paths[3],
     );
     try std.testing.expect(manifest.repo_evidence.phase15_readiness_packet_checker_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validator_script_present);
     try std.testing.expect(manifest.repo_evidence.phase15_docs_readme_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_tests_readme_checker_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_governance_lane_manifest_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_governance_lane_replay_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_handoff_manifest_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_build_zig_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_indefinite_c_lane_owner_alignment_present);
-    try std.testing.expect(!manifest.repo_evidence.phase15_makefile_present);
+    try std.testing.expect(manifest.repo_evidence.phase15_makefile_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_test_target_present);
     try std.testing.expect(!manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_replay_green_on_current_master);
-    try std.testing.expectEqual(@as(usize, 4), manifest.phase15_validate_checkers.len);
+    try std.testing.expectEqual(@as(usize, 5), manifest.phase15_validate_checkers.len);
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-docs-readme-alignment.py",
         manifest.phase15_validate_checkers[0],
     );
     try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-shared-summary-gap.py",
-        manifest.phase15_validate_checkers[3],
+        manifest.phase15_validate_checkers[4],
     );
 }
 
@@ -96,10 +102,11 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
 
     try expectContains(readiness_note, "PHASE15_LANE_KEY=arch-council");
     try expectContains(readiness_note, "PHASE15_SLICE=governance_packet_readiness_truthfulness");
-    try expectContains(readiness_note, "current-master-readback-2026-05-17");
+    try expectContains(readiness_note, "current-master-readback-2026-05-18");
     try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-docs-readme-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-scripts-readme-alignment.py`");
+    try expectContains(readiness_note, "`scripts/zigux/check-phase15-tests-readme-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-review-process-handoff.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-shared-summary-gap.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
@@ -114,6 +121,6 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "`make -C zigux phase15` remains blocked route vocabulary");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded for a freeze-map status change");
     try expectContains(readiness_note, "ready for maintenance-mode truthfulness refreshes only");
-    try expectContains(readiness_note, "The dedicated readiness manifest exact-pins those broader companions as absent repo evidence");
+    try expectContains(readiness_note, "The dedicated readiness manifest exact-pins those missing broader companions");
     try expectContains(readiness_note, "the focused readiness packet checker");
 }
