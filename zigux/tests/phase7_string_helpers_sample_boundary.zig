@@ -150,6 +150,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
+    try expectContains(manifest, "\"parseIntArray\"");
     try expectContains(manifest, "bounded parse-int-array decoding with comma lists, positive ranges, first-NUL and count limits, trailing-invalid-token stop behavior, and caller-owned result storage");
     try expectContains(manifest, "parseIntArray() and parse_int_array() keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set");
     try expectContains(manifest, "\"stringEscapeStrAnyNp\"");
