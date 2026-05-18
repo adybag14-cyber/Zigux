@@ -446,17 +446,35 @@ pub fn build(b: *std.Build) void {
     );
     phase3_step.dependOn(&phase3_dev_t_starter_packet.step);
 
+    const phase3_dev_t_test_step = b.step(
+        "phase3-dev-t-starter-packet-test",
+        "Run the shared Phase 3 dev_t starter-packet self-check from zigux/tests",
+    );
+    phase3_dev_t_test_step.dependOn(&phase3_dev_t_starter_packet.step);
+
     const phase3_errptr_xarray_step = b.step(
         "phase3-errptr-xarray-starter-packet",
         "Run the shared Phase 3 err_ptr/xarray starter packet from zigux/tests",
     );
     phase3_errptr_xarray_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
 
+    const phase3_errptr_xarray_test_step = b.step(
+        "phase3-errptr-xarray-starter-packet-test",
+        "Run the shared Phase 3 err_ptr/xarray starter-packet self-check from zigux/tests",
+    );
+    phase3_errptr_xarray_test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
+
     const phase3_xarray_slot_step = b.step(
         "phase3-xarray-slot-starter-packet",
         "Run the shared Phase 3 xarray-slot starter packet from zigux/tests",
     );
     phase3_xarray_slot_step.dependOn(&phase3_xarray_slot_starter_packet.step);
+
+    const phase3_xarray_slot_test_step = b.step(
+        "phase3-xarray-slot-starter-packet-test",
+        "Run the shared Phase 3 xarray-slot starter-packet self-check from zigux/tests",
+    );
+    phase3_xarray_slot_test_step.dependOn(&phase3_xarray_slot_starter_packet.step);
 
     const phase3_errptr_xarray_dump_step = b.step(
         "phase3-errptr-xarray-dump",
@@ -477,11 +495,23 @@ pub fn build(b: *std.Build) void {
     );
     phase3_policy_step.dependOn(&phase3_policy_starter_packet.step);
 
+    const phase3_policy_test_step = b.step(
+        "phase3-policy-starter-packet-test",
+        "Run the shared Phase 3 policy starter-packet self-check from zigux/tests",
+    );
+    phase3_policy_test_step.dependOn(&phase3_policy_starter_packet.step);
+
     const phase3_low_level_wrapper_step = b.step(
         "phase3-low-level-wrappers",
         "Run the shared Phase 3 low-level wrapper packet from zigux/tests",
     );
     phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
+
+    const phase3_low_level_wrappers_test_step = b.step(
+        "phase3-low-level-wrappers-test",
+        "Run the shared Phase 3 low-level wrapper self-check from zigux/tests",
+    );
+    phase3_low_level_wrappers_test_step.dependOn(&phase3_low_level_wrappers.step);
 
     const phase3_test_step = b.step(
         "phase3-test",
