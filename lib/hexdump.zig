@@ -379,6 +379,23 @@ test "hex2bin and bin2hex round-trip payloads" {
     try std.testing.expectEqualSlices(u8, source, text);
 }
 
+test "hex2bin and bin2hex snake-case aliases stay aligned" {
+    var decoded_direct: [3]u8 = undefined;
+    var decoded_alias: [3]u8 = undefined;
+    var encoded_direct: [8]u8 = undefined;
+    var encoded_alias: [8]u8 = undefined;
+
+    try hex2Bin(&decoded_direct, "0aF15c");
+    try hex2bin(&decoded_alias, "0aF15c");
+    try std.testing.expectEqualSlices(u8, &decoded_direct, &decoded_alias);
+
+    const direct_written = try bin2Hex(&encoded_direct, &decoded_direct);
+    const alias_written = try bin2hex(&encoded_alias, &decoded_alias);
+    try std.testing.expectEqual(@as(usize, direct_written.len), alias_written.len);
+    try std.testing.expectEqualStrings(direct_written, alias_written);
+    try std.testing.expectEqualStrings("0af15c", alias_written);
+}
+
 test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {
     const sample = [_]u8{ 0x00, 0xbe, 0xff };
     var lower: [6]u8 = undefined;
@@ -555,3 +572,7 @@ test "hexDumpToBuffer reports normalized required length for empty and zero-size
     try std.testing.expectEqual(@as(usize, 47), hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], false));
     try std.testing.expectEqual(@as(usize, 129), hexDumpToBuffer(test_data_b[0..32], 32, 1, empty[0..0], true));
 }
+
+pub const hex_to_bin = hexToBin;
+pub const hex2Bin = hex2bin;
+pub const bin2Hex = bin2hex;
