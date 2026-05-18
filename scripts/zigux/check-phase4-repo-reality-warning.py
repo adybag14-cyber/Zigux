@@ -305,7 +305,6 @@ def main() -> int:
             else:
                 raise AssertionError("expected repo-reality self-test count drift to fail")
 
-            build_baselineTree = None
             build_baseline_tree(root)
             note_path = root / NOTE
             note_path.write_text(
