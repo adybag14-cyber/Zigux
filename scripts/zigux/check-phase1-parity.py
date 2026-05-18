@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 ARTIFACT_DIFF_REL = Path("scripts/zigux/artifact_diff.py")
+README_REL = Path("scripts/zigux/README.md")
 FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 BLOCKERS_REL = Path("zigux/tests/fixtures/phase1_replay_blockers.json")
@@ -46,6 +47,8 @@ EXPECTED_HELPERS = (
     "tools/lib/vsprintf.zig",
     "tools/lib/zalloc.zig",
 )
+
+EXPECTED_MANIFEST_STATUS = "closed"
 
 EXPECTED_SHARED_REPLAY_PARKED_HELPERS = (
     "tools/lib/argv_split.zig",
@@ -119,6 +122,18 @@ ARTIFACT_DIFF_MARKERS = (
     "MODE=sha256",
 )
 
+README_REQUIRED_MARKERS = (
+    "`python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-phase1-parity.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test` replay the shipped bounded Phase 1 parity, artifact-diff, bench, and reminder checks",
+    "`scripts/zigux/artifact_diff.py`, `scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` keep the shipped parity-fixture, artifact-diff, bench, string-review, and direct-owner marker packet explicit from the scripts root",
+    "`Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/validate-phase1-closure.py`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `zigux/tests/fixtures/phase1_helpers.json`, and `zigux/tests/fixtures/phase1_replay_blockers.json` remain the current reminder-surface companions for that packet",
+    "`zigux/tests/fixtures/phase1_replay_blockers.json` keeps the currently parked replay state explicit: the focused `phase1_helpers.zig` rerun still diverges on `slab.zero_after_kmalloc`, and the older C harness route now names the exact thirteen helper ports whose former `tools/lib/*.c` inputs no longer ship beside the Phase 1 `.zig` ports on current `master`",
+    "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
+)
+
+README_FORBIDDEN_MARKERS = (
+    "`scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`",
+)
+
 
 def _read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -173,7 +188,7 @@ def _artifact_diff_contract_issues(root: Path) -> list[str]:
     issues: list[str] = []
     try:
         module = _load_artifact_diff_module(root)
-    except Exception as exc:
+    except Exception as exc:  # pragma: no cover - surfaced as gate issue
         return [f"artifact_diff_import:{exc}"]
 
     compare = getattr(module, "compare_artifacts", None)
@@ -186,7 +201,7 @@ def _artifact_diff_contract_issues(root: Path) -> list[str]:
         return issues
 
     fixture = root / FIXTURE_REL
-    manifest = root / MANIFEST_REL
+    readme = root / README_REL
     blockers = root / BLOCKERS_REL
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase1_parity_artifact_diff_") as tmp:
@@ -200,9 +215,9 @@ def _artifact_diff_contract_issues(root: Path) -> list[str]:
             json.dumps(fixture_payload, indent=2) + "\n", encoding="utf-8"
         )
 
-        drift_manifest = tmp_root / "manifest_drift.json"
-        drift_manifest.write_text(
-            _read_text(manifest) + "\nmanifest drift\n", encoding="utf-8"
+        drift_readme = tmp_root / "README_drift.md"
+        drift_readme.write_text(
+            _read_text(readme) + "\nartifact drift\n", encoding="utf-8"
         )
 
         drift_blockers = tmp_root / "blockers_drift.json"
@@ -210,7 +225,7 @@ def _artifact_diff_contract_issues(root: Path) -> list[str]:
 
         pass_cases = (
             ("json_fixture_pass", "json", fixture, fixture),
-            ("text_manifest_pass", "text", manifest, manifest),
+            ("text_readme_pass", "text", readme, readme),
             ("sha256_blockers_pass", "sha256", blockers, blockers),
         )
         for case_name, mode, expected_path, actual_path in pass_cases:
@@ -231,11 +246,13 @@ def _artifact_diff_contract_issues(root: Path) -> list[str]:
                 if len(lines) != 5 or not lines[4].startswith("SHA256="):
                     issues.append(f"artifact_diff_case:{case_name}:sha256")
             elif len(lines) != 4:
-                issues.append(f"artifact_diff_case:{case_name}:line_count={len(lines)}")
+                issues.append(
+                    f"artifact_diff_case:{case_name}:line_count={len(lines)}"
+                )
 
         fail_cases = (
             ("json_fixture_drift", "json", fixture, drift_fixture),
-            ("text_manifest_drift", "text", manifest, drift_manifest),
+            ("text_readme_drift", "text", readme, drift_readme),
             ("sha256_blockers_drift", "sha256", blockers, drift_blockers),
         )
         for case_name, mode, expected_path, actual_path in fail_cases:
@@ -261,7 +278,9 @@ def _artifact_diff_contract_issues(root: Path) -> list[str]:
                 ):
                     issues.append(f"artifact_diff_case:{case_name}:sha256")
             elif len(lines) != 4:
-                issues.append(f"artifact_diff_case:{case_name}:line_count={len(lines)}")
+                issues.append(
+                    f"artifact_diff_case:{case_name}:line_count={len(lines)}"
+                )
 
     return issues
 
@@ -270,14 +289,22 @@ def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
 
     artifact_diff = root / ARTIFACT_DIFF_REL
+    readme = root / README_REL
     fixture = root / FIXTURE_REL
     manifest = root / MANIFEST_REL
     blockers = root / BLOCKERS_REL
     replay = root / REPLAY_REL
 
-    for rel in (ARTIFACT_DIFF_REL, FIXTURE_REL, MANIFEST_REL, BLOCKERS_REL):
+    for rel in (
+        ARTIFACT_DIFF_REL,
+        README_REL,
+        FIXTURE_REL,
+        MANIFEST_REL,
+        BLOCKERS_REL,
+    ):
         if not (root / rel).exists():
             issues.append(f"missing:{rel.as_posix()}")
+
     if issues:
         return issues
 
@@ -286,6 +313,14 @@ def collect_issues(root: Path) -> list[str]:
         if marker not in artifact_diff_text:
             issues.append(f"artifact_diff_marker:{marker}")
     issues.extend(_artifact_diff_contract_issues(root))
+
+    readme_text = _read_text(readme)
+    for marker in README_REQUIRED_MARKERS:
+        if marker not in readme_text:
+            issues.append(f"readme_marker:{marker}")
+    for marker in README_FORBIDDEN_MARKERS:
+        if marker in readme_text:
+            issues.append(f"readme_forbidden:{marker}")
 
     fixture_payload = _read_json(fixture)
     if not isinstance(fixture_payload, dict):
@@ -316,29 +351,109 @@ def collect_issues(root: Path) -> list[str]:
     else:
         if manifest_payload.get("phase") != "Phase 1":
             issues.append(f"manifest_phase:{manifest_payload.get('phase')!r}")
-        if manifest_payload.get("status") != "closed":
+        if manifest_payload.get("status") != EXPECTED_MANIFEST_STATUS:
             issues.append(f"manifest_status:{manifest_payload.get('status')!r}")
         if manifest_payload.get("helper_count") != len(EXPECTED_HELPERS):
-            issues.append(f"manifest_helper_count:{manifest_payload.get('helper_count')}")
-        if manifest_payload.get("helpers") != list(EXPECTED_HELPERS):
+            issues.append(
+                f"manifest_helper_count:{manifest_payload.get('helper_count')}"
+            )
+        helpers = manifest_payload.get("helpers")
+        if helpers != list(EXPECTED_HELPERS):
             issues.append("manifest_helpers")
 
         lane_sequencing = manifest_payload.get("lane_sequencing")
         if not isinstance(lane_sequencing, dict):
             issues.append("manifest_lane_sequencing:not_json_object")
         else:
-            if lane_sequencing.get("shared_replay_parked_helpers") != list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS):
+            parked_helpers = lane_sequencing.get("shared_replay_parked_helpers")
+            if parked_helpers != list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS):
                 issues.append("manifest_shared_replay_parked_helpers")
-            if lane_sequencing.get("direct_anchor_followup_helpers") != list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS):
+
+            direct_helpers = lane_sequencing.get("direct_anchor_followup_helpers")
+            if direct_helpers != list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS):
                 issues.append("manifest_direct_anchor_followup_helpers")
+
             if lane_sequencing.get("rule_summary") != EXPECTED_LANE_RULE_SUMMARY:
                 issues.append("manifest_lane_rule_summary")
+
             if lane_sequencing.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
                 issues.append("manifest_lane_anti_overlap_rule")
 
+            if isinstance(parked_helpers, list) and isinstance(direct_helpers, list):
+                if sorted(parked_helpers + direct_helpers) != list(EXPECTED_HELPERS):
+                    issues.append("manifest_lane_helper_partition")
+
     blockers_payload = _read_json(blockers)
-    if blockers_payload != _expected_blockers_payload():
-        issues.append("blockers_payload")
+    expected_blockers = _expected_blockers_payload()
+    if blockers_payload != expected_blockers:
+        if not isinstance(blockers_payload, dict):
+            issues.append("blockers:not_json_object")
+        else:
+            if blockers_payload.get("status") != expected_blockers["status"]:
+                issues.append(f"blockers_status:{blockers_payload.get('status')!r}")
+
+            replay_blockers = blockers_payload.get("replay")
+            if not isinstance(replay_blockers, dict):
+                issues.append("blockers_replay:not_json_object")
+            else:
+                if replay_blockers.get("path") != REPLAY_REL.as_posix():
+                    issues.append(
+                        f"blockers_replay_path:{replay_blockers.get('path')!r}"
+                    )
+                if replay_blockers.get("state") != "blocked":
+                    issues.append(
+                        f"blockers_replay_state:{replay_blockers.get('state')!r}"
+                    )
+                blocker_list = replay_blockers.get("blockers")
+                if not isinstance(blocker_list, list) or len(blocker_list) != 1:
+                    issues.append("blockers_replay_list")
+                else:
+                    blocker = blocker_list[0]
+                    if blocker.get("id") != EXPECTED_REPLAY_BLOCKER_IDS[0]:
+                        issues.append(f"blockers_replay_id:{blocker.get('id')!r}")
+                    if blocker.get("field") != "slab.zero_after_kmalloc":
+                        issues.append(
+                            f"blockers_replay_field:{blocker.get('field')!r}"
+                        )
+                    if blocker.get("expected") is not True:
+                        issues.append(
+                            f"blockers_replay_expected:{blocker.get('expected')!r}"
+                        )
+                    if blocker.get("actual") is not False:
+                        issues.append(
+                            f"blockers_replay_actual:{blocker.get('actual')!r}"
+                        )
+
+            harness_blocker = blockers_payload.get("c_harness")
+            if not isinstance(harness_blocker, dict):
+                issues.append("blockers_c_harness:not_json_object")
+            else:
+                if (
+                    harness_blocker.get("path")
+                    != "zigux/tests/fixtures/phase1_helpers_c_harness.c"
+                ):
+                    issues.append(
+                        f"blockers_c_harness_path:{harness_blocker.get('path')!r}"
+                    )
+                if harness_blocker.get("state") != "blocked":
+                    issues.append(
+                        f"blockers_c_harness_state:{harness_blocker.get('state')!r}"
+                    )
+                if harness_blocker.get("helper_count") != len(EXPECTED_HELPERS):
+                    issues.append(
+                        "blockers_c_harness_helper_count:"
+                        f"{harness_blocker.get('helper_count')!r}"
+                    )
+                if harness_blocker.get("helpers") != list(EXPECTED_HELPERS):
+                    issues.append("blockers_c_harness_helpers")
+                if (
+                    harness_blocker.get("blocker_id")
+                    != EXPECTED_REPLAY_BLOCKER_IDS[1]
+                ):
+                    issues.append(
+                        "blockers_c_harness_id:"
+                        f"{harness_blocker.get('blocker_id')!r}"
+                    )
 
     if replay.exists():
         replay_text = _read_text(replay)
@@ -360,12 +475,16 @@ def run_check(root: Path) -> int:
             print(f"PHASE1_PARITY_ISSUE={issue}")
         return 1
 
+    blocker_ids = ",".join(EXPECTED_REPLAY_BLOCKER_IDS)
     print("PHASE1_PARITY=pass")
     print(f"PHASE1_PARITY_SECTION_COUNT={len(EXPECTED_SECTIONS)}")
     print(f"PHASE1_PARITY_HELPER_COUNT={len(EXPECTED_HELPERS)}")
-    print("PHASE1_PARITY_REPLAY=" + ("present" if (root / REPLAY_REL).exists() else "parked"))
+    print(
+        "PHASE1_PARITY_REPLAY="
+        + ("present" if (root / REPLAY_REL).exists() else "parked")
+    )
     print(f"PHASE1_PARITY_BLOCKER_COUNT={len(EXPECTED_REPLAY_BLOCKER_IDS)}")
-    print("PHASE1_PARITY_BLOCKER_IDS=" + ",".join(EXPECTED_REPLAY_BLOCKER_IDS))
+    print(f"PHASE1_PARITY_BLOCKER_IDS={blocker_ids}")
     return 0
 
 
@@ -384,7 +503,7 @@ def make_fixture_json() -> str:
 def make_manifest_json() -> str:
     payload = {
         "phase": "Phase 1",
-        "status": "closed",
+        "status": EXPECTED_MANIFEST_STATUS,
         "helper_count": len(EXPECTED_HELPERS),
         "helpers": list(EXPECTED_HELPERS),
         "lane_sequencing": {
@@ -475,8 +594,31 @@ def render_result_lines(matched: bool, details: dict[str, object]) -> list[str]:
 """
 
 
+def make_readme_text() -> str:
+    return "\n".join(
+        (
+            "# scripts/zigux",
+            "",
+            "This directory holds shipped Zigux validation helpers and compact reminder surfaces.",
+            "",
+            "## Phase 1",
+            "",
+            "- Phase 1 flow - the current host-tools reminder packet keeps the closed helper tranche reviewable through the live parity-fixture, artifact-diff, bench, owner-map, and string-review guards instead of rebuilding the broader installer-backed closure packet from older missing routes",
+            f"- {README_REQUIRED_MARKERS[0]}",
+            f"- {README_REQUIRED_MARKERS[1]}",
+            f"- {README_REQUIRED_MARKERS[2]}",
+            "- `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` are back on current `master`, so bitmap-side follow-through can use that restored closure packet as live reminder evidence instead of replaying older missing validator-first or make-route names by default",
+            "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, bench-expectation, and helper-replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
+            f"- {README_REQUIRED_MARKERS[3]}",
+            f"- {README_REQUIRED_MARKERS[4]}",
+            "- the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, rbtree, and string reopen only inside their existing helper-local anchors or already-committed shared fixture keys, while the other nine closed helpers stay parked unless the shared replay or reminder packet drifts",
+        )
+    ) + "\n"
+
+
 def build_case_root(base: Path) -> Path:
     write_file(base / ARTIFACT_DIFF_REL, make_artifact_diff_text())
+    write_file(base / README_REL, make_readme_text())
     write_file(base / FIXTURE_REL, make_fixture_json())
     write_file(base / MANIFEST_REL, make_manifest_json())
     write_file(base / BLOCKERS_REL, make_blockers_json())
@@ -493,14 +635,20 @@ def run_self_test() -> int:
 
         missing_artifact_diff_root = build_case_root(tmp_root / "missing_artifact_diff")
         (missing_artifact_diff_root / ARTIFACT_DIFF_REL).unlink()
-        cases.append(("missing_artifact_diff", run_check(missing_artifact_diff_root) != 0))
+        cases.append(
+            ("missing_artifact_diff", run_check(missing_artifact_diff_root) != 0)
+        )
 
         artifact_diff_contract_root = build_case_root(tmp_root / "artifact_diff_contract")
         write_file(
             artifact_diff_contract_root / ARTIFACT_DIFF_REL,
-            make_artifact_diff_text().replace("render_result_lines", "render_result_rows", 1),
+            make_artifact_diff_text().replace(
+                "def render_result_lines", "def render_result_rows", 1
+            ),
         )
-        cases.append(("artifact_diff_contract", run_check(artifact_diff_contract_root) != 0))
+        cases.append(
+            ("artifact_diff_contract", run_check(artifact_diff_contract_root) != 0)
+        )
 
         fixture_drift_root = build_case_root(tmp_root / "fixture_drift")
         write_file(
@@ -509,24 +657,148 @@ def run_self_test() -> int:
         )
         cases.append(("fixture_drift", run_check(fixture_drift_root) != 0))
 
-        blockers_drift_root = build_case_root(tmp_root / "blockers_drift")
-        payload = json.loads(make_blockers_json())
-        payload["replay"]["blockers"][0]["actual"] = True
-        write_file(blockers_drift_root / BLOCKERS_REL, json.dumps(payload, indent=2) + "\n")
-        cases.append(("blockers_drift", run_check(blockers_drift_root) != 0))
+        fixture_string_drift_root = build_case_root(tmp_root / "fixture_string_drift")
+        write_file(
+            fixture_string_drift_root / FIXTURE_REL,
+            json.dumps(
+                {
+                    **json.loads(make_fixture_json()),
+                    "string": {"strtobool_invalid": 22},
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        cases.append(
+            ("fixture_string_drift", run_check(fixture_string_drift_root) != 0)
+        )
+
+        fixture_slab_drift_root = build_case_root(tmp_root / "fixture_slab_drift")
+        write_file(
+            fixture_slab_drift_root / FIXTURE_REL,
+            json.dumps(
+                {
+                    **json.loads(make_fixture_json()),
+                    "slab": {"zero_after_kmalloc": False},
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        cases.append(("fixture_slab_drift", run_check(fixture_slab_drift_root) != 0))
+
+        manifest_status_drift_root = build_case_root(tmp_root / "manifest_status_drift")
+        write_file(
+            manifest_status_drift_root / MANIFEST_REL,
+            json.dumps(
+                {
+                    "phase": "Phase 1",
+                    "status": "open",
+                    "helper_count": len(EXPECTED_HELPERS),
+                    "helpers": list(EXPECTED_HELPERS),
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        cases.append(
+            ("manifest_status_drift", run_check(manifest_status_drift_root) != 0)
+        )
+
+        manifest_drift_root = build_case_root(tmp_root / "manifest_drift")
+        write_file(
+            manifest_drift_root / MANIFEST_REL,
+            json.dumps(
+                {
+                    "phase": "Phase 1",
+                    "status": EXPECTED_MANIFEST_STATUS,
+                    "helper_count": len(EXPECTED_HELPERS),
+                    "helpers": list(EXPECTED_HELPERS[:-1]),
+                    "lane_sequencing": {
+                        "shared_replay_parked_helpers": list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS),
+                        "direct_anchor_followup_helpers": list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS),
+                        "rule_summary": EXPECTED_LANE_RULE_SUMMARY,
+                        "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+                    },
+                },
+                indent=2,
+            )
+            + "\n",
+        )
+        cases.append(("manifest_drift", run_check(manifest_drift_root) != 0))
+
+        manifest_lane_split_drift_root = build_case_root(tmp_root / "manifest_lane_split_drift")
+        payload = json.loads(make_manifest_json())
+        payload["lane_sequencing"]["shared_replay_parked_helpers"] = payload["lane_sequencing"]["shared_replay_parked_helpers"][1:]
+        payload["lane_sequencing"]["direct_anchor_followup_helpers"] = [
+            EXPECTED_SHARED_REPLAY_PARKED_HELPERS[0],
+            *payload["lane_sequencing"]["direct_anchor_followup_helpers"],
+        ]
+        write_file(
+            manifest_lane_split_drift_root / MANIFEST_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            ("manifest_lane_split_drift", run_check(manifest_lane_split_drift_root) != 0)
+        )
 
         manifest_lane_rule_drift_root = build_case_root(tmp_root / "manifest_lane_rule_drift")
         payload = json.loads(make_manifest_json())
-        payload["lane_sequencing"]["anti_overlap_rule"] = "lane drift"
-        write_file(manifest_lane_rule_drift_root / MANIFEST_REL, json.dumps(payload, indent=2) + "\n")
-        cases.append(("manifest_lane_rule_drift", run_check(manifest_lane_rule_drift_root) != 0))
+        payload["lane_sequencing"]["anti_overlap_rule"] = "Do not reopen Phase 1 without rereading the helper split first."
+        write_file(
+            manifest_lane_rule_drift_root / MANIFEST_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            ("manifest_lane_rule_drift", run_check(manifest_lane_rule_drift_root) != 0)
+        )
 
-        replay_present_root = build_case_root(tmp_root / "replay_present")
-        write_file(replay_present_root / REPLAY_REL, make_replay_text())
-        cases.append(("replay_present", run_check(replay_present_root) == 0))
+        readme_marker_root = build_case_root(tmp_root / "readme_marker")
+        write_file(
+            readme_marker_root / README_REL,
+            make_readme_text().replace(README_REQUIRED_MARKERS[3], "", 1),
+        )
+        cases.append(("readme_marker", run_check(readme_marker_root) != 0))
+
+        readme_forbidden_root = build_case_root(tmp_root / "readme_forbidden")
+        write_file(
+            readme_forbidden_root / README_REL,
+            make_readme_text()
+            + "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/check-phase1-bench.py`, `zigux/tests/phase1_helpers.zig`\n",
+        )
+        cases.append(("readme_forbidden", run_check(readme_forbidden_root) != 0))
+
+        blockers_missing_root = build_case_root(tmp_root / "blockers_missing")
+        (blockers_missing_root / BLOCKERS_REL).unlink()
+        cases.append(("blockers_missing", run_check(blockers_missing_root) != 0))
+
+        blockers_drift_root = build_case_root(tmp_root / "blockers_drift")
+        payload = json.loads(make_blockers_json())
+        payload["replay"]["blockers"][0]["actual"] = True
+        write_file(
+            blockers_drift_root / BLOCKERS_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(("blockers_drift", run_check(blockers_drift_root) != 0))
+
+        blockers_helpers_drift_root = build_case_root(tmp_root / "blockers_helpers_drift")
+        payload = json.loads(make_blockers_json())
+        payload["c_harness"]["helpers"] = payload["c_harness"]["helpers"][:-1]
+        write_file(
+            blockers_helpers_drift_root / BLOCKERS_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            ("blockers_helpers_drift", run_check(blockers_helpers_drift_root) != 0)
+        )
 
         replay_anchor_root = build_case_root(tmp_root / "replay_anchor")
-        write_file(replay_anchor_root / REPLAY_REL, "\n".join(REPLAY_IMPORTS) + "\n")
+        write_file(replay_anchor_root / REPLAY_REL, make_replay_text())
+        cases.append(("replay_present", run_check(replay_anchor_root) == 0))
+        write_file(
+            replay_anchor_root / REPLAY_REL,
+            "\n".join(REPLAY_IMPORTS) + "\n",
+        )
         cases.append(("replay_anchor", run_check(replay_anchor_root) != 0))
 
     failed = [name for name, ok in cases if not ok]
@@ -538,12 +810,17 @@ def run_self_test() -> int:
 
     print("PHASE1_PARITY_SELF_TEST=pass")
     print(f"PHASE1_PARITY_SELF_TEST_CASE_COUNT={len(cases)}")
-    print("PHASE1_PARITY_SELF_TEST_CASES=" + ",".join(name for name, _ in cases))
+    print(
+        "PHASE1_PARITY_SELF_TEST_CASES="
+        + ",".join(name for name, _ in cases)
+    )
     return 0
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate the bounded Lane 09 Phase 1 parity packet.")
+    parser = argparse.ArgumentParser(
+        description="Validate the bounded Lane 09 Phase 1 parity packet."
+    )
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
