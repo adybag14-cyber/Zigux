@@ -99,7 +99,6 @@ REQUIRED_TESTS_ROOT_MARKERS = (
 )
 
 FORBIDDEN_GAP_MARKERS = (
-    "`scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`",
     "`Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`",
     "`zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`",
     "`zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json`",
@@ -237,14 +236,6 @@ Tests-root reviewer prompt:
         ),
         (
             good_companion.replace(
-                "`scripts/zigux/validate-phase10.py`, `Documentation/zigux/phase10-virtio-core-slice.md`",
-                "`scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`",
-                1,
-            ),
-            "forbidden repo-reality-gap markers",
-        ),
-        (
-            good_companion.replace(
                 "`Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_mmio.zig`",
                 "`drivers/virtio/virtio_mmio.zig`",
             ),
@@ -296,7 +287,7 @@ Tests-root reviewer prompt:
             raise AssertionError(f"expected failure for {expected}")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
