@@ -126,11 +126,13 @@ def validate_workflow(workflow_text: str) -> list[str]:
 
     for step_name in WORKFLOW_STEP_NAMES:
         marker = f"- name: {step_name}"
-        position = workflow_text.find(marker)
-        if position == -1:
+        actual = workflow_text.count(marker)
+        if actual == 0:
             failures.append(f"workflow_step:{step_name}")
             continue
-        positions.append(position)
+        if actual != 1:
+            failures.append(f"workflow_step_duplicate:{step_name}:actual={actual}")
+        positions.append(workflow_text.find(marker))
 
     if positions and positions != sorted(positions):
         failures.append("workflow_order:bootstrap-step-order")
@@ -409,6 +411,21 @@ def run_self_test() -> int:
         expect_failure(base, "workflow_order:bootstrap-step-order")
 
         write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "      - name: Check current Zig toolchain policy packet\n        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only\n",
+                "      - name: Check current Zig toolchain policy packet\n        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only\n      - name: Check current Zig toolchain policy packet\n        run: python3 scripts/zigux/check-zig-toolchain.py --self-test\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_step_duplicate:Check current Zig toolchain policy packet:actual=2",
+        )
+
+        write_fixture_tree(base)
         survey_path = base / SURVEY_PATH
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
@@ -419,7 +436,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=9")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
