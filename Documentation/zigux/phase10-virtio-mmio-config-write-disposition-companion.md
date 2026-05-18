@@ -48,9 +48,9 @@ The helper remains planning-only and observation-only. It surfaces what a staged
 Current `master` readback keeps this narrower MMIO packet explicit through:
 
 - `drivers/virtio/virtio_mmio.zig` carries the richer config-write disposition observation helper
-- `drivers/virtio/virtio_mmio_verify.zig` keeps the changed-byte-count and queue-readiness wrapper proof explicit beside the helper
-- `Documentation/zigux/phase10-virtio-mmio-survey.md` keeps the bounded transport-identity, queue-readiness, feature-negotiation, and config-write-disposition survey aligned with the same blocked lifecycle-and-IRQ boundary
-- `zigux/tests/phase10_virtio_mmio.zig` keeps the helper-local probe-gating, queue-readiness, feature-negotiation, and config-write-disposition replays explicit
+- `drivers/virtio/virtio_mmio_verify.zig` keeps the changed-byte-count, interrupt-ack-disposition, and queue-readiness wrapper proof explicit beside the helper
+- `Documentation/zigux/phase10-virtio-mmio-survey.md` keeps the bounded transport-identity, queue-readiness, interrupt-ack-disposition, feature-negotiation, and config-write-disposition survey aligned with the same blocked lifecycle-and-IRQ boundary
+- `zigux/tests/phase10_virtio_mmio.zig` keeps the helper-local probe-gating, queue-readiness, interrupt-ack-disposition, feature-negotiation, and config-write-disposition replays explicit
 - `zigux/tests/phase10_virtio_mmio_survey.zig` rereads the parked survey note together with the shared `zigux/tests/phase10_build.zig` gate
 - `zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and slice note explicit beside the helper-local packet
 - `Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface
