@@ -69,7 +69,7 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-kconfig-bridge.py",
-    "scripts/zigux/check-zig-toolchain.py"
+    "scripts/zigux/check-zig-toolchain.py",
 ]
 
 EXPECTED_MISSING_FILES = [
@@ -83,7 +83,7 @@ EXPECTED_SHARED_PRESENT_FILES = [
 ]
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+EXPECTED_SELF_TEST_CASE_COUNT = 27
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -332,19 +332,20 @@ def run_self_test() -> int:
         assert ("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH) in collect_issues(root)
         checks_run += 1
 
-        build_self_test_root(root)
-        bad = json.loads(manifest_json())
-        bad["present_files"] = [item for item in EXPECTED_PRESENT_FILES if item != EXPECTED_SHARED_PRESENT_FILES[0]]
-        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
-        assert ("SHARED_TOOL_NOT_MARKED_PRESENT", EXPECTED_SHARED_PRESENT_FILES[0]) in collect_issues(root)
-        checks_run += 1
+        for shared_path in EXPECTED_SHARED_PRESENT_FILES:
+            build_self_test_root(root)
+            bad = json.loads(manifest_json())
+            bad["present_files"] = [item for item in EXPECTED_PRESENT_FILES if item != shared_path]
+            write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+            assert ("SHARED_TOOL_NOT_MARKED_PRESENT", shared_path) in collect_issues(root)
+            checks_run += 1
 
-        build_self_test_root(root)
-        bad = json.loads(manifest_json())
-        bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_SHARED_PRESENT_FILES[0]]
-        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
-        assert ("SHARED_TOOL_STILL_MARKED_MISSING", EXPECTED_SHARED_PRESENT_FILES[0]) in collect_issues(root)
-        checks_run += 1
+            build_self_test_root(root)
+            bad = json.loads(manifest_json())
+            bad["missing_files"] = EXPECTED_MISSING_FILES + [shared_path]
+            write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+            assert ("SHARED_TOOL_STILL_MARKED_MISSING", shared_path) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
