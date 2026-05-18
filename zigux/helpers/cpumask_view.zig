@@ -157,6 +157,23 @@ test "cpumask exact-word windows keep full-word masks explicit" {
     try std.testing.expectEqual(bitmap.bits_per_word + 1, summary.weight);
 }
 
+test "cpumask word counts stay predictable for large bounded windows" {
+    const max_nbits = std.math.maxInt(u32);
+    const expected = bitmap.wordCount(max_nbits);
+    const invalid = binding.initCpumaskView(1, max_nbits, expected - 1, max_nbits);
+    const summary = summarize(invalid);
+
+    try std.testing.expectEqual(expected, bitmap.wordCount(max_nbits));
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!cpuIsSet(invalid, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask validity rejects non-empty views without backing storage" {
     const invalid = binding.initCpumaskView(0, 1, 1, 1);
     const summary = summarize(invalid);
@@ -173,6 +190,20 @@ test "cpumask validity rejects non-empty views without backing storage" {
 
 test "cpumask validity rejects malformed word counts and closes helpers" {
     const invalid = binding.initCpumaskView(0, bitmap.bits_per_word + 1, 1, bitmap.bits_per_word + 1);
+    const summary = summarize(invalid);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!cpuIsSet(invalid, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
+test "cpumask validity rejects zero-bit stray storage and closes helpers" {
+    const invalid = binding.initCpumaskView(1, 0, 1, 0);
     const summary = summarize(invalid);
 
     try std.testing.expect(!isValid(invalid));
