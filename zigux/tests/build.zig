@@ -464,6 +464,13 @@ pub fn build(b: *std.Build) void {
     );
     phase3_errptr_xarray_dump_step.dependOn(&phase3_errptr_xarray_dump.step);
 
+    const phase3_errptr_xarray_slice_step = b.step(
+        "phase3-errptr-xarray",
+        "Run the shared Phase 3 err_ptr/xarray starter packet and dump from zigux/tests",
+    );
+    phase3_errptr_xarray_slice_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
+    phase3_errptr_xarray_slice_step.dependOn(&phase3_errptr_xarray_dump.step);
+
     const phase3_policy_step = b.step(
         "phase3-policy-starter-packet",
         "Run the shared Phase 3 policy starter packet from zigux/tests",
