@@ -184,6 +184,15 @@ test "classifies non-ELF input" {
     try std.testing.expectEqual(Outcome.not_elf, classify(&header));
 }
 
+test "classifies non-ELF input with trailing bytes" {
+    const header = [_]u8{
+        0x00, 'E',  'L',  'F', elfclass32, 1, 1, 0,
+        0,    0,    0,    0,   0,          0, 0, 0,
+        0xaa, 0xbb, 0xcc,
+    };
+    try std.testing.expectEqual(Outcome.not_elf, classify(&header));
+}
+
 test "classifies unsupported ELF class silently" {
     const header = [_]u8{ 0x7f, 'E', 'L', 'F', 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
     try std.testing.expectEqual(Outcome.invalid_class, classify(&header));
@@ -423,6 +432,26 @@ test "non-ELF input exits with stderr" {
 
     const exit_code = try runMkElfconfig(
         &[_]u8{ 0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+        &stdout,
+        &stderr,
+    );
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+}
+
+test "non-ELF input with trailing bytes exits with stderr" {
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfig(
+        &[_]u8{
+            0x00, 'E',  'L', 'F', elfclass32, 1, 1, 0,
+            0,    0,    0,   0,   0,          0, 0, 0,
+            0xaa, 0xbb,
+        },
         &stdout,
         &stderr,
     );
