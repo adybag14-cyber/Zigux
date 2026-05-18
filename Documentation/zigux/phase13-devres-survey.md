@@ -32,8 +32,8 @@ The Phase 13 roadmap keeps `lib/devres.c` in the shared-helper tranche, but curr
 
 ## Exact live readback
 
-- current `master` still ships `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig`.
-- current `master` does not ship `lib/devres.zig`, `Documentation/zigux/phase13-devres-survey.md` before this repair, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_manifest.json`, or `scripts/zigux/check-phase13-devres-packet-alignment.py`.
+- current `master` still ships `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_dma_coherent.zig`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig`.
+- current `master` does not ship `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_manifest.json`, or `scripts/zigux/check-phase13-devres-packet-alignment.py`.
 - the live `phase13_devres_dmam_alloc_coherent_planner_manifest.json` packet still records `"packet": "phase13-devres-dmam-alloc-coherent-planner"`, `"status": "planning_only"`, `"id": "phase13-devres-live-dmam-alloc-side-effects"`, and `"id": "phase13-devres-live-scatterlist-ownership"`.
 - the live `phase13_devres_dma_coherent.zig` replay still requires the planner note to keep generic DMA mapping helpers and scatterlist lifecycle ownership blocked.
 - the live `devres_scatterlist.zig` helper descriptor still marks `provides_scatterlist_lifetime_planning = true`, `touches_live_dma = false`, and `touches_live_scatterlist = false`.
