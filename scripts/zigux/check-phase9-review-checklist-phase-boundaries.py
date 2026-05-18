@@ -53,6 +53,7 @@ REVIEW_CHECKLIST_BITMAP_PHASE5_BOUNDARY_MARKER = "there is no standalone `sample
 REVIEW_CHECKLIST_BITMAP_HELPER_BOUNDARY_MARKER = "direct bitmap helper reviewability remains under `tools/lib/bitmap.zig`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `Documentation/zigux/phase4-reversible-delivery-evidence.md`"
 REVIEW_CHECKLIST_BITMAP_RUNTIME_BACKLOG_MARKER = "runtime bitmap family stays framed as backlog-only Phase 9 support material in `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md`"
 REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER = "unless a fresh repo reread proves `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and `zigux/tests/phase9_build.zig` have returned on current `master`"
+REVIEW_CHECKLIST_TRACE_EVENTS_ONLY_MARKER = "keep the current surviving Phase 9 packet trace-events-only so those historical runtime-bitmap backlog names do not get mistaken for present runtime proof or extra Phase 5 evidence"
 
 LANE_SEQUENCING_SAMPLE_MARKER = "surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`"
 LANE_SEQUENCING_SELFTEST_MARKER = "`.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking"
@@ -129,6 +130,7 @@ CHECKLIST_REQUIRED_MARKERS = [
     REVIEW_CHECKLIST_BITMAP_HELPER_BOUNDARY_MARKER,
     REVIEW_CHECKLIST_BITMAP_RUNTIME_BACKLOG_MARKER,
     REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER,
+    REVIEW_CHECKLIST_TRACE_EVENTS_ONLY_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
@@ -298,7 +300,7 @@ def build_fixture_text() -> str:
 - {PHASE9_SHARED_PACKET_MARKER}
 - the shared Phase 9 reminder should keep the surviving runtime packet explicit through {TRACE_EVENTS_PACKET_CHECKER_MARKER}, {REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER}, {REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER}, {REVIEW_CHECKLIST_LIFECYCLE_MARKER}, the fail-closed companion {REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER} with {REVIEW_CHECKLIST_FAIL_CLOSED_MARKER}, and the re-entry companion {REVIEW_CHECKLIST_REENTRY_GATE_MARKER} with the {REVIEW_CHECKLIST_REENTRY_COMPANION_MARKER}
 - the same reminder should keep the backlog posture explicit: current `master` {REVIEW_CHECKLIST_BACKLOG_MARKER}, so {REVIEW_CHECKLIST_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {REVIEW_CHECKLIST_RUNTIME_LOADER_MARKER}, {REVIEW_CHECKLIST_RUNTIME_LOADER_CONTRACT_MARKER}, `zigux/Makefile`, {REVIEW_CHECKLIST_WORKFLOW_MARKER}, and the older {REVIEW_CHECKLIST_RUNTIME_LOADER_SCAFFOLD_MARKER} stay absent backlog references unless a fresh repo reread proves they have returned
-- the same shared checklist should keep the bitmap-specific Phase 5 versus Phase 9 boundary explicit too: {REVIEW_CHECKLIST_BITMAP_PHASE5_BOUNDARY_MARKER}, {REVIEW_CHECKLIST_BITMAP_HELPER_BOUNDARY_MARKER}, and {REVIEW_CHECKLIST_BITMAP_RUNTIME_BACKLOG_MARKER} {REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER} rather than treating the runtime bitmap packet as shipped current-master evidence
+- the same shared checklist should keep the bitmap-specific Phase 5 versus Phase 9 boundary explicit too: {REVIEW_CHECKLIST_BITMAP_PHASE5_BOUNDARY_MARKER}, {REVIEW_CHECKLIST_BITMAP_HELPER_BOUNDARY_MARKER}, and {REVIEW_CHECKLIST_BITMAP_RUNTIME_BACKLOG_MARKER} {REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER}, and {REVIEW_CHECKLIST_TRACE_EVENTS_ONLY_MARKER} rather than treating the runtime bitmap packet as shipped current-master evidence
 - the shared Phase 9 reminder should also keep the older cross-phase non-owner boundaries explicit:
   {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while
   {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}.
