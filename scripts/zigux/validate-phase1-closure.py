@@ -18,6 +18,7 @@ DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
+CLOSURE_GATES_CHECKER_REL = Path("scripts/zigux/check-phase1-closure-gates.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
@@ -33,6 +34,7 @@ REQUIRED_FILES = (
     REVIEW_CHECKLIST_REL,
     SCRIPTS_README_REL,
     BENCH_CHECKER_REL,
+    CLOSURE_GATES_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
@@ -458,7 +460,8 @@ EXPECTED_MARKERS = {
         "Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,"
         "Documentation/zigux/review-checklist.md,scripts/zigux/README.md,"
         "scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,"
-        "scripts/zigux/check-phase1-bench.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,"
+        "scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-closure-gates.py,"
+        "scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,"
         "zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`"
     ),
     "gap_packet": (
@@ -468,11 +471,14 @@ EXPECTED_MARKERS = {
         "zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`"
     ),
     "closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
+    "closure_gates": "`PHASE1_CLOSURE_GATES=python3 scripts/zigux/check-phase1-closure-gates.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
     "next_step": (
-        "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface against the restored closure note "
-        "and closure validator`"
+        "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker "
+        "against the restored closure note, closure validator, closure-gates checker, shared "
+        "tests-root smoke route, and the helper-specific next_safe_step_note entries in "
+        "zigux/tests/fixtures/phase1_helper_manifest.json`"
     ),
 }
 
@@ -720,6 +726,7 @@ def make_fixture_tree(root: Path) -> None:
                 EXPECTED_MARKERS["reminder_packet"],
                 EXPECTED_MARKERS["gap_packet"],
                 EXPECTED_MARKERS["closure_validator"],
+                EXPECTED_MARKERS["closure_gates"],
                 EXPECTED_MARKERS["shared_tests_route"],
                 EXPECTED_MARKERS["validator_state"],
                 EXPECTED_MARKERS["next_step"],
@@ -808,6 +815,18 @@ def run_self_test() -> int:
             False,
         ),
         (
+            "missing_closure_gates_packet_marker",
+            lambda root: write_text(
+                root / PHASE1_CLOSURE_REL,
+                replace_once(
+                    load_text(root, PHASE1_CLOSURE_REL),
+                    "scripts/zigux/check-phase1-closure-gates.py,",
+                    "",
+                ),
+            ),
+            False,
+        ),
+        (
             "missing_file",
             lambda root: (root / PHASE1_SMOKE_REL).unlink(),
             False,
@@ -815,6 +834,11 @@ def run_self_test() -> int:
         (
             "missing_bench_checker_file",
             lambda root: (root / BENCH_CHECKER_REL).unlink(),
+            False,
+        ),
+        (
+            "missing_closure_gates_checker_file",
+            lambda root: (root / CLOSURE_GATES_CHECKER_REL).unlink(),
             False,
         ),
         (
