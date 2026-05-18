@@ -11,8 +11,8 @@ const WinsizeLayout = extern struct {
 const HvcStruct = opaque {};
 
 const HvOpsLayout = extern struct {
-    get_chars: ?*const fn (u32, [*]u8, usize) callconv(.c) isize,
-    put_chars: ?*const fn (u32, [*]const u8, usize) callconv(.c) isize,
+    get_chars: ?*const fn (u32, [*]c_char, c_int) callconv(.c) c_int,
+    put_chars: ?*const fn (u32, [*]const c_char, c_int) callconv(.c) c_int,
     flush: ?*const fn (u32, bool) callconv(.c) c_int,
     notifier_add: ?*const fn (*HvcStruct, c_int) callconv(.c) c_int,
     notifier_del: ?*const fn (*HvcStruct, c_int) callconv(.c) void,
@@ -53,6 +53,17 @@ fn assertExactType(comptime Actual: type, comptime Expected: type) void {
     }
 }
 
+fn readFileAlloc(allocator: std.mem.Allocator, path: []const u8, limit: usize) ![]u8 {
+    var io_instance: std.Io.Threaded = .init(allocator, .{});
+    defer io_instance.deinit();
+
+    return std.Io.Dir.cwd().readFileAlloc(io_instance.io(), path, allocator, .limited(limit));
+}
+
+fn expectContains(haystack: []const u8, needle: []const u8) !void {
+    try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
+}
+
 test "phase11 HVC exported helper proof keeps winsize layout explicit" {
     comptime {
         layout_assert.assertSize(WinsizeLayout, 8);
@@ -84,11 +95,11 @@ test "phase11 HVC exported helper proof keeps hv_ops callback signatures exact" 
     comptime {
         assertExactType(
             @FieldType(HvOpsLayout, "get_chars"),
-            ?*const fn (u32, [*]u8, usize) callconv(.c) isize,
+            ?*const fn (u32, [*]c_char, c_int) callconv(.c) c_int,
         );
         assertExactType(
             @FieldType(HvOpsLayout, "put_chars"),
-            ?*const fn (u32, [*]const u8, usize) callconv(.c) isize,
+            ?*const fn (u32, [*]const c_char, c_int) callconv(.c) c_int,
         );
         assertExactType(
             @FieldType(HvOpsLayout, "flush"),
@@ -149,4 +160,15 @@ test "phase11 HVC exported helper proof keeps exported helper signatures exact" 
         assertExactType(@FieldType(HvcExportSurface, "notifier_del_irq"), HvcNotifierDelIrqFn);
         assertExactType(@FieldType(HvcExportSurface, "notifier_hangup_irq"), HvcNotifierHangupIrqFn);
     }
+}
+
+test "phase11 HVC exported helper proof stays tied to the exported header signatures" {
+    const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 32 * 1024);
+    defer std.testing.allocator.free(hvc_header);
+
+    try expectContains(hvc_header, "int (*get_chars)(uint32_t vtermno, char *buf, int count);");
+    try expectContains(hvc_header, "int (*put_chars)(uint32_t vtermno, const char *buf, int count);");
+    try expectContains(hvc_header, "int hvc_instantiate(uint32_t vtermno, int index, const struct hv_ops *ops);");
+    try expectContains(hvc_header, "struct hvc_struct *hvc_alloc(uint32_t vtermno, int data, const struct hv_ops *ops, int outbuf_size);");
+    try expectContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");
 }
