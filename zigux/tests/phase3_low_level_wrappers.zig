@@ -78,3 +78,19 @@ test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across sha
     try std.testing.expectEqual(@as(u32, 0x00AA_3301), updated);
     try std.testing.expectEqual(updated, register);
 }
+
+test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {
+    var register: u16 = 0x55AA;
+    const register_ptr: *volatile u16 = @ptrCast(&register);
+
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        mmio.exchangeInteropPolicyBytes(u16, 0, 0, register_ptr, 0x0F0F),
+    );
+    try std.testing.expectEqual(
+        @as(u16, 0x55AA),
+        try mmio.exchangeInteropPolicyBytes(u16, 1, 0, register_ptr, 0x0F0F),
+    );
+    barrier.acquireRelease();
+    try std.testing.expectEqual(@as(u16, 0x0F0F), register);
+}
