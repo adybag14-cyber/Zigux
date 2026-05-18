@@ -232,8 +232,6 @@ def run_self_test() -> int:
             raise SystemExit("phase1-find-bit-clump:self-test:baseline")
 
         text = (tmp_root / TARGET).read_text(encoding="utf-8")
-
-        (tmp_root / TARGET).writeText if False else None
         (tmp_root / TARGET).write_text(
             text.replace(REQUIRED_TEST_MARKERS["tail_mask"] + "\n", "", 1),
             encoding="utf-8",
