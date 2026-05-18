@@ -17,6 +17,9 @@ NOTE_MARKERS = [
     "lane owner: `Lane 05`",
     "workflow anchor: `.github/workflows/zigux-bootstrap.yml`",
     "checker anchor: `scripts/zigux/check-phase12-bootstrap-contract.py`",
+    "the current shipped bootstrap lane still declares unfiltered `push` coverage for `master`",
+    "the current shipped bootstrap lane still keeps path-filtered `pull_request` coverage for the Zigux-owned lane files",
+    "the open trigger-gap investigation is therefore a runtime attachment problem rather than a missing trigger stanza in the committed workflow file",
     "the current shipped bootstrap lane still compiles `scripts/zigux/*.py` before any lane checks run",
     "the current shipped lane still keeps the pinned Zig archive check and the Phase 11 build-inventory plus matrix-gap survey checks",
     "the current shipped Phase 12 slice still includes the build-only surface pair, the release-readiness pair, `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`",
@@ -72,6 +75,12 @@ WORKFLOW_REQUIRED_MARKERS = [
     "ZIGUX_BOOTSTRAP_MARKER_COUNT=",
 ]
 
+WORKFLOW_REQUIRED_PULL_REQUEST_PATHS = [
+    "- 'Documentation/zigux/**'",
+    "- 'scripts/zigux/**'",
+    "- '.github/workflows/zigux-bootstrap.yml'",
+]
+
 WORKFLOW_FORBIDDEN_MARKERS = [
     "Self-test current Phase 12 bootstrap docs sanity checker",
     "Check current Phase 12 docs-root sanity markers",
@@ -97,6 +106,16 @@ def read_text(root: Path, rel_path: str) -> str:
     if not path.exists():
         raise FileNotFoundError(rel_path)
     return path.read_text(encoding="utf-8")
+
+
+def slice_block(text: str, start_marker: str, end_marker: str) -> str | None:
+    start = text.find(start_marker)
+    if start == -1:
+        return None
+    end = text.find(end_marker, start)
+    if end == -1:
+        return text[start:]
+    return text[start:end]
 
 
 def validate(root: Path) -> list[str]:
@@ -129,6 +148,27 @@ def validate(root: Path) -> list[str]:
         if marker not in workflow_text:
             failures.append(f"workflow_required:{marker}")
 
+    push_block = slice_block(workflow_text, "  push:\n", "  pull_request:\n")
+    if push_block is None:
+        failures.append("workflow_missing_event:push")
+    else:
+        if "    branches: [ master ]" not in push_block:
+            failures.append("workflow_push_missing_master_branch")
+        if "\n    paths:" in push_block:
+            failures.append("workflow_push_paths_filter_present")
+
+    pull_request_block = slice_block(
+        workflow_text, "  pull_request:\n", "  workflow_dispatch:\n"
+    )
+    if pull_request_block is None:
+        failures.append("workflow_missing_event:pull_request")
+    else:
+        if "\n    paths:\n" not in pull_request_block:
+            failures.append("workflow_pr_missing_paths_filter")
+        for marker in WORKFLOW_REQUIRED_PULL_REQUEST_PATHS:
+            if marker not in pull_request_block:
+                failures.append(f"workflow_pr_required:{marker}")
+
     for marker in WORKFLOW_FORBIDDEN_MARKERS:
         if marker in workflow_text:
             failures.append(f"workflow_forbidden:{marker}")
@@ -156,6 +196,9 @@ without reopening the live workflow file in the same change.
 
 ## Current Bootstrap Contract
 
+- the current shipped bootstrap lane still declares unfiltered `push` coverage for `master`
+- the current shipped bootstrap lane still keeps path-filtered `pull_request` coverage for the Zigux-owned lane files
+- the open trigger-gap investigation is therefore a runtime attachment problem rather than a missing trigger stanza in the committed workflow file
 - the current shipped bootstrap lane still compiles `scripts/zigux/*.py` before any lane checks run
 - the current shipped lane still keeps the pinned Zig archive check and the Phase 11 build-inventory plus matrix-gap survey checks
 - the current shipped Phase 12 slice still includes the build-only surface pair, the release-readiness pair, `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
@@ -173,6 +216,13 @@ def fixture_workflow() -> str:
     )
     return f"""name: zigux-bootstrap
 on:
+  push:
+    branches: [ master ]
+  pull_request:
+    paths:
+      - 'Documentation/zigux/**'
+      - 'scripts/zigux/**'
+      - '.github/workflows/zigux-bootstrap.yml'
   workflow_dispatch:
 
 concurrency:
@@ -269,12 +319,34 @@ def run_self_test() -> int:
 
         write_text(
             base / WORKFLOW_PATH,
-            fixture_workflow().replace("ZIGUX_BOOTSTRAP_SANITY=pass", "BOOTSTRAP_SANITY=pass", 1),
+            fixture_workflow().replace(
+                "ZIGUX_BOOTSTRAP_SANITY=pass", "BOOTSTRAP_SANITY=pass", 1
+            ),
         )
         expect_failure(base, "workflow_required:ZIGUX_BOOTSTRAP_SANITY=pass")
 
+        write_text(
+            base / WORKFLOW_PATH,
+            fixture_workflow().replace(
+                "  push:\n    branches: [ master ]\n",
+                "  push:\n    branches: [ master ]\n    paths:\n      - 'Documentation/zigux/**'\n",
+                1,
+            ),
+        )
+        expect_failure(base, "workflow_push_paths_filter_present")
+
+        write_text(
+            base / WORKFLOW_PATH,
+            fixture_workflow().replace(
+                "  pull_request:\n    paths:\n",
+                "  pull_request:\n",
+                1,
+            ),
+        )
+        expect_failure(base, "workflow_pr_missing_paths_filter")
+
         print("PHASE12_BOOTSTRAP_CONTRACT_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_CONTRACT_SELF_TEST_CASE_COUNT=5")
+        print("PHASE12_BOOTSTRAP_CONTRACT_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
