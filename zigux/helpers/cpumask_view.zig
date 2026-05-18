@@ -216,6 +216,20 @@ test "cpumask validity rejects zero-bit stray storage and closes helpers" {
     try std.testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "cpumask empty sentinels stay stable even with a stray non-zero address" {
+    const empty = binding.initCpumaskView(1, 0, 0, 0);
+    const summary = summarize(empty);
+
+    try std.testing.expect(isValid(empty));
+    try std.testing.expect(!cpuIsSet(empty, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(empty));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(empty));
+    try std.testing.expectEqual(@as(u32, 0), weight(empty));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask view empty sentinel behavior stays explicit" {
     const empty = viewFromWords(&.{}, 0);
     const summary = summarize(empty);
