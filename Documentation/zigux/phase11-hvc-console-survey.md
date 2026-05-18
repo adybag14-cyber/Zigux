@@ -83,11 +83,13 @@ survey paths below tied directly to the roadmap-facing simple-driver packet:
 - `Documentation/zigux/phase11-hvc-console-slice.md`
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-- `make -C zigux phase11-hvc-survey`
 
-Keep the dedicated survey replay route explicit beside the recovered starter
-packet, but treat `scripts/zigux/check-phase11-hvc-survey-packet.py` as a
-same-lane repo-reality gap until a future reread proves it returned.
+Keep the dedicated survey gate file explicit beside the recovered starter
+packet, but current `master` no longer rematerializes a separate
+`make -C zigux phase11-hvc-survey` route through `zigux/Makefile` or
+`.github/workflows/zigux-bootstrap.yml`; likewise treat
+`scripts/zigux/check-phase11-hvc-survey-packet.py` as a same-lane repo-reality
+gap until a future reread proves it returned.
 
 Treat that packet as bounded starter-depth evidence rather than proof of live
 tty registration, notifier callback execution, khvcd execution, live sysrq
