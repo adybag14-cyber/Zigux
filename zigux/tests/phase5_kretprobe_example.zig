@@ -3,14 +3,38 @@ const sample = @import("kretprobe_example_sample");
 
 test "phase 5 kretprobe sample stays in the reference-sample lane" {
     const descriptor = sample.KretprobeExampleSample.descriptor();
+    const contract = sample.KretprobeExampleSample.reviewContract();
+    const expected_focus = [_]sample.SampleFocus{
+        .symbol_selection,
+        .entry_timestamp,
+        .private_data_shape,
+        .return_duration,
+        .missed_summary,
+        .ownership_and_lifetime,
+    };
+    const expected_non_goals = [_][]const u8{
+        "register_kretprobe parity",
+        "unregister_kretprobe parity",
+        "pt_regs or regs_return_value parity",
+        "loadable module wiring",
+    };
 
     try std.testing.expectEqualStrings("kretprobe_example", descriptor.name);
     try std.testing.expectEqualStrings("samples/kprobes/kretprobe_example.c", descriptor.anchor);
     try std.testing.expect(!descriptor.requires_runtime_substrate);
     try std.testing.expect(descriptor.provides_selfcheck);
+    try std.testing.expectEqual(@as(usize, expected_focus.len), contract.focus.len);
+    for (expected_focus, contract.focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+    try std.testing.expectEqual(@as(usize, expected_non_goals.len), contract.non_goals.len);
+    for (expected_non_goals, contract.non_goals) |expected, actual| {
+        try std.testing.expectEqualStrings(expected, actual);
+    }
 }
 
 test "phase 5 kretprobe sample replays the bounded skip, return, and summary paths" {
+    const contract = sample.KretprobeExampleSample.reviewContract();
     var module = sample.KretprobeExampleSample{};
     try module.init();
     const replay = try module.runAnchorReplay();
@@ -24,7 +48,10 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, sample.KretprobeExampleSample.default_maxactive), replay.maxactive);
-    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, contract.focus.len), replay.checked_focus.len);
+    for (contract.focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
     try std.testing.expectEqual(sample.SampleStage.replay_complete, module.stage());
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
