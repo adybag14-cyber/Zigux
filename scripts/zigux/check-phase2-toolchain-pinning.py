@@ -244,6 +244,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 1
+    + 2
 )
 
 
@@ -630,6 +631,20 @@ def run_self_test() -> int:
         mutate_json(path, lambda payload: payload.__setitem__("phase", "Phase 3"))
         issues = collect_issues(root)
         assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "phase:" in value for code, value in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("status", "blocked"))
+        issues = collect_issues(root)
+        assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "status:" in value for code, value in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("scope", "narrowed packet"))
+        issues = collect_issues(root)
+        assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "scope:" in value for code, value in issues)
         checks_run += 1
 
         build_self_test_root(root)
