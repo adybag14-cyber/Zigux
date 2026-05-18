@@ -87,7 +87,7 @@ test "phase 5 bytestream fifo survey packet keeps split-readback guidance explic
         "PHASE5_STATUS=verified-split-readback-packet",
         "PHASE5_SLICE=kfifo-reference-sample-readback",
         "across those two paths",
-        "sample-root file currently carries one in-file self-check",
+        "sample-root file currently carries three in-file self-checks",
         "four focused replay tests",
         "four survey-packet checks",
         "phase5_build.zig` route",
@@ -105,7 +105,7 @@ test "phase 5 bytestream fifo survey packet keeps split-readback guidance explic
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_STATUS=parked") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "eight in-file `test` blocks") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries one in-file self-check") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed all six in-file checks") == null);
 }
 
@@ -123,14 +123,15 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
 
     const required_markers = [_][]const u8{
         "## Exact checks verified on 2026-05-18",
-        "`samples/zigux/bytestream_fifo.zig` currently carries one in-file self-check",
+        "`samples/zigux/bytestream_fifo.zig` currently carries three in-file self-checks",
         "`zigux/tests/phase5_bytestream_fifo.zig` currently carries four focused replay tests",
         "`zigux/tests/phase5_bytestream_fifo_survey.zig` currently carries four survey-packet checks",
         "`initial_string_copy_count = 5`, `first_drain_count = 5`, `second_drain_count = 2`, and `requeue_count = 2`",
-        "draining `\"hello\"` into a three-byte buffer yields `\"hel\"`, leaves `\"lo\"` queued, and a follow-up drain on the empty queue returns `0`",
         "`runPreviewBoundaryReplay()` at snapshot prefix `{ 2, 3, 4, 5 }`",
         "wrapped `{ 28, 4 }` visible-span split",
-        "`cold`, `initialized`, `replay_complete`, and `exited` stages",
+        "`runRemainingCapacityReplay()` with `available_after_hello = 27` and `available_after_partial_drain = 8`",
+        "short-drain `\"hel\"` / `\"lo\"` helper boundary",
+        "invalid post-exit replay rejection",
     };
     for (required_markers) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
