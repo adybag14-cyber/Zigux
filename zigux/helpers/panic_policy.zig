@@ -7,6 +7,8 @@ pub const Escalation = enum {
     warning_only,
 };
 
+pub const PanicPolicyError = error{UnexpectedEscalation};
+
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.PanicMode {
     if (reserved != 0) return null;
     return switch (mode) {
@@ -72,6 +74,18 @@ pub fn permitsWarningOnlyContinuation(mode: abi.PanicMode) bool {
     return escalationFor(mode) == .warning_only;
 }
 
+pub fn requireImmediateHalt(mode: abi.PanicMode) PanicPolicyError!void {
+    if (!causesImmediateHalt(mode)) return error.UnexpectedEscalation;
+}
+
+pub fn requireKernelBug(mode: abi.PanicMode) PanicPolicyError!void {
+    if (!emitsKernelBug(mode)) return error.UnexpectedEscalation;
+}
+
+pub fn requireWarningOnlyContinuation(mode: abi.PanicMode) PanicPolicyError!void {
+    if (!permitsWarningOnlyContinuation(mode)) return error.UnexpectedEscalation;
+}
+
 pub fn causesImmediateHaltPolicyBytes(mode: u8, reserved: u8) bool {
     return causesImmediateHalt(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
 }
@@ -82,6 +96,18 @@ pub fn causesImmediateHaltInteropPolicy(policy: abi.InteropPolicy) bool {
 
 pub fn causesImmediateHaltByte(mode: u8) bool {
     return causesImmediateHaltPolicyBytes(mode, 0);
+}
+
+pub fn requireImmediateHaltPolicyBytes(mode: u8, reserved: u8) PanicPolicyError!void {
+    return requireImmediateHalt(modeFromInteropPolicyBytes(mode, reserved) orelse return error.UnexpectedEscalation);
+}
+
+pub fn requireImmediateHaltInteropPolicy(policy: abi.InteropPolicy) PanicPolicyError!void {
+    return requireImmediateHaltPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
+pub fn requireImmediateHaltByte(mode: u8) PanicPolicyError!void {
+    return requireImmediateHaltPolicyBytes(mode, 0);
 }
 
 pub fn emitsKernelBugPolicyBytes(mode: u8, reserved: u8) bool {
@@ -96,6 +122,18 @@ pub fn emitsKernelBugByte(mode: u8) bool {
     return emitsKernelBugPolicyBytes(mode, 0);
 }
 
+pub fn requireKernelBugPolicyBytes(mode: u8, reserved: u8) PanicPolicyError!void {
+    return requireKernelBug(modeFromInteropPolicyBytes(mode, reserved) orelse return error.UnexpectedEscalation);
+}
+
+pub fn requireKernelBugInteropPolicy(policy: abi.InteropPolicy) PanicPolicyError!void {
+    return requireKernelBugPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
+pub fn requireKernelBugByte(mode: u8) PanicPolicyError!void {
+    return requireKernelBugPolicyBytes(mode, 0);
+}
+
 pub fn permitsWarningOnlyContinuationPolicyBytes(mode: u8, reserved: u8) bool {
     return permitsWarningOnlyContinuation(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
 }
@@ -106,6 +144,18 @@ pub fn permitsWarningOnlyContinuationInteropPolicy(policy: abi.InteropPolicy) bo
 
 pub fn permitsWarningOnlyContinuationByte(mode: u8) bool {
     return permitsWarningOnlyContinuationPolicyBytes(mode, 0);
+}
+
+pub fn requireWarningOnlyContinuationPolicyBytes(mode: u8, reserved: u8) PanicPolicyError!void {
+    return requireWarningOnlyContinuation(modeFromInteropPolicyBytes(mode, reserved) orelse return error.UnexpectedEscalation);
+}
+
+pub fn requireWarningOnlyContinuationInteropPolicy(policy: abi.InteropPolicy) PanicPolicyError!void {
+    return requireWarningOnlyContinuationPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
+pub fn requireWarningOnlyContinuationByte(mode: u8) PanicPolicyError!void {
+    return requireWarningOnlyContinuationPolicyBytes(mode, 0);
 }
 
 test "phase3 panic policy keeps escalation explicit" {
@@ -124,6 +174,18 @@ test "phase3 panic policy keeps escalation explicit" {
     try std.testing.expect(!permitsWarningOnlyContinuation(.abort));
     try std.testing.expect(!permitsWarningOnlyContinuation(.bug));
     try std.testing.expect(permitsWarningOnlyContinuation(.warn));
+
+    try requireImmediateHalt(.abort);
+    try requireImmediateHalt(.bug);
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHalt(.warn));
+
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBug(.abort));
+    try requireKernelBug(.bug);
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBug(.warn));
+
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuation(.abort));
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuation(.bug));
+    try requireWarningOnlyContinuation(.warn);
 }
 
 test "phase3 panic policy stays explicit" {
@@ -213,47 +275,86 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expect(causesImmediateHaltByte(1));
     try std.testing.expect(!causesImmediateHaltByte(2));
     try std.testing.expect(!causesImmediateHaltByte(9));
+    try requireImmediateHaltByte(0);
+    try requireImmediateHaltByte(1);
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltByte(2));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltByte(9));
 
     try std.testing.expect(causesImmediateHaltPolicyBytes(0, 0));
     try std.testing.expect(causesImmediateHaltPolicyBytes(1, 0));
     try std.testing.expect(!causesImmediateHaltPolicyBytes(2, 0));
     try std.testing.expect(!causesImmediateHaltPolicyBytes(2, 1));
+    try requireImmediateHaltPolicyBytes(0, 0);
+    try requireImmediateHaltPolicyBytes(1, 0);
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltPolicyBytes(2, 0));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltPolicyBytes(2, 1));
 
     try std.testing.expect(causesImmediateHaltInteropPolicy(abort_policy));
     try std.testing.expect(causesImmediateHaltInteropPolicy(bug_policy));
     try std.testing.expect(!causesImmediateHaltInteropPolicy(warn_policy));
     try std.testing.expect(!causesImmediateHaltInteropPolicy(reserved_policy));
     try std.testing.expect(!causesImmediateHaltInteropPolicy(unknown_policy));
+    try requireImmediateHaltInteropPolicy(abort_policy);
+    try requireImmediateHaltInteropPolicy(bug_policy);
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltInteropPolicy(warn_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltInteropPolicy(reserved_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltInteropPolicy(unknown_policy));
 
     try std.testing.expect(!emitsKernelBugByte(0));
     try std.testing.expect(emitsKernelBugByte(1));
     try std.testing.expect(!emitsKernelBugByte(2));
     try std.testing.expect(!emitsKernelBugByte(9));
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugByte(0));
+    try requireKernelBugByte(1);
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugByte(2));
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugByte(9));
 
     try std.testing.expect(!emitsKernelBugPolicyBytes(0, 0));
     try std.testing.expect(emitsKernelBugPolicyBytes(1, 0));
     try std.testing.expect(!emitsKernelBugPolicyBytes(2, 0));
     try std.testing.expect(!emitsKernelBugPolicyBytes(2, 1));
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugPolicyBytes(0, 0));
+    try requireKernelBugPolicyBytes(1, 0);
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugPolicyBytes(2, 0));
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugPolicyBytes(2, 1));
 
     try std.testing.expect(!emitsKernelBugInteropPolicy(abort_policy));
     try std.testing.expect(emitsKernelBugInteropPolicy(bug_policy));
     try std.testing.expect(!emitsKernelBugInteropPolicy(warn_policy));
     try std.testing.expect(!emitsKernelBugInteropPolicy(reserved_policy));
     try std.testing.expect(!emitsKernelBugInteropPolicy(unknown_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugInteropPolicy(abort_policy));
+    try requireKernelBugInteropPolicy(bug_policy);
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugInteropPolicy(warn_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugInteropPolicy(reserved_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireKernelBugInteropPolicy(unknown_policy));
 
     try std.testing.expect(!permitsWarningOnlyContinuationByte(0));
     try std.testing.expect(!permitsWarningOnlyContinuationByte(1));
     try std.testing.expect(permitsWarningOnlyContinuationByte(2));
     try std.testing.expect(!permitsWarningOnlyContinuationByte(9));
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationByte(0));
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationByte(1));
+    try requireWarningOnlyContinuationByte(2);
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationByte(9));
 
     try std.testing.expect(!permitsWarningOnlyContinuationPolicyBytes(0, 0));
     try std.testing.expect(!permitsWarningOnlyContinuationPolicyBytes(1, 0));
     try std.testing.expect(permitsWarningOnlyContinuationPolicyBytes(2, 0));
     try std.testing.expect(!permitsWarningOnlyContinuationPolicyBytes(2, 1));
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationPolicyBytes(0, 0));
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationPolicyBytes(1, 0));
+    try requireWarningOnlyContinuationPolicyBytes(2, 0);
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationPolicyBytes(2, 1));
 
     try std.testing.expect(!permitsWarningOnlyContinuationInteropPolicy(abort_policy));
     try std.testing.expect(!permitsWarningOnlyContinuationInteropPolicy(bug_policy));
     try std.testing.expect(permitsWarningOnlyContinuationInteropPolicy(warn_policy));
     try std.testing.expect(!permitsWarningOnlyContinuationInteropPolicy(reserved_policy));
     try std.testing.expect(!permitsWarningOnlyContinuationInteropPolicy(unknown_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationInteropPolicy(abort_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationInteropPolicy(bug_policy));
+    try requireWarningOnlyContinuationInteropPolicy(warn_policy);
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationInteropPolicy(reserved_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireWarningOnlyContinuationInteropPolicy(unknown_policy));
 }
