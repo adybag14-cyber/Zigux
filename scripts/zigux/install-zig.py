@@ -288,6 +288,14 @@ def extract_archive(archive_path: Path, dest: Path) -> Path:
     return children[0]
 
 
+def resolve_bin_dir(final_root: Path) -> Path:
+    if (final_root / 'zig').exists() or (final_root / 'zig.exe').exists():
+        return final_root
+    if (final_root / 'bin' / 'zig').exists() or (final_root / 'bin' / 'zig.exe').exists():
+        return final_root / 'bin'
+    raise SystemExit(f'could not locate zig binary in {final_root}')
+
+
 def append_github_path(path: Path) -> None:
     github_path = os.environ.get('GITHUB_PATH')
     if not github_path:
@@ -517,6 +525,24 @@ def run_self_test() -> int:
         shutil.which = original_which
         globals()['copy_url_to_file_with_curl'] = original_curl_copy
 
+    with tempfile.TemporaryDirectory(prefix='zigux_install_zig_layout_') as tmp_dir:
+        root_layout = Path(tmp_dir) / 'root-layout'
+        root_layout.mkdir(parents=True)
+        (root_layout / 'zig').write_text('', encoding='utf-8')
+        assert resolve_bin_dir(root_layout) == root_layout
+
+        bin_layout = Path(tmp_dir) / 'bin-layout'
+        (bin_layout / 'bin').mkdir(parents=True)
+        (bin_layout / 'bin' / 'zig').write_text('', encoding='utf-8')
+        assert resolve_bin_dir(bin_layout) == bin_layout / 'bin'
+
+        try:
+            resolve_bin_dir(Path(tmp_dir) / 'missing-layout')
+        except SystemExit as exc:
+            assert 'could not locate zig binary' in str(exc)
+        else:
+            raise AssertionError('expected missing zig binary layout to fail')
+
     try:
         normalize_os('plan9')
     except SystemExit:
@@ -546,7 +572,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=29')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=32')
     return 0
 
 
@@ -605,14 +631,7 @@ def main() -> int:
             shutil.rmtree(final_root)
         shutil.copytree(extracted_root, final_root)
 
-    bin_dir = final_root
-    if (final_root / 'zig').exists() or (final_root / 'zig.exe').exists():
-        bin_dir = final_root
-    elif (final_root / 'bin' / 'zig').exists() or (final_root / 'bin' / 'zig.exe').exists():
-        bin_dir = final_root / 'bin'
-    else:
-        raise SystemExit(f'could not locate zig binary in {final_root}')
-
+    bin_dir = resolve_bin_dir(final_root)
     append_github_path(bin_dir)
     print(f'ZIG_INSTALL_PATH={bin_dir.resolve()}')
     print('ZIG_INSTALL_STATUS=pass')
