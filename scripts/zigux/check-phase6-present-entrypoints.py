@@ -15,6 +15,7 @@ HELPER_EVIDENCE_CATALOG_PATH = Path(
 HELPER_EVIDENCE_MANIFEST_PATH = Path(
     "zigux/tests/phase6_helper_evidence_manifest.json"
 )
+PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 
 EXPECTED_PACKET = "phase6-helper-evidence"
 EXPECTED_PHASE = "Phase 6"
@@ -41,6 +42,21 @@ REQUIRED_DIRECT_READBACK_COMPANIONS = [
     "zigux/tests/phase6_build.zig",
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py",
+]
+
+REQUIRED_BUILD_SNIPPETS = [
+    'const base64_perf_root_module = b.createModule(.{',
+    '.root_source_file = b.path("phase6_base64_perf.zig"),',
+    'const bsearch_lower_bound_c_abi_root_module = b.createModule(.{',
+    '.root_source_file = b.path("phase6_bsearch_c_abi_budget.zig"),',
+    'const checksum_perf_root_module = b.createModule(.{',
+    'const hexdump_perf_root_module = b.createModule(.{',
+    'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 helper perf gate");',
+    'const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");',
+    'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
+    'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
+    'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");',
+    "test_step.dependOn(&run_hexdump_tests.step);",
 ]
 
 EXPECTED_HELPERS = [
@@ -181,7 +197,9 @@ def read_text(path: Path) -> str:
 def require_snippets(path: Path, content: str, snippets: list[str]) -> None:
     for snippet in snippets:
         if snippet not in content:
-            raise ValidationError(f"missing expected Phase 6 marker in {path.as_posix()}: {snippet}")
+            raise ValidationError(
+                f"missing expected Phase 6 marker in {path.as_posix()}: {snippet}"
+            )
 
 
 def extract_catalog_surveyed_head(content: str) -> str:
@@ -197,9 +215,13 @@ def extract_catalog_surveyed_head(content: str) -> str:
 def validate(repo_root: Path) -> None:
     catalog_path = repo_root / HELPER_EVIDENCE_CATALOG_PATH
     manifest_path = repo_root / HELPER_EVIDENCE_MANIFEST_PATH
+    build_path = repo_root / PHASE6_BUILD_PATH
+
     catalog_content = read_text(catalog_path)
     require_snippets(catalog_path, catalog_content, REQUIRED_CATALOG_SNIPPETS)
+    require_snippets(build_path, read_text(build_path), REQUIRED_BUILD_SNIPPETS)
     catalog_head = extract_catalog_surveyed_head(catalog_content)
+
     manifest = json.loads(read_text(manifest_path))
     if manifest["packet"] != EXPECTED_PACKET:
         raise ValidationError("Phase 6 helper manifest packet marker mismatch")
@@ -217,8 +239,12 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("Phase 6 helper manifest helper packet mismatch")
     if manifest["current_repo_reality_gaps"] != EXPECTED_CURRENT_REPO_REALITY_GAPS:
         raise ValidationError("Phase 6 repo-reality gaps mismatch")
-    if manifest["last_known_shared_replay_inventory"] != EXPECTED_LAST_KNOWN_SHARED_REPLAY_INVENTORY:
+    if (
+        manifest["last_known_shared_replay_inventory"]
+        != EXPECTED_LAST_KNOWN_SHARED_REPLAY_INVENTORY
+    ):
         raise ValidationError("Phase 6 shared replay inventory mismatch")
+
     for helper_path in REQUIRED_HELPER_PATHS:
         if not (repo_root / helper_path).is_file():
             raise ValidationError(f"missing required file: {helper_path.as_posix()}")
@@ -230,38 +256,48 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_catalog() -> str:
-    return "\n".join([
-        "# Phase 6 Helper Evidence Catalog",
-        "",
-        "This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.",
-        "",
-        "- surveyed head: `61e026c`",
-        "",
-        *REQUIRED_CATALOG_SNIPPETS,
-        "",
-    ])
+    return "\n".join(
+        [
+            "# Phase 6 Helper Evidence Catalog",
+            "",
+            "This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.",
+            "",
+            "- surveyed head: `61e026c`",
+            "",
+            *REQUIRED_CATALOG_SNIPPETS,
+            "",
+        ]
+    )
 
 
 def scaffold_manifest() -> str:
-    return json.dumps(
-        {
-            "packet": EXPECTED_PACKET,
-            "phase": EXPECTED_PHASE,
-            "surveyed_head": "61e026c",
-            "lane_scope": EXPECTED_LANE_SCOPE,
-            "current_direct_readback_companions": REQUIRED_DIRECT_READBACK_COMPANIONS,
-            "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
-            "helpers": EXPECTED_HELPERS,
-            "current_repo_reality_gaps": EXPECTED_CURRENT_REPO_REALITY_GAPS,
-            "last_known_shared_replay_inventory": EXPECTED_LAST_KNOWN_SHARED_REPLAY_INVENTORY,
-        },
-        indent=2,
-    ) + "\n"
+    return (
+        json.dumps(
+            {
+                "packet": EXPECTED_PACKET,
+                "phase": EXPECTED_PHASE,
+                "surveyed_head": "61e026c",
+                "lane_scope": EXPECTED_LANE_SCOPE,
+                "current_direct_readback_companions": REQUIRED_DIRECT_READBACK_COMPANIONS,
+                "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
+                "helpers": EXPECTED_HELPERS,
+                "current_repo_reality_gaps": EXPECTED_CURRENT_REPO_REALITY_GAPS,
+                "last_known_shared_replay_inventory": EXPECTED_LAST_KNOWN_SHARED_REPLAY_INVENTORY,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+
+
+def scaffold_build() -> str:
+    return "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n"
 
 
 def scaffold_repo(root: Path) -> None:
     write(root / HELPER_EVIDENCE_CATALOG_PATH, scaffold_catalog())
     write(root / HELPER_EVIDENCE_MANIFEST_PATH, scaffold_manifest())
+    write(root / PHASE6_BUILD_PATH, scaffold_build())
     for helper_path in REQUIRED_HELPER_PATHS:
         write(root / helper_path, "// stub\n")
 
@@ -271,7 +307,9 @@ def expect_failure(root: Path, expected: str) -> None:
         validate(root)
     except (ValidationError, json.JSONDecodeError) as exc:
         if expected not in str(exc):
-            raise AssertionError(f"expected {expected!r} in validation error, got {str(exc)!r}") from exc
+            raise AssertionError(
+                f"expected {expected!r} in validation error, got {str(exc)!r}"
+            ) from exc
     else:
         raise AssertionError("expected validation failure")
 
@@ -284,44 +322,90 @@ def run_self_test() -> None:
         cases_run = 0
         catalog_path = root / HELPER_EVIDENCE_CATALOG_PATH
         manifest_path = root / HELPER_EVIDENCE_MANIFEST_PATH
+        build_path = root / PHASE6_BUILD_PATH
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[0] + "\n", "", 1))
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[0] + "\n", "", 1),
+        )
         expect_failure(root, REQUIRED_CATALOG_SNIPPETS[0])
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[1] + "\n", "", 1))
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[1] + "\n", "", 1),
+        )
         expect_failure(root, REQUIRED_CATALOG_SNIPPETS[1])
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[5] + "\n", "", 1))
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[5] + "\n", "", 1),
+        )
         expect_failure(root, REQUIRED_CATALOG_SNIPPETS[5])
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[6] + "\n", "", 1))
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[6] + "\n", "", 1),
+        )
         expect_failure(root, REQUIRED_CATALOG_SNIPPETS[6])
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[7] + "\n", "", 1))
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[7] + "\n", "", 1),
+        )
         expect_failure(root, REQUIRED_CATALOG_SNIPPETS[7])
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[17] + "\n", "", 1))
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[17] + "\n", "", 1),
+        )
         expect_failure(root, REQUIRED_CATALOG_SNIPPETS[17])
         cases_run += 1
         scaffold_repo(root)
 
-        write(catalog_path, read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[18] + "\n", "", 1))
+        write(
+            catalog_path,
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[18] + "\n", "", 1),
+        )
         expect_failure(root, REQUIRED_CATALOG_SNIPPETS[18])
         cases_run += 1
         scaffold_repo(root)
 
         write(catalog_path, read_text(catalog_path).replace("- surveyed head: `61e026c`\n", "", 1))
         expect_failure(root, "- surveyed head: `<sha>`")
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            build_path,
+            read_text(build_path).replace(REQUIRED_BUILD_SNIPPETS[0] + "\n", "", 1),
+        )
+        expect_failure(root, REQUIRED_BUILD_SNIPPETS[0])
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            build_path,
+            read_text(build_path).replace(REQUIRED_BUILD_SNIPPETS[6] + "\n", "", 1),
+        )
+        expect_failure(root, REQUIRED_BUILD_SNIPPETS[6])
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            build_path,
+            read_text(build_path).replace(REQUIRED_BUILD_SNIPPETS[10] + "\n", "", 1),
+        )
+        expect_failure(root, REQUIRED_BUILD_SNIPPETS[10])
         cases_run += 1
         scaffold_repo(root)
 
@@ -347,14 +431,18 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest["current_direct_readback_companions"] = manifest["current_direct_readback_companions"][:-1]
+        manifest["current_direct_readback_companions"] = manifest[
+            "current_direct_readback_companions"
+        ][:-1]
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "direct-readback companions mismatch")
         cases_run += 1
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest["current_direct_readback_companions"][4] = "zigux/tests/phase6_helper_parity_manifest.json"
+        manifest["current_direct_readback_companions"][4] = (
+            "zigux/tests/phase6_helper_parity_manifest.json"
+        )
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "direct-readback companions mismatch")
         cases_run += 1
@@ -375,7 +463,9 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest["helpers"][0]["checker_surfaces"] = manifest["helpers"][0]["checker_surfaces"][1:]
+        manifest["helpers"][0]["checker_surfaces"] = manifest["helpers"][0][
+            "checker_surfaces"
+        ][1:]
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "helper packet mismatch")
         cases_run += 1
@@ -389,21 +479,27 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest["helpers"][2]["current_review_posture"] = "direct-helper-readback-restored"
+        manifest["helpers"][2]["current_review_posture"] = (
+            "direct-helper-readback-restored"
+        )
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "helper packet mismatch")
         cases_run += 1
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest["helpers"][3]["perf_refresh_note"] = "Documentation/zigux/phase6-hexdump-perf-note.md"
+        manifest["helpers"][3]["perf_refresh_note"] = (
+            "Documentation/zigux/phase6-hexdump-perf-note.md"
+        )
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "helper packet mismatch")
         cases_run += 1
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest["helpers"][3]["current_review_posture"] = "direct-helper-readback-restored"
+        manifest["helpers"][3]["current_review_posture"] = (
+            "direct-helper-readback-restored"
+        )
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "helper packet mismatch")
         cases_run += 1
@@ -417,7 +513,9 @@ def run_self_test() -> None:
         scaffold_repo(root)
 
         manifest = json.loads(read_text(manifest_path))
-        manifest["last_known_shared_replay_inventory"] = manifest["last_known_shared_replay_inventory"][:-1]
+        manifest["last_known_shared_replay_inventory"] = manifest[
+            "last_known_shared_replay_inventory"
+        ][:-1]
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "shared replay inventory mismatch")
         cases_run += 1
@@ -430,6 +528,11 @@ def run_self_test() -> None:
 
         (root / HELPER_EVIDENCE_MANIFEST_PATH).unlink()
         expect_failure(root, HELPER_EVIDENCE_MANIFEST_PATH.as_posix())
+        cases_run += 1
+        scaffold_repo(root)
+
+        (root / PHASE6_BUILD_PATH).unlink()
+        expect_failure(root, PHASE6_BUILD_PATH.as_posix())
         cases_run += 1
         scaffold_repo(root)
 
