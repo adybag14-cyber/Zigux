@@ -37,13 +37,16 @@ REQUIRED_MARKERS = {
         '"current_master_state": "helper_survey_manifest_anchor"',
         '"covered_helpers": [',
         '"ArgvSplitResult.cArgv"',
-        "helper-local survey-or-manifest truthfulness",
+        '"samples/zigux/README.md"',
+        "helper-local survey-manifest-checker or sample-boundary truthfulness",
+        "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         'test "phase 7 argv split survey keeps the helper-local anchor truthful" {',
         'try std.testing.expectEqualStrings("P7-L09", manifest.lane_key);',
-        'try expectContains(helper, "pub const ArgvSplitResult = struct {");',
-        'try expectContains(helper, "test \\\"argvSplit duplicates the input before tokenizing\\\""',
+        'try expectStringSliceContains(manifest.review_surfaces, "samples/zigux/README.md");',
+        'const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");',
+        'try expectContains(samples_readme, "* `*argv*`");',
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -51,7 +54,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 11
 
 
 def read_text(path: Path) -> str:
@@ -155,20 +158,20 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         manifest_text = read_text(manifest_path)
-        manifest_marker = "helper-local survey-or-manifest truthfulness"
+        manifest_marker = '"samples/zigux/README.md"'
         manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_manifest_truthfulness_marker",
+            "missing_manifest_samples_boundary_marker",
             tmp_root,
             f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}",
         )
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "pub const ArgvSplitResult = struct {");'
+        survey_marker = 'const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_survey_helper_anchor_marker",
+            "missing_survey_samples_boundary_reader",
             tmp_root,
             f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
         )
@@ -181,6 +184,26 @@ def run_self_test() -> None:
             "missing_samples_boundary_marker",
             tmp_root,
             f"samples/zigux/README.md: {samples_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        manifest_text = read_text(manifest_path)
+        manifest_marker = "helper-local survey-manifest-checker or sample-boundary truthfulness"
+        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_truthfulness_marker",
+            tmp_root,
+            f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectStringSliceContains(manifest.review_surfaces, "samples/zigux/README.md");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_manifest_samples_anchor_marker",
+            tmp_root,
+            f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
