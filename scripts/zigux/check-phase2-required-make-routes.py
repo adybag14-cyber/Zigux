@@ -12,8 +12,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+DOCS_README = ROOT / "Documentation" / "zigux" / "README.md"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 
@@ -46,15 +48,25 @@ MAKEFILE_MARKERS = (
     "phase2: phase2-validate",
 )
 
-SURFACE_COMMON_MARKERS = (
-    "`zigux/Makefile`",
+CURRENT_PACKET_ROUTE_MARKERS = (
     "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
     "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2`",
 )
 
-SURFACE_MARKER_CODES = (
+MINIMAL_SURFACE_MARKERS = ("`zigux/Makefile`",)
+
+FULL_ROUTE_SURFACE_CODES = (
+    (DOCS_README, "MISSING_DOCS_README_MARKERS", "MISSING_DOCS_README_ROUTE_MARKERS"),
     (BOOTSTRAP_NOTES, "MISSING_BOOTSTRAP_GAP_MARKERS", "MISSING_BOOTSTRAP_ROUTE_MARKERS"),
     (REVIEW_CHECKLIST, "MISSING_REVIEW_GAP_MARKERS", "MISSING_REVIEW_ROUTE_MARKERS"),
+    (SCRIPTS_README, "MISSING_SCRIPTS_README_GAP_MARKERS", "MISSING_SCRIPTS_README_ROUTE_MARKERS"),
+)
+
+POLICY_ROUTE_SURFACE_CODES = (
     (TESTS_README, "MISSING_TESTS_GAP_MARKERS", "MISSING_TESTS_ROUTE_MARKERS"),
 )
 
@@ -63,7 +75,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
     + len(MAKEFILE_MARKERS)
-    + len(SURFACE_COMMON_MARKERS) * len(SURFACE_MARKER_CODES)
+    + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
+    + (len(MINIMAL_SURFACE_MARKERS) + 2) * len(POLICY_ROUTE_SURFACE_CODES)
     + 3
 )
 
@@ -111,9 +124,28 @@ def format_route_marker(route: str) -> str:
     return f"`make -C zigux {route}`"
 
 
+def collect_surface_issues(
+    root: Path,
+    path: Path,
+    gap_code: str,
+    route_code: str,
+    route_markers: tuple[str, ...],
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    text = read_text(resolve_path(root, path))
+    for marker in MINIMAL_SURFACE_MARKERS:
+        if marker not in text:
+            issues.append((gap_code, marker))
+    for marker in route_markers:
+        if marker not in text:
+            issues.append((route_code, marker))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     required_routes = load_required_make_routes(resolve_path(root, TOOLCHAIN_POLICY))
+    policy_route_markers = tuple(format_route_marker(route) for route in required_routes)
 
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     for line in WORKFLOW_LINES:
@@ -128,14 +160,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if count_exact_lines(makefile_text, marker) == 0:
             issues.append(("MISSING_MAKEFILE_MARKERS", marker))
 
-    for path, gap_code, route_code in SURFACE_MARKER_CODES:
-        text = read_text(resolve_path(root, path))
-        if "`zigux/Makefile`" not in text:
-            issues.append((gap_code, "`zigux/Makefile`"))
-        for route in required_routes:
-            marker = format_route_marker(route)
-            if marker not in text:
-                issues.append((route_code, marker))
+    for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
+        issues.extend(collect_surface_issues(root, path, gap_code, route_code, CURRENT_PACKET_ROUTE_MARKERS))
+
+    for path, gap_code, route_code in POLICY_ROUTE_SURFACE_CODES:
+        issues.extend(collect_surface_issues(root, path, gap_code, route_code, policy_route_markers))
 
     return issues
 
@@ -161,9 +190,17 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
     write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_MARKERS) + "\n")
-    marker_text = "\n".join(SURFACE_COMMON_MARKERS)
-    for path, _, _ in SURFACE_MARKER_CODES:
-        write_text(resolve_path(root, path), marker_text + "\n")
+
+    full_marker_text = "\n".join(MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS)
+    for path, _, _ in FULL_ROUTE_SURFACE_CODES:
+        write_text(resolve_path(root, path), full_marker_text + "\n")
+
+    tests_marker_text = "\n".join(
+        MINIMAL_SURFACE_MARKERS
+        + ("`make -C zigux phase2-toolchain`", "`make -C zigux phase2-validate`")
+    )
+    for path, _, _ in POLICY_ROUTE_SURFACE_CODES:
+        write_text(resolve_path(root, path), tests_marker_text + "\n")
 
 
 def replace_once(text: str, marker: str) -> str:
@@ -229,8 +266,8 @@ def run_self_test() -> int:
             assert ("MISSING_MAKEFILE_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
-        for path, gap_code, route_code in SURFACE_MARKER_CODES:
-            for marker in SURFACE_COMMON_MARKERS:
+        for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
+            for marker in MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
                 resolved.write_text(
@@ -238,7 +275,22 @@ def run_self_test() -> int:
                     encoding="utf-8",
                 )
                 issues = collect_issues(root)
-                if marker == "`zigux/Makefile`":
+                if marker in MINIMAL_SURFACE_MARKERS:
+                    assert (gap_code, marker) in issues
+                else:
+                    assert (route_code, marker) in issues
+                checks_run += 1
+
+        for path, gap_code, route_code in POLICY_ROUTE_SURFACE_CODES:
+            for marker in MINIMAL_SURFACE_MARKERS + ("`make -C zigux phase2-toolchain`", "`make -C zigux phase2-validate`"):
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(
+                    replace_once(resolved.read_text(encoding="utf-8"), marker),
+                    encoding="utf-8",
+                )
+                issues = collect_issues(root)
+                if marker in MINIMAL_SURFACE_MARKERS:
                     assert (gap_code, marker) in issues
                 else:
                     assert (route_code, marker) in issues
@@ -294,6 +346,7 @@ def main() -> int:
     print(f"PHASE2_REQUIRED_POLICY_PATH={policy_path}")
     print(f"PHASE2_REQUIRED_MAKEFILE_PATH={resolve_path(root, MAKEFILE)}")
     print("PHASE2_REQUIRED_ROUTE_LIST=" + ",".join(required_routes))
+    print(f"PHASE2_CURRENT_PACKET_ROUTE_COUNT={len(CURRENT_PACKET_ROUTE_MARKERS)}")
     print("PHASE2_REQUIRED_ROUTE_STATUS=present")
     return 0
 
