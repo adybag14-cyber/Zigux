@@ -8,7 +8,7 @@ It keeps the starter-present network packet and the storage-facing reminder surf
 
 - `PHASE12_STATUS=active`
 - `PHASE12_LANE=complex-driver-shared-release-packet`
-- scope: shared release-planning truthfulness, build-only contract reminders, and anti-overlap guidance for the starter-present `virtio_net` packet, the directly readable but still lane-split `virtio_scsi` rollback-lab survey packet, and the published-but-still-unwired NVMe foothold
+- scope: shared release-planning truthfulness, build-only contract reminders, and anti-overlap guidance for the starter-present `virtio_net` packet, its bounded `virtio_net_transmit_recycle` and `virtio_net_queue_resume` reviewability follow-ups, the directly readable but still lane-split `virtio_scsi` rollback-lab survey packet, and the published-but-still-unwired NVMe foothold
 - release-order companion: `Documentation/zigux/phase12-release-sequencing.md`
 - closure companion: `Documentation/zigux/phase12-release-closure-checklist.md`
 - readiness companion: `Documentation/zigux/phase12-release-readiness-survey.md`
@@ -23,6 +23,7 @@ It keeps the starter-present network packet and the storage-facing reminder surf
 
 - Treat the current `virtio_net` family as a starter-present direct-replay packet
 - `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` are now present on `master`
+- `drivers/net/virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_queue_resume.zig`, and `zigux/tests/phase12_virtio_net_queue_resume.zig` are now present on `master` as bounded transmit-disposition and queue-resume reviewability follow-ups inside that same shared packet
 - Keep the shared validator-first then smoke-first order fixed unless a new shipped route lands first:
   1. `make -C zigux phase12-validate`
   2. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
@@ -37,10 +38,11 @@ It keeps the starter-present network packet and the storage-facing reminder surf
 
 ## Anti-Overlap Rules
 
-- starter-present `virtio_net` syntax-lab and direct contract packet
+- starter-present `virtio_net` syntax-lab and direct contract packet, plus the bounded `virtio_net_transmit_recycle` and `virtio_net_queue_resume` reviewability follow-ups
+- keep those two `virtio_net` follow-ups framed as bounded transmit-disposition and queue-resume reviewability inside the shared packet rather than as live DMA-safe receive ownership, queue restart parity, transport-backed queue flow, or completion-path parity
 - current `master` now directly rematerializes the bounded `virtio_scsi` rollback-lab packet through `Documentation/zigux/phase12-virtio-scsi-slice.md`, `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `drivers/scsi/virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`
 - keep those `virtio_scsi` files framed as one directly readable bounded driver-local packet, but leave exact survey-packet lane-key and verified-on realignment to the packet-local survey follow-through in `P12-L09` rather than reopening broader shared PMO wording or driver-local code from this anti-overlap note alone
-- shared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep the `virtio_scsi` survey companions explicit as current driver-local packet members, while this anti-overlap note stays responsible only for keeping the family distinct from the starter-present `virtio_net` packet, the published-but-unwired NVMe foothold, and the parked libbpf packet
+- shared PMO companions such as `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` may therefore keep the `virtio_scsi` survey companions explicit as current driver-local packet members, while this anti-overlap note stays responsible only for keeping the family distinct from the starter-present `virtio_net` packet, its bounded transmit-disposition and queue-resume follow-ups, the published-but-unwired NVMe foothold, and the parked libbpf packet
 - the driver-local `virtio_scsi` rollback-lab companions still stay bounded review evidence only; do not reopen storage-driver, queueing, rollback execution, or completion-path claims from this shared note alone
 - Keep the bounded NVMe packet explicit through `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` while leaving it outside the shared smoke-first route.
 - Leave the parked libbpf packet, its survey, and its verify-shard boundary to `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md` and `Documentation/zigux/phase12-libbpf-verify-shard-note.md` rather than reopening helper-local or loader-facing claims here.
@@ -50,7 +52,7 @@ It keeps the starter-present network packet and the storage-facing reminder surf
 
 - stops undercounting the newly landed `virtio_net` starter
 - This note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
-- This note must keep the shared release wording bounded to the starter-present `virtio_net` packet, the directly readable but still survey-lane-split `virtio_scsi` rollback-lab packet, the published-but-still-unwired NVMe foothold, and the shipped validator-first support bundle.
+- This note must keep the shared release wording bounded to the starter-present `virtio_net` packet, its bounded `virtio_net_transmit_recycle` and `virtio_net_queue_resume` reviewability follow-ups, the directly readable but still survey-lane-split `virtio_scsi` rollback-lab packet, the published-but-still-unwired NVMe foothold, and the shipped validator-first support bundle.
 - This note must not recast the parked libbpf packet as direct shared replay or as a second active complex-driver lane.
 
 ## Next Bounded Step
