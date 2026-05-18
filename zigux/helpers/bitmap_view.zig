@@ -5,7 +5,12 @@ pub const Word = usize;
 pub const bits_per_word: u32 = @intCast(@bitSizeOf(Word));
 
 pub fn wordCount(nbits: u32) u32 {
-    return if (nbits == 0) 0 else (nbits + bits_per_word - 1) / bits_per_word;
+    if (nbits == 0) return 0;
+
+    // Promote the ceil division so large ABI-facing windows stay predictable.
+    const word_bits = @as(u64, bits_per_word);
+    const numerator = @as(u64, nbits) + word_bits - 1;
+    return @intCast(numerator / word_bits);
 }
 
 pub fn lastWordMask(nbits: u32) Word {
@@ -190,6 +195,26 @@ test "bitmap exact-word windows keep full-word masks explicit" {
     try std.testing.expectEqual(@as(u32, 0), summary.first_set);
     try std.testing.expectEqual(bits_per_word, summary.first_zero);
     try std.testing.expectEqual(bits_per_word + 1, summary.weight);
+}
+
+test "bitmap word counts stay predictable for large bounded windows" {
+    const max_nbits = std.math.maxInt(u32);
+    const expected: u32 = @intCast((@as(u64, max_nbits) + @as(u64, bits_per_word) - 1) / @as(u64, bits_per_word));
+    const near_max_nbits = max_nbits - (bits_per_word - 1);
+    const near_expected: u32 = @intCast((@as(u64, near_max_nbits) + @as(u64, bits_per_word) - 1) / @as(u64, bits_per_word));
+    const invalid = binding.initBitmapView(1, max_nbits, expected - 1);
+    const summary = summarize(invalid);
+
+    try std.testing.expectEqual(expected, wordCount(max_nbits));
+    try std.testing.expectEqual(near_expected, wordCount(near_max_nbits));
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!testBit(invalid, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstSet(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstZero(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
 test "bitmap validity rejects non-empty views without backing storage" {
