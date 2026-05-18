@@ -101,6 +101,15 @@
     "expected": "version_before_invalid_short_option_expected.json"
   },
   {
+    "name": "long_version_before_invalid_short_option",
+    "argv": [
+      "--version",
+      "-x"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_invalid_short_option_expected.json"
+  },
+  {
     "name": "version_before_missing_short_option_argument",
     "argv": [
       "-Vr"
