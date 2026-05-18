@@ -32,6 +32,7 @@ REQUIRED_BUILD_MARKERS = (
     "fn addPhase3PolicyStarterPacket(",
     "fn addPhase3LowLevelWrappers(",
     "fn addPhase3AbiDump(",
+    '.root_source_file = b.path("phase3_abi_dump_current.zig"),',
     '"phase3-dev-t-starter-packet"',
     '"phase3-errptr-xarray-starter-packet"',
     '"phase3-errptr-xarray-dump"',
@@ -62,6 +63,7 @@ SAMPLE_DRIVER_TEXT = "\n".join(REQUIRED_DRIVER_MARKERS) + "\n"
 
 SELF_TEST_CASES = (
     (BUILD_PATH, 'root_module.addImport("export_shim", export_shim);'),
+    (BUILD_PATH, '.root_source_file = b.path("phase3_abi_dump_current.zig"),'),
     (BUILD_PATH, '"phase3-low-level-wrappers"'),
     (BUILD_PATH, "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);"),
     (BUILD_PATH, "phase3_dump_step.dependOn(&phase3_abi_dump.step);"),
