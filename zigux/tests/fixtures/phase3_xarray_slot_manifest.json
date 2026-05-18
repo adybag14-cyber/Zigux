@@ -5,6 +5,7 @@
   "status": "starter_and_dump_packet_present",
   "scope": "helper-local xarray slot starter packet plus fixture-backed dump parity",
   "packet_files": [
+    "Documentation/zigux/phase3-xarray-slot-slice.md",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
     "zigux/helpers/xarray_slot_view.zig",
@@ -27,9 +28,8 @@
     "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"
   ],
   "repo_reality_gaps": [
-    "Documentation/zigux/phase3-xarray-slot-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "scripts/zigux/validate-phase3.py"
   ],
-  "next_safe_step": "layer the docs-root xarray-slot slice note onto current master now that the shared tests-root hook is landed"
+  "next_safe_step": "reflect the docs-root xarray-slot slice note in Documentation/zigux/phase3-validator-support-surface.md without widening the packet beyond repo-backed starter and dump evidence"
 }
