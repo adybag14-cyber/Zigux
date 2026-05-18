@@ -112,6 +112,10 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "PHASE15_SLICE=governance_packet_readiness_truthfulness");
     try expectContains(readiness_note, "current-master-readback-2026-05-18");
     try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
+    try expectContains(
+        readiness_note,
+        "the missing validator, manifest, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready",
+    );
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-docs-readme-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-scripts-readme-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-tests-readme-alignment.py`");
