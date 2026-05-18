@@ -54,6 +54,7 @@ README_PRESENT_MARKERS = (
     "the manifest-backed kconfig fixture roster",
     "`Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
+    "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`make -C zigux phase2`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
