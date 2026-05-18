@@ -42,13 +42,14 @@ That packet should keep the selected-string plus `iter=%d` formatting cue explic
 
 ## Review boundary
 
-Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample.
+Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample outside the bounded trace-events companion.
 
-Use this note only to restate the bounded formatting cue that Phase 5 reviewers should preserve.
+Use this note only to restate the bounded formatting cue that Phase 5 reviewers should preserve inside the roadmap-backed `trace_events` anchor.
 
 Do not treat this note as proof of:
 
 - standalone formatting-helper delivery
+- standalone broad `*format*` sample delivery
 - standalone `printf` parity
 - standalone `vsprintf` parity
 - standalone string-helper delivery
