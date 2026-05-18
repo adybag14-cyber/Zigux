@@ -14,6 +14,7 @@ FILES = [
     "Documentation/zigux/phase10-virtio-input-survey.md",
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_queue_callback_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_status_drain.zig",
     "drivers/virtio/virtio_input_teardown_observation.zig",
@@ -75,6 +76,7 @@ SURVEY_NOTE_MARKERS = [
     "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport",
     "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
     "drivers/virtio/virtio_input_verify.zig",
+    "drivers/virtio/virtio_input_queue_callback_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
@@ -99,6 +101,8 @@ MANIFEST_MARKERS = [
     "\"id\": \"phase10-virtio-input-verify-replay\"",
     "\"zigux_destination\": \"drivers/virtio/virtio_input_verify.zig\"",
     "teardown-reset parity across reset explicit without widening into transport-backed queue execution or freeze, restore, or remove lifecycle claims",
+    "\"id\": \"phase10-virtio-input-queue-callback-preflight-helper\"",
+    "\"zigux_destination\": \"drivers/virtio/virtio_input_queue_callback_preflight.zig\"",
     "\"id\": \"phase10-virtio-input-registration-preflight-helper\"",
     "\"zigux_destination\": \"drivers/virtio/virtio_input_registration_preflight.zig\"",
     "\"id\": \"phase10-virtio-input-status-drain-helper\"",
@@ -129,6 +133,14 @@ PROBE_HELPER_MARKERS = [
     "pub const ProbePreflightBlocker = virtio_input.ProbePreflightBlocker;",
     "pub fn summarize(device: *const virtio_input.VirtioInputLab) ProbePreflightSummary {",
     "pub fn blockerTag(blocker: ProbePreflightBlocker) []const u8 {",
+]
+
+QUEUE_CALLBACK_HELPER_MARKERS = [
+    "pub const QueueCallbackPreflightSummary = virtio_input.QueueCallbackPreflightSummary;",
+    "pub const QueueCallbackPreflightBlocker = virtio_input.QueueCallbackPreflightBlocker;",
+    "pub fn summarize(device: *const virtio_input.VirtioInputLab) QueueCallbackPreflightSummary {",
+    "return device.queueCallbackPreflightSummary();",
+    "pub fn blockerTag(blocker: QueueCallbackPreflightBlocker) []const u8 {",
 ]
 
 REGISTRATION_HELPER_MARKERS = [
@@ -274,6 +286,7 @@ def required_marker_count() -> int:
         + len(MANIFEST_MARKERS)
         + len(INPUT_HELPER_MARKERS)
         + len(PROBE_HELPER_MARKERS)
+        + len(QUEUE_CALLBACK_HELPER_MARKERS)
         + len(REGISTRATION_HELPER_MARKERS)
         + len(STATUS_DRAIN_HELPER_MARKERS)
         + len(TEARDOWN_HELPER_MARKERS)
@@ -311,6 +324,12 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         "probe_helper",
         read_text(root, "drivers/virtio/virtio_input_probe_preflight.zig"),
         PROBE_HELPER_MARKERS,
+    )
+    check_markers(
+        missing_markers,
+        "queue_callback_helper",
+        read_text(root, "drivers/virtio/virtio_input_queue_callback_preflight.zig"),
+        QUEUE_CALLBACK_HELPER_MARKERS,
     )
     check_markers(
         missing_markers,
@@ -368,6 +387,7 @@ def write_fixture(root: Path) -> None:
         + "\n",
         "drivers/virtio/virtio_input.zig": "\n".join(INPUT_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_probe_preflight.zig": "\n".join(PROBE_HELPER_MARKERS) + "\n",
+        "drivers/virtio/virtio_input_queue_callback_preflight.zig": "\n".join(QUEUE_CALLBACK_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_registration_preflight.zig": "\n".join(REGISTRATION_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_status_drain.zig": "\n".join(STATUS_DRAIN_HELPER_MARKERS) + "\n",
         "drivers/virtio/virtio_input_teardown_observation.zig": "\n".join(TEARDOWN_HELPER_MARKERS) + "\n",
@@ -444,6 +464,22 @@ def run_self_test() -> int:
 
         survey_note_path.write_text(
             original_survey_note.replace(
+                "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+                "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "survey_note:drivers/virtio/virtio_input_queue_callback_preflight.zig",
+            "phase10-input-live-packet-self-test:survey_note_queue_callback_helper_path",
+        )
+        survey_note_path.write_text(original_survey_note, encoding="utf-8")
+        case_count += 1
+
+        survey_note_path.write_text(
+            original_survey_note.replace(
                 "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
                 "roadmap destinations: `drivers/virtio/*.zig` and `zigux/kernel/`",
                 1,
@@ -496,6 +532,22 @@ def run_self_test() -> int:
             root,
             'manifest:\"zigux/helpers/\"',
             "phase10-input-live-packet-self-test:manifest_roadmap_destinations",
+        )
+        manifest_path.write_text(original_manifest, encoding="utf-8")
+        case_count += 1
+
+        manifest_path.write_text(
+            original_manifest.replace(
+                '\"id\": \"phase10-virtio-input-queue-callback-preflight-helper\"',
+                '\"id\": \"phase10-virtio-input-queue-callback-preflight-helper-drift\"',
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            'manifest:\"id\": \"phase10-virtio-input-queue-callback-preflight-helper\"',
+            "phase10-input-live-packet-self-test:manifest_queue_callback_helper_id",
         )
         manifest_path.write_text(original_manifest, encoding="utf-8")
         case_count += 1
@@ -568,6 +620,24 @@ def run_self_test() -> int:
             "phase10-input-live-packet-self-test:module_note_manifest_path",
         )
         module_note_path.write_text(original_module_note, encoding="utf-8")
+        case_count += 1
+
+        queue_callback_helper_path = root / "drivers/virtio/virtio_input_queue_callback_preflight.zig"
+        original_queue_callback_helper = queue_callback_helper_path.read_text(encoding="utf-8")
+        queue_callback_helper_path.write_text(
+            original_queue_callback_helper.replace(
+                "return device.queueCallbackPreflightSummary();",
+                "return device.probePreflightSummary();",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "queue_callback_helper:return device.queueCallbackPreflightSummary();",
+            "phase10-input-live-packet-self-test:queue_callback_helper_call",
+        )
+        queue_callback_helper_path.write_text(original_queue_callback_helper, encoding="utf-8")
         case_count += 1
 
         status_drain_helper_path = root / "drivers/virtio/virtio_input_status_drain.zig"
