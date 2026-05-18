@@ -24,6 +24,14 @@ pub fn initListHead(next: usize, prev: usize) ListHead {
     return .{ .next = next, .prev = prev };
 }
 
+pub fn initEmptyListHead(self_addr: usize) ListHead {
+    return initListHead(self_addr, self_addr);
+}
+
+pub fn isEmptyListHead(head: ListHead, self_addr: usize) bool {
+    return head.next == self_addr and head.prev == self_addr;
+}
+
 pub fn emptyHListHead() HListHead {
     return .{ .first = 0 };
 }
@@ -32,12 +40,20 @@ pub fn initHListHead(first: usize) HListHead {
     return .{ .first = first };
 }
 
+pub fn isEmptyHListHead(head: HListHead) bool {
+    return head.first == 0;
+}
+
 pub fn emptyHListNode() HListNode {
     return .{ .next = 0, .pprev = 0 };
 }
 
 pub fn initHListNode(next: usize, pprev: usize) HListNode {
     return .{ .next = next, .pprev = pprev };
+}
+
+pub fn isDetachedHListNode(node: HListNode) bool {
+    return node.next == 0 and node.pprev == 0;
 }
 
 comptime {
@@ -103,4 +119,17 @@ test "uapi list/hlist raw constructors keep explicit link values" {
     try std.testing.expectEqual(hfirst, hhead.first);
     try std.testing.expectEqual(hnext, hnode.next);
     try std.testing.expectEqual(hpprev, hnode.pprev);
+}
+
+test "uapi list/hlist semantic helpers keep empty and detached states explicit" {
+    var list = initListHead(0, 0);
+    const list_addr = @intFromPtr(&list);
+    list = initEmptyListHead(list_addr);
+
+    try std.testing.expect(isEmptyListHead(list, list_addr));
+    try std.testing.expect(!isEmptyListHead(initListHead(list_addr, 0), list_addr));
+    try std.testing.expect(isEmptyHListHead(emptyHListHead()));
+    try std.testing.expect(!isEmptyHListHead(initHListHead(list_addr)));
+    try std.testing.expect(isDetachedHListNode(emptyHListNode()));
+    try std.testing.expect(!isDetachedHListNode(initHListNode(list_addr, list_addr + @sizeOf(usize))));
 }
