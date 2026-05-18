@@ -79,14 +79,14 @@ EXPECTED_ANTI_OVERLAP_RULE = (
 
 REQUIRED_EXACT_LINES = {
     LANE_NOTE_REL: {
-        "missing_phase1_packet_note": "- current authenticated reads do not recover `scripts/zigux/validate-phase1.py` or `zigux/Makefile` on `master`, while `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` are back on current `master`, so this lane should use that restored closure-side packet as live owner-map evidence while still treating the older validator-first and make-route names as historical packet members",
+        "missing_phase1_packet_note": "- current authenticated reads still do not recover `scripts/zigux/validate-phase1.py` on `master`, while `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1-closure.py`, and `zigux/Makefile` are back on current `master`; the returned Makefile still exposes only the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes, so this lane should use that restored closure-side packet as live owner-map evidence while still treating the older validator-first and Phase 1 make-route names as historical packet members",
         "bitmap_direct_owner": "- `PHASE1_BITMAP_DIRECT_OWNER=bitmap helper-local anchors plus the committed bitmap replay keys it already owns; the restored phase1-closure note and validate-phase1-closure guard are live companions again, while the older validator-first and make-route names stay historical`",
         "find_bit_direct_owner": "- `PHASE1_FIND_BIT_DIRECT_OWNER=find_bit helper-local same-word start-mask, head-word and tail-word inclusive-boundary, zero-window, zero-sized short-circuit, past-nbits, underscore-alias and Linux-style alias coverage including the shipped find_first_andnot_bit(), find_next_andnot_bit(), _find_first_andnot_bit(), and _find_next_andnot_bit() entry points, and tail-word skip anchors plus the committed tail-clamped find_bit replay fields already preserved in zigux/tests/fixtures/phase1_helpers.json`",
         "rbtree_direct_owner": "- `PHASE1_RBTREE_DIRECT_OWNER=rbtree keeps ordered Linux-style alias, low-level Linux-style alias, cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed anchors helper-local while the committed shared replay already owns duplicate-search parity through find(), findFirst(), nextMatch(), and matchIterator() plus the parked cached_leftmost_return_serials witness`",
         "string_direct_owner": "- `PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and sysfs_match_string(), C-string list lookup through matchString() and match_string(), counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte memchrInv coverage helper-local while the committed shared replay owns embedded-NUL replaceChar parity bytes and the current string fixture keys`",
         "find_bit_clump_packet_note": "- current `master` also keeps the helper-local `clump8`, `getValue8()`, and `findLastBit()` byte-clump and backward-scan proofs explicit in both `tools/lib/find_bit.zig` and the manifest's `helper_test_anchors` list, so nearby Phase 1 follow-through should keep those checks inside the same direct `find_bit` packet instead of splitting byte-clump or last-bit drift into a separate shared replay family",
         "string_counted_search_alias_note": "- The counted-search owner term here also covers the current `strnchrNul()` and `strnchrnul()` match-or-NUL boundary anchor already cataloged in `zigux/tests/fixtures/phase1_helper_manifest.json`, so future string-only rereads should keep that helper-local boundary proof inside the same counted-search packet instead of treating it as an unowned follow-up beside `strnchr()`.",
-        "string_review_rule_note": "- `the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; the restored `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` companions are now live broader reminder evidence on current `master`, but string should stay parked on the helper-local sysfs review anchors unless those direct string surfaces drift.`",
+        "string_review_rule_note": "- the still-open string sysfs follow-through, if it reopens, should stay on one string-only shared review-rule packet across `zigux/tests/fixtures/phase1_helper_manifest.json`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and `scripts/zigux/check-phase1-string-review-packet.py`; the restored `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` companions are now live broader reminder evidence on current `master`, but string should stay parked on the helper-local sysfs review anchors unless those direct string surfaces drift.",
         "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=the shared reminder packet now keeps scripts/zigux/check-phase1-bench.py explicit across Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md, while the older installer-backed, validator-first, bench-route, and replay names stay historical packet members until they reread cleanly on current master`",
         "shared_reminder_active_packet": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/phase1-closure.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/validate-phase1-closure.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py`",
         "shared_reminder_route_split": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_ROUTE_SPLIT=Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, zigux/tests/README.md, and scripts/zigux/README.md now all carry the shipped bench-checker wording, while Documentation/zigux/phase1-closure.md plus scripts/zigux/validate-phase1-closure.py keep the restored closure-side packet explicit and the broader installer-backed, validator-first, bench-route, and replay names remain historical packet members until direct current-master rereads restore them`",
@@ -119,7 +119,7 @@ REQUIRED_EXACT_LINES = {
     SCRIPTS_README_REL: {
         "phase1_self_tests": "- `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the shipped bounded Phase 1 reminder checks",
         "phase1_live_guards": "- `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner, bench, and closure-validator packet explicit from the scripts root",
-        "phase1_companions": "- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/validate-phase1-closure.py` remain the current reminder-surface companions for that packet",
+        "phase1_companions": "- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` remain the current reminder-surface companions for that packet",
         "phase1_historical_warning": "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
         "phase1_bench_checker_present": "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
         "phase1_direct_anchor_tie_breakers": "- the current direct-anchor tie-breakers stay helper-local: bitmap, find_bit, rbtree, and string reopen only inside their existing helper-local anchors or already-committed shared fixture keys, while the other nine closed helpers stay parked unless the shared replay or reminder packet drifts",
@@ -137,22 +137,28 @@ MANIFEST_EXPECTATIONS = {
     ("lane_sequencing", "anti_overlap_rule"): EXPECTED_ANTI_OVERLAP_RULE,
 }
 
+
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
+
 
 def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
+
 def load_json(root: Path, relative_path: Path) -> object:
     return json.loads(load_text(root, relative_path))
+
 
 def require_exact_line(text: str, label: str, line: str) -> list[str]:
     expected = line.strip()
     count = sum(1 for current_line in text.splitlines() if current_line.strip() == expected)
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
+
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
+
 
 def nested_value(data: object, path: tuple[str, ...]) -> object:
     current = data
@@ -161,6 +167,7 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
             return None
         current = current.get(key)
     return current
+
 
 def collect_direct_owner_failures(root: Path) -> list[str]:
     failures: list[str] = []
@@ -180,17 +187,38 @@ def collect_direct_owner_failures(root: Path) -> list[str]:
         failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:{'.'.join(path)}", nested_value(manifest, path), expected))
     return failures
 
+
 def write_file(root: Path, relative_path: Path, text: str) -> None:
     destination = root / relative_path
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(text, encoding="utf-8")
 
+
 def sample_text(relative_path: Path) -> str:
     labels = REQUIRED_EXACT_LINES[relative_path]
     return "# sample\n\n" + "\n".join(labels.values()) + "\n"
 
+
 def sample_manifest() -> str:
-    return (json.dumps({"phase": EXPECTED_PHASE, "status": EXPECTED_STATUS, "helper_count": len(EXPECTED_HELPERS), "helpers": EXPECTED_HELPERS, "lane_sequencing": {"shared_replay_parked_helpers": EXPECTED_SHARED_REPLAY_PARKED_HELPERS, "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS, "rule_summary": EXPECTED_RULE_SUMMARY, "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE}}, indent=2) + "\n")
+    return (
+        json.dumps(
+            {
+                "phase": EXPECTED_PHASE,
+                "status": EXPECTED_STATUS,
+                "helper_count": len(EXPECTED_HELPERS),
+                "helpers": EXPECTED_HELPERS,
+                "lane_sequencing": {
+                    "shared_replay_parked_helpers": EXPECTED_SHARED_REPLAY_PARKED_HELPERS,
+                    "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS,
+                    "rule_summary": EXPECTED_RULE_SUMMARY,
+                    "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+                },
+            },
+            indent=2,
+        )
+        + "\n"
+    )
+
 
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
@@ -200,6 +228,7 @@ def build_sample_repo(root: Path) -> None:
             write_file(root, relative_path, sample_text(relative_path))
         else:
             write_file(root, relative_path, f"# sample for {relative_path.as_posix()}\n")
+
 
 def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
     manifest_path = root / MANIFEST_REL
@@ -217,6 +246,7 @@ def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
         current[final_key] = f"{value} drift"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
+
 def run_self_test() -> int:
     cases: list[tuple[str, Path | None, str | tuple[str, ...] | None, str]] = [("success", None, None, "none")]
     for relative_path, labels in REQUIRED_EXACT_LINES.items():
@@ -225,7 +255,12 @@ def run_self_test() -> int:
             cases.append((f"duplicate_{relative_path.name}_{label}", relative_path, line, "duplicate"))
     for path in MANIFEST_EXPECTATIONS:
         cases.append((f"manifest_{'_'.join(path)}", MANIFEST_REL, path, "manifest"))
-    cases.extend([("missing_phase1_closure_file", PHASE1_CLOSURE_REL, None, "missing_file"), ("missing_phase1_closure_validator_file", PHASE1_CLOSURE_VALIDATOR_REL, None, "missing_file")])
+    cases.extend(
+        [
+            ("missing_phase1_closure_file", PHASE1_CLOSURE_REL, None, "missing_file"),
+            ("missing_phase1_closure_validator_file", PHASE1_CLOSURE_VALIDATOR_REL, None, "missing_file"),
+        ]
+    )
     for name, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{name}-") as tmpdir:
             root = Path(tmpdir)
@@ -259,6 +294,7 @@ def run_self_test() -> int:
     print("self-test:ok")
     return 0
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override the repository root for validation")
@@ -273,6 +309,7 @@ def main() -> int:
         return 1
     print("phase1-direct-owner-markers:ok")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
