@@ -56,6 +56,14 @@ VIRTIO_SCSI_SUPPORT_MANIFEST_PATH = (
 LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
+RAW_GITHUB_EXACT_BLOB_MARKERS = [
+    "`scripts/zigux/check-build-only-phase12-surface.py` at blob `f16163d6cb8a522995156ace1271d1b30796973f`",
+    "`scripts/zigux/check-phase12-release-readiness-packet.py` at blob `13bf09d84b6946486cabcd7ad99b9733ea439be8`",
+    "`.github/workflows/zigux-bootstrap.yml` at blob `6a35fbc97dcf5d776a2ef55f490fb862c0b088f0`",
+    "`scripts/zigux/README.md` at blob `879a17be9da422d4e14f90bef45e56e3f03bb966`",
+    "`zigux/Makefile` at blob `096311d4b448b7c6f6f5b0fe4da220794c6cf94a`",
+]
+
 REQUIRED_FILES = [
     DOCS_README_PATH,
     REVIEW_CHECKLIST_PATH,
@@ -120,7 +128,7 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_PATH: [
         "- exact coverage evidence checked on `2026-05-18`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
-        "`scripts/zigux/check-phase12-release-readiness-packet.py`",
+        *RAW_GITHUB_EXACT_BLOB_MARKERS,
         "while a direct contents read for `zigux/tests/phase12_build.zig` still returns `404` through the same current `master` bridge",
         "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, and restored Makefile as bounded reminder evidence only",
         "the raw-URL-backed fallback pair and the contents-bridge-backed shared support bundle are distinct evidence paths in this runtime",
@@ -359,8 +367,18 @@ def run_self_test() -> int:
                 RELEASE_CLOSURE_CHECKLIST_PATH,
                 REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][2],
             ),
-            (RAW_GITHUB_COVERAGE_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH][2]),
-            (RAW_GITHUB_COVERAGE_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH][3]),
+            (
+                RAW_GITHUB_COVERAGE_PATH,
+                RAW_GITHUB_EXACT_BLOB_MARKERS[0],
+            ),
+            (
+                RAW_GITHUB_COVERAGE_PATH,
+                RAW_GITHUB_EXACT_BLOB_MARKERS[3],
+            ),
+            (
+                RAW_GITHUB_COVERAGE_PATH,
+                REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH][-3],
+            ),
             (
                 RELEASE_COORDINATION_MATRIX_PATH,
                 REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][2],
