@@ -19,15 +19,19 @@ ROOT = _default_root()
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
     Path("Documentation/zigux/README.md"),
+    Path("Documentation/zigux/phase8-libbpf-segment-survey.md"),
     Path("Documentation/zigux/review-checklist.md"),
     Path("scripts/zigux/README.md"),
     Path("zigux/Makefile"),
     Path("zigux/tests/README.md"),
     Path("zigux/tests/phase8_exec_cmd.zig"),
+    Path("zigux/tests/phase8_libbpf_segments.zig"),
 )
 
 ROUTE_FILES = (
     Path("zigux/tests/phase8_exec_cmd_only_build.zig"),
+    Path("zigux/tests/phase8_libbpf_segments_only_build.zig"),
+    Path("zigux/tests/phase8_perf_buffer_poll_only_build.zig"),
     Path("zigux/tests/phase8_build.zig"),
 )
 
@@ -41,6 +45,8 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "phase8-validate:",
         "scripts/zigux/validate-phase8.py",
         "phase8-exec-cmd-test:",
+        "phase8-libbpf-segments-test:",
+        "phase8-perf-buffer-poll-test:",
         "phase8-test:",
     ),
     Path(".github/workflows/zigux-bootstrap.yml"): (
@@ -53,6 +59,17 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "Phase 8 notes",
         "scripts/zigux/validate-phase8.py",
         "tools/lib/subcmd/exec-cmd.zig",
+        "tools/lib/bpf/zigux_segments/verify.zig",
+        "zigux/tests/phase8_libbpf_segments.zig",
+    ),
+    Path("Documentation/zigux/phase8-libbpf-segment-survey.md"): (
+        "make -C zigux phase8-libbpf-segments-test",
+        "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+        "make -C zigux phase8-perf-buffer-poll-test",
+        "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+        "make -C zigux phase8-test",
+        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+        "scripts/zigux/validate-phase8.py",
     ),
     Path("Documentation/zigux/review-checklist.md"): (
         "if the change touches the parked Phase 8 `exec-cmd` packet",
@@ -163,6 +180,8 @@ def _passing_fixture(root: Path) -> None:
                 "phase8-validate:",
                 "\tpython3 scripts/zigux/validate-phase8.py",
                 "phase8-exec-cmd-test:",
+                "phase8-libbpf-segments-test:",
+                "phase8-perf-buffer-poll-test:",
                 "phase8-test:",
             )
         ),
@@ -185,6 +204,22 @@ def _passing_fixture(root: Path) -> None:
                 "Phase 8 notes",
                 "scripts/zigux/validate-phase8.py",
                 "tools/lib/subcmd/exec-cmd.zig",
+                "tools/lib/bpf/zigux_segments/verify.zig",
+                "zigux/tests/phase8_libbpf_segments.zig",
+            )
+        ),
+    )
+    _write(
+        root / "Documentation/zigux/phase8-libbpf-segment-survey.md",
+        "\n".join(
+            (
+                "scripts/zigux/validate-phase8.py",
+                "make -C zigux phase8-libbpf-segments-test",
+                "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
+                "make -C zigux phase8-perf-buffer-poll-test",
+                "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
+                "make -C zigux phase8-test",
+                "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
             )
         ),
     )
@@ -236,12 +271,18 @@ def _passing_fixture(root: Path) -> None:
             )
         ),
     )
+    _write(
+        root / "zigux/tests/phase8_libbpf_segments.zig",
+        "phase8 libbpf segment reminder surface",
+    )
     _write(root / "zigux/tests/phase8_exec_cmd_only_build.zig", "exec cmd build shard")
+    _write(root / "zigux/tests/phase8_libbpf_segments_only_build.zig", "libbpf segment verify shard")
+    _write(root / "zigux/tests/phase8_perf_buffer_poll_only_build.zig", "perf buffer poll shard")
     _write(root / "zigux/tests/phase8_build.zig", "phase8 aggregate build shard")
 
 
 def _self_test_case_count() -> int:
-    return 3
+    return 5
 
 
 def run_self_test() -> int:
@@ -275,6 +316,37 @@ def run_self_test() -> int:
         expected_note = "Documentation/zigux/phase8-exec-cmd-slice.md|Documentation/zigux/phase8-exec-cmd-repo-reality-note.md"
         if expected_note not in missing_note.missing_files:
             raise AssertionError("expected missing exec-cmd note candidate to be reported")
+        _write(exec_note, "current parked deferred-exec repo-reality note")
+
+        makefile = root / "zigux/Makefile"
+        original_makefile = _read(makefile)
+        makefile.write_text(
+            original_makefile.replace("phase8-libbpf-segments-test:\n", "", 1),
+            encoding="utf-8",
+        )
+        missing_libbpf_route = validate_root(root)
+        expected_libbpf_route = "zigux/Makefile:phase8-libbpf-segments-test:"
+        if expected_libbpf_route not in missing_libbpf_route.missing_markers:
+            raise AssertionError("expected missing libbpf make route marker to be reported")
+        makefile.write_text(original_makefile, encoding="utf-8")
+
+        survey = root / "Documentation/zigux/phase8-libbpf-segment-survey.md"
+        original_survey = _read(survey)
+        survey.write_text(
+            original_survey.replace(
+                "make -C zigux phase8-libbpf-segments-test",
+                "make -C zigux phase8-libbpf-survey-test",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_survey_route = validate_root(root)
+        expected_survey_route = (
+            "Documentation/zigux/phase8-libbpf-segment-survey.md:"
+            "make -C zigux phase8-libbpf-segments-test"
+        )
+        if expected_survey_route not in missing_survey_route.missing_markers:
+            raise AssertionError("expected missing libbpf survey route marker to be reported")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
     print(f"PHASE8_VALIDATE_SELF_TEST_CASE_COUNT={_self_test_case_count()}")
