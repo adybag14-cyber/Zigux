@@ -92,6 +92,36 @@ jobs:
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
 
+      - name: Setup pinned Zig toolchain
+        run: |
+          set -euxo pipefail
+          eval "$(python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          policy = json.loads(Path('scripts/zigux/zig-toolchain-policy.json').read_text(encoding='utf-8'))
+          targets = policy['upgrade_policy']['archive_target_scope']
+          if len(targets) != 1:
+              raise SystemExit(f'expected exactly one pinned archive target, got {len(targets)}')
+          target = targets[0]
+          channel = policy['channel']
+          sha256 = policy['archive_sha256'][target]
+          filename = f'zig-{target}-{channel}.tar.xz'
+          url = f'https://ziglang.org/builds/{filename}'
+          print(f"ZIGUX_ZIG_TARGET='{target}'")
+          print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
+          print(f"ZIGUX_ZIG_SHA256='{sha256}'")
+          print(f"ZIGUX_ZIG_FILENAME='{filename}'")
+          print(f"ZIGUX_ZIG_URL='{url}'")
+          PY
+          )"
+          mkdir -p .zig-toolchain
+          curl -L --fail "$ZIGUX_ZIG_URL" -o ".zig-toolchain/$ZIGUX_ZIG_FILENAME"
+          echo "$ZIGUX_ZIG_SHA256  .zig-toolchain/$ZIGUX_ZIG_FILENAME" | sha256sum -c
+          tar -xJf ".zig-toolchain/$ZIGUX_ZIG_FILENAME" -C .zig-toolchain
+          echo "$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL" >> "$GITHUB_PATH"
+          "$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL/zig" version
+
       - name: Self-test current Phase 2 kconfig bridge checker
         run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
 
