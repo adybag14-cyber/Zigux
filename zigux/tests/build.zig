@@ -483,6 +483,15 @@ pub fn build(b: *std.Build) void {
     );
     phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
 
+    const phase3_helper_local_step = b.step(
+        "phase3-helper-local",
+        "Run the shared Phase 3 helper-local packet bundle from zigux/tests",
+    );
+    phase3_helper_local_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
+    phase3_helper_local_step.dependOn(&phase3_errptr_xarray_dump.step);
+    phase3_helper_local_step.dependOn(&phase3_policy_starter_packet.step);
+    phase3_helper_local_step.dependOn(&phase3_low_level_wrappers.step);
+
     const phase3_test_step = b.step(
         "phase3-test",
         "Run the current shared Phase 3 starter packet bundle from zigux/tests",
