@@ -18,6 +18,11 @@ test "materialized tools/lib/bpf Zigux segments compile together and keep their 
 
 test "materialized tools/lib/bpf Zigux segments keep their landed bounded entrypoints explicit" {
     try expectHasDecl(logging, "parseLogLevelSetting");
+    try expectHasDecl(logging, "shouldLog");
+    try expectHasDecl(logging, "shouldLogWithEnv");
+    try expectHasDecl(logging, "formatUnrecognizedLogLevel");
+    try expectHasDecl(logging, "libbpfMajorVersion");
+    try expectHasDecl(logging, "libbpfMinorVersion");
     try expectHasDecl(logging, "libbpfVersionString");
     try expectHasDecl(logging, "libbpfErrorMessage");
     try expectHasDecl(logging, "formatLibbpfError");
@@ -29,7 +34,13 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(perf_buffer_poll, "summarizeBufferWindowLookup");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowMappedSize");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowLookupReturn");
+    try expectHasDecl(pin_path, "pathnameConcat");
+    try expectHasDecl(pin_path, "sanitizePinPath");
+    try expectHasDecl(pin_path, "validatePinName");
+    try expectHasDecl(pin_path, "validatePinRootPath");
+    try expectHasDecl(pin_path, "buildMapPinPath");
     try expectHasDecl(pin_path, "buildValidatedMapPinPath");
+    try expectHasDecl(pin_path, "buildSanitizedMapPinPath");
     try expectHasDecl(pin_path, "buildValidatedSanitizedMapPinPath");
     try expectHasDecl(type_names, "libbpfBpfAttachTypeStr");
     try expectHasDecl(type_names, "libbpfBpfMapTypeStr");
