@@ -315,7 +315,7 @@ def run_self_test() -> int:
         safe_name = name.replace("/", "_")
         with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{safe_name}-") as tmpdir:
             root = Path(tmpdir)
-            build_sampleRepo(root)
+            build_sample_repo(root)
             if relative_path:
                 target = root / relative_path
                 if operation == "missing_file":
