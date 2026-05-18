@@ -21,11 +21,19 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
-fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !void {
+fn stringSliceContains(haystack: []const []const u8, needle: []const u8) bool {
     for (haystack) |item| {
-        if (std.mem.eql(u8, item, needle)) return;
+        if (std.mem.eql(u8, item, needle)) return true;
     }
-    try std.testing.expect(false);
+    return false;
+}
+
+fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !void {
+    try std.testing.expect(stringSliceContains(haystack, needle));
+}
+
+fn expectStringSliceNotContains(haystack: []const []const u8, needle: []const u8) !void {
+    try std.testing.expect(!stringSliceContains(haystack, needle));
 }
 
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
@@ -34,6 +42,7 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
 
 test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     const allocator = std.testing.allocator;
+    const checker_path = "scripts/zigux/check-phase7-argv-split-packet.py";
 
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_argv_split_manifest.json");
     defer allocator.free(manifest_json);
@@ -69,9 +78,17 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     try expectStringSliceContains(manifest.missing_paths, "Documentation/zigux/phase7-argv-split-slice.md");
     try expectStringSliceContains(manifest.missing_paths, "zigux/tests/phase7_argv_split.zig");
     try expectStringSliceContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
-    try expectStringSliceContains(manifest.missing_paths, "scripts/zigux/check-phase7-argv-split-packet.py");
     try expectStringSliceContains(manifest.missing_paths, "zigux/tests/phase7_build.zig");
     try expectStringSliceContains(manifest.missing_paths, "scripts/zigux/validate-phase7.py");
+
+    const checker_is_review_surface = stringSliceContains(manifest.review_surfaces, checker_path);
+    const checker_is_missing = stringSliceContains(manifest.missing_paths, checker_path);
+    if (checker_is_missing) {
+        try std.testing.expect(!checker_is_review_surface);
+    } else {
+        try std.testing.expect(checker_is_review_surface);
+        try expectContains(manifest.next_bounded_step, "checker remains returned");
+    }
 
     try expectStringSliceContains(manifest.ownership_focus, "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage");
     try expectStringSliceContains(manifest.ownership_focus, "countArgc(), cStringPrefix(), nextArgSpan(), and nextSplitArgSpan() keep token counting and separator zeroing bounded to the exported C-string prefix");
@@ -79,8 +96,9 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     try expectStringSliceContains(manifest.ownership_focus, "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet");
     try expectContains(manifest.next_bounded_step, "helper-local survey-or-manifest truthfulness");
 
-    try expectContains(sequencing_note, "`argv_split` currently survives through `lib/argv_split.zig` plus the helper-local anchors `zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_argv_split_manifest.json`.");
-    try expectContains(sequencing_note, "That means `P7-L09` should treat those three returned surfaces as the current same-lane anchor");
+    try expectContains(sequencing_note, "- argv-split packet, lane `P7-L09`:");
+    try expectContains(sequencing_note, "  - `scripts/zigux/check-phase7-argv-split-packet.py`");
+    try expectContains(sequencing_note, "- `P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;");
     try expectNotContains(sequencing_note, "`argv_split` currently has only a helper foothold confirmed in this slot");
 
     try expectContains(helper, "pub const ArgvSplitResult = struct {");
