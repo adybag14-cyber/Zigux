@@ -129,6 +129,11 @@ This note says the governance packet is materially landed and reviewable, while 
 Current directly readable packet:
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-parity-scorecard-survey.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
@@ -169,6 +174,11 @@ def _sample_manifest() -> str:
             "direct_packet_paths": [
                 "Documentation/zigux/freeze-map.md",
                 "Documentation/zigux/phase15-freeze-map-governance.md",
+                "Documentation/zigux/phase15-parity-scorecard.md",
+                "Documentation/zigux/phase15-parity-scorecard-survey.md",
+                "Documentation/zigux/phase15-architecture-council-review-process.md",
+                "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+                "Documentation/zigux/phase15-indefinite-c-policy.md",
                 "Documentation/zigux/phase15-governance-lane-sequencing.md",
                 "Documentation/zigux/phase15-handoff-next-steps-survey.md",
                 "Documentation/zigux/phase15-shared-summary-gap.md",
@@ -225,6 +235,11 @@ def _seed_repo(root: Path) -> None:
     for rel in (
         "Documentation/zigux/freeze-map.md",
         "Documentation/zigux/phase15-freeze-map-governance.md",
+        "Documentation/zigux/phase15-parity-scorecard.md",
+        "Documentation/zigux/phase15-parity-scorecard-survey.md",
+        "Documentation/zigux/phase15-architecture-council-review-process.md",
+        "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+        "Documentation/zigux/phase15-indefinite-c-policy.md",
         "Documentation/zigux/phase15-governance-lane-sequencing.md",
         "Documentation/zigux/phase15-handoff-next-steps-survey.md",
         "Documentation/zigux/phase15-shared-summary-gap.md",
