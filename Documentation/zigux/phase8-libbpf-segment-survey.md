@@ -38,15 +38,18 @@ The same authenticated exact-read path still returns `404` from this environment
 
 That mixed readback means the survey should treat the bridge helper, routing helper, manifest-backed catalog, and focused build/test routes as reminder-surface or verify-shard evidence until those exact file reads become stable again, not as uniformly direct current-head proof.
 
+It also means the coupled shared reminder packet stays on narrower footing today: `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` still keep the broader bridge packet visible, but from this environment they currently serve as reminder-surface truthfulness checks rather than exact-read confirmation for `manifest.json`, `file_path_handle_bridge.zig`, `online_cpu_routing.zig`, `zigux/tests/phase8_libbpf_segments.zig`, or `zigux/tests/phase8_build.zig`.
+
 ## Current bounded gap
 The real same-lane gap is truthfulness about directly readable segment evidence, not a new helper implementation claim.
 
 Current `master` still exposes a real helper-first Phase 8 libbpf packet, but the directly readable subset is smaller than the broader bridge-and-build packet still named by docs-root reminder surfaces and `verify.zig`.
 
-So the dedicated survey needs to keep three facts explicit at the same time:
+So the dedicated survey needs to keep four facts explicit at the same time:
 - the roadmap still calls for segmented libbpf delivery under `tools/lib/bpf/zigux_segments/`
 - `verify.zig`, `type_names.zig`, and `pin_path.zig` are current exact-readable evidence
 - `manifest.json`, `file_path_handle_bridge.zig`, `online_cpu_routing.zig`, and the focused Phase 8 build/test files are still exact-read gaps from this environment today
+- the shared bridge-boundary note, review checklist, and tests-root guide remain useful reminder surfaces for that broader packet, but they are not stronger than the current exact-read footing of the files they name
 
 ## Non-goals
 This survey slice does not yet claim:
@@ -64,4 +67,4 @@ Keep this lane parked unless a fresh exact reread changes the directly readable 
 Preferred order:
 1. reread `verify.zig`, `type_names.zig`, `pin_path.zig`, `Documentation/zigux/README.md`, and this survey note before treating any libbpf shard as removed
 2. if exact reads recover for `manifest.json`, `file_path_handle_bridge.zig`, `online_cpu_routing.zig`, or the focused Phase 8 build/test files, retell this survey to that larger directly readable packet
-3. otherwise keep bridge, routing, manifest, and focused build references framed as reminder-surface or verify-shard expectations only
+3. otherwise keep bridge, routing, manifest, and focused build references framed as reminder-surface or verify-shard expectations only, and reopen the shared bridge-boundary note, review checklist, or tests-root guide only if they begin to overstate that broader packet as exact-read proof again
