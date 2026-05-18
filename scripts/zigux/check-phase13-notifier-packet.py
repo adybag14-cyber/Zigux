@@ -168,7 +168,6 @@ def run_self_test() -> int:
         checks_run += 1
 
         manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
-        manifest_path.writeText = None
         manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8").replace(
                 '"id": "phase13-notifier-focused-packet-checker"\n',
