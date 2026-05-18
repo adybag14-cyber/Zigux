@@ -26,8 +26,11 @@ Keep the contributor-facing shared handle aligned through:
 5. `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 
 stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+tests-root alignment companion: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 
 Keep `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard for those reminder surfaces rather than as the contributor-facing handle itself.
+
+Keep `python3 scripts/zigux/check-phase13-tests-readme-alignment.py` explicit as the shipped tests-root alignment companion for that stable handle rather than as a new replay route or a Makefile-backed entrypoint.
 
 `zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`, so keep the file itself distinct from those missing Phase 13 route names and keep only the route names recorded as repo-reality gaps until the shared build handle returns.
 
@@ -44,6 +47,7 @@ When shared Phase 13 wording changes, reread these contributor-facing and suppor
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 
 Keep broader docs-root refresh as a separate same-lane follow-up instead of mixing it into helper-local packet work.
 
@@ -112,6 +116,7 @@ Before landing a broad Phase 13 reminder change, check that:
 - the contributor-facing handle still runs through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - the release-coordination matrix and shared-helper sequencing note still describe the same active helper packet
 - the stable shared-summary guard remains `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- the shipped tests-root alignment companion remains `python3 scripts/zigux/check-phase13-tests-readme-alignment.py` so the broader contributor wording and the tests-root reminder stay on the same Phase 13 packet
 - helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
 - the shipped `devres` packet still runs through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay recorded as repo-reality gaps rather than shipped current-`master` evidence
 - adjacent notifier evidence stays adjacent rather than becoming a fifth helper family
