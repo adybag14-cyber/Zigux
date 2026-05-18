@@ -11,6 +11,19 @@ test "phase3 err_ptr floor and top remain error values" {
     try std.testing.expectEqual(@as(isize, -1), err_ptr.toErrorCode(err_top));
 }
 
+test "phase3 err_ptr band starts with two contiguous error values" {
+    const err_floor_raw = err_ptr.err_floor;
+    const next_err_raw = err_floor_raw + 1;
+
+    try std.testing.expectEqual(next_err_raw, err_ptr.fromErrorCode(-4094));
+    try std.testing.expect(err_ptr.isErrValue(err_floor_raw));
+    try std.testing.expect(err_ptr.isErrValue(next_err_raw));
+    try std.testing.expectEqual(@as(isize, -4095), err_ptr.toErrorCode(err_floor_raw));
+    try std.testing.expectEqual(@as(isize, -4094), err_ptr.toErrorCode(next_err_raw));
+    try std.testing.expect(!xa_value.isValue(err_floor_raw));
+    try std.testing.expect(!xa_value.isValue(next_err_raw));
+}
+
 test "phase3 err_ptr tagged endpoints stay out of the xa_value lane" {
     const err_floor_raw = err_ptr.err_floor;
     const err_top_raw = err_ptr.fromErrorCode(-1);
