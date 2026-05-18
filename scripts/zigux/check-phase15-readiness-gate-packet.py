@@ -18,6 +18,7 @@ INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH = Path("zigux/tests/phase15_indefinite_c_
 GOVERNANCE_LANE_MANIFEST_PATH = Path("zigux/tests/phase15_governance_lane_sequencing_manifest.json")
 GOVERNANCE_LANE_REPLAY_PATH = Path("zigux/tests/phase15_governance_lane_sequencing.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_NOTE_MARKERS = (
     "PHASE15_STATUS=readiness_gate_survey_landed",
@@ -26,8 +27,23 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
     "the missing validator, manifest, and build companions still block any claim that the broader Phase 15 replay route is fully ready",
+    "Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes",
     "ready for maintenance-mode truthfulness refreshes only",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
+)
+
+BLOCKED_ROUTE_MARKERS = {
+    "phase15-validate": "`make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path",
+    "phase15-test": "`make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path",
+    "phase15": "`make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path",
+}
+
+WORKFLOW_PHASE15_MARKERS = (
+    "validate-phase15.py",
+    "make -C zigux phase15-validate",
+    "make -C zigux phase15-test",
+    "make -C zigux phase15",
+    "zigux/tests/phase15_build.zig",
 )
 
 
@@ -37,6 +53,21 @@ def _read_text(path: Path) -> str:
 
 def _read_manifest(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _makefile_has_target(root: Path, target: str) -> bool:
+    path = root / MAKEFILE_PATH
+    if not path.exists():
+        return False
+    return f"\n{target}:" in ("\n" + _read_text(path))
+
+
+def _workflow_has_phase15_route(root: Path) -> bool:
+    path = root / WORKFLOW_PATH
+    if not path.exists():
+        return False
+    workflow = _read_text(path)
+    return any(marker in workflow for marker in WORKFLOW_PHASE15_MARKERS)
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -69,6 +100,24 @@ def collect_failures(root: Path) -> list[str]:
         if (root / rel).exists():
             failures.append(f"readiness note still treats materialized broader path as blocked: `{rel}`")
 
+    phase15_validate_target_present = _makefile_has_target(root, "phase15-validate")
+    phase15_test_target_present = _makefile_has_target(root, "phase15-test")
+    phase15_aggregate_target_present = _makefile_has_target(root, "phase15")
+    shared_ci_phase15_present = _workflow_has_phase15_route(root)
+
+    for target, marker in BLOCKED_ROUTE_MARKERS.items():
+        target_present = {
+            "phase15-validate": phase15_validate_target_present,
+            "phase15-test": phase15_test_target_present,
+            "phase15": phase15_aggregate_target_present,
+        }[target]
+        if marker not in note:
+            failures.append(f"readiness note is missing blocked route marker: {marker}")
+        elif target_present:
+            failures.append(
+                f"readiness note still treats materialized Phase 15 make route as blocked: `make -C zigux {target}`"
+            )
+
     repo_evidence = manifest["repo_evidence"]
     if repo_evidence["phase15_readiness_packet_checker_present"] != (root / SELF_PATH).exists():
         failures.append("readiness manifest checker-present bool disagrees with repo reality")
@@ -96,6 +145,24 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("readiness manifest indefinite-c-lane-owner bool disagrees with repo reality")
     if repo_evidence["phase15_makefile_present"] != (root / MAKEFILE_PATH).exists():
         failures.append("readiness manifest makefile bool disagrees with repo reality")
+    if repo_evidence["phase15_validate_target_present"] != phase15_validate_target_present:
+        failures.append("readiness manifest phase15-validate-target bool disagrees with repo reality")
+    if repo_evidence["phase15_test_target_present"] != phase15_test_target_present:
+        failures.append("readiness manifest phase15-test-target bool disagrees with repo reality")
+    if repo_evidence["shared_ci_phase15_present"] != shared_ci_phase15_present:
+        failures.append("readiness manifest shared-ci-phase15 bool disagrees with repo reality")
+
+    expected_replay_green = (
+        (root / VALIDATOR_PATH).exists()
+        and (root / HANDOFF_MANIFEST_PATH).exists()
+        and (root / BUILD_ZIG_PATH).exists()
+        and (root / INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH).exists()
+        and phase15_validate_target_present
+        and phase15_test_target_present
+        and shared_ci_phase15_present
+    )
+    if repo_evidence["phase15_replay_green_on_current_master"] != expected_replay_green:
+        failures.append("readiness manifest replay-green bool disagrees with the broader Phase 15 repo reality")
 
     expected_validate_checkers = [
         "scripts/zigux/check-phase15-docs-readme-alignment.py",
@@ -210,20 +277,20 @@ def _sample_manifest() -> str:
                 "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
             ],
             "repo_evidence": {
-                "phase15_readiness_packet_checker_present": True,
-                "phase15_validator_script_present": False,
-                "phase15_docs_readme_checker_present": True,
-                "phase15_tests_readme_checker_present": True,
-                "phase15_governance_lane_manifest_present": True,
-                "phase15_governance_lane_replay_present": True,
-                "phase15_handoff_manifest_present": False,
-                "phase15_build_zig_present": False,
-                "phase15_indefinite_c_lane_owner_alignment_present": False,
-                "phase15_makefile_present": True,
-                "phase15_validate_target_present": False,
-                "phase15_test_target_present": False,
-                "shared_ci_phase15_present": False,
-                "phase15_replay_green_on_current_master": False
+                "phase15_readiness_packet_checker_present": true,
+                "phase15_validator_script_present": false,
+                "phase15_docs_readme_checker_present": true,
+                "phase15_tests_readme_checker_present": true,
+                "phase15_governance_lane_manifest_present": true,
+                "phase15_governance_lane_replay_present": true,
+                "phase15_handoff_manifest_present": false,
+                "phase15_build_zig_present": false,
+                "phase15_indefinite_c_lane_owner_alignment_present": false,
+                "phase15_makefile_present": true,
+                "phase15_validate_target_present": false,
+                "phase15_test_target_present": false,
+                "shared_ci_phase15_present": false,
+                "phase15_replay_green_on_current_master": false
             },
             "phase15_validate_checkers": [
                 "scripts/zigux/check-phase15-docs-readme-alignment.py",
@@ -302,6 +369,23 @@ def run_self_test() -> int:
         if failures != expected:
             raise AssertionError(f"unexpected note-marker failure: {failures}")
 
+        blocked_route_root = root / "blocked_route"
+        _seed_repo(blocked_route_root)
+        _write(
+            blocked_route_root / READINESS_NOTE_PATH,
+            _sample_note().replace(
+                "- `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(blocked_route_root)
+        expected = [
+            "readiness note is missing blocked route marker: `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected blocked-route failure: {failures}")
+
         broader_root = root / "broader"
         _seed_repo(broader_root)
         _write(broader_root / "scripts/zigux/validate-phase15.py", "present\n")
@@ -309,6 +393,7 @@ def run_self_test() -> int:
         expected = [
             "readiness note still treats materialized broader path as blocked: `scripts/zigux/validate-phase15.py`",
             "readiness manifest validator-script bool disagrees with repo reality",
+            "readiness manifest replay-green bool disagrees with the broader Phase 15 repo reality",
         ]
         if failures != expected:
             raise AssertionError(f"unexpected broader-path failure: {failures}")
@@ -372,6 +457,42 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected makefile failure: {failures}")
+
+        validate_target_root = root / "validate_target"
+        _seed_repo(validate_target_root)
+        manifest = json.loads((validate_target_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+        manifest["repo_evidence"]["phase15_validate_target_present"] = True
+        _write(validate_target_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        failures = collect_failures(validate_target_root)
+        expected = [
+            "readiness manifest phase15-validate-target bool disagrees with repo reality"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected validate-target failure: {failures}")
+
+        shared_ci_root = root / "shared_ci"
+        _seed_repo(shared_ci_root)
+        manifest = json.loads((shared_ci_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+        manifest["repo_evidence"]["shared_ci_phase15_present"] = True
+        _write(shared_ci_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        failures = collect_failures(shared_ci_root)
+        expected = [
+            "readiness manifest shared-ci-phase15 bool disagrees with repo reality"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected shared-ci failure: {failures}")
+
+        replay_green_root = root / "replay_green"
+        _seed_repo(replay_green_root)
+        manifest = json.loads((replay_green_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+        manifest["repo_evidence"]["phase15_replay_green_on_current_master"] = True
+        _write(replay_green_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        failures = collect_failures(replay_green_root)
+        expected = [
+            "readiness manifest replay-green bool disagrees with the broader Phase 15 repo reality"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected replay-green failure: {failures}")
 
     print("PHASE15_READINESS_GATE_PACKET_SELF_TEST=pass")
     return 0
