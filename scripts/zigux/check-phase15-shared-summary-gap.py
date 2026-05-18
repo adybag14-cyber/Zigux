@@ -10,7 +10,6 @@ HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.
 CURRENT_READBACK_MARKER = "current-master-readback-2026-05-18"
 
 MATERIALIZED_GOVERNANCE_PATHS = (
-    "Documentation/zigux/phase15-parity-scorecard-survey.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-governance-lane-sequencing.md",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
@@ -24,6 +23,10 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+)
+
+STILL_MISSING_SCORECARD_COMPANIONS = (
+    "Documentation/zigux/phase15-parity-scorecard-survey.md",
 )
 
 STILL_MISSING_VALIDATOR_FIRST_PATHS = (
@@ -40,7 +43,6 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/README.md`",
     "`zigux/tests/README.md`",
     "`Documentation/zigux/phase15-freeze-map-governance.md`",
-    "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
@@ -49,7 +51,12 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
-    "broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
+    "broader parity-scorecard and validator-first wording around `Documentation/zigux/phase15-parity-scorecard-survey.md`, `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
+)
+
+HANDOFF_REQUIRED_MARKERS = (
+    "`Documentation/zigux/phase15-parity-scorecard.md`",
+    "`Documentation/zigux/phase15-parity-scorecard-survey.md` remains a shared-summary gap",
 )
 
 STALE_TEXT_MARKERS = (
@@ -86,6 +93,12 @@ def collect_failures(root: Path) -> list[str]:
         if f"`{rel}`" not in gap_note:
             failures.append(f"gap note missing focused-companion marker: `{rel}`")
 
+    for rel in STILL_MISSING_SCORECARD_COMPANIONS:
+        if f"`{rel}`" not in gap_note:
+            failures.append(f"gap note missing still-missing scorecard marker: `{rel}`")
+        if (root / rel).exists():
+            failures.append(f"gap note still treats materialized scorecard path as missing: `{rel}`")
+
     for rel in STILL_MISSING_VALIDATOR_FIRST_PATHS:
         if f"`{rel}`" not in gap_note:
             failures.append(f"gap note missing still-missing validator-first marker: `{rel}`")
@@ -103,6 +116,10 @@ def collect_failures(root: Path) -> list[str]:
     if HANDOFF_STATUS_MARKER not in handoff_note:
         failures.append(f"handoff note missing landed status marker: {HANDOFF_STATUS_MARKER}")
 
+    for marker in HANDOFF_REQUIRED_MARKERS:
+        if marker not in handoff_note:
+            failures.append(f"handoff note missing required marker: {marker}")
+
     return failures
 
 
@@ -114,6 +131,7 @@ def _write(path: Path, text: str) -> None:
 def _sample_gap_note() -> str:
     materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_GOVERNANCE_PATHS)
     focused = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_FOCUSED_COMPANIONS)
+    missing_scorecard = "\n".join(f"- `{rel}`" for rel in STILL_MISSING_SCORECARD_COMPANIONS)
     missing = "\n".join(f"- `{rel}`" for rel in STILL_MISSING_VALIDATOR_FIRST_PATHS)
     required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS[1:])
     return f"""# Phase 15 Shared Summary Gap
@@ -128,6 +146,10 @@ def _sample_gap_note() -> str:
 
 {focused}
 
+## Still-missing parity-scorecard companion on current master
+
+{missing_scorecard}
+
 ## Still-missing broader validator-first companions on current master
 
 {missing}
@@ -139,7 +161,12 @@ def _sample_gap_note() -> str:
 
 
 def _sample_handoff_note() -> str:
-    return "# Phase 15 Handoff Next Steps Survey\n\nPHASE15_STATUS=handoff_next_steps_survey_landed\n"
+    return (
+        "# Phase 15 Handoff Next Steps Survey\n\n"
+        "PHASE15_STATUS=handoff_next_steps_survey_landed\n"
+        "- `Documentation/zigux/phase15-parity-scorecard.md`\n"
+        "- `Documentation/zigux/phase15-parity-scorecard-survey.md` remains a shared-summary gap\n"
+    )
 
 
 def _seed_repo(root: Path) -> None:
@@ -171,6 +198,16 @@ def run_self_test() -> int:
         expected = [f"expected materialized focused companion missing: {MATERIALIZED_FOCUSED_COMPANIONS[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected focused-companion failure: {failures}")
+
+        rematerialized_scorecard_root = root / "rematerialized_scorecard"
+        _seed_repo(rematerialized_scorecard_root)
+        _write(rematerialized_scorecard_root / STILL_MISSING_SCORECARD_COMPANIONS[0], "present\n")
+        failures = collect_failures(rematerialized_scorecard_root)
+        expected = [
+            f"gap note still treats materialized scorecard path as missing: `{STILL_MISSING_SCORECARD_COMPANIONS[0]}`"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected rematerialized-scorecard failure: {failures}")
 
         rematerialized_root = root / "rematerialized"
         _seed_repo(rematerialized_root)
@@ -210,7 +247,11 @@ def run_self_test() -> int:
         _seed_repo(handoff_root)
         _write(handoff_root / HANDOFF_NOTE_PATH, "# Phase 15 Handoff Next Steps Survey\n")
         failures = collect_failures(handoff_root)
-        expected = [f"handoff note missing landed status marker: {HANDOFF_STATUS_MARKER}"]
+        expected = [
+            f"handoff note missing landed status marker: {HANDOFF_STATUS_MARKER}",
+            "handoff note missing required marker: `Documentation/zigux/phase15-parity-scorecard.md`",
+            "handoff note missing required marker: `Documentation/zigux/phase15-parity-scorecard-survey.md` remains a shared-summary gap",
+        ]
         if failures != expected:
             raise AssertionError(f"unexpected handoff failure: {failures}")
 
