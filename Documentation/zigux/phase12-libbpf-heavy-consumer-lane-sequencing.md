@@ -27,11 +27,14 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
   4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
   5. shipped wrapper evidence on current `master`: `make -C zigux phase12-test`
   6. shipped wrapper evidence on current `master`: `make -C zigux phase12`
-- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`, so keep only `make -C zigux phase12-validate` here as reminder vocabulary and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.
+- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`, so keep only `make -C zigux phase12-validate` here as reminder vocabulary and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.
 - If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order documented with the reminder-only `make -C zigux phase12-validate` vocabulary ahead of the shipped attached-toolchain reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only fallback entrypoint.
 - Keep the degraded-workflow support bundle explicit beside that same order too:
   - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+  - `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`
+  - `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`
   - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
+  - `scripts/zigux/validate-phase12.py`
   - reminder-only wrapper name until the route returns: `make -C zigux phase12-validate`
 
 ## Anti-Overlap Rules
@@ -45,7 +48,7 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 ## Boundaries
 
 - This note must not imply `skeleton.zig`, object-loader parity, relocation parity, direct queue-routing delivery, or other unshipped libbpf runtime surfaces.
-- Current `master` keeps the directly readable validator-first support bundle explicit through `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns; there is still no focused-libbpf-only replay or cross-build replay, so this note must keep that support bundle distinct from the smoke-first shared replay order.
+- Current `master` keeps the directly readable validator-first support bundle explicit through `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-libbpf-snapshot.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns; there is still no focused-libbpf-only replay or cross-build replay, so this note must keep that support bundle distinct from the smoke-first shared replay order.
 - `Documentation/zigux/freeze-map.md` remains the boundary owner for deeper queueing and transport anchors, so this note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
 
 ## Next Bounded Step
