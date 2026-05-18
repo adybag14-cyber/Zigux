@@ -79,6 +79,47 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(type_names, "formatLibbpfBpfProgType");
 }
 
+test "materialized tools/lib/bpf Zigux segments keep direct return helpers explicit and stable" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    try std.testing.expectEqual(@as(i32, 1), perf_buffer_poll.resolveReadyBufferAttemptIndexReturn(&buffers, 0));
+    try std.testing.expectEqual(@as(i32, 3), perf_buffer_poll.resolveReadyBufferAttemptIndexReturn(&buffers, 1));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferAttemptIndexReturn(&buffers, 2),
+    );
+
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+    try std.testing.expectEqual(@as(i32, 21), perf_buffer_poll.resolveBufferFdLookupReturnAtIndex(&buffer_fds, 2));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveBufferFdLookupReturnAtIndex(&buffer_fds, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveBufferFdLookupReturnAtIndex(&buffer_fds, 4),
+    );
+
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+    try std.testing.expectEqual(@as(i32, 0), perf_buffer_poll.resolveBufferWindowLookupReturnAtIndex(&buffer_windows, 0));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveBufferWindowLookupReturnAtIndex(&buffer_windows, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveBufferWindowLookupReturnAtIndex(&buffer_windows, 4),
+    );
+}
+
 test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outputs explicit" {
     var buffer: [128]u8 = undefined;
 
