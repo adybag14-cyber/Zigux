@@ -79,6 +79,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper, "pub fn kstrdup_quotable");
     try expectContains(helper, "pub fn kstrdupQuotableCmdline");
     try expectContains(helper, "pub fn kstrdup_quotable_cmdline");
+    try expectContains(helper, "pub fn parseIntArray");
+    try expectContains(helper, "pub fn parse_int_array");
     try expectContains(helper, "pub fn stringEscapeMem");
     try expectContains(helper, "pub fn stringEscapeStrAnyNp");
     try expectContains(helper, "pub fn memcpyAndPad");
@@ -104,6 +106,9 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotable allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
+    try expectContains(helper_tests, "parseIntArray parses bounded comma lists and positive ranges");
+    try expectContains(helper_tests, "parseIntArray stops at invalid trailing tokens while respecting count and first NUL");
+    try expectContains(helper_tests, "parseIntArray reports NoEntry when no integers are available");
     try expectContains(helper_tests, "phase 7 string helpers starter pads bounded copies without reading past the provided source slice");
     try expectContains(helper_tests, "phase 7 string helpers starter replaces bytes only inside the exported c-string prefix");
     try expectContains(helper_tests, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
