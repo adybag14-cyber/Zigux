@@ -1005,6 +1005,52 @@ test "phase8 perf-buffer poll rejects later failures that still point at the fir
     );
 }
 
+test "phase8 perf-buffer poll lookup summaries keep slot metadata exact" {
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+
+    const found_fd = summarizeBufferFdLookup(&buffer_fds, 2);
+    try std.testing.expectEqual(BufferFdLookupDisposition.found_fd, found_fd.disposition);
+    try std.testing.expectEqual(@as(usize, 3), found_fd.slot_count);
+    try std.testing.expectEqual(@as(usize, 2), found_fd.requested_index);
+    try std.testing.expectEqual(@as(?i32, 21), found_fd.fd);
+
+    const missing_fd = summarizeBufferFdLookup(&buffer_fds, 1);
+    try std.testing.expectEqual(BufferFdLookupDisposition.missing_fd, missing_fd.disposition);
+    try std.testing.expectEqual(@as(usize, 3), missing_fd.slot_count);
+    try std.testing.expectEqual(@as(usize, 1), missing_fd.requested_index);
+    try std.testing.expectEqual(@as(?i32, null), missing_fd.fd);
+
+    const invalid_fd = summarizeBufferFdLookup(&buffer_fds, 4);
+    try std.testing.expectEqual(BufferFdLookupDisposition.invalid_index, invalid_fd.disposition);
+    try std.testing.expectEqual(@as(usize, 3), invalid_fd.slot_count);
+    try std.testing.expectEqual(@as(usize, 4), invalid_fd.requested_index);
+    try std.testing.expectEqual(@as(?i32, null), invalid_fd.fd);
+
+    const buffer_windows = [_]?BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    const found_window = summarizeBufferWindowLookup(&buffer_windows, 2);
+    try std.testing.expectEqual(BufferWindowLookupDisposition.found_window, found_window.disposition);
+    try std.testing.expectEqual(@as(usize, 3), found_window.slot_count);
+    try std.testing.expectEqual(@as(usize, 2), found_window.requested_index);
+    try std.testing.expectEqual(@as(?usize, 8192), found_window.mapped_size);
+
+    const missing_window = summarizeBufferWindowLookup(&buffer_windows, 1);
+    try std.testing.expectEqual(BufferWindowLookupDisposition.missing_window, missing_window.disposition);
+    try std.testing.expectEqual(@as(usize, 3), missing_window.slot_count);
+    try std.testing.expectEqual(@as(usize, 1), missing_window.requested_index);
+    try std.testing.expectEqual(@as(?usize, null), missing_window.mapped_size);
+
+    const invalid_window = summarizeBufferWindowLookup(&buffer_windows, 4);
+    try std.testing.expectEqual(BufferWindowLookupDisposition.invalid_index, invalid_window.disposition);
+    try std.testing.expectEqual(@as(usize, 3), invalid_window.slot_count);
+    try std.testing.expectEqual(@as(usize, 4), invalid_window.requested_index);
+    try std.testing.expectEqual(@as(?usize, null), invalid_window.mapped_size);
+}
+
 test "phase8 perf-buffer poll keeps buffer lookup returns errno-shaped" {
     const buffer_fds = [_]?i32{ 9, null, 21 };
     try std.testing.expectEqual(
