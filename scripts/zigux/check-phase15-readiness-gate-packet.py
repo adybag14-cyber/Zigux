@@ -460,7 +460,7 @@ def run_self_test() -> int:
 
         validate_target_root = root / "validate_target"
         _seed_repo(validate_target_root)
-        manifest = json.loads((validate_target_root / MANIFEST_PATH).readText(encoding="utf-8"))
+        manifest = json.loads((validate_target_root / MANIFEST_PATH).read_text(encoding="utf-8"))
         manifest["repo_evidence"]["phase15_validate_target_present"] = True
         _write(validate_target_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         failures = collect_failures(validate_target_root)
