@@ -56,3 +56,16 @@ test "phase10 virtio input queue planning caps and refills event buffers" {
     const summary = try device.queuePlanSummary();
     try std.testing.expect(summary.ready);
 }
+
+test "phase10 virtio input probe preflight keeps serial optional while name and phys drive identity" {
+    var serial_optional = try virtio_input.VirtioInputLab.init("touch-panel", "", 33, null);
+
+    const summary = serial_optional.probePreflightSummary();
+    try std.testing.expect(summary.identity_ready);
+    try std.testing.expect(!summary.queue_plan_ready);
+    try std.testing.expect(!summary.device_ready);
+    try std.testing.expect(!summary.capability_setup_ready);
+    try std.testing.expect(!summary.multitouch_slots_ready);
+    try std.testing.expectEqual(virtio_input.ProbePreflightBlocker.event_queue_unconfigured, summary.blocker.?);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+}
