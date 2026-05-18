@@ -26,7 +26,7 @@ REQUIRED_FILES = (
 MARKERS = {
     "Documentation/zigux/README.md": (
         "keep the live owner map, the restored closure note and closure validator, the parked shared-replay-versus-direct-anchor split, the shipped bench checker, and the current Phase 1 reminder packet explicit from the docs root without rebuilding the broader host-tools closure stack from older missing validator and replay surfaces.",
-        "`scripts/zigux/check-phase1-bench.py`",
+        "the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, restored closure-side, string-review, direct-owner, and bench guards: `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` keep the current-master-safe closure packet explicit, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, validator-first, bench-route, and replay surfaces.",
         "`python3 scripts/zigux/check-phase1-bench.py --self-test`",
     ),
     "Documentation/zigux/phase1-closure.md": (
@@ -34,7 +34,7 @@ MARKERS = {
         "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
     "Documentation/zigux/review-checklist.md": (
-        "`scripts/zigux/check-phase1-bench.py` stays explicit as the shipped bench-side checker anchor for the remaining shared reminder wording",
+        "that the broader docs-root, checklist, and tests-root bench wording stays aligned with the shipped bench checker instead of treating it as missing current evidence?",
         "`python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded live reminder checks",
     ),
     "scripts/zigux/README.md": (
@@ -50,7 +50,7 @@ MARKERS = {
         "PHASE1_CLOSURE_SELF_TEST=pass",
     ),
     "zigux/tests/README.md": (
-        "current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`",
+        "current direct-readback Phase 1 reminder packet: `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`",
         "current `master` does ship `scripts/zigux/check-phase1-bench.py`",
     ),
     "zigux/tests/build.zig": (
