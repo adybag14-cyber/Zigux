@@ -89,20 +89,20 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = {
     RELEASE_READINESS_SURVEY_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "while current `zigux/Makefile` no longer exposes `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, or `make -C zigux phase12`.",
+        "current `zigux/Makefile` now provides shared `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again, but it still does not provide `phase12-validate`.",
         "the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`",
-        "treat those route names as stale reminder text until same-lane work rematerializes them",
+        "That means the PMO release notes can treat `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again, while `make -C zigux phase12-validate` must stay reminder-only text until same-lane work rematerializes that wrapper.",
         "`scripts/zigux/check-build-only-phase12-surface.py` remains the bounded build-only contract checker",
     ],
     RELEASE_SEQUENCING_PATH: [
-        "Current repo-reality override: `zigux/Makefile` no longer exposes `phase12-validate`, `phase12-smoke`, or `phase12` on current `master`",
+        "Current repo-reality override: `zigux/Makefile` still omits `phase12-validate` on current `master`, but it now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` wrappers again.",
         "the directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.",
         "while `make -C zigux phase12-validate` remains stale reminder vocabulary until same-lane work rematerializes the wrapper",
         "`Documentation/zigux/phase12-nvme-pci-reopen-governance.md` owner-map companion outside the wired shared release route",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "`zigux/Makefile` remains directly readable repo evidence but does not currently expose `phase12-validate`, `phase12-smoke`, or `phase12` on `master`",
+        "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
         "the shipped packet-local `scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py` guard",
         "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.",
     ],
@@ -158,6 +158,9 @@ REQUIRED_MARKERS = {
         "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
         "phase3: phase3-validate",
         "phase10: phase10-validate phase10-test",
+        "phase12-smoke:",
+        "phase12-test:",
+        "phase12: phase12-smoke phase12-test",
     ],
     VALIDATOR_PATH: [
         VIRTIO_SCSI_PACKET_CHECKER_PATH,
@@ -174,8 +177,6 @@ REQUIRED_MARKERS = {
 FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: [
         "phase12-validate:",
-        "phase12-smoke:",
-        "phase12-test:",
         "phase12: phase12-validate phase12-smoke phase12-test",
     ],
     VALIDATOR_PATH: [
