@@ -51,13 +51,15 @@ That fixture-backed parity packet keeps one tiny C-vs-Zig comparison explicit wi
 
 This is still not the broader Phase 3 ABI, export/UAPI, catalog, or low-level-wrapper packet that older reminder surfaces still name. It is one helper-local interop proof layered beside the existing `dev_t` starter packet.
 
-Current shared reminder follow-up still belongs to the broader Phase 3 truthfulness pass:
+The earlier shared reminder follow-up is now closed across the docs root, review checklist, and tests root on current `master`:
 
 - `Documentation/zigux/README.md`
-- `zigux/tests/README.md`
 - `Documentation/zigux/review-checklist.md`
+- `zigux/tests/README.md`
+- `Documentation/zigux/phase3-validator-support-surface.md`
+- `Documentation/zigux/phase3-shared-reminder-gap.md`
 
-Those surfaces still talk in broader Phase 3 packet terms and should be narrowed separately instead of being treated as proof that the wider validator or export-boundary routes already ship on `master`.
+Those surfaces now keep the bounded three-slice posture explicit rather than speaking in broader Phase 3 packet terms. Any future follow-up from this helper-local slice should stay limited to `err_ptr` / `xarray` packet truthfulness or separate scripts-root inventory drift, not treat the closed shared-reminder cleanup as evidence that the wider validator or export-boundary routes already ship on `master`.
 
 ## Scope
 
