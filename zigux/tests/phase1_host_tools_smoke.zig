@@ -8,10 +8,10 @@ const hweight = @import("hweight");
 const list_sort = @import("list_sort");
 const rbtree = @import("rbtree");
 const string = @import("string");
-const slab = @import("../../tools/lib/slab.zig");
-const str_error_r = @import("../../tools/lib/str_error_r.zig");
-const vsprintf = @import("../../tools/lib/vsprintf.zig");
-const zalloc = @import("../../tools/lib/zalloc.zig");
+const slab = @import("slab");
+const str_error_r = @import("str_error_r");
+const vsprintf = @import("vsprintf");
+const zalloc = @import("zalloc");
 
 const ListSortSmokeEntry = struct {
     key: i32,
