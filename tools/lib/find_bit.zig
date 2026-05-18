@@ -922,3 +922,18 @@ test "Linux-style aliases mirror the primary find helpers" {
     try std.testing.expectEqual(@as(usize, 0), find_next_clump8(&clump, &[_]Word{@as(Word, 1)}, 8, 0));
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
+
+test "clump aliases leave caller bytes untouched when no set bit remains" {
+    const empty = [_]Word{0};
+    var clump: u8 = 0xaa;
+
+    try std.testing.expectEqual(@as(usize, 8), _find_first_clump8(&clump, &empty, 8));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+    try std.testing.expectEqual(@as(usize, 8), _find_next_clump8(&clump, &empty, 8, 4));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+
+    try std.testing.expectEqual(@as(usize, 8), find_first_clump8(&clump, &empty, 8));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+    try std.testing.expectEqual(@as(usize, 8), find_next_clump8(&clump, &empty, 8, 4));
+    try std.testing.expectEqual(@as(u8, 0xaa), clump);
+}
