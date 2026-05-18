@@ -71,10 +71,13 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge decodes escaped quoted strings",
     "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
     "confdata bridge escapes low control bytes in json output",
+    "confdata bridge emits escaped string values in json output",
+    "confdata bridge emits low control bytes escaped in json output",
     "confdata bridge accepts CRLF config lines",
     "confdata bridge preserves trailing carriage return on final unterminated value line",
     "confdata bridge ignores unterminated unset comment with trailing carriage return",
     "confdata bridge ignores suffix bytes after an embedded NUL",
+    "confdata bridge omits embedded NUL suffix bytes from json output",
     "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
     "confdata bridge keeps explicit n assignments as tristate values",
     "confdata bridge recognizes uppercase tristate assignments",
@@ -723,7 +726,7 @@ def run_self_test() -> int:
         assert ("INVALID_CONF_CASE_RANDCONFIG_FIELDS", "oldaskconfig:seed") in issues
         checks_run += 1
 
-        build_self_test_root(root)
+        build_self_TEST_ROOT(root)
         payload = json.loads(cases_path.read_text(encoding="utf-8"))
         payload["conf_cases"][0]["allconfig"] = "mini.config"
         write_text(cases_path, json.dumps(payload, indent=2) + "\n")
@@ -872,7 +875,7 @@ def main() -> int:
     zig = find_zig(args.zig)
     cases = load_cases(FIXTURE_DIR)
 
-    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_") as tmp_dir_str:
+    with tempfile.TemporaryDirectory(prefix="zigux_kconfig_bridge_" ) as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         conf_exe = tmp_dir / ("conf-bridge.exe" if sys.platform == "win32" else "conf-bridge")
         confdata_exe = tmp_dir / ("confdata-bridge.exe" if sys.platform == "win32" else "confdata-bridge")
@@ -900,7 +903,7 @@ def main() -> int:
 
         for case in cases["confdata_cases"]:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"])], cwd=str(ROOT), capture_output=True)
+            result = run([str(confdata_exe), str(FIXTURE_DIR / case["input"] )], cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
             run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / case["expected"]), str(actual)], cwd=str(ROOT))
 
