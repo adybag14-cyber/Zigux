@@ -404,6 +404,38 @@ fn expectShortTailRoundTripSweep(variant: Variant, padding: bool) !void {
     }
 }
 
+fn expectNonCanonicalTailMutationRejectionCase(payload: []const u8, padding: bool, variant: Variant) !void {
+    var encoded_buf: [5]u8 = undefined;
+    const encoded_len = try encode(encoded_buf[0..], payload, padding, variant);
+    const mutated_index: usize = if (payload.len == 1) 1 else 2;
+    const canonical_value = try decodeValue(encoded_buf[mutated_index], variant);
+    const mutated_value: u8 = canonical_value | 0x1;
+    try std.testing.expect(mutated_value != canonical_value);
+
+    var mutated_buf = encoded_buf;
+    mutated_buf[mutated_index] = alphabet(variant)[mutated_value];
+    const mutated = mutated_buf[0..encoded_len];
+
+    try std.testing.expectError(DecodeError.InvalidInput, bytes(mutated, padding, variant));
+
+    var decoded_buf: [3]u8 = undefined;
+    try std.testing.expectError(DecodeError.InvalidInput, decode(decoded_buf[0..], mutated, padding, variant));
+}
+
+fn expectNonCanonicalTailMutationRejectionSweep(variant: Variant, padding: bool) !void {
+    for (0..256) |first_raw| {
+        const first: u8 = @intCast(first_raw);
+        const one = [_]u8{first};
+        try expectNonCanonicalTailMutationRejectionCase(one[0..], padding, variant);
+
+        for (0..256) |second_raw| {
+            const second: u8 = @intCast(second_raw);
+            const two = [_]u8{ first, second };
+            try expectNonCanonicalTailMutationRejectionCase(two[0..], padding, variant);
+        }
+    }
+}
+
 fn expectVariantPinnedConvenienceParity(input: []const u8, expected: []const u8, padding: bool, variant: Variant) !void {
     var generic_buf: [16]u8 = undefined;
     var pinned_buf: [16]u8 = undefined;
@@ -603,6 +635,14 @@ test "encode and decode sweep every one-byte and two-byte tail across variants a
     inline for ([_]Variant{ .std, .urlsafe, .imap }) |variant| {
         inline for ([_]bool{ false, true }) |padding| {
             try expectShortTailRoundTripSweep(variant, padding);
+        }
+    }
+}
+
+test "decode and bytes reject non-canonical mutated tail bits across every variant tail shape" {
+    inline for ([_]Variant{ .std, .urlsafe, .imap }) |variant| {
+        inline for ([_]bool{ false, true }) |padding| {
+            try expectNonCanonicalTailMutationRejectionSweep(variant, padding);
         }
     }
 }
