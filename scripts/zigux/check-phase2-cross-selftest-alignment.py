@@ -45,14 +45,14 @@ TOOLCHAIN_PINNING_MARKERS = (
 )
 
 TESTS_ALIGNMENT_MARKERS = (
-    '"the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster",',
-    '"repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",',
-    '"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",',
-    '"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",',
-    '"`make -C zigux phase2-cross`",',
+    "\"the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster\",",
+    "\"repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`\",",
+    "\"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`\",",
+    "\"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`\",",
+    "\"`make -C zigux phase2-cross`\",",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 30
+EXPECTED_SELF_TEST_CASE_COUNT = 42
 
 
 def read_text(path: Path) -> str:
@@ -69,8 +69,23 @@ def resolve_path(root: Path, path: Path) -> Path:
         return root / path
 
 
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_exact_line_issues(text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = count_exact_lines(text, marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -90,24 +105,27 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_exact_line_issues(
             read_text(resolve_path(root, KBUILD_ROUTES)),
             KBUILD_ROUTE_MARKERS,
             "MISSING_KBUILD_ROUTE_MARKERS",
+            "DUPLICATE_KBUILD_ROUTE_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_exact_line_issues(
             read_text(resolve_path(root, TOOLCHAIN_PINNING)),
             TOOLCHAIN_PINNING_MARKERS,
             "MISSING_TOOLCHAIN_PINNING_MARKERS",
+            "DUPLICATE_TOOLCHAIN_PINNING_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_exact_line_issues(
             read_text(resolve_path(root, TESTS_ALIGNMENT)),
             TESTS_ALIGNMENT_MARKERS,
             "MISSING_TESTS_ALIGNMENT_MARKERS",
+            "DUPLICATE_TESTS_ALIGNMENT_MARKERS",
         )
     )
     return issues
@@ -146,6 +164,24 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def replace_exact_line(text: str, marker: str, replacement: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
@@ -155,15 +191,12 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        file_cases = (
+        presence_cases = (
             (SCRIPTS_README, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"),
             (TESTS_README, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"),
-            (KBUILD_ROUTES, KBUILD_ROUTE_MARKERS, "MISSING_KBUILD_ROUTE_MARKERS"),
-            (TOOLCHAIN_PINNING, TOOLCHAIN_PINNING_MARKERS, "MISSING_TOOLCHAIN_PINNING_MARKERS"),
-            (TESTS_ALIGNMENT, TESTS_ALIGNMENT_MARKERS, "MISSING_TESTS_ALIGNMENT_MARKERS"),
         )
 
-        for path, markers, code in file_cases:
+        for path, markers, code in presence_cases:
             for marker in markers:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
@@ -175,7 +208,47 @@ def run_self_test() -> int:
                 assert (code, marker) in issues
                 checks_run += 1
 
-        for path, _, _ in file_cases:
+        exact_line_cases = (
+            (KBUILD_ROUTES, KBUILD_ROUTE_MARKERS, "MISSING_KBUILD_ROUTE_MARKERS", "DUPLICATE_KBUILD_ROUTE_MARKERS"),
+            (TOOLCHAIN_PINNING, TOOLCHAIN_PINNING_MARKERS, "MISSING_TOOLCHAIN_PINNING_MARKERS", "DUPLICATE_TOOLCHAIN_PINNING_MARKERS"),
+            (TESTS_ALIGNMENT, TESTS_ALIGNMENT_MARKERS, "MISSING_TESTS_ALIGNMENT_MARKERS", "DUPLICATE_TESTS_ALIGNMENT_MARKERS"),
+        )
+
+        for path, markers, missing_code, duplicate_code in exact_line_cases:
+            for marker in markers:
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(
+                    replace_exact_line(resolved.read_text(encoding="utf-8"), marker, "# removed for self-test"),
+                    encoding="utf-8",
+                )
+                issues = collect_issues(root)
+                assert (missing_code, marker) in issues
+                checks_run += 1
+
+            for marker in markers:
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(
+                    duplicate_exact_line(resolved.read_text(encoding="utf-8"), marker),
+                    encoding="utf-8",
+                )
+                issues = collect_issues(root)
+                assert (duplicate_code, f"{marker}:count=2") in issues
+                checks_run += 1
+
+        for path, _, _ in presence_cases:
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"missing file did not abort: {path}")
+
+        for path, _, _, _ in exact_line_cases:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             try:
