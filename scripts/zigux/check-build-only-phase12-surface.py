@@ -83,6 +83,7 @@ PHASE12_LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.jso
 PHASE12_LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
     "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
 )
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
 
 REQUIRED_FILES = [
     RELEASE_READINESS_SURVEY_PATH,
@@ -91,6 +92,7 @@ REQUIRED_FILES = [
     RELEASE_COORDINATION_MATRIX_PATH,
     PHASE12_COMPLEX_DRIVER_LANE_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
+    SCRIPTS_README_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     VALIDATOR_PATH,
     MAKEFILE_PATH,
@@ -158,6 +160,11 @@ REQUIRED_MARKERS = {
         "now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` again while still omitting `phase12-validate`",
         "keep the same reminder-only validator route plus shipped wrapper reruns explicit as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
     ],
+    SCRIPTS_README_PATH: [
+        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
+        "`make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are shipped wrapper evidence again on current `master`",
+        "keep the repo-local `.zig-toolchain` then attached-Zig degraded rerun order explicit here too: rely on the Makefile fallback first, then name `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` only as last-resort rerun vocabulary while `make -C zigux phase12-validate` remains reminder-only text",
+    ],
     VALIDATOR_PATH: [
         "BUILD_ONLY_CHECKER_PATH",
         "RELEASE_READINESS_CHECKER_PATH",
@@ -224,6 +231,7 @@ def fixture_text(rel_path: str) -> str:
         RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
         PHASE12_COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex-Driver Lane Sequencing",
         RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
+        SCRIPTS_README_PATH: "# scripts/zigux",
     }
     if rel_path in REQUIRED_MARKERS:
         title = titles.get(rel_path)
@@ -274,6 +282,8 @@ def run_self_test() -> int:
             RELEASE_READINESS_SURVEY_PATH,
             RELEASE_COORDINATION_MATRIX_PATH,
             PHASE12_COMPLEX_DRIVER_LANE_PATH,
+            RAW_GITHUB_COVERAGE_SURVEY_PATH,
+            SCRIPTS_README_PATH,
             RELEASE_READINESS_CHECKER_PATH,
             VALIDATOR_PATH,
             MAKEFILE_PATH,
@@ -297,6 +307,7 @@ def run_self_test() -> int:
             (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][1]),
             (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][1]),
             (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][3]),
+            (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
             (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][2]),
             (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][1]),
             (PHASE12_BUILD_PATH, REQUIRED_MARKERS[PHASE12_BUILD_PATH][2]),
