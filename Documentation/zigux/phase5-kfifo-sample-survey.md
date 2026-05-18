@@ -45,6 +45,7 @@ That means the honest same-lane posture today is:
 - the ownership rule remains non-runtime and fixed-buffer-backed
 - the sample-root file itself now exposes three direct self-checks
 - the remaining cross-file replay, survey-truthfulness, and shared-build companion checks stay reviewable through the focused replay packet, the survey packet, and the public-tree Phase 5 build route
+- current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample, so this bytestream packet must not be used to imply bitmap-side sample delivery or reopen the separate later-phase runtime bitmap family
 
 ## Approved idiom for the current bytestream sample
 
@@ -57,6 +58,7 @@ Until a bounded runtime substrate exists, the approved Phase 5 `kfifo` idiom sho
 - keep non-destructive preview and snapshot behavior explicit so reviewers can inspect queued state without inferring hidden mutation
 - keep rollover and queue-shape cues explicit through `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`
 - keep helper-boundary behavior explicit at empty, short-drain, full, overflow, skip-at-capacity, and reset edges
+- keep bitmap helper or runtime bitmap claims out of this packet; current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample
 - keep procfs, user-copy, locking, and module-registration claims out of scope unless a later runtime lane lands the required substrate first
 
 In practice, the approved idiom remains a bounded side-by-side sample, not a claim that Zigux already ships `proc_create()`, `kfifo_from_user()`, `kfifo_to_user()`, or runtime module parity.
