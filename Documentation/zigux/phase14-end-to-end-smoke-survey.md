@@ -37,7 +37,6 @@ This document records the shared Phase 14 smoke lane that keeps the current boun
     * `zigux/tests/phase14_build.zig`
     * `zigux/tests/phase14_end_to_end_smoke_manifest.json`
     * `zigux/tests/phase14_end_to_end_smoke_survey.zig`
-    * `zigux/tests/phase14_workqueue_bridge.zig`
     * `zigux/tests/phase14_skbuff_bridge.zig`
     * `zigux/tests/phase14_ring_buffer_survey.zig`
     * `zigux/tests/phase14_rcu_tree_survey.zig`
@@ -85,7 +84,7 @@ This lane stays narrow on purpose. It does not add a new bridge. It records the 
   * the remaining shared-smoke drift is therefore reminder-surface truthfulness: the docs-root, checklist, tests-root, and packet-local notes must keep the recovered documentation packet visible without presenting the current Makefile as if it still reruns `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` inside `phase14-validate`
   * the broader repo-reality gap is still the unrecovered release-boundary checker, build, manifest, survey, and bridge layer listed above, so this note must not present those paths as freshly re-read executable evidence in this lane until they return through the same exact readback mode
   * the attached-toolchain fallback still belongs here because it keeps the bounded rerun route explicit even while the executable packet is only partially recoverable; keeping that fallback visible is an operational aid, not a new delivery claim
-  * the current scripts-root reminder does not provide a directly readable Phase 14 guidance block in this lane's contents path, so the attached-toolchain fallback remains packet-local guidance here rather than shared scripts-root guidance
+  * the current scripts-root reminder mirrors the same attached-toolchain fallback examples and keeps them framed as packet-local rerun vocabulary rather than returned wrapper-backed proof, so this shared note should stay aligned with that scripts-root wording instead of reopening an older omission
   * all four anchor families remain parked on study-only or freeze-in-C posture, so no anchor-local reopen is justified from this shared note alone
 
 ## Productization evidence
