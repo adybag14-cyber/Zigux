@@ -120,3 +120,19 @@ now keep the current shared Phase 5 reminder packet explicit from the docs root 
   * keep the no-extra-sample boundaries explicit from this docs root too: there is no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` reference sample on current `master`, and the bounded `*string*` companion stays tied to the non-runtime trace-events anchor rather than helper-local delivery.
   * keep the Phase 5 versus Phase 9 boundary explicit: do not count `samples/zigux/runtime_*.zig` files as extra Phase 5 evidence, and do not widen this docs-root reminder into runtime-loader, module-registration, procfs, sysfs, workqueue, or ring-buffer claims while the freeze map keeps those later lanes separate.
 Phase 6 notes
+
+Phase 8 notes
+- `Documentation/zigux/phase8-tooling-lane-sequencing.md`
+- `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`
+- `Documentation/zigux/phase8-libbpf-segment-survey.md`
+- `Documentation/zigux/phase8-perf-buffer-poll-slice.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/validate-phase8.py`
+now keep the current Phase 8 docs-root reminder packet aligned to the shipped helper-first libbpf and command-surface evidence instead of collapsing the live packet back into broad userspace-adjacent claims.
+  * keep the bounded current-`master` packet explicit through `tools/lib/subcmd/exec-cmd.zig`, `tools/lib/subcmd/help.zig`, `tools/lib/bpf/zigux_segments/verify.zig`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, `tools/lib/bpf/zigux_segments/online_cpu_routing.zig`, `zigux/tests/phase8_exec_cmd.zig`, `zigux/tests/phase8_help.zig`, `zigux/tests/phase8_file_path_handle_bridge.zig`, `zigux/tests/phase8_libbpf_segments.zig`, and `zigux/tests/phase8_perf_buffer_poll.zig`.
+  * keep the smaller helper-local cursor and routing-summary packet explicit here too: `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` is landed current-`master` evidence below the still-deferred setup-side `perf-buffer-online-cpu-routing` boundary.
+  * keep the deferred routing boundary honest from the docs root: do not present `/sys/devices/system/cpu/online`, cached `libbpf_num_possible_cpus()` sizing, online CPU filtering, per-CPU perf-event-array map updates, per-CPU `perf_event_open()` setup, perf-buffer ring `mmap()` setup, `PERF_EVENT_IOC_ENABLE` enablement, epoll-backed perf FD registration, or poll waits as landed Phase 8 behavior.
+  * keep the bounded poll-helper review surface explicit too: `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `python3 scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `make -C zigux phase8-perf-buffer-poll-test`, and `zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all` are current reminder surfaces inside the already-landed smaller helper packet.
+  * keep the shared reminder companions aligned around `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `Documentation/zigux/phase8-tooling-lane-sequencing.md`, and reopen this docs-root summary only if one of those shared surfaces or the deeper boundary survey drifts again.
