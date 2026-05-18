@@ -63,13 +63,17 @@ TOOLCHAIN_CHECKER_MARKERS = (
     "if is_executable_file(candidate):",
     "resolved = archive_path or normalize_explicit_archive_path(explicit_archive)",
     "return explicit_target, normalize_explicit_archive_path(explicit_archive) if explicit_archive is not None else None",
+    'expect_raises(lambda: normalize_explicit_zig_path(str(nonexec_zig)), "explicit zig path is not executable")',
+    'os.environ["HOME"] = str(root)',
+    'resolve_policy_archive("~/archive-under-home.tar.xz", "x86_64-linux", root=root, policy_path=policy_path)',
+    'explicit_archive="~/archive-under-home.tar.xz"',
 )
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
 EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-EXPECTED_SELF_TEST_CASE_COUNT = 45
+EXPECTED_SELF_TEST_CASE_COUNT = 49
 
 
 def read_text(path: Path) -> str:
