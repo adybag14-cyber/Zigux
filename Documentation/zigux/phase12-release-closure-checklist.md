@@ -48,11 +48,13 @@ Keep the checklist in the open state while these Phase 12 closure blockers remai
 
 ## Degraded Validation Path
 
-If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`:
+If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`; if that local fallback is also absent, keep the shipped degraded-workflow validation trio explicit before the attached-Zig reruns:
 
-1. `make -C zigux phase12-validate`
-2. `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
-3. `make -C zigux phase12 ZIG=<attached-zig-path>`
+1. `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
+2. `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
+3. `make -C zigux phase12-validate`
+4. `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+5. `make -C zigux phase12 ZIG=<attached-zig-path>`
 
 Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.
 
