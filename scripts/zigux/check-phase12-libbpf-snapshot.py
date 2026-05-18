@@ -16,7 +16,7 @@ SNAPSHOT_DETERMINISM_PATH = Path(
     "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
 )
 
-EXPECTED_LANE_KEY = "P12-Y04"
+EXPECTED_LANE_KEY = "P12-L16"
 EXPECTED_PHASE = "Phase 12"
 EXPECTED_TRACKED_PATHS = [
     "Documentation/zigux/phase12-libbpf-segment-survey.md",
