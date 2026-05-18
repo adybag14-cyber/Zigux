@@ -57,6 +57,18 @@ pub fn accessBoundaryFor(mode: abi.UnsafeScope) AccessBoundary {
     };
 }
 
+pub fn accessBoundaryFromInteropPolicyBytes(scope: u8, reserved: u8) ?AccessBoundary {
+    return accessBoundaryFor(scopeFromInteropPolicyBytes(scope, reserved) orelse return null);
+}
+
+pub fn accessBoundaryFromInteropPolicy(policy: abi.InteropPolicy) ?AccessBoundary {
+    return accessBoundaryFromInteropPolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn accessBoundaryFromByte(scope: u8) ?AccessBoundary {
+    return accessBoundaryFromInteropPolicyBytes(scope, 0);
+}
+
 pub fn allowsTypedOnlyAccess(mode: abi.UnsafeScope) bool {
     return accessBoundaryFor(mode) == .typed_safe;
 }
@@ -230,6 +242,11 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), scopeFromByte(2));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromByte(9));
 
+    try std.testing.expectEqual(@as(?AccessBoundary, .typed_safe), accessBoundaryFromByte(0));
+    try std.testing.expectEqual(@as(?AccessBoundary, .volatile_mmio_window), accessBoundaryFromByte(1));
+    try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromByte(2));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromByte(9));
+
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .none), modeFromInteropPolicyBytes(0, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .volatile_mmio), modeFromInteropPolicyBytes(1, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), modeFromInteropPolicyBytes(2, 0));
@@ -241,6 +258,12 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), scopeFromInteropPolicyBytes(2, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicyBytes(9, 0));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicyBytes(2, 1));
+
+    try std.testing.expectEqual(@as(?AccessBoundary, .typed_safe), accessBoundaryFromInteropPolicyBytes(0, 0));
+    try std.testing.expectEqual(@as(?AccessBoundary, .volatile_mmio_window), accessBoundaryFromInteropPolicyBytes(1, 0));
+    try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromInteropPolicyBytes(2, 0));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicyBytes(9, 0));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicyBytes(2, 1));
 
     try std.testing.expect(recognizesInteropPolicyBytes(0, 0));
     try std.testing.expect(recognizesInteropPolicyBytes(1, 0));
@@ -295,6 +318,12 @@ test "phase3 unsafe policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.UnsafeScope, .raw_pointer_bridge), scopeFromInteropPolicy(raw_pointer_policy));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicy(reserved_policy));
     try std.testing.expectEqual(@as(?abi.UnsafeScope, null), scopeFromInteropPolicy(unknown_policy));
+
+    try std.testing.expectEqual(@as(?AccessBoundary, .typed_safe), accessBoundaryFromInteropPolicy(safe_policy));
+    try std.testing.expectEqual(@as(?AccessBoundary, .volatile_mmio_window), accessBoundaryFromInteropPolicy(mmio_policy));
+    try std.testing.expectEqual(@as(?AccessBoundary, .raw_pointer_bridge), accessBoundaryFromInteropPolicy(raw_pointer_policy));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicy(reserved_policy));
+    try std.testing.expectEqual(@as(?AccessBoundary, null), accessBoundaryFromInteropPolicy(unknown_policy));
 
     try std.testing.expect(recognizesInteropPolicy(safe_policy));
     try std.testing.expect(recognizesInteropPolicy(mmio_policy));
