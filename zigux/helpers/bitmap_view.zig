@@ -273,6 +273,24 @@ test "bitmap empty sentinels stay stable even with a stray non-zero address" {
     try std.testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "bitmap summaries keep reserved bytes zero for valid and invalid views" {
+    var backing = [_]Word{
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 3),
+    };
+    const valid = summarize(viewFromWords(backing[0..], 8));
+    const invalid = summarize(binding.initBitmapView(0, bits_per_word + 1, 1));
+
+    try std.testing.expectEqual(@as(u32, 1), valid.first_set);
+    try std.testing.expectEqual(@as(u32, 0), valid.first_zero);
+    try std.testing.expectEqual(@as(u32, 2), valid.weight);
+    try std.testing.expectEqual(@as(u32, 0), valid.reserved);
+
+    try std.testing.expectEqual(@as(u32, 0), invalid.first_set);
+    try std.testing.expectEqual(@as(u32, 0), invalid.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), invalid.weight);
+    try std.testing.expectEqual(@as(u32, 0), invalid.reserved);
+}
+
 test "bitmap view empty sentinel behavior stays explicit" {
     const empty = viewFromWords(&.{}, 0);
     const summary = summarize(empty);
