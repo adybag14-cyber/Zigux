@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that the Phase 10 tests-root packet matches current direct-readback reality."""
+"""Check that the Phase 10 tests-root companion matches current direct-readback reality."""
 
 from __future__ import annotations
 
@@ -8,58 +8,73 @@ from pathlib import Path
 import sys
 
 
-TESTS_README_PATH = Path("zigux/tests/README.md")
-PHASE10_START = "Phase 10 flow"
-PHASE10_END = "Phase 11 review packet"
+SURFACE_PATH = Path("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
+PHASE10_START = "## Phase 10 tests-root packet"
+PHASE10_END = "## Phase 11 tests-root packet"
 
 REQUIRED_DIRECT_MARKERS = (
     "`Documentation/zigux/phase10-closure-evidence.md`",
     "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+    "`scripts/zigux/check-phase10-ring-packet.py`",
+    "`scripts/zigux/check-phase10-input-packet.py`",
+    "`scripts/zigux/check-phase10-mmio-packet.py`",
+    "`scripts/zigux/check-phase10-harness-coverage.py`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
     "`Documentation/zigux/phase10-virtio-ring-survey.md`",
     "`Documentation/zigux/phase10-virtio-ring-slice.md`",
+    "`drivers/virtio/virtio_ring.zig`",
+    "`drivers/virtio/virtio_ring_verify.zig`",
     "`zigux/tests/phase10_virtio_ring_manifest.json`",
-    "`zigux/tests/phase10_build.zig`",
+    "`zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`",
+    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
+    "`zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`",
     "`Documentation/zigux/phase10-virtio-input-survey.md`",
     "`drivers/virtio/virtio_input.zig`",
     "`zigux/tests/phase10_virtio_input_status_drain.zig`",
     "`Documentation/zigux/phase10-virtio-mmio-survey.md`",
     "`drivers/virtio/virtio_mmio.zig`",
     "`drivers/virtio/virtio_mmio_verify.zig`",
+    "`zigux/tests/phase10_build.zig`",
 )
 
 REQUIRED_REPO_REALITY_GAP_MARKERS = (
     "current `master` still does not materialize",
+    "`scripts/zigux/validate-phase10.py`",
+    "`scripts/zigux/validate-phase10-closure.py`",
+    "`zigux/Makefile`",
+    "`make -C zigux phase10-validate`",
+    "`make -C zigux phase10-test`",
+    "`make -C zigux phase10`",
     "`Documentation/zigux/phase10-virtio-core-survey.md`",
     "`Documentation/zigux/phase10-virtio-core-slice.md`",
+    "`Documentation/zigux/phase10-virtio-mmio-slice.md`",
+    "`zigux/tests/phase10_closure_manifest.json`",
     "`zigux/tests/phase10_virtio_core.zig`",
-    "`zigux/tests/phase10_virtio_ring.zig`",
-    "`zigux/tests/phase10_virtio_ring_reset_reuse.zig`",
-    "`drivers/virtio/virtio_ring.zig`",
-    "`drivers/virtio/virtio_ring_verify.zig`",
-    "closure-manifest-backed ring packet vocabulary",
-    "repo-reality gaps instead of direct current-head evidence",
+    "`zigux/tests/phase10_virtio_mmio.zig`",
+    "`zigux/tests/phase10_virtio_mmio_manifest.json`",
+    "`zigux/tests/phase10_virtio_mmio_survey.zig`",
+    "last-known packet members or repo-reality gaps",
 )
 
-EXPECTED_MARKER_COUNTS = {
-    "`zigux/tests/phase10_build.zig`": 2,
-    "`zigux/tests/phase10_virtio_ring_manifest.json`": 3,
-    "`Documentation/zigux/phase10-virtio-ring-slice.md`": 3,
-    "`Documentation/zigux/phase10-virtio-ring-survey.md`": 3,
-    "`drivers/virtio/virtio_mmio.zig`": 3,
-}
+REQUIRED_ALIGNMENT_MARKERS = (
+    "blocked risky-transport posture",
+    "allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family",
+    "shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`",
+    "Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
+)
 
 
 def phase10_section(text: str) -> str:
     start = text.find(PHASE10_START)
     if start == -1:
         raise SystemExit(
-            "phase10 tests-readme checker missing `Phase 10 flow` section heading"
+            "phase10 companion checker missing `## Phase 10 tests-root packet` section heading"
         )
 
     end = text.find(PHASE10_END, start)
     if end == -1:
         raise SystemExit(
-            "phase10 tests-readme checker missing `Phase 11 review packet` section heading"
+            "phase10 companion checker missing `## Phase 11 tests-root packet` section heading"
         )
 
     return text[start:end]
@@ -69,124 +84,79 @@ def check_markers(section: str, markers: tuple[str, ...], label: str) -> None:
     missing = [marker for marker in markers if marker not in section]
     if missing:
         raise SystemExit(
-            f"phase10 tests-readme checker missing {label} markers: "
+            f"phase10 companion checker missing {label} markers: "
             + ", ".join(missing)
         )
-
-
-def check_counts(section: str) -> None:
-    for marker, expected_count in EXPECTED_MARKER_COUNTS.items():
-        actual_count = section.count(marker)
-        if actual_count != expected_count:
-            raise SystemExit(
-                "phase10 tests-readme checker expected exactly "
-                f"{expected_count} occurrences of {marker}, found {actual_count}"
-            )
 
 
 def check_text(text: str) -> None:
     section = phase10_section(text)
     check_markers(section, REQUIRED_DIRECT_MARKERS, "direct-readback")
     check_markers(section, REQUIRED_REPO_REALITY_GAP_MARKERS, "repo-reality-gap")
-    check_counts(section)
+    check_markers(section, REQUIRED_ALIGNMENT_MARKERS, "alignment")
 
 
 def run_self_test() -> int:
-    good = """# zigux/tests
+    good = """# Phase 10, 11, and 13 Tests-Root Review Companion
 
-Phase 10 flow
+## Phase 10 tests-root packet
 
-  * `Documentation/zigux/phase10-closure-evidence.md`
-  * `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
-  * directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig`
-  * directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `drivers/virtio/virtio_input.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig`
-  * helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`
-  * current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `drivers/virtio/virtio_ring.zig`, and `drivers/virtio/virtio_ring_verify.zig` through the direct readback available in this lane, so keep them framed as closure-manifest-backed ring packet vocabulary and repo-reality gaps instead of direct current-head evidence
-  * treat `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, and `zigux/tests/phase10_build.zig` as the current directly re-readable Phase 10 anchors in this reminder surface
-  * keep `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `Documentation/zigux/phase10-virtio-ring-survey.md` explicit as closure-manifest-backed ring packet vocabulary when broader shared summaries refresh, with `Documentation/zigux/phase10-virtio-ring-slice.md` still named separately as the directly re-readable packet-local companion
-  * keep the MMIO helper names `drivers/virtio/virtio_mmio.zig` and `drivers/virtio/virtio_mmio_verify.zig` explicit beside `Documentation/zigux/phase10-virtio-mmio-survey.md`
+Keep the current bounded virtio closure packet explicit through the shared reminder surfaces, the directly re-readable ring packet anchors, the directly re-readable input packet, the helper-local MMIO packet, and the shared build gate:
+- shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml`
+- directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and `zigux/tests/phase10_build.zig`
+- directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `drivers/virtio/virtio_input.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig`
+- helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, and `drivers/virtio/virtio_mmio_verify.zig`
+- current `master` still does not materialize `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, `Documentation/zigux/phase10-virtio-core-survey.md`, `Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` through the direct readback available in this lane, so keep them framed as last-known packet members or repo-reality gaps instead of direct current-head evidence.
 
-Phase 11 review packet
+Tests-root reviewer prompt:
+- Do the docs-root notes, scripts-root guards, tests-root packet, the shared closure note, the lane-sequencing note, the ring survey and slice notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and the shared `zigux/tests/phase10_build.zig` gate, the input slice, input module slice, input survey, direct input helpers, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the helper-local MMIO survey plus `drivers/virtio/virtio_mmio.zig` and `drivers/virtio/virtio_mmio_verify.zig`, while keeping `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, and `zigux/tests/phase10_virtio_mmio_survey.zig` framed as last-known packet members or repo-reality gaps, `drivers/virtio/virtio_ring_verify.zig` framed as a direct ring companion, the blocked risky-transport posture, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay aligned on the same bounded virtio story?
+
+## Phase 11 tests-root packet
 """
     check_text(good)
 
-    missing_phase10_heading = good.replace("Phase 10 flow", "Phase Ten flow", 1)
+    missing_phase10_heading = good.replace("## Phase 10 tests-root packet", "## Phase Ten tests-root packet", 1)
     try:
         check_text(missing_phase10_heading)
     except SystemExit as exc:
-        assert "`Phase 10 flow`" in str(exc)
+        assert "`## Phase 10 tests-root packet`" in str(exc)
     else:
         raise AssertionError("expected missing Phase 10 heading failure")
 
-    missing_phase11_heading = good.replace("Phase 11 review packet", "Phase Eleven review packet", 1)
+    missing_phase11_heading = good.replace("## Phase 11 tests-root packet", "## Phase Eleven tests-root packet", 1)
     try:
         check_text(missing_phase11_heading)
     except SystemExit as exc:
-        assert "`Phase 11 review packet`" in str(exc)
+        assert "`## Phase 11 tests-root packet`" in str(exc)
     else:
         raise AssertionError("expected missing Phase 11 heading failure")
 
-    missing_direct_ring_anchor = good.replace(
-        "`Documentation/zigux/phase10-virtio-ring-slice.md`, ", "", 1
-    )
+    missing_direct_marker = good.replace("`drivers/virtio/virtio_ring_verify.zig`", "`drivers/virtio/virtio_ring_verify_missing.zig`", 1)
     try:
-        check_text(missing_direct_ring_anchor)
+        check_text(missing_direct_marker)
     except SystemExit as exc:
-        assert "`Documentation/zigux/phase10-virtio-ring-slice.md`" in str(exc)
+        assert "`drivers/virtio/virtio_ring_verify.zig`" in str(exc)
     else:
-        raise AssertionError("expected missing direct ring anchor failure")
+        raise AssertionError("expected missing direct marker failure")
 
-    missing_repo_gap_marker = good.replace(
-        "`Documentation/zigux/phase10-virtio-core-survey.md`",
-        "`Documentation/zigux/phase10-virtio-core-survey-missing.md`",
-        1,
-    )
+    missing_gap_marker = good.replace("`zigux/Makefile`", "`zigux/Makefile_missing`", 1)
     try:
-        check_text(missing_repo_gap_marker)
+        check_text(missing_gap_marker)
     except SystemExit as exc:
-        assert "`Documentation/zigux/phase10-virtio-core-survey.md`" in str(exc)
+        assert "`zigux/Makefile`" in str(exc)
     else:
         raise AssertionError("expected missing repo-reality gap marker failure")
 
-    missing_gap_phrase = good.replace(
-        "repo-reality gaps instead of direct current-head evidence",
-        "repo-reality gap wording",
-        1,
-    )
+    missing_alignment_marker = good.replace("blocked risky-transport posture", "blocked transport posture", 1)
     try:
-        check_text(missing_gap_phrase)
+        check_text(missing_alignment_marker)
     except SystemExit as exc:
-        assert "repo-reality gaps instead of direct current-head evidence" in str(exc)
+        assert "blocked risky-transport posture" in str(exc)
     else:
-        raise AssertionError("expected missing gap phrase failure")
+        raise AssertionError("expected missing alignment marker failure")
 
-    duplicate_build_marker = good.replace(
-        "`zigux/tests/phase10_build.zig`",
-        "`zigux/tests/phase10_build.zig` and `zigux/tests/phase10_build.zig`",
-        1,
-    )
-    try:
-        check_text(duplicate_build_marker)
-    except SystemExit as exc:
-        assert "`zigux/tests/phase10_build.zig`" in str(exc)
-        assert "expected exactly 2 occurrences" in str(exc)
-    else:
-        raise AssertionError("expected duplicate build marker failure")
-
-    missing_mmio_anchor = good.replace(
-        "`zigux/tests/phase10_virtio_input_status_drain.zig`",
-        "`zigux/tests/phase10_virtio_input_status_drain_missing.zig`",
-        1,
-    )
-    try:
-        check_text(missing_mmio_anchor)
-    except SystemExit as exc:
-        assert "`zigux/tests/phase10_virtio_input_status_drain.zig`" in str(exc)
-    else:
-        raise AssertionError("expected missing direct anchor failure")
-
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECKER_SELF_TEST_CASE_COUNT=7")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
@@ -196,8 +166,8 @@ def main() -> int:
     parser.add_argument(
         "--source",
         type=Path,
-        default=TESTS_README_PATH,
-        help="path to zigux/tests/README.md",
+        default=SURFACE_PATH,
+        help="path to the shared Phase 10/11/13 tests-root companion note",
     )
     args = parser.parse_args()
 
@@ -206,7 +176,7 @@ def main() -> int:
 
     text = args.source.read_text(encoding="utf-8")
     check_text(text)
-    print("PHASE10_TESTS_README_CORE_SURFACES_CHECK=pass")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECK=pass")
     return 0
 
 
