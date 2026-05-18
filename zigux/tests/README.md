@@ -131,6 +131,7 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `zigux/tests/phase13_landlock_ruleset_manifest.json`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
