@@ -1241,4 +1241,15 @@ test "phase8 perf-buffer poll rejects mismatched wait-result replays" {
         PollError.WaitResultDisagreesWithReadyEventCount,
         resolvePollExecutionResultFromWaitResult(3, ready_execution),
     );
+
+    const failed_execution = try summarizePollExecutionFromWaitResult(
+        5,
+        -5,
+        &.{},
+        &.{},
+    );
+    try std.testing.expectError(
+        PollError.WaitResultDisagreesWithFailureCode,
+        resolvePollExecutionResultFromWaitResult(-9, failed_execution),
+    );
 }
