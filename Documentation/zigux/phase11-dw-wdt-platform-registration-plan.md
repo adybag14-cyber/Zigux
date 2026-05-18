@@ -8,6 +8,8 @@ Current direct contents reads on `master` still keep this owner note, `Documenta
 
 Current contents reads in this run still return missing for `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, and `scripts/zigux/check-phase11-dw-wdt-packet.py`, so keep those as last-known DesignWare packet members until a future reread confirms them again.
 
+The public GitHub blob and raw fallback paths still expose those same last-known DesignWare packet members for read-only inspection today, so treat them as fallback-readable packet evidence rather than as disappeared `master` files unless a future reread proves they are gone from the repository itself.
+
 The directly readable owner packet still keeps the bounded lane reviewable through:
 - the current hardware-validation note in `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - the current starter-laned gap inventory in `zigux/tests/phase11_dw_wdt_manifest.json`
