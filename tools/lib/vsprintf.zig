@@ -8,7 +8,10 @@ fn render(buffer: []u8, logical_size: usize, pad: bool, comptime fmt: []const u8
     }
 
     var scratch: [max_render_bytes]u8 = undefined;
-    const rendered = std.fmt.bufPrint(&scratch, fmt, args) catch return 0;
+    const rendered = std.fmt.bufPrint(&scratch, fmt, args) catch {
+        buffer[0] = 0;
+        return 0;
+    };
     const bounded_size = @min(logical_size, buffer.len - 1);
     const limit = bounded_size;
     const copied = @min(rendered.len, limit);
@@ -91,4 +94,13 @@ test "vscnprintf mirrors scnprintf truncation and terminates single-byte buffers
     const tiny_written = vscnprintf(&tiny, "{s}", .{"zigux"});
     try std.testing.expectEqual(@as(usize, 0), tiny_written);
     try std.testing.expectEqual(@as(u8, 0), tiny[0]);
+}
+
+test "scnprintf clears the first byte when formatting overflows the scratch buffer" {
+    const oversized = [_]u8{'x'} ** (max_render_bytes + 1);
+    var buffer = [_]u8{ 0xaa, 0xbb, 0xcc, 0xdd };
+
+    const written = scnprintf(&buffer, "{s}", .{oversized[0..]});
+    try std.testing.expectEqual(@as(usize, 0), written);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
 }
