@@ -29,6 +29,19 @@ test "phase 5 kretprobe sample replays the bounded skip, return, and summary pat
     try std.testing.expectEqual(@as(usize, 1), module.replay_runs);
 }
 
+test "phase 5 kretprobe sample keeps maxactive retargeting pre-init and explicit" {
+    var module = sample.KretprobeExampleSample{};
+
+    try std.testing.expectError(error.InvalidMaxactive, module.retargetMaxactive(0));
+    try module.retargetMaxactive(3);
+    try module.init();
+
+    const replay = try module.runAnchorReplay();
+    try std.testing.expectEqual(@as(usize, 3), module.maxactive);
+    try std.testing.expectEqual(@as(usize, 3), replay.maxactive);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.retargetMaxactive(4));
+}
+
 test "phase 5 kretprobe sample keeps symbol retargeting and handler boundaries explicit" {
     var module = sample.KretprobeExampleSample{};
 
