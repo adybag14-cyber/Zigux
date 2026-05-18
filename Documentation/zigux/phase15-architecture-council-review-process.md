@@ -95,7 +95,7 @@ The current honest packet is therefore docs-root governance plus gap tracking:
 - `Documentation/zigux/phase15-parity-scorecard.md` keeps the blocked-posture accounting explicit
 - `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit
 - `Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit
-- `Documentation/zigux/phase15-architecture-council-decision-record-template.md` keeps the review record shape explicit for future Architecture Council requests
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md` keeps the review record shape explicit for future Architecture Council requests, defaults that record to dated-master-readback provenance, and requires an explicit exception note before exact-head provenance is used
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json` keeps the dedicated review-packet field inventory machine-readable
 - `scripts/zigux/check-phase15-review-process-handoff.py` keeps the review-process packet, the maintenance handoff, and the shared-summary-gap dependency aligned
 - `zigux/tests/phase15_architecture_council_review_process.zig` keeps the focused review-process replay explicit beside the docs and manifest-backed packet
