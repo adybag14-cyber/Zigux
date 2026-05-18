@@ -39,7 +39,7 @@ Any freeze-map anchor entering Architecture Council status review must keep all 
 - replay command
 - rollback threshold
 - automatic return-to-blocked trigger
-- retained discussion state
+- `retired_from_active_discussion` state
 - reopen triggers
 - trigger-specific evidence refresh
 - parity scorecard link or blocker record
