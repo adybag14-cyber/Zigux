@@ -138,6 +138,14 @@ pub fn encodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool,
     return dst[0..written];
 }
 
+pub fn encodeStdSlice(dst: []u8, src: []const u8, padding: bool) EncodeError![]u8 {
+    return encodeSlice(dst, src, padding, .std);
+}
+
+pub fn encodeStdAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) EncodeAllocError![]u8 {
+    return encodeAlloc(allocator, src, padding, .std);
+}
+
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
     const exact_len = try bytes(src, padding, variant);
     if (dst.len < exact_len) {
@@ -208,6 +216,14 @@ pub fn decodeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool,
 
     const written = try decode(dst, src, padding, variant);
     return dst[0..written];
+}
+
+pub fn decodeStdSlice(dst: []u8, src: []const u8, padding: bool) DecodeError![]u8 {
+    return decodeSlice(dst, src, padding, .std);
+}
+
+pub fn decodeStdAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) DecodeAllocError![]u8 {
+    return decodeAlloc(allocator, src, padding, .std);
 }
 
 fn alphabet(variant: Variant) []const u8 {
@@ -514,6 +530,40 @@ test "variant-pinned convenience helpers mirror the generic api" {
     try expectVariantPinnedConvenienceParity(&two_byte, "//A=", true, .std);
     try expectVariantPinnedConvenienceParity(&two_byte, "__A=", true, .urlsafe);
     try expectVariantPinnedConvenienceParity(&two_byte, ",,A=", true, .imap);
+}
+
+test "standard slice and allocator helpers pin the common variant across exact-span ownership paths" {
+    const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+    var generic_encoded_buf: [9]u8 = [_]u8{0xaa} ** 9;
+    var std_encoded_buf: [9]u8 = [_]u8{0xbb} ** 9;
+
+    const generic_encoded = try encodeSlice(generic_encoded_buf[0..8], &sample, true, .std);
+    const std_encoded = try encodeStdSlice(std_encoded_buf[0..8], &sample, true);
+    try std.testing.expectEqualStrings("APv/f4A=", generic_encoded);
+    try std.testing.expectEqualStrings(generic_encoded, std_encoded);
+    try std.testing.expectEqual(@as(u8, 0xaa), generic_encoded_buf[generic_encoded.len]);
+    try std.testing.expectEqual(@as(u8, 0xbb), std_encoded_buf[std_encoded.len]);
+
+    const generic_alloc = try encodeAlloc(std.testing.allocator, &sample, true, .std);
+    defer std.testing.allocator.free(generic_alloc);
+    const std_alloc = try encodeStdAlloc(std.testing.allocator, &sample, true);
+    defer std.testing.allocator.free(std_alloc);
+    try std.testing.expectEqualStrings(generic_alloc, std_alloc);
+
+    var generic_decoded_buf: [6]u8 = [_]u8{0xcc} ** 6;
+    var std_decoded_buf: [6]u8 = [_]u8{0xdd} ** 6;
+    const generic_decoded = try decodeSlice(generic_decoded_buf[0..5], "APv/f4A=", true, .std);
+    const std_decoded = try decodeStdSlice(std_decoded_buf[0..5], "APv/f4A=", true);
+    try std.testing.expectEqualSlices(u8, &sample, generic_decoded);
+    try std.testing.expectEqualSlices(u8, generic_decoded, std_decoded);
+    try std.testing.expectEqual(@as(u8, 0xcc), generic_decoded_buf[generic_decoded.len]);
+    try std.testing.expectEqual(@as(u8, 0xdd), std_decoded_buf[std_decoded.len]);
+
+    const generic_decoded_alloc = try decodeAlloc(std.testing.allocator, "APv/f4A=", true, .std);
+    defer std.testing.allocator.free(generic_decoded_alloc);
+    const std_decoded_alloc = try decodeStdAlloc(std.testing.allocator, "APv/f4A=", true);
+    defer std.testing.allocator.free(std_decoded_alloc);
+    try std.testing.expectEqualSlices(u8, generic_decoded_alloc, std_decoded_alloc);
 }
 
 test "encode covers standard and variant alphabets" {
