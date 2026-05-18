@@ -1016,6 +1016,28 @@ test "split-read later read error after exact 32-bit header still exits with std
     try std.testing.expectEqualStrings("", stderr.list.items);
 }
 
+test "split-read later read error after 32-bit header completes on final chunk still exits with stdout" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x7f, 'E',  'L',  'F', elfclass32, 1, 1, 0,
+            0,    0,    0,    0,   0,          0, 0, 0,
+            0xaa, 0xbb, 0xcc,
+        },
+        .chunk_sizes = &[_]usize{ 5, 5, 6, 3 },
+        .fail_on_call = 4,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
 test "split-read later read error after full 64-bit header still exits with stdout" {
     var reader = FailingReader{
         .bytes = &[_]u8{
@@ -1141,6 +1163,28 @@ test "split-read later read error after exact non-ELF header keeps non-ELF stder
     const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
     try std.testing.expectEqual(@as(u8, 1), exit_code);
     try std.testing.expectEqual(@as(usize, 1), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+}
+
+test "split-read later read error after non-ELF header completes on final chunk keeps non-ELF stderr" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x00, 'E',  'L',  'F', elfclass32, 1, 1, 0,
+            0,    0,    0,    0,   0,          0, 0, 0,
+            0xaa, 0xbb, 0xcc,
+        },
+        .chunk_sizes = &[_]usize{ 4, 4, 8, 3 },
+        .fail_on_call = 4,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
 }
