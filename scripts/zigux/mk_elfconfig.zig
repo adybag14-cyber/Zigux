@@ -324,6 +324,30 @@ test "renders truncated error" {
     try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
 }
 
+test "renders non-ELF error" {
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try renderOutcome(&stdout, &stderr, .not_elf);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+}
+
+test "renders invalid class silently" {
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try renderOutcome(&stdout, &stderr, .invalid_class);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
 test "32-bit ELF input exits with stdout" {
     var stdout = try Capture.init(std.testing.allocator);
     defer stdout.deinit();
