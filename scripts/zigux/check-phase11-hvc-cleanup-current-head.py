@@ -19,12 +19,18 @@ import tempfile
 from pathlib import Path
 
 
-DEFAULT_ROOT = Path(__file__).resolve().parents[3]
+_SELF_PATH = Path(__file__).resolve()
+DEFAULT_ROOT = _SELF_PATH.parents[3] if len(_SELF_PATH.parents) > 3 else _SELF_PATH.parent
 
 SURVEY_PATH = Path("Documentation/zigux/phase11-hvc-console-survey.md")
-COMPANION_PATH = Path("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md")
+COMPANION_PATH = Path(
+    "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md"
+)
 VERIFY_HELPER_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundary.md")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
+EXPORT_PROOF_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_proof.zig")
+HV_OPS_PROOF_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_proof.zig")
+HV_OPS_BUILD_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_build.zig")
 CLEANUP_PROOF_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_proof.zig")
 CLEANUP_BUILD_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 
@@ -53,9 +59,31 @@ VERIFY_HELPER_MARKERS = (
     "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.",
 )
 
+EXPORT_PROOF_MARKERS = (
+    'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
+    "layout_assert.assertSize(WinsizeLayout, 8);",
+    'test "phase11 HVC exported helper proof keeps hv_ops callback table layout explicit" {',
+    'test "phase11 HVC exported helper proof keeps the exported helper surface layout explicit" {',
+    'assertExactType(@FieldType(HvcExportSurface, "notifier_hangup_irq"), HvcNotifierHangupIrqFn);',
+)
+
+HV_OPS_PROOF_MARKERS = (
+    'test "phase11 hvc hv_ops layout proof keeps callback table explicit" {',
+    "try layout_assert.assertSize(HvOps, 72);",
+    'test "phase11 hvc hv_ops layout proof stays tied to the exported header" {',
+    'try expectContains(hvc_header, "struct hv_ops {");',
+    'try expectContains(hvc_header, "(*dtr_rts)");',
+)
+
+HV_OPS_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),',
+    '.name = "phase11-hvc-hv-ops-layout-proof-tests",',
+    'const test_step = b.step("test", "Run the focused Phase 11 hv_ops layout proof");',
+)
+
 CLEANUP_PROOF_MARKERS = (
     'test "phase11 hvc cleanup packet proof keeps cleanup replay markers explicit" {',
-    'try expectContains(cleanup_replay, "test \\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\" {");',
+    'try expectContains(cleanup_replay, "test \\\\\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\\\\" {");',
     'try expectContains(cleanup_companion, "phase11 hvc cleanup");',
     'test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the landed cleanup handoff" {',
     'try expectContains(teardown_note, "deferred final release explicit");',
@@ -155,31 +183,22 @@ def mapping_from_entries(
     return mapping
 
 
+def require_markers(root: Path, path: Path, label: str, markers: tuple[str, ...]) -> None:
+    text = read_text(root / path)
+    for marker in markers:
+        if marker not in text:
+            raise CheckError(f"missing {label} marker: {marker}")
+
+
 def run_check(root: Path) -> None:
-    survey_text = read_text(root / SURVEY_PATH)
-    for marker in SURVEY_MARKERS:
-        if marker not in survey_text:
-            raise CheckError(f"missing survey marker: {marker}")
-
-    companion_text = read_text(root / COMPANION_PATH)
-    for marker in COMPANION_MARKERS:
-        if marker not in companion_text:
-            raise CheckError(f"missing cleanup-companion marker: {marker}")
-
-    verify_helper_text = read_text(root / VERIFY_HELPER_PATH)
-    for marker in VERIFY_HELPER_MARKERS:
-        if marker not in verify_helper_text:
-            raise CheckError(f"missing verify-helper marker: {marker}")
-
-    cleanup_proof_text = read_text(root / CLEANUP_PROOF_PATH)
-    for marker in CLEANUP_PROOF_MARKERS:
-        if marker not in cleanup_proof_text:
-            raise CheckError(f"missing cleanup-proof marker: {marker}")
-
-    cleanup_build_text = read_text(root / CLEANUP_BUILD_PATH)
-    for marker in CLEANUP_BUILD_MARKERS:
-        if marker not in cleanup_build_text:
-            raise CheckError(f"missing cleanup-build marker: {marker}")
+    require_markers(root, SURVEY_PATH, "survey", SURVEY_MARKERS)
+    require_markers(root, COMPANION_PATH, "cleanup-companion", COMPANION_MARKERS)
+    require_markers(root, VERIFY_HELPER_PATH, "verify-helper", VERIFY_HELPER_MARKERS)
+    require_markers(root, EXPORT_PROOF_PATH, "export-proof", EXPORT_PROOF_MARKERS)
+    require_markers(root, HV_OPS_PROOF_PATH, "hv-ops-proof", HV_OPS_PROOF_MARKERS)
+    require_markers(root, HV_OPS_BUILD_PATH, "hv-ops-build", HV_OPS_BUILD_MARKERS)
+    require_markers(root, CLEANUP_PROOF_PATH, "cleanup-proof", CLEANUP_PROOF_MARKERS)
+    require_markers(root, CLEANUP_BUILD_PATH, "cleanup-build", CLEANUP_BUILD_MARKERS)
 
     inventory = read_json(root / INVENTORY_PATH)
 
@@ -276,6 +295,8 @@ def fixture_survey() -> str:
             "  `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,",
             "  `zigux/tests/fixtures/phase11_build_inventory.json`,",
             "  `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,",
+            "  `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`,",
+            "  `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,",
             "  `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and",
             "  `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
             "* current direct contents reads in this lane still do not rematerialize",
@@ -295,6 +316,8 @@ def fixture_survey() -> str:
             "- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
             "- `zigux/tests/fixtures/phase11_build_inventory.json`",
             "- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`",
+            "- `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`",
+            "- `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`",
             "- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
             "- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
             "",
@@ -364,11 +387,48 @@ def fixture_verify_helper() -> str:
     )
 
 
+def fixture_export_proof() -> str:
+    return "\n".join(
+        [
+            'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
+            "layout_assert.assertSize(WinsizeLayout, 8);",
+            'test "phase11 HVC exported helper proof keeps hv_ops callback table layout explicit" {',
+            'test "phase11 HVC exported helper proof keeps the exported helper surface layout explicit" {',
+            'assertExactType(@FieldType(HvcExportSurface, "notifier_hangup_irq"), HvcNotifierHangupIrqFn);',
+            "",
+        ]
+    )
+
+
+def fixture_hv_ops_proof() -> str:
+    return "\n".join(
+        [
+            'test "phase11 hvc hv_ops layout proof keeps callback table explicit" {',
+            "try layout_assert.assertSize(HvOps, 72);",
+            'test "phase11 hvc hv_ops layout proof stays tied to the exported header" {',
+            'try expectContains(hvc_header, "struct hv_ops {");',
+            'try expectContains(hvc_header, "(*dtr_rts)");',
+            "",
+        ]
+    )
+
+
+def fixture_hv_ops_build() -> str:
+    return "\n".join(
+        [
+            '.root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),',
+            '.name = "phase11-hvc-hv-ops-layout-proof-tests",',
+            'const test_step = b.step("test", "Run the focused Phase 11 hv_ops layout proof");',
+            "",
+        ]
+    )
+
+
 def fixture_cleanup_proof() -> str:
     return "\n".join(
         [
             'test "phase11 hvc cleanup packet proof keeps cleanup replay markers explicit" {',
-            'try expectContains(cleanup_replay, "test \\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\" {");',
+            'try expectContains(cleanup_replay, "test \\\\\\"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\\\\\\" {");',
             'try expectContains(cleanup_companion, "phase11 hvc cleanup");',
             'test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the landed cleanup handoff" {',
             'try expectContains(teardown_note, "deferred final release explicit");',
@@ -393,6 +453,9 @@ def build_fixture(root: Path) -> None:
     write(root / COMPANION_PATH, fixture_companion())
     write(root / VERIFY_HELPER_PATH, fixture_verify_helper())
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
+    write(root / EXPORT_PROOF_PATH, fixture_export_proof())
+    write(root / HV_OPS_PROOF_PATH, fixture_hv_ops_proof())
+    write(root / HV_OPS_BUILD_PATH, fixture_hv_ops_build())
     write(root / CLEANUP_PROOF_PATH, fixture_cleanup_proof())
     write(root / CLEANUP_BUILD_PATH, fixture_cleanup_build())
 
@@ -424,7 +487,22 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        expect_failure(missing_survey_root, "The survey still preserves the roadmap-facing starter-depth packet as archival")
+        expect_failure(
+            missing_survey_root,
+            "The survey still preserves the roadmap-facing starter-depth packet as archival",
+        )
+
+        missing_hv_ops_root = tmpdir / "missing_hv_ops_marker"
+        shutil.copytree(fixture, missing_hv_ops_root, dirs_exist_ok=True)
+        hv_ops_path = missing_hv_ops_root / HV_OPS_PROOF_PATH
+        hv_ops_path.write_text(
+            hv_ops_path.read_text(encoding="utf-8").replace(
+                'try expectContains(hvc_header, "(*dtr_rts)");',
+                "",
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(missing_hv_ops_root, 'try expectContains(hvc_header, "(*dtr_rts)");')
 
         missing_companion_root = tmpdir / "missing_companion_marker"
         shutil.copytree(fixture, missing_companion_root, dirs_exist_ok=True)
@@ -436,7 +514,10 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        expect_failure(missing_companion_root, "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.")
+        expect_failure(
+            missing_companion_root,
+            "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap until a future reread proves that dedicated checker has returned.",
+        )
 
         missing_file_root = tmpdir / "missing_file"
         shutil.copytree(fixture, missing_file_root, dirs_exist_ok=True)
@@ -444,7 +525,7 @@ def run_self_test() -> int:
         expect_failure(missing_file_root, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=4")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=5")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
