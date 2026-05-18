@@ -220,6 +220,14 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_docs_bench_self_test_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][2],
+            ),
+        ),
+        (
             "missing_closure_note",
             lambda root: (root / "Documentation/zigux/phase1-closure.md").unlink(),
         ),
@@ -248,11 +256,27 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_review_checklist_smoke_anchor_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][0],
+            ),
+        ),
+        (
             "missing_review_checklist_smoke_route_marker",
             lambda root: mutate_remove_marker(
                 root,
                 "Documentation/zigux/review-checklist.md",
                 MARKERS["Documentation/zigux/review-checklist.md"][1],
+            ),
+        ),
+        (
+            "missing_scripts_readme_bench_selftest_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/README.md",
+                MARKERS["scripts/zigux/README.md"][0],
             ),
         ),
         (
@@ -268,6 +292,14 @@ def run_self_test() -> int:
             lambda root: (root / "scripts/zigux/validate-phase1-closure.py").unlink(),
         ),
         (
+            "missing_bench_checksum_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-bench.py",
+                MARKERS["scripts/zigux/check-phase1-bench.py"][0],
+            ),
+        ),
+        (
             "missing_bench_self_test_function_marker",
             lambda root: mutate_remove_marker(
                 root,
@@ -280,6 +312,22 @@ def run_self_test() -> int:
             lambda root: (root / "scripts/zigux/check-phase1-string-review-packet.py").unlink(),
         ),
         (
+            "missing_string_review_rule_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-string-review-packet.py",
+                MARKERS["scripts/zigux/check-phase1-string-review-packet.py"][0],
+            ),
+        ),
+        (
+            "missing_string_review_counted_search_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-string-review-packet.py",
+                MARKERS["scripts/zigux/check-phase1-string-review-packet.py"][1],
+            ),
+        ),
+        (
             "missing_string_review_ok_marker",
             lambda root: mutate_remove_marker(
                 root,
@@ -290,6 +338,14 @@ def run_self_test() -> int:
         (
             "missing_direct_owner_checker",
             lambda root: (root / "scripts/zigux/check-phase1-direct-owner-markers.py").unlink(),
+        ),
+        (
+            "missing_direct_owner_helper_list_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-direct-owner-markers.py",
+                MARKERS["scripts/zigux/check-phase1-direct-owner-markers.py"][0],
+            ),
         ),
         (
             "missing_direct_owner_ok_marker",
