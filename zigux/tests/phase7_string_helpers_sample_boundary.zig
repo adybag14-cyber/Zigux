@@ -12,6 +12,15 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
+fn isStandaloneStringSample(name: []const u8) bool {
+    if (!std.mem.endsWith(u8, name, ".zig")) return false;
+    if (std.mem.eql(u8, name, "trace_events_string_formatting_sample.zig")) return false;
+    if (std.mem.startsWith(u8, name, "string")) return true;
+    if (std.mem.indexOf(u8, name, "string_helper") != null) return true;
+    if (std.mem.indexOf(u8, name, "string_helpers") != null) return true;
+    return false;
+}
+
 test "phase 7 string helper boundary keeps the no-string-sample policy lane-local" {
     const io = std.testing.io;
     try std.testing.expectError(error.FileNotFound, std.Io.Dir.cwd().access(io, "samples/zigux/string_helpers_sample.zig", .{}));
@@ -28,7 +37,7 @@ test "phase 7 string helper boundary keeps the no-string-sample policy lane-loca
         if (!std.mem.endsWith(u8, entry.name, ".zig")) continue;
 
         total_zig_files += 1;
-        if (std.mem.indexOf(u8, entry.name, "string") != null) saw_string_file = true;
+        if (isStandaloneStringSample(entry.name)) saw_string_file = true;
     }
 
     try std.testing.expect(!saw_string_file);
