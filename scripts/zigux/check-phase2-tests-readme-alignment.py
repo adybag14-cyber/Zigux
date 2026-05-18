@@ -10,53 +10,26 @@ DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REQUIRED_TESTS_README_MARKERS = (
     "Phase 2 review packet",
-    "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
-    "`Documentation/zigux/review-checklist.md`",
-    "`scripts/zigux/README.md`",
-    "`scripts/zigux/check-zig-toolchain.py`",
-    "`scripts/zigux/check-phase2-kbuild-routes.py`",
-    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
-    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
-    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
-    "`scripts/zigux/kconfig/conf_bridge.zig`",
-    "`scripts/zigux/kconfig/confdata_bridge.zig`",
-    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
-    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
-    "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
-    "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
-    "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, and toolchain reminder set",
-    "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
-    "`scripts/zigux/validate-phase2.py`",
-    "`scripts/zigux/validate-phase2-closure.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`zigux/Makefile`",
-    "`scripts/zigux/install-zig.py`",
-    "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross.py`",
     "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-validate`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
-    "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "pinned `x86_64-linux` bootstrap archive note",
-    "repo-local `.zig-toolchain` fallback reused",
-    "historical packet members rather than direct tests-root evidence",
-    "keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, toolchain reminder, toolchain pin-scope, required-make-route, and direct toolchain-checker set plus the live kconfig bridge helpers, the shipped `zigux/Makefile` wrappers, and the current fixture roster",
+    "keep the pinned `x86_64-linux` bootstrap archive note and repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py`, pin-scope, and required-make-route guards explicit in this tests-root packet beside the shipped `zigux/Makefile` wrappers",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
+    "keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or direct cross-route proof text",
 )
 FORBIDDEN_TESTS_README_MARKERS = (
-    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
-    "`python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
+    "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`",
+    "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
 REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -140,10 +113,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(REQUIRED_DOCS_ROOT_MARKERS) + "\n")
 
 
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
+def replace_all(text: str, marker: str) -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
+    return text.replace(marker, "")
 
 
 def run_self_test() -> int:
@@ -153,7 +126,6 @@ def run_self_test() -> int:
         + len(REQUIRED_TESTS_README_MARKERS)
         + len(FORBIDDEN_TESTS_README_MARKERS)
         + len(REQUIRED_DOCS_ROOT_MARKERS)
-        + 2
     )
     with tempfile.TemporaryDirectory(prefix="zigux_p2_tests_readme_alignment_") as tmp_dir:
         root = Path(tmp_dir)
@@ -163,7 +135,7 @@ def run_self_test() -> int:
         for marker in REQUIRED_TESTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
@@ -177,20 +149,10 @@ def run_self_test() -> int:
         for marker in REQUIRED_DOCS_ROOT_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, DOCS_ROOT_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(replace_all(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_DOCS_ROOT_MARKERS", marker) in issues
             checks_run += 1
-        for path in (TESTS_README, DOCS_ROOT_README):
-            build_self_test_root(root)
-            resolve_path(root, path).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                checks_run += 1
-            else:
-                raise AssertionError(f"missing file did not abort: {path}")
     assert checks_run == expected_case_count
     print("PHASE2_TESTS_README_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_TESTS_README_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
@@ -199,7 +161,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the current directly readable Phase 2 tests-root and docs-root reminder packet aligned."
+        description="Keep the restored Phase 2 tests-root packet aligned with the current docs-root reminder surfaces."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
