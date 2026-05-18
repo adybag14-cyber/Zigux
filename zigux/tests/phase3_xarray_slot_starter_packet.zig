@@ -80,3 +80,25 @@ test "top err_ptr encoding stays tagged and never falls back to pointer-like" {
     try testing.expectEqual(@as(?isize, -1), slot.errorCode());
     try testing.expect(xarray_slot_view.isTaggedInternalEntry(raw));
 }
+
+test "constructor helpers build explicit xarray slot lanes" {
+    const null_slot = xarray_slot_view.nullSlot();
+    const value_slot = try xarray_slot_view.fromValue(29);
+    const err_slot = xarray_slot_view.fromErrorCode(-22);
+    const pointer_slot = xarray_slot_view.fromPointer(0x1000);
+
+    try testing.expect(null_slot.isNull());
+    try testing.expectEqual(@as(usize, 0), null_slot.rawValue());
+
+    try testing.expect(value_slot.isValue());
+    try testing.expectEqual(try xa_value.makeValue(29), value_slot.rawValue());
+    try testing.expectEqual(@as(?usize, 29), value_slot.value());
+
+    try testing.expect(err_slot.isErr());
+    try testing.expectEqual(err_ptr.fromErrorCode(-22), err_slot.rawValue());
+    try testing.expectEqual(@as(?isize, -22), err_slot.errorCode());
+
+    try testing.expect(pointer_slot.isPointer());
+    try testing.expectEqual(@as(usize, 0x1000), pointer_slot.rawValue());
+    try testing.expectEqual(@as(?usize, 0x1000), pointer_slot.pointerValue());
+}
