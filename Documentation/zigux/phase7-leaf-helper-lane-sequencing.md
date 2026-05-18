@@ -28,7 +28,7 @@ That means the honest current lane split is helper-local and direct-readback-awa
 
 - `lib/string_helpers.zig` plus its helper-local survey, manifest, and no-string-sample boundary packet are directly readable and remain the clearest same-lane reopen surface
 - `lib/argv_split.zig` is directly readable, but the older helper-local slice, dedicated tests, manifest, fixture, and checker companions are not directly readable in the same reread, so treat it as a narrower helper-only surface until those companion reminders return; if a shared tests-root or scripts-root reminder still omits that directly readable helper, fix the reminder one file at a time instead of reconstructing the missing companion packet
-- `lib/cmdline.zig` is not directly readable on current `master` during this reread
+- `lib/cmdline.zig` is directly readable again on current `master`, but the older helper-local slice, dedicated tests, manifest, fixture, and checker companions are not directly readable in the same reread, so treat it as a narrower helper-only surface until those companion reminders return; if a shared reminder still frames the helper as missing, fix that reminder one file at a time instead of reconstructing the missing companion packet
 - `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json` are directly readable surviving anchors for the `rbtree` family, but `lib/rbtree.zig` and the older broader rbtree helper, fixture, checker, and build-route packet are not directly readable on current `master` during this reread
 
 No helper in this packet should be treated as a generic stand-in for the others.
@@ -40,7 +40,7 @@ Use the narrowest honest replay that matches the chosen helper family and the fi
 
 - `lib/string_helpers.zig`: `zig test lib/string_helpers.zig`
 - `lib/argv_split.zig`: `zig test lib/argv_split.zig`
-- `lib/cmdline.zig`: use `zig test lib/cmdline.zig` only after a fresh reread proves the helper has returned on current `master`
+- `lib/cmdline.zig`: `zig test lib/cmdline.zig`
 - `lib/rbtree.zig`: use `zig test lib/rbtree.zig` only after a fresh reread proves the helper has returned on current `master`
 - surviving `rbtree` survey-or-manifest anchor work: validate by rereading `Documentation/zigux/phase7-helper-lane-sequencing.md`, `zigux/tests/phase7_rbtree_survey.zig`, and `zigux/tests/phase7_rbtree_manifest.json` together so the surviving packet does not imply that the missing helper, fixtures, checker, or shared build routes have returned
 
@@ -70,7 +70,7 @@ Start from one directly readable helper family or surviving direct-anchor packet
 
 - `lib/string_helpers.zig`: helper-local boundary or ownership drift in string, sysfs, or counted-search behavior
 - `lib/argv_split.zig`: helper-local drift in empty-view reuse, copied-storage tokenization, or null-terminated argv export, or one shared reminder-surface truthfulness repair that explicitly names the helper-only `lib/argv_split.zig` anchor plus its `zig test lib/argv_split.zig` replay without recreating the missing slice, dedicated tests, manifest, fixture, or checker packet
-- `lib/cmdline.zig`: reopen only after a fresh reread proves `lib/cmdline.zig` and at least one current helper-local companion surface have returned on `master`
+- `lib/cmdline.zig`: helper-local drift in borrowed-slice parsing, `nextArg()` quoting, or `memparse()` ownership behavior, or one shared reminder-surface truthfulness repair that explicitly names the helper-only `lib/cmdline.zig` anchor plus its `zig test lib/cmdline.zig` replay without recreating the missing slice, dedicated tests, manifest, fixture, or checker packet
 - surviving `rbtree` anchors: keep same-lane follow-through inside `zigux/tests/phase7_rbtree_survey.zig` or `zigux/tests/phase7_rbtree_manifest.json` until a fresh reread proves `lib/rbtree.zig` or another current helper-local companion packet has returned
 
 If current helper-local tests, surviving direct anchors, and ownership notes already agree, leave the helper parked and do not widen to a second family in the same lane.
