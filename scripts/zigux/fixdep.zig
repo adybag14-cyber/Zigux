@@ -461,6 +461,46 @@ test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {
     );
 }
 
+test "config parsing accepts CONFIG tokens after punctuation" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseConfigFile(
+        &capture,
+        "(CONFIG_ZIGUX_WRAP) + CONFIG_ZIGUX_AFTER_MODULE",
+    );
+
+    try std.testing.expectEqualStrings(
+        "    $(wildcard include/config/ZIGUX_WRAP) \\\n    $(wildcard include/config/ZIGUX_AFTER) \\\n",
+        capture.list.items,
+    );
+}
+
 test "config parsing stops at the first embedded NUL" {
     const Capture = struct {
         list: std.ArrayList(u8),
