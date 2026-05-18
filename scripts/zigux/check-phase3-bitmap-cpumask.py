@@ -79,8 +79,8 @@ REQUIRED_MARKERS = {
         '"phase3-bitmap-cpumask-dump"',
     ),
     C_HARNESS_PATH: (
-        "#include \"../../../../include/zigux/bitmap_cpumask.h\"",
-        'write_case(',
+        '#include "../../../../include/zigux/bitmap_cpumask.h"',
+        "write_case(",
         '"bitmap_tail_masked"',
         '"cpumask_window"',
         '"cpumask_cross_word_window"',
@@ -138,8 +138,8 @@ def _diff(label: str, expected: object, actual: object) -> str:
             fromfile=f"{label}-expected",
             tofile=f"{label}-actual",
         )
-    ).strip()
-    return diff or f"{label} JSON differed without a textual diff"
+    )
+    return diff.strip() or f"{label} JSON differed without a textual diff"
 
 
 def _run_zig_dump(repo_root: Path, zig: str) -> object:
@@ -259,32 +259,54 @@ def run_self_test() -> int:
             path = root / relative_path
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("\n".join(markers) + "\n", encoding="utf-8")
+        manifest = {
+            "packet_files": [
+                "zigux/tests/phase3_bitmap_cpumask_dump.zig",
+                "zigux/tests/fixtures/phase3_bitmap_cpumask/expected.json",
+            ],
+            "replay_routes": [
+                "python3 scripts/zigux/check-phase3-bitmap-cpumask.py --repo-root . --zig zig --cc gcc",
+            ],
+            "slug": "phase3-bitmap-cpumask",
+            "status": "parity_packet_present",
+        }
         (root / MANIFEST_PATH).write_text(
-            "{\n"
-            '  "packet_files": [],\n'
-            '  "replay_routes": [],\n'
-            '  "slug": "phase3-bitmap-cpumask",\n'
-            '  "status": "parity_packet_present",\n'
-            '  "example": "zigux/tests/phase3_bitmap_cpumask_dump.zig"\n'
-            "}\n",
+            json.dumps(manifest, indent=2) + "\n",
             encoding="utf-8",
         )
 
         issues = validate_repo(root, "zig", "cc", skip_exec=True)
-        if not any("packet_files is not a list" not in issue and "replay_routes is not a list" not in issue for issue in issues):
-            pass
-
-        expected_missing = "missing repo file"
-        missing_path = root / DUMP_PATH
-        missing_path.unlink()
-        issues = validate_repo(root, "zig", "cc", skip_exec=True)
-        if not any(expected_missing in issue and DUMP_PATH.as_posix() in issue for issue in issues):
+        if issues:
             print("PHASE3_BITMAP_CPUMASK_SELF_TEST=fail")
-            print("expected missing-file failure for dump path")
+            print("expected the synthetic happy path to pass cleanly")
+            print("\n".join(issues))
+            return 1
+
+        manifest["packet_files"] = "not-a-list"
+        (root / MANIFEST_PATH).write_text(
+            json.dumps(manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_repo(root, "zig", "cc", skip_exec=True)
+        if "phase3_bitmap_cpumask_manifest.json packet_files is not a list" not in issues:
+            print("PHASE3_BITMAP_CPUMASK_SELF_TEST=fail")
+            print("expected a packet_files shape failure")
+            return 1
+
+        manifest["packet_files"] = []
+        (root / MANIFEST_PATH).write_text(
+            json.dumps(manifest, indent=2) + "\n",
+            encoding="utf-8",
+        )
+        (root / DUMP_PATH).unlink()
+        issues = validate_repo(root, "zig", "cc", skip_exec=True)
+        if f"missing repo file: {DUMP_PATH.as_posix()}" not in issues:
+            print("PHASE3_BITMAP_CPUMASK_SELF_TEST=fail")
+            print("expected a missing dump path failure")
             return 1
 
     print("PHASE3_BITMAP_CPUMASK_SELF_TEST=pass")
-    print("PHASE3_BITMAP_CPUMASK_SELF_TEST_CASES=1")
+    print("PHASE3_BITMAP_CPUMASK_SELF_TEST_CASES=3")
     return 0
 
 
