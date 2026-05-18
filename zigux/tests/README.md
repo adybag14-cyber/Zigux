@@ -122,7 +122,7 @@ Key entrypoints
 
 ## Phase 5 review packet
 
-Keep the current shared Phase 5 reminder packet explicit through `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, and `zigux/tests/README.md`.
+Keep the current shared Phase 5 reminder packet explicit through `Documentation/zigux/README.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`.
 
 Keep the current direct sample-root proof truthful here too: `samples/zigux/bytestream_fifo.zig` and `samples/zigux/kretprobe_example.zig` are the directly readable non-runtime sample-root ports on current `master`, while `samples/zigux/trace_events_string_formatting_sample.zig` is the bounded trace-events formatting companion rather than a returned full trace-events port, a standalone string-helper delivery, or a fifth Phase 5 sample. Keep `zigux/tests/phase5_build.zig` framed only as current public-tree-backed companion evidence until a fresh reread restores direct authenticated proof.
 
