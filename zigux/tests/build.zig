@@ -607,13 +607,14 @@ pub fn build(b: *std.Build) void {
 
     const phase3_test_step = b.step(
         "phase3-test",
-        "Run the current shared Phase 3 starter packet bundle from zigux/tests",
+        "Run the current shared Phase 3 starter packet and ABI replay bundle from zigux/tests",
     );
     phase3_test_step.dependOn(&phase3_dev_t_starter_packet.step);
     phase3_test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
     phase3_test_step.dependOn(&phase3_xarray_slot_starter_packet.step);
     phase3_test_step.dependOn(&phase3_policy_starter_packet.step);
     phase3_test_step.dependOn(&phase3_low_level_wrappers.step);
+    phase3_test_step.dependOn(&phase3_abi_replay.step);
 
     const phase3_dump_step = b.step(
         "phase3-dump",
