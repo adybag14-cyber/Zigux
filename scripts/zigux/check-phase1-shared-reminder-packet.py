@@ -42,8 +42,8 @@ MARKERS = {
         "`PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/phase1-closure.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/validate-phase1-closure.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py`",
     ),
     "Documentation/zigux/review-checklist.md": (
-        "`Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` still agree on the current closed-helper reminder packet",
-        "while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?",
+        "`zigux/tests/build.zig` and `zigux/tests/phase1_host_tools_smoke.zig` stay explicit as the shipped shared-smoke reminder anchors while `scripts/zigux/check-phase1-bench.py` stays explicit as the shipped bench-side checker anchor for the remaining shared reminder wording",
+        "`python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded live reminder checks and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the bounded live shared smoke route",
     ),
     "scripts/zigux/README.md": (
         "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it",
@@ -55,12 +55,12 @@ MARKERS = {
     ),
     "scripts/zigux/check-phase1-direct-owner-markers.py": (
         "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
-        'print("phase1-direct-owner-markers:ok")',
+        "print(\"phase1-direct-owner-markers:ok\")",
     ),
     "scripts/zigux/check-phase1-string-review-packet.py": (
         "STRING_REVIEW_RULE_LINE = (",
         "COUNTED_SEARCH_REVIEW_RULE_LINE = (",
-        'print("phase1-string-review-packet:ok")',
+        "print(\"phase1-string-review-packet:ok\")",
     ),
     "scripts/zigux/validate-phase1-closure.py": (
         "PHASE1_CLOSURE_VALIDATION=pass",
@@ -71,33 +71,33 @@ MARKERS = {
         "`zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
     "zigux/tests/build.zig": (
-        'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
-        'const slab_module = b.createModule(.{',
-        'const str_error_r_module = b.createModule(.{',
-        'const vsprintf_module = b.createModule(.{',
-        'const zalloc_module = b.createModule(.{',
-        'root_module.addImport("slab", slab_module);',
-        'root_module.addImport("str_error_r", str_error_r_module);',
-        'root_module.addImport("vsprintf", vsprintf_module);',
-        'root_module.addImport("zalloc", zalloc_module);',
-        '.name = "phase1-host-tools-smoke",',
+        "root_source_file = b.path(\"phase1_host_tools_smoke.zig\"),",
+        "const slab_module = b.createModule(.{",
+        "const str_error_r_module = b.createModule(.{",
+        "const vsprintf_module = b.createModule(.{",
+        "const zalloc_module = b.createModule(.{",
+        "root_module.addImport(\"slab\", slab_module);",
+        "root_module.addImport(\"str_error_r\", str_error_r_module);",
+        "root_module.addImport(\"vsprintf\", vsprintf_module);",
+        "root_module.addImport(\"zalloc\", zalloc_module);",
+        ".name = \"phase1-host-tools-smoke\",",
     ),
     "zigux/tests/fixtures/phase1_helper_manifest.json": (
-        '"lane_sequencing": {',
-        '"direct_anchor_followup_helpers": [',
-        '"rule_summary": "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master."',
+        "\"lane_sequencing\": {",
+        "\"direct_anchor_followup_helpers\": [",
+        "\"rule_summary\": \"Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master.\"",
     ),
     "zigux/tests/phase1_host_tools_smoke.zig": (
-        'const argv_split = @import("argv_split");',
-        'const slab = @import("slab");',
-        'const str_error_r = @import("str_error_r");',
-        'const vsprintf = @import("vsprintf");',
-        'const zalloc = @import("zalloc");',
-        'try std.testing.expect(@hasDecl(bitmap, "setRange"));',
-        'try std.testing.expect(@hasDecl(slab, "kmallocBytes"));',
-        'try std.testing.expect(@hasDecl(str_error_r, "strErrorR"));',
-        'try std.testing.expect(@hasDecl(vsprintf, "scnprintf"));',
-        'try std.testing.expect(@hasDecl(zalloc, "zallocBytes"));',
+        "const argv_split = @import(\"argv_split\");",
+        "const slab = @import(\"slab\");",
+        "const str_error_r = @import(\"str_error_r\");",
+        "const vsprintf = @import(\"vsprintf\");",
+        "const zalloc = @import(\"zalloc\");",
+        "try std.testing.expect(@hasDecl(bitmap, \"setRange\"));",
+        "try std.testing.expect(@hasDecl(slab, \"kmallocBytes\"));",
+        "try std.testing.expect(@hasDecl(str_error_r, \"strErrorR\"));",
+        "try std.testing.expect(@hasDecl(vsprintf, \"scnprintf\"));",
+        "try std.testing.expect(@hasDecl(zalloc, \"zallocBytes\"));",
     ),
     ".github/workflows/zigux-bootstrap.yml": (
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
@@ -212,8 +212,32 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_docs_direct_checks_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][1],
+            ),
+        ),
+        (
+            "missing_docs_bench_self_test_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][2],
+            ),
+        ),
+        (
             "missing_closure_note",
             lambda root: (root / "Documentation/zigux/phase1-closure.md").unlink(),
+        ),
+        (
+            "missing_closure_shared_tests_route",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-closure.md",
+                MARKERS["Documentation/zigux/phase1-closure.md"][1],
+            ),
         ),
         (
             "missing_lane_note_marker",
@@ -224,16 +248,128 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_lane_active_packet_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
+                MARKERS["Documentation/zigux/phase1-host-helper-lane-sequencing.md"][1],
+            ),
+        ),
+        (
+            "missing_review_checklist_smoke_anchor_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][0],
+            ),
+        ),
+        (
+            "missing_review_checklist_smoke_route_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][1],
+            ),
+        ),
+        (
+            "missing_scripts_readme_bench_selftest_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/README.md",
+                MARKERS["scripts/zigux/README.md"][0],
+            ),
+        ),
+        (
+            "missing_scripts_readme_closure_companion_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/README.md",
+                MARKERS["scripts/zigux/README.md"][1],
+            ),
+        ),
+        (
             "missing_closure_validator_file",
             lambda root: (root / "scripts/zigux/validate-phase1-closure.py").unlink(),
+        ),
+        (
+            "missing_bench_checksum_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-bench.py",
+                MARKERS["scripts/zigux/check-phase1-bench.py"][0],
+            ),
+        ),
+        (
+            "missing_bench_self_test_function_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-bench.py",
+                MARKERS["scripts/zigux/check-phase1-bench.py"][1],
+            ),
         ),
         (
             "missing_string_review_checker",
             lambda root: (root / "scripts/zigux/check-phase1-string-review-packet.py").unlink(),
         ),
         (
+            "missing_string_review_rule_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-string-review-packet.py",
+                MARKERS["scripts/zigux/check-phase1-string-review-packet.py"][0],
+            ),
+        ),
+        (
+            "missing_string_review_counted_search_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-string-review-packet.py",
+                MARKERS["scripts/zigux/check-phase1-string-review-packet.py"][1],
+            ),
+        ),
+        (
+            "missing_string_review_ok_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-string-review-packet.py",
+                MARKERS["scripts/zigux/check-phase1-string-review-packet.py"][2],
+            ),
+        ),
+        (
             "missing_direct_owner_checker",
             lambda root: (root / "scripts/zigux/check-phase1-direct-owner-markers.py").unlink(),
+        ),
+        (
+            "missing_direct_owner_helper_list_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-direct-owner-markers.py",
+                MARKERS["scripts/zigux/check-phase1-direct-owner-markers.py"][0],
+            ),
+        ),
+        (
+            "missing_direct_owner_ok_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-direct-owner-markers.py",
+                MARKERS["scripts/zigux/check-phase1-direct-owner-markers.py"][1],
+            ),
+        ),
+        (
+            "missing_manifest_lane_sequencing_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/fixtures/phase1_helper_manifest.json",
+                MARKERS["zigux/tests/fixtures/phase1_helper_manifest.json"][0],
+            ),
+        ),
+        (
+            "missing_manifest_direct_anchor_helpers_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/fixtures/phase1_helper_manifest.json",
+                MARKERS["zigux/tests/fixtures/phase1_helper_manifest.json"][1],
+            ),
         ),
         (
             "missing_manifest_marker",
@@ -252,11 +388,35 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_closure_validation_pass_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/validate-phase1-closure.py",
+                MARKERS["scripts/zigux/validate-phase1-closure.py"][0],
+            ),
+        ),
+        (
+            "missing_closure_self_test_pass_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/validate-phase1-closure.py",
+                MARKERS["scripts/zigux/validate-phase1-closure.py"][1],
+            ),
+        ),
+        (
             "duplicate_scripts_bench_marker",
             lambda root: mutate_duplicate_marker(
                 root,
                 "scripts/zigux/README.md",
                 MARKERS["scripts/zigux/README.md"][0],
+            ),
+        ),
+        (
+            "missing_tests_header_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/README.md",
+                MARKERS["zigux/tests/README.md"][0],
             ),
         ),
         (
@@ -276,11 +436,115 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "duplicate_workflow_bench_selftest",
+            lambda root: mutate_duplicate_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][0],
+            ),
+        ),
+        (
+            "missing_workflow_shared_reminder_selftest",
+            lambda root: mutate_remove_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
+            ),
+        ),
+        (
+            "duplicate_workflow_shared_reminder_selftest",
+            lambda root: mutate_duplicate_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
+            ),
+        ),
+        (
+            "missing_workflow_shared_reminder_live_check",
+            lambda root: mutate_remove_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][2],
+            ),
+        ),
+        (
+            "duplicate_workflow_shared_reminder_live_check",
+            lambda root: mutate_duplicate_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][2],
+            ),
+        ),
+        (
+            "missing_phase1_build_root_source",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][0],
+            ),
+        ),
+        (
             "missing_phase1_build_slab_module",
             lambda root: mutate_remove_marker(
                 root,
                 "zigux/tests/build.zig",
                 MARKERS["zigux/tests/build.zig"][1],
+            ),
+        ),
+        (
+            "duplicate_phase1_build_slab_module",
+            lambda root: mutate_duplicate_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][1],
+            ),
+        ),
+        (
+            "missing_phase1_build_str_error_r_module",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][2],
+            ),
+        ),
+        (
+            "missing_phase1_build_vsprintf_module",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][3],
+            ),
+        ),
+        (
+            "missing_phase1_build_zalloc_module",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][4],
+            ),
+        ),
+        (
+            "missing_phase1_build_slab_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][5],
+            ),
+        ),
+        (
+            "missing_phase1_build_str_error_r_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][6],
+            ),
+        ),
+        (
+            "missing_phase1_build_vsprintf_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][7],
             ),
         ),
         (
@@ -292,6 +556,30 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "duplicate_phase1_build_zalloc_import",
+            lambda root: mutate_duplicate_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][8],
+            ),
+        ),
+        (
+            "missing_phase1_build_step_name",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][9],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_argv_split_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][0],
+            ),
+        ),
+        (
             "missing_phase1_smoke_slab_import",
             lambda root: mutate_remove_marker(
                 root,
@@ -300,8 +588,80 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "duplicate_phase1_smoke_slab_import",
+            lambda root: mutate_duplicate_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][1],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_str_error_r_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][2],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_vsprintf_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][3],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_zalloc_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][4],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_bitmap_decl",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][5],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_slab_decl",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][6],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_str_error_r_decl",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][7],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_vsprintf_decl",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][8],
+            ),
+        ),
+        (
             "missing_phase1_smoke_zalloc_decl",
             lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][9],
+            ),
+        ),
+        (
+            "duplicate_phase1_smoke_zalloc_decl",
+            lambda root: mutate_duplicate_marker(
                 root,
                 "zigux/tests/phase1_host_tools_smoke.zig",
                 MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][9],
