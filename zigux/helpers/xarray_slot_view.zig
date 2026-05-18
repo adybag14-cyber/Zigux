@@ -352,6 +352,36 @@ test "constructor outputs round-trip through fromRaw at both slot cutoffs" {
     }
 }
 
+test "decoded cutoff entries rebuild through public constructors without raw drift" {
+    const cases = [_]struct {
+        raw: usize,
+        kind: SlotKind,
+    }{
+        .{ .raw = 0, .kind = .null },
+        .{ .raw = try xa_value.makeValue(0), .kind = .value },
+        .{ .raw = 2, .kind = .pointer },
+        .{ .raw = try xa_value.makeValue(xa_value.safe_inline_limit), .kind = .value },
+        .{ .raw = err_ptr.err_floor - 1, .kind = .pointer },
+        .{ .raw = err_ptr.err_floor, .kind = .err },
+        .{ .raw = err_ptr.fromErrorCode(-1), .kind = .err },
+    };
+
+    for (cases) |case| {
+        const decoded = fromRaw(case.raw);
+        const rebuilt = switch (case.kind) {
+            .null => nullSlot(),
+            .value => try fromValue(decoded.value().?),
+            .err => fromErrorCode(decoded.errorCode().?),
+            .pointer => fromPointer(decoded.pointerValue().?),
+        };
+
+        try std.testing.expectEqual(case.kind, decoded.kind());
+        try std.testing.expectEqual(case.raw, rebuilt.rawValue());
+        try std.testing.expectEqual(decoded.rawValue(), rebuilt.rawValue());
+        try std.testing.expectEqual(decoded.kind(), rebuilt.kind());
+    }
+}
+
 test "inline zero stays a tagged value and keeps other decoders closed" {
     const raw = try xa_value.makeValue(0);
     const slot = fromRaw(raw);
