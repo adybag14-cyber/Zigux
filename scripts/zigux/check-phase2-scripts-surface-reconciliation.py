@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import tempfile
 from pathlib import Path
 
@@ -9,6 +10,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 NOTE_RELATIVE = Path("Documentation/zigux/phase2-scripts-surface-reconciliation.md")
 README_RELATIVE = Path("scripts/zigux/README.md")
+BOOTSTRAP_NOTE_RELATIVE = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
+CLOSURE_NOTE_RELATIVE = Path("Documentation/zigux/phase2-closure.md")
+MAKEFILE_RELATIVE = Path("zigux/Makefile")
+MANIFEST_RELATIVE = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 
 PRESENT_PATHS = (
     "scripts/zigux/README.md",
@@ -25,6 +30,7 @@ PRESENT_PATHS = (
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "Documentation/zigux/phase2-closure.md",
     "scripts/zigux/validate-phase2.py",
+    "scripts/zigux/validate-phase2-closure.py",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
@@ -34,7 +40,6 @@ PRESENT_PATHS = (
 )
 
 GAP_PATHS = (
-    "scripts/zigux/validate-phase2-closure.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/check-phase2-cross.py",
     "zigux/tests/fixtures/phase2_cross_targets.json",
@@ -42,16 +47,17 @@ GAP_PATHS = (
 
 NOTE_MARKERS = (
     "# Phase 2 Scripts Surface Reconciliation",
-    "## Present scripts-root packet",
-    "## Current repo-reality gaps",
-    "## Shared reminder contract",
+    "## Directly readable scripts-root anchors",
+    "## Remaining repo-reality gaps",
+    "## Current reminder drift",
     "## Lane 25 boundary",
     "Treat those as the current directly readable Phase 2 scripts-root anchors on `master`.",
-    "Treat those paths as active repo-reality gaps on current `master`, not as shipped scripts-root evidence.",
-    "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` should keep the same narrowed packet visible from the docs root, checklist, tests root, and scripts root instead of rebuilding the older validator-first or installer-backed tranche.",
-    "Keep the scripts-root reminder aligned with the live toolchain checker, the surviving kbuild and alignment guards, the kconfig bridge helper packet, the shipped closure-side validator entrypoint, and the required-make-route plus `zigux/Makefile` pair instead of reintroducing the missing closure-validator, installer, or direct cross-route packet as if it had already returned on `master`.",
-    "Treat the adjacent bootstrap-note, shared-gap, and tests-root follow-up surfaces as separate same-lane review paths until they land, rather than folding those larger reminder packets back into this scripts-root sidecar.",
-    "Lane 25 should use this note and its checker to keep the scripts-root Phase 2 reminder bounded to current-master truth while the remaining shared reminder surfaces land on their separate review paths.",
+    "Treat those paths as the remaining repo-reality gaps on current `master`, not as shipped Phase 2 scripts-root evidence.",
+    "`scripts/zigux/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, and `zigux/tests/fixtures/phase2_tool_manifest.json` still classify `scripts/zigux/validate-phase2-closure.py` as a missing validator-first companion even though current `master` now directly serves that file.",
+    "`Documentation/zigux/phase2-closure.md` and `zigux/Makefile` already use `scripts/zigux/validate-phase2-closure.py` as a live closure-side validator entrypoint through `python3 scripts/zigux/validate-phase2-closure.py --self-test`, `python3 scripts/zigux/validate-phase2-closure.py`, and `make -C zigux phase2-validate`.",
+    "Keep this scripts-surface sidecar focused on that reopened reminder drift until the scripts-root, bootstrap-note, and manifest-root surfaces catch up to the restored closure validator.",
+    "Do not treat the remaining installer or direct cross-route companions as returned until current `master` materializes them.",
+    "Lane 25 should use this note and its checker to keep the restored closure validator visible as current scripts-root evidence while the remaining reminder surfaces close the narrower truthfulness gap on their own review paths.",
 )
 
 README_MARKERS = (
@@ -61,11 +67,40 @@ README_MARKERS = (
     "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so treat those validator-first follow-through, installer, and direct cross-route names as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence",
 )
 
+BOOTSTRAP_MARKERS = (
+    "- `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `zigux/Makefile`, `zigux/tests/README.md`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, and the `zigux/tests/fixtures/kconfig_bridge/` manifest roster keep the bounded closure-side, validator-entrypoint, tests-facing, toolchain, fixture-backed artifact-diff support, and bridge packet reviewable without widening back into older validator-first or direct cross-route claims.",
+    "- Repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`.",
+    "- Treat the absent validator-first, direct cross-route, and installer names as historical packet members until same-lane work rematerializes them on `master`.",
+)
+
+CLOSURE_MARKERS = (
+    "`scripts/zigux/validate-phase2-closure.py`",
+    "`python3 scripts/zigux/validate-phase2-closure.py --self-test`",
+    "`python3 scripts/zigux/validate-phase2-closure.py`",
+    "Restoring the dedicated closure validator closes one repo-reality gap inside the bounded tranche while keeping the remaining installer and direct cross-route companions explicitly parked.",
+)
+
+MAKEFILE_MARKERS = (
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
+)
+
+EXPECTED_MANIFEST_GAPS = [
+    "scripts/zigux/validate-phase2-closure.py",
+    "scripts/zigux/install-zig.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+]
+
+EXPECTED_MANIFEST_NOTES_MARKER = (
+    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note."
+)
+
 NOTE_TEMPLATE = """# Phase 2 Scripts Surface Reconciliation
 
-This note records the current Phase 2 scripts-root packet that is directly readable on `master`.
+This note records the current Phase 2 scripts-root reconciliation gap that remains visible on `master`.
 
-## Present scripts-root packet
+## Directly readable scripts-root anchors
 
 - `scripts/zigux/README.md`
 - `scripts/zigux/check-zig-toolchain.py`
@@ -81,6 +116,7 @@ This note records the current Phase 2 scripts-root packet that is directly reada
 - `scripts/zigux/kconfig/confdata_bridge.zig`
 - `Documentation/zigux/phase2-closure.md`
 - `scripts/zigux/validate-phase2.py`
+- `scripts/zigux/validate-phase2-closure.py`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
@@ -90,24 +126,24 @@ This note records the current Phase 2 scripts-root packet that is directly reada
 
 Treat those as the current directly readable Phase 2 scripts-root anchors on `master`.
 
-## Current repo-reality gaps
+## Remaining repo-reality gaps
 
-- `scripts/zigux/validate-phase2-closure.py`
 - `scripts/zigux/install-zig.py`
 - `scripts/zigux/check-phase2-cross.py`
 - `zigux/tests/fixtures/phase2_cross_targets.json`
 
-Treat those paths as active repo-reality gaps on current `master`, not as shipped scripts-root evidence.
+Treat those paths as the remaining repo-reality gaps on current `master`, not as shipped Phase 2 scripts-root evidence.
 
-## Shared reminder contract
+## Current reminder drift
 
-- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` should keep the same narrowed packet visible from the docs root, checklist, tests root, and scripts root instead of rebuilding the older validator-first or installer-backed tranche.
-- Keep the scripts-root reminder aligned with the live toolchain checker, the surviving kbuild and alignment guards, the kconfig bridge helper packet, the shipped closure-side validator entrypoint, and the required-make-route plus `zigux/Makefile` pair instead of reintroducing the missing closure-validator, installer, or direct cross-route packet as if it had already returned on `master`.
-- Treat the adjacent bootstrap-note, shared-gap, and tests-root follow-up surfaces as separate same-lane review paths until they land, rather than folding those larger reminder packets back into this scripts-root sidecar.
+- `scripts/zigux/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, and `zigux/tests/fixtures/phase2_tool_manifest.json` still classify `scripts/zigux/validate-phase2-closure.py` as a missing validator-first companion even though current `master` now directly serves that file.
+- `Documentation/zigux/phase2-closure.md` and `zigux/Makefile` already use `scripts/zigux/validate-phase2-closure.py` as a live closure-side validator entrypoint through `python3 scripts/zigux/validate-phase2-closure.py --self-test`, `python3 scripts/zigux/validate-phase2-closure.py`, and `make -C zigux phase2-validate`.
+- Keep this scripts-surface sidecar focused on that reopened reminder drift until the scripts-root, bootstrap-note, and manifest-root surfaces catch up to the restored closure validator.
+- Do not treat the remaining installer or direct cross-route companions as returned until current `master` materializes them.
 
 ## Lane 25 boundary
 
-Lane 25 should use this note and its checker to keep the scripts-root Phase 2 reminder bounded to current-master truth while the remaining shared reminder surfaces land on their separate review paths.
+Lane 25 should use this note and its checker to keep the restored closure validator visible as current scripts-root evidence while the remaining reminder surfaces close the narrower truthfulness gap on their own review paths.
 """
 
 
@@ -127,18 +163,27 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def load_manifest(root: Path) -> object:
+    return json.loads(read_text(resolve(root, MANIFEST_RELATIVE)))
+
+
+def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker not in text]
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     note_text = read_text(resolve(root, NOTE_RELATIVE))
     readme_text = read_text(resolve(root, README_RELATIVE))
+    bootstrap_text = read_text(resolve(root, BOOTSTRAP_NOTE_RELATIVE))
+    closure_text = read_text(resolve(root, CLOSURE_NOTE_RELATIVE))
+    makefile_text = read_text(resolve(root, MAKEFILE_RELATIVE))
 
-    for marker in NOTE_MARKERS:
-        if marker not in note_text:
-            issues.append(("MISSING_NOTE_MARKERS", marker))
-
-    for marker in README_MARKERS:
-        if marker not in readme_text:
-            issues.append(("MISSING_README_MARKERS", marker))
+    issues.extend(collect_missing_markers(note_text, NOTE_MARKERS, "MISSING_NOTE_MARKERS"))
+    issues.extend(collect_missing_markers(readme_text, README_MARKERS, "MISSING_README_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_text, BOOTSTRAP_MARKERS, "MISSING_BOOTSTRAP_MARKERS"))
+    issues.extend(collect_missing_markers(closure_text, CLOSURE_MARKERS, "MISSING_CLOSURE_MARKERS"))
+    issues.extend(collect_missing_markers(makefile_text, MAKEFILE_MARKERS, "MISSING_MAKEFILE_MARKERS"))
 
     for relative in PRESENT_PATHS:
         if f"- `{relative}`\n" not in note_text:
@@ -151,6 +196,24 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_GAP_NOTE_PATHS", relative))
         if resolve(root, Path(relative)).exists():
             issues.append(("UNEXPECTED_PRESENT_GAP_PATHS", relative))
+
+    try:
+        manifest = load_manifest(root)
+    except json.JSONDecodeError as exc:
+        return issues + [("INVALID_MANIFEST_JSON", exc.msg)]
+
+    if not isinstance(manifest, dict):
+        return issues + [("INVALID_MANIFEST_PAYLOAD", type(manifest).__name__)]
+
+    gaps = manifest.get("repo_reality_gaps")
+    if gaps != EXPECTED_MANIFEST_GAPS:
+        issues.append(("MANIFEST_GAP_MISMATCH", f"actual={gaps!r}:expected={EXPECTED_MANIFEST_GAPS!r}"))
+
+    notes = manifest.get("notes")
+    if not isinstance(notes, list):
+        issues.append(("INVALID_MANIFEST_NOTES", type(notes).__name__))
+    elif EXPECTED_MANIFEST_NOTES_MARKER not in notes:
+        issues.append(("MISSING_MANIFEST_NOTES_MARKER", EXPECTED_MANIFEST_NOTES_MARKER))
 
     return issues
 
@@ -168,35 +231,44 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     return 1
 
 
-def build_self_test_root(root: Path) -> None:
-    write_text(resolve(root, NOTE_RELATIVE), NOTE_TEMPLATE)
-    write_text(resolve(root, README_RELATIVE), "\n".join(README_MARKERS) + "\n")
-
-    for relative in PRESENT_PATHS:
-        if relative in (NOTE_RELATIVE.as_posix(), README_RELATIVE.as_posix()):
-            continue
-        write_text(resolve(root, Path(relative)), "present\n")
-
-
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(marker)
     return text.replace(marker, replacement, 1)
 
 
-def run_self_test() -> int:
-    checks = 0
-    expected = (
-        1
-        + len(NOTE_MARKERS)
-        + len(README_MARKERS)
-        + len(PRESENT_PATHS)
-        + (len(PRESENT_PATHS) - 1)
-        + len(GAP_PATHS)
-        + len(GAP_PATHS)
-        + 2
+def build_self_test_root(root: Path) -> None:
+    write_text(resolve(root, NOTE_RELATIVE), NOTE_TEMPLATE)
+    write_text(resolve(root, README_RELATIVE), "\n".join(README_MARKERS) + "\n")
+    write_text(resolve(root, BOOTSTRAP_NOTE_RELATIVE), "\n".join(BOOTSTRAP_MARKERS) + "\n")
+    write_text(resolve(root, CLOSURE_NOTE_RELATIVE), "\n".join(CLOSURE_MARKERS) + "\n")
+    write_text(resolve(root, MAKEFILE_RELATIVE), "\n".join(MAKEFILE_MARKERS) + "\n")
+    write_text(
+        resolve(root, MANIFEST_RELATIVE),
+        json.dumps(
+            {
+                "repo_reality_gaps": EXPECTED_MANIFEST_GAPS,
+                "notes": [EXPECTED_MANIFEST_NOTES_MARKER],
+            },
+            indent=2,
+        )
+        + "\n",
     )
 
+    for relative in PRESENT_PATHS:
+        path = resolve(root, Path(relative))
+        if path in (
+            resolve(root, README_RELATIVE),
+            resolve(root, CLOSURE_NOTE_RELATIVE),
+            resolve(root, MAKEFILE_RELATIVE),
+            resolve(root, MANIFEST_RELATIVE),
+        ):
+            continue
+        write_text(path, "present\n")
+
+
+def run_self_test() -> int:
+    checks = 0
     with tempfile.TemporaryDirectory(prefix="lane25_scripts_surface_") as tmp:
         root = Path(tmp)
         build_self_test_root(root)
@@ -217,6 +289,27 @@ def run_self_test() -> int:
             assert ("MISSING_README_MARKERS", marker) in collect_issues(root)
             checks += 1
 
+        for marker in BOOTSTRAP_MARKERS:
+            build_self_test_root(root)
+            path = resolve(root, BOOTSTRAP_NOTE_RELATIVE)
+            write_text(path, replace_once(read_text(path), marker))
+            assert ("MISSING_BOOTSTRAP_MARKERS", marker) in collect_issues(root)
+            checks += 1
+
+        for marker in CLOSURE_MARKERS:
+            build_self_test_root(root)
+            path = resolve(root, CLOSURE_NOTE_RELATIVE)
+            write_text(path, replace_once(read_text(path), marker))
+            assert ("MISSING_CLOSURE_MARKERS", marker) in collect_issues(root)
+            checks += 1
+
+        for marker in MAKEFILE_MARKERS:
+            build_self_test_root(root)
+            path = resolve(root, MAKEFILE_RELATIVE)
+            write_text(path, replace_once(read_text(path), marker))
+            assert ("MISSING_MAKEFILE_MARKERS", marker) in collect_issues(root)
+            checks += 1
+
         for relative in PRESENT_PATHS:
             build_self_test_root(root)
             path = resolve(root, NOTE_RELATIVE)
@@ -225,7 +318,12 @@ def run_self_test() -> int:
             checks += 1
 
         for relative in PRESENT_PATHS:
-            if relative in (NOTE_RELATIVE.as_posix(), README_RELATIVE.as_posix()):
+            if relative in (
+                README_RELATIVE.as_posix(),
+                CLOSURE_NOTE_RELATIVE.as_posix(),
+                MAKEFILE_RELATIVE.as_posix(),
+                MANIFEST_RELATIVE.as_posix(),
+            ):
                 continue
             build_self_test_root(root)
             resolve(root, Path(relative)).unlink()
@@ -245,7 +343,52 @@ def run_self_test() -> int:
             assert ("UNEXPECTED_PRESENT_GAP_PATHS", relative) in collect_issues(root)
             checks += 1
 
-        for relative in (NOTE_RELATIVE, README_RELATIVE):
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_RELATIVE)
+        payload = json.loads(read_text(path))
+        payload["repo_reality_gaps"] = EXPECTED_MANIFEST_GAPS[1:]
+        write_text(path, json.dumps(payload, indent=2) + "\n")
+        assert any(code == "MANIFEST_GAP_MISMATCH" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_RELATIVE)
+        payload = json.loads(read_text(path))
+        payload["notes"] = []
+        write_text(path, json.dumps(payload, indent=2) + "\n")
+        assert (
+            "MISSING_MANIFEST_NOTES_MARKER",
+            EXPECTED_MANIFEST_NOTES_MARKER,
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_RELATIVE)
+        payload = json.loads(read_text(path))
+        payload["notes"] = "broken"
+        write_text(path, json.dumps(payload, indent=2) + "\n")
+        assert ("INVALID_MANIFEST_NOTES", "str") in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_RELATIVE)
+        write_text(path, "{not-json}\n")
+        assert any(code == "INVALID_MANIFEST_JSON" for code, _ in collect_issues(root))
+        checks += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_RELATIVE)
+        write_text(path, "[]\n")
+        assert ("INVALID_MANIFEST_PAYLOAD", "list") in collect_issues(root)
+        checks += 1
+
+        for relative in (
+            NOTE_RELATIVE,
+            README_RELATIVE,
+            BOOTSTRAP_NOTE_RELATIVE,
+            CLOSURE_NOTE_RELATIVE,
+            MAKEFILE_RELATIVE,
+        ):
             build_self_test_root(root)
             resolve(root, relative).unlink()
             try:
@@ -256,7 +399,6 @@ def run_self_test() -> int:
             else:
                 raise AssertionError(relative)
 
-    assert checks == expected, (checks, expected)
     print("PHASE2_SCRIPTS_SURFACE_RECONCILIATION_SELF_TEST=pass")
     print(f"PHASE2_SCRIPTS_SURFACE_RECONCILIATION_SELF_TEST_CASE_COUNT={checks}")
     return 0
@@ -280,7 +422,7 @@ def main() -> int:
     print("PHASE2_SCRIPTS_SURFACE_RECONCILIATION=pass")
     print(f"PHASE2_SCRIPTS_SURFACE_PRESENT_COUNT={len(PRESENT_PATHS)}")
     print(f"PHASE2_SCRIPTS_SURFACE_GAP_COUNT={len(GAP_PATHS)}")
-    print(f"PHASE2_SCRIPTS_SURFACE_MARKER_COUNT={len(NOTE_MARKERS) + len(README_MARKERS)}")
+    print(f"PHASE2_SCRIPTS_SURFACE_MARKER_COUNT={len(NOTE_MARKERS) + len(README_MARKERS) + len(BOOTSTRAP_MARKERS) + len(CLOSURE_MARKERS) + len(MAKEFILE_MARKERS)}")
     return 0
 
 
