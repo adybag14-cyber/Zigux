@@ -148,6 +148,10 @@ def run_self_test() -> None:
         expect_case(tmp_root, f"snapshot:lane_key:{EXPECTED_LANE_KEY}", "lane_key")
         build_fixture_tree(tmp_root)
 
+        replace_once(tmp_root / SNAPSHOT_PATH, EXPECTED_PHASE, "Phase 99")
+        expect_case(tmp_root, f"snapshot:phase:{EXPECTED_PHASE}", "phase")
+        build_fixture_tree(tmp_root)
+
         replace_once(
             tmp_root / SNAPSHOT_PATH,
             "9695696dae13fac53792eb77b7ff68ae2053ceea",
@@ -176,6 +180,15 @@ def run_self_test() -> None:
         expect_case(tmp_root, "snapshot:tracked_paths:exact_order", "tracked_paths")
         build_fixture_tree(tmp_root)
 
+        snapshot = load_json(tmp_root / SNAPSHOT_PATH)
+        supporting_notes = snapshot["supporting_notes"]
+        if not isinstance(supporting_notes, list):
+            raise SystemExit("phase12-libbpf-snapshot:self-test:fixture_supporting_notes_shape")
+        supporting_notes[2] = "Documentation/zigux/phase12-libbpf-heavy-consumer-missing.md"
+        (tmp_root / SNAPSHOT_PATH).write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        expect_case(tmp_root, "snapshot:supporting_notes:exact_order", "supporting_notes")
+        build_fixture_tree(tmp_root)
+
         first_blob_sha = git_blob_sha(tmp_root / EXPECTED_TRACKED_PATHS[0])
         replace_once(tmp_root / SNAPSHOT_PATH, first_blob_sha, f"{'0' * 40}")
         expect_case(tmp_root, "snapshot:files:0:blob_sha:mismatch", "blob_sha_mismatch")
@@ -194,7 +207,7 @@ def run_self_test() -> None:
         )
 
     print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST=pass")
-    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=7")
+    print("PHASE12_LIBBPF_SNAPSHOT_SELF_TEST_CASE_COUNT=9")
 
 
 def main() -> int:
