@@ -17,6 +17,7 @@ SELFTEST_COMMANDS = (
         ("--self-test",),
     ),
     (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ("--self-test",)),
+    (Path("scripts/zigux/validate-phase3.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-shared-tests-routes.py"), ("--self-test",)),
     (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ("--self-test",)),
     (Path("scripts/zigux/run-phase3-checks.py"), ("--self-test",)),
@@ -66,123 +67,53 @@ def run_packet(repo_root: Path) -> int:
     return 0
 
 
-def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase3_validate_selftest_") as temp_dir:
-        root = Path(temp_dir)
-        for rel_path, _args in SELFTEST_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
-        if validate_script_list(root):
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected synthetic self-test script set to validate")
-            return 1
-
-        first_path = SELFTEST_COMMANDS[0][0]
-        (root / first_path).unlink()
-        missing = validate_script_list(root)
-        expected = f"missing selftest script: {first_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected missing script was not reported")
-            return 1
-
-        for rel_path, _args in SELFTEST_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
-
-        runner_path = SELFTEST_COMMANDS[5][0]
-        (root / runner_path).unlink()
-        missing = validate_script_list(root)
-        expected = f"missing selftest script: {runner_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected runner omission was not reported")
-            return 1
-
-        for rel_path, _args in SELFTEST_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
-
-        shared_routes_path = SELFTEST_COMMANDS[3][0]
-        (root / shared_routes_path).unlink()
-        missing = validate_script_list(root)
-        expected = f"missing selftest script: {shared_routes_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected shared-routes script omission was not reported")
-            return 1
-
-        for rel_path, _args in SELFTEST_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
-
-        validator_support_path = SELFTEST_COMMANDS[6][0]
-        (root / validator_support_path).unlink()
-        missing = validate_script_list(root)
-        expected = f"missing selftest script: {validator_support_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected validator-support script omission was not reported")
-            return 1
-
-        for rel_path, _args in SELFTEST_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
-
-        low_level_wrapper_path = SELFTEST_COMMANDS[7][0]
-        (root / low_level_wrapper_path).unlink()
-        missing = validate_script_list(root)
-        expected = f"missing selftest script: {low_level_wrapper_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected low-level-wrapper script omission was not reported")
-            return 1
-
-        for rel_path, _args in SELFTEST_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
-
-        last_path = SELFTEST_COMMANDS[-1][0]
-        (root / last_path).unlink()
-        missing = validate_script_list(root)
-        expected = f"missing selftest script: {last_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
-            print("expected missing trailing script was not reported")
-            return 1
-
-        path = root / last_path
+def _populate_repo(root: Path) -> None:
+    for rel_path, _args in SELFTEST_COMMANDS:
+        path = root / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
             "#!/usr/bin/env python3\nraise SystemExit(0)\n",
             encoding="utf-8",
         )
 
-        failing_path = SELFTEST_COMMANDS[7][0]
+
+def _expect_missing(root: Path, index: int, message: str) -> int:
+    _populate_repo(root)
+    missing_path = SELFTEST_COMMANDS[index][0]
+    (root / missing_path).unlink()
+    missing = validate_script_list(root)
+    expected = f"missing selftest script: {missing_path.as_posix()}"
+    if expected not in missing:
+        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+        print(message)
+        return 1
+    return 0
+
+
+def run_self_test() -> int:
+    with tempfile.TemporaryDirectory(prefix="zigux_phase3_validate_selftest_") as temp_dir:
+        root = Path(temp_dir)
+        _populate_repo(root)
+        if validate_script_list(root):
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected synthetic self-test script set to validate")
+            return 1
+
+        missing_cases = (
+            (0, "expected missing leading script was not reported"),
+            (3, "expected shared ABI validator omission was not reported"),
+            (4, "expected shared-routes script omission was not reported"),
+            (6, "expected runner omission was not reported"),
+            (7, "expected validator-support script omission was not reported"),
+            (8, "expected low-level-wrapper script omission was not reported"),
+            (9, "expected missing trailing script was not reported"),
+        )
+        for index, message in missing_cases:
+            if _expect_missing(root, index, message) != 0:
+                return 1
+
+        _populate_repo(root)
+        failing_path = SELFTEST_COMMANDS[8][0]
         (root / failing_path).write_text(
             "#!/usr/bin/env python3\n"
             "import sys\n"
@@ -198,7 +129,7 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
-        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=8")
+        print("PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT=9")
         return 0
 
 
