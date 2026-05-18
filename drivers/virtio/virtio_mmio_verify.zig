@@ -31,6 +31,16 @@ pub fn changedByteCount(summary: ConfigWriteDispositionSummary) u3 {
     return @popCount(summary.changed_byte_mask);
 }
 
+pub fn negotiatedFeatureBitCount(summary: FeatureNegotiationSummary) u6 {
+    return @popCount(summary.negotiated_feature_word);
+}
+
+pub fn hasFeatureNegotiationDrift(summary: FeatureNegotiationSummary) bool {
+    return !summary.selected_feature_words_in_range or
+        !summary.device_features_known or
+        !summary.driver_features_known;
+}
+
 pub fn requiresLegacyGuestPageSize(summary: ProbePreflightSummary) bool {
     return !summary.legacy_guest_page_size_ready;
 }
@@ -67,6 +77,29 @@ test "phase10 virtio mmio verify keeps queue readiness wrapper below transport c
     summary = try summarizeSelectedQueueReadiness(&device);
     try std.testing.expect(summary.queue_size_programmed);
     try std.testing.expect(summary.queue_ready_for_handoff);
+}
+
+test "phase10 virtio mmio verify keeps feature negotiation wrapper drift explicit" {
+    var device = try virtio_mmio.VirtioMmioLab.init(81, &[_]u16{ 8, 16 });
+    try device.stageDeviceFeatureWord(0, 0b1110);
+    try device.stageDriverFeatureWord(0, 0b1011);
+
+    var summary = summarizeFeatureNegotiation(&device);
+    try std.testing.expect(!hasFeatureNegotiationDrift(summary));
+    try std.testing.expect(summary.negotiation_possible);
+    try std.testing.expect(!summary.feature_words_match);
+    try std.testing.expectEqual(@as(u6, 2), negotiatedFeatureBitCount(summary));
+    try std.testing.expectEqual(@as(u32, 0b0100), summary.device_only_feature_word);
+    try std.testing.expectEqual(@as(u32, 0b0001), summary.driver_only_feature_word);
+
+    _ = try device.writeRegister(.device_features_sel, 1);
+    summary = summarizeFeatureNegotiation(&device);
+    try std.testing.expect(hasFeatureNegotiationDrift(summary));
+    try std.testing.expect(summary.selected_feature_words_in_range);
+    try std.testing.expect(!summary.device_features_known);
+    try std.testing.expect(summary.driver_features_known);
+    try std.testing.expect(!summary.negotiation_possible);
+    try std.testing.expectEqual(@as(u6, 0), negotiatedFeatureBitCount(summary));
 }
 
 test "phase10 virtio mmio verify counts changed config bytes without mutating staged data" {
