@@ -276,6 +276,24 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:{name}:unexpected_field:{unexpected_fields[0]}")
 
         validated_case = dict(raw_case)
+        depfile = validated_case.get("depfile")
+        if not isinstance(depfile, str) or not depfile:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
+
+        expected_stdout_name = validated_case.get("expected_stdout", validated_case.get("expected"))
+        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
+
+        expected_exit_code = int(validated_case.get("expected_exit_code", 0))
+        if expected_exit_code != 0:
+            expected_stderr_name = validated_case.get("expected_stderr")
+            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
+                raise ValueError(f"{CASES_PATH}:{name}:missing_expected_stderr")
+
+        stdout_mode = validated_case.get("stdout_mode")
+        if stdout_mode not in (None, "dev_full"):
+            raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
+
         for field_name, expected_value in expected_case.items():
             actual_value = validated_case.get(field_name, 0 if field_name == "expected_exit_code" else None)
             if actual_value != expected_value:
@@ -283,29 +301,12 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
                     f"{CASES_PATH}:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
                 )
 
-        depfile = validated_case.get("depfile")
-        if not isinstance(depfile, str) or not depfile:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
         if not (FIXTURE_DIR / depfile).exists():
             raise FileNotFoundError(f"{CASES_PATH}:missing_depfile:{depfile}")
-
-        expected_stdout_name = validated_case.get("expected_stdout", validated_case.get("expected"))
-        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
         if not (FIXTURE_DIR / expected_stdout_name).exists():
             raise FileNotFoundError(f"{CASES_PATH}:missing_expected_output:{expected_stdout_name}")
-
-        expected_exit_code = int(validated_case.get("expected_exit_code", 0))
-        if expected_exit_code != 0:
-            expected_stderr_name = validated_case.get("expected_stderr")
-            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
-                raise ValueError(f"{CASES_PATH}:{name}:missing_expected_stderr")
-            if not (FIXTURE_DIR / expected_stderr_name).exists():
-                raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")
-
-        stdout_mode = validated_case.get("stdout_mode")
-        if stdout_mode not in (None, "dev_full"):
-            raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
+        if expected_exit_code != 0 and not (FIXTURE_DIR / expected_stderr_name).exists():
+            raise FileNotFoundError(f"{CASES_PATH}:missing_expected_stderr:{expected_stderr_name}")
 
         validated.append(validated_case)
 
@@ -382,7 +383,7 @@ def run_self_test() -> int:
     )
 
     unexpected_field_cases = copy_valid_cases(valid_cases)
-    find_case(unexpected_field_cases, "sample")['unexpected_field'] = "unexpected"
+    find_case(unexpected_field_cases, "sample")["unexpected_field"] = "unexpected"
     expect_failure(
         "unexpected_field",
         lambda: validate_cases(unexpected_field_cases),
@@ -403,7 +404,7 @@ def run_self_test() -> int:
     expect_failure(
         "missing_expected_stderr",
         lambda: validate_cases(missing_stderr_cases),
-        f"{CASES_PATH}:sample_comment_only:expected_stderr=None,expected='sample_comment_only_expected.stderr.txt'",
+        f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_output_fixture_") as tmp_dir:
@@ -429,21 +430,31 @@ def run_self_test() -> int:
     expect_failure(
         "unsupported_stdout_mode",
         lambda: validate_cases(unsupported_stdout_mode_cases),
-        f"{CASES_PATH}:sample_comment_only_stdout_full:stdout_mode='pipe_full',expected='dev_full'",
+        f"{CASES_PATH}:sample_comment_only_stdout_full:unsupported_stdout_mode:'pipe_full'",
     )
 
-    missing_depfile_cases = copy_valid_cases(valid_cases)
-    find_case(missing_depfile_cases, "sample")["depfile"] = "missing_depfile.d"
-    expect_failure(
-        "missing_depfile",
-        lambda: validate_cases(missing_depfile_cases),
-        f"{CASES_PATH}:sample:depfile='missing_depfile.d',expected='sample.d'",
-    )
+    with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_depfile_fixture_") as tmp_dir:
+        fixture_dir = Path(tmp_dir)
+        for fixture_path in FIXTURE_DIR.iterdir():
+            if fixture_path.name == "sample.d":
+                continue
+            shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
+
+        original_fixture_dir = FIXTURE_DIR
+        FIXTURE_DIR = fixture_dir
+        try:
+            expect_failure(
+                "missing_depfile",
+                lambda: validate_cases(valid_cases),
+                f"{CASES_PATH}:missing_depfile:sample.d",
+            )
+        finally:
+            FIXTURE_DIR = original_fixture_dir
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
-        (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / "fixture_a.txt").writeText("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\ space-config.h").writeText("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
             frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
