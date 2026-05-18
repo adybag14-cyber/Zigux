@@ -468,6 +468,54 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_phase1_build_str_error_r_module",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][2],
+            ),
+        ),
+        (
+            "missing_phase1_build_vsprintf_module",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][3],
+            ),
+        ),
+        (
+            "missing_phase1_build_zalloc_module",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][4],
+            ),
+        ),
+        (
+            "missing_phase1_build_slab_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][5],
+            ),
+        ),
+        (
+            "missing_phase1_build_str_error_r_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][6],
+            ),
+        ),
+        (
+            "missing_phase1_build_vsprintf_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][7],
+            ),
+        ),
+        (
             "missing_phase1_build_zalloc_import",
             lambda root: mutate_remove_marker(
                 root,
@@ -500,11 +548,59 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_phase1_smoke_str_error_r_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][2],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_vsprintf_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][3],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_zalloc_import",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][4],
+            ),
+        ),
+        (
             "missing_phase1_smoke_bitmap_decl",
             lambda root: mutate_remove_marker(
                 root,
                 "zigux/tests/phase1_host_tools_smoke.zig",
                 MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][5],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_slab_decl",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][6],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_str_error_r_decl",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][7],
+            ),
+        ),
+        (
+            "missing_phase1_smoke_vsprintf_decl",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][8],
             ),
         ),
         (
