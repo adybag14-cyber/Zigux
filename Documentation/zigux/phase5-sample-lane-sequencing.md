@@ -28,11 +28,13 @@ Treat those four anchors as the full Phase 5 destination set unless the roadmap 
 
 Fresh repo-first inspection in this run confirmed that current `master` still keeps the shared Phase 5 reminder packet reviewable through these directly readable surfaces:
 
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
 The same reread also confirmed that current `master` still keeps the restored direct kretprobe packet and the bounded trace-events formatting companion visible from the sample root, while the bytestream and kobject anchors remain roadmap-backed targets plus shared reminder or repo-reality-gap surfaces until a fresh reread proves their sample-root ports returned directly on current `master`.
@@ -59,11 +61,13 @@ Keep the bytestream and kobject anchors in shared-reminder or repo-reality-gap w
 
 For the tracing and probe lane, keep follow-through aligned with these bounded reminder surfaces:
 
+- `Documentation/zigux/README.md`
 - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
 Those files should describe:
