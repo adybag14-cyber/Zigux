@@ -24,6 +24,7 @@ POLICY_STARTER_BUILD_FILE = Path("zigux/tests/phase3_policy_starter_packet_build
 XARRAY_SLOT_HELPER_FILE = Path("zigux/helpers/xarray_slot_view.zig")
 XARRAY_SLOT_STARTER_FILE = Path("zigux/tests/phase3_xarray_slot_starter_packet.zig")
 SHARED_TESTS_BUILD_FILE = Path("zigux/tests/build.zig")
+SHARED_VALIDATOR_FILE = Path("scripts/zigux/validate-phase3.py")
 
 RUNNER_MARKER = "scripts/zigux/run-phase3-checks.py"
 SHARED_TESTS_ROUTES_MARKER = "scripts/zigux/check-phase3-shared-tests-routes.py"
@@ -41,7 +42,7 @@ WORKFLOW_MARKER = ".github/workflows/zigux-bootstrap.yml"
 CATALOG_SELFTEST_GAP_MARKER = "scripts/zigux/check-phase3-catalog-selftest.py"
 CATALOG_WRAPPER_GAP_MARKER = "scripts/zigux/phase3_catalog.py"
 WRAPPER_GENERATION_GAP_MARKER = "scripts/zigux/generate-phase3-check-wrappers.py"
-BROADER_VALIDATOR_GAP_MARKER = "scripts/zigux/validate-phase3.py"
+SHARED_VALIDATOR_MARKER = "scripts/zigux/validate-phase3.py"
 MANIFEST_ROOT_GAP_MARKER = "zigux/tests/phase3_abi_manifest.json"
 XARRAY_SLOT_HELPER_MARKER = "zigux/helpers/xarray_slot_view.zig"
 XARRAY_SLOT_STARTER_MARKER = "zigux/tests/phase3_xarray_slot_starter_packet.zig"
@@ -50,9 +51,10 @@ XARRAY_SLOT_BUILD_ROUTE_MARKER = (
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig"
 )
 README_GAP_SUMMARY_MARKER = (
-    "so treat those catalog, wrapper-generation, focused replay, export/UAPI, broader "
-    "validator, closure, and manifest-root routes as current repo-reality gaps until "
-    "fresh current-tree proof lands"
+    "so treat those catalog, wrapper-generation, closure, and manifest-root routes as current "
+    "repo-reality gaps until fresh current-tree proof lands, while `scripts/zigux/validate-phase3.py` "
+    "stays framed as the separately readable shared validator entrypoint rather than a missing "
+    "scripts-root route"
 )
 
 REQUIRED_FILES = (
@@ -70,6 +72,7 @@ REQUIRED_FILES = (
     Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
     Path("scripts/zigux/validate_phase3_selftest.py"),
     RUNNER_FILE,
+    SHARED_VALIDATOR_FILE,
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
@@ -115,6 +118,7 @@ REQUIRED_MARKERS = (
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "scripts/zigux/validate_phase3_selftest.py",
     "scripts/zigux/run-phase3-checks.py",
+    "scripts/zigux/validate-phase3.py",
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
@@ -156,9 +160,48 @@ REQUIRED_MARKERS = (
     CATALOG_SELFTEST_GAP_MARKER,
     CATALOG_WRAPPER_GAP_MARKER,
     WRAPPER_GENERATION_GAP_MARKER,
-    BROADER_VALIDATOR_GAP_MARKER,
+    SHARED_VALIDATOR_MARKER,
     MANIFEST_ROOT_GAP_MARKER,
     README_GAP_SUMMARY_MARKER,
+)
+
+README_MARKER_CASES = (
+    (RUNNER_MARKER, "expected missing runner README marker was not reported"),
+    (SHARED_TESTS_ROUTES_MARKER, "expected missing shared-tests-routes README marker was not reported"),
+    (HEADER_MARKER, "expected missing header README marker was not reported"),
+    (UAPI_MARKER, "expected missing UAPI README marker was not reported"),
+    (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER, "expected missing low-level-wrapper survey validator README marker was not reported"),
+    (LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER, "expected missing low-level-wrapper survey self-test README marker was not reported"),
+    (LOW_LEVEL_WRAPPER_REPLAY_MARKER, "expected missing low-level-wrapper replay README marker was not reported"),
+    (LOW_LEVEL_WRAPPER_BUILD_MARKER, "expected missing low-level-wrapper build README marker was not reported"),
+    (WORKFLOW_MARKER, "expected missing workflow README marker was not reported"),
+    (CATALOG_SELFTEST_GAP_MARKER, "expected missing catalog-selftest gap README marker was not reported"),
+    (CATALOG_WRAPPER_GAP_MARKER, "expected missing catalog wrapper gap README marker was not reported"),
+    (WRAPPER_GENERATION_GAP_MARKER, "expected missing wrapper-generation gap README marker was not reported"),
+    (SHARED_VALIDATOR_MARKER, "expected missing shared validator README marker was not reported"),
+    (MANIFEST_ROOT_GAP_MARKER, "expected missing manifest-root gap README marker was not reported"),
+    (XARRAY_SLOT_HELPER_MARKER, "expected missing xarray-slot helper README marker was not reported"),
+    (XARRAY_SLOT_STARTER_MARKER, "expected missing xarray-slot starter README marker was not reported"),
+    (SHARED_TESTS_BUILD_MARKER, "expected missing shared tests build README marker was not reported"),
+    (XARRAY_SLOT_BUILD_ROUTE_MARKER, "expected missing xarray-slot build-route README marker was not reported"),
+    (README_GAP_SUMMARY_MARKER, "expected missing repo-reality gap summary README marker was not reported"),
+)
+
+FILE_CASES = (
+    (RUNNER_FILE, "expected missing runner file was not reported"),
+    (SHARED_TESTS_ROUTES_FILE, "expected missing shared-tests-routes file was not reported"),
+    (BINDING_FILE, "expected missing binding file was not reported"),
+    (NARROW_UNSAFE_FILE, "expected missing narrow-unsafe file was not reported"),
+    (UAPI_FILE, "expected missing UAPI file was not reported"),
+    (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE, "expected missing low-level-wrapper survey validator file was not reported"),
+    (LOW_LEVEL_WRAPPER_REPLAY_FILE, "expected missing low-level-wrapper replay file was not reported"),
+    (LOW_LEVEL_WRAPPER_BUILD_FILE, "expected missing low-level-wrapper build file was not reported"),
+    (WORKFLOW_FILE, "expected missing workflow file was not reported"),
+    (POLICY_STARTER_BUILD_FILE, "expected missing starter build file was not reported"),
+    (XARRAY_SLOT_HELPER_FILE, "expected missing xarray-slot helper file was not reported"),
+    (XARRAY_SLOT_STARTER_FILE, "expected missing xarray-slot starter file was not reported"),
+    (SHARED_TESTS_BUILD_FILE, "expected missing shared tests build file was not reported"),
+    (SHARED_VALIDATOR_FILE, "expected missing shared validator file was not reported"),
 )
 
 
@@ -229,52 +272,21 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
-        for marker, message in (
-            (RUNNER_MARKER, "expected missing runner README marker was not reported"),
-            (SHARED_TESTS_ROUTES_MARKER, "expected missing shared-tests-routes README marker was not reported"),
-            (HEADER_MARKER, "expected missing header README marker was not reported"),
-            (UAPI_MARKER, "expected missing UAPI README marker was not reported"),
-            (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER, "expected missing low-level-wrapper survey validator README marker was not reported"),
-            (LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER, "expected missing low-level-wrapper survey self-test README marker was not reported"),
-            (LOW_LEVEL_WRAPPER_REPLAY_MARKER, "expected missing low-level-wrapper replay README marker was not reported"),
-            (LOW_LEVEL_WRAPPER_BUILD_MARKER, "expected missing low-level-wrapper build README marker was not reported"),
-            (WORKFLOW_MARKER, "expected missing workflow README marker was not reported"),
-            (CATALOG_SELFTEST_GAP_MARKER, "expected missing catalog-selftest gap README marker was not reported"),
-            (CATALOG_WRAPPER_GAP_MARKER, "expected missing catalog wrapper gap README marker was not reported"),
-            (WRAPPER_GENERATION_GAP_MARKER, "expected missing wrapper-generation gap README marker was not reported"),
-            (BROADER_VALIDATOR_GAP_MARKER, "expected missing broader validator gap README marker was not reported"),
-            (MANIFEST_ROOT_GAP_MARKER, "expected missing manifest-root gap README marker was not reported"),
-            (XARRAY_SLOT_HELPER_MARKER, "expected missing xarray-slot helper README marker was not reported"),
-            (XARRAY_SLOT_STARTER_MARKER, "expected missing xarray-slot starter README marker was not reported"),
-            (SHARED_TESTS_BUILD_MARKER, "expected missing shared tests build README marker was not reported"),
-            (XARRAY_SLOT_BUILD_ROUTE_MARKER, "expected missing xarray-slot build-route README marker was not reported"),
-            (README_GAP_SUMMARY_MARKER, "expected missing repo-reality gap summary README marker was not reported"),
-        ):
+        for marker, message in README_MARKER_CASES:
             _populate_repo(root)
             if _expect_missing_marker(root, marker, message) != 0:
                 return 1
 
-        for rel_path, message in (
-            (RUNNER_FILE, "expected missing runner file was not reported"),
-            (SHARED_TESTS_ROUTES_FILE, "expected missing shared-tests-routes file was not reported"),
-            (BINDING_FILE, "expected missing binding file was not reported"),
-            (NARROW_UNSAFE_FILE, "expected missing narrow-unsafe file was not reported"),
-            (UAPI_FILE, "expected missing UAPI file was not reported"),
-            (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE, "expected missing low-level-wrapper survey validator file was not reported"),
-            (LOW_LEVEL_WRAPPER_REPLAY_FILE, "expected missing low-level-wrapper replay file was not reported"),
-            (LOW_LEVEL_WRAPPER_BUILD_FILE, "expected missing low-level-wrapper build file was not reported"),
-            (WORKFLOW_FILE, "expected missing workflow file was not reported"),
-            (POLICY_STARTER_BUILD_FILE, "expected missing starter build file was not reported"),
-            (XARRAY_SLOT_HELPER_FILE, "expected missing xarray-slot helper file was not reported"),
-            (XARRAY_SLOT_STARTER_FILE, "expected missing xarray-slot starter file was not reported"),
-            (SHARED_TESTS_BUILD_FILE, "expected missing shared tests build file was not reported"),
-        ):
+        for rel_path, message in FILE_CASES:
             _populate_repo(root)
             if _expect_missing_file(root, rel_path, message) != 0:
                 return 1
 
         print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST=pass")
-        print("PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT=32")
+        print(
+            "PHASE3_README_TOOLING_INVENTORY_SELF_TEST_CASE_COUNT="
+            f"{1 + len(README_MARKER_CASES) + len(FILE_CASES)}"
+        )
         return 0
 
 
