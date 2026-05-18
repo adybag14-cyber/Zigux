@@ -177,3 +177,13 @@ test "argvSplit truncates the current token at an embedded NUL" {
     try std.testing.expectEqual(@as(usize, 1), result.argv.len);
     try std.testing.expectEqualStrings("alpha", result.argv[0]);
 }
+
+test "countArgc ignores hidden suffix arguments beyond the first embedded NUL" {
+    const leading_nul = [_]u8{ ' ', '\t', 0, 'a', 'l', 'p', 'h', 'a' };
+    const separator_nul = [_]u8{ 'a', 'l', 'p', 'h', 'a', ' ', '\t', 0, 'b', 'e', 't', 'a' };
+    const token_nul = [_]u8{ 'a', 'l', 'p', 'h', 'a', 0, 'b', 'e', 't', 'a', ' ', 'g', 'a', 'm', 'm', 'a' };
+
+    try std.testing.expectEqual(@as(usize, 0), countArgc(leading_nul[0..]));
+    try std.testing.expectEqual(@as(usize, 1), countArgc(separator_nul[0..]));
+    try std.testing.expectEqual(@as(usize, 1), countArgc(token_nul[0..]));
+}
