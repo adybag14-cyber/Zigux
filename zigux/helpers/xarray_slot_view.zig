@@ -382,6 +382,60 @@ test "decoded cutoff entries rebuild through public constructors without raw dri
     }
 }
 
+test "decoded cutoff entries keep payload accessors stable after reconstruction" {
+    const cases = [_]struct {
+        raw: usize,
+        kind: SlotKind,
+        value: ?usize,
+        error_code: ?isize,
+        pointer: ?usize,
+    }{
+        .{ .raw = 0, .kind = .null, .value = null, .error_code = null, .pointer = null },
+        .{ .raw = try xa_value.makeValue(0), .kind = .value, .value = 0, .error_code = null, .pointer = null },
+        .{ .raw = 2, .kind = .pointer, .value = null, .error_code = null, .pointer = 2 },
+        .{
+            .raw = try xa_value.makeValue(xa_value.safe_inline_limit),
+            .kind = .value,
+            .value = xa_value.safe_inline_limit,
+            .error_code = null,
+            .pointer = null,
+        },
+        .{
+            .raw = err_ptr.err_floor - 1,
+            .kind = .pointer,
+            .value = null,
+            .error_code = null,
+            .pointer = err_ptr.err_floor - 1,
+        },
+        .{ .raw = err_ptr.err_floor, .kind = .err, .value = null, .error_code = -4095, .pointer = null },
+        .{ .raw = err_ptr.fromErrorCode(-1), .kind = .err, .value = null, .error_code = -1, .pointer = null },
+    };
+
+    for (cases) |case| {
+        const decoded = fromRaw(case.raw);
+        const rebuilt = switch (decoded.kind()) {
+            .null => nullSlot(),
+            .value => try fromValue(decoded.value().?),
+            .err => fromErrorCode(decoded.errorCode().?),
+            .pointer => fromPointer(decoded.pointerValue().?),
+        };
+        const redecode = fromRaw(rebuilt.rawValue());
+
+        try std.testing.expectEqual(case.kind, decoded.kind());
+        try std.testing.expectEqual(case.value, decoded.value());
+        try std.testing.expectEqual(case.error_code, decoded.errorCode());
+        try std.testing.expectEqual(case.pointer, decoded.pointerValue());
+
+        try std.testing.expectEqual(case.raw, rebuilt.rawValue());
+        try std.testing.expectEqual(case.raw, redecode.rawValue());
+        try std.testing.expectEqual(case.kind, redecode.kind());
+        try std.testing.expectEqual(case.value, redecode.value());
+        try std.testing.expectEqual(case.error_code, redecode.errorCode());
+        try std.testing.expectEqual(case.pointer, redecode.pointerValue());
+        try std.testing.expectEqual(isTaggedInternalEntry(case.raw), isTaggedInternalEntry(redecode.rawValue()));
+    }
+}
+
 test "inline zero stays a tagged value and keeps other decoders closed" {
     const raw = try xa_value.makeValue(0);
     const slot = fromRaw(raw);
