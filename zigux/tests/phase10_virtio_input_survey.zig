@@ -25,7 +25,7 @@ fn expectSurveyedCommitAlignment(
     try expectContains(survey_note, note_marker);
 }
 
-test "phase10 virtio input survey note keeps the restored verifier, teardown parity, and queue callback packet explicit" {
+test "phase10 virtio input survey note keeps the restored verifier, queue callback helper, teardown parity, and packet explicit" {
     const allocator = std.testing.allocator;
     const survey_note = try readRepoRelative(
         allocator,
@@ -43,6 +43,7 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     try expectContains(survey_note, "lab-only driver validation");
     try expectSurveyedCommitAlignment(allocator, survey_note, manifest);
     try expectContains(survey_note, "drivers/virtio/virtio_input_verify.zig");
+    try expectContains(survey_note, "drivers/virtio/virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_input_registration_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_input_status_drain.zig");
@@ -59,7 +60,7 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "helper-local MMIO tests") == null);
 }
 
-test "phase10 virtio input manifest keeps the restored replay ids and blocked lifecycle posture explicit" {
+test "phase10 virtio input manifest keeps the queue callback helper, restored replay ids, and blocked lifecycle posture explicit" {
     const allocator = std.testing.allocator;
     const manifest = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_input_manifest.json");
     defer allocator.free(manifest);
@@ -67,6 +68,8 @@ test "phase10 virtio input manifest keeps the restored replay ids and blocked li
     try expectContains(manifest, "\"preexisting_virtio_core_zig_present\": true");
     try expectContains(manifest, "\"preexisting_virtio_ring_zig_present\": true");
     try expectContains(manifest, "\"preexisting_virtio_mmio_survey_present\": true");
+    try expectContains(manifest, "\"id\": \"phase10-virtio-input-queue-callback-preflight-helper\"");
+    try expectContains(manifest, "\"zigux_destination\": \"drivers/virtio/virtio_input_queue_callback_preflight.zig\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-verify-replay\"");
     try expectContains(manifest, "\"zigux_destination\": \"drivers/virtio/virtio_input_verify.zig\"");
     try expectContains(
@@ -88,6 +91,32 @@ test "phase10 virtio input manifest keeps the restored replay ids and blocked li
     try expectContains(manifest, "\"shared_validation_gates\"");
     try expectContains(manifest, "\"status\": \"blocked_on_risky_transport\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-registration-lifecycle\"");
+}
+
+test "phase10 virtio input queue callback helper stays explicit in the survey packet" {
+    const allocator = std.testing.allocator;
+    const survey_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-input-survey.md",
+    );
+    defer allocator.free(survey_note);
+
+    const manifest = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_input_manifest.json");
+    defer allocator.free(manifest);
+
+    const helper = try readRepoRelative(
+        allocator,
+        "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+    );
+    defer allocator.free(helper);
+
+    try expectContains(survey_note, "drivers/virtio/virtio_input_queue_callback_preflight.zig");
+    try expectContains(manifest, "\"id\": \"phase10-virtio-input-queue-callback-preflight-helper\"");
+    try expectContains(manifest, "\"zigux_destination\": \"drivers/virtio/virtio_input_queue_callback_preflight.zig\"");
+    try expectContains(helper, "pub const QueueCallbackPreflightSummary = virtio_input.QueueCallbackPreflightSummary;");
+    try expectContains(helper, "pub const QueueCallbackPreflightBlocker = virtio_input.QueueCallbackPreflightBlocker;");
+    try expectContains(helper, "pub fn summarize(device: *const virtio_input.VirtioInputLab) QueueCallbackPreflightSummary {");
+    try expectContains(helper, "pub fn blockerTag(blocker: QueueCallbackPreflightBlocker) []const u8 {");
 }
 
 test "phase10 virtio input slice companions keep the replay inventory and blocked lifecycle boundary explicit" {
