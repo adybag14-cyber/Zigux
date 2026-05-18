@@ -28,6 +28,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
+    ROOT / "scripts" / "zigux" / "validate-phase2.py",
     ROOT / "zigux" / "Makefile",
     POLICY_PATH,
     BOOTSTRAP_NOTES,
@@ -56,6 +57,7 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/validate-phase2.py",
 )
 
 README_PRESENT_MARKERS = (
