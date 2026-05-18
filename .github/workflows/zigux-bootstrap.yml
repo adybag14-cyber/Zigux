@@ -139,6 +139,9 @@ jobs:
       - name: Check current kconfig bridge packet
         run: python3 scripts/zigux/check-kconfig-bridge.py
 
+      - name: Run current Phase 2 confdata bridge unit tests
+        run: zig test scripts/zigux/kconfig/confdata_bridge.zig
+
       - name: Self-test current Phase 2 kconfig bridge checker
         run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test
 
