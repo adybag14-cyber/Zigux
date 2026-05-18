@@ -146,6 +146,20 @@ test "bitmap starter helpers fail closed on zero-bit stray storage" {
     try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "bitmap starter helpers keep empty sentinels stable with a stray address" {
+    const empty = binding.initBitmapView(1, 0, 0);
+    const summary = bitmap_view.summarize(empty);
+
+    try testing.expect(bitmap_view.isValid(empty));
+    try testing.expect(!bitmap_view.testBit(empty, 0));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstSet(empty));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstZero(empty));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.weight(empty));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask starter helpers keep cpu membership reviewable" {
     var backing = [_]usize{
         (@as(usize, 1) << 0) | (@as(usize, 1) << 2) | (@as(usize, 1) << 7),
@@ -295,6 +309,20 @@ test "cpumask starter helpers fail closed on zero-bit stray storage" {
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
     try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
+test "cpumask starter helpers keep empty sentinels stable with a stray address" {
+    const empty = binding.initCpumaskView(1, 0, 0, 0);
+    const summary = cpumask_view.summarize(empty);
+
+    try testing.expect(cpumask_view.isValid(empty));
+    try testing.expect(!cpumask_view.cpuIsSet(empty, 0));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(empty));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(empty));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(empty));
     try testing.expectEqual(@as(u32, 0), summary.first_set);
     try testing.expectEqual(@as(u32, 0), summary.first_zero);
     try testing.expectEqual(@as(u32, 0), summary.weight);
