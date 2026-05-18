@@ -20,7 +20,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 38
+EXPECTED_SELF_TEST_CASES = 41
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -278,6 +278,7 @@ def run_self_test() -> int:
                 return 1
             cases += 1
         survey_variants = (
+            ('try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);', 'try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 5", 2);', 'survey_marker:try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);'),
             ('try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);', 'try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 8", 2);', 'survey_marker:try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);'),
             ('try requireMarkerCount("\\\"sample_count_note\\\": \\\"seven monotonic samples\\\"", 2);', 'try requireMarkerCount("\\\"sample_count_note\\\": \\\"eight monotonic samples\\\"", 2);', 'survey_marker:try requireMarkerCount("\\\"sample_count_note\\\": \\\"seven monotonic samples\\\"", 2);'),
             ('try requireMarkerCount("\\\"acceptable_limit_status\\\": \\\"approved_local_only\\\"", 2);', 'try requireMarkerCount("\\\"acceptable_limit_status\\\": \\\"pending_review\\\"", 2);', 'survey_marker:try requireMarkerCount("\\\"acceptable_limit_status\\\": \\\"approved_local_only\\\"", 2);'),
@@ -288,6 +289,8 @@ def run_self_test() -> int:
             ('try requireMarkerCount("\\\"final_first_zero\\\": 109", 2);', 'try requireMarkerCount("\\\"final_first_zero\\\": 110", 2);', 'survey_marker:try requireMarkerCount("\\\"final_first_zero\\\": 109", 2);'),
             ('try requireMarker("\\\"lane_key\\\": \\\"P4-L20\\\"");', 'try requireMarker("\\\"lane_key\\\": \\\"P4-L21\\\"");', 'survey_marker:try requireMarker("\\\"lane_key\\\": \\\"P4-L20\\\"");'),
             ('try requireMarker("\\\"phase\\\": \\\"Phase 4\\\"");', 'try requireMarker("\\\"phase\\\": \\\"Phase 5\\\"");', 'survey_marker:try requireMarker("\\\"phase\\\": \\\"Phase 4\\\"");'),
+            ('try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"rollback_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");'),
+            ('try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"decision_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");'),
             ('try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");'),
             ('try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");', 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"approved\\\"");', 'survey_marker:try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");'),
             ('try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");', 'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline\\\"");', 'survey_marker:try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");'),
