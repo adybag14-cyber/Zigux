@@ -302,6 +302,9 @@ jobs:
       - name: Run current Phase 9 unregistered gate companion tests
         run: zig test samples/zigux/runtime_trace_events_unregistered_gate.zig
 
+      - name: Run current Phase 9 exit rollback guard companion tests
+        run: zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig
+
       - name: Run current Phase 9 registration reentry companion tests
         run: zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig
 
