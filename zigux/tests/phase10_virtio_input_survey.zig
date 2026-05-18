@@ -64,6 +64,9 @@ test "phase10 virtio input manifest keeps the restored replay ids and blocked li
     const manifest = try readRepoRelative(allocator, "zigux/tests/phase10_virtio_input_manifest.json");
     defer allocator.free(manifest);
 
+    try expectContains(manifest, "\"preexisting_virtio_core_zig_present\": true");
+    try expectContains(manifest, "\"preexisting_virtio_ring_zig_present\": true");
+    try expectContains(manifest, "\"preexisting_virtio_mmio_survey_present\": true");
     try expectContains(manifest, "\"id\": \"phase10-virtio-input-verify-replay\"");
     try expectContains(manifest, "\"zigux_destination\": \"drivers/virtio/virtio_input_verify.zig\"");
     try expectContains(
