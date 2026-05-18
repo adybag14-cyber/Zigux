@@ -36,6 +36,7 @@ const Manifest = struct {
     surveyed_commit: []const u8,
     anchor: []const u8,
     roadmap_destinations: []const []const u8,
+    draft_review_packet_paths: []const []const u8,
     survey_summary: SurveySummary,
     sample_replay_contract: SampleReplayContract,
     verification_checks: []const []const u8,
@@ -162,13 +163,21 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P5-L18", manifest.lane_key);
+    try std.testing.expectEqualStrings("P5-L14", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("96d29f9f68ad5ec6aba8f87af3b153e8d1a1ea1f", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("lib/string_helpers.c", manifest.anchor);
-    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
+    try std.testing.expectEqual(@as(usize, 1), manifest.roadmap_destinations.len);
     try std.testing.expectEqualStrings("lib/string_helpers.zig", manifest.roadmap_destinations[0]);
-    try std.testing.expectEqualStrings("samples/zigux/string_helpers_sample.zig", manifest.roadmap_destinations[1]);
+    try std.testing.expectEqual(@as(usize, 3), manifest.draft_review_packet_paths.len);
+    const expected_draft_review_packet_paths = [_][]const u8{
+        "samples/zigux/string_helpers_sample.zig",
+        "zigux/tests/phase7_string_helpers_sample_survey.zig",
+        "zigux/tests/phase7_string_helpers_sample_manifest.json",
+    };
+    for (expected_draft_review_packet_paths, 0..) |expected, index| {
+        try std.testing.expectEqualStrings(expected, manifest.draft_review_packet_paths[index]);
+    }
     try std.testing.expectEqual(@as(usize, 1047), manifest.survey_summary.string_helpers_c_lines);
     try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_test_files);
     try std.testing.expectEqual(@as(usize, 1), manifest.survey_summary.preexisting_phase7_fixture_modules);
