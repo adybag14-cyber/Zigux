@@ -12,6 +12,12 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 CHECK_COMMAND = "python3 scripts/zigux/check-phase10-shared-freeze-boundary.py"
 
+COMMON_DRIVER_MANIFEST_FILES = [
+    "zigux/tests/phase10_virtio_ring_manifest.json",
+    "zigux/tests/phase10_virtio_input_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
+]
+
 REQUIRED_FILES = [
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "Documentation/zigux/freeze-map.md",
@@ -20,6 +26,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "zigux/tests/phase10_closure_manifest.json",
     "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
+    *COMMON_DRIVER_MANIFEST_FILES,
 ]
 
 FREEZE_IN_C_ANCHORS = [
@@ -49,6 +56,19 @@ PHASE14_FUTURE_DESTINATIONS = [
 PHASE14_FUTURE_DESTINATION_POLICY = (
     "kernel/trace/ring_buffer.zig remains a future destination only if years of evidence justify it"
 )
+
+EXPECTED_COMMON_DRIVER_FIELDS = {
+    "freeze_map": "Documentation/zigux/freeze-map.md",
+    "freeze_boundary_status": "aligned",
+    "risky_transport_posture": "blocked_on_risky_transport",
+    "allowed_evidence_kinds": [
+        "driver_local_lab_slices",
+        "survey_manifests",
+        "shared_validation_gates",
+    ],
+    "architecture_council_reopen_required": True,
+    "architecture_council_reopen_attached": False,
+}
 
 TEXT_MARKERS = {
     "scripts/zigux/check-phase10-shared-freeze-boundary.py": [
@@ -98,24 +118,27 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             if marker not in text:
                 missing_markers.append(f"{Path(rel_path).name}:{marker}")
 
-    manifest = json.loads(read_text(root, "zigux/tests/phase10_closure_manifest.json"))
-    if manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
-        missing_markers.append(f"closure_manifest:freeze_map={manifest.get('freeze_map')!r}")
-    if manifest.get("freeze_boundary_status") != "aligned":
+    closure_manifest = json.loads(read_text(root, "zigux/tests/phase10_closure_manifest.json"))
+    if closure_manifest.get("freeze_map") != "Documentation/zigux/freeze-map.md":
         missing_markers.append(
-            f"closure_manifest:freeze_boundary_status={manifest.get('freeze_boundary_status')!r}"
+            f"closure_manifest:freeze_map={closure_manifest.get('freeze_map')!r}"
         )
-    if manifest.get("freeze_status_change_claimed") is not False:
+    if closure_manifest.get("freeze_boundary_status") != "aligned":
+        missing_markers.append(
+            "closure_manifest:freeze_boundary_status="
+            + repr(closure_manifest.get("freeze_boundary_status"))
+        )
+    if closure_manifest.get("freeze_status_change_claimed") is not False:
         missing_markers.append(
             "closure_manifest:freeze_status_change_claimed="
-            + repr(manifest.get("freeze_status_change_claimed"))
+            + repr(closure_manifest.get("freeze_status_change_claimed"))
         )
-    if manifest.get("freeze_in_c_anchors") != FREEZE_IN_C_ANCHORS:
+    if closure_manifest.get("freeze_in_c_anchors") != FREEZE_IN_C_ANCHORS:
         missing_markers.append("closure_manifest:freeze_in_c_anchors")
-    if manifest.get("study_only_anchors") != STUDY_ONLY_ANCHORS:
+    if closure_manifest.get("study_only_anchors") != STUDY_ONLY_ANCHORS:
         missing_markers.append("closure_manifest:study_only_anchors")
 
-    phase14_boundary = manifest.get("phase14_study_only_boundary")
+    phase14_boundary = closure_manifest.get("phase14_study_only_boundary")
     if not isinstance(phase14_boundary, dict):
         missing_markers.append("closure_manifest:phase14_study_only_boundary")
     else:
@@ -126,17 +149,33 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
             )
         if phase14_boundary.get("anchors") != STUDY_ONLY_ANCHORS:
             missing_markers.append("closure_manifest:phase14_study_only_boundary:anchors")
-        if phase14_boundary.get("required_phase14_evidence_features") != PHASE14_EVIDENCE_FEATURES:
+        if (
+            phase14_boundary.get("required_phase14_evidence_features")
+            != PHASE14_EVIDENCE_FEATURES
+        ):
             missing_markers.append(
                 "closure_manifest:phase14_study_only_boundary:required_phase14_evidence_features"
             )
         if phase14_boundary.get("future_destinations") != PHASE14_FUTURE_DESTINATIONS:
-            missing_markers.append("closure_manifest:phase14_study_only_boundary:future_destinations")
-        if phase14_boundary.get("future_destination_policy") != PHASE14_FUTURE_DESTINATION_POLICY:
+            missing_markers.append(
+                "closure_manifest:phase14_study_only_boundary:future_destinations"
+            )
+        if (
+            phase14_boundary.get("future_destination_policy")
+            != PHASE14_FUTURE_DESTINATION_POLICY
+        ):
             missing_markers.append(
                 "closure_manifest:phase14_study_only_boundary:future_destination_policy="
                 + repr(phase14_boundary.get("future_destination_policy"))
             )
+
+    for rel_path in COMMON_DRIVER_MANIFEST_FILES:
+        manifest = json.loads(read_text(root, rel_path))
+        label = Path(rel_path).name
+        for field, expected in EXPECTED_COMMON_DRIVER_FIELDS.items():
+            actual = manifest.get(field)
+            if actual != expected:
+                missing_markers.append(f"{label}:{field}={actual!r}")
 
     return [], missing_markers
 
@@ -162,6 +201,15 @@ def build_fixture_manifest() -> str:
     ) + "\n"
 
 
+def build_driver_manifest(lane_key: str) -> str:
+    manifest = {
+        "lane_key": lane_key,
+        **EXPECTED_COMMON_DRIVER_FIELDS,
+        "gaps": [],
+    }
+    return json.dumps(manifest, indent=2) + "\n"
+
+
 def build_fixture_files() -> dict[str, str]:
     return {
         "scripts/zigux/check-phase10-shared-freeze-boundary.py": "\n".join(
@@ -183,11 +231,21 @@ def build_fixture_files() -> dict[str, str]:
         )
         + "\n",
         "zigux/tests/phase10_closure_manifest.json": build_fixture_manifest(),
+        "zigux/tests/phase10_virtio_ring_manifest.json": build_driver_manifest("P10-L10"),
+        "zigux/tests/phase10_virtio_input_manifest.json": build_driver_manifest("P10-L13"),
+        "zigux/tests/phase10_virtio_mmio_manifest.json": build_driver_manifest("P10-L11"),
         "zigux-alpha/PHASE10_CLOSURE_LEDGER.md": "\n".join(
             TEXT_MARKERS["zigux-alpha/PHASE10_CLOSURE_LEDGER.md"]
         )
         + "\n",
     }
+
+
+def reset_fixture(root: Path) -> None:
+    for rel_path, content in build_fixture_files().items():
+        path = root / rel_path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8")
 
 
 def expect_missing_marker(root: Path, rel_path: str, old: str, new: str, expected: str) -> None:
@@ -224,13 +282,23 @@ def run_phase14_case(root: Path, key: str, value: object, expected: str) -> None
         raise SystemExit(f"phase10-shared-freeze-self-test:expected={expected}:actual={actual}")
 
 
+def run_driver_manifest_case(
+    root: Path, rel_path: str, key: str, value: object, expected: str
+) -> None:
+    path = root / rel_path
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    manifest[key] = value
+    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    _, missing_markers = validate(root)
+    if expected not in missing_markers:
+        actual = ",".join(missing_markers) if missing_markers else "none"
+        raise SystemExit(f"phase10-shared-freeze-self-test:expected={expected}:actual={actual}")
+
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase10_shared_freeze_") as tmp_dir:
         root = Path(tmp_dir)
-        for rel_path, content in build_fixture_files().items():
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(content, encoding="utf-8")
+        reset_fixture(root)
 
         missing_files, missing_markers = validate(root)
         if missing_files or missing_markers:
@@ -282,8 +350,7 @@ def run_self_test() -> int:
             "drifted",
             "closure_manifest:freeze_boundary_status='drifted'",
         )
-        for rel_path, content in build_fixture_files().items():
-            (root / rel_path).write_text(content, encoding="utf-8")
+        reset_fixture(root)
 
         run_manifest_case(
             root,
@@ -291,8 +358,7 @@ def run_self_test() -> int:
             True,
             "closure_manifest:freeze_status_change_claimed=True",
         )
-        for rel_path, content in build_fixture_files().items():
-            (root / rel_path).write_text(content, encoding="utf-8")
+        reset_fixture(root)
 
         run_manifest_case(
             root,
@@ -300,8 +366,7 @@ def run_self_test() -> int:
             FREEZE_IN_C_ANCHORS[:-1],
             "closure_manifest:freeze_in_c_anchors",
         )
-        for rel_path, content in build_fixture_files().items():
-            (root / rel_path).write_text(content, encoding="utf-8")
+        reset_fixture(root)
 
         run_manifest_case(
             root,
@@ -309,8 +374,7 @@ def run_self_test() -> int:
             ["kernel/workqueue.c"],
             "closure_manifest:study_only_anchors",
         )
-        for rel_path, content in build_fixture_files().items():
-            (root / rel_path).write_text(content, encoding="utf-8")
+        reset_fixture(root)
 
         run_phase14_case(
             root,
@@ -318,8 +382,7 @@ def run_self_test() -> int:
             "phase10_lane",
             "closure_manifest:phase14_study_only_boundary:status='phase10_lane'",
         )
-        for rel_path, content in build_fixture_files().items():
-            (root / rel_path).write_text(content, encoding="utf-8")
+        reset_fixture(root)
 
         run_phase14_case(
             root,
@@ -327,11 +390,37 @@ def run_self_test() -> int:
             "ring buffer is ready now",
             "closure_manifest:phase14_study_only_boundary:future_destination_policy='ring buffer is ready now'",
         )
-        for rel_path, content in build_fixture_files().items():
-            (root / rel_path).write_text(content, encoding="utf-8")
+        reset_fixture(root)
+
+        run_driver_manifest_case(
+            root,
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            "freeze_boundary_status",
+            "drifted",
+            "phase10_virtio_ring_manifest.json:freeze_boundary_status='drifted'",
+        )
+        reset_fixture(root)
+
+        run_driver_manifest_case(
+            root,
+            "zigux/tests/phase10_virtio_input_manifest.json",
+            "allowed_evidence_kinds",
+            ["driver_local_lab_slices"],
+            "phase10_virtio_input_manifest.json:allowed_evidence_kinds=['driver_local_lab_slices']",
+        )
+        reset_fixture(root)
+
+        run_driver_manifest_case(
+            root,
+            "zigux/tests/phase10_virtio_mmio_manifest.json",
+            "architecture_council_reopen_attached",
+            True,
+            "phase10_virtio_mmio_manifest.json:architecture_council_reopen_attached=True",
+        )
+        reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
@@ -354,9 +443,11 @@ if missing_markers:
     print("MISSING_PHASE10_SHARED_FREEZE_MARKERS_END")
     sys.exit(1)
 
+total_manifest_checks = 10 + len(COMMON_DRIVER_MANIFEST_FILES) * len(EXPECTED_COMMON_DRIVER_FIELDS)
+
 print("PHASE10_SHARED_FREEZE_BOUNDARY=pass")
 print(f"PHASE10_SHARED_FREEZE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
 print(
     "PHASE10_SHARED_FREEZE_REQUIRED_MARKER_COUNT="
-    f"{sum(len(markers) for markers in TEXT_MARKERS.values()) + 8}"
+    f"{sum(len(markers) for markers in TEXT_MARKERS.values()) + total_manifest_checks}"
 )
