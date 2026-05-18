@@ -46,7 +46,26 @@ MAKEFILE_MARKERS = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 12
+SURFACE_COMMON_MARKERS = (
+    "`zigux/Makefile`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-validate`",
+)
+
+SURFACE_MARKER_CODES = (
+    (BOOTSTRAP_NOTES, "MISSING_BOOTSTRAP_GAP_MARKERS", "MISSING_BOOTSTRAP_ROUTE_MARKERS"),
+    (REVIEW_CHECKLIST, "MISSING_REVIEW_GAP_MARKERS", "MISSING_REVIEW_ROUTE_MARKERS"),
+    (TESTS_README, "MISSING_TESTS_GAP_MARKERS", "MISSING_TESTS_ROUTE_MARKERS"),
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = (
+    1
+    + len(WORKFLOW_LINES)
+    + len(WORKFLOW_LINES)
+    + len(MAKEFILE_MARKERS)
+    + len(SURFACE_COMMON_MARKERS) * len(SURFACE_MARKER_CODES)
+    + 3
+)
 
 
 def read_text(path: Path) -> str:
@@ -109,11 +128,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if count_exact_lines(makefile_text, marker) == 0:
             issues.append(("MISSING_MAKEFILE_MARKERS", marker))
 
-    for path, gap_code, route_code in (
-        (BOOTSTRAP_NOTES, "MISSING_BOOTSTRAP_GAP_MARKERS", "MISSING_BOOTSTRAP_ROUTE_MARKERS"),
-        (REVIEW_CHECKLIST, "MISSING_REVIEW_GAP_MARKERS", "MISSING_REVIEW_ROUTE_MARKERS"),
-        (TESTS_README, "MISSING_TESTS_GAP_MARKERS", "MISSING_TESTS_ROUTE_MARKERS"),
-    ):
+    for path, gap_code, route_code in SURFACE_MARKER_CODES:
         text = read_text(resolve_path(root, path))
         if "`zigux/Makefile`" not in text:
             issues.append((gap_code, "`zigux/Makefile`"))
@@ -146,14 +161,8 @@ def build_self_test_root(root: Path) -> None:
     )
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
     write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_MARKERS) + "\n")
-    marker_text = "\n".join(
-        (
-            "`zigux/Makefile`",
-            "`make -C zigux phase2-toolchain`",
-            "`make -C zigux phase2-validate`",
-        )
-    )
-    for path in (BOOTSTRAP_NOTES, REVIEW_CHECKLIST, TESTS_README):
+    marker_text = "\n".join(SURFACE_COMMON_MARKERS)
+    for path, _, _ in SURFACE_MARKER_CODES:
         write_text(resolve_path(root, path), marker_text + "\n")
 
 
@@ -172,6 +181,15 @@ def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_required_make_routes_") as tmp_dir:
@@ -181,7 +199,27 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for marker in (MAKEFILE_MARKERS[10], MAKEFILE_MARKERS[11], MAKEFILE_MARKERS[12], MAKEFILE_MARKERS[13]):
+        for line in WORKFLOW_LINES:
+            build_self_test_root(root)
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(
+                replace_exact_line(workflow_path.read_text(encoding="utf-8"), line),
+                encoding="utf-8",
+            )
+            assert ("MISSING_WORKFLOW_LINES", line) in collect_issues(root)
+            checks_run += 1
+
+        for line in WORKFLOW_LINES:
+            build_self_test_root(root)
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(
+                duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), line),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_WORKFLOW_LINES", f"{line}:count=2") in collect_issues(root)
+            checks_run += 1
+
+        for marker in MAKEFILE_MARKERS:
             build_self_test_root(root)
             makefile_path = resolve_path(root, MAKEFILE)
             makefile_path.write_text(
@@ -191,28 +229,20 @@ def run_self_test() -> int:
             assert ("MISSING_MAKEFILE_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
-        build_self_test_root(root)
-        makefile_path = resolve_path(root, MAKEFILE)
-        makefile_path.write_text(
-            replace_once(makefile_path.read_text(encoding="utf-8"), MAKEFILE_MARKERS[0]),
-            encoding="utf-8",
-        )
-        assert ("MISSING_MAKEFILE_MARKERS", MAKEFILE_MARKERS[0]) in collect_issues(root)
-        checks_run += 1
-
-        for path, code, marker in (
-            (BOOTSTRAP_NOTES, "MISSING_BOOTSTRAP_ROUTE_MARKERS", "`make -C zigux phase2-toolchain`"),
-            (REVIEW_CHECKLIST, "MISSING_REVIEW_ROUTE_MARKERS", "`make -C zigux phase2-validate`"),
-            (TESTS_README, "MISSING_TESTS_GAP_MARKERS", "`zigux/Makefile`"),
-        ):
-            build_self_test_root(root)
-            resolved = resolve_path(root, path)
-            resolved.write_text(
-                replace_once(resolved.read_text(encoding="utf-8"), marker),
-                encoding="utf-8",
-            )
-            assert (code, marker) in collect_issues(root)
-            checks_run += 1
+        for path, gap_code, route_code in SURFACE_MARKER_CODES:
+            for marker in SURFACE_COMMON_MARKERS:
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(
+                    replace_once(resolved.read_text(encoding="utf-8"), marker),
+                    encoding="utf-8",
+                )
+                issues = collect_issues(root)
+                if marker == "`zigux/Makefile`":
+                    assert (gap_code, marker) in issues
+                else:
+                    assert (route_code, marker) in issues
+                checks_run += 1
 
         for path in (TOOLCHAIN_POLICY, WORKFLOW, MAKEFILE):
             build_self_test_root(root)
