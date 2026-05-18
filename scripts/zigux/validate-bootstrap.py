@@ -40,6 +40,8 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
+    "run: python3 scripts/zigux/validate-bootstrap.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
