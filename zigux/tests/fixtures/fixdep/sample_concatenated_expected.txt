@@ -1,0 +1,14 @@
+savedcmd_sample_concatenated.o := clang -c zigux/tests/fixtures/fixdep/sample_concatenated_source.c -o sample_concatenated.o
+
+source_sample_concatenated.o := zigux/tests/fixtures/fixdep/sample_concatenated_source.c
+
+deps_sample_concatenated.o := \
+    $(wildcard include/config/ZIGUX_DT_SOURCE) \
+  zigux/tests/fixtures/fixdep/sample_concatenated_dep.h \
+    $(wildcard include/config/ZIGUX_DT_HEADER) \
+  zigux/tests/fixtures/fixdep/sample_concatenated_temp_dep.h \
+    $(wildcard include/config/ZIGUX_DT_SECONDARY) \
+
+sample_concatenated.o: $(deps_sample_concatenated.o)
+
+$(deps_sample_concatenated.o):
