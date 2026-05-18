@@ -18,11 +18,14 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-release-coordination-matrix.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "keep the Makefile-backed route family recorded as repo-reality gaps",
+        "The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`.",
+        "- adjacent notifier support: keep `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` truthful as support evidence without promoting them into a fifth helper lane",
     ],
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13` as shipped evidence",
         "`landlock/syscalls` owns the syscall governance, slice, and helper starter surface through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, the shared `zigux/tests/phase13_build.zig` route, and the live credential, file-descriptor-installation, and ruleset-state surfaces stay recorded as repo-reality gaps on current `master`",
+        "- adjacent notifier evidence owns only release-surface truthfulness through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`, not a fifth helper family",
     ],
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
         "This note records the closure of the old missing-checker gap.",
@@ -296,6 +299,39 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:`landlock/syscalls` owns the syscall governance, slice, and helper starter surface through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, the shared `zigux/tests/phase13_build.zig` route, and the live credential, file-descriptor-installation, and ruleset-state surfaces stay recorded as repo-reality gaps on current `master`"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        matrix_path = tempdir / "Documentation/zigux/phase13-release-coordination-matrix.md"
+        matrix_path.write_text(
+            matrix_path.read_text(encoding="utf-8").replace(
+                "The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`."
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        sequencing_path.write_text(
+            sequencing_path.read_text(encoding="utf-8").replace(
+                "- adjacent notifier evidence owns only release-surface truthfulness through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`, not a fifth helper family\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:- adjacent notifier evidence owns only release-surface truthfulness through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`, not a fifth helper family"
             in issues
         )
         populate_repo(tempdir)
