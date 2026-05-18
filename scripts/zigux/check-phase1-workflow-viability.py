@@ -355,8 +355,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(root)
+        build_sample_repo(root)
         (root / "scripts/zigux/check-phase11-build-inventory.py").unlink()
         if "missing_file:scripts/zigux/check-phase11-build-inventory.py" not in collect_failures(root):
             print("self-test:missing_phase11_build_inventory_file_case_failed")
