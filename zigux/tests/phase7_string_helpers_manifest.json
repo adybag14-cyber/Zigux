@@ -91,9 +91,9 @@
     "kstrdupQuotable() keeps returned storage caller-owned, hex-escapes special logging hazards and double quotes, and still stops at the duplicated exported prefix",
     "kstrdupQuotableCmdline() keeps returned storage caller-owned, collapses trailing and inter-argument NULL separators inside duplicated command-line storage, and only then applies quotable escaping",
     "parseIntArray() and parse_int_array() keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set",
-    "stringUpper(), string_upper(), stringLower(), and string_lower() keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary",
+    "stringUpper(), string_upper(), stringLower(), string_lower() keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary",
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
     "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test"
   ],
-  "next_bounded_step": "Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig` so the dedicated helper-local packet treats `parse_int_array()` as landed and keeps only `kstrdup_quotable_file()` plus `devm_kasprintf_strarray()` outside the current packet."
+  "next_bounded_step": "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`."
 }
