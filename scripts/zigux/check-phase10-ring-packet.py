@@ -214,6 +214,10 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "Keep the queue-local ring helper ladder, the wrapper-facing verify replay, and the focused replays framed as direct current-head evidence",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
             "the remaining direct ring gap is the dedicated survey replay",
         )
         expect_missing_marker(
@@ -270,6 +274,10 @@ def run_self_test() -> int:
         )
         expect_missing_marker(
             "zigux/tests/phase10_build.zig",
+            "test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);",
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_build.zig",
             "test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);",
         )
         expect_missing_marker(
@@ -279,6 +287,10 @@ def run_self_test() -> int:
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_manifest.json",
             '"id": "phase10-virtqueue-shape-helper"',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"id": "phase10-ring-lab-driver-bridge"',
         )
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
