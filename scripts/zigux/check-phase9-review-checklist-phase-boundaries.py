@@ -41,8 +41,10 @@ REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_even
 REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 REVIEW_CHECKLIST_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+REVIEW_CHECKLIST_EXIT_ROLLBACK_GUARD_MARKER = "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`"
 REVIEW_CHECKLIST_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 REVIEW_CHECKLIST_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
+REVIEW_CHECKLIST_EXIT_ROLLBACK_COMPANION_MARKER = "failed-exit rollback explicit after reusable selftest replay"
 REVIEW_CHECKLIST_REENTRY_COMPANION_MARKER = "balanced registration re-entry companion that keeps function-thread registration reusable before and after selftest"
 REVIEW_CHECKLIST_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
 REVIEW_CHECKLIST_PHASE9_BUILD_MARKER = "`zigux/tests/phase9_build.zig`"
@@ -129,8 +131,10 @@ CHECKLIST_REQUIRED_MARKERS = [
     REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER,
     REVIEW_CHECKLIST_LIFECYCLE_MARKER,
     REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER,
+    REVIEW_CHECKLIST_EXIT_ROLLBACK_GUARD_MARKER,
     REVIEW_CHECKLIST_REENTRY_GATE_MARKER,
     REVIEW_CHECKLIST_FAIL_CLOSED_MARKER,
+    REVIEW_CHECKLIST_EXIT_ROLLBACK_COMPANION_MARKER,
     REVIEW_CHECKLIST_REENTRY_COMPANION_MARKER,
     REVIEW_CHECKLIST_BACKLOG_MARKER,
     REVIEW_CHECKLIST_PHASE9_BUILD_MARKER,
@@ -341,7 +345,7 @@ def build_fixture_text() -> str:
     return f"""# Zigux Review Checklist
 
 - {PHASE9_SHARED_PACKET_MARKER}
-- the shared Phase 9 reminder should keep the surviving runtime packet explicit through {TRACE_EVENTS_PACKET_CHECKER_MARKER}, {REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER}, {REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER}, {REVIEW_CHECKLIST_LIFECYCLE_MARKER}, the fail-closed companion {REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER} with {REVIEW_CHECKLIST_FAIL_CLOSED_MARKER}, and the re-entry companion {REVIEW_CHECKLIST_REENTRY_GATE_MARKER} with the {REVIEW_CHECKLIST_REENTRY_COMPANION_MARKER}
+- the shared Phase 9 reminder should keep the surviving runtime packet explicit through {TRACE_EVENTS_PACKET_CHECKER_MARKER}, {REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER}, {REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER}, {REVIEW_CHECKLIST_LIFECYCLE_MARKER}, the fail-closed companion {REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER} with {REVIEW_CHECKLIST_FAIL_CLOSED_MARKER}, the exit-rollback companion {REVIEW_CHECKLIST_EXIT_ROLLBACK_GUARD_MARKER} with {REVIEW_CHECKLIST_EXIT_ROLLBACK_COMPANION_MARKER}, and the re-entry companion {REVIEW_CHECKLIST_REENTRY_GATE_MARKER} with the {REVIEW_CHECKLIST_REENTRY_COMPANION_MARKER}
 - the same reminder should keep the backlog posture explicit: current `master` {REVIEW_CHECKLIST_BACKLOG_MARKER}, so {REVIEW_CHECKLIST_PHASE9_BUILD_MARKER}, the shared `zigux/tests/runtime_*` replay family, {REVIEW_CHECKLIST_RUNTIME_LOADER_MARKER}, {REVIEW_CHECKLIST_RUNTIME_LOADER_CONTRACT_MARKER}, `zigux/Makefile`, {REVIEW_CHECKLIST_WORKFLOW_MARKER}, and the older {REVIEW_CHECKLIST_RUNTIME_LOADER_SCAFFOLD_MARKER} stay absent backlog references unless a fresh repo reread proves they have returned
 - the same shared checklist should keep the bitmap-specific Phase 5 versus Phase 9 boundary explicit too: {REVIEW_CHECKLIST_BITMAP_PHASE5_BOUNDARY_MARKER}, {REVIEW_CHECKLIST_BITMAP_HELPER_BOUNDARY_MARKER}, and {REVIEW_CHECKLIST_BITMAP_RUNTIME_BACKLOG_MARKER} {REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER}, and {REVIEW_CHECKLIST_TRACE_EVENTS_ONLY_MARKER} rather than treating the runtime bitmap packet as shipped current-master evidence
 - the shared Phase 9 reminder should also keep the older cross-phase non-owner boundaries explicit:
