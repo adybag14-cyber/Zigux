@@ -44,20 +44,32 @@ README_PRESENT_MARKERS = (
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "the manifest-backed kconfig fixture roster",
+    "`Documentation/zigux/phase2-closure.md`",
+    "`scripts/zigux/validate-phase2.py`",
+    "`zigux/Makefile`",
+    "`make -C zigux phase2`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
 )
 
 README_WARNING_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for",
-    "`Documentation/zigux/phase2-closure.md`",
-    "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
-    "`zigux/Makefile`",
+    "`scripts/zigux/install-zig.py`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
-    "`make -C zigux phase2`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
     "historical packet members",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 46
+EXPECTED_SELF_TEST_CASE_COUNT = (
+    1
+    + len(WORKFLOW_LINES)
+    + len(WORKFLOW_LINES)
+    + len(README_PRESENT_MARKERS)
+    + len(README_WARNING_MARKERS)
+    + 2
+    + len(SURFACE_PATHS)
+)
 
 
 def read_text(path: Path) -> str:
