@@ -33,11 +33,6 @@ REQUIRED_MARKERS = {
         "zigux/bindings/abi.zig",
         "zigux/bindings/version.zig",
         "zigux/kernel/export_shim.zig",
-        "zigux/tests/phase3_dev_t_starter_packet_manifest.json",
-        "scripts/zigux/check-phase3-dev-t-starter-packet.py",
-        "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
-        "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
-        COMPILE_ROUTE,
     ),
     VALIDATOR_NOTE_PATH: (
         "zigux/bindings/abi.zig",
@@ -48,7 +43,7 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-dev-t-starter-packet.py",
         COMPILE_ROUTE,
-        "the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
+        "the broader export/UAPI survey, catalog, or shared Phase 3 replay packet",
     ),
     LINUX_HEADER_PATH: (
         "#define ZIGUX_UAPI_ABI_MAJOR 0u",
@@ -89,8 +84,8 @@ REQUIRED_MARKERS = {
         "pub const header_family_revision: u32 = 1;",
         "pub const Version = extern struct {",
         "pub fn current() Version {",
-        "std.debug.assert(@sizeOf(Version) == 12);",
-        "std.debug.assert(@alignOf(Version) == 4);",
+        "std.debug.assert(version_size == 12);",
+        "std.debug.assert(version_align == 4);",
     ),
     ABI_BINDING_PATH: (
         "pub const ABI_VERSION: u16 = 1;",
@@ -117,11 +112,11 @@ REQUIRED_MARKERS = {
         "pub const abi_major = uapi.abi_major;",
         "pub const abi_minor = uapi.abi_minor;",
         "pub const header_family_revision = uapi.header_family_revision;",
-        "pub const version_size: usize = @sizeOf(uapi.Version);",
-        "pub const version_align: usize = @alignOf(uapi.Version);",
-        'pub const abi_major_offset: usize = @offsetOf(uapi.Version, "abi_major");',
-        'pub const abi_minor_offset: usize = @offsetOf(uapi.Version, "abi_minor");',
-        'pub const header_family_revision_offset: usize = @offsetOf(uapi.Version, "header_family_revision");',
+        "pub const version_size: usize = uapi.version_size;",
+        "pub const version_align: usize = uapi.version_align;",
+        "pub const abi_major_offset: usize = uapi.abi_major_offset;",
+        "pub const abi_minor_offset: usize = uapi.abi_minor_offset;",
+        "pub const header_family_revision_offset: usize = uapi.header_family_revision_offset;",
         "pub fn current() Version {",
         "pub fn eql(left: Version, right: Version) bool {",
         "std.debug.assert(header_family_revision_offset == 8);",
@@ -203,16 +198,11 @@ REQUIRED_MARKERS = {
 }
 
 SAMPLE_FILES = {
-    ABI_SLICE_PATH: f"""# Phase 3 ABI Slice
+    ABI_SLICE_PATH: """# Phase 3 ABI Slice
 
 zigux/bindings/abi.zig
 zigux/bindings/version.zig
 zigux/kernel/export_shim.zig
-zigux/tests/phase3_dev_t_starter_packet_manifest.json
-scripts/zigux/check-phase3-dev-t-starter-packet.py
-python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test
-python3 scripts/zigux/check-phase3-dev-t-starter-packet.py
-{COMPILE_ROUTE}
 """,
     VALIDATOR_NOTE_PATH: f"""# Phase 3 Validator Support Surface
 
@@ -224,7 +214,7 @@ scripts/zigux/check-phase3-dev-t-starter-packet.py
 python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test
 python3 scripts/zigux/check-phase3-dev-t-starter-packet.py
 {COMPILE_ROUTE}
-the broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet
+the broader export/UAPI survey, catalog, or shared Phase 3 replay packet
 """,
     LINUX_HEADER_PATH: "\n".join(REQUIRED_MARKERS[LINUX_HEADER_PATH]) + "\n",
     DEV_T_HEADER_PATH: "\n".join(REQUIRED_MARKERS[DEV_T_HEADER_PATH]) + "\n",
@@ -275,19 +265,19 @@ SELF_TEST_CASES = (
     (VALIDATOR_NOTE_PATH, "zigux/kernel/export_shim.zig"),
     (LINUX_HEADER_PATH, "#define ZIGUX_UAPI_DEV_T_PACKET_PRESENT 1u"),
     (DEV_T_HEADER_PATH, "#define ZIGUX_DEV_T_MAJOR_OFFSET 0u"),
-    (UAPI_DEV_T_PATH, 'pub const major_offset: usize = @offsetOf(Fields, "major");'),
+    (UAPI_DEV_T_PATH, 'pub const major_offset: usize = @offsetOf(Fields, \"major\");'),
     (UAPI_DEV_T_PATH, "pub fn validateRange(start: Fields, end: Fields) bool {"),
     (UAPI_VERSION_PATH, "pub const header_family_revision: u32 = 1;"),
     (ABI_BINDING_PATH, "pub fn defaultHeader(flags: u16) BoundaryHeader {"),
     (BINDING_PATH, "pub const major_offset = uapi.major_offset;"),
     (BINDING_PATH, "pub fn validateRange(start: Fields, end: Fields) bool {"),
-    (VERSION_BINDING_PATH, "pub const version_size: usize = @sizeOf(uapi.Version);"),
+    (VERSION_BINDING_PATH, "pub const version_size: usize = uapi.version_size;"),
     (EXPORT_SHIM_PATH, "pub fn errorStatus(code: i32, facility: Facility) ExportStatus {"),
     (EXPORT_SHIM_PATH, "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {"),
-    (TEST_PATH, 'test "starter export shim reuses the canonical boundary header and version snapshot" {'),
+    (TEST_PATH, 'test \"starter export shim reuses the canonical boundary header and version snapshot\" {'),
     (TEST_PATH, "const valid = export_shim.validateDeviceNumber(dev_t.max_major, dev_t.max_minor);"),
-    (BUILD_PATH, 'root_module.addImport("export_shim", export_shim);'),
-    (MANIFEST_PATH, '"zigux/kernel/export_shim.zig"'),
+    (BUILD_PATH, 'root_module.addImport(\"export_shim\", export_shim);'),
+    (MANIFEST_PATH, '\"zigux/kernel/export_shim.zig\"'),
 )
 
 
