@@ -1,428 +1,323 @@
 #!/usr/bin/env python3
-"""Guard the shared Phase 13 devres lifetime packet in lib/devres.zig."""
+"""Guard the current bounded Phase 13 devres lifetime packet."""
 
 from __future__ import annotations
 
 import argparse
-import re
 import tempfile
 from pathlib import Path
 
 
 ROOT = Path("/workspace")
-DEVRES = Path("lib/devres.zig")
 
-DESCRIPTOR_MARKERS = [
-    '.provides_ioremap_lifetime_planning = true',
-    '.provides_ioremap_plain_wrapper_planning = true',
-    '.provides_ioremap_uc_wrapper_planning = true',
-    '.provides_ioremap_wc_wrapper_planning = true',
-    '.provides_ioremap_np_wrapper_planning = true',
-    '.provides_release_pointer_match = true',
-    '.provides_iounmap_call_planning = true',
-    '.provides_arch_io_wc_memtype_planning = true',
-    '.provides_arch_phys_wc_token_planning = true',
-    '.touches_live_device_lists = false',
-    '.touches_live_mmio = false',
-    '.touches_live_arch_memtype = false',
+SLICE_PATH = Path("Documentation/zigux/phase13-devres-slice.md")
+SURVEY_PATH = Path("Documentation/zigux/phase13-devres-survey.md")
+PLANNER_NOTE_PATH = Path("Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md")
+PLANNER_REPLAY_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig")
+PLANNER_MANIFEST_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json")
+DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dma_coherent.zig")
+SCATTERLIST_HELPER_PATH = Path("lib/devres_scatterlist.zig")
+SCATTERLIST_REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist.zig")
+
+REQUIRED_FILES = [
+    SLICE_PATH,
+    SURVEY_PATH,
+    PLANNER_NOTE_PATH,
+    PLANNER_REPLAY_PATH,
+    PLANNER_MANIFEST_PATH,
+    DMA_REPLAY_PATH,
+    SCATTERLIST_HELPER_PATH,
+    SCATTERLIST_REPLAY_PATH,
 ]
 
-WRAPPER_SPECS = {
-    "planManagedIoremapAcquirePlain": ".kind = .plain",
-    "planManagedIoremapAcquireUc": ".kind = .uncached",
-    "planManagedIoremapAcquireWc": ".kind = .write_combined",
-    "planManagedIoremapAcquireNp": ".kind = .non_posted",
-}
+SLICE_MARKERS = [
+    "# Phase 13 devres Slice",
+    "`Documentation/zigux/phase13-devres-survey.md` now records the current DMA and scatterlist boundary",
+    "`lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_manifest.json` remain repo-reality gaps",
+    "`scripts/zigux/check-phase13-devres-packet-alignment.py` stays in the same repo-reality gaps bucket",
+    "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only",
+    "The bounded current evidence is the survey note, the direct DMA-boundary replay, the planning-only `dmam_alloc_coherent()` note and manifest, and the helper-first scatterlist helper plus replay",
+    "compare those survey, planner, replay, and helper surfaces together on current `master` before widening anything else",
+]
 
-TEST_MARKERS = [
-    'test "phase13 devres plain ioremap wrapper preserves the managed lifetime path"',
-    'test "phase13 devres plain ioremap wrapper frees the release record on map failure"',
-    'test "phase13 devres uncached ioremap wrapper preserves the managed lifetime path"',
-    'test "phase13 devres uncached ioremap wrapper frees the release record on map failure"',
-    'test "phase13 devres wc ioremap wrapper preserves the managed lifetime path"',
-    'test "phase13 devres wc ioremap wrapper frees the release record on map failure"',
-    'test "phase13 devres non-posted ioremap wrapper preserves the managed lifetime path"',
-    'test "phase13 devres non-posted ioremap wrapper frees the release record on map failure"',
-    'test "phase13 devres iounmap plan warns on release pointer mismatch"',
+SURVEY_MARKERS = [
+    "# Phase 13 devres DMA and scatterlist Boundary Survey",
+    "reviewed against live `master` `master-readback-2026-05-18`",
+    "the docs-side devres slice note, the planning-only `dmam_alloc_coherent()` note and manifest, the direct DMA-boundary replay, the helper-first scatterlist helper and replay, and the roadmap-backed `lib/devres.c` anchor",
+    "`lib/devres_scatterlist.zig` now provides a helper-first scatterlist lifetime planner",
+    "`zigux/tests/phase13_devres_scatterlist.zig` replays that scatterlist helper surface directly",
+    "current `master` does not ship `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_manifest.json`, or `scripts/zigux/check-phase13-devres-packet-alignment.py`",
+    "blocked `phase13-devres-live-dmam-alloc-side-effects`",
+    "blocked `phase13-devres-live-scatterlist-ownership`",
+    "blocked `phase13-devres-live-sg-table-lifecycle`",
+    "blocked `phase13-devres-generic-dma-map-family`",
+]
+
+PLANNER_NOTE_MARKERS = [
+    "# Phase 13 devres dmam_alloc_coherent Planner",
+    "pure `dmam_alloc_coherent()` planning surface",
+    "detach-time cleanup intent",
+    "`zigux/tests/phase13_devres_dma_coherent.zig` materialized on current `master`",
+    "`lib/devres.zig` itself remains an explicit repo-reality gap",
+    "does not treat the replay as proof",
+    "dma_map_*",
+    "dma_unmap_*",
+    "dma_sync_*",
+    "dma_mmap_*",
+    "dma_map_sgtable()",
+    "struct scatterlist",
+    "sg_table",
+    "sg_*",
+    "zig test zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
+    "zig test zigux/tests/phase13_devres_dma_coherent.zig",
+]
+
+PLANNER_REPLAY_MARKERS = [
+    'test "phase13 devres dmam_alloc_coherent planner manifest records planning-only dma scope" {',
+    '"phase13-devres-dmam-alloc-coherent-planner"',
+    '"planning_only"',
+    '"phase13-devres-live-dmam-alloc-side-effects"',
+    '"blocked_on_dma_state"',
+    '"phase13-devres-live-scatterlist-ownership"',
+    '"blocked_on_scatterlist_state"',
+    'test "phase13 devres dmam_alloc_coherent planner note keeps the slice helper-first and bounded" {',
+    '"detach-time cleanup intent"',
+    '"`lib/devres.zig` itself remains an explicit repo-reality gap"',
+    'test "phase13 devres dmam_alloc_coherent planner note preserves standalone replay handles" {',
+]
+
+PLANNER_MANIFEST_MARKERS = [
+    '"lane_key": "P13-L08"',
+    '"phase": "Phase 13"',
+    '"surveyed_commit": "master-readback-2026-05-17"',
+    '"anchor": "lib/devres.c"',
+    '"packet": "phase13-devres-dmam-alloc-coherent-planner"',
+    '"status": "planning_only"',
+    '"Documentation/zigux/phase13-devres-slice.md"',
+    '"Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md"',
+    '"zigux/tests/phase13_devres_dma_coherent.zig"',
+    '"pure `dmam_alloc_coherent()` planning surface"',
+    '"detach-time cleanup intent"',
+    '"avoid retaining detach-time cleanup ownership"',
+    '"dma_map_*"',
+    '"dma_unmap_*"',
+    '"dma_sync_*"',
+    '"dma_mmap_*"',
+    '"dma_map_sgtable()"',
+    '"struct scatterlist"',
+    '"sg_table"',
+    '"sg_*"',
+    '"id": "phase13-devres-live-dmam-alloc-side-effects"',
+    '"status": "blocked_on_dma_state"',
+    '"id": "phase13-devres-live-scatterlist-ownership"',
+    '"status": "blocked_on_scatterlist_state"',
+]
+
+DMA_REPLAY_MARKERS = [
+    'test "phase13 devres dma coherent replay records blocked dma and scatterlist boundaries" {',
+    '"phase13-devres-dmam-alloc-coherent-planner"',
+    '"phase13-devres-live-dmam-alloc-side-effects"',
+    '"blocked_on_dma_state"',
+    '"phase13-devres-live-scatterlist-ownership"',
+    '"blocked_on_scatterlist_state"',
+    'test "phase13 devres dma coherent replay anchors the current slice reality" {',
+    '"`Documentation/zigux/phase13-devres-survey.md`"',
+    '"`lib/devres.zig`"',
+    '"repo-reality gaps"',
+    'test "phase13 devres dma coherent replay keeps missing checker surfaces framed as gaps" {',
+    '"`scripts/zigux/check-phase13-devres-packet-alignment.py`"',
+    '"paired survey, helper, manifest, and broader direct replay packet"',
+    'test "phase13 devres dma coherent replay anchors the survey-side scatterlist boundary" {',
+    '"helper-first scatterlist helper and replay"',
+    '"blocked `phase13-devres-live-sg-table-lifecycle`"',
+    '"blocked `phase13-devres-generic-dma-map-family`"',
+    'test "phase13 devres dma coherent replay keeps scatterlist helper evidence helper-first" {',
+    '".provides_scatterlist_lifetime_planning = true"',
+    '"phase13 devres scatterlist release matching stays exact across original and mapped counts"',
+]
+
+SCATTERLIST_HELPER_MARKERS = [
+    "pub const ModuleDescriptor = struct {",
+    "provides_scatterlist_lifetime_planning: bool,",
+    "touches_live_dma: bool,",
+    "touches_live_scatterlist: bool,",
+    "pub const ManagedScatterlistMapResult = struct {",
+    "pub const ManagedScatterlistUnmapPlan = struct {",
+    '.name = "devres_scatterlist_helper",',
+    '.anchor = "lib/devres.c",',
+    ".provides_scatterlist_lifetime_planning = true,",
+    ".touches_live_dma = false,",
+    ".touches_live_scatterlist = false,",
+    "pub fn planManagedScatterlistMap(",
+    "pub fn planManagedScatterlistUnmap(",
+    ".warns_on_release_miss = !release_matches,",
+]
+
+SCATTERLIST_REPLAY_MARKERS = [
+    'test "phase13 devres descriptor records helper-first scatterlist planning" {',
+    'test "phase13 devres retains the release record when helper-first scatterlist planning succeeds" {',
+    'test "phase13 devres frees the scatterlist release record when no mapped segments are returned" {',
+    'test "phase13 devres frees the scatterlist release record when mapped segments exceed the original count" {',
+    'test "phase13 devres rejects scatterlist planning when the release record cannot be allocated" {',
+    'test "phase13 devres scatterlist release matching stays exact across original and mapped counts" {',
+    'try std.testing.expect(descriptor.provides_scatterlist_lifetime_planning);',
+    "try std.testing.expect(!descriptor.touches_live_dma);",
+    "try std.testing.expect(!descriptor.touches_live_scatterlist);",
 ]
 
 
-def read(path: Path) -> str:
+def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def write(path: Path, text: str) -> None:
+def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
 
 
-def extract_block(source: str, name: str) -> str | None:
-    pattern = rf"pub fn {re.escape(name)}\b(.*?)(?=\npub fn |\ntest \"|\n}};\n|\Z)"
-    match = re.search(pattern, source, flags=re.S)
-    if not match:
-        return None
-    return match.group(0)
-
-
-def expect_markers(errors: list[str], source: str, prefix: str, markers: list[str]) -> None:
-    for marker in markers:
-        if marker not in source:
-            errors.append(f"{prefix}:missing_marker:{marker}")
+def collect_missing(text: str, markers: list[str], prefix: str) -> list[str]:
+    return [f"{prefix}:missing_marker:{marker}" for marker in markers if marker not in text]
 
 
 def validate(root: Path) -> list[str]:
-    errors: list[str] = []
-    devres_path = root / DEVRES
+    issues = [f"missing_file:{rel.as_posix()}" for rel in REQUIRED_FILES if not (root / rel).exists()]
+    if issues:
+        return issues
 
-    if not devres_path.exists():
-        return [f"missing:{DEVRES.as_posix()}"]
+    checks = [
+        (SLICE_PATH, SLICE_MARKERS, "slice"),
+        (SURVEY_PATH, SURVEY_MARKERS, "survey"),
+        (PLANNER_NOTE_PATH, PLANNER_NOTE_MARKERS, "planner_note"),
+        (PLANNER_REPLAY_PATH, PLANNER_REPLAY_MARKERS, "planner_replay"),
+        (PLANNER_MANIFEST_PATH, PLANNER_MANIFEST_MARKERS, "planner_manifest"),
+        (DMA_REPLAY_PATH, DMA_REPLAY_MARKERS, "dma_replay"),
+        (SCATTERLIST_HELPER_PATH, SCATTERLIST_HELPER_MARKERS, "scatterlist_helper"),
+        (SCATTERLIST_REPLAY_PATH, SCATTERLIST_REPLAY_MARKERS, "scatterlist_replay"),
+    ]
 
-    source = read(devres_path)
-    expect_markers(errors, source, "descriptor", DESCRIPTOR_MARKERS)
-
-    acquire = extract_block(source, "planManagedIoremapAcquire")
-    if acquire is None:
-        errors.append("lifetime:missing_fn:planManagedIoremapAcquire")
-    else:
-        expect_markers(
-            errors,
-            acquire,
-            "lifetime:planManagedIoremapAcquire",
-            [
-                "if (!input.release_record_allocated) {",
-                "return error.OutOfMemory;",
-                ".added_to_devres = false",
-                ".release_record_retained = false",
-                ".release_record_freed = true",
-                ".should_unmap_on_detach = false",
-                ".added_to_devres = true",
-                ".release_record_retained = true",
-                ".release_record_freed = false",
-                ".should_unmap_on_detach = true",
-            ],
-        )
-
-    for fn_name, kind_marker in WRAPPER_SPECS.items():
-        block = extract_block(source, fn_name)
-        if block is None:
-            errors.append(f"wrapper:missing_fn:{fn_name}")
-            continue
-        expect_markers(
-            errors,
-            block,
-            f"wrapper:{fn_name}",
-            [
-                "return planManagedIoremapAcquire(.{",
-                kind_marker,
-                ".release_record_allocated = input.release_record_allocated",
-                ".mapped_address = input.mapped_address",
-            ],
-        )
-
-    iounmap = extract_block(source, "planManagedIounmap")
-    if iounmap is None:
-        errors.append("iounmap:missing_fn:planManagedIounmap")
-    else:
-        expect_markers(
-            errors,
-            iounmap,
-            "iounmap",
-            [
-                "const release_matches = ioremapReleaseMatches(tracked_address, candidate_address);",
-                ".release_matches = release_matches",
-                ".warns_on_release_miss = !release_matches",
-            ],
-        )
-        if "iounmap(" in iounmap:
-            errors.append("iounmap:unexpected_live_call:iounmap(")
-
-    memtype = extract_block(source, "planArchIoReserveMemtypeWc")
-    if memtype is None:
-        errors.append("memtype:missing_fn:planArchIoReserveMemtypeWc")
-    else:
-        expect_markers(
-            errors,
-            memtype,
-            "memtype",
-            [
-                "if (!input.release_record_allocated) {",
-                "return error.OutOfMemory;",
-                ".error_code = input.reserve_result",
-                ".added_to_devres = false",
-                ".release_record_retained = false",
-                ".release_record_freed = true",
-                ".should_release_on_detach = false",
-                ".added_to_devres = true",
-                ".release_record_retained = true",
-                ".release_record_freed = false",
-                ".should_release_on_detach = true",
-            ],
-        )
-
-    phys_wc = extract_block(source, "planArchPhysWcAdd")
-    if phys_wc is None:
-        errors.append("phys_wc:missing_fn:planArchPhysWcAdd")
-    else:
-        expect_markers(
-            errors,
-            phys_wc,
-            "phys_wc",
-            [
-                "if (!input.release_record_allocated) {",
-                "return error.OutOfMemory;",
-                ".error_code = input.token_result",
-                ".added_to_devres = false",
-                ".release_record_retained = false",
-                ".release_record_freed = true",
-                ".should_remove_on_detach = false",
-                ".token = input.token_result",
-                ".added_to_devres = true",
-                ".release_record_retained = true",
-                ".release_record_freed = false",
-                ".should_remove_on_detach = true",
-            ],
-        )
-
-    expect_markers(errors, source, "tests", TEST_MARKERS)
-    return errors
-
-
-BASELINE_DEVRES = """const std = @import(\"std\");
-
-pub const ModuleDescriptor = struct {
-    provides_ioremap_lifetime_planning: bool,
-    provides_ioremap_plain_wrapper_planning: bool,
-    provides_ioremap_uc_wrapper_planning: bool,
-    provides_ioremap_wc_wrapper_planning: bool,
-    provides_ioremap_np_wrapper_planning: bool,
-    provides_release_pointer_match: bool,
-    provides_iounmap_call_planning: bool,
-    provides_arch_io_wc_memtype_planning: bool,
-    provides_arch_phys_wc_token_planning: bool,
-    touches_live_device_lists: bool,
-    touches_live_mmio: bool,
-    touches_live_arch_memtype: bool,
-};
-
-pub const ManagedIoremapAcquireInput = struct {
-    release_record_allocated: bool,
-    mapped_address: ?usize,
-};
-
-pub const ManagedIoremapAcquireWrapperInput = struct {
-    release_record_allocated: bool,
-    mapped_address: ?usize,
-};
-
-pub const ManagedMemtypeReserveInput = struct {
-    release_record_allocated: bool,
-    reserve_result: i32,
-};
-
-pub const ManagedPhysWcAddInput = struct {
-    release_record_allocated: bool,
-    token_result: i32,
-};
-
-pub const DevresHelperLab = struct {
-    pub fn descriptor() ModuleDescriptor {
-        return .{
-            .provides_ioremap_lifetime_planning = true,
-            .provides_ioremap_plain_wrapper_planning = true,
-            .provides_ioremap_uc_wrapper_planning = true,
-            .provides_ioremap_wc_wrapper_planning = true,
-            .provides_ioremap_np_wrapper_planning = true,
-            .provides_release_pointer_match = true,
-            .provides_iounmap_call_planning = true,
-            .provides_arch_io_wc_memtype_planning = true,
-            .provides_arch_phys_wc_token_planning = true,
-            .touches_live_device_lists = false,
-            .touches_live_mmio = false,
-            .touches_live_arch_memtype = false,
-        };
-    }
-
-    pub fn planManagedIoremapAcquire(input: ManagedIoremapAcquireInput) !void {
-        if (!input.release_record_allocated) {
-            return error.OutOfMemory;
-        }
-        if (input.mapped_address == null) {
-            _ = .{
-                .added_to_devres = false,
-                .release_record_retained = false,
-                .release_record_freed = true,
-                .should_unmap_on_detach = false,
-            };
-        }
-        _ = .{
-            .added_to_devres = true,
-            .release_record_retained = true,
-            .release_record_freed = false,
-            .should_unmap_on_detach = true,
-        };
-    }
-
-    pub fn planManagedIoremapAcquirePlain(input: ManagedIoremapAcquireWrapperInput) !void {
-        return planManagedIoremapAcquire(.{
-            .kind = .plain,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
-    }
-
-    pub fn planManagedIoremapAcquireUc(input: ManagedIoremapAcquireWrapperInput) !void {
-        return planManagedIoremapAcquire(.{
-            .kind = .uncached,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
-    }
-
-    pub fn planManagedIoremapAcquireWc(input: ManagedIoremapAcquireWrapperInput) !void {
-        return planManagedIoremapAcquire(.{
-            .kind = .write_combined,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
-    }
-
-    pub fn planManagedIoremapAcquireNp(input: ManagedIoremapAcquireWrapperInput) !void {
-        return planManagedIoremapAcquire(.{
-            .kind = .non_posted,
-            .release_record_allocated = input.release_record_allocated,
-            .mapped_address = input.mapped_address,
-        });
-    }
-
-    pub fn planManagedIounmap(tracked_address: usize, candidate_address: usize) void {
-        const release_matches = ioremapReleaseMatches(tracked_address, candidate_address);
-        _ = .{
-            .release_matches = release_matches,
-            .warns_on_release_miss = !release_matches,
-        };
-    }
-
-    pub fn planArchIoReserveMemtypeWc(input: ManagedMemtypeReserveInput) !void {
-        if (!input.release_record_allocated) {
-            return error.OutOfMemory;
-        }
-        if (input.reserve_result < 0) {
-            _ = .{
-                .error_code = input.reserve_result,
-                .added_to_devres = false,
-                .release_record_retained = false,
-                .release_record_freed = true,
-                .should_release_on_detach = false,
-            };
-        }
-        _ = .{
-            .added_to_devres = true,
-            .release_record_retained = true,
-            .release_record_freed = false,
-            .should_release_on_detach = true,
-        };
-    }
-
-    pub fn planArchPhysWcAdd(input: ManagedPhysWcAddInput) !void {
-        if (!input.release_record_allocated) {
-            return error.OutOfMemory;
-        }
-        if (input.token_result < 0) {
-            _ = .{
-                .error_code = input.token_result,
-                .added_to_devres = false,
-                .release_record_retained = false,
-                .release_record_freed = true,
-                .should_remove_on_detach = false,
-            };
-        }
-        _ = .{
-            .token = input.token_result,
-            .added_to_devres = true,
-            .release_record_retained = true,
-            .release_record_freed = false,
-            .should_remove_on_detach = true,
-        };
-    }
-};
-
-test \"phase13 devres plain ioremap wrapper preserves the managed lifetime path\" {}
-test \"phase13 devres plain ioremap wrapper frees the release record on map failure\" {}
-test \"phase13 devres uncached ioremap wrapper preserves the managed lifetime path\" {}
-test \"phase13 devres uncached ioremap wrapper frees the release record on map failure\" {}
-test \"phase13 devres wc ioremap wrapper preserves the managed lifetime path\" {}
-test \"phase13 devres wc ioremap wrapper frees the release record on map failure\" {}
-test \"phase13 devres non-posted ioremap wrapper preserves the managed lifetime path\" {}
-test \"phase13 devres non-posted ioremap wrapper frees the release record on map failure\" {}
-test \"phase13 devres iounmap plan warns on release pointer mismatch\" {}
-"""
+    for rel, markers, prefix in checks:
+        issues.extend(collect_missing(read_text(root / rel), markers, prefix))
+    return issues
 
 
 def seed_fixture_tree(root: Path) -> None:
-    write(root / DEVRES, BASELINE_DEVRES)
+    writes = {
+        SLICE_PATH: "\n".join(SLICE_MARKERS) + "\n",
+        SURVEY_PATH: "\n".join(SURVEY_MARKERS) + "\n",
+        PLANNER_NOTE_PATH: "\n".join(PLANNER_NOTE_MARKERS) + "\n",
+        PLANNER_REPLAY_PATH: "\n".join(PLANNER_REPLAY_MARKERS) + "\n",
+        PLANNER_MANIFEST_PATH: "\n".join(PLANNER_MANIFEST_MARKERS) + "\n",
+        DMA_REPLAY_PATH: "\n".join(DMA_REPLAY_MARKERS) + "\n",
+        SCATTERLIST_HELPER_PATH: "\n".join(SCATTERLIST_HELPER_MARKERS) + "\n",
+        SCATTERLIST_REPLAY_PATH: "\n".join(SCATTERLIST_REPLAY_MARKERS) + "\n",
+    }
+    for rel, text in writes.items():
+        write_text(root / rel, text)
 
 
-def assert_only(actual: list[str], expected: list[str], label: str) -> None:
-    if actual != expected:
-        raise AssertionError(f"{label}: expected {expected!r}, got {actual!r}")
+def assert_only(got: list[str], want: list[str], label: str) -> None:
+    if got != want:
+        got_text = ",".join(got) or "none"
+        want_text = ",".join(want) or "none"
+        raise AssertionError(f"{label}: got={got_text} want={want_text}")
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="zigux_phase13_devres_shared_lifetime_") as temp_dir:
-        root = Path(temp_dir)
+    case_count = 0
+    with tempfile.TemporaryDirectory(prefix="phase13-devres-shared-lifetime-packet-") as tmp:
+        root = Path(tmp)
 
         seed_fixture_tree(root)
         assert_only(validate(root), [], "baseline_failed")
+        case_count += 1
 
         seed_fixture_tree(root)
-        broken = read(root / DEVRES).replace(
-            ".kind = .non_posted,",
-            ".kind = .write_combined,",
-            1,
-        )
-        write(root / DEVRES, broken)
+        (root / SURVEY_PATH).unlink()
         assert_only(
             validate(root),
-            ["wrapper:planManagedIoremapAcquireNp:missing_marker:.kind = .non_posted"],
-            "wrapper_kind_drift_failed",
+            [f"missing_file:{SURVEY_PATH.as_posix()}"],
+            "missing_survey_failed",
         )
+        case_count += 1
 
         seed_fixture_tree(root)
-        broken = read(root / DEVRES).replace(
-            '.error_code = input.reserve_result,',
-            '',
-            1,
+        write_text(
+            root / SLICE_PATH,
+            "\n".join(
+                marker
+                for marker in SLICE_MARKERS
+                if marker != "compare those survey, planner, replay, and helper surfaces together on current `master` before widening anything else"
+            )
+            + "\n",
         )
-        write(root / DEVRES, broken)
-        assert_only(
-            validate(root),
-            ["memtype:missing_marker:.error_code = input.reserve_result"],
-            "memtype_failure_drift_failed",
-        )
-
-        seed_fixture_tree(root)
-        broken = read(root / DEVRES).replace(
-            'test "phase13 devres iounmap plan warns on release pointer mismatch" {}',
-            "",
-            1,
-        )
-        write(root / DEVRES, broken)
         assert_only(
             validate(root),
             [
-                'tests:missing_marker:test "phase13 devres iounmap plan warns on release pointer mismatch"'
+                "slice:missing_marker:compare those survey, planner, replay, and helper surfaces together on current `master` before widening anything else"
             ],
-            "test_marker_drift_failed",
+            "slice_missing_next_step_failed",
         )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / DMA_REPLAY_PATH,
+            "\n".join(
+                marker
+                for marker in DMA_REPLAY_MARKERS
+                if marker != '"blocked `phase13-devres-live-sg-table-lifecycle`"'
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ['dma_replay:missing_marker:"blocked `phase13-devres-live-sg-table-lifecycle`"'],
+            "dma_replay_missing_sg_table_gap_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / SCATTERLIST_HELPER_PATH,
+            "\n".join(
+                marker
+                for marker in SCATTERLIST_HELPER_MARKERS
+                if marker != ".touches_live_scatterlist = false,"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["scatterlist_helper:missing_marker:.touches_live_scatterlist = false,"],
+            "scatterlist_helper_missing_boundary_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / PLANNER_MANIFEST_PATH,
+            "\n".join(
+                marker
+                for marker in PLANNER_MANIFEST_MARKERS
+                if marker != '"id": "phase13-devres-live-scatterlist-ownership"'
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ['planner_manifest:missing_marker:"id": "phase13-devres-live-scatterlist-ownership"'],
+            "planner_manifest_missing_scatterlist_blocker_failed",
+        )
+        case_count += 1
 
     print("PHASE13_DEVRES_SHARED_LIFETIME_PACKET_SELF_TEST=pass")
-    print("PHASE13_DEVRES_SHARED_LIFETIME_PACKET_SELF_TEST_CASES=4")
+    print(f"PHASE13_DEVRES_SHARED_LIFETIME_PACKET_SELF_TEST_CASES={case_count}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the current Phase 13 devres shared lifetime packet stays explicit."
+        description="Check that the current Phase 13 devres lifetime packet stays explicit."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
     parser.add_argument("--self-test", action="store_true", help="Run checker self-tests.")
@@ -431,13 +326,28 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    errors = validate(args.root)
-    if errors:
-        for error in errors:
-            print(error)
+    issues = validate(args.root)
+    if issues:
+        for issue in issues:
+            print(issue)
+        print("PHASE13_DEVRES_SHARED_LIFETIME_PACKET=fail")
         return 1
 
-    print("PHASE13_DEVRES_SHARED_LIFETIME_PACKET=present")
+    print("PHASE13_DEVRES_SHARED_LIFETIME_PACKET=pass")
+    print(f"PHASE13_DEVRES_SHARED_LIFETIME_PACKET_FILE_COUNT={len(REQUIRED_FILES)}")
+    print(
+        "PHASE13_DEVRES_SHARED_LIFETIME_PACKET_MARKER_COUNT="
+        + str(
+            len(SLICE_MARKERS)
+            + len(SURVEY_MARKERS)
+            + len(PLANNER_NOTE_MARKERS)
+            + len(PLANNER_REPLAY_MARKERS)
+            + len(PLANNER_MANIFEST_MARKERS)
+            + len(DMA_REPLAY_MARKERS)
+            + len(SCATTERLIST_HELPER_MARKERS)
+            + len(SCATTERLIST_REPLAY_MARKERS)
+        )
+    )
     return 0
 
 
