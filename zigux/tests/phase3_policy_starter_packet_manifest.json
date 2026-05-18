@@ -3,16 +3,18 @@
   "lane": "abi-runtime",
   "slug": "phase3-policy-starter-packet",
   "status": "policy_slice_present",
-  "scope": "panic, allocator, and unsafe interop policy decoding replay",
+  "scope": "layout, panic, allocator, and unsafe interop policy decoding replay",
   "packet_files": [
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
+    "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet_manifest.json",
@@ -30,5 +32,5 @@
     "scripts/zigux/validate-phase3.py",
     "zigux/tests/phase3_export_uapi_layout.zig"
   ],
-  "next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"
+  "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
