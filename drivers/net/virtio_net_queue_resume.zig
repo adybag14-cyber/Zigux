@@ -58,6 +58,16 @@ pub fn summarizeQueueResume(request: QueueResumeRequest) !QueueResumeSummary {
     };
 }
 
+test "queue resume rejects missing receive queue pairs" {
+    try std.testing.expectError(error.NoReceiveQueues, summarizeQueueResume(.{
+        .reset_generation = 1,
+        .receive_queue_pairs = 0,
+        .refill_replay_ready = true,
+        .control_queue_restored = true,
+        .transmit_recycle_ready = true,
+    }));
+}
+
 test "queue resume stays blocked while reset is frozen" {
     const summary = try summarizeQueueResume(.{
         .reset_generation = 2,
