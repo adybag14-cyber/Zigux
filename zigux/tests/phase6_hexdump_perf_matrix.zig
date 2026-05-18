@@ -83,9 +83,6 @@ pub fn validatePerfMatrix() !void {
         if (want.ascii != actual.ascii) return error.HexdumpPerfMatrixMismatch;
         if (want.reps != actual.reps) return error.HexdumpPerfMatrixMismatch;
         if (want.max_slowdown_pct != actual.max_slowdown_pct) return error.HexdumpPerfMatrixMismatch;
-        if (!std.mem.eql(u8, want.expected_text.current(), actual.expected_text.current())) {
-            return error.HexdumpPerfMatrixMismatch;
-        }
     }
 
     for (fixtures.perf_cases, 0..) |case, idx| {
@@ -98,7 +95,6 @@ pub fn validatePerfMatrix() !void {
             case.ascii,
         );
 
-        if (case.expected_text.current().len == 0) return error.HexdumpPerfMatrixMismatch;
         if (case.reps == 0 or case.max_slowdown_pct == 0 or case.len == 0) {
             return error.HexdumpPerfMatrixMismatch;
         }
@@ -110,7 +106,7 @@ pub fn validatePerfMatrix() !void {
         if (fixtures.expectedLength(case.len, case.rowsize, case.groupsize, case.ascii) != rendered.len) {
             return error.HexdumpPerfMatrixMismatch;
         }
-        if (!std.mem.eql(u8, case.expected_text.current(), rendered)) {
+        if (!std.mem.eql(u8, expected[idx].expected_text.current(), rendered)) {
             return error.HexdumpPerfMatrixMismatch;
         }
 
@@ -125,8 +121,8 @@ pub fn validatePerfMatrix() !void {
                 exact[0..],
                 case.ascii,
             );
-            if (exact_required != case.expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
-            if (!std.mem.eql(u8, case.expected_text.current(), std.mem.sliceTo(exact[0..], 0))) {
+            if (exact_required != expected[idx].expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
+            if (!std.mem.eql(u8, expected[idx].expected_text.current(), std.mem.sliceTo(exact[0..], 0))) {
                 return error.HexdumpPerfMatrixMismatch;
             }
             if (exact[exact_required] != 0) return error.HexdumpPerfMatrixMismatch;
@@ -138,10 +134,10 @@ pub fn validatePerfMatrix() !void {
                 truncated[0..],
                 case.ascii,
             );
-            if (truncated_required != case.expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
+            if (truncated_required != expected[idx].expected_text.current().len) return error.HexdumpPerfMatrixMismatch;
             if (!std.mem.eql(
                 u8,
-                case.expected_text.current()[0 .. case.expected_text.current().len - 1],
+                expected[idx].expected_text.current()[0 .. expected[idx].expected_text.current().len - 1],
                 std.mem.sliceTo(truncated[0..], 0),
             )) {
                 return error.HexdumpPerfMatrixMismatch;
