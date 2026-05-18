@@ -29,6 +29,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
+    ROOT / "scripts" / "zigux" / "install-zig.py",
     ROOT / "scripts" / "zigux" / "validate-phase2.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
@@ -94,16 +95,16 @@ README_PRESENT_MARKERS = (
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
+    "`scripts/zigux/install-zig.py`",
 )
 
 README_WARNING_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/install-zig.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "historical packet members",
+    "still-unhooked installer self-test and direct cross-route names",
 )
 
 BOOTSTRAP_PRESENT_MARKERS = (
@@ -128,14 +129,15 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
+    "`scripts/zigux/install-zig.py`",
 )
 
 BOOTSTRAP_WARNING_MARKERS = (
     "Repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/install-zig.py`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "Treat the absent installer and direct cross-route names as historical packet members",
+    "Treat the still-unhooked installer self-test and direct cross-route names as historical packet members",
 )
 
 BOOTSTRAP_GAP_FORBIDDEN_MARKERS = (
@@ -145,9 +147,14 @@ BOOTSTRAP_GAP_FORBIDDEN_MARKERS = (
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`",
+    "Treat the absent installer and direct cross-route names as historical packet members",
 )
 
-README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
+README_FORBIDDEN_MARKERS = (
+    "`scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`",
+    "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`",
+)
 
 EXPECTED_POLICY = {
     "phase": "Phase 2",
@@ -198,7 +205,7 @@ EXPECTED_TOOL_MANIFEST = {
             "make -C zigux phase2-kconfig",
             "make -C zigux phase2-cross",
             "make -C zigux phase2-validate",
-            "make -C zigux phase2"
+            "make -C zigux phase2",
         ],
         "artifact_support": [
             "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
@@ -210,18 +217,26 @@ EXPECTED_TOOL_MANIFEST = {
         ],
     },
     "repo_reality_gaps": [
-        "scripts/zigux/install-zig.py",
         "scripts/zigux/check-phase2-cross.py",
         "zigux/tests/fixtures/phase2_cross_targets.json",
     ],
     "notes": [
-        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
+        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the directly readable installer helper, the docs-shared-reminder checker, the required make-route guard, the kbuild routes checker, the cross-selftest checker, the kconfig bridge fixture roster, and the restored tranche-closure note.",
         "Keep scripts/zigux/validate-phase2-closure.py out of the repo-reality-gap list because the closure validator is directly readable on current master and the closure-side packet depends on it as a live validation surface.",
+        "Keep scripts/zigux/install-zig.py out of the repo-reality-gap list because the installer helper is directly readable on current master even though its `python3 scripts/zigux/install-zig.py --self-test` hook is still absent from the live bootstrap action path.",
         "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
-        "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished.",
+        "Do not treat the still-missing direct cross-route names or the still-unhooked installer self-test route as directly readable current-master evidence until they are republished.",
     ],
 }
+
+TRACKED_REPO_GAP_PATHS = tuple(EXPECTED_TOOL_MANIFEST["repo_reality_gaps"])
+README_TRACKED_REPO_GAP_PATHS = tuple(
+    rel_path for rel_path in TRACKED_REPO_GAP_PATHS if f"`{rel_path}`" in README_WARNING_MARKERS
+)
+BOOTSTRAP_TRACKED_REPO_GAP_PATHS = tuple(
+    rel_path for rel_path in TRACKED_REPO_GAP_PATHS if f"`{rel_path}`" in BOOTSTRAP_WARNING_MARKERS
+)
 
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
@@ -241,13 +256,16 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 2
-    + len(EXPECTED_TOOL_MANIFEST["present_surfaces"]) 
+    + len(EXPECTED_TOOL_MANIFEST["present_surfaces"])
     + 1
     + 1
     + 1
     + 1
     + 1
     + 2
+    + len(TRACKED_REPO_GAP_PATHS)
+    + len(README_TRACKED_REPO_GAP_PATHS)
+    + len(BOOTSTRAP_TRACKED_REPO_GAP_PATHS)
 )
 
 
@@ -297,6 +315,18 @@ def load_policy(root: Path) -> object:
 
 def load_tool_manifest(root: Path) -> object:
     return json.loads(read_text(resolve_path(root, TOOL_MANIFEST_PATH)))
+
+
+def resolve_repo_gap_path(root: Path, rel_path: str) -> Path:
+    return root / Path(rel_path)
+
+
+def collect_stale_repo_gap_markers(text: str, root: Path, code: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for rel_path in TRACKED_REPO_GAP_PATHS:
+        if resolve_repo_gap_path(root, rel_path).exists() and f"`{rel_path}`" in text:
+            issues.append((code, rel_path))
+    return issues
 
 
 def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
@@ -354,6 +384,12 @@ def collect_tool_manifest_issues(root: Path) -> list[tuple[str, str]]:
     if payload.get("repo_reality_gaps") != EXPECTED_TOOL_MANIFEST["repo_reality_gaps"]:
         issues.append(("TOOL_MANIFEST_REPO_GAPS_MISMATCH", f"actual={payload.get('repo_reality_gaps')!r}:expected={EXPECTED_TOOL_MANIFEST['repo_reality_gaps']!r}"))
 
+    repo_reality_gaps = payload.get("repo_reality_gaps")
+    if isinstance(repo_reality_gaps, list):
+        for rel_path in repo_reality_gaps:
+            if isinstance(rel_path, str) and resolve_repo_gap_path(root, rel_path).exists():
+                issues.append(("STALE_TOOL_MANIFEST_REPO_GAPS", rel_path))
+
     if payload.get("notes") != EXPECTED_TOOL_MANIFEST["notes"]:
         issues.append(("TOOL_MANIFEST_NOTES_MISMATCH", f"actual={payload.get('notes')!r}:expected={EXPECTED_TOOL_MANIFEST['notes']!r}"))
 
@@ -383,6 +419,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_missing_markers(bootstrap_gap_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"))
     issues.extend(collect_forbidden_markers(bootstrap_gap_text, BOOTSTRAP_GAP_FORBIDDEN_MARKERS, "FORBIDDEN_BOOTSTRAP_GAP_MARKERS"))
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
+    issues.extend(collect_stale_repo_gap_markers(readme_text, root, "STALE_README_REPO_GAP_MARKERS"))
+    issues.extend(collect_stale_repo_gap_markers(bootstrap_gap_text, root, "STALE_BOOTSTRAP_REPO_GAP_MARKERS"))
 
     for path in SURFACE_PATHS:
         if not resolve_path(root, path).exists():
@@ -554,7 +592,9 @@ def run_self_test() -> int:
         for marker in BOOTSTRAP_GAP_FORBIDDEN_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
-            mutated = replace_once(path.read_text(encoding="utf-8"), marker)
+            mutated = path.read_text(encoding="utf-8")
+            if marker in mutated:
+                mutated = replace_once(mutated, marker)
             mutated = append_marker_to_section(mutated, "## Current repo-reality gaps", marker)
             path.write_text(mutated, encoding="utf-8")
             issues = collect_issues(root)
@@ -699,6 +739,19 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("INVALID_TOOL_MANIFEST_PAYLOAD", "list") in issues
         checks_run += 1
+
+        for rel_path in TRACKED_REPO_GAP_PATHS:
+            build_self_test_root(root)
+            write_text(resolve_repo_gap_path(root, rel_path), "restored\n")
+            issues = collect_issues(root)
+            assert ("STALE_TOOL_MANIFEST_REPO_GAPS", rel_path) in issues
+            checks_run += 1
+            if rel_path in README_TRACKED_REPO_GAP_PATHS:
+                assert ("STALE_README_REPO_GAP_MARKERS", rel_path) in issues
+                checks_run += 1
+            if rel_path in BOOTSTRAP_TRACKED_REPO_GAP_PATHS:
+                assert ("STALE_BOOTSTRAP_REPO_GAP_MARKERS", rel_path) in issues
+                checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
