@@ -663,6 +663,13 @@ pub fn resolveBufferFdLookupReturn(summary: BufferFdLookupSummary) i32 {
     };
 }
 
+pub fn resolveBufferFdLookupReturnAtIndex(
+    buffer_fds: []const ?i32,
+    buffer_index: usize,
+) i32 {
+    return resolveBufferFdLookupReturn(summarizeBufferFdLookup(buffer_fds, buffer_index));
+}
+
 pub fn summarizeBufferWindowLookup(
     buffer_windows: []const ?BufferWindowObservation,
     buffer_index: usize,
@@ -710,6 +717,13 @@ pub fn resolveBufferWindowLookupReturn(summary: BufferWindowLookupSummary) i32 {
         .invalid_index => -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         .missing_window => -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
     };
+}
+
+pub fn resolveBufferWindowLookupReturnAtIndex(
+    buffer_windows: []const ?BufferWindowObservation,
+    buffer_index: usize,
+) i32 {
+    return resolveBufferWindowLookupReturn(summarizeBufferWindowLookup(buffer_windows, buffer_index));
 }
 
 test "phase8 perf-buffer poll resolves ready-buffer attempt ordinals back to slot indexes" {
@@ -1053,6 +1067,36 @@ test "phase8 perf-buffer poll resolves typed fd lookups without manual summary p
     try std.testing.expectEqual(@as(i32, 21), try resolveBufferFdAtIndex(&buffer_fds, 2));
     try std.testing.expectError(error.MissingFd, resolveBufferFdAtIndex(&buffer_fds, 1));
     try std.testing.expectError(error.InvalidIndex, resolveBufferFdAtIndex(&buffer_fds, 4));
+}
+
+test "phase8 perf-buffer poll resolves errno-shaped fd and window lookups without manual summary plumbing" {
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+
+    try std.testing.expectEqual(@as(i32, 21), resolveBufferFdLookupReturnAtIndex(&buffer_fds, 2));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveBufferFdLookupReturnAtIndex(&buffer_fds, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveBufferFdLookupReturnAtIndex(&buffer_fds, 4),
+    );
+
+    const buffer_windows = [_]?BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(@as(i32, 0), resolveBufferWindowLookupReturnAtIndex(&buffer_windows, 0));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveBufferWindowLookupReturnAtIndex(&buffer_windows, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveBufferWindowLookupReturnAtIndex(&buffer_windows, 4),
+    );
 }
 
 test "phase8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns" {
