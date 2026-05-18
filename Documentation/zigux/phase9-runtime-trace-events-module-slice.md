@@ -50,6 +50,8 @@ These boundaries are reviewable pilot-module cues for the roadmap's selftest-hoo
 
 Current `master` does not currently expose the broader shared runtime-loader packet that older Phase 9 reminder surfaces described. Fresh repo-first rereads did not find `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile` phase9-specific routes, or the older `samples/zigux/runtime_*_loader.zig` scaffolds on `master`.
 
+The older wider-family reminder-survey trio `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_loader_gap_survey.zig` may still preserve blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and depmod-publication vocabulary, but those names no longer count as current family-local evidence unless a fresh repo reread proves the broader loader family returned.
+
 No current family-local trace-events packet should therefore describe `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `samples/zigux/runtime_trace_events_loader.zig`, `zigux/tests/runtime_trace_events_module.zig`, `zigux/tests/runtime_trace_events_diff.zig`, `zigux/tests/runtime_trace_events_loader_substrate_drift.zig`, `zigux/tests/runtime_trace_events_survey.zig`, or `zigux/tests/runtime_trace_events_manifest.json` as shipped current-`master` evidence unless a fresh repo reread proves they have returned.
 
 ## What this slice owns
