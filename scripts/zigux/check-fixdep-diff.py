@@ -467,6 +467,14 @@ def run_self_test() -> int:
         finally:
             FIXTURE_DIR = original_fixture_dir
 
+    missing_depfile_field_cases = copy_valid_cases(valid_cases)
+    find_case(missing_depfile_field_cases, "sample").pop("depfile", None)
+    expect_failure(
+        "missing_non_empty_depfile",
+        lambda: validate_cases(missing_depfile_field_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_depfile",
+    )
+
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
     expect_failure(
@@ -518,7 +526,7 @@ def run_self_test() -> int:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / "unexpected.txt").writeText("fixture\n", encoding="utf-8")
         expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
@@ -540,7 +548,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 17}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 18}")
     return 0
 
 
