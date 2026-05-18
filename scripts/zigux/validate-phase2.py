@@ -75,7 +75,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 22
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -95,6 +95,21 @@ def read_text(root: Path, path: Path) -> str:
 
 def count_exact_lines(text: str, line: str) -> int:
     return sum(1 for item in text.splitlines() if item == line)
+
+
+def collect_marker_count_issues(
+    text: str,
+    marker: str,
+    *,
+    missing_code: str,
+    duplicate_code: str,
+) -> list[tuple[str, str]]:
+    count = text.count(marker)
+    if count == 0:
+        return [(missing_code, marker)]
+    if count != 1:
+        return [(duplicate_code, f"{marker}:count={count}")]
+    return []
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -117,12 +132,30 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count={count}"))
 
     for marker in EXPECTED_PRESENT_FILE_MARKERS:
-        if marker not in scripts_readme_text:
-            issues.append(("MISSING_SCRIPTS_README_MARKERS", marker))
-        if marker not in tests_readme_text:
-            issues.append(("MISSING_TESTS_README_MARKERS", marker))
-        if marker not in review_checklist_text:
-            issues.append(("MISSING_REVIEW_CHECKLIST_MARKERS", marker))
+        issues.extend(
+            collect_marker_count_issues(
+                scripts_readme_text,
+                marker,
+                missing_code="MISSING_SCRIPTS_README_MARKERS",
+                duplicate_code="DUPLICATE_SCRIPTS_README_MARKERS",
+            )
+        )
+        issues.extend(
+            collect_marker_count_issues(
+                tests_readme_text,
+                marker,
+                missing_code="MISSING_TESTS_README_MARKERS",
+                duplicate_code="DUPLICATE_TESTS_README_MARKERS",
+            )
+        )
+        issues.extend(
+            collect_marker_count_issues(
+                review_checklist_text,
+                marker,
+                missing_code="MISSING_REVIEW_CHECKLIST_MARKERS",
+                duplicate_code="DUPLICATE_REVIEW_CHECKLIST_MARKERS",
+            )
+        )
 
     for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
         if not resolve_path(root, path).exists():
@@ -222,10 +255,10 @@ def run_self_test() -> int:
         assert ("UNEXPECTED_MAKEFILE_LINE", f"{DISALLOWED_MAKEFILE_LINES[0]}:count=1") in collect_issues(root)
         checks_run += 1
 
-        for code, path in (
-            ("MISSING_SCRIPTS_README_MARKERS", SCRIPTS_README),
-            ("MISSING_TESTS_README_MARKERS", TESTS_README),
-            ("MISSING_REVIEW_CHECKLIST_MARKERS", REVIEW_CHECKLIST),
+        for code, duplicate_code, path in (
+            ("MISSING_SCRIPTS_README_MARKERS", "DUPLICATE_SCRIPTS_README_MARKERS", SCRIPTS_README),
+            ("MISSING_TESTS_README_MARKERS", "DUPLICATE_TESTS_README_MARKERS", TESTS_README),
+            ("MISSING_REVIEW_CHECKLIST_MARKERS", "DUPLICATE_REVIEW_CHECKLIST_MARKERS", REVIEW_CHECKLIST),
         ):
             build_self_test_root(root)
             target = resolve_path(root, path)
@@ -234,6 +267,15 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
             assert (code, EXPECTED_PRESENT_FILE_MARKERS[0]) in collect_issues(root)
+            checks_run += 1
+
+            build_self_test_root(root)
+            target = resolve_path(root, path)
+            target.write_text(
+                duplicate_once(target.read_text(encoding="utf-8"), EXPECTED_PRESENT_FILE_MARKERS[0]),
+                encoding="utf-8",
+            )
+            assert (duplicate_code, f"{EXPECTED_PRESENT_FILE_MARKERS[0]}:count=2") in collect_issues(root)
             checks_run += 1
 
         for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
