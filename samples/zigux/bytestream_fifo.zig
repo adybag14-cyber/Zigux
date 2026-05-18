@@ -548,26 +548,15 @@ pub const BytestreamFifoSample = struct {
 };
 
 test "bytestream fifo sample replays the Linux anchor result sequence" {
-    const expected_focus = [_]SampleFocus{
-        .bounded_fifo_order,
-        .wraparound_requeue,
-        .peek_and_skip,
-        .non_destructive_snapshot,
-        .preview_truncation,
-        .remaining_capacity,
-        .queue_shape_boundaries,
-        .helper_boundaries,
-        .reset_and_replay,
-        .ownership_and_lifetime,
-    };
+    const contract = BytestreamFifoSample.reviewContract();
 
     var sample = BytestreamFifoSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
 
     try std.testing.expectEqualStrings(BytestreamFifoSample.descriptor().anchor, replay.anchor);
-    try std.testing.expectEqual(@as(usize, expected_focus.len), replay.checked_focus.len);
-    for (expected_focus, replay.checked_focus) |expected, actual| {
+    try std.testing.expectEqual(@as(usize, contract.focus.len), replay.checked_focus.len);
+    for (contract.focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
     }
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
