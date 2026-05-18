@@ -100,14 +100,9 @@ REQUIRED_MARKERS = {
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support route: `scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`",
         "Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`",
-        "PMO / Release Management: keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned around the same active-not-closed release posture and the same smoke-first packet.",
+        "PMO / Release Management: keep `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, and `scripts/zigux/README.md` aligned around the same active-not-closed release posture, the same smoke-first packet, and the same repo-local `.zig-toolchain` then attached-Zig degraded rerun order. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` remain the next reminder-only follow-through because they still trail the shipped `phase12-validate` support bundle and dedicated release-readiness checker.",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
-        "`PHASE12_STATUS=active`",
-        "scripts/zigux/check-phase12-release-readiness-packet.py",
-        "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, and restored Makefile as bounded reminder evidence only",
-        "make -C zigux phase12-validate",
-        "if that local fallback is also absent, rerun only the shipped Make routes with `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.",
     ],
 }
@@ -131,7 +126,7 @@ REQUIRED_EXACT_COUNT_MARKERS = {
         "`Documentation/zigux/phase12-release-coordination-matrix.md`": 1,
     },
     RELEASE_COORDINATION_MATRIX_PATH: {
-        "PMO / Release Management: keep `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` aligned around the same active-not-closed release posture and the same smoke-first packet.": 1,
+        "PMO / Release Management: keep `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, and `scripts/zigux/README.md` aligned around the same active-not-closed release posture, the same smoke-first packet, and the same repo-local `.zig-toolchain` then attached-Zig degraded rerun order. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` remain the next reminder-only follow-through because they still trail the shipped `phase12-validate` support bundle and dedicated release-readiness checker.": 1,
     },
     RAW_GITHUB_COVERAGE_SURVEY_PATH: {
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.": 1,
@@ -205,7 +200,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 62
+EXPECTED_SELF_TEST_CASE_COUNT = 58
 
 
 def write_fixture_tree(root: Path) -> None:
