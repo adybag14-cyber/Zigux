@@ -96,6 +96,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(TESTS_MARKERS)
     + len(BOOTSTRAP_MARKERS)
     + len(WORKFLOW_MARKERS)
+    + len(WORKFLOW_MARKERS)
+    + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + 13
@@ -128,8 +130,37 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def count_exact_lines(text: str, marker: str) -> int:
+    return sum(1 for line in text.splitlines() if line.strip() == marker)
+
+
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_exact_line_issues(
+    text: str,
+    markers: tuple[str, ...],
+    missing_code: str,
+    duplicate_code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = count_exact_lines(text, marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
 
 
 def validate_policy(payload: object) -> list[tuple[str, str]]:
@@ -204,17 +235,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_exact_line_issues(
             read_text(resolve_path(root, WORKFLOW)),
             WORKFLOW_MARKERS,
             "MISSING_WORKFLOW_MARKERS",
+            "DUPLICATE_WORKFLOW_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_exact_line_issues(
             read_text(resolve_path(root, MAKEFILE)),
             MAKEFILE_MARKERS,
             "MISSING_MAKEFILE_MARKERS",
+            "DUPLICATE_MAKEFILE_MARKERS",
         )
     )
     issues.extend(
@@ -333,11 +366,25 @@ def run_self_test() -> int:
             assert ("MISSING_WORKFLOW_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in WORKFLOW_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_WORKFLOW_MARKERS", f"{marker}:count=2") in collect_issues(root)
+            checks_run += 1
+
         for marker in MAKEFILE_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, MAKEFILE)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_MAKEFILE_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in MAKEFILE_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for marker in TOOLCHAIN_CHECKER_MARKERS:
