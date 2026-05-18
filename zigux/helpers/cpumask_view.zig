@@ -165,6 +165,20 @@ test "cpumask validity rejects malformed word counts and closes helpers" {
     try std.testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "cpumask validity rejects zero-bit views with stray word storage" {
+    const invalid = binding.initCpumaskView(1, 0, 1, 0);
+    const summary = summarize(invalid);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!cpuIsSet(invalid, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask view empty sentinel behavior stays explicit" {
     const empty = viewFromWords(&.{}, 0);
     const summary = summarize(empty);
