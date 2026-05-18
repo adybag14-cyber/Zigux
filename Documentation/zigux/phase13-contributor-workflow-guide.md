@@ -27,7 +27,7 @@ Keep the contributor-facing shared handle aligned through:
 
 Keep `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard for those reminder surfaces rather than as the contributor-facing handle itself.
 
-`zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` stay recorded as repo-reality gaps until current `master` rematerializes the shared build handle.
+`zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`, so keep the file itself distinct from those missing Phase 13 route names and keep only the route names recorded as repo-reality gaps until the shared build handle returns.
 
 ## Shared Surfaces To Reread Together
 
@@ -98,7 +98,7 @@ Keep notifier evidence explicit as adjacent release-surface support through:
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 
-Keep `zigux/helpers/notifier_chain_view.zig`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `include/zigux/notifier_abi.h`, `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` recorded as repo-reality gaps until they rematerialize on current `master`.
+Keep `zigux/helpers/notifier_chain_view.zig`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `include/zigux/notifier_abi.h` recorded as repo-reality gaps until they rematerialize on current `master`. `zigux/Makefile` is present again, but `make -C zigux phase13-validate` and `make -C zigux phase13` still remain repo-reality-gap route names until that Phase 13 shared build handle is restored.
 
 ## Reviewer Prompt
 
@@ -110,7 +110,7 @@ Before landing a broad Phase 13 reminder change, check that:
 - helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
 - adjacent notifier evidence stays adjacent rather than becoming a fifth helper family
 - the returned notifier survey plus `list_view` and `hlist_view` helpers stay explicit as adjacent evidence without being promoted into the shared helper handle
-- `zigux/helpers/notifier_chain_view.zig` plus the Makefile-backed route family stay recorded as repo-reality gaps rather than being promoted into shipped current-`master` evidence
+- `zigux/helpers/notifier_chain_view.zig` stays recorded as a repo-reality gap, while `zigux/Makefile` stays distinguished from the still-missing `make -C zigux phase13-validate` and `make -C zigux phase13` route names instead of promoting that partial build surface into shipped current-`master` Phase 13 evidence
 
 ## Non-Goals
 
