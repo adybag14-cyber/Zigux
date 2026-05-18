@@ -24,6 +24,7 @@ Keep the restored kretprobe packet anchored to the directly readable sample, foc
 
 Fresh Phase 5 readback in this run also confirmed that the shared reminder packet is aligned around that restored direct sample packet:
   * `Documentation/zigux/README.md`
+  * `Documentation/zigux/phase5-sample-lane-sequencing.md`
   * `Documentation/zigux/phase5-sample-review-guide.md`
   * `Documentation/zigux/review-checklist.md`
   * `samples/zigux/README.md`
