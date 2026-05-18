@@ -63,6 +63,7 @@
     "confdata bridge preserves trailing carriage return on final unterminated value line",
     "confdata bridge ignores unterminated unset comment with trailing carriage return",
     "confdata bridge ignores suffix bytes after an embedded NUL",
+    "confdata bridge omits embedded NUL suffix bytes from json output",
     "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
     "confdata bridge keeps explicit n assignments as tristate values",
     "confdata bridge recognizes uppercase tristate assignments",
