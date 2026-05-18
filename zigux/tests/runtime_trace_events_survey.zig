@@ -268,7 +268,14 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sample_file, "pub fn runSelftest(self: *Self) !EmissionSummary {");
     try expectContains(sample_file, "pub fn exit(self: *Self) !void {");
     try expectContains(sample_file, "test \"trace-events sample rejects duplicate function-thread registration\" {");
+    try expectContains(sample_file, "test \"trace-events sample preserves initialized summary across direct exit without selftest\" {");
+    try expectContains(sample_file, "try std.testing.expectEqual(ModuleStage.initialized, before_exit.stage);");
+    try expectContains(sample_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);");
     try expectContains(sample_file, "test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {");
+    try expectContains(sample_file, "test \"trace-events sample keeps rejected re-selftest rollback explicit\" {");
+    try expectContains(sample_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);");
+    try expectContains(sample_file, "try std.testing.expectEqual(@as(usize, 1), before_rejected_selftest.selftest_runs);");
+    try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
 
     try expectContains(fail_closed_file, "phase9 trace-events sample keeps unregistered function-thread failures fail-closed");
     try expectContains(exit_guard_file, "phase9 trace-events sample keeps exit rollback explicit after reusable selftest replay");
