@@ -133,6 +133,12 @@ test "phase 5 trace-events formatting companion keeps the selected-string cue re
     var sample = TraceEventsStringFormattingSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay(7);
+    const expected_focus = [_]SampleFocus{
+        .string_selection,
+        .formatted_message,
+        .bounded_destination_discipline,
+        .non_allocating_runtime_safe,
+    };
 
     try std.testing.expectEqualStrings("trace_events_string_formatting_sample", TraceEventsStringFormattingSample.descriptor().name);
     try std.testing.expectEqualStrings("samples/trace_events/trace-events-sample.c", replay.anchor);
@@ -142,7 +148,7 @@ test "phase 5 trace-events formatting companion keeps the selected-string cue re
     try std.testing.expectEqualStrings("Gandalf", replay.selected_string);
     try std.testing.expectEqual(@as(usize, 6), replay.formatted_message.len);
     try std.testing.expectEqualSlices(u8, "iter=7", replay.formatted_message.bytes[0..replay.formatted_message.len]);
-    try std.testing.expectEqual(@as(usize, 4), replay.checked_focus.len);
+    try std.testing.expectEqualSlices(SampleFocus, &expected_focus, replay.checked_focus);
 }
 
 test "phase 5 trace-events formatting companion keeps lifecycle boundaries explicit" {
