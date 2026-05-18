@@ -72,9 +72,9 @@ EXPECTED_HELPERS = [
         "dedicated_slowdown_replay": "zigux/tests/phase6_base64_perf.zig",
         "fixture_surfaces": [
             "zigux/tests/fixtures/phase6_base64_vectors.zig",
-            "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
         ],
         "checker_surfaces": [
+            "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
             "zigux/tests/phase6_base64_c_parity.zig",
             "zigux/tests/phase6_base64_c_casegen.zig",
             "zigux/tests/fixtures/phase6_base64_c_harness.c",
@@ -133,6 +133,10 @@ EXPECTED_CURRENT_REPO_REALITY_GAPS = [
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "zigux/tests/phase6_helper_parity_manifest.json",
+    "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
+    "zigux/tests/phase6_base64_c_parity.zig",
+    "zigux/tests/phase6_base64_c_casegen.zig",
+    "zigux/tests/fixtures/phase6_base64_c_harness.c",
     "zigux/tests/phase6_hexdump_perf_matrix.zig",
     "scripts/zigux/check-phase6-base64-c-parity.py",
     "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
@@ -164,9 +168,14 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `Documentation/zigux/phase6-hexdump-slice.md`",
     "- `Documentation/zigux/phase6-hexdump-perf-refresh.md`",
     "- `zigux/tests/phase6_helper_parity_manifest.json`",
+    "- `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`",
+    "- `zigux/tests/phase6_base64_c_parity.zig`",
+    "- `zigux/tests/phase6_base64_c_casegen.zig`",
+    "- `zigux/tests/fixtures/phase6_base64_c_harness.c`",
     "- `zigux/tests/phase6_hexdump_perf_matrix.zig`",
     "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
-    "- direct C parity packet: `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
+    "- committed fixture surface: `zigux/tests/fixtures/phase6_base64_vectors.zig`",
+    "- last-known direct C parity companions still needing fresh direct reads: `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`",
     "- current review posture: the roadmap-backed base64 packet now has directly readable helper-local evidence through `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, `zigux/tests/phase6_base64_perf.zig`, `zigux/tests/fixtures/phase6_base64_vectors.zig`, `Documentation/zigux/phase6-base64-slice.md`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders, while the direct C parity companions still need fresh direct reads before they are presented as current shipped evidence",
     "- focused C ABI replays: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
     "- last-known companion packet members still needing fresh direct reads: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
@@ -374,17 +383,17 @@ def run_self_test() -> None:
 
         write(
             catalog_path,
-            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[16] + "\n", "", 1),
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[14] + "\n", "", 1),
         )
-        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[16])
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[14])
         cases_run += 1
         scaffold_repo(root)
 
         write(
             catalog_path,
-            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[17] + "\n", "", 1),
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[15] + "\n", "", 1),
         )
-        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[17])
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[15])
         cases_run += 1
         scaffold_repo(root)
 
