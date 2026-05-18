@@ -4,6 +4,9 @@ pub const Ordering = std.builtin.AtomicOrder;
 pub const CompareExchangeError = error{
     InvalidFailureOrdering,
 };
+pub const LoadError = error{
+    InvalidLoadOrdering,
+};
 
 fn failureStrength(order: Ordering) ?u8 {
     return switch (order) {
@@ -43,6 +46,20 @@ pub fn weakestAllowedFailureOrder(success: Ordering) ?Ordering {
         .monotonic, .release, .acquire, .acq_rel, .seq_cst => .monotonic,
         .unordered => null,
     };
+}
+
+pub fn loadOrderAllowed(order: Ordering) bool {
+    return switch (order) {
+        .monotonic, .acquire, .seq_cst => true,
+        .unordered, .release, .acq_rel => false,
+    };
+}
+
+pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {
+    if (comptime !loadOrderAllowed(order)) {
+        return error.InvalidLoadOrdering;
+    }
+    return @atomicLoad(T, ptr, order);
 }
 
 pub fn exchange(
@@ -115,6 +132,27 @@ test "phase3 atomic helper reports allowed failure-order bounds" {
     try std.testing.expectEqual(@as(?Ordering, .acquire), strongestAllowedFailureOrder(.acq_rel));
     try std.testing.expectEqual(@as(?Ordering, .seq_cst), strongestAllowedFailureOrder(.seq_cst));
     try std.testing.expectEqual(@as(?Ordering, null), strongestAllowedFailureOrder(.unordered));
+}
+
+test "phase3 atomic helper keeps load ordering rules explicit" {
+    try std.testing.expect(loadOrderAllowed(.monotonic));
+    try std.testing.expect(loadOrderAllowed(.acquire));
+    try std.testing.expect(loadOrderAllowed(.seq_cst));
+
+    try std.testing.expect(!loadOrderAllowed(.unordered));
+    try std.testing.expect(!loadOrderAllowed(.release));
+    try std.testing.expect(!loadOrderAllowed(.acq_rel));
+}
+
+test "phase3 atomic helper wraps atomic loads without widening ordering semantics" {
+    var value: u32 = 0x1234_5678;
+
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), try load(u32, &value, .monotonic));
+    value = 0xCAFE_BABE;
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), try load(u32, &value, .seq_cst));
+
+    try std.testing.expectError(error.InvalidLoadOrdering, load(u32, &value, .release));
+    try std.testing.expectError(error.InvalidLoadOrdering, load(u32, &value, .acq_rel));
 }
 
 test "phase3 atomic helper keeps exchange ordering explicit" {
