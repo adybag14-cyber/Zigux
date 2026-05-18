@@ -40,6 +40,33 @@ pub const InterruptAckSummary = struct {
     all_acknowledged: bool,
 };
 
+pub const DriverLifecycleBlocker = enum {
+    device_absent,
+    acknowledge_missing,
+    driver_missing,
+    features_missing,
+    queue_selection_missing,
+    queue_selection_invalid,
+    driver_ok_missing,
+    device_needs_reset,
+    device_failed,
+};
+
+pub const LifecycleGuardSummary = struct {
+    anchor: []const u8,
+    device_present: bool,
+    attached: bool,
+    features_negotiated: bool,
+    queue_selected: bool,
+    queue_selected_valid: bool,
+    queue_registration_ready: bool,
+    driver_ready: bool,
+    needs_reset: bool,
+    failed: bool,
+    blocker: ?DriverLifecycleBlocker,
+    config_generation: u8,
+};
+
 pub const VirtioCoreLab = struct {
     const Self = @This();
 
@@ -152,6 +179,54 @@ pub const VirtioCoreLab = struct {
             .queue_bookkeeping_ready = status.device_present and self.queue_count != 0 and !status.needs_reset,
         };
     }
+
+    pub fn lifecycleGuardSummary(self: *const Self) LifecycleGuardSummary {
+        const status = self.statusSummary();
+        const queue = self.queueBookkeepingSummary();
+        const attached = status.device_present and (self.status & status_acknowledge) != 0;
+        const queue_selected = self.selected_queue != null;
+        const queue_registration_ready = attached and
+            (self.status & status_driver) != 0 and
+            status.features_negotiated and
+            queue.selected_queue_valid and
+            !status.needs_reset;
+
+        const blocker: ?DriverLifecycleBlocker = if (!status.device_present)
+            .device_absent
+        else if (status.failed)
+            .device_failed
+        else if (status.needs_reset)
+            .device_needs_reset
+        else if ((self.status & status_acknowledge) == 0)
+            .acknowledge_missing
+        else if ((self.status & status_driver) == 0)
+            .driver_missing
+        else if (!status.features_negotiated)
+            .features_missing
+        else if (!queue_selected)
+            .queue_selection_missing
+        else if (!queue.selected_queue_valid)
+            .queue_selection_invalid
+        else if ((self.status & status_driver_ok) == 0)
+            .driver_ok_missing
+        else
+            null;
+
+        return .{
+            .anchor = anchor_path,
+            .device_present = status.device_present,
+            .attached = attached,
+            .features_negotiated = status.features_negotiated,
+            .queue_selected = queue_selected,
+            .queue_selected_valid = queue.selected_queue_valid,
+            .queue_registration_ready = queue_registration_ready,
+            .driver_ready = status.driver_ready and queue.selected_queue_valid,
+            .needs_reset = status.needs_reset,
+            .failed = status.failed,
+            .blocker = blocker,
+            .config_generation = status.config_generation,
+        };
+    }
 };
 
 test "phase10 virtio core status summary keeps lab-only driver readiness bounded to shared status bookkeeping" {
@@ -207,4 +282,61 @@ test "phase10 virtio core interrupt acknowledgements clear only requested bits" 
     try std.testing.expectEqual(@as(u8, 0b0100), ack.cleared_bits);
     try std.testing.expectEqual(@as(u8, 0), ack.pending_after);
     try std.testing.expect(ack.all_acknowledged);
+}
+
+test "phase10 virtio core lifecycle guard summary tracks staged driver progression" {
+    var core = try VirtioCoreLab.init(51, 2);
+
+    var summary = core.lifecycleGuardSummary();
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .acknowledge_missing), summary.blocker);
+    try std.testing.expect(!summary.attached);
+    try std.testing.expect(!summary.queue_registration_ready);
+    try std.testing.expect(!summary.driver_ready);
+
+    core.setStatusBits(status_acknowledge);
+    summary = core.lifecycleGuardSummary();
+    try std.testing.expect(summary.attached);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .driver_missing), summary.blocker);
+
+    core.setStatusBits(status_driver);
+    summary = core.lifecycleGuardSummary();
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .features_missing), summary.blocker);
+
+    core.noteFeaturesNegotiated();
+    summary = core.lifecycleGuardSummary();
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .queue_selection_missing), summary.blocker);
+
+    _ = try core.selectQueue(1);
+    summary = core.lifecycleGuardSummary();
+    try std.testing.expect(summary.queue_registration_ready);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .driver_ok_missing), summary.blocker);
+
+    core.setStatusBits(status_driver_ok);
+    summary = core.lifecycleGuardSummary();
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, null), summary.blocker);
+    try std.testing.expect(summary.driver_ready);
+}
+
+test "phase10 virtio core lifecycle guard summary blocks ready state when reset becomes required" {
+    var core = try VirtioCoreLab.init(57, 1);
+    core.setStatusBits(status_acknowledge | status_driver);
+    core.noteFeaturesNegotiated();
+    _ = try core.selectQueue(0);
+    core.setStatusBits(status_driver_ok);
+
+    var summary = core.lifecycleGuardSummary();
+    try std.testing.expect(summary.driver_ready);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, null), summary.blocker);
+
+    core.setStatusBits(status_device_needs_reset);
+    summary = core.lifecycleGuardSummary();
+    try std.testing.expect(summary.needs_reset);
+    try std.testing.expect(!summary.queue_registration_ready);
+    try std.testing.expect(!summary.driver_ready);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_needs_reset), summary.blocker);
+
+    core.setStatusBits(status_failed);
+    summary = core.lifecycleGuardSummary();
+    try std.testing.expect(summary.failed);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_failed), summary.blocker);
 }
