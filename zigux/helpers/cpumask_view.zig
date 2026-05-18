@@ -21,6 +21,7 @@ pub fn isValid(view: binding.CpumaskView) bool {
 }
 
 pub fn cpuIsSet(view: binding.CpumaskView, cpu: u32) bool {
+    if (!isValid(view)) return false;
     return bitmap.testBit(binding.asBitmap(view), cpu);
 }
 
@@ -232,13 +233,16 @@ test "cpumask empty sentinels stay stable even with a stray non-zero address" {
 }
 
 test "cpumask validity rejects non-zero reserved bytes and closes helpers" {
-    var backing = [_]Word{0};
+    var backing = [_]Word{@as(Word, 1) << 3};
     var invalid = viewFromWords(backing[0..], 8);
     invalid.reserved = 1;
+    const projected = binding.asBitmap(invalid);
     const summary = summarize(invalid);
 
+    try std.testing.expect(bitmap.isValid(projected));
+    try std.testing.expect(bitmap.testBit(projected, 3));
     try std.testing.expect(!isValid(invalid));
-    try std.testing.expect(!cpuIsSet(invalid, 0));
+    try std.testing.expect(!cpuIsSet(invalid, 3));
     try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
     try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
     try std.testing.expectEqual(@as(u32, 0), weight(invalid));
@@ -281,11 +285,16 @@ test "cpumask view empty sentinel behavior stays explicit" {
 }
 
 test "cpumask validity requires nr_cpu_ids to match the bounded bit count" {
-    const invalid = binding.initCpumaskView(0, 4, 0, 3);
+    var backing = [_]Word{@as(Word, 1) << 4};
+    var invalid = viewFromWords(backing[0..], 8);
+    invalid.nr_cpu_ids = 7;
+    const projected = binding.asBitmap(invalid);
     const summary = summarize(invalid);
 
+    try std.testing.expect(bitmap.isValid(projected));
+    try std.testing.expect(bitmap.testBit(projected, 4));
     try std.testing.expect(!isValid(invalid));
-    try std.testing.expect(!cpuIsSet(invalid, 0));
+    try std.testing.expect(!cpuIsSet(invalid, 4));
     try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
     try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
     try std.testing.expectEqual(@as(u32, 0), weight(invalid));
