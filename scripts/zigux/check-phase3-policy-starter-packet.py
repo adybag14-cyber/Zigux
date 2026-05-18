@@ -23,6 +23,7 @@ BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
 
 HEADER_TYPEDEF_ALIAS_RE = re.compile(r"^\s*}\s*([A-Za-z_][A-Za-z0-9_]*)\s*;")
+ZIG_PUB_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=")
 ZIG_PUB_FN_RE = re.compile(r"^\s*pub fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
 REQUIRED_PACKET_FILES = (
@@ -182,7 +183,10 @@ REQUIRED_MARKERS = {
 
 DUPLICATE_DECLARATION_PATTERNS = {
     ABI_HEADER_PATH: (("ABI typedef alias", HEADER_TYPEDEF_ALIAS_RE),),
-    ABI_BINDING_PATH: (("ABI binding pub fn", ZIG_PUB_FN_RE),),
+    ABI_BINDING_PATH: (
+        ("ABI binding pub const", ZIG_PUB_CONST_RE),
+        ("ABI binding pub fn", ZIG_PUB_FN_RE),
+    ),
 }
 
 SELF_TEST_CASES = (
@@ -447,12 +451,21 @@ def run_self_test() -> int:
         binding_path = root / ABI_BINDING_PATH
         binding_path.write_text(
             _read(binding_path)
+            + "\npub const PanicMode = enum(u8) {\n"
+            + "    duplicate = 9,\n"
+            + "};\n"
             + "\npub fn defaultHeader(flags: u16) BoundaryHeader {\n"
             + "    return .{ .size = flags, .abi_version = ABI_VERSION, .flags = flags };\n"
             + "}\n",
             encoding="utf-8",
         )
         issues = validate_repo(root)
+        expected_duplicate_pub_const = "duplicate ABI binding pub const: PanicMode "
+        if not any(issue.startswith(expected_duplicate_pub_const) for issue in issues):
+            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
+            print(f"expected duplicate pub-const guard was not reported: {expected_duplicate_pub_const}")
+            return 1
+
         expected_duplicate_pub_fn = "duplicate ABI binding pub fn: defaultHeader "
         if not any(issue.startswith(expected_duplicate_pub_fn) for issue in issues):
             print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
@@ -490,7 +503,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 4}")
+    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 5}")
     return 0
 
 
