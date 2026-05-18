@@ -38,6 +38,24 @@ When shared Phase 13 wording changes, keep these current shared surfaces aligned
 
 Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that Phase 2-only wrapper file as a materialized shared Phase 13 surface.
 
+## Traceability Snapshot
+
+Use this compact reread before editing the broader Phase 13 reminder packet.
+
+- refresh basis: current `master` direct readback on `2026-05-18`
+- roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
+- stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- stable contributor-facing handle: `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
+
+Current `master` maps the four roadmap anchors to these bounded packet states:
+
+- `fs/libfs.c`: shipped `libfs` survey, starter, reviewability replay, and manifest packet through `Documentation/zigux/phase13-libfs-survey.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`, while `Documentation/zigux/phase13-libfs-slice.md` and `zigux/tests/phase13_libfs_addressability.zig` remain repo-reality gaps.
+- `lib/devres.c`: shipped narrower DMA-boundary, planner, and scatterlist packet through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while the older direct `lib/devres.zig` helper packet stays recorded as a repo-reality gap.
+- `security/landlock/ruleset.c`: shipped ownership, slice, survey, starter, and manifest-backed replay packet through `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, `security/landlock/ruleset.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, and `zigux/tests/phase13_landlock_ruleset_manifest.json`.
+- `security/landlock/syscalls.c`: shipped governance, slice, and starter packet through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` remain repo-reality gaps.
+
+This snapshot is the fast reread for roadmap fit. The fuller owner map and gap accounting below stays authoritative when shared-surface wording changes.
+
 ## Anchor Map
 
 Keep the roadmap-owned helper packet explicit through these bounded owner surfaces:
