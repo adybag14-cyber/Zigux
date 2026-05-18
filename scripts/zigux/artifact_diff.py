@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-import difflib
 import hashlib
 import json
 import subprocess
@@ -13,9 +12,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-MODE_CHOICES = ("text", "json", "sha256")
+MODE_CHOICES = ("text", "json", "bytes")
+LEGACY_MODE_ALIASES = {"sha256": "bytes"}
 HELP_LINES = [
-    "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test]",
+    "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test]",
     " [expected] [actual]",
     "",
     "Compare two artifacts in a stable mode.",
@@ -26,18 +26,18 @@ HELP_LINES = [
     "",
     "options:",
     " -h, --help show this help message and exit",
-    " --mode {text,json,sha256}",
+    " --mode {text,json,bytes}",
     " --self-test Run built-in deterministic comparison checks.",
 ]
 MISSING_ARGUMENT_ERROR = (
-    "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] "
+    "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] "
     "[expected] [actual] artifact_diff.py: error: --mode, expected, and actual "
     "are required unless --self-test is set"
 )
 INVALID_MODE_ERROR_TEMPLATE = (
-    "usage: artifact_diff.py [-h] [--mode {{text,json,sha256}}] [--self-test] "
+    "usage: artifact_diff.py [-h] [--mode {{text,json,bytes}}] [--self-test] "
     "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
-    "choice: {value!r} (choose from text, json, sha256)"
+    "choice: {value!r} (choose from text, json, bytes)"
 )
 SELF_TEST_CASES = [
     "text_pass",
@@ -50,14 +50,15 @@ SELF_TEST_CASES = [
     "json_missing_expected",
     "json_missing_actual",
     "json_missing_both",
-    "sha256_pass",
-    "sha256_drift",
+    "bytes_pass",
+    "bytes_drift",
     "text_missing_expected",
     "text_missing_actual",
     "text_missing_both",
-    "sha256_missing_expected",
-    "sha256_missing_actual",
-    "sha256_missing_both",
+    "bytes_missing_expected",
+    "bytes_missing_actual",
+    "bytes_missing_both",
+    "legacy_sha256_alias",
     "invalid_mode_rejected",
 ]
 
@@ -119,7 +120,7 @@ def sha256_hex(path: Path) -> str:
     return hashlib.sha256(read_bytes(path)).hexdigest()
 
 
-def compare_sha256(expected: Path, actual: Path) -> ComparisonResult:
+def compare_bytes(expected: Path, actual: Path) -> ComparisonResult:
     expected_digest = sha256_hex(expected)
     actual_digest = sha256_hex(actual)
     if expected_digest == actual_digest:
@@ -133,7 +134,12 @@ def compare_sha256(expected: Path, actual: Path) -> ComparisonResult:
     )
 
 
+def normalize_mode(mode: str) -> str:
+    return LEGACY_MODE_ALIASES.get(mode, mode)
+
+
 def compare(mode: str, expected: Path, actual: Path) -> ComparisonResult:
+    mode = normalize_mode(mode)
     missing = missing_lines(expected, actual)
     if missing is not None:
         return ComparisonResult(ok=False, extra_lines=missing)
@@ -141,8 +147,8 @@ def compare(mode: str, expected: Path, actual: Path) -> ComparisonResult:
         return compare_text(expected, actual)
     if mode == "json":
         return compare_json(expected, actual)
-    if mode == "sha256":
-        return compare_sha256(expected, actual)
+    if mode == "bytes":
+        return compare_bytes(expected, actual)
     raise ValueError(f"unsupported mode: {mode}")
 
 
@@ -247,23 +253,23 @@ def run_self_test() -> int:
 
         blob_a.write_bytes(b"zigux-artifact-diff")
         blob_b.write_bytes(b"zigux-artifact-diff")
-        sha_pass = compare("sha256", blob_a, blob_b)
+        bytes_pass = compare("bytes", blob_a, blob_b)
         assert_case(
-            sha_pass.ok and sha_pass.extra_lines == ["SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576"],
-            "sha256_pass",
+            bytes_pass.ok and bytes_pass.extra_lines == ["SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576"],
+            "bytes_pass",
         )
-        covered.append("sha256_pass")
+        covered.append("bytes_pass")
 
         blob_b.write_bytes(b"zigux-artifact-DRIFT")
         assert_case(
-            compare("sha256", blob_a, blob_b).extra_lines
+            compare("bytes", blob_a, blob_b).extra_lines
             == [
                 "EXPECTED_SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576",
                 "ACTUAL_SHA256=bfc83f8f1f4369ce3cfabfdff0699ae3bf7a15b89f1702b690e56c6f35f1ee94",
             ],
-            "sha256_drift",
+            "bytes_drift",
         )
-        covered.append("sha256_drift")
+        covered.append("bytes_drift")
 
         assert_case(
             compare("text", missing, actual).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=True"],
@@ -284,22 +290,28 @@ def run_self_test() -> int:
         covered.append("text_missing_both")
 
         assert_case(
-            compare("sha256", missing, blob_a).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=True"],
-            "sha256_missing_expected",
+            compare("bytes", missing, blob_a).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=True"],
+            "bytes_missing_expected",
         )
-        covered.append("sha256_missing_expected")
+        covered.append("bytes_missing_expected")
 
         assert_case(
-            compare("sha256", blob_a, missing).extra_lines == ["EXPECTED_EXISTS=True", "ACTUAL_EXISTS=False"],
-            "sha256_missing_actual",
+            compare("bytes", blob_a, missing).extra_lines == ["EXPECTED_EXISTS=True", "ACTUAL_EXISTS=False"],
+            "bytes_missing_actual",
         )
-        covered.append("sha256_missing_actual")
+        covered.append("bytes_missing_actual")
 
         assert_case(
-            compare("sha256", missing, other_missing).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=False"],
-            "sha256_missing_both",
+            compare("bytes", missing, other_missing).extra_lines == ["EXPECTED_EXISTS=False", "ACTUAL_EXISTS=False"],
+            "bytes_missing_both",
         )
-        covered.append("sha256_missing_both")
+        covered.append("bytes_missing_both")
+
+        legacy_alias = run_parser_probe(["--mode", "sha256", str(blob_a), str(blob_a)])
+        assert_case(legacy_alias.returncode == 0, "legacy_sha256_alias")
+        assert_case("ARTIFACT_DIFF=pass" in legacy_alias.stdout, "legacy_sha256_alias")
+        assert_case("MODE=bytes" in legacy_alias.stdout, "legacy_sha256_alias")
+        covered.append("legacy_sha256_alias")
 
         invalid_mode = run_parser_probe(["--mode", "yaml", str(expected), str(actual)])
         assert_case(invalid_mode.returncode == 2, "invalid_mode_rejected")
@@ -338,8 +350,11 @@ def parse_args(argv: list[str]) -> tuple[bool, str | None, str | None, str | Non
         index += 1
 
     if mode is not None and mode not in MODE_CHOICES:
-        print(INVALID_MODE_ERROR_TEMPLATE.format(value=mode), file=sys.stderr)
-        return 2
+        if mode in LEGACY_MODE_ALIASES:
+            mode = LEGACY_MODE_ALIASES[mode]
+        else:
+            print(INVALID_MODE_ERROR_TEMPLATE.format(value=mode), file=sys.stderr)
+            return 2
 
     expected = positionals[0] if len(positionals) >= 1 else None
     actual = positionals[1] if len(positionals) >= 2 else None
