@@ -63,6 +63,14 @@ When shared Phase 13 wording changes:
 3. keep the Makefile-backed route family recorded as repo-reality gaps while distinguishing the returned `zigux/Makefile` file from the still-missing Phase 13 routes
 4. leave broader README and tests-root packet refresh for a separate same-lane step
 
+## Next Coordinated Step
+
+The next same-lane PMO follow-through is a docs-root truthfulness repair, not a helper-local or checker-expansion step.
+
+- repair `Documentation/zigux/README.md` so the Phase 13 summary stops treating `Documentation/zigux/phase13-devres-survey.md` and `lib/devres.zig` as repo-reality gaps
+- keep `Documentation/zigux/phase13-release-notes-survey.md` and `Documentation/zigux/phase13-roadmap-traceability.md` as the reread authorities for the narrower current-`master` `devres` packet while that docs-root repair remains open
+- keep the missing Phase 13 route family, the direct Landlock syscall companions, and the adjacent notifier follow-through parked as separate same-lane or helper-local work
+
 ## Boundaries
 
 - This matrix does not close the Phase 13 tranche.
