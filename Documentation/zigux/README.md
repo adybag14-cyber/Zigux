@@ -154,6 +154,7 @@ Phase 13 notes
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `scripts/zigux/README.md`
