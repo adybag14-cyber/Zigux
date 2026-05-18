@@ -102,6 +102,12 @@ pub const KretprobeExampleSample = struct {
         self.symbol_name = symbol_name;
     }
 
+    pub fn retargetMaxactive(self: *Self, maxactive: usize) !void {
+        if (self.stage() != .cold) return error.InvalidLifecycleTransition;
+        if (maxactive == 0) return error.InvalidMaxactive;
+        self.maxactive = maxactive;
+    }
+
     pub fn entryHandler(self: *Self, has_mm: bool, stamp_ns: i64) !bool {
         switch (self.stage()) {
             .initialized, .replay_complete, .armed => {},
@@ -212,4 +218,18 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
     try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+}
+
+test "kretprobe sample keeps maxactive tuning pre-init and reviewable" {
+    var sample = KretprobeExampleSample{};
+
+    try std.testing.expectError(error.InvalidMaxactive, sample.retargetMaxactive(0));
+    try sample.retargetMaxactive(3);
+    try sample.init();
+
+    const replay = try sample.runAnchorReplay();
+    try std.testing.expectEqual(@as(usize, 3), sample.maxactive);
+    try std.testing.expectEqual(@as(usize, 3), replay.maxactive);
+    try std.testing.expectEqual(@as(usize, 1), sample.replay_runs);
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.retargetMaxactive(4));
 }
