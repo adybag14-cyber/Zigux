@@ -50,3 +50,47 @@ test "zalloc zeroes memory and zfree resets optionals" {
     zfreeValue(allocator, Value, &value);
     try std.testing.expect(value == null);
 }
+
+test "zallocBytes supports zero-length slices and repeated free" {
+    const allocator = std.testing.allocator;
+
+    var bytes: ?[]u8 = try zallocBytes(allocator, 0);
+    defer zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes != null);
+    try std.testing.expectEqual(@as(usize, 0), bytes.?.len);
+
+    zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+
+    zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+}
+
+test "zfreeValue tolerates null optionals" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        count: usize,
+    };
+
+    var value: ?*Value = null;
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+}
+
+test "zfreeValue supports repeated free after destroying an allocated value" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        count: usize,
+    };
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqual(@as(usize, 0), value.?.count);
+
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+}
