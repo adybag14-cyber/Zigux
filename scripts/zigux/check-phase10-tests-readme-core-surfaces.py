@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check that the Phase 10 tests-root companion matches current direct-readback reality."""
+"""Check that the Phase 10 tests-root reminders match current direct-readback reality."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 
 SURFACE_PATH = Path("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
+TESTS_ROOT_README_PATH = Path("zigux/tests/README.md")
 PHASE10_START = "## Phase 10 tests-root packet"
 PHASE10_END = "## Phase 11 tests-root packet"
 REQUIRED_DIRECT_MARKERS = (
@@ -78,6 +79,15 @@ REQUIRED_WRAPPER_SPLIT_MARKERS = (
     "`drivers/virtio/virtio_ring.zig` owns virtqueue wrapper shape and notification planning",
     "`drivers/virtio/virtio_mmio.zig` owns MMIO wrapper planning",
 )
+REQUIRED_TESTS_ROOT_MARKERS = (
+    "`Documentation/zigux/phase10-closure-evidence.md`",
+    "`Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`",
+    "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`",
+    "`scripts/zigux/check-phase10-tests-readme-core-surfaces.py`",
+    "The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.",
+    "Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes,",
+    "the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate",
+)
 FORBIDDEN_RING_GAP_MARKERS = (
     "keep `drivers/virtio/virtio_ring_verify.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as last-known packet members until a fresh reread proves they rematerialize on current `master`.",
     "`drivers/virtio/virtio_ring_verify.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` framed as missing direct-readback ring companions",
@@ -111,7 +121,7 @@ def check_absent_markers(section: str, markers: tuple[str, ...], label: str) -> 
         raise SystemExit(f"phase10 companion checker found forbidden {label} markers: " + ", ".join(present))
 
 
-def check_text(text: str) -> None:
+def check_companion_text(text: str) -> None:
     section = phase10_section(text)
     check_markers(section, REQUIRED_DIRECT_MARKERS, "direct-readback")
     check_markers(section, REQUIRED_REPO_REALITY_GAP_MARKERS, "repo-reality-gap")
@@ -122,13 +132,17 @@ def check_text(text: str) -> None:
     check_absent_markers(section, FORBIDDEN_REPO_REALITY_GAP_MARKERS, "repo-reality-gap")
 
 
+def check_tests_root_readme(text: str) -> None:
+    check_markers(text, REQUIRED_TESTS_ROOT_MARKERS, "tests-root-readme")
+
+
 def run_self_test() -> int:
     good = """# Phase 10, 11, and 13 Tests-Root Review Companion
 
 ## Phase 10 tests-root packet
 
 Keep the current bounded virtio closure packet explicit through the shared reminder surfaces, the directly re-readable ring packet anchors, the directly re-readable input packet, the helper-local MMIO packet, and the shared build gate:
-- shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `.github/workflows/zigux-bootstrap.yml`
+- shared reminder surfaces: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `.github/workflows/zigux-bootstrap.yml`
 - directly re-readable ring packet anchors: `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and `zigux/tests/phase10_build.zig`
 - directly re-readable input packet anchors: `Documentation/zigux/phase10-virtio-input-survey.md`, `Documentation/zigux/phase10-virtio-input-slice.md`, `Documentation/zigux/phase10-virtio-input-module-slice.md`, `drivers/virtio/virtio_input.zig`, `zigux/tests/phase10_virtio_input.zig`, and `zigux/tests/phase10_virtio_input_status_drain.zig`
 - helper-local MMIO packet anchors: `Documentation/zigux/phase10-virtio-mmio-survey.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`
@@ -145,12 +159,26 @@ Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` ow
 
 ## Phase 11 tests-root packet
 """
-    check_text(good)
+    good_tests_root_readme = """# zigux/tests
+
+## Phase 10 review packet
+
+Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit as the shared Phase 10 tests-root reminder packet.
+
+The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, `make -C zigux phase10`, and `zigux/tests/phase10_build.zig`.
+
+Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.
+
+Tests-root reviewer prompt:
+- keep the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate
+"""
+    check_companion_text(good)
+    check_tests_root_readme(good_tests_root_readme)
     tests = []
     tests.append((good.replace("## Phase 10 tests-root packet", "## Phase Ten tests-root packet", 1), "`## Phase 10 tests-root packet`"))
     tests.append((good.replace("## Phase 11 tests-root packet", "## Phase Eleven tests-root packet", 1), "`## Phase 11 tests-root packet`"))
-    tests.append((good.replace("`scripts/zigux/check-phase10-bootstrap-route.py`", "`scripts/zigux/check-phase10-bootstrap-route-missing.py`", 1), "`scripts/zigux/check-phase10-bootstrap-route.py`"))
-    tests.append((good.replace("`.github/workflows/zigux-bootstrap.yml`", "`.github/workflows/zigux-bootstrap-route-missing.yml`", 1), "`.github/workflows/zigux-bootstrap.yml`"))
+    tests.append((good.replace("`scripts/zigux/check-phase10-bootstrap-route.py`", "`scripts/zigux/check-phase10-bootstrap-route-missing.py`", 2), "`scripts/zigux/check-phase10-bootstrap-route.py`"))
+    tests.append((good.replace("`.github/workflows/zigux-bootstrap.yml`", "`.github/workflows/zigux-bootstrap-route-missing.yml`", 3), "`.github/workflows/zigux-bootstrap.yml`"))
     tests.append((good.replace("workflow-backed bootstrap route", "workflow route", 1), "workflow-backed bootstrap route"))
     tests.append((good.replace("`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`", "`zigux/tests/phase10_virtio_ring_delayed_callback_budget_missing.zig`"), "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`"))
     tests.append((good.replace("`make -C zigux phase10-test`", "`make -C zigux phase10-test-missing`", 3), "`make -C zigux phase10-test`"))
@@ -171,15 +199,20 @@ Wrapper ownership for the input lane stays split: `drivers/virtio/virtio.zig` ow
     tests.append((good.replace("`drivers/virtio/virtio_verify.zig`", "`drivers/virtio/virtio_verify_missing.zig`", 1), "`drivers/virtio/virtio_verify.zig`"))
     tests.append((good.replace("`zigux/tests/phase10_virtio_core_manifest.json`", "`zigux/tests/phase10_virtio_core_manifest_missing.json`", 1), "`zigux/tests/phase10_virtio_core_manifest.json`"))
     tests.append((good.replace("`zigux/tests/phase10_virtio_core_survey.zig`", "`zigux/tests/phase10_virtio_core_survey_missing.zig`", 1), "`zigux/tests/phase10_virtio_core_survey.zig`"))
+    tests.append((good_tests_root_readme.replace("`make -C zigux phase10-test`", "`make -C zigux phase10-test-missing`", 2), "`make -C zigux phase10-test`"))
+    tests.append((good_tests_root_readme.replace("`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`", "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion-missing.md`", 1), "`Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`"))
     for text, expected in tests:
         try:
-            check_text(text)
+            if text.startswith("# zigux/tests"):
+                check_tests_root_readme(text)
+            else:
+                check_companion_text(text)
         except SystemExit as exc:
             assert expected in str(exc), str(exc)
         else:
             raise AssertionError(f"expected failure for {expected}")
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=23")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
@@ -187,11 +220,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--self-test", action="store_true")
     parser.add_argument("--source", type=Path, default=SURFACE_PATH, help="path to the shared Phase 10/11/13 tests-root companion note")
+    parser.add_argument("--tests-root-readme", type=Path, default=TESTS_ROOT_README_PATH, help="path to zigux/tests/README.md")
     args = parser.parse_args()
     if args.self_test:
         return run_self_test()
-    text = args.source.read_text(encoding="utf-8")
-    check_text(text)
+    check_companion_text(args.source.read_text(encoding="utf-8"))
+    check_tests_root_readme(args.tests_root_readme.read_text(encoding="utf-8"))
     print("PHASE10_TESTS_ROOT_COMPANION_CHECK=pass")
     return 0
 
