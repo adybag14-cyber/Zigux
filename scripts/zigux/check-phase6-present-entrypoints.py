@@ -178,12 +178,13 @@ REQUIRED_CATALOG_SNIPPETS = [
     "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
     "The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-present-entrypoints.py`.",
     "Authenticated direct readback still leaves `Documentation/zigux/phase6-perf-gate-survey.md` missing on current `master`, so the remaining shared perf-note risk is reminder-surface drift rather than an executable-route gap: the directly readable helper-evidence packet already materializes `zigux/Makefile` with the current `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-test`, and `phase6-hexdump-perf` wrapper targets, and it also materializes the narrower helper-parity companion `zigux/tests/phase6_helper_parity_manifest.json`.",
+    "- last-known direct C parity companions still needing fresh direct reads: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`",
     "the remaining roadmap-aligned measurement gap is shared survey truthfulness rather than new helper semantics: `Documentation/zigux/phase6-perf-gate-survey.md` is still missing on current `master`, so the directly readable helper-evidence packet should stay anchored to the returned `zigux/tests/phase6_helper_parity_manifest.json` and the directly readable `zigux/Makefile` Phase 6 wrapper targets while `bsearch` continues to measure bounded search cost through its C ABI budget route instead of a dedicated slowdown replay comparable to the base64, checksum, and hexdump helper-local gates.",
     "## Current shared replay inventory",
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 CATALOG_SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 20
 CATALOG_SCAFFOLD = """# Phase 6 Helper Evidence Catalog
 
 This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.
@@ -261,7 +262,7 @@ Authenticated direct readback still leaves `Documentation/zigux/phase6-perf-gate
 - focused helper replay: `zigux/tests/phase6_checksum.zig`
 - dedicated slowdown replay: `zigux/tests/phase6_checksum_perf.zig`
 - committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
-- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
+- last-known direct C parity companions still needing fresh direct reads: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
 - current review posture: direct helper-local evidence is readable again through `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `Documentation/zigux/phase6-checksum-slice.md`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders, while the direct C parity companions still need fresh direct reads before they are presented as current shipped evidence
 
@@ -635,7 +636,8 @@ def run_self_test() -> None:
             REQUIRED_CATALOG_SNIPPETS[2],
             REQUIRED_CATALOG_SNIPPETS[3],
             REQUIRED_CATALOG_SNIPPETS[8],
-            REQUIRED_CATALOG_SNIPPETS[11],
+            REQUIRED_CATALOG_SNIPPETS[10],
+            REQUIRED_CATALOG_SNIPPETS[12],
         ):
             write(
                 root / HELPER_EVIDENCE_CATALOG_PATH,
