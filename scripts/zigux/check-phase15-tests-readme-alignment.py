@@ -9,8 +9,10 @@ TESTS_README_PATH = Path("zigux/tests/README.md")
 FREEZE_MAP_PATH = Path("Documentation/zigux/freeze-map.md")
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 FREEZE_GOVERNANCE_PATH = Path("Documentation/zigux/phase15-freeze-map-governance.md")
+REVIEW_PROCESS_NOTE_PATH = Path("Documentation/zigux/phase15-architecture-council-review-process.md")
 READINESS_PATH = Path("Documentation/zigux/phase15-readiness-gate-survey.md")
 HANDOFF_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
+STUDY_ONLY_ACCOUNTING_PATH = Path("Documentation/zigux/phase15-study-only-anchor-accounting.md")
 SHARED_GAP_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 REVIEW_PROCESS_CHECKER_PATH = Path("scripts/zigux/check-phase15-review-process-handoff.py")
 SELF_PATH = Path("scripts/zigux/check-phase15-tests-readme-alignment.py")
@@ -22,8 +24,10 @@ DIRECT_PACKET_PATHS = (
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/review-checklist.md",
     "Documentation/zigux/phase15-freeze-map-governance.md",
+    "Documentation/zigux/phase15-architecture-council-review-process.md",
     "Documentation/zigux/phase15-readiness-gate-survey.md",
     "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+    "Documentation/zigux/phase15-study-only-anchor-accounting.md",
     "Documentation/zigux/phase15-shared-summary-gap.md",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
@@ -93,7 +97,7 @@ Phase 15 review packet
   * `python3 scripts/zigux/check-phase15-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test` replay the focused tests-root governance checks, while the live checker routes keep the shipped reminder packet honest without rebuilding the missing broader validator-first or build packet
   * repeated authenticated contents reads on current `master` still return missing for:
 {broader}
-  * keep the current Phase 15 tests-root reminder aligned with the directly materialized governance packet and the focused review-process and tests-readme checkers instead of implying that the broader validator-first, handoff-manifest, build, lane-owner, or make-wrapper routes are already shipped on current `master`
+  * keep the current Phase 15 tests-root reminder aligned with the directly materialized governance packet, including the dedicated Architecture Council review-process note and the study-only accounting note, instead of implying that the broader validator-first, handoff-manifest, build, lane-owner, or make-wrapper routes are already shipped on current `master`
   * no Architecture Council approval is currently recorded for a freeze-map status change, keep the four freeze-in-C anchors parked, keep the two roadmap study-only anchors parked, and keep any future follow-through narrowed to the smallest reminder-surface repair first
 """
 
