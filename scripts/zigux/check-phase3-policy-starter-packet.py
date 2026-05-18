@@ -15,9 +15,11 @@ VALIDATOR_NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface
 SHARED_REMINDER_GAP_PATH = Path("Documentation/zigux/phase3-shared-reminder-gap.md")
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDING_PATH = Path("zigux/bindings/abi.zig")
+LAYOUT_ASSERT_PATH = Path("zigux/helpers/layout_assert.zig")
 PANIC_POLICY_PATH = Path("zigux/helpers/panic_policy.zig")
 ALLOCATOR_POLICY_PATH = Path("zigux/helpers/allocator_policy.zig")
 UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
+NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 TEST_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
@@ -32,9 +34,11 @@ REQUIRED_PACKET_FILES = (
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
+    "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet_manifest.json",
@@ -60,8 +64,8 @@ EXPECTED_MANIFEST_FIELDS = {
     "lane": "abi-runtime",
     "slug": "phase3-policy-starter-packet",
     "status": "policy_slice_present",
-    "scope": "panic, allocator, and unsafe interop policy decoding replay",
-    "next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families",
+    "scope": "layout, panic, allocator, and unsafe interop policy decoding replay",
+    "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families",
 }
 
 REQUIRED_MARKERS = {
@@ -69,24 +73,27 @@ REQUIRED_MARKERS = {
         "PHASE3_POLICY_SLICE_FILE_COUNT=",
         "PHASE3_POLICY_SLICE_SCOPE=",
         "PHASE3_POLICY_NEXT_SAFE_STEP=",
+        "zigux/helpers/layout_assert.zig",
         "zigux/helpers/unsafe_policy.zig",
+        "zigux/unsafe/narrow.zig",
         "zigux/tests/phase3_policy_starter_packet_manifest.json",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
-        "zigux/unsafe/narrow.zig",
     ),
     VALIDATOR_NOTE_PATH: (
         "## Focused policy slice present on `master`",
         "Documentation/zigux/phase3-policy-slice.md",
+        "zigux/helpers/layout_assert.zig",
         "zigux/helpers/panic_policy.zig",
         "zigux/helpers/allocator_policy.zig",
         "zigux/helpers/unsafe_policy.zig",
+        "zigux/unsafe/narrow.zig",
         "zigux/tests/phase3_policy_starter_packet_manifest.json",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     ),
     SHARED_REMINDER_GAP_PATH: (
-        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit",
+        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the landed notifier binding companion plus one focused export-or-UAPI layout replay explicit in the dedicated ABI note, and the shared docs-root Phase 3 summary now reflects that returned surface, but the tests-root Phase 3 summary still undercounts it, so the earlier shared-reminder sentence drift is only partially closed",
         "Documentation/zigux/phase3-policy-slice.md",
         "include/zigux/abi.h",
         "zigux/bindings/abi.zig",
@@ -97,8 +104,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase3_policy_starter_packet_build.zig",
         "Documentation/zigux/README.md",
         "zigux/tests/README.md",
-        "Documentation/zigux/review-checklist.md",
-        "PHASE3_SHARED_REMINDER_NEXT_STEP=narrow Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md so they all describe the bounded three-slice Phase 3 posture",
+        "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh only the shared Phase 3 tests-root summary in zigux/tests/README.md so it explicitly includes zigux/bindings/notifier_abi.zig, the starter export shim companion, and zigux/tests/phase3_export_uapi_layout.zig plus zigux/tests/phase3_export_uapi_layout_build.zig, while keeping the broader validator, catalog, and survey routes framed as gaps",
     ),
     ABI_HEADER_PATH: (
         "#define ZIGUX_PANIC_ABORT 0U",
@@ -121,6 +127,11 @@ REQUIRED_MARKERS = {
         "allocator_mode: u8,",
         "unsafe_scope: u8,",
         "reserved: u8,",
+    ),
+    LAYOUT_ASSERT_PATH: (
+        "pub fn expectLayout(comptime T: type, size: usize, alignment: usize) LayoutError!void {",
+        "pub fn expectFieldLayout(",
+        'test "layout assert keeps starter header layouts explicit" {',
     ),
     PANIC_POLICY_PATH: (
         "pub const Escalation = enum {",
@@ -146,38 +157,53 @@ REQUIRED_MARKERS = {
         "pub fn requiresVolatileMmioAccess(mode: abi.UnsafeScope) bool {",
         "pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {",
     ),
+    NARROW_PATH: (
+        "pub const Surface = enum {",
+        "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
+        "pub fn allowsVolatileMmio(scope: abi.UnsafeScope) bool {",
+        "pub fn allowsRawPointerBridge(scope: abi.UnsafeScope) bool {",
+        "pub fn requiresDedicatedAudit(scope: abi.UnsafeScope) bool {",
+    ),
     TEST_PATH: (
         'test "policy starter packet decodes shared interop policy records" {',
+        'test "policy starter packet keeps interop-policy layout explicit" {',
+        "layout_assert.expectLayout(abi.InteropPolicy, 4, 1)",
+        'test "policy starter packet keeps narrow-surface decoding aligned" {',
+        "narrow_surface.scopeFromInteropPolicy(case.policy)",
+        "narrow_surface.requiresDedicatedAudit(scope)",
         'test "panic policy starter packet keeps escalation semantics explicit" {',
         'test "allocator policy starter packet keeps init ownership semantics explicit" {',
         'test "unsafe policy starter packet keeps access semantics explicit" {',
-        "panic_policy.modeFromInteropPolicy(bug_heap)",
-        "allocator_policy.modeFromInteropPolicy(warn_arena)",
-        "unsafe_policy.modeFromInteropPolicy(warn_arena)",
-        "unsafe_policy.requiresRawPointerBridge(.raw_pointer_bridge)",
     ),
     BUILD_PATH: (
         '.root_source_file = b.path("../bindings/abi.zig"),',
         '.root_source_file = b.path("../helpers/panic_policy.zig"),',
         '.root_source_file = b.path("../helpers/allocator_policy.zig"),',
         '.root_source_file = b.path("../helpers/unsafe_policy.zig"),',
+        '.root_source_file = b.path("../helpers/layout_assert.zig"),',
+        '.root_source_file = b.path("../unsafe/narrow.zig"),',
         '.root_source_file = b.path("phase3_policy_starter_packet.zig"),',
         'root_module.addImport("panic_policy", panic_policy);',
         'root_module.addImport("allocator_policy", allocator_policy);',
         'root_module.addImport("unsafe_policy", unsafe_policy);',
+        'root_module.addImport("layout_assert", layout_assert);',
+        'root_module.addImport("narrow_surface", narrow_surface);',
         '"phase3-policy-starter-packet-test"',
     ),
     MANIFEST_PATH: (
         '"slug": "phase3-policy-starter-packet"',
         '"status": "policy_slice_present"',
+        '"scope": "layout, panic, allocator, and unsafe interop policy decoding replay"',
         '"Documentation/zigux/phase3-policy-slice.md"',
         '"zigux/bindings/notifier_abi.zig"',
+        '"zigux/helpers/layout_assert.zig"',
         '"zigux/helpers/panic_policy.zig"',
         '"zigux/helpers/allocator_policy.zig"',
         '"zigux/helpers/unsafe_policy.zig"',
+        '"zigux/unsafe/narrow.zig"',
         '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
         '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
-        '"next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"',
+        '"next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"',
         '"repo_reality_gaps": [',
         '"scripts/zigux/validate-phase3.py"',
     ),
@@ -196,19 +222,20 @@ SELF_TEST_CASES = (
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
     (
         SHARED_REMINDER_GAP_PATH,
-        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit",
+        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the landed notifier binding companion plus one focused export-or-UAPI layout replay explicit in the dedicated ABI note, and the shared docs-root Phase 3 summary now reflects that returned surface, but the tests-root Phase 3 summary still undercounts it, so the earlier shared-reminder sentence drift is only partially closed",
     ),
     (ABI_HEADER_PATH, "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U"),
     (ABI_BINDING_PATH, "pub const UnsafeScope = enum(u8) {"),
+    (LAYOUT_ASSERT_PATH, "pub fn expectLayout(comptime T: type, size: usize, alignment: usize) LayoutError!void {"),
     (PANIC_POLICY_PATH, "pub fn emitsKernelBug(mode: abi.PanicMode) bool {"),
     (ALLOCATOR_POLICY_PATH, "pub fn requiresResetOnInit(mode: abi.AllocatorMode) bool {"),
     (UNSAFE_POLICY_PATH, "pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {"),
-    (TEST_PATH, "unsafe_policy.requiresRawPointerBridge(.raw_pointer_bridge)"),
-    (BUILD_PATH, 'root_module.addImport("unsafe_policy", unsafe_policy);'),
-    (MANIFEST_PATH, '"zigux/bindings/notifier_abi.zig"'),
-    (MANIFEST_PATH, '"zigux/helpers/unsafe_policy.zig"'),
+    (NARROW_PATH, "pub fn requiresDedicatedAudit(scope: abi.UnsafeScope) bool {"),
+    (TEST_PATH, "narrow_surface.requiresDedicatedAudit(scope)"),
+    (BUILD_PATH, 'root_module.addImport("narrow_surface", narrow_surface);'),
+    (MANIFEST_PATH, '"zigux/helpers/layout_assert.zig"'),
+    (MANIFEST_PATH, '"zigux/unsafe/narrow.zig"'),
 )
-
 
 SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
 SAMPLE_FILES[ABI_HEADER_PATH] = """#define ZIGUX_PANIC_ABORT 0U
@@ -242,16 +269,18 @@ SAMPLE_FILES[MANIFEST_PATH] = """{
   "lane": "abi-runtime",
   "slug": "phase3-policy-starter-packet",
   "status": "policy_slice_present",
-  "scope": "panic, allocator, and unsafe interop policy decoding replay",
+  "scope": "layout, panic, allocator, and unsafe interop policy decoding replay",
   "packet_files": [
     "Documentation/zigux/phase3-policy-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
     "zigux/bindings/notifier_abi.zig",
+    "zigux/helpers/layout_assert.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
+    "zigux/unsafe/narrow.zig",
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet_manifest.json",
@@ -269,7 +298,7 @@ SAMPLE_FILES[MANIFEST_PATH] = """{
     "scripts/zigux/validate-phase3.py",
     "zigux/tests/phase3_export_uapi_layout.zig"
   ],
-  "next_safe_step": "keep the policy helper family bounded to manifest-backed replay and truthful reminder surfaces before widening into mmio, low-level wrapper, or shared runtime-shim families"
+  "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
 """
 
