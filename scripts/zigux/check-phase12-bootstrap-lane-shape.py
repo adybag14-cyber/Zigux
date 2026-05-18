@@ -81,6 +81,7 @@ Check current Phase 12 build-only surface
 Self-test current Phase 12 release-readiness packet checker
 Validate Phase 12 degraded-workflow bundle
 Check current Phase 12 release-readiness packet
+Validate current Phase 12 support bundle
 Run focused Phase 12 smoke shard
 Run current Phase 12 throughput-parity anchor
 Run Phase 12 complex driver tests
@@ -143,6 +144,7 @@ python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
 make -C zigux phase2-toolchain
 make -C zigux phase12-validate
 python3 scripts/zigux/check-phase12-release-readiness-packet.py
+python3 scripts/zigux/validate-phase12.py
 make -C zigux phase12-smoke
 zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig
 zig build test --build-file zigux/tests/phase12_build.zig --summary all
@@ -160,6 +162,7 @@ WORKFLOW_EXACT_LINES = [
     "        run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
     "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
     "        run: make -C zigux phase12-validate",
+    "        run: python3 scripts/zigux/validate-phase12.py",
     "        run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
     "        run: make -C zigux phase8-validate",
     "        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
@@ -374,6 +377,8 @@ jobs:
         run: make -C zigux phase12-validate
       - name: Check current Phase 12 release-readiness packet
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
+      - name: Validate current Phase 12 support bundle
+        run: python3 scripts/zigux/validate-phase12.py
       - name: Run focused Phase 12 smoke shard
         run: make -C zigux phase12-smoke
       - name: Run current Phase 12 throughput-parity anchor
@@ -571,6 +576,22 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/validate-phase12.py\n",
+                "        run: echo skip-phase12-support-bundle\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_exact_line:run: python3 scripts/zigux/validate-phase12.py:expected=1:actual=0",
+        )
+        cases += 1
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
         workflow_text = workflow_path.read_text(encoding="utf-8")
         docs_block = (
             "      - name: Self-test current Phase 12 bootstrap docs sanity checker\n"
@@ -616,8 +637,8 @@ def main() -> int:
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the branch "
             "keeps the current Zig archive verification, Phase 2 toolchain route, "
-            "Phase 11 HVC cleanup packet proof, Phase 12 throughput anchor, and "
-            "the branch-only docs-sanity and lane-shape guards intact."
+            "Phase 11 HVC cleanup packet proof, the shipped Phase 12 support-bundle proof, "
+            "Phase 12 throughput anchor, and the branch-only docs-sanity and lane-shape guards intact."
         )
     )
     parser.add_argument(
