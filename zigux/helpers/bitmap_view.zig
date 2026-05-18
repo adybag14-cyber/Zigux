@@ -259,6 +259,20 @@ test "bitmap validity rejects zero-bit stray storage and closes helpers" {
     try std.testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "bitmap empty sentinels stay stable even with a stray non-zero address" {
+    const empty = binding.initBitmapView(1, 0, 0);
+    const summary = summarize(empty);
+
+    try std.testing.expect(isValid(empty));
+    try std.testing.expect(!testBit(empty, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstSet(empty));
+    try std.testing.expectEqual(@as(u32, 0), firstZero(empty));
+    try std.testing.expectEqual(@as(u32, 0), weight(empty));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap view empty sentinel behavior stays explicit" {
     const empty = viewFromWords(&.{}, 0);
     const summary = summarize(empty);
