@@ -112,7 +112,15 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
         "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_post_reset_replay_direct_lab_present_shared_route_present",
         manifest.roadmap_gap_check.segmented_rollout.status,
     );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            manifest.roadmap_gap_check.segmented_rollout.current_surface,
+            "shared build route still stops at the syntax lab plus the queue-resume and transmit-recycle replays",
+        ) != null,
+    );
 
+    var saw_build_gap = false;
     var saw_post_reset_replay_gap = false;
     var saw_runtime_gap = false;
 
@@ -121,6 +129,20 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
         try std.testing.expect(gap.why_now.len > 0);
+
+        if (std.mem.eql(u8, gap.id, "phase12-build-gate")) {
+            saw_build_gap = true;
+            try std.testing.expectEqualStrings(
+                "shared_build_present_with_queue_resume_and_transmit_recycle_replays_post_reset_replay_still_direct_only",
+                gap.status,
+            );
+            try std.testing.expect(
+                std.mem.indexOf(u8, gap.why_now, "virtio_net_queue_resume") != null,
+            );
+            try std.testing.expect(
+                std.mem.indexOf(u8, gap.why_now, "post-reset replay still remains a direct driver-local test") != null,
+            );
+        }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-post-reset-replay-followup")) {
             saw_post_reset_replay_gap = true;
@@ -135,6 +157,7 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
         }
     }
 
+    try std.testing.expect(saw_build_gap);
     try std.testing.expect(saw_post_reset_replay_gap);
     try std.testing.expect(saw_runtime_gap);
 }
@@ -156,6 +179,8 @@ test "phase12 virtio net survey note stays aligned with the bounded post reset r
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/net/virtio_net_post_reset_replay.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizePostResetReplay()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_post_reset_replay.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "while the post-reset replay remains outside `zigux/tests/phase12_build.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe receive ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded complex-driver or segmented-helper step") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "b53ec2bd507d0b3283486e76acc273b184ad5bf8") != null);
@@ -172,6 +197,19 @@ test "phase12 virtio net survey gate keeps present lane files explicit" {
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_transmit_recycle.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_post_reset_replay.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));
+}
+
+test "phase12 virtio net survey gate keeps shared build surface explicit about post reset replay" {
+    const build_zig = try readFileAlloc("zigux/tests/phase12_build.zig", 32 * 1024);
+    defer std.testing.allocator.free(build_zig);
+
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12_virtio_net_queue_resume.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12_virtio_net_transmit_recycle.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12-virtio-net-queue-resume-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12-virtio-net-transmit-recycle-tests") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12_virtio_net_post_reset_replay.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12-virtio-net-post-reset-replay-tests") == null);
 }
 
 test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit" {
