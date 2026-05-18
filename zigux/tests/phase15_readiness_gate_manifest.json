@@ -29,11 +29,11 @@
     "zigux/tests/phase15_parity_scorecard.zig",
     "zigux/tests/phase15_indefinite_c_policy.json",
     "zigux/tests/phase15_indefinite_c_policy.zig",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_readiness_gate_manifest.json"
   ],
   "still_missing_broader_paths": [
     "scripts/zigux/validate-phase15.py",
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
   ],
@@ -44,7 +44,7 @@
     "phase15_tests_readme_checker_present": true,
     "phase15_governance_lane_manifest_present": true,
     "phase15_governance_lane_replay_present": true,
-    "phase15_handoff_manifest_present": false,
+    "phase15_handoff_manifest_present": true,
     "phase15_build_zig_present": false,
     "phase15_indefinite_c_lane_owner_alignment_present": false,
     "phase15_makefile_present": true,
