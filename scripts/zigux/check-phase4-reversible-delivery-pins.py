@@ -84,6 +84,8 @@ SCRIPTS_README_MARKERS = (
     "zigux/tests/README.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "`scripts/zigux/check-phase4-perf-baseline-packet.py` remains directly readable on current `master`, so only `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` stay in the missing dedicated local-only perf companion bucket until authenticated direct-readback for those exact packet members returns",
     "`zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`",
     "keep that broader validator, local-only perf, differential-gate, and helper-backed rollback packet in the missing-packet bucket here even when public current-`master` fallback rereads can still expose older companions",
     "if future same-lane work restores the broader validator, lab-matrix, dedicated local-only perf, bitmap-diff, or roadmap-backed `atomic64_diff` packet to authenticated direct-readback status, refresh this scripts-root reminder only after rereading `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `zigux/tests/README.md`, and the current scripts-root checker packet together on current `master`",
@@ -233,6 +235,21 @@ def main() -> int:
             scripts_readme_path.write_text(
                 scripts_readme_path.read_text(encoding="utf-8").replace(
                     SCRIPTS_README_MARKERS[6],
+                    "perf checker reminder drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected scripts README perf checker drift to fail")
+
+            scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
+            scripts_readme_path.write_text(
+                scripts_readme_path.read_text(encoding="utf-8").replace(
+                    SCRIPTS_README_MARKERS[7],
                     "atomic64 reminder drifted",
                 ),
                 encoding="utf-8",
