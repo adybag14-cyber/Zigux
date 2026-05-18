@@ -8,6 +8,7 @@ import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
+MAKEFILE = ROOT / "zigux" / "Makefile"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
@@ -21,8 +22,16 @@ KCONFIG_BRIDGE_SURFACE_PATHS = (
 )
 
 WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+)
+
+MAKEFILE_LINES = (
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
 )
 
 SCRIPTS_README_MARKERS = (
@@ -51,7 +60,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "make -C zigux phase2-kconfig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 32
+EXPECTED_SELF_TEST_CASE_COUNT = 43
 
 
 def read_text(path: Path) -> str:
@@ -79,6 +88,7 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
+    makefile_text = read_text(resolve_path(root, MAKEFILE))
     scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
     review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
@@ -89,6 +99,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_HOOKS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
+
+    for marker in MAKEFILE_LINES:
+        count = count_exact_lines(makefile_text, marker)
+        if count == 0:
+            issues.append(("MISSING_MAKEFILE_HOOKS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
     issues.extend(collect_missing_markers(scripts_readme_text, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"))
     issues.extend(collect_missing_markers(tests_readme_text, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"))
@@ -123,6 +140,7 @@ def write_text(path: Path, content: str) -> None:
 
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
+    write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
@@ -183,6 +201,25 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
             checks_run += 1
 
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/other.py"),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_MAKEFILE_HOOKS", marker) in issues
+            checks_run += 1
+
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count=2") in issues
+            checks_run += 1
+
         for marker in SCRIPTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, SCRIPTS_README)
@@ -214,7 +251,7 @@ def run_self_test() -> int:
             assert ("MISSING_BRIDGE_SURFACE_PATHS", bridge_path.relative_to(ROOT).as_posix()) in issues
             checks_run += 1
 
-        for rel_path in (WORKFLOW, SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST):
+        for rel_path in (WORKFLOW, MAKEFILE, SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST):
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
             try:
@@ -248,6 +285,7 @@ def main() -> int:
 
     print("PHASE2_KCONFIG_ALIGNMENT=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(MAKEFILE_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_BRIDGE_SURFACE_PATH_COUNT={len(KCONFIG_BRIDGE_SURFACE_PATHS)}")
     return 0
 
