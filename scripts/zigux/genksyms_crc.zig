@@ -487,3 +487,60 @@ test "runGenksymsCrc trims carriage return at payload boundary before split newl
 
     try std.testing.expectEqualStrings(expected, capture.list.items);
 }
+
+test "runGenksymsCrc skips standalone newline after an exact payload chunk" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 12288),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var input = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 3);
+    defer input.deinit(std.testing.allocator);
+    try input.appendNTimes(std.testing.allocator, 'a', c_line_payload_len);
+    try input.append(std.testing.allocator, '\n');
+    try input.append(std.testing.allocator, 'b');
+    try input.append(std.testing.allocator, '\n');
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(input.items, &capture);
+
+    const payload = input.items[0..c_line_payload_len];
+    const first_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(payload)});
+    defer std.testing.allocator.free(first_crc);
+    const second_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32("b")});
+    defer std.testing.allocator.free(second_crc);
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{{\"cases\":[{{\"input\":\"{s}\",\"crc_hex\":\"{s}\"}},{{\"input\":\"b\",\"crc_hex\":\"{s}\"}}]}}\n",
+        .{ payload, first_crc, second_crc },
+    );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, capture.list.items);
+}
