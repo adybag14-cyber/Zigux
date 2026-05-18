@@ -78,17 +78,17 @@ README_MARKERS = (
 ) + README_OWNER_MARKERS + README_ATOMIC64_GAP_MARKERS + README_PUBLIC_FALLBACK_MARKERS
 
 SCRIPTS_README_MARKERS = (
-    "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, and scripts-root surfaces while the broader validator, lab-matrix, dedicated local-only perf, bitmap-diff, and roadmap-backed `atomic64_diff` companions remain authenticated-readback repo-reality gaps on current `master`, so this note should stay aligned with that narrower direct-readback packet instead of treating public fallback visibility as the same thing as direct current-head proof",
+    "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, scripts-root, and dedicated local-only perf surfaces while the broader validator, lab-matrix, bitmap-diff, and roadmap-backed `atomic64_diff` companions remain authenticated-readback repo-reality gaps on current `master`, so this note should stay aligned with that narrower direct-readback packet instead of treating public fallback visibility as the same thing as direct current-head proof",
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
     "zigux/tests/README.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
-    "`scripts/zigux/check-phase4-perf-baseline-packet.py` remains directly readable on current `master`, so only `zigux/tests/phase4_perf_baseline_manifest.json` and `zigux/tests/phase4_perf_baseline_survey.zig` stay in the missing dedicated local-only perf companion bucket until authenticated direct-readback for those exact packet members returns",
+    "the dedicated local-only perf packet is directly readable on current `master` through `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`, so keep that exact perf packet explicit here while only the broader validator, lab-matrix, bitmap-diff, and roadmap-backed `atomic64_diff` companions stay in the missing-current-head bucket",
     "`zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`",
-    "keep that broader validator, local-only perf, differential-gate, and helper-backed rollback packet in the missing-packet bucket here even when public current-`master` fallback rereads can still expose older companions",
-    "if future same-lane work restores the broader validator, lab-matrix, dedicated local-only perf, bitmap-diff, or roadmap-backed `atomic64_diff` packet to authenticated direct-readback status, refresh this scripts-root reminder only after rereading `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `zigux/tests/README.md`, and the current scripts-root checker packet together on current `master`",
+    "keep that broader validator, differential-gate, and helper-backed rollback packet in the missing-packet bucket here even when public current-`master` fallback rereads can still expose older companions",
+    "if future same-lane work restores the broader validator, lab-matrix, bitmap-diff, or roadmap-backed `atomic64_diff` packet to authenticated direct-readback status, refresh this scripts-root reminder only after rereading `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `zigux/tests/README.md`, and the current scripts-root checker packet together on current `master`",
     "Validation and Perf Team",
     "ABI and Runtime Team plus Shared Subsystems Pod",
 )
