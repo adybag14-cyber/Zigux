@@ -21,6 +21,8 @@ PREFLIGHT_ORDER = (
     "Setup pinned Zig toolchain",
 )
 
+PHASE1_PRE_BUFFER_NOTE_LINE = "- `PHASE1_WORKFLOW_PHASE1_PRE_BUFFER=Self-test current Phase 1 direct-owner checker,Check current Phase 1 direct-owner markers,Self-test current Phase 1 string review checker,Check current Phase 1 string review packet,Self-test current Phase 1 bench checker,Self-test current Phase 1 shared reminder checker,Check current Phase 1 shared reminder packet`"
+
 PHASE2_TAIL_STEPS = (
     (
         "Self-test current Phase 2 toolchain pin-scope checker",
@@ -79,6 +81,16 @@ PHASE1_PRE_STEPS = (
         "Check current Phase 1 shared reminder packet",
         "python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
     ),
+)
+
+PHASE1_PREBUFFER_CHAIN = (
+    "Self-test current Phase 1 direct-owner checker",
+    "Check current Phase 1 direct-owner markers",
+    "Self-test current Phase 1 string review checker",
+    "Check current Phase 1 string review packet",
+    "Self-test current Phase 1 bench checker",
+    "Self-test current Phase 1 shared reminder checker",
+    "Check current Phase 1 shared reminder packet",
 )
 
 LANE_STEPS = (
@@ -287,6 +299,7 @@ REQUIRED_NOTE_LINES = (
     "- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-viability`",
     "- `PHASE1_WORKFLOW_PREFLIGHT=Preflight current Phase 1 workflow viability checker after Setup Python and before Setup pinned Zig toolchain`",
     "- `PHASE1_WORKFLOW_PHASE2_TAIL=Self-test current Phase 2 toolchain pin-scope checker,Check current Phase 2 toolchain pin-scope packet,Run current Phase 2 toolchain make route,Self-test current Phase 2 required-make-routes checker,Check current Phase 2 required-make-routes packet,Self-test current Phase 2 shared reminder checker,Check current Phase 2 shared reminder packet,Validate current Phase 2 tool packet`",
+    PHASE1_PRE_BUFFER_NOTE_LINE,
     "- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 shared reminder packet and before current Phase 3 interop packet`",
     "- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 shared reminder packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`",
     "- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 1 shared tests-root smoke`",
@@ -385,6 +398,7 @@ def collect_failures(root: Path) -> list[str]:
         failures.extend(require_step(workflow_text, step_name, run_command))
 
     failures.extend(require_order(workflow_text, PREFLIGHT_ORDER, "workflow_preflight_order"))
+    failures.extend(require_adjacent_chain(workflow_text, PHASE1_PREBUFFER_CHAIN))
     failures.extend(require_adjacent_chain(workflow_text, LANE_ADJACENT_CHAIN))
 
     order = (
@@ -449,6 +463,7 @@ def build_note_text() -> str:
             *REQUIRED_NOTE_LINES,
             "- keep the lane scoped to the current Phase 1 workflow-viability pair instead of reviving the older closure-side Phase 1 validator routes.",
             "- run the lightweight Lane 17 preflight after Setup Python so this branch still emits lane-local signal even when the external pinned-Zig archive step fails first.",
+            "- keep the current direct-owner, string-review, bench-selftest, and shared-reminder ladder intact before the lane-local viability pair.",
             "- keep the workflow-viability pair immediately after the current Phase 1 shared reminder packet, then preserve the current Phase 3 buffer before the shared Phase 1 smoke route.",
             "- keep the current Phase 4 artifact-diff helper and validator replay block ahead of the current Phase 8 tooling routes, then preserve the current Phase 9 review-checklist, trace-events packet, and companion sample tests before the Phase 7 shared-control pair.",
             "- if the workflow moves again, refresh this same three-file packet first instead of widening into unrelated reminder or closure lanes.",
@@ -516,6 +531,15 @@ def run_self_test() -> int:
         case_count += 1
         build_sample_repo(root)
 
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE1_PRE_BUFFER_NOTE_LINE + "\n"))
+        failures = collect_failures(root)
+        if "note:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase1_prebuffer_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(
             root,
@@ -558,7 +582,7 @@ def run_self_test() -> int:
         build_sample_repo(root)
 
         note_text = load_text(root, NOTE_REL)
-        write_file(root, NOTE_REL, rewrite_once(note_text, REQUIRED_NOTE_LINES[9] + "\n"))
+        write_file(root, NOTE_REL, rewrite_once(note_text, REQUIRED_NOTE_LINES[10] + "\n"))
         failures = collect_failures(root)
         if "note:expected=1:actual=0" not in failures:
             print("self-test:missing_phase8_note_marker")
@@ -578,6 +602,48 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=0" not in failures:
             print("self-test:missing_lane_selftest_step")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        old = (
+            "      - name: Self-test current Phase 1 direct-owner checker\n"
+            "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test\n\n"
+            "      - name: Check current Phase 1 direct-owner markers\n"
+            "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py\n\n"
+            "      - name: Self-test current Phase 1 string review checker\n"
+            "        run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test\n\n"
+            "      - name: Check current Phase 1 string review packet\n"
+            "        run: python3 scripts/zigux/check-phase1-string-review-packet.py\n\n"
+            "      - name: Self-test current Phase 1 bench checker\n"
+            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n\n"
+            "      - name: Self-test current Phase 1 shared reminder checker\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n\n"
+            "      - name: Check current Phase 1 shared reminder packet\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n"
+        )
+        new = (
+            "      - name: Self-test current Phase 1 shared reminder checker\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test\n\n"
+            "      - name: Check current Phase 1 shared reminder packet\n"
+            "        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py\n\n"
+            "      - name: Self-test current Phase 1 direct-owner checker\n"
+            "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test\n\n"
+            "      - name: Check current Phase 1 direct-owner markers\n"
+            "        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py\n\n"
+            "      - name: Self-test current Phase 1 string review checker\n"
+            "        run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test\n\n"
+            "      - name: Check current Phase 1 string review packet\n"
+            "        run: python3 scripts/zigux/check-phase1-string-review-packet.py\n\n"
+            "      - name: Self-test current Phase 1 bench checker\n"
+            "        run: python3 scripts/zigux/check-phase1-bench.py --self-test\n"
+        )
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
+        failures = collect_failures(root)
+        expected = f"workflow_adjacent_chain:missing:{'->'.join(PHASE1_PREBUFFER_CHAIN)}"
+        if expected not in failures:
+            print("self-test:broken_phase1_prebuffer_chain_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
