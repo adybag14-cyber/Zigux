@@ -148,3 +148,12 @@ test "argvSplit stops at the first embedded NUL byte" {
     try std.testing.expectEqualStrings("alpha", result.argv[0]);
     try std.testing.expectEqualStrings("beta", result.argv[1]);
 }
+
+test "argvSplit treats a NUL after leading whitespace as end of input" {
+    const source = [_]u8{ ' ', '\t', 0, 'a', 'l', 'p', 'h', 'a' };
+    var result = try argvSplit(std.testing.allocator, source[0..]);
+    defer result.deinit();
+
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+}
