@@ -148,6 +148,12 @@ EXPECTED_CASES = [
         "expected": "version_before_long_help_expected.json",
     },
     {
+        "name": "abbreviated_long_version_before_short_help",
+        "argv": ["--ver", "-h"],
+        "mode": "process_json",
+        "expected": "version_before_short_help_expected.json",
+    },
+    {
         "name": "repeated_version",
         "argv": ["-VV"],
         "mode": "process_json",
@@ -387,6 +393,7 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge keeps long version side effect before short help"',
     'test "genksyms bridge keeps long version side effect before long help"',
     'test "genksyms bridge keeps abbreviated long version side effect before long help"',
+    'test "genksyms bridge keeps abbreviated long version side effect before short help"',
     'test "genksyms bridge rejects more than sixteen reference files like the C harness"',
     'test "genksyms bridge renders normalized invocation plan"',
     'test "genksyms bridge ignores positional args while still parsing later options"',
