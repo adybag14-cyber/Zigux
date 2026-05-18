@@ -39,7 +39,7 @@ Fresh repo-first inspection in this run confirmed that current `master` still ke
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-The same reread also confirmed that current `master` now keeps the restored direct bytestream packet, the restored direct kretprobe packet, and the bounded trace-events formatting companion visible from the sample root, while the kobject anchor remains a roadmap-backed target plus shared reminder or repo-reality-gap surface until a fresh reread proves its sample-root port returned directly on current `master`.
+The same reread also confirmed that current `master` now keeps the restored direct bytestream packet, the restored direct kretprobe packet, and the bounded trace-events formatting companion visible from the sample root, while the kobject anchor remains a roadmap-backed target plus shared reminder or repo-reality-gap surface until a fresh reread proves its older sample-root and tests-root packet returned on current `master`.
 
 Keep this shared note truthful about that narrower current packet instead of repeating older missing-sample wording for bytestream or older broader direct-sample wording for kobject or trace-events.
 
@@ -60,7 +60,8 @@ So the current direct sample-root evidence for the roadmap-backed non-runtime Ph
 Treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for its approved anchor.
 Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
-Keep the kobject anchor in shared-reminder, current public-tree-backed companion, or repo-reality-gap wording until a fresh reread proves `samples/zigux/kobject_example.zig` returned directly on current `master`.
+Keep the kobject anchor in shared-reminder or repo-reality-gap wording until a fresh reread proves `samples/zigux/kobject_example.zig` and its older companion packet returned on current `master`.
+Fresh authenticated contents reread in this run still returned 404 for `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig`.
 
 ## Tracing and probe packet
 
