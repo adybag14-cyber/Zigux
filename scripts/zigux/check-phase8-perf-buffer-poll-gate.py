@@ -21,6 +21,7 @@ ROOT = infer_repo_root()
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 TESTS_README_PATH = "zigux/tests/README.md"
 PERF_BUFFER_POLL_TEST_PATH = "zigux/tests/phase8_perf_buffer_poll.zig"
+PERF_BUFFER_POLL_HELPER_PATH = "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
 
 SCRIPTS_README_REQUIRED_MARKERS = [
     "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly",
@@ -117,6 +118,26 @@ PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     "_ = resolvePollExecutionResultFromWaitResult;",
 ]
 
+PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS = [
+    "pub const BufferFdLookupDisposition = enum {",
+    "pub const BufferFdLookupSummary = struct {",
+    "pub const BufferFdLookupError = error{",
+    "pub fn summarizeBufferFdLookup(",
+    "pub fn resolveBufferFd(summary: BufferFdLookupSummary) BufferFdLookupError!i32 {",
+    "pub fn resolveBufferFdLookupReturn(summary: BufferFdLookupSummary) i32 {",
+    "pub const BufferWindowObservation = struct {",
+    "pub const BufferWindowLookupDisposition = enum {",
+    "pub const BufferWindowLookupSummary = struct {",
+    "pub const BufferWindowLookupError = error{",
+    "pub fn summarizeBufferWindowLookup(",
+    "pub fn resolveBufferWindowMappedSize(summary: BufferWindowLookupSummary) BufferWindowLookupError!usize {",
+    "pub fn resolveBufferWindowLookupReturn(summary: BufferWindowLookupSummary) i32 {",
+    'test "phase8 perf-buffer poll exposes typed fd resolution beside errno-shaped fd returns" {',
+    "try std.testing.expectError(error.MissingFd, resolveBufferFd(missing));",
+    'test "phase8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns" {',
+    "try std.testing.expectError(error.MissingWindow, resolveBufferWindowMappedSize(missing));",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -130,7 +151,12 @@ def write_text(root: Path, rel_path: str, content: str) -> None:
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    for rel_path in (SCRIPTS_README_PATH, TESTS_README_PATH, PERF_BUFFER_POLL_TEST_PATH):
+    for rel_path in (
+        SCRIPTS_README_PATH,
+        TESTS_README_PATH,
+        PERF_BUFFER_POLL_TEST_PATH,
+        PERF_BUFFER_POLL_HELPER_PATH,
+    ):
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
     if failures:
@@ -150,6 +176,11 @@ def validate(root: Path) -> list[str]:
     for marker in PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS:
         if marker not in perf_buffer_poll_test:
             failures.append(f"missing_marker:{PERF_BUFFER_POLL_TEST_PATH}:{marker}")
+
+    perf_buffer_poll_helper = read_text(root, PERF_BUFFER_POLL_HELPER_PATH)
+    for marker in PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS:
+        if marker not in perf_buffer_poll_helper:
+            failures.append(f"missing_marker:{PERF_BUFFER_POLL_HELPER_PATH}:{marker}")
 
     return failures
 
@@ -201,70 +232,70 @@ Phase 8 review packet
 
 
 def build_perf_buffer_poll_test_fixture() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
-test \"phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit\" {
-    _ = \"zigux/tests/README.md\";
-    _ = \"current direct-readback Phase 8 anchors:\";
-    _ = \"`scripts/zigux/check-phase8-tests-readme-alignment.py`\";
-    _ = \"current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:\";
-    _ = \"`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`\";
-    _ = \"`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`\";
-    _ = \"`scripts/zigux/validate-phase8.py`\";
-    _ = \"`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`\";
-    _ = \"`zigux/tests/phase8_file_path_handle_bridge.zig`\";
-    _ = \"`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`\";
-    _ = \"`zigux/tests/phase8_build.zig`\";
-    _ = \"`make -C zigux phase8-file-path-handle-bridge-test`\";
-    _ = \"repo-reality warning for the broader remaining Phase 8 tooling packet:\";
-    _ = \"`Documentation/zigux/phase8-tooling-lane-sequencing.md`\";
-    _ = \"`Documentation/zigux/phase8-help-slice.md`\";
-    _ = \"`Documentation/zigux/phase8-kallsyms-slice.md`\";
-    _ = \"`Documentation/zigux/phase8-libbpf-segment-survey.md`\";
-    _ = \"`zigux/tests/phase8_perf_buffer_poll_only_build.zig`\";
-    _ = \"`zigux/tests/phase8_libbpf_segments.zig`\";
-    _ = \"`zigux/Makefile`\";
-    _ = \"keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence\";
+test "phase 8 perf-buffer poll tests README keeps the current direct-readback packet explicit" {
+    _ = "zigux/tests/README.md";
+    _ = "current direct-readback Phase 8 anchors:";
+    _ = "`scripts/zigux/check-phase8-tests-readme-alignment.py`";
+    _ = "current mixed-source file-path-handle bridge companions also remain reviewable on current `master` through the public tree and aligned reminder packet:";
+    _ = "`Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`";
+    _ = "`Documentation/zigux/phase8-file-path-handle-bridge-slice.md`";
+    _ = "`scripts/zigux/validate-phase8.py`";
+    _ = "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`";
+    _ = "`zigux/tests/phase8_file_path_handle_bridge.zig`";
+    _ = "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`";
+    _ = "`zigux/tests/phase8_build.zig`";
+    _ = "`make -C zigux phase8-file-path-handle-bridge-test`";
+    _ = "repo-reality warning for the broader remaining Phase 8 tooling packet:";
+    _ = "`Documentation/zigux/phase8-tooling-lane-sequencing.md`";
+    _ = "`Documentation/zigux/phase8-help-slice.md`";
+    _ = "`Documentation/zigux/phase8-kallsyms-slice.md`";
+    _ = "`Documentation/zigux/phase8-libbpf-segment-survey.md`";
+    _ = "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`";
+    _ = "`zigux/tests/phase8_libbpf_segments.zig`";
+    _ = "`zigux/Makefile`";
+    _ = "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence";
 }
 
-test \"phase 8 perf-buffer poll scripts README keeps the surviving bridge packet explicit\" {
-    _ = \"scripts/zigux/README.md\";
-    _ = \"Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly\";
-    _ = \"`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`\";
-    _ = \"`zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface\";
-    _ = \"keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build evidence instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone\";
+test "phase 8 perf-buffer poll scripts README keeps the surviving bridge packet explicit" {
+    _ = "scripts/zigux/README.md";
+    _ = "Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly";
+    _ = "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`";
+    _ = "`zigux/tests/phase8_perf_buffer_poll.zig` remains the surviving direct Phase 8 replay surface";
+    _ = "keep the current Phase 8 follow-through tied to the surviving perf-buffer-poll gate, the tests-root Phase 8 summary, the shipped file-path-handle bridge validator and helper packet, and the live shared build evidence instead of widening back into exec-cmd, help, kallsyms, or broader libbpf segment wording from older route names alone";
 }
 
-test \"phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity\" {
+test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping below routing parity" {
     _ = summarizePollExecutionResultFromWaitResult;
     _ = PollReturnDisposition.ready_count;
     _ = PollReturnDisposition.processing_failed;
     _ = first_process_error_index;
 }
 
-test \"phase 8 perf-buffer poll helper rejects ready waits without processing attempts\" {
+test "phase 8 perf-buffer poll helper rejects ready waits without processing attempts" {
     _ = PollError.InconsistentProcessingAccountingSummary;
 }
 
-test \"phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped\" {
+test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and errno-shaped" {
     _ = summarizeBufferFdLookup;
     _ = resolveBufferFdLookupReturn;
     _ = BufferFdLookupDisposition.missing_fd;
 }
 
-test \"phase 8 perf-buffer poll helper exposes typed fd resolution beside errno-shaped fd returns\" {
+test "phase 8 perf-buffer poll helper exposes typed fd resolution beside errno-shaped fd returns" {
     _ = BufferFdLookupDisposition.found_fd;
     _ = resolveBufferFd(found);
     _ = error.MissingFd;
 }
 
-test \"phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped\" {
+test "phase 8 perf-buffer poll helper keeps buffer-window lookup returns compact and mapped-size-shaped" {
     _ = summarizeBufferWindowLookup;
     _ = resolveBufferWindowLookupReturn;
     _ = BufferWindowLookupDisposition.missing_window;
 }
 
-test \"phase 8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns\" {
+test "phase 8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns" {
     _ = resolveBufferWindowMappedSize;
     _ = BufferWindowLookupDisposition.found_window;
     _ = BufferWindowLookupDisposition.invalid_index;
@@ -273,17 +304,110 @@ test \"phase 8 perf-buffer poll exposes typed mapped-size resolution beside errn
     _ = error.InvalidIndex;
 }
 
-test \"phase 8 perf-buffer poll rejects impossible post-wait buffer states\" {
+test "phase 8 perf-buffer poll rejects impossible post-wait buffer states" {
     _ = PollError.TimeoutObservationHasReadyBuffer;
     _ = PollError.InterruptedObservationHasReadyBuffer;
     _ = PollError.FailedObservationHasBufferState;
 }
 
-test \"resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries\" {
+test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result and execution summaries" {
     _ = resolvePollExecutionResultFromWaitResult;
     _ = PollError.WaitResultDisagreesWithExecutionOutcome;
     _ = PollError.WaitResultDisagreesWithReadyEventCount;
     _ = PollError.WaitResultDisagreesWithFailureCode;
+}
+"""
+
+
+def build_perf_buffer_poll_helper_fixture() -> str:
+    return """const std = @import("std");
+
+pub const BufferFdLookupDisposition = enum {
+    found_fd,
+    invalid_index,
+    missing_fd,
+};
+
+pub const BufferFdLookupSummary = struct {
+    slot_count: usize,
+    requested_index: usize,
+    fd: ?i32,
+    disposition: BufferFdLookupDisposition,
+};
+
+pub const BufferFdLookupError = error{
+    InvalidIndex,
+    MissingFd,
+};
+
+pub const BufferWindowObservation = struct {
+    mapped_size: usize = 0,
+};
+
+pub const BufferWindowLookupDisposition = enum {
+    found_window,
+    invalid_index,
+    missing_window,
+};
+
+pub const BufferWindowLookupSummary = struct {
+    slot_count: usize,
+    requested_index: usize,
+    mapped_size: ?usize,
+    disposition: BufferWindowLookupDisposition,
+};
+
+pub const BufferWindowLookupError = error{
+    InvalidIndex,
+    MissingWindow,
+};
+
+pub fn summarizeBufferFdLookup(
+    buffer_fds: []const ?i32,
+    buffer_index: usize,
+) BufferFdLookupSummary {
+    _ = buffer_fds;
+    _ = buffer_index;
+    return undefined;
+}
+
+pub fn resolveBufferFd(summary: BufferFdLookupSummary) BufferFdLookupError!i32 {
+    _ = summary;
+    return error.MissingFd;
+}
+
+pub fn resolveBufferFdLookupReturn(summary: BufferFdLookupSummary) i32 {
+    _ = summary;
+    return 0;
+}
+
+pub fn summarizeBufferWindowLookup(
+    buffer_windows: []const ?BufferWindowObservation,
+    buffer_index: usize,
+) BufferWindowLookupSummary {
+    _ = buffer_windows;
+    _ = buffer_index;
+    return undefined;
+}
+
+pub fn resolveBufferWindowMappedSize(summary: BufferWindowLookupSummary) BufferWindowLookupError!usize {
+    _ = summary;
+    return error.MissingWindow;
+}
+
+pub fn resolveBufferWindowLookupReturn(summary: BufferWindowLookupSummary) i32 {
+    _ = summary;
+    return 0;
+}
+
+test "phase8 perf-buffer poll exposes typed fd resolution beside errno-shaped fd returns" {
+    const missing = summarizeBufferFdLookup(&[_]?i32{null}, 0);
+    try std.testing.expectError(error.MissingFd, resolveBufferFd(missing));
+}
+
+test "phase8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns" {
+    const missing = summarizeBufferWindowLookup(&[_]?BufferWindowObservation{null}, 0);
+    try std.testing.expectError(error.MissingWindow, resolveBufferWindowMappedSize(missing));
 }
 """
 
@@ -300,6 +424,7 @@ def run_self_test() -> int:
         write_text(base, SCRIPTS_README_PATH, build_scripts_readme_fixture())
         write_text(base, TESTS_README_PATH, build_tests_readme_fixture())
         write_text(base, PERF_BUFFER_POLL_TEST_PATH, build_perf_buffer_poll_test_fixture())
+        write_text(base, PERF_BUFFER_POLL_HELPER_PATH, build_perf_buffer_poll_helper_fixture())
 
         failures = validate(base)
         if failures:
@@ -332,6 +457,15 @@ def run_self_test() -> int:
             expect_failure(base, f"missing_marker:{PERF_BUFFER_POLL_TEST_PATH}:{marker}")
             write_text(base, PERF_BUFFER_POLL_TEST_PATH, build_perf_buffer_poll_test_fixture())
 
+        for marker in PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS:
+            write_text(
+                base,
+                PERF_BUFFER_POLL_HELPER_PATH,
+                build_perf_buffer_poll_helper_fixture().replace(marker, "", 1),
+            )
+            expect_failure(base, f"missing_marker:{PERF_BUFFER_POLL_HELPER_PATH}:{marker}")
+            write_text(base, PERF_BUFFER_POLL_HELPER_PATH, build_perf_buffer_poll_helper_fixture())
+
         shutil.rmtree(base / "scripts", ignore_errors=True)
         expect_failure(base, f"missing_file:{SCRIPTS_README_PATH}")
         write_text(base, SCRIPTS_README_PATH, build_scripts_readme_fixture())
@@ -344,6 +478,10 @@ def run_self_test() -> int:
         shutil.rmtree(base / "zigux/tests", ignore_errors=True)
         write_text(base, TESTS_README_PATH, build_tests_readme_fixture())
         expect_failure(base, f"missing_file:{PERF_BUFFER_POLL_TEST_PATH}")
+        write_text(base, PERF_BUFFER_POLL_TEST_PATH, build_perf_buffer_poll_test_fixture())
+
+        shutil.rmtree(base / "tools", ignore_errors=True)
+        expect_failure(base, f"missing_file:{PERF_BUFFER_POLL_HELPER_PATH}")
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
@@ -358,6 +496,10 @@ def run_self_test() -> int:
         "PHASE8_PERF_BUFFER_POLL_GATE_TEST_FILE_MARKER_COUNT="
         f"{len(PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS)}"
     )
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_HELPER_FILE_MARKER_COUNT="
+        f"{len(PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS)}"
+    )
     return 0
 
 
@@ -365,7 +507,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the surviving Phase 8 perf-buffer poll packet stays aligned "
-            "across the scripts guide, the tests guide, and the bounded poll helper test."
+            "across the scripts guide, the tests guide, the bounded poll helper test, "
+            "and the helper source markers."
         )
     )
     parser.add_argument(
@@ -399,6 +542,10 @@ def main() -> int:
     print(
         "PHASE8_PERF_BUFFER_POLL_GATE_TEST_FILE_MARKER_COUNT="
         f"{len(PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS)}"
+    )
+    print(
+        "PHASE8_PERF_BUFFER_POLL_GATE_HELPER_FILE_MARKER_COUNT="
+        f"{len(PERF_BUFFER_POLL_HELPER_REQUIRED_MARKERS)}"
     )
     print("PHASE8_PERF_BUFFER_POLL_GATE=pass")
     return 0
