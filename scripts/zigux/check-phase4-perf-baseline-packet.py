@@ -20,7 +20,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 30
+EXPECTED_SELF_TEST_CASES = 32
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -71,6 +71,8 @@ SURVEY_MARKERS = (
     'try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");',
     'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");',
     'try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");',
+    'try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");',
+    'try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");',
     'test "phase4 perf baseline survey keeps the dedicated packet contract reviewable" {',
     'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");',
     'try requireMarker("\\\"status\\\": \\\"shared CI perf promotion pending\\\"");',
@@ -275,6 +277,8 @@ def run_self_test() -> int:
             ('try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");'),
             ('try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");', 'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline\\\"");', 'survey_marker:try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");'),
             ('try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");', 'try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey still needs shared CI approval.\\\"");', 'survey_marker:try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");'),
+            ('try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"rollback_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");'),
+            ('try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"decision_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");'),
             ('try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");', 'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-other-decision\\\"");', 'survey_marker:try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");'),
             ('try requireMarker("\\\"status\\\": \\\"shared CI perf promotion pending\\\"");', 'try requireMarker("\\\"status\\\": \\\"shared CI perf promotion approved\\\"");', 'survey_marker:try requireMarker("\\\"status\\\": \\\"shared CI perf promotion pending\\\"");'),
             ('try requireMarker("\\\"coordination_owners\\\": [");', 'try requireMarker("\\\"coordination_team\\\": [");', 'survey_marker:try requireMarker("\\\"coordination_owners\\\": [");'),
