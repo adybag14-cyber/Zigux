@@ -51,7 +51,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 6
+SELF_TEST_CASE_COUNT = 9
 
 
 def read_text(path: Path) -> str:
@@ -145,12 +145,42 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         helper_text = read_text(helper_path)
-        marker = 'test "argvFree mirrors argv_free release ownership and stays safe after teardown" {'
-        helper_path.write_text(helper_text.replace(marker + "\n", "", 1), encoding="utf-8")
+        helper_marker = 'test "argvFree mirrors argv_free release ownership and stays safe after teardown" {'
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_release_ownership_marker",
             tmp_root,
-            f"lib/argv_split.zig: {marker}",
+            f"lib/argv_split.zig: {helper_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        manifest_text = read_text(manifest_path)
+        manifest_marker = "helper-local survey-or-manifest truthfulness"
+        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_truthfulness_marker",
+            tmp_root,
+            f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectContains(helper, "pub const ArgvSplitResult = struct {");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_helper_anchor_marker",
+            tmp_root,
+            f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        samples_text = read_text(samples_path)
+        samples_marker = "* `*argv*`"
+        samples_path.write_text(samples_text.replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_samples_boundary_marker",
+            tmp_root,
+            f"samples/zigux/README.md: {samples_marker}",
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
