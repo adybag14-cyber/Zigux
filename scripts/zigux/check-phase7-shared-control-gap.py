@@ -32,6 +32,25 @@ PARKED_SHARED_CONTROL_PATHS = [
     "zigux/tests/phase7_build.zig",
 ]
 
+READABLE_NON_OWNER_FILES = [
+    ".github/workflows/zigux-bootstrap.yml",
+    "zigux/Makefile",
+]
+
+ABSENT_SHARED_CONTROL_ROUTE_MARKERS = {
+    ".github/workflows/zigux-bootstrap.yml": [
+        "Validate Phase 7 runtime helper gates",
+        "Run Phase 7 runtime helper tests",
+        "make -C zigux phase7-validate",
+        "make -C zigux phase7-test",
+    ],
+    "zigux/Makefile": [
+        "phase7-validate:",
+        "phase7-test:",
+        "phase7:",
+    ],
+}
+
 SEQUENCING_REQUIRED_SNIPPETS = [
     "- shared control-surface packet, lane `P7-Y05`:",
     "- the shared control packet is also only partly recoverable in this slot. `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` remain directly readable, but fresh authenticated contents reads still returned missing for `scripts/zigux/validate-phase7.py` and `zigux/tests/phase7_build.zig`, so `P7-Y05` should treat the shared wrapper stack as parked reminder vocabulary until those files rematerialize.",
@@ -50,6 +69,8 @@ SELF_TEST_CASE_COUNT = (
     + len(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
     + len(PARKED_SHARED_CONTROL_PATHS)
     + len(DIRECT_PACKET[2:])
+    + len(READABLE_NON_OWNER_FILES)
+    + sum(len(markers) for markers in ABSENT_SHARED_CONTROL_ROUTE_MARKERS.values())
     + 2
 )
 
@@ -74,6 +95,16 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
             )
 
 
+def require_absent_markers(repo_root: Path) -> None:
+    for rel, markers in ABSENT_SHARED_CONTROL_ROUTE_MARKERS.items():
+        content = read_text(repo_root / rel)
+        for marker in markers:
+            if marker in content:
+                raise ValidationError(
+                    f"unexpected Phase 7 shared-control wrapper marker in {rel}: {marker}"
+                )
+
+
 def require_repo_reality(repo_root: Path) -> None:
     missing_direct = [rel for rel in DIRECT_PACKET if not (repo_root / rel).exists()]
     if missing_direct:
@@ -88,6 +119,15 @@ def require_repo_reality(repo_root: Path) -> None:
             "parked Phase 7 shared-control paths unexpectedly rematerialized: "
             + ", ".join(rematerialized_paths)
         )
+
+    missing_non_owner = [rel for rel in READABLE_NON_OWNER_FILES if not (repo_root / rel).exists()]
+    if missing_non_owner:
+        raise ValidationError(
+            "required readable non-owner Phase 7 shared-control files disappeared: "
+            + ", ".join(missing_non_owner)
+        )
+
+    require_absent_markers(repo_root)
 
 
 def validate(repo_root: Path) -> None:
@@ -106,6 +146,14 @@ def scaffold_repo(root: Path) -> None:
     write(root / STRING_HELPERS_SLICE_PATH, "\n".join(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS) + "\n")
     for rel in DIRECT_PACKET[2:]:
         write(root / Path(rel), "# direct phase7 shared-control packet file\n")
+    write(
+        root / Path(".github/workflows/zigux-bootstrap.yml"),
+        "name: zigux-bootstrap\n- name: Check current Phase 7 shared-control gap packet\n",
+    )
+    write(
+        root / Path("zigux/Makefile"),
+        "phase2-validate:\n\tpython3 scripts/zigux/validate-phase2.py\n",
+    )
 
 
 def expect_validation_error(root: Path, expected_fragment: str) -> None:
@@ -125,6 +173,15 @@ def expect_failure(root: Path, path: Path, snippet: str) -> None:
     write(path, original.replace(snippet + "\n", "", 1))
     try:
         expect_validation_error(root, snippet)
+    finally:
+        write(path, original)
+
+
+def expect_unexpected_marker(root: Path, path: Path, marker: str) -> None:
+    original = read_text(path)
+    write(path, original + marker + "\n")
+    try:
+        expect_validation_error(root, marker)
     finally:
         write(path, original)
 
@@ -161,6 +218,22 @@ def run_self_test() -> None:
             finally:
                 write(direct_path, "# direct phase7 shared-control packet file\n")
             cases_run += 1
+
+        for rel in READABLE_NON_OWNER_FILES:
+            non_owner_path = root / Path(rel)
+            original = read_text(non_owner_path)
+            non_owner_path.unlink()
+            try:
+                expect_validation_error(root, rel)
+            finally:
+                write(non_owner_path, original)
+            cases_run += 1
+
+        for rel, markers in ABSENT_SHARED_CONTROL_ROUTE_MARKERS.items():
+            path = root / Path(rel)
+            for marker in markers:
+                expect_unexpected_marker(root, path, marker)
+                cases_run += 1
 
         scaffold_repo(root)
         (root / SEQUENCING_NOTE_PATH).unlink()
@@ -212,6 +285,7 @@ def main() -> int:
     print("PHASE7_SHARED_CONTROL_GAP=pass")
     print(f"PHASE7_SHARED_CONTROL_GAP_DIRECT_FILE_COUNT={len(DIRECT_PACKET)}")
     print(f"PHASE7_SHARED_CONTROL_GAP_PARKED_FILE_COUNT={len(PARKED_SHARED_CONTROL_PATHS)}")
+    print(f"PHASE7_SHARED_CONTROL_GAP_NON_OWNER_FILE_COUNT={len(READABLE_NON_OWNER_FILES)}")
     return 0
 
 
