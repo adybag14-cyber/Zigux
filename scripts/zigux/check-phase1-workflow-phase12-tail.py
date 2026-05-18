@@ -190,7 +190,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_adjacency_line")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"))
