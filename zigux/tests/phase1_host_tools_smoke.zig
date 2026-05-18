@@ -257,6 +257,9 @@ test "phase1 host-tools smoke checks additional lane10 helper edges" {
     var truncated_message = [_]u8{0xaa} ** 4;
     try std.testing.expectEqualStrings("Suc", str_error_r.strErrorR(0, &truncated_message));
     try std.testing.expectEqual(@as(u8, 0), truncated_message[3]);
+    var single_char_message = [_]u8{0xaa};
+    try std.testing.expectEqualStrings("", str_error_r.strErrorR(0, &single_char_message));
+    try std.testing.expectEqual(@as(u8, 0), single_char_message[0]);
 
     slab.kmalloc_nr_allocated = 0;
     const slab_array = slab.kmallocArray(3, 2, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
@@ -266,13 +269,21 @@ test "phase1 host-tools smoke checks additional lane10 helper edges" {
     }
     slab.kfree(slab_array);
     try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+    try std.testing.expect(slab.kmallocArray(3, 2, 0) == null);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
     try std.testing.expect(slab.kmallocArray(std.math.maxInt(usize), 2, slab.GFP_KERNEL) == null);
     try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
 
     var empty_vsprintf: [0]u8 = .{};
     try std.testing.expectEqual(@as(usize, 0), vsprintf.vscnprintf(&empty_vsprintf, "{s}", .{"zigux"}));
+    var single_byte_vsprintf = [_]u8{0xaa};
+    try std.testing.expectEqual(@as(usize, 0), vsprintf.scnprintf(&single_byte_vsprintf, "{s}", .{"zigux"}));
+    try std.testing.expectEqual(@as(u8, 0), single_byte_vsprintf[0]);
 
     const allocator = std.testing.allocator;
+    var optional_bytes: ?[]u8 = null;
+    zalloc.zfreeBytes(allocator, &optional_bytes);
+    try std.testing.expect(optional_bytes == null);
     const EmptyValue = struct {
         flag: bool,
     };
