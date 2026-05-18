@@ -133,6 +133,12 @@ jobs:
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
 
+      - name: Self-test current Lane 01 bootstrap charter checker
+        run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test
+
+      - name: Check current Lane 01 bootstrap charter packet
+        run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py
+
       - name: Self-test current kconfig bridge checker
         run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
 
