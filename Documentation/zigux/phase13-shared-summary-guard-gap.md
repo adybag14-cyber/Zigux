@@ -58,7 +58,7 @@ Keep these paths recorded as repo-reality gaps until current `master` rematerial
 2. Run `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`.
 3. Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned adjacent notifier evidence without turning them into part of the stable shared replay handle.
 4. Keep `zigux/Makefile` explicit as a returned file, but keep `make -C zigux phase13-validate`, `make -C zigux phase13`, and the still-missing notifier, build, and direct Landlock syscall companions recorded as repo-reality gaps rather than promoting them into shipped contributor workflow evidence.
-5. Treat the next same-lane follow-through as a broader docs-root reread, starting with `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, so the wider shared reminder packet matches the now-correct tests-root Landlock wording before reopening helper-local work.
+5. Treat the next same-lane follow-through as a broader docs-root reread, starting with `Documentation/zigux/README.md`, so the wider shared reminder packet can be checked against the now-correct tests-root and scripts-root Landlock wording before reopening helper-local work.
 
 ## Boundaries
 
