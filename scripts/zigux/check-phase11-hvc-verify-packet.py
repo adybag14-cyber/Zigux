@@ -175,8 +175,7 @@ def run_self_test() -> int:
         make_fixture(temp_dir)
         cleanup_file = temp_dir / "zigux/tests/phase11_hvc_cleanup.zig"
         cleanup_text = cleanup_file.read_text(encoding="utf-8")
-        cleanup_file.writeText = cleanup_file.write_text
-        cleanup_file.writeText(
+        cleanup_file.write_text(
             cleanup_text.replace("    trigger: CleanupTrigger,\n", "", 1),
             encoding="utf-8",
         )
