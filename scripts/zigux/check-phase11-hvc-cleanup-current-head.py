@@ -28,7 +28,9 @@ SURVEY_MARKERS = (
 )
 COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
+    "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
+    "returned HVC validation matrix",
     "smaller proof-backed HVC continuity packet reviewable",
 )
 VERIFY_MARKERS = (
@@ -196,7 +198,9 @@ def build_fixture(root: Path) -> None:
         "# Phase 11 HVC Cleanup Alignment Current-Head Companion",
         "",
         "`PHASE11_STATUS=current_head_companion_landed`",
+        "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
+        "the returned HVC validation matrix stays explicit beside this companion",
         "smaller proof-backed HVC continuity packet reviewable",
         "",
     ]))
@@ -280,6 +284,11 @@ def run_self_test() -> int:
         write(missing_companion_gap / COMPANION_PATH, read_text(missing_companion_gap / COMPANION_PATH).replace("Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap", ""))
         expect_failure(missing_companion_gap, "`scripts/zigux/check-phase11-hvc-survey-packet.py`")
 
+        missing_companion_matrix = tmpdir / "missing_companion_matrix"
+        shutil.copytree(fixture, missing_companion_matrix, dirs_exist_ok=True)
+        write(missing_companion_matrix / COMPANION_PATH, read_text(missing_companion_matrix / COMPANION_PATH).replace("`Documentation/zigux/phase11-hvc-console-validation-matrix.md`", ""))
+        expect_failure(missing_companion_matrix, "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`")
+
         missing_verify = tmpdir / "missing_verify"
         shutil.copytree(fixture, missing_verify, dirs_exist_ok=True)
         write(missing_verify / VERIFY_PATH, read_text(missing_verify / VERIFY_PATH).replace("`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.", ""))
@@ -322,7 +331,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=12")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=13")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
