@@ -35,8 +35,11 @@ EXPECTED_DOC_MARKERS = (
     "`scripts/zigux/check-phase2-kconfig-readme-alignment.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
+    "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`scripts/zigux/install-zig.py`",
-    "is now replayed on this lane branch as well as current `master`",
+    "`master_present_branch_missing_files`",
     "`PHASE2_NEXT_STEP=restore one remaining broader checker or installer-backed helper packet at a time now that the closure note, bootstrap companion, shared validator, dedicated kconfig README checker, dedicated toolchain pin-scope guard, manifest checker, and Linux-style Makefile routes are replayed together on the lane branch`",
 )
 
@@ -56,7 +59,8 @@ EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "is now directly readable on the lane branch too",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`PHASE2_TOOLCHAIN_NEXT_STEP=restore the remaining installer-backed helper now that the shared validator, direct Zig-version guard, dedicated pin-scope helper, and Linux-style Makefile routes are back on the lane branch`",
 )
 
@@ -81,11 +85,15 @@ EXPECTED_PRESENT_FILES = [
 
 EXPECTED_MISSING_FILES = [
     "scripts/zigux/check-phase2-cross.py",
-    "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/install-zig.py",
 ]
 
-EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
+EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/check-phase2-required-make-routes.py",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
+]
 
 EXPECTED_DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
