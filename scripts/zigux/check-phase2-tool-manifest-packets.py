@@ -78,7 +78,7 @@ EXPECTED_MISSING_FILES = [
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
 
-EXPECTED_SELF_TEST_CASE_COUNT = 27
+EXPECTED_SELF_TEST_CASE_COUNT = 32
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -105,6 +105,18 @@ def read_manifest(root: Path) -> dict[str, object]:
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
+
+
+def read_manifest_string_list(
+    manifest: dict[str, object],
+    field: str,
+    issues: list[tuple[str, str]],
+) -> list[str]:
+    value = manifest.get(field)
+    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+        issues.append(("INVALID_MANIFEST_FIELD", field))
+        return []
+    return value
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -138,6 +150,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
 
+    present_files = read_manifest_string_list(manifest, "present_files", issues)
+    missing_files = read_manifest_string_list(manifest, "missing_files", issues)
+    master_present_branch_missing_files = read_manifest_string_list(
+        manifest,
+        "master_present_branch_missing_files",
+        issues,
+    )
+
     if manifest.get("packet") != "phase2_tool_manifest":
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
     if manifest.get("phase") != "phase2":
@@ -156,22 +176,34 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_FIELD", "tool_manifest_checker"))
     if manifest.get("makefile") != MAKEFILE_PATH:
         issues.append(("INVALID_MANIFEST_FIELD", "makefile"))
-    if manifest.get("present_files") != EXPECTED_PRESENT_FILES:
+    if present_files != EXPECTED_PRESENT_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "present_files"))
-    if manifest.get("missing_files") != EXPECTED_MISSING_FILES:
+    if missing_files != EXPECTED_MISSING_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "missing_files"))
-    if manifest.get("master_present_branch_missing_files") != EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES:
+    if master_present_branch_missing_files != EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files"))
     if manifest.get("workflow_surface") != WORKFLOW_SURFACE_PATH:
         issues.append(("INVALID_MANIFEST_FIELD", "workflow_surface"))
 
-    if CHECKER_PATH in manifest.get("missing_files", []):
+    present_set = set(present_files)
+    missing_set = set(missing_files)
+    overlap = sorted(present_set & missing_set)
+    for relpath in overlap:
+        issues.append(("MANIFEST_PATH_LIST_OVERLAP", relpath))
+
+    for relpath in master_present_branch_missing_files:
+        if relpath in present_set:
+            issues.append(("MASTER_PRESENT_PATH_MARKED_PRESENT", relpath))
+        if relpath not in missing_set:
+            issues.append(("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", relpath))
+
+    if CHECKER_PATH in missing_files:
         issues.append(("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH))
-    if CHECKER_PATH not in manifest.get("present_files", []):
+    if CHECKER_PATH not in present_files:
         issues.append(("CHECKER_NOT_MARKED_PRESENT", CHECKER_PATH))
-    if PIN_SCOPE_CHECKER_PATH in manifest.get("missing_files", []):
+    if PIN_SCOPE_CHECKER_PATH in missing_files:
         issues.append(("PIN_SCOPE_STILL_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH))
-    if PIN_SCOPE_CHECKER_PATH not in manifest.get("present_files", []):
+    if PIN_SCOPE_CHECKER_PATH not in present_files:
         issues.append(("PIN_SCOPE_NOT_MARKED_PRESENT", PIN_SCOPE_CHECKER_PATH))
 
     return issues
@@ -208,9 +240,9 @@ def manifest_json(
     shared_validator: str = SHARED_VALIDATOR_PATH,
     tool_manifest_checker: str = CHECKER_PATH,
     makefile: str = MAKEFILE_PATH,
-    present_files: list[str] | None = None,
-    missing_files: list[str] | None = None,
-    master_present_branch_missing_files: list[str] | None = None,
+    present_files: list[str] | object | None = None,
+    missing_files: list[str] | object | None = None,
+    master_present_branch_missing_files: list[str] | object | None = None,
     workflow_surface: str = WORKFLOW_SURFACE_PATH,
 ) -> str:
     payload = {
@@ -292,6 +324,21 @@ def run_self_test() -> int:
             checks_run += 1
 
         build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(present_files="not-a-list"))
+        assert ("INVALID_MANIFEST_FIELD", "present_files") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(missing_files=[EXPECTED_MISSING_FILES[0], 7]))
+        assert ("INVALID_MANIFEST_FIELD", "missing_files") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[PIN_SCOPE_CHECKER_PATH, 7]))
+        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(present_files=EXPECTED_PRESENT_FILES[:-1]))
         assert ("INVALID_MANIFEST_FIELD", "present_files") in collect_issues(root)
         checks_run += 1
@@ -303,7 +350,10 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[PIN_SCOPE_CHECKER_PATH]))
-        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in collect_issues(root)
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
+        assert ("MASTER_PRESENT_PATH_MARKED_PRESENT", PIN_SCOPE_CHECKER_PATH) in issues
+        assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -346,6 +396,30 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("PIN_SCOPE_STILL_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            MANIFEST,
+            manifest_json(
+                present_files=[*EXPECTED_PRESENT_FILES, EXPECTED_MISSING_FILES[0]],
+            ),
+        )
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "present_files") in issues
+        assert ("MANIFEST_PATH_LIST_OVERLAP", EXPECTED_MISSING_FILES[0]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            MANIFEST,
+            manifest_json(master_present_branch_missing_files=["scripts/zigux/extra-missing.py"]),
+        )
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
+        assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", "scripts/zigux/extra-missing.py") in issues
         checks_run += 1
 
         build_self_test_root(root)
