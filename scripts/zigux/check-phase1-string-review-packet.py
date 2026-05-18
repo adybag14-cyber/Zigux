@@ -21,9 +21,11 @@ STRING_REVIEW_RULE_LINE = (
     "string-only shared review-rule packet across "
     "`zigux/tests/fixtures/phase1_helper_manifest.json`, "
     "`Documentation/zigux/phase1-host-helper-lane-sequencing.md`, and "
-    "`scripts/zigux/check-phase1-string-review-packet.py`; treat the older "
+    "`scripts/zigux/check-phase1-string-review-packet.py`; the restored "
     "`Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` "
-    "names as historical packet members until current `master` exposes them again"
+    "companions are now live broader reminder evidence on current `master`, but string "
+    "should stay parked on the helper-local sysfs review anchors unless those direct "
+    "string surfaces drift`"
 )
 
 COUNTED_SEARCH_REVIEW_RULE_LINE = (
