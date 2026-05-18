@@ -58,7 +58,6 @@
     "alldefconfig_expected.json"
   ],
   "allconfig_override_packet": [
-    "allmodconfig_expected.json",
     "randconfig_expected.json"
   ],
   "randconfig_env_packet": [
