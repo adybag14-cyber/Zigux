@@ -20,7 +20,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 32
+EXPECTED_SELF_TEST_CASES = 38
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -57,26 +57,35 @@ SURVEY_MARKERS = (
     'try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);',
     'try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);',
     'try requireMarkerCount("\\\"sample_count_note\\\": \\\"seven monotonic samples\\\"", 2);',
+    'try requireMarkerCount("\\\"acceptable_limit_status\\\": \\\"approved_local_only\\\"", 2);',
+    'try requireMarkerCount("\\\"acceptable_limit_metric\\\": \\\"median_elapsed_ns\\\"", 2);',
     'test "phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit" {',
+    'try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");',
     'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");',
     'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\"");',
+    'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");',
+    'try requireMarker("\\\"acceptable_limit_max_elapsed_ns\\\": 8192");',
+    'try requireMarker("\\\"acceptable_limit_max_elapsed_ns\\\": 12288");',
     'try requireMarker("\\\"checksum\\\": 3626254113632800175");',
     'try requireMarker("\\\"checksum\\\": 9210681150676220922");',
     'try requireMarker("\\\"final_counter\\\": 130322557735600377");',
     'try requireMarker("\\\"final_counter\\\": 130322557735600376");',
     'try requireMarker("\\\"checksum\\\": 5216946504564592253");',
     'try requireMarker("\\\"checksum\\\": 7942141539243507472");',
-    'try requireMarker("\\\"final_first_zero\\\": 109");',
+    'try requireMarkerCount("\\\"final_first_zero\\\": 109", 2);',
     'test "phase4 perf baseline survey keeps rollback and decision ownership explicit" {',
-    'try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");',
-    'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");',
-    'try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");',
+    'try requireMarker("\\\"lane_key\\\": \\\"P4-L20\\\"");',
+    'try requireMarker("\\\"phase\\\": \\\"Phase 4\\\"");',
     'try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");',
     'try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");',
+    'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");',
+    'try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");',
     'test "phase4 perf baseline survey keeps the dedicated packet contract reviewable" {',
     'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");',
     'try requireMarker("\\\"status\\\": \\\"shared CI perf promotion pending\\\"");',
     'try requireMarker("\\\"coordination_owners\\\": [");',
+    'try requireMarker("\\\"ABI and Runtime Team\\\"");',
+    'try requireMarker("\\\"Shared Subsystems Pod\\\"");',
 )
 
 
@@ -271,17 +280,23 @@ def run_self_test() -> int:
         survey_variants = (
             ('try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);', 'try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 8", 2);', 'survey_marker:try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);'),
             ('try requireMarkerCount("\\\"sample_count_note\\\": \\\"seven monotonic samples\\\"", 2);', 'try requireMarkerCount("\\\"sample_count_note\\\": \\\"eight monotonic samples\\\"", 2);', 'survey_marker:try requireMarkerCount("\\\"sample_count_note\\\": \\\"seven monotonic samples\\\"", 2);'),
+            ('try requireMarkerCount("\\\"acceptable_limit_status\\\": \\\"approved_local_only\\\"", 2);', 'try requireMarkerCount("\\\"acceptable_limit_status\\\": \\\"pending_review\\\"", 2);', 'survey_marker:try requireMarkerCount("\\\"acceptable_limit_status\\\": \\\"approved_local_only\\\"", 2);'),
+            ('try requireMarkerCount("\\\"acceptable_limit_metric\\\": \\\"median_elapsed_ns\\\"", 2);', 'try requireMarkerCount("\\\"acceptable_limit_metric\\\": \\\"mean_elapsed_ns\\\"", 2);', 'survey_marker:try requireMarkerCount("\\\"acceptable_limit_metric\\\": \\\"median_elapsed_ns\\\"", 2);'),
             ('try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");', 'try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-runtime-atomic64-bench --build-file zigux/tests/phase4_build.zig\\\"");', 'survey_marker:try requireMarker("\\\"benchmark_command\\\": \\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\"");'),
+            ('try requireMarker("\\\"acceptable_limit_max_elapsed_ns\\\": 8192");', 'try requireMarker("\\\"acceptable_limit_max_elapsed_ns\\\": 9216");', 'survey_marker:try requireMarker("\\\"acceptable_limit_max_elapsed_ns\\\": 8192");'),
             ('try requireMarker("\\\"final_counter\\\": 130322557735600376");', 'try requireMarker("\\\"final_counter\\\": 130322557735600379");', 'survey_marker:try requireMarker("\\\"final_counter\\\": 130322557735600376");'),
-            ('try requireMarker("\\\"final_first_zero\\\": 109");', 'try requireMarker("\\\"final_first_zero\\\": 110");', 'survey_marker:try requireMarker("\\\"final_first_zero\\\": 109");'),
+            ('try requireMarkerCount("\\\"final_first_zero\\\": 109", 2);', 'try requireMarkerCount("\\\"final_first_zero\\\": 110", 2);', 'survey_marker:try requireMarkerCount("\\\"final_first_zero\\\": 109", 2);'),
+            ('try requireMarker("\\\"lane_key\\\": \\\"P4-L20\\\"");', 'try requireMarker("\\\"lane_key\\\": \\\"P4-L21\\\"");', 'survey_marker:try requireMarker("\\\"lane_key\\\": \\\"P4-L20\\\"");'),
+            ('try requireMarker("\\\"phase\\\": \\\"Phase 4\\\"");', 'try requireMarker("\\\"phase\\\": \\\"Phase 5\\\"");', 'survey_marker:try requireMarker("\\\"phase\\\": \\\"Phase 4\\\"");'),
             ('try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"owner\\\": \\\"Validation and Perf Team\\\"");'),
+            ('try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");', 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"approved\\\"");', 'survey_marker:try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");'),
             ('try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");', 'try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline\\\"");', 'survey_marker:try requireMarker("\\\"linux_style_wrapper\\\": \\\"make -C zigux phase4-perf-baseline-survey\\\"");'),
             ('try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");', 'try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey still needs shared CI approval.\\\"");', 'survey_marker:try requireMarker("\\\"local_only_posture_note\\\": \\\"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\\\"");'),
-            ('try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"rollback_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"rollback_owner\\\": \\\"Validation and Perf Team\\\"");'),
-            ('try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");', 'try requireMarker("\\\"decision_owner\\\": \\\"ABI and Runtime Team\\\"");', 'survey_marker:try requireMarker("\\\"decision_owner\\\": \\\"Validation and Perf Team\\\"");'),
             ('try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");', 'try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-other-decision\\\"");', 'survey_marker:try requireMarker("\\\"id\\\": \\\"phase4-perf-baseline-shared-promotion-decision\\\"");'),
             ('try requireMarker("\\\"status\\\": \\\"shared CI perf promotion pending\\\"");', 'try requireMarker("\\\"status\\\": \\\"shared CI perf promotion approved\\\"");', 'survey_marker:try requireMarker("\\\"status\\\": \\\"shared CI perf promotion pending\\\"");'),
             ('try requireMarker("\\\"coordination_owners\\\": [");', 'try requireMarker("\\\"coordination_team\\\": [");', 'survey_marker:try requireMarker("\\\"coordination_owners\\\": [");'),
+            ('try requireMarker("\\\"ABI and Runtime Team\\\"");', 'try requireMarker("\\\"ABI and Replay Team\\\"");', 'survey_marker:try requireMarker("\\\"ABI and Runtime Team\\\"");'),
+            ('try requireMarker("\\\"Shared Subsystems Pod\\\"");', 'try requireMarker("\\\"Shared Queue Pod\\\"");', 'survey_marker:try requireMarker("\\\"Shared Subsystems Pod\\\"");'),
         )
         for old, new, expected_prefix in survey_variants:
             build_fixture_tree(root)
