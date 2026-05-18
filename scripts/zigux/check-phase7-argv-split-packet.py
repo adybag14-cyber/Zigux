@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "lib/argv_split.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
@@ -19,6 +20,12 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    "Documentation/zigux/phase7-helper-lane-sequencing.md": [
+        "- argv-split packet, lane `P7-L09`:",
+        "  - `scripts/zigux/check-phase7-argv-split-packet.py`",
+        "`argv_split` currently survives through `lib/argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, and `scripts/zigux/check-phase7-argv-split-packet.py`.",
+        "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;",
+    ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
         "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass",
@@ -54,7 +61,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 11
+SELF_TEST_CASE_COUNT = 13
 
 
 def read_text(path: Path) -> str:
@@ -109,6 +116,15 @@ def run_self_test() -> None:
         tmp_root = Path(tmp_dir_str)
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
+
+        sequencing_path = tmp_root / "Documentation" / "zigux" / "phase7-helper-lane-sequencing.md"
+        sequencing_path.unlink()
+        expect_missing_file(
+            "missing_phase7_helper_lane_sequencing",
+            tmp_root,
+            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+        )
+        write_fixture_root(tmp_root)
 
         checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py"
         checker_path.unlink()
@@ -204,6 +220,16 @@ def run_self_test() -> None:
             "missing_survey_manifest_samples_anchor_marker",
             tmp_root,
             f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        sequencing_text = read_text(sequencing_path)
+        sequencing_marker = "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;"
+        sequencing_path.write_text(sequencing_text.replace(sequencing_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_sequencing_lane_ownership_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
