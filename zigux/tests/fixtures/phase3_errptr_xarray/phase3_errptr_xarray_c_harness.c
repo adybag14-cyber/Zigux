@@ -97,6 +97,7 @@ int main(void) {
     write_case("inline_small", make_value(29), 1);
     write_case("inline_limit", inline_limit_raw, 1);
     write_case("gap_before_err_floor", err_floor() - 1, 1);
+    write_case("err_top", (uintptr_t)(intptr_t)-1, 1);
     write_case("err_enomem", (uintptr_t)(intptr_t)-12, 1);
     write_case("err_max", (uintptr_t)(intptr_t)-4095, 0);
 
