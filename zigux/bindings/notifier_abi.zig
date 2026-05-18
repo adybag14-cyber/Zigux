@@ -26,6 +26,26 @@ pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     return true;
 }
 
+test "notifier result constants stay aligned with the exported ABI values" {
+    try std.testing.expectEqual(@as(u32, 0), @intFromEnum(NotifierResult.done));
+    try std.testing.expectEqual(@as(u32, 1), @intFromEnum(NotifierResult.ok));
+    try std.testing.expectEqual(@as(u32, 2), @intFromEnum(NotifierResult.stop));
+}
+
+test "notifier block layout stays aligned with the exported ABI header" {
+    const expected_size = std.mem.alignForward(
+        usize,
+        (@sizeOf(usize) * 2) + @sizeOf(i32),
+        @alignOf(NotifierBlock),
+    );
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
+    try std.testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
+}
+
 test "notifier priority helper accepts empty chain" {
     try std.testing.expect(chainHasNonincreasingPriority(null));
 }
