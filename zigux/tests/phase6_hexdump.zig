@@ -86,6 +86,10 @@ test "phase 6 hexdump direct helper entrypoints stay aligned with the packet" {
     var decoded: [4]u8 = undefined;
     try hexdump.hex2bin(decoded[0..], "be32db7b");
     try std.testing.expectEqualSlices(u8, fixtures.data_b[0..4], decoded[0..]);
+    try hexdump.hex2bin(decoded[0..], "BE32DB7B");
+    try std.testing.expectEqualSlices(u8, fixtures.data_b[0..4], decoded[0..]);
+    try hexdump.hex2bin(decoded[0..], "bE32Db7B");
+    try std.testing.expectEqualSlices(u8, fixtures.data_b[0..4], decoded[0..]);
     try std.testing.expectError(hexdump.HexError.InvalidSourceLength, hexdump.hex2bin(decoded[0..], "be32db"));
     try std.testing.expectError(hexdump.HexError.InvalidHexDigit, hexdump.hex2bin(decoded[0..], "be32dz7b"));
 
