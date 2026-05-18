@@ -57,13 +57,19 @@ TOOLCHAIN_CHECKER_MARKERS = (
     "def iter_repo_local_zig_candidates(",
     "def resolve_zig_executable(",
     'parser.add_argument("--policy-only"',
+    "def is_executable_file(",
+    "def normalize_explicit_archive_path(",
+    "if not os.access(normalized, os.X_OK):",
+    "if is_executable_file(candidate):",
+    "resolved = archive_path or normalize_explicit_archive_path(explicit_archive)",
+    "return explicit_target, normalize_explicit_archive_path(explicit_archive) if explicit_archive is not None else None",
 )
 
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
 EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
-EXPECTED_SELF_TEST_CASE_COUNT = 39
+EXPECTED_SELF_TEST_CASE_COUNT = 44
 
 
 def read_text(path: Path) -> str:
