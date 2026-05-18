@@ -1,0 +1,77 @@
+{
+  "lane_key": "P11-L02",
+  "phase": "Phase 11",
+  "packet_status": "adjacent_proof_shard_readback_only",
+  "scope": "shared UAPI header direct-readback packet",
+  "direct_readback_surfaces": [
+    {
+      "path": "Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md",
+      "sha": "6a9d96ce41ed38ce4f889529b47f85c0418d6e6a"
+    },
+    {
+      "path": "Documentation/zigux/phase11-uapi-header-parity-survey.md",
+      "sha": "85265de16d6870921b82f8c49029c37487644802"
+    },
+    {
+      "path": "Documentation/zigux/phase11-driver-lane-sequencing.md",
+      "sha": "74275c76e44e642820e4a88e2c02202c704d433c"
+    },
+    {
+      "path": "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
+      "sha": "9a81df37cce6219fb3058346e69875afa73299c1"
+    },
+    {
+      "path": "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+      "sha": "b41c8e478e4ac81fdfd207cdfb75ad46e9a0859e"
+    },
+    {
+      "path": "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+      "sha": "7b8852efe8ada4b26cdba6746d6ddbd21104590d"
+    },
+    {
+      "path": "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
+      "sha": "4b19ff7f739fb62c63677e52b34aa4099f7a5742"
+    },
+    {
+      "path": "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+      "sha": "855803078c6d0e8c2f27afdf4c086dd7bf77616b"
+    },
+    {
+      "path": "zigux/tests/fixtures/phase11_build_inventory.json",
+      "sha": "f943c5c0ef282231b0932297728df95acdfb0fb4"
+    },
+    {
+      "path": "drivers/tty/hvc/hvc_console.h",
+      "sha": "57f1542b3e6f1901f444bc2d94b5e438f14eb9b3"
+    }
+  ],
+  "missing_shared_replay_surfaces": [
+    "zigux/tests/phase11_uapi_header_parity_manifest.json",
+    "zigux/tests/phase11_uapi_header_parity_survey.zig",
+    "zigux/tests/phase11_build.zig",
+    "Documentation/zigux/phase11-shared-replay-contract.md",
+    "scripts/zigux/check-phase11-header-boundary-packet.py"
+  ],
+  "inventory_boundary": {
+    "path": "zigux/tests/fixtures/phase11_build_inventory.json",
+    "build_test_names": [
+      "phase11-hvc-console-tests",
+      "phase11-hvc-console-verify-tests",
+      "phase11-hvc-cleanup-tests",
+      "phase11-hvc-console-survey-tests"
+    ],
+    "shared_depend_steps": [
+      "run_phase11_hvc_console_tests",
+      "run_hvc_console_verify_tests",
+      "run_phase11_hvc_cleanup_tests"
+    ],
+    "proof_adjunct_replays": [
+      "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+      "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig"
+    ]
+  },
+  "proof_build": {
+    "build_file": "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "command": "zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig --summary all"
+  }
+}
