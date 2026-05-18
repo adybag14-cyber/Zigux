@@ -659,6 +659,71 @@ pub fn kstrdup_quotable_cmdline(allocator: std.mem.Allocator, src: ?[]const u8) 
     return kstrdupQuotableCmdline(allocator, src);
 }
 
+pub const ParseIntArrayError = std.mem.Allocator.Error || error{ NoEntry, Overflow };
+
+fn boundedCountPrefix(buf: []const u8, count: usize) []const u8 {
+    return buf[0..@min(cStringLen(buf), count)];
+}
+
+fn trimParseIntToken(text: []const u8) []const u8 {
+    return std.mem.trim(u8, text, " \t\r\n\x0b\x0c");
+}
+
+fn parseAutoI32(text: []const u8) ?i32 {
+    return std.fmt.parseInt(i32, text, 0) catch null;
+}
+
+fn appendPositiveRange(values: *std.ArrayList(i32), allocator: std.mem.Allocator, start: i32, end: i32) std.mem.Allocator.Error!void {
+    if (start < 0 or end < start) return;
+
+    var current = start;
+    while (true) {
+        try values.append(allocator, current);
+        if (current == end) break;
+        current += 1;
+    }
+}
+
+pub fn parseIntArray(allocator: std.mem.Allocator, buf: []const u8, count: usize) ParseIntArrayError![]i32 {
+    const current = boundedCountPrefix(buf, count);
+    var values = try std.ArrayList(i32).initCapacity(allocator, 0);
+    defer values.deinit(allocator);
+
+    var index: usize = 0;
+    while (index < current.len) {
+        const comma = std.mem.indexOfScalarPos(u8, current, index, ',') orelse current.len;
+        const token = trimParseIntToken(current[index..comma]);
+        if (token.len == 0) break;
+
+        if (std.mem.indexOfScalarPos(u8, token, 1, '-')) |range_sep| {
+            const start = parseAutoI32(trimParseIntToken(token[0..range_sep])) orelse break;
+            const end = parseAutoI32(trimParseIntToken(token[range_sep + 1 ..])) orelse break;
+            if (start < 0 or end < start) break;
+            try appendPositiveRange(&values, allocator, start, end);
+        } else {
+            const value = parseAutoI32(token) orelse break;
+            try values.append(allocator, value);
+        }
+
+        if (comma == current.len) break;
+        index = comma + 1;
+    }
+
+    if (values.items.len == 0) return error.NoEntry;
+
+    const parsed_count = std.math.cast(i32, values.items.len) orelse return error.Overflow;
+    var parsed = try allocator.alloc(i32, values.items.len + 1);
+    errdefer allocator.free(parsed);
+
+    parsed[0] = parsed_count;
+    @memcpy(parsed[1..], values.items);
+    return parsed;
+}
+
+pub fn parse_int_array(allocator: std.mem.Allocator, buf: []const u8, count: usize) ParseIntArrayError![]i32 {
+    return parseIntArray(allocator, buf, count);
+}
+
 pub fn kstrdupAndReplace(
     allocator: std.mem.Allocator,
     src: []const u8,
@@ -758,6 +823,11 @@ fn runKstrdupQuotableCmdlineWithFailingAllocator(allocator: std.mem.Allocator, s
     if (try kstrdupQuotableCmdline(allocator, src)) |quoted| {
         allocator.free(quoted);
     }
+}
+
+fn runParseIntArrayWithFailingAllocator(allocator: std.mem.Allocator, buf: []const u8, count: usize) !void {
+    const parsed = try parseIntArray(allocator, buf, count);
+    allocator.free(parsed);
 }
 
 test "kasprintfStrarray keeps sentinel ownership stable for empty and populated arrays" {
@@ -882,7 +952,9 @@ test "kstrdupQuotable reports allocation failure cleanly" {
     try std.testing.checkAllAllocationFailures(
         std.testing.allocator,
         runKstrdupQuotableWithFailingAllocator,
-        .{ "phase7\nquote\"", },
+        .{
+            "phase7\nquote\"",
+        },
     );
 }
 
@@ -904,7 +976,52 @@ test "kstrdupQuotableCmdline reports allocation failure cleanly" {
     try std.testing.checkAllAllocationFailures(
         std.testing.allocator,
         runKstrdupQuotableCmdlineWithFailingAllocator,
-        .{ "zig\x00test\x00\x00" },
+        .{"zig\x00test\x00\x00"},
+    );
+}
+
+test "parseIntArray parses bounded comma lists and positive ranges" {
+    const source = [_]u8{ '1', ',', '3', '-', '5', ',', '0', 'x', '7', ',', '0', '1', 0, '9' };
+    const parsed = try parseIntArray(std.testing.allocator, &source, source.len);
+    defer std.testing.allocator.free(parsed);
+
+    try std.testing.expectEqual(@as(i32, 6), parsed[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 4, 5, 7, 1 }, parsed[1..]);
+
+    const alias = try parse_int_array(std.testing.allocator, "2-4", 3);
+    defer std.testing.allocator.free(alias);
+    try std.testing.expectEqual(@as(i32, 3), alias[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 3, 4 }, alias[1..]);
+}
+
+test "parseIntArray stops at invalid trailing tokens while respecting count and first NUL" {
+    const partial = try parseIntArray(std.testing.allocator, "9,11,broken,15", "9,11,broken,15".len);
+    defer std.testing.allocator.free(partial);
+    try std.testing.expectEqual(@as(i32, 2), partial[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 9, 11 }, partial[1..]);
+
+    const nul_bounded = [_]u8{ '7', ',', '8', 0, ',', '9' };
+    const bounded = try parse_int_array(std.testing.allocator, &nul_bounded, nul_bounded.len);
+    defer std.testing.allocator.free(bounded);
+    try std.testing.expectEqual(@as(i32, 2), bounded[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 7, 8 }, bounded[1..]);
+
+    const count_limited = try parseIntArray(std.testing.allocator, "4,6,8", 3);
+    defer std.testing.allocator.free(count_limited);
+    try std.testing.expectEqual(@as(i32, 2), count_limited[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 6 }, count_limited[1..]);
+}
+
+test "parseIntArray reports NoEntry when no integers are available" {
+    try std.testing.expectError(error.NoEntry, parseIntArray(std.testing.allocator, "broken", "broken".len));
+    try std.testing.expectError(error.NoEntry, parse_int_array(std.testing.allocator, "", 0));
+}
+
+test "parseIntArray reports allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runParseIntArrayWithFailingAllocator,
+        .{ "1-4,0x8", 7 },
     );
 }
 
