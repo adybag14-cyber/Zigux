@@ -10,18 +10,16 @@ import tempfile
 from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
-README = Path("zigux/tests/README.md")
-SCRIPTS_README = Path("scripts/zigux/README.md")
 REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 11
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 12
 EXPECTED_PIN_SELF_TEST_CASES = 7
 
 STATUS_MARKERS = (
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
 )
 
 DIRECT_MARKERS = (
@@ -31,9 +29,12 @@ DIRECT_MARKERS = (
     "`scripts/zigux/check-phase4-reversible-delivery-pins.py`",
 )
 
-MISSING_BROADER_PACKET = (
-    "`Documentation/zigux/phase4-gate-evidence.md`",
-    "`Documentation/zigux/phase4-validation-matrix.md`",
+RECOVERED_NOTE_MARKERS = (
+    "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` on current `master`",
+    "the broader review packet has partially recovered past the older all-missing state",
+)
+
+REMAINING_GAP_MARKERS = (
     "`scripts/zigux/check-phase4-gate-evidence.py`",
     "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
     "`scripts/zigux/validate-phase4.py`",
@@ -44,68 +45,29 @@ MISSING_BROADER_PACKET = (
 
 ATOMIC64_DIRECT_MARKERS = (
     "Current direct contents reads in this run also confirmed the roadmap-backed differential-gate pair `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` on current `master`.",
-    "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence even while the broader validator, lab-matrix, and bitmap-diff companions stay in the authenticated-readback gap bucket.",
-    "If the roadmap-backed `atomic64_diff` pair drifts again, refresh the direct-readback posture only after re-reading those exact current `master` paths",
-    "the roadmap-backed atomic64 differential-gate pair explicit without pretending that the broader validator, lab-matrix, or bitmap-diff companions are presently readable on current `master`.",
+    "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
 )
 
-NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + MISSING_BROADER_PACKET + ATOMIC64_DIRECT_MARKERS + (
-    "The broader Phase 4 validator, lab-matrix, and bitmap-diff companions are still repo-reality gaps in this run",
-    "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain historical provenance, not current-head proof",
-    "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
-)
-
-README_OWNER_MARKERS = (
-    "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
-    "historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again",
-)
-
-README_ATOMIC64_DIRECT_MARKERS = (
-    "roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
-)
-
-README_PUBLIC_FALLBACK_MARKERS = (
-    "public current-`master` fallback rereads can still expose older broader Phase 4 companions, but keep that fallback visibility separate from authenticated direct-readback proof in this tests-root reminder until the same files return through direct contents reads",
-)
-
-README_MARKERS = (
-    "current direct-readback Phase 4 rollback packet",
-    "scripts/zigux/check-phase4-repo-reality-warning.py",
-    "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
-    "repo-reality warning for the broader Phase 4 validator, lab-matrix, and bitmap-diff packet",
-    "historical provenance for that missing broader packet",
-) + README_OWNER_MARKERS + README_ATOMIC64_DIRECT_MARKERS + README_PUBLIC_FALLBACK_MARKERS
-
-SCRIPTS_README_MARKERS = (
-    "Phase 4 flow - the current shared rollback reminder packet is kept reviewable through the directly readable docs-root, tests-root, scripts-root, and dedicated local-only perf surfaces while the broader validator, lab-matrix, and bitmap-diff companions remain authenticated-readback repo-reality gaps on current `master`, so this note should stay aligned with that narrower direct-readback packet instead of treating public fallback visibility as the same thing as direct current-head proof",
-    "Documentation/zigux/phase4-reversible-delivery-evidence.md",
-    "Documentation/zigux/review-checklist.md",
-    "zigux/tests/README.md",
-    "scripts/zigux/check-phase4-repo-reality-warning.py",
-    "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "scripts/zigux/check-phase4-perf-baseline-packet.py",
-    "the dedicated local-only perf packet is directly readable on current `master` through `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig`, so keep that exact perf packet explicit here while the broader validator, lab-matrix, and bitmap-diff companions stay in the missing-current-head bucket",
-    "`zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`",
-    "treat `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` as directly readable roadmap-backed differential-gate evidence again instead of backlog-only proof, while keeping the broader validator, lab-matrix, and bitmap-diff companions in the authenticated-readback gap bucket",
-    "if future same-lane work restores the broader validator, lab-matrix, or bitmap-diff packet to authenticated direct-readback status, refresh this scripts-root reminder only after rereading `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `zigux/tests/README.md`, and the current scripts-root checker packet together on current `master`",
-    "Validation and Perf Team",
-    "ABI and Runtime Team plus Shared Subsystems Pod",
+NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + RECOVERED_NOTE_MARKERS + REMAINING_GAP_MARKERS + ATOMIC64_DIRECT_MARKERS + (
+    "The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run",
+    "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff",
+    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up",
 )
 
 WARNING_MARKERS = (
     "DIRECT_READBACK_PACKET = (",
-    "MISSING_BROADER_PACKET = (",
+    "RECOVERED_NOTE_PACKET = (",
+    "REMAINING_GAP_PACKET = (",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
     "scripts/zigux/check-phase4-perf-baseline-packet.py",
-    "The broader Phase 4 validator, lab-matrix, and bitmap-diff companions are still repo-reality gaps in this run",
-    "The Phase 4 repo-reality warning in `zigux/tests/README.md` should stay open",
+    "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` on current `master`",
+    "The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run",
+    "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff",
     'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
-    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 11",
+    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 12",
     "EXPECTED_PIN_SELF_TEST_CASES = 7",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=11` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
-) + README_OWNER_MARKERS
+    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up.",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -138,12 +100,8 @@ def require_exact_self_test_count(text: str, label: str, count_label: str, expec
 
 def check(root: Path) -> None:
     note = read(root, NOTE)
-    readme = read(root, README)
-    scripts_readme = read(root, SCRIPTS_README)
     repo_warning = read(root, REPO_REALITY_WARNING)
     require(note, NOTE_MARKERS, NOTE.as_posix())
-    require(readme, README_MARKERS, README.as_posix())
-    require(scripts_readme, SCRIPTS_README_MARKERS, SCRIPTS_README.as_posix())
     require(repo_warning, WARNING_MARKERS, REPO_REALITY_WARNING.as_posix())
     require_exact_self_test_count(note, NOTE.as_posix(), REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL, EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES)
     require_exact_self_test_count(note, NOTE.as_posix(), PIN_SELF_TEST_COUNT_LABEL, EXPECTED_PIN_SELF_TEST_CASES)
@@ -155,66 +113,120 @@ def main() -> int:
         cases = 0
         with tempfile.TemporaryDirectory(prefix="phase4-reversible-delivery-pins-") as tmp:
             root = Path(tmp)
-            for rel in (NOTE, README, SCRIPTS_README, REPO_REALITY_WARNING):
+            for rel in (NOTE, REPO_REALITY_WARNING):
                 src = args.root.resolve() / rel
                 dst = root / rel
                 dst.parent.mkdir(parents=True, exist_ok=True)
                 dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
             check(root)
             cases += 1
-            scripts_readme_path = root / SCRIPTS_README
-            scripts_readme_path.write_text(scripts_readme_path.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[0], "Phase 4 flow drifted"), encoding="utf-8")
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected scripts README packet summary drift to fail")
-            scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
-            readme_path = root / README
-            readme_path.write_text(readme_path.read_text(encoding="utf-8").replace(README_MARKERS[3], "direct perf companion marker drifted"), encoding="utf-8")
-            try:
-                check(root)
-            except RuntimeError:
-                cases += 1
-            else:
-                raise AssertionError("expected tests README direct perf companion drift to fail")
-            readme_path.write_text((args.root.resolve() / README).read_text(encoding="utf-8"), encoding="utf-8")
+
             note_path = root / NOTE
-            note_path.write_text(note_path.read_text(encoding="utf-8").replace(ATOMIC64_DIRECT_MARKERS[2], "atomic64 next-step wording drifted"), encoding="utf-8")
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
+                    RECOVERED_NOTE_MARKERS[0],
+                    "Current direct contents reads in this run confirmed a different recovered note set.",
+                ),
+                encoding="utf-8",
+            )
             try:
                 check(root)
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected note atomic64 next-step drift to fail")
+                raise AssertionError("expected recovered-note marker drift to fail")
             note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
-            repo_warning_path = root / REPO_REALITY_WARNING
-            repo_warning_path.write_text(repo_warning_path.read_text(encoding="utf-8").replace(WARNING_MARKERS[5], "phase4 repo-reality wording drifted"), encoding="utf-8")
+
+            warning_path = root / REPO_REALITY_WARNING
+            warning_path.write_text(
+                warning_path.read_text(encoding="utf-8").replace(
+                    "RECOVERED_NOTE_PACKET = (",
+                    "RECOVERED_NOTES = (",
+                ),
+                encoding="utf-8",
+            )
             try:
                 check(root)
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected repo-reality warning wording drift to fail")
-            repo_warning_path.write_text((args.root.resolve() / REPO_REALITY_WARNING).read_text(encoding="utf-8"), encoding="utf-8")
-            scripts_readme_path = root / SCRIPTS_README
-            scripts_readme_path.write_text(scripts_readme_path.read_text(encoding="utf-8").replace(SCRIPTS_README_MARKERS[9], "atomic64 scripts README drifted"), encoding="utf-8")
+                raise AssertionError("expected repo-warning recovered-packet marker drift to fail")
+            warning_path.write_text((args.root.resolve() / REPO_REALITY_WARNING).read_text(encoding="utf-8"), encoding="utf-8")
+
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
+                    "The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run",
+                    "The broader Phase 4 bitmap replay companions are still repo-reality gaps in this run",
+                ),
+                encoding="utf-8",
+            )
             try:
                 check(root)
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected scripts README atomic64 direct-readback drift to fail")
-            scripts_readme_path.write_text((args.root.resolve() / SCRIPTS_README).read_text(encoding="utf-8"), encoding="utf-8")
-            repo_warning_path = root / REPO_REALITY_WARNING
-            repo_warning_path.write_text(repo_warning_path.read_text(encoding="utf-8").replace("scripts/zigux/check-phase4-remaining-gap-matrix.py", "scripts/zigux/check-phase4-gap-matrix-drifted.py"), encoding="utf-8")
+                raise AssertionError("expected remaining-gap summary drift to fail")
+            note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
+
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
+                    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up",
+                    "The shared reminder surfaces are already fully refreshed",
+                ),
+                encoding="utf-8",
+            )
             try:
                 check(root)
             except RuntimeError:
                 cases += 1
             else:
-                raise AssertionError("expected repo-reality warning drift to fail")
+                raise AssertionError("expected shared-reminder follow-up drift to fail")
+            note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
+
+            warning_path.write_text(
+                warning_path.read_text(encoding="utf-8").replace(
+                    "EXPECTED_PIN_SELF_TEST_CASES = 7",
+                    "EXPECTED_PIN_SELF_TEST_CASES = 6",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected pin-self-test expectation drift to fail")
+            warning_path.write_text((args.root.resolve() / REPO_REALITY_WARNING).read_text(encoding="utf-8"), encoding="utf-8")
+
+            note_path.write_text(
+                note_path.read_text(encoding="utf-8").replace(
+                    "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
+                    "Current direct contents reads for the atomic64 pair drifted",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected atomic64 direct-readback drift to fail")
+            note_path.write_text((args.root.resolve() / NOTE).read_text(encoding="utf-8"), encoding="utf-8")
+
+            warning_path.write_text(
+                warning_path.read_text(encoding="utf-8").replace(
+                    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+                    "scripts/zigux/check-phase4-perf-baseline-packet-drift.py",
+                ),
+                encoding="utf-8",
+            )
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected repo-warning perf-checker marker drift to fail")
+
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
         print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
         return 0
