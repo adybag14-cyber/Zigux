@@ -47,6 +47,22 @@ pub const ReadyBufferSummary = struct {
     first_error: ?i32,
 };
 
+pub const ReadyBufferAttemptLookupDisposition = enum {
+    found_ready_index,
+    missing_ready_index,
+};
+
+pub const ReadyBufferAttemptLookupSummary = struct {
+    requested_attempt_index: usize,
+    ready_index: ?usize,
+    ready_count: usize,
+    disposition: ReadyBufferAttemptLookupDisposition,
+};
+
+pub const ReadyBufferAttemptLookupError = error{
+    MissingReadyBuffer,
+};
+
 pub const ProcessRecordObservation = struct {
     result: i32 = 0,
     records_processed: usize = 0,
@@ -255,22 +271,49 @@ pub fn advanceReadyBufferCursor(
     };
 }
 
+pub fn summarizeReadyBufferAttemptLookup(
+    buffers: []const BufferObservation,
+    attempt_index: usize,
+) ReadyBufferAttemptLookupSummary {
+    var next_scan_index: usize = 0;
+    var remaining = attempt_index;
+    var ready_count: usize = 0;
+    var found_ready_index: ?usize = null;
+
+    while (next_scan_index < buffers.len) {
+        const cursor = advanceReadyBufferCursor(buffers, next_scan_index);
+        const ready_index = cursor.ready_index orelse break;
+        ready_count += 1;
+        if (remaining == 0 and found_ready_index == null) {
+            found_ready_index = ready_index;
+        } else if (remaining != 0) {
+            remaining -= 1;
+        }
+        next_scan_index = cursor.next_scan_index;
+    }
+
+    return .{
+        .requested_attempt_index = attempt_index,
+        .ready_index = found_ready_index,
+        .ready_count = ready_count,
+        .disposition = if (found_ready_index == null) .missing_ready_index else .found_ready_index,
+    };
+}
+
+pub fn resolveReadyBufferAttemptLookup(
+    summary: ReadyBufferAttemptLookupSummary,
+) ReadyBufferAttemptLookupError!usize {
+    return switch (summary.disposition) {
+        .found_ready_index => summary.ready_index.?,
+        .missing_ready_index => error.MissingReadyBuffer,
+    };
+}
+
 pub fn resolveReadyBufferAttemptIndex(
     buffers: []const BufferObservation,
     attempt_index: usize,
 ) ?usize {
-    var next_scan_index: usize = 0;
-    var remaining = attempt_index;
-
-    while (next_scan_index < buffers.len) {
-        const cursor = advanceReadyBufferCursor(buffers, next_scan_index);
-        const ready_index = cursor.ready_index orelse return null;
-        if (remaining == 0) return ready_index;
-        remaining -= 1;
-        next_scan_index = cursor.next_scan_index;
-    }
-
-    return null;
+    return summarizeReadyBufferAttemptLookup(buffers, attempt_index).ready_index;
 }
 
 pub fn summarizeReadyBuffers(buffers: []const BufferObservation) ReadyBufferSummary {
@@ -643,6 +686,31 @@ test "phase8 perf-buffer poll resolves ready-buffer attempt ordinals back to slo
     try std.testing.expectEqual(@as(?usize, 1), resolveReadyBufferAttemptIndex(&buffers, 0));
     try std.testing.expectEqual(@as(?usize, 3), resolveReadyBufferAttemptIndex(&buffers, 1));
     try std.testing.expectEqual(@as(?usize, null), resolveReadyBufferAttemptIndex(&buffers, 2));
+}
+
+test "phase8 perf-buffer poll exposes typed ready-buffer attempt lookup summaries" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+
+    const first = summarizeReadyBufferAttemptLookup(&buffers, 0);
+    try std.testing.expectEqual(ReadyBufferAttemptLookupDisposition.found_ready_index, first.disposition);
+    try std.testing.expectEqual(@as(usize, 2), first.ready_count);
+    try std.testing.expectEqual(@as(usize, 1), try resolveReadyBufferAttemptLookup(first));
+
+    const second = summarizeReadyBufferAttemptLookup(&buffers, 1);
+    try std.testing.expectEqual(ReadyBufferAttemptLookupDisposition.found_ready_index, second.disposition);
+    try std.testing.expectEqual(@as(?usize, 3), second.ready_index);
+    try std.testing.expectEqual(@as(usize, 3), try resolveReadyBufferAttemptLookup(second));
+
+    const missing = summarizeReadyBufferAttemptLookup(&buffers, 2);
+    try std.testing.expectEqual(ReadyBufferAttemptLookupDisposition.missing_ready_index, missing.disposition);
+    try std.testing.expectEqual(@as(?usize, null), missing.ready_index);
+    try std.testing.expectEqual(@as(usize, 2), missing.ready_count);
+    try std.testing.expectError(error.MissingReadyBuffer, resolveReadyBufferAttemptLookup(missing));
 }
 
 test "phase8 perf-buffer poll keeps ready-count return semantics and process totals separate" {
