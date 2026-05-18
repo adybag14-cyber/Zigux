@@ -69,6 +69,24 @@ README_GAP_SUMMARY_MARKER = (
     "stays framed as the separately readable shared validator entrypoint rather than a missing "
     "scripts-root route"
 )
+HEADER_FAMILY_VALIDATOR_GAP_MARKER = (
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py"
+)
+HEADER_FAMILY_NOTE_GAP_MARKER = (
+    "Documentation/zigux/phase3-abi-header-family-survey.md"
+)
+HEADER_FAMILY_NEXT_STEP_GAP_MARKER = (
+    "Documentation/zigux/phase3-abi-h-boundary-next-step.md"
+)
+HEADER_FAMILY_REMINDER_MARKER = (
+    "Phase 3 header-family reminder - "
+    "`scripts/zigux/validate-phase3-abi-header-family-survey.py`, "
+    "`Documentation/zigux/phase3-abi-header-family-survey.md`, and "
+    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md` still return missing on current "
+    "`master`, while `include/zigux/dev_t.h`, `zigux/uapi/version.zig`, and `zigux/uapi/dev_t.zig` "
+    "remain the directly readable header-family anchors that keep the starter packet reviewable "
+    "from the scripts root"
+)
 
 REQUIRED_FILES = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
@@ -183,6 +201,10 @@ REQUIRED_MARKERS = (
     SHARED_VALIDATOR_MARKER,
     MANIFEST_ROOT_GAP_MARKER,
     README_GAP_SUMMARY_MARKER,
+    HEADER_FAMILY_VALIDATOR_GAP_MARKER,
+    HEADER_FAMILY_NOTE_GAP_MARKER,
+    HEADER_FAMILY_NEXT_STEP_GAP_MARKER,
+    HEADER_FAMILY_REMINDER_MARKER,
 )
 
 README_MARKER_CASES = (
@@ -200,13 +222,22 @@ README_MARKER_CASES = (
         "expected missing selftest-surface README marker was not reported",
     ),
     (MMIO_HELPER_MARKER, "expected missing MMIO helper README marker was not reported"),
-    (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER, "expected missing low-level-wrapper survey validator README marker was not reported"),
-    (LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER, "expected missing low-level-wrapper survey self-test README marker was not reported"),
+    (
+        LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER,
+        "expected missing low-level-wrapper survey validator README marker was not reported",
+    ),
+    (
+        LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER,
+        "expected missing low-level-wrapper survey self-test README marker was not reported",
+    ),
     (LOW_LEVEL_WRAPPER_REPLAY_MARKER, "expected missing low-level-wrapper replay README marker was not reported"),
     (LOW_LEVEL_WRAPPER_BUILD_MARKER, "expected missing low-level-wrapper build README marker was not reported"),
     (EXPORT_UAPI_LAYOUT_REPLAY_MARKER, "expected missing export-uapi-layout replay README marker was not reported"),
     (EXPORT_UAPI_LAYOUT_BUILD_MARKER, "expected missing export-uapi-layout build README marker was not reported"),
-    (EXPORT_UAPI_LAYOUT_BUILD_ROUTE_MARKER, "expected missing export-uapi-layout build-route README marker was not reported"),
+    (
+        EXPORT_UAPI_LAYOUT_BUILD_ROUTE_MARKER,
+        "expected missing export-uapi-layout build-route README marker was not reported",
+    ),
     (WORKFLOW_MARKER, "expected missing workflow README marker was not reported"),
     (CATALOG_SELFTEST_GAP_MARKER, "expected missing catalog-selftest gap README marker was not reported"),
     (CATALOG_WRAPPER_GAP_MARKER, "expected missing catalog wrapper gap README marker was not reported"),
@@ -218,6 +249,22 @@ README_MARKER_CASES = (
     (SHARED_TESTS_BUILD_MARKER, "expected missing shared tests build README marker was not reported"),
     (XARRAY_SLOT_BUILD_ROUTE_MARKER, "expected missing xarray-slot build-route README marker was not reported"),
     (README_GAP_SUMMARY_MARKER, "expected missing repo-reality gap summary README marker was not reported"),
+    (
+        HEADER_FAMILY_VALIDATOR_GAP_MARKER,
+        "expected missing header-family validator gap README marker was not reported",
+    ),
+    (
+        HEADER_FAMILY_NOTE_GAP_MARKER,
+        "expected missing header-family note gap README marker was not reported",
+    ),
+    (
+        HEADER_FAMILY_NEXT_STEP_GAP_MARKER,
+        "expected missing header-family next-step gap README marker was not reported",
+    ),
+    (
+        HEADER_FAMILY_REMINDER_MARKER,
+        "expected missing header-family reminder README marker was not reported",
+    ),
 )
 
 FILE_CASES = (
@@ -227,7 +274,10 @@ FILE_CASES = (
     (NOTIFIER_BINDING_FILE, "expected missing notifier-binding file was not reported"),
     (NARROW_UNSAFE_FILE, "expected missing narrow-unsafe file was not reported"),
     (UAPI_FILE, "expected missing UAPI file was not reported"),
-    (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE, "expected missing low-level-wrapper survey validator file was not reported"),
+    (
+        LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
+        "expected missing low-level-wrapper survey validator file was not reported",
+    ),
     (LOW_LEVEL_WRAPPER_REPLAY_FILE, "expected missing low-level-wrapper replay file was not reported"),
     (LOW_LEVEL_WRAPPER_BUILD_FILE, "expected missing low-level-wrapper build file was not reported"),
     (EXPORT_UAPI_LAYOUT_REPLAY_FILE, "expected missing export-uapi-layout replay file was not reported"),
@@ -239,7 +289,10 @@ FILE_CASES = (
     (SHARED_TESTS_BUILD_FILE, "expected missing shared tests build file was not reported"),
     (SHARED_VALIDATOR_FILE, "expected missing shared validator file was not reported"),
     (Path("Documentation/zigux/phase3-policy-slice.md"), "expected missing policy-slice file was not reported"),
-    (Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"), "expected missing low-level-wrapper survey note was not reported"),
+    (
+        Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+        "expected missing low-level-wrapper survey note was not reported",
+    ),
     (Path("include/zigux/abi.h"), "expected missing ABI header file was not reported"),
     (Path("zigux/helpers/unsafe_policy.zig"), "expected missing unsafe-policy helper file was not reported"),
     (Path("zigux/helpers/atomic.zig"), "expected missing atomic helper file was not reported"),
