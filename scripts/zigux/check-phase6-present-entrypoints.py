@@ -51,11 +51,15 @@ REQUIRED_BUILD_SNIPPETS = [
     '.root_source_file = b.path("phase6_bsearch_c_abi_budget.zig"),',
     'const checksum_perf_root_module = b.createModule(.{',
     'const hexdump_perf_root_module = b.createModule(.{',
+    'const base64_test_step = b.step("phase6-base64-test", "Run Phase 6 base64 helper tests");',
     'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 helper perf gate");',
     'const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");',
+    'const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");',
     'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
     'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
     'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");',
+    "test_step.dependOn(&run_base64_tests.step);",
+    "test_step.dependOn(&run_checksum_tests.step);",
     "test_step.dependOn(&run_hexdump_tests.step);",
 ]
 
@@ -406,9 +410,25 @@ def run_self_test() -> None:
 
         write(
             build_path,
-            read_text(build_path).replace(REQUIRED_BUILD_SNIPPETS[10] + "\n", "", 1),
+            read_text(build_path).replace(REQUIRED_BUILD_SNIPPETS[9] + "\n", "", 1),
         )
-        expect_failure(root, REQUIRED_BUILD_SNIPPETS[10])
+        expect_failure(root, REQUIRED_BUILD_SNIPPETS[9])
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            build_path,
+            read_text(build_path).replace(REQUIRED_BUILD_SNIPPETS[14] + "\n", "", 1),
+        )
+        expect_failure(root, REQUIRED_BUILD_SNIPPETS[14])
+        cases_run += 1
+        scaffold_repo(root)
+
+        write(
+            build_path,
+            read_text(build_path).replace(REQUIRED_BUILD_SNIPPETS[12] + "\n", "", 1),
+        )
+        expect_failure(root, REQUIRED_BUILD_SNIPPETS[12])
         cases_run += 1
         scaffold_repo(root)
 
