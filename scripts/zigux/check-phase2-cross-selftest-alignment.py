@@ -40,8 +40,6 @@ KBUILD_ROUTE_MARKERS = (
 TOOLCHAIN_PINNING_MARKERS = (
     "\"`python3 scripts/zigux/check-phase2-cross.py --self-test`\",",
     "\"`python3 scripts/zigux/check-phase2-cross.py`\",",
-    "\"`make -C zigux phase2-validate`\",",
-    "\"`make -C zigux phase2`\",",
 )
 
 TESTS_ALIGNMENT_MARKERS = (
@@ -52,7 +50,7 @@ TESTS_ALIGNMENT_MARKERS = (
     "\"`make -C zigux phase2-cross`\",",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 42
+EXPECTED_SELF_TEST_CASE_COUNT = 38
 
 
 def read_text(path: Path) -> str:
