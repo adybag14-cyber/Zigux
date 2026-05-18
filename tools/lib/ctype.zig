@@ -124,6 +124,56 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "fastTolower leaves non-uppercase punctuation unchanged" {
+    try std.testing.expectEqual(@as(u8, '['), fastTolower('['));
+    try std.testing.expectEqual(@as(u8, '\\'), fastTolower('\\'));
+    try std.testing.expectEqual(@as(u8, '^'), fastTolower('^'));
+}
+
+test "ctype latin1 table anchors preserve case mapping" {
+    const upper_a_grave: u8 = 0xC0;
+    const lower_a_grave: u8 = 0xE0;
+
+    try std.testing.expect(isupper(upper_a_grave));
+    try std.testing.expect(islower(lower_a_grave));
+    try std.testing.expectEqual(lower_a_grave, tolower(upper_a_grave));
+    try std.testing.expectEqual(lower_a_grave, fastTolower(upper_a_grave));
+    try std.testing.expectEqual(upper_a_grave, toupper(lower_a_grave));
+}
+
+test "ctype latin1 non-letter gaps stay unchanged" {
+    const multiplication_sign: u8 = 0xD7;
+    const division_sign: u8 = 0xF7;
+
+    try std.testing.expect(!isalpha(multiplication_sign));
+    try std.testing.expect(!isupper(multiplication_sign));
+    try std.testing.expect(!islower(multiplication_sign));
+    try std.testing.expectEqual(multiplication_sign, tolower(multiplication_sign));
+    try std.testing.expectEqual(multiplication_sign, fastTolower(multiplication_sign));
+    try std.testing.expectEqual(multiplication_sign, toupper(multiplication_sign));
+
+    try std.testing.expect(!isalpha(division_sign));
+    try std.testing.expect(!isupper(division_sign));
+    try std.testing.expect(!islower(division_sign));
+    try std.testing.expectEqual(division_sign, tolower(division_sign));
+    try std.testing.expectEqual(division_sign, fastTolower(division_sign));
+    try std.testing.expectEqual(division_sign, toupper(division_sign));
+}
+
+test "ctype latin1 non-breaking space keeps Linux whitespace flags" {
+    const nbsp: u8 = 0xA0;
+
+    try std.testing.expect(isspace(nbsp));
+    try std.testing.expect(isprint(nbsp));
+    try std.testing.expect(!isgraph(nbsp));
+    try std.testing.expect(!ispunct(nbsp));
+    try std.testing.expect(!isalpha(nbsp));
+    try std.testing.expect(!isdigit(nbsp));
+    try std.testing.expectEqual(nbsp, tolower(nbsp));
+    try std.testing.expectEqual(nbsp, fastTolower(nbsp));
+    try std.testing.expectEqual(nbsp, toupper(nbsp));
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
