@@ -63,6 +63,8 @@ Keep helper-local ownership explicit instead of flattening the packet into a sin
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_libfs_manifest.json`
 
+Keep `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_libfs_addressability.zig`, and `zigux/tests/phase13_build.zig` recorded as repo-reality gaps until they rematerialize on current `master`.
+
 ### `devres`
 
 - `Documentation/zigux/phase13-devres-slice.md`
