@@ -10,6 +10,7 @@ from pathlib import Path
 
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
+NOTIFIER_BINDINGS_PATH = Path("zigux/bindings/notifier_abi.zig")
 ABI_CHECKER_PATH = Path("scripts/zigux/check-phase3-abi.py")
 
 REQUIRED_SOURCE_MARKERS = {
@@ -20,6 +21,9 @@ REQUIRED_SOURCE_MARKERS = {
         "struct zigux_boundary_header {",
         "struct zigux_interop_policy {",
         "struct zigux_notifier_block {",
+        "struct zigux_list_head {",
+        "struct zigux_hlist_head {",
+        "struct zigux_hlist_node {",
     ),
     ABI_BINDINGS_PATH: (
         "pub const ABI_VERSION: u16 = 1;",
@@ -28,6 +32,19 @@ REQUIRED_SOURCE_MARKERS = {
         "pub const BoundaryHeader = extern struct {",
         "pub const InteropPolicy = extern struct {",
         "pub const NotifierBlock = notifier_abi.NotifierBlock;",
+        "pub const ListHead = notifier_abi.ListHead;",
+        "pub const HListHead = notifier_abi.HListHead;",
+        "pub const HListNode = notifier_abi.HListNode;",
+        "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
+        "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
+    ),
+    NOTIFIER_BINDINGS_PATH: (
+        "pub const NotifierBlock = extern struct {",
+        "pub const ListHead = extern struct {",
+        "pub const HListHead = extern struct {",
+        "pub const HListNode = extern struct {",
+        "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
+        "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
     ),
     ABI_CHECKER_PATH: (
         'ABI_SLICE_NOTE = Path("Documentation/zigux/phase3-abi-slice.md")',
@@ -41,26 +58,34 @@ REQUIRED_SOURCE_MARKERS = {
 }
 
 ABI_LAYOUT_STRUCTS = (
-    ("zigux_boundary_header", "BoundaryHeader"),
-    ("zigux_export_status", "ExportStatus"),
-    ("zigux_notifier_chain_priority_increase", "ChainPriorityIncrease"),
-    ("zigux_interop_policy", "InteropPolicy"),
+    ("zigux_boundary_header", "BoundaryHeader", ABI_BINDINGS_PATH),
+    ("zigux_export_status", "ExportStatus", ABI_BINDINGS_PATH),
+    ("zigux_notifier_chain_priority_increase", "ChainPriorityIncrease", ABI_BINDINGS_PATH),
+    ("zigux_interop_policy", "InteropPolicy", ABI_BINDINGS_PATH),
     (
         "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view",
         "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView",
+        ABI_BINDINGS_PATH,
     ),
     (
         "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary",
         "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary",
+        ABI_BINDINGS_PATH,
     ),
     (
         "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view",
         "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView",
+        ABI_BINDINGS_PATH,
     ),
     (
         "zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary",
         "ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary",
+        ABI_BINDINGS_PATH,
     ),
+    ("zigux_notifier_block", "NotifierBlock", NOTIFIER_BINDINGS_PATH),
+    ("zigux_list_head", "ListHead", NOTIFIER_BINDINGS_PATH),
+    ("zigux_hlist_head", "HListHead", NOTIFIER_BINDINGS_PATH),
+    ("zigux_hlist_node", "HListNode", NOTIFIER_BINDINGS_PATH),
 )
 
 C_TO_ZIG_TYPE_MAP = {
@@ -123,6 +148,17 @@ struct zigux_notifier_block {
     uintptr_t next;
     int32_t priority;
 };
+struct zigux_list_head {
+    uintptr_t next;
+    uintptr_t prev;
+};
+struct zigux_hlist_head {
+    uintptr_t first;
+};
+struct zigux_hlist_node {
+    uintptr_t next;
+    uintptr_t pprev;
+};
 """
 
 SELF_TEST_BINDINGS = """\
@@ -172,6 +208,44 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
     skipped: u32,
 };
 pub const NotifierBlock = notifier_abi.NotifierBlock;
+pub const ListHead = notifier_abi.ListHead;
+pub const HListHead = notifier_abi.HListHead;
+pub const HListNode = notifier_abi.HListNode;
+pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
+    _ = head;
+    return true;
+}
+pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
+    _ = head;
+    return true;
+}
+"""
+
+SELF_TEST_NOTIFIER_BINDINGS = """\
+pub const NotifierBlock = extern struct {
+    notifier_call: usize,
+    next: usize,
+    priority: i32,
+};
+pub const ListHead = extern struct {
+    next: usize,
+    prev: usize,
+};
+pub const HListHead = extern struct {
+    first: usize,
+};
+pub const HListNode = extern struct {
+    next: usize,
+    pprev: usize,
+};
+pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
+    _ = head;
+    return true;
+}
+pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
+    _ = head;
+    return true;
+}
 """
 
 SELF_TEST_CHECKER = """\
@@ -246,21 +320,25 @@ def _parse_zig_extern_struct_fields(text: str) -> dict[str, list[tuple[str, str]
     return structs
 
 
-def _validate_layout_structs(header_text: str, bindings_text: str) -> list[str]:
+def _validate_layout_structs(header_text: str, zig_texts: dict[Path, str]) -> list[str]:
     issues: list[str] = []
     c_structs = _parse_c_struct_fields(header_text)
-    zig_structs = _parse_zig_extern_struct_fields(bindings_text)
+    zig_structs_by_path = {
+        path: _parse_zig_extern_struct_fields(text)
+        for path, text in zig_texts.items()
+        if text is not None
+    }
 
-    for c_name, zig_name in ABI_LAYOUT_STRUCTS:
+    for c_name, zig_name, zig_path in ABI_LAYOUT_STRUCTS:
         c_fields = c_structs.get(c_name)
         if c_fields is None:
             issues.append(f"missing ABI header struct for layout comparison: {c_name}")
             continue
 
-        zig_fields = zig_structs.get(zig_name)
+        zig_fields = zig_structs_by_path.get(zig_path, {}).get(zig_name)
         if zig_fields is None:
             issues.append(
-                f"missing ABI binding extern struct for layout comparison: {zig_name}"
+                f"missing ABI binding extern struct for layout comparison: {zig_name} in {zig_path.as_posix()}"
             )
             continue
 
@@ -312,7 +390,15 @@ def validate_repo(repo_root: Path) -> list[str]:
                 "missing ABI binding constant for header define: "
                 f"ZIGUX_{name} -> {name}"
             )
-        issues.extend(_validate_layout_structs(header_text, bindings_text))
+        issues.extend(
+            _validate_layout_structs(
+                header_text,
+                {
+                    ABI_BINDINGS_PATH: bindings_text,
+                    NOTIFIER_BINDINGS_PATH: texts.get(NOTIFIER_BINDINGS_PATH),
+                },
+            )
+        )
 
     return issues
 
@@ -323,6 +409,7 @@ def run_self_test() -> int:
 
         _write(root / ABI_HEADER_PATH, SELF_TEST_HEADER)
         _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
+        _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
         _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
 
         issues = validate_repo(root)
@@ -388,8 +475,28 @@ def run_self_test() -> int:
             print("expected ABI layout mismatch was not reported")
             return 1
 
+        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
+
+        _write(
+            root / NOTIFIER_BINDINGS_PATH,
+            SELF_TEST_NOTIFIER_BINDINGS.replace(
+                "pub const ListHead = extern struct {\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing zigux/bindings/notifier_abi.zig marker: "
+            "pub const ListHead = extern struct {"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing notifier binding marker was not reported")
+            return 1
+
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=4")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=5")
     return 0
 
 
