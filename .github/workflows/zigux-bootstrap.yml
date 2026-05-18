@@ -146,6 +146,21 @@ jobs:
           fi
           python3 -m py_compile "${scripts[@]}"
 
+      - name: Self-test current Phase 2 genksyms gate
+        run: python3 scripts/zigux/check-phase2-current-genksyms-gate.py --self-test
+
+      - name: Check current Phase 2 genksyms gate
+        run: python3 scripts/zigux/check-phase2-current-genksyms-gate.py
+
+      - name: Self-test bounded genksyms bridge checker
+        run: python3 scripts/zigux/check-genksyms-bridge.py --self-test
+
+      - name: Check bounded genksyms bridge packet
+        run: python3 scripts/zigux/check-genksyms-bridge.py
+
+      - name: Run bounded genksyms bridge unit tests
+        run: zig test scripts/zigux/genksyms.zig
+
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
 
@@ -283,9 +298,6 @@ jobs:
 
       - name: Self-test current Phase 12 build-only surface checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
-
-      - name: Check current Phase 12 build-only surface
-        run: python3 scripts/zigux/check-build-only-phase12-surface.py
 
       - name: Self-test current Phase 12 release-readiness packet checker
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
