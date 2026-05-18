@@ -53,7 +53,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_build.zig",
-      "why_now": "Current direct readback still materializes the shared Phase 10 build gate alongside the restored ring helper and focused queue-local replays."
+      "why_now": "Current direct readback still materializes the shared Phase 10 build gate alongside the restored ring helper, the focused queue-local replays, and the newly returned survey replay."
     },
     {
       "id": "phase10-virtio-core-lab-starter",
@@ -64,10 +64,10 @@
     },
     {
       "id": "phase10-virtio-ring-survey-gate",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase10_virtio_ring_survey.zig",
-      "why_now": "The dedicated ring survey replay still does not materialize through current master contents reads, so the ring packet should keep that gate explicit as a missing direct surface instead of a landed replay."
+      "why_now": "The dedicated ring survey replay now materializes through current master contents reads, so the ring packet can keep that survey gate explicit as landed VM-friendly validation beside the restored helper ladder and focused replays."
     },
     {
       "id": "phase10-virtio-ring-survey-note",
@@ -151,7 +151,7 @@
       "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-ring-slice.md",
-      "why_now": "The packet-local slice note is still directly readable and can carry the narrowed ring packet vocabulary without overstating the remaining survey replay gap."
+      "why_now": "The packet-local slice note is still directly readable and can carry the narrowed ring packet vocabulary without overstating the remaining broader core replay gap."
     },
     {
       "id": "phase10-ring-lab-driver-bridge",
