@@ -110,3 +110,35 @@ test "zallocValue zeroes aggregate storage across arrays and optionals" {
     try std.testing.expectEqualSlices(bool, &.{ false, false }, &value.?.flags);
     try std.testing.expect(value.?.maybe_count == null);
 }
+
+test "zalloc clears fresh allocations after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        bytes: [4]u8,
+        maybe_count: ?usize,
+    };
+
+    var bytes: ?[]u8 = try zallocBytes(allocator, 4);
+    try std.testing.expect(bytes != null);
+    @memset(bytes.?, 0xaa);
+    zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+
+    bytes = try zallocBytes(allocator, 4);
+    defer zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes != null);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, bytes.?);
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    try std.testing.expect(value != null);
+    value.?.bytes = .{ 0xaa, 0xbb, 0xcc, 0xdd };
+    value.?.maybe_count = 7;
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, &value.?.bytes);
+    try std.testing.expect(value.?.maybe_count == null);
+}
