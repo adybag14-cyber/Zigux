@@ -214,6 +214,15 @@ jobs:
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
+      - name: Self-test current Phase 3 interop packet
+        run: python3 scripts/zigux/validate_phase3_selftest.py
+
+      - name: Check current Phase 3 interop packet
+        run: python3 scripts/zigux/run-phase3-checks.py
+
+      - name: Run current Phase 3 shared tests-root packet
+        run: zig build phase3-test --build-file zigux/tests/build.zig
+
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
 
