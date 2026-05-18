@@ -107,9 +107,20 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
 };
 
 pub const NotifierBlock = notifier_abi.NotifierBlock;
+pub const ListHead = notifier_abi.ListHead;
+pub const HListHead = notifier_abi.HListHead;
+pub const HListNode = notifier_abi.HListNode;
 
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     return notifier_abi.chainHasNonincreasingPriority(head);
+}
+
+pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
+    return notifier_abi.listHasConsistentBacklinks(head);
+}
+
+pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
+    return notifier_abi.hlistHasConsistentPrevLinks(head);
 }
 
 pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
@@ -318,15 +329,33 @@ test "abi binding chrdev structs keep the published layout" {
     try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"));
 }
 
-test "abi binding notifier block keeps the published layout" {
+test "abi binding notifier and list layouts stay aligned with the dedicated notifier bindings" {
     const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
-    const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
+    const expected_notifier_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
 
     try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
-    try std.testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
+    try std.testing.expectEqual(expected_notifier_size, @sizeOf(NotifierBlock));
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
+    try std.testing.expectEqual(@sizeOf(notifier_abi.NotifierBlock), @sizeOf(NotifierBlock));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListHead));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListHead, "next"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListHead, "prev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(ListHead));
+    try std.testing.expectEqual(@sizeOf(notifier_abi.ListHead), @sizeOf(ListHead));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListHead));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListHead, "first"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @sizeOf(HListHead));
+    try std.testing.expectEqual(@sizeOf(notifier_abi.HListHead), @sizeOf(HListHead));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListNode));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListNode, "next"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListNode, "pprev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(HListNode));
+    try std.testing.expectEqual(@sizeOf(notifier_abi.HListNode), @sizeOf(HListNode));
 }
 
 test "abi binding notifier helper matches the dedicated notifier binding" {
@@ -367,6 +396,57 @@ test "abi binding notifier helper matches the dedicated notifier binding" {
     try std.testing.expectEqual(
         notifier_abi.chainHasNonincreasingPriority(&increasing_head),
         chainHasNonincreasingPriority(&increasing_head),
+    );
+}
+
+test "abi binding list helper matches the dedicated notifier binding" {
+    var sentinel = ListHead{ .next = 0, .prev = 0 };
+    var first = ListHead{ .next = 0, .prev = 0 };
+    var second = ListHead{ .next = 0, .prev = 0 };
+
+    sentinel.next = @intFromPtr(&first);
+    sentinel.prev = @intFromPtr(&second);
+    first.next = @intFromPtr(&second);
+    first.prev = @intFromPtr(&sentinel);
+    second.next = @intFromPtr(&sentinel);
+    second.prev = @intFromPtr(&first);
+
+    try std.testing.expect(listHasConsistentBacklinks(&sentinel));
+    try std.testing.expectEqual(
+        notifier_abi.listHasConsistentBacklinks(&sentinel),
+        listHasConsistentBacklinks(&sentinel),
+    );
+
+    second.prev = @intFromPtr(&sentinel);
+    try std.testing.expect(!listHasConsistentBacklinks(&sentinel));
+    try std.testing.expectEqual(
+        notifier_abi.listHasConsistentBacklinks(&sentinel),
+        listHasConsistentBacklinks(&sentinel),
+    );
+}
+
+test "abi binding hlist helper matches the dedicated notifier binding" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&head.first);
+    second.next = 0;
+    second.pprev = @intFromPtr(&first.next);
+
+    try std.testing.expect(hlistHasConsistentPrevLinks(&head));
+    try std.testing.expectEqual(
+        notifier_abi.hlistHasConsistentPrevLinks(&head),
+        hlistHasConsistentPrevLinks(&head),
+    );
+
+    second.pprev = @intFromPtr(&head.first);
+    try std.testing.expect(!hlistHasConsistentPrevLinks(&head));
+    try std.testing.expectEqual(
+        notifier_abi.hlistHasConsistentPrevLinks(&head),
+        hlistHasConsistentPrevLinks(&head),
     );
 }
 
