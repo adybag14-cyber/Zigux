@@ -582,6 +582,21 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
 }
 
+test "conf bridge emits allmodconfig sentinel without explicit override" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allmodconfig,
+        .kconfig = "Kconfig",
+        .config = "mod/.config",
+        .arch = "arm",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allmodconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+}
+
 test "conf bridge emits randconfig tunables when present" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
@@ -707,14 +722,14 @@ test "conf bridge escapes quoted and backslashed defconfig request fields in jso
 
     try runConfBridge(&capture, .{
         .mode = .defconfig,
-        .kconfig = "Kconfig \\\"quoted\\\"\\\\path",
-        .config = "out/\\\"quoted\\\\.config",
+        .kconfig = "Kconfig \\\"quoted\\\"\\path",
+        .config = "out/\\\"quoted\\.config",
         .arch = "arm64\\\\\\\"lab",
-        .mode_arg = "arch/arm64/configs/zigux\\\"debug\\\\defconfig",
+        .mode_arg = "arch/arm64/configs/zigux\\\"debug\\defconfig",
     });
 
     try std.testing.expectEqualStrings(
-        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"defconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--defconfig\",\"arch/arm64/configs/zigux\\\\\\\"debug\\\\\\\\defconfig\",\"Kconfig \\\\\\\"quoted\\\\\\\"\\\\\\\\path\"],\"env\":{\"ARCH\":\"arm64\\\\\\\\\\\\\\\"lab\",\"KCONFIG_CONFIG\":\"out/\\\\\\\"quoted\\\\\\\\.config\"}}\n",
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"defconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--defconfig\",\"arch/arm64/configs/zigux\\\\\\\"debug\\\\defconfig\",\"Kconfig \\\\\\\"quoted\\\\\\\"\\path\"],\"env\":{\"ARCH\":\"arm64\\\\\\\\\\\\\\\"lab\",\"KCONFIG_CONFIG\":\"out/\\\\\\\"quoted\\\\.config\"}}\n",
         capture.list.items,
     );
 }
@@ -729,13 +744,13 @@ test "conf bridge escapes quoted and backslashed randconfig env overrides in jso
         .config = "rand/.config",
         .arch = "x86_64",
         .silent = true,
-        .allconfig = "all\\\"random\\\\.config",
-        .seed = "0xC0\\\"FFEE\\\\42",
-        .probability = "15:25\\\"mix\\\\cap",
+        .allconfig = "all\\\"random\\.config",
+        .seed = "0xC0\\\"FFEE\\42",
+        .probability = "15:25\\\"mix\\cap",
     });
 
     try std.testing.expectEqualStrings(
-        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"randconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--randconfig\",\"Kconfig\"],\"env\":{\"ARCH\":\"x86_64\",\"KCONFIG_CONFIG\":\"rand/.config\",\"KCONFIG_ALLCONFIG\":\"all\\\\\\\"random\\\\\\\\.config\",\"KCONFIG_SEED\":\"0xC0\\\\\\\"FFEE\\\\\\\\42\",\"KCONFIG_PROBABILITY\":\"15:25\\\\\\\"mix\\\\\\\\cap\"}}\n",
+        "{\"tool\":\"scripts/kconfig/conf\",\"mode\":\"randconfig\",\"argv\":[\"scripts/kconfig/conf\",\"--silent\",\"--randconfig\",\"Kconfig\"],\"env\":{\"ARCH\":\"x86_64\",\"KCONFIG_CONFIG\":\"rand/.config\",\"KCONFIG_ALLCONFIG\":\"all\\\\\\\"random\\\\.config\",\"KCONFIG_SEED\":\"0xC0\\\\\\\"FFEE\\\\42\",\"KCONFIG_PROBABILITY\":\"15:25\\\\\\\"mix\\\\cap\"}}\n",
         capture.list.items,
     );
 }
@@ -807,9 +822,9 @@ test "bridge options parser keeps empty syncconfig nosilentupdate unset" {
 }
 
 test "bridge options parser accepts silent alongside syncconfig nosilentupdate" {
-    const options = try parseBridgeOptions(.syncconfig, &.{ "silent", "nosilentupdate=keep\\\"quoted\\\\path" });
+    const options = try parseBridgeOptions(.syncconfig, &.{ "silent", "nosilentupdate=keep\\\"quoted\\path" });
     try std.testing.expect(options.silent);
-    try std.testing.expectEqualStrings("keep\\\"quoted\\\\path", options.nosilentupdate.?);
+    try std.testing.expectEqualStrings("keep\\\"quoted\\path", options.nosilentupdate.?);
     try std.testing.expect(options.allconfig == null);
     try std.testing.expect(options.seed == null);
     try std.testing.expect(options.probability == null);
