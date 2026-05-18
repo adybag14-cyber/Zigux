@@ -83,7 +83,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "drivers/watchdog/dw_wdt_verify.zig",
-      "why_now": "The verify helper keeps teardown and failure-mode parity explicit across unstoppable hardware, idle remove without a fabricated heartbeat, idle remove with reset-backed quiesce, idle stop outcomes across reset-controlled and non-stoppable hardware, idle IRQ-configured teardown without a fabricated stop path or continued heartbeat, and IRQ-mode teardown outcomes."
+      "why_now": "The verify helper keeps registration-blocking failure paths, MMIO-blocked registration handoff, imported-running shared-clock fallback, and teardown and failure-mode parity explicit across unstoppable hardware, idle remove without a fabricated heartbeat, idle remove with reset-backed quiesce, idle stop outcomes across reset-controlled and non-stoppable hardware, idle IRQ-configured teardown without a fabricated stop path or continued heartbeat, and IRQ-mode teardown outcomes."
     },
     {
       "id": "phase11-dw-wdt-platform-registration-scaffold",
