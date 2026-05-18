@@ -52,7 +52,7 @@ ATOMIC64_DIRECT_MARKERS = (
 NOTE_MARKERS = STATUS_MARKERS + DIRECT_MARKERS + RECOVERED_NOTE_MARKERS + REMAINING_GAP_MARKERS + ATOMIC64_DIRECT_MARKERS + (
     "The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff",
-    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up",
+    "The remaining shared reminder follow-up is now specific: `zigux/tests/README.md` still overstates `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` as missing-current-head companions, while `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` are already aligned with the recovered note pair, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair",
 )
 
 WARNING_MARKERS = (
@@ -67,7 +67,7 @@ WARNING_MARKERS = (
     "REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = \"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES\"",
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16",
     "EXPECTED_PIN_SELF_TEST_CASES = 8",
-    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up.",
+    "The remaining shared reminder follow-up is now specific: `zigux/tests/README.md` still overstates `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` as missing-current-head companions, while `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` are already aligned with the recovered note pair, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair.",
 )
 
 
@@ -171,8 +171,8 @@ def main() -> int:
 
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up",
-                    "The shared reminder surfaces are already fully refreshed",
+                    "The remaining shared reminder follow-up is now specific: `zigux/tests/README.md` still overstates `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` as missing-current-head companions, while `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` are already aligned with the recovered note pair, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair.",
+                    "The remaining shared reminder follow-up is already fully resolved.",
                 ),
                 encoding="utf-8",
             )
