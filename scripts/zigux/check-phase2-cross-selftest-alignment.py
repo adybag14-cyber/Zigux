@@ -35,6 +35,8 @@ CHECKER_OUTPUT_MARKERS = (
     'print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")',
     'print(f"PHASE2_CROSS_MATRIX_ENTRY_COUNT={len(matrix_entries)}")',
     'print("PHASE2_CROSS_MATRIX_ENTRIES=" + ",".join(matrix_entries))',
+    'print("PHASE2_CROSS_MISSING_FILES_START")',
+    'print("PHASE2_CROSS_MISSING_FILES_END")',
 )
 
 SCRIPTS_README_MARKERS = (
