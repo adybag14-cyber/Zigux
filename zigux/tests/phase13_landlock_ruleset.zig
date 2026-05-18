@@ -70,12 +70,14 @@ test "phase13 landlock ruleset manifest records the bounded security helper pack
     try expectContains(manifest_text, "\"current_phase13_build_present\": false");
     try expectContains(manifest_text, "\"current_ruleset_zig_present\": true");
     try expectContains(manifest_text, "\"current_phase13_landlock_ruleset_slice_present\": true");
+    try expectContains(manifest_text, "\"current_phase13_landlock_ruleset_ownership_present\": true");
     try expectContains(manifest_text, "\"current_phase13_landlock_ruleset_test_present\": true");
     try expectContains(manifest_text, "\"current_landlock_ruleset_packet_checker_present\": true");
     try expectContains(manifest_text, "\"current_phase13_landlock_ruleset_manifest_present\": true");
     try expectContains(manifest_text, "\"id\": \"phase13-build-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-ruleset-helper-starter\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-ruleset-slice-note\"");
+    try expectContains(manifest_text, "\"id\": \"phase13-landlock-ruleset-ownership-note\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-ruleset-direct-test-gate\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-ruleset-packet-checker\"");
     try expectContains(manifest_text, "\"id\": \"phase13-landlock-live-tree-state\"");
