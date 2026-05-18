@@ -180,17 +180,28 @@ now keep the current docs-root Phase 14 reminder packet honest from the document
   * keep the four roadmap-owned anchors explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay in the study-only boundary bucket, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay freeze-in-C anchors until the Architecture Council records a status change with parity-scorecard evidence. This docs-root reminder should keep those anchors visible without implying direct Phase 14 parity delivery.
   * keep the next honest follow-through narrow and notes-first: tighten any remaining shared reminder surfaces that still treat the older Makefile-backed `phase14-*` routes as current proof, or re-evaluate the parked validator-local handoff only if a later run restores a matching validator-and-build packet instead of widening this docs-root note into a new replay route or anchor-local status change.
 Phase 15 notes
+- `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+- `Documentation/zigux/phase15-shared-summary-gap.md`
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/validate-phase15.py`
+- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
+- `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
+- `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 now keep the current docs-root Phase 15 handoff packet explicit from the documentation root without implying any Architecture Council approval for a freeze-map status change.
-  * the shared Phase 15 docs-root handoff should also keep the named reopen trigger, any deep-core blocker-posture change, and the current governance reminder split explicit through the readiness survey, handoff survey, governance sequencing note, study-only anchor accounting note, the docs-root and scripts-root alignment checkers, the shared-summary gap checker, and the focused review-process handoff checker.
-  * treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence, and keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim.
+  * the shared Phase 15 docs-root handoff should also keep the named reopen trigger, any deep-core blocker-posture change, and the current governance reminder split explicit through the freeze-map governance note, the Architecture Council review-process note, the dedicated decision-record template, the indefinite-C policy note, the parity scorecard plus roadmap-facing survey, the readiness and handoff surveys, the governance sequencing note, the study-only anchor accounting note, the shared-summary gap note, the docs-root and scripts-root alignment checkers, the shared-summary gap checker, the focused review-process handoff checker, and the dedicated `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, and `zigux/tests/phase15_indefinite_c_policy.zig` companions while the four freeze-in-C anchors and two study-only anchors stay parked.
+  * treat `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence, and keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim.
