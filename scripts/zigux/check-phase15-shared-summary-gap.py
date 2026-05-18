@@ -7,6 +7,7 @@ from pathlib import Path
 
 GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
+CURRENT_READBACK_MARKER = "current-master-readback-2026-05-18"
 
 MATERIALIZED_GOVERNANCE_PATHS = (
     "Documentation/zigux/phase15-parity-scorecard-survey.md",
@@ -33,11 +34,13 @@ STILL_MISSING_VALIDATOR_FIRST_PATHS = (
 )
 
 REQUIRED_NOTE_MARKERS = (
+    f"surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`",
     "`Documentation/zigux/README.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`scripts/zigux/README.md`",
     "`zigux/tests/README.md`",
     "`Documentation/zigux/phase15-freeze-map-governance.md`",
+    "`Documentation/zigux/phase15-indefinite-c-policy.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
@@ -53,6 +56,7 @@ STALE_TEXT_MARKERS = (
     "## Still-missing focused companions on current master",
     "The current shared-summary drift is anchored to these still-missing paths:",
     "previously treated as missing",
+    "current-master-readback-2026-05-17",
 )
 
 HANDOFF_STATUS_MARKER = "PHASE15_STATUS=handoff_next_steps_survey_landed"
@@ -111,8 +115,10 @@ def _sample_gap_note() -> str:
     materialized = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_GOVERNANCE_PATHS)
     focused = "\n".join(f"- `{rel}`" for rel in MATERIALIZED_FOCUSED_COMPANIONS)
     missing = "\n".join(f"- `{rel}`" for rel in STILL_MISSING_VALIDATOR_FIRST_PATHS)
-    required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS)
+    required = "\n".join(f"- {marker}" for marker in REQUIRED_NOTE_MARKERS[1:])
     return f"""# Phase 15 Shared Summary Gap
+
+- surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`
 
 ## Materialized Phase 15 governance assets
 
@@ -185,6 +191,20 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected stale-wording failure: {failures}")
+
+        stale_marker_root = root / "stale_marker"
+        _seed_repo(stale_marker_root)
+        _write(
+            stale_marker_root / GAP_NOTE_PATH,
+            _sample_gap_note().replace(CURRENT_READBACK_MARKER, "current-master-readback-2026-05-17"),
+        )
+        failures = collect_failures(stale_marker_root)
+        expected = [
+            f"gap note missing required marker: surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`",
+            "gap note still carries stale missing-path wording: current-master-readback-2026-05-17",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected stale-marker failure: {failures}")
 
         handoff_root = root / "handoff"
         _seed_repo(handoff_root)
