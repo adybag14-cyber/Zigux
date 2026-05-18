@@ -174,6 +174,35 @@ pub fn libbpfBpfProgTypeStr(prog_type: u32) ?[]const u8 {
     return prog_type_names[prog_type];
 }
 
+fn formatTypeName(
+    buffer: []u8,
+    known_name: ?[]const u8,
+    unknown_prefix: []const u8,
+    raw_value: u32,
+) error{NoSpaceLeft}![]const u8 {
+    if (known_name) |name| {
+        return std.fmt.bufPrint(buffer, "{s}", .{name});
+    }
+
+    return std.fmt.bufPrint(buffer, "{s}({d})", .{ unknown_prefix, raw_value });
+}
+
+pub fn formatLibbpfBpfMapType(buffer: []u8, map_type: u32) error{NoSpaceLeft}![]const u8 {
+    return formatTypeName(buffer, libbpfBpfMapTypeStr(map_type), "unknown_map_type", map_type);
+}
+
+pub fn formatLibbpfBpfAttachType(buffer: []u8, attach_type: u32) error{NoSpaceLeft}![]const u8 {
+    return formatTypeName(buffer, libbpfBpfAttachTypeStr(attach_type), "unknown_attach_type", attach_type);
+}
+
+pub fn formatLibbpfBpfLinkType(buffer: []u8, link_type: u32) error{NoSpaceLeft}![]const u8 {
+    return formatTypeName(buffer, libbpfBpfLinkTypeStr(link_type), "unknown_link_type", link_type);
+}
+
+pub fn formatLibbpfBpfProgType(buffer: []u8, prog_type: u32) error{NoSpaceLeft}![]const u8 {
+    return formatTypeName(buffer, libbpfBpfProgTypeStr(prog_type), "unknown_prog_type", prog_type);
+}
+
 fn expectDenseNameTable(table: []const ?[]const u8) !void {
     for (table) |entry| {
         try std.testing.expect(entry != null);
@@ -210,6 +239,25 @@ test "program type names stay explicit and bounded" {
     try std.testing.expectEqualStrings("tracing", libbpfBpfProgTypeStr(26).?);
     try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);
     try std.testing.expect(libbpfBpfProgTypeStr(99) == null);
+}
+
+test "stable formatters keep known names unchanged and unknown ids reviewable" {
+    var map_buffer: [32]u8 = undefined;
+    var attach_buffer: [40]u8 = undefined;
+    var link_buffer: [32]u8 = undefined;
+    var prog_buffer: [32]u8 = undefined;
+
+    try std.testing.expectEqualStrings("ringbuf", try formatLibbpfBpfMapType(map_buffer[0..], 27));
+    try std.testing.expectEqualStrings("unknown_map_type(99)", try formatLibbpfBpfMapType(map_buffer[0..], 99));
+
+    try std.testing.expectEqualStrings("perf_event", try formatLibbpfBpfAttachType(attach_buffer[0..], 41));
+    try std.testing.expectEqualStrings("unknown_attach_type(88)", try formatLibbpfBpfAttachType(attach_buffer[0..], 88));
+
+    try std.testing.expectEqualStrings("sockmap", try formatLibbpfBpfLinkType(link_buffer[0..], 14));
+    try std.testing.expectEqualStrings("unknown_link_type(42)", try formatLibbpfBpfLinkType(link_buffer[0..], 42));
+
+    try std.testing.expectEqualStrings("netfilter", try formatLibbpfBpfProgType(prog_buffer[0..], 32));
+    try std.testing.expectEqualStrings("unknown_prog_type(77)", try formatLibbpfBpfProgType(prog_buffer[0..], 77));
 }
 
 test "all shipped libbpf name tables stay dense for every in-range value" {
