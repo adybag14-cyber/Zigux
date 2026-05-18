@@ -1,0 +1,70 @@
+{
+  "lane_key": "P9-L09",
+  "phase": "Phase 9",
+  "surveyed_commit": "70542337d15e9f26941f6a247da00077dddcebe8",
+  "anchor": "samples/trace_events/trace-events-sample.c",
+  "roadmap_destinations": [
+    "zigux/tests/runtime_*",
+    "samples/zigux/runtime_*"
+  ],
+  "survey_summary": {
+    "direct_runtime_trace_events_test_files": 2,
+    "surviving_sample_family_files": 4,
+    "survey_note_present": true,
+    "module_slice_present": true
+  },
+  "sample_packet_summary": {
+    "direct_sample": "samples/zigux/runtime_trace_events.zig",
+    "companion_files": [
+      "samples/zigux/runtime_trace_events_unregistered_gate.zig",
+      "samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
+      "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
+    ],
+    "selftest_hook_marker": ".provides_selftest_hook = true",
+    "lifecycle_marker": "initialized, selftest_complete, and exited lifecycle tracking"
+  },
+  "module_slice_alignment": {
+    "module_slice_path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+    "survey_note_path": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+    "manifest_path": "zigux/tests/runtime_trace_events_manifest.json",
+    "alignment_focus": "sample-local pilot-module reviewability rather than returned shared runtime-loader parity"
+  },
+  "roadmap_gap_summary": {
+    "roadmap_phase_goal": "first loadable Zigux runtime modules with selftest hooks and runtime module lifecycle parity",
+    "landed_pilot_state": "narrow trace-events sample packet plus family-local survey witness",
+    "missing_capability": "broader shared runtime-loader, shared build route, and shared runtime_* replay family remain absent on current master",
+    "next_gate": "keep the survey note, manifest, survey gate, and module-slice aligned with the surviving sample family while shared loader work stays parked"
+  },
+  "ownership_map": [
+    {
+      "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+      "role": "survey_note",
+      "owner": "P9-L09",
+      "boundary": "Owns the family-local survey wording for the surviving trace-events pilot packet only."
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_manifest.json",
+      "role": "packet_truth_manifest",
+      "owner": "P9-L09",
+      "boundary": "Records the current family-local runtime trace-events packet without widening into shared loader ownership."
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_survey.zig",
+      "role": "survey_gate",
+      "owner": "P9-L09",
+      "boundary": "Fail-closes on drift between the survey note, module-slice note, manifest, sequencing note, and surviving sample family."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+      "role": "module_slice_note",
+      "owner": "P9-L09",
+      "boundary": "Keeps the pilot-module slice paired with the family-local survey packet instead of treating shared loader surfaces as returned evidence."
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+      "role": "adjacent_shared_reminder",
+      "owner": "P9-L11",
+      "boundary": "Stays a shared Phase 9 reminder surface adjacent to this lane rather than becoming family-local survey ownership."
+    }
+  ]
+}
