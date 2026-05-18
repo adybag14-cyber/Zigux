@@ -138,7 +138,11 @@ Blocked broader paths:
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
-- `zigux/Makefile`
+
+Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes, so:
+- `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
+- `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path
+- `make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path
 
 This packet is ready for maintenance-mode truthfulness refreshes only, and no Architecture Council approval is currently recorded for a freeze-map status change.
 """
@@ -171,8 +175,7 @@ def _sample_manifest() -> str:
                 "scripts/zigux/validate-phase15.py",
                 "zigux/tests/phase15_handoff_next_steps_manifest.json",
                 "zigux/tests/phase15_build.zig",
-                "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-                "zigux/Makefile"
+                "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
             ],
             "repo_evidence": {
                 "phase15_readiness_packet_checker_present": true,
@@ -182,7 +185,7 @@ def _sample_manifest() -> str:
                 "phase15_handoff_manifest_present": false,
                 "phase15_build_zig_present": false,
                 "phase15_indefinite_c_lane_owner_alignment_present": false,
-                "phase15_makefile_present": false,
+                "phase15_makefile_present": true,
                 "phase15_validate_target_present": false,
                 "phase15_test_target_present": false,
                 "shared_ci_phase15_present": false,
@@ -218,6 +221,7 @@ def _seed_repo(root: Path) -> None:
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         "zigux/tests/README.md",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+        "zigux/Makefile",
     ):
         _write(root / rel, "present\n")
 
@@ -279,7 +283,7 @@ def run_self_test() -> int:
         tests_checker_root = root / "tests_checker"
         _seed_repo(tests_checker_root)
         manifest = json.loads((tests_checker_root / MANIFEST_PATH).read_text(encoding="utf-8"))
-        manifest["repo_evidence"]["phase15_tests_readme_checker_present"] = False
+        manifest["repo_evidence"]["phase15_tests_readme_checker_present"] = false
         _write(tests_checker_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         failures = collect_failures(tests_checker_root)
         expected = [
@@ -287,6 +291,18 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected tests-checker failure: {failures}")
+
+        makefile_root = root / "makefile"
+        _seed_repo(makefile_root)
+        manifest = json.loads((makefile_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+        manifest["repo_evidence"]["phase15_makefile_present"] = false
+        _write(makefile_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        failures = collect_failures(makefile_root)
+        expected = [
+            "readiness manifest makefile bool disagrees with repo reality"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected makefile failure: {failures}")
 
     print("PHASE15_READINESS_GATE_PACKET_SELF_TEST=pass")
     return 0
