@@ -1,0 +1,35 @@
+{
+  "lane_key": "P7-L05",
+  "phase": "Phase 7",
+  "verified_on_utc": "2026-05-18T11:15:57Z",
+  "anchor": "lib/cmdline.c",
+  "current_master_state": "helper_survey_manifest_foothold",
+  "review_surfaces": [
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
+    "lib/cmdline.zig",
+    "zigux/tests/phase7_cmdline_survey.zig",
+    "zigux/tests/phase7_cmdline_manifest.json",
+    "samples/zigux/README.md"
+  ],
+  "covered_helpers": [
+    "parseOptionStr",
+    "parse_option_str",
+    "nextArg",
+    "next_arg",
+    "memparse"
+  ],
+  "missing_paths": [
+    "Documentation/zigux/phase7-cmdline-slice.md",
+    "zigux/tests/phase7_cmdline.zig",
+    "zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig",
+    "zigux/tests/phase7_build.zig",
+    "scripts/zigux/validate-phase7.py"
+  ],
+  "ownership_focus": [
+    "parseOptionStr() keeps exact bare-option matching bounded to the exported option-string prefix",
+    "nextArg() and next_arg() keep quoted and unquoted argument parsing bounded to the first NUL while preserving the remaining tail for the caller",
+    "memparse() keeps signed-prefix handling, suffix scaling, and saturation bounded to the caller-provided input slice",
+    "same-lane follow-through stays inside the returned helper, survey, and manifest foothold until a fresh reread proves the slice, dedicated test, fixture, or shared Phase 7 build route returned on current master"
+  ],
+  "next_bounded_step": "Keep same-lane follow-through limited to helper-local survey-or-manifest truthfulness until a fresh reread proves the dedicated cmdline slice note, dedicated test, fixture vectors, or shared Phase 7 build route returned on current master."
+}
