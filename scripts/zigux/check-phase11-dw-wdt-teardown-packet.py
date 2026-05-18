@@ -109,7 +109,7 @@ def run_self_test() -> None:
             case_root = root / case_name
             shutil.copytree(root, case_root)
             target = case_root / REQUIRED_FILES[label]
-            target.writeText(read_text(target).replace(marker, "", 1), encoding="utf-8")
+            target.write_text(read_text(target).replace(marker, "", 1), encoding="utf-8")
             failures = check_repo(case_root)
             expected = f"missing_marker:{label}:{marker}"
             if expected not in failures:
