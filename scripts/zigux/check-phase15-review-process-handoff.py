@@ -10,6 +10,7 @@ REVIEW_PROCESS_PATH = Path("Documentation/zigux/phase15-architecture-council-rev
 DECISION_RECORD_TEMPLATE_PATH = Path(
     "Documentation/zigux/phase15-architecture-council-decision-record-template.md"
 )
+INDEFINITE_C_POLICY_PATH = Path("Documentation/zigux/phase15-indefinite-c-policy.md")
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 SHARED_GAP_NOTE_PATH = Path("Documentation/zigux/phase15-shared-summary-gap.md")
@@ -42,6 +43,7 @@ def _line_containing(text: str, marker: str) -> str | None:
 def collect_failures(root: Path) -> list[str]:
     review_process = _read_text(root / REVIEW_PROCESS_PATH)
     decision_record_template = _read_text(root / DECISION_RECORD_TEMPLATE_PATH)
+    indefinite_c_policy = _read_text(root / INDEFINITE_C_POLICY_PATH)
     review_checklist = _read_text(root / REVIEW_CHECKLIST_PATH)
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
     gap_note = _read_text(root / SHARED_GAP_NOTE_PATH)
@@ -54,6 +56,9 @@ def collect_failures(root: Path) -> list[str]:
 
     if manifest["decision_record_template"] not in review_process:
         failures.append("review-process note is missing the decision-record template path")
+
+    if manifest["indefinite_c_policy_note"] not in review_process:
+        failures.append("review-process note is missing the indefinite-C policy companion path")
 
     build_gate = manifest.get("build_gate")
     if build_gate is None:
@@ -113,6 +118,10 @@ def collect_failures(root: Path) -> list[str]:
         if field not in decision_record_template:
             failures.append(f"decision-record template is missing reopen-evidence field: {field}")
 
+    for marker in manifest["indefinite_c_policy_required_markers"]:
+        if marker not in indefinite_c_policy:
+            failures.append(f"indefinite-C policy note is missing required marker: {marker}")
+
     for marker in manifest["decision_record_template_required_markers"]:
         if marker not in decision_record_template:
             failures.append(f"decision-record template is missing required marker: {marker}")
@@ -157,7 +166,9 @@ def _sample_manifest() -> str:
             "lane_key": "P15-L08",
             "phase": "Phase 15",
             "surveyed_commit": "current-master-readback-2026-05-18",
+            "review_process_note": "Documentation/zigux/phase15-architecture-council-review-process.md",
             "decision_record_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
+            "indefinite_c_policy_note": "Documentation/zigux/phase15-indefinite-c-policy.md",
             "build_gate": "zigux/tests/phase15_architecture_council_review_process_build.zig",
             "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
             "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
@@ -201,6 +212,12 @@ def _sample_manifest() -> str:
                 "the blocker disposition being challenged",
                 "the narrower seam or policy change that makes the new review safe to consider",
             ],
+            "indefinite_c_policy_required_markers": [
+                "required approver set",
+                "automatic return-to-blocked trigger",
+                "trigger-specific evidence refresh",
+                "parity scorecard link or blocker record",
+            ],
             "decision_record_template_required_markers": [
                 "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
                 "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
@@ -225,12 +242,12 @@ def _sample_manifest() -> str:
                 "`Documentation/zigux/phase15-readiness-gate-survey.md`",
                 "`Documentation/zigux/phase15-governance-lane-sequencing.md`",
                 "`scripts/zigux/check-phase15-scripts-readme-alignment.py`",
+                "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`zigux/tests/phase15_freeze_map_governance.zig`",
                 "`zigux/tests/phase15_parity_scorecard.zig`",
                 "`zigux/tests/phase15_indefinite_c_policy.json`",
                 "`zigux/tests/phase15_indefinite_c_policy.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process.zig`",
-                "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
             ],
@@ -252,7 +269,7 @@ def _sample_review_process() -> str:
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
-- this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused Zig replay, and the focused build-file replay are landed through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`
+- this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused Zig replay, the focused build-file replay, and the stay-in-C policy companion explicit through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 
 Any freeze-map anchor entering Architecture Council status review must keep all of the following explicit:
@@ -357,6 +374,19 @@ This is a review packet template, not approval by itself.
 """
 
 
+def _sample_indefinite_c_policy() -> str:
+    return """# Phase 15 Indefinite-C Policy
+
+- `PHASE15_STATUS=indefinite_c_policy_packet_landed`
+- `PHASE15_LANE_KEY=P15-L13`
+- current repo reality: the roadmap-required stay-in-C policy packet is landed and remains maintenance-only under the same blocked deep-core posture
+
+- the decision record ID, lane owner, required approver set, and rollback owner
+- the automatic return-to-blocked trigger, retained `retired_from_active_discussion` state, reopen triggers, and trigger-specific evidence refresh
+- the parity scorecard link or blocker record, explicit non-goals, and written rationale for why the anchor remains in C
+"""
+
+
 def _sample_review_checklist() -> str:
     return """# Zigux Review Checklist
 
@@ -388,12 +418,12 @@ def _sample_gap_note() -> str:
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
+- `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `zigux/tests/phase15_freeze_map_governance.zig`
 - `zigux/tests/phase15_parity_scorecard.zig`
 - `zigux/tests/phase15_indefinite_c_policy.json`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
-- `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/validate-phase15.py`
@@ -435,6 +465,7 @@ def run_self_test() -> int:
         root = Path(tmp_dir)
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
+        _write(root / INDEFINITE_C_POLICY_PATH, _sample_indefinite_c_policy())
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
@@ -460,6 +491,17 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if failures != ["review-process note is missing required review field: roadmap phase"]:
             raise AssertionError(f"unexpected roadmap-phase failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace(
+                "`Documentation/zigux/phase15-indefinite-c-policy.md`, ", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != ["review-process note is missing the indefinite-C policy companion path"]:
+            raise AssertionError(f"unexpected indefinite-C policy path failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
@@ -493,6 +535,15 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected stay-in-C closeout failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / INDEFINITE_C_POLICY_PATH,
+            _sample_indefinite_c_policy().replace("required approver set, ", "", 1),
+        )
+        failures = collect_failures(root)
+        if failures != ["indefinite-C policy note is missing required marker: required approver set"]:
+            raise AssertionError(f"unexpected indefinite-C marker failure: {failures}")
+
+        _write(root / INDEFINITE_C_POLICY_PATH, _sample_indefinite_c_policy())
         _write(
             root / REVIEW_PROCESS_PATH,
             _sample_review_process().replace(
@@ -540,9 +591,7 @@ def run_self_test() -> int:
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(
             root / HANDOFF_NOTE_PATH,
-            _sample_handoff_note().replace(
-                "- `Documentation/zigux/review-checklist.md`\n", "", 1
-            ),
+            _sample_handoff_note().replace("- `Documentation/zigux/review-checklist.md`\n", "", 1),
         )
         failures = collect_failures(root)
         if failures != [
@@ -567,26 +616,16 @@ def run_self_test() -> int:
         _write(
             root / SHARED_GAP_NOTE_PATH,
             _sample_gap_note().replace(
-                "- `zigux/tests/phase15_architecture_council_review_process_build.zig`\n", "", 1
+                "- `zigux/tests/phase15_architecture_council_review_process.zig`\n", "", 1
             ),
         )
         failures = collect_failures(root)
         if failures != [
-            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_architecture_council_review_process_build.zig`"
+            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_architecture_council_review_process.zig`"
         ]:
             raise AssertionError(f"unexpected shared-gap failure: {failures}")
 
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
-        (root / BUILD_GATE_PATH).unlink()
-        failures = collect_failures(root)
-        expected = [
-            "shared-summary gap note claims materialized path is missing from repo: `zigux/tests/phase15_architecture_council_review_process_build.zig`",
-            "focused review-process build-file replay is missing from repo: `zigux/tests/phase15_architecture_council_review_process_build.zig`",
-        ]
-        if failures != expected:
-            raise AssertionError(f"unexpected build-gate failure: {failures}")
-
-        _write(root / BUILD_GATE_PATH, _sample_build_gate())
         (root / TEST_PATH).unlink()
         failures = collect_failures(root)
         expected = [
