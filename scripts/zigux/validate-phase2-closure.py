@@ -109,7 +109,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 43
+EXPECTED_SELF_TEST_CASE_COUNT = 70
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -142,8 +142,32 @@ def read_manifest(root: Path) -> dict[str, object]:
     return payload
 
 
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
+def collect_marker_count_issues(
+    text: str,
+    markers: tuple[str, ...],
+    *,
+    missing_code: str,
+    duplicate_code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
+
+
+def collect_duplicate_manifest_entries(values: object, code: str) -> list[tuple[str, str]]:
+    if not isinstance(values, list):
+        return []
+
+    counts: dict[str, int] = {}
+    for value in values:
+        key = value if isinstance(value, str) else repr(value)
+        counts[key] = counts.get(key, 0) + 1
+    return [(code, f"{key}:count={count}") for key, count in counts.items() if count > 1]
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -157,51 +181,87 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     scripts_readme_text = read_text(root, SCRIPTS_README)
     manifest = read_manifest(root)
 
-    issues.extend(collect_missing_markers(closure_text, EXPECTED_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"))
     issues.extend(
-        collect_missing_markers(
+        collect_marker_count_issues(
+            closure_text,
+            EXPECTED_DOC_MARKERS,
+            missing_code="MISSING_CLOSURE_DOC_MARKERS",
+            duplicate_code="DUPLICATE_CLOSURE_DOC_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
             closure_text,
             EXPECTED_CLOSURE_GAP_MARKERS,
-            "MISSING_CLOSURE_GAP_MARKERS",
+            missing_code="MISSING_CLOSURE_GAP_MARKERS",
+            duplicate_code="DUPLICATE_CLOSURE_GAP_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_count_issues(
             bootstrap_notes_text,
             EXPECTED_BOOTSTRAP_NOTES_MARKERS,
-            "MISSING_BOOTSTRAP_NOTES_MARKERS",
+            missing_code="MISSING_BOOTSTRAP_NOTES_MARKERS",
+            duplicate_code="DUPLICATE_BOOTSTRAP_NOTES_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_count_issues(
             bootstrap_notes_text,
             EXPECTED_BOOTSTRAP_GAP_MARKERS,
-            "MISSING_BOOTSTRAP_GAP_MARKERS",
+            missing_code="MISSING_BOOTSTRAP_GAP_MARKERS",
+            duplicate_code="DUPLICATE_BOOTSTRAP_GAP_MARKERS",
         )
     )
-    for text, code in (
-        (docs_root_text, "MISSING_DOCS_ROOT_MARKERS"),
-    ):
-        issues.extend(collect_missing_markers(text, EXPECTED_DOCS_ROOT_MARKERS, code))
-    issues.extend(collect_missing_markers(tests_readme_text, EXPECTED_TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"))
     issues.extend(
-        collect_missing_markers(
+        collect_marker_count_issues(
+            docs_root_text,
+            EXPECTED_DOCS_ROOT_MARKERS,
+            missing_code="MISSING_DOCS_ROOT_MARKERS",
+            duplicate_code="DUPLICATE_DOCS_ROOT_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
+            tests_readme_text,
+            EXPECTED_TESTS_README_MARKERS,
+            missing_code="MISSING_TESTS_README_MARKERS",
+            duplicate_code="DUPLICATE_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
             review_checklist_text,
             EXPECTED_REVIEW_CHECKLIST_MARKERS,
-            "MISSING_REVIEW_CHECKLIST_MARKERS",
+            missing_code="MISSING_REVIEW_CHECKLIST_MARKERS",
+            duplicate_code="DUPLICATE_REVIEW_CHECKLIST_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_count_issues(
             scripts_readme_text,
             EXPECTED_SCRIPTS_README_MARKERS,
-            "MISSING_SCRIPTS_README_MARKERS",
+            missing_code="MISSING_SCRIPTS_README_MARKERS",
+            duplicate_code="DUPLICATE_SCRIPTS_README_MARKERS",
         )
     )
 
     unexpected_fields = sorted(set(manifest) - EXPECTED_MANIFEST_FIELDS)
     if unexpected_fields:
         issues.extend(("UNEXPECTED_MANIFEST_FIELD", field) for field in unexpected_fields)
+
+    present_files = manifest.get("present_files")
+    missing_files = manifest.get("missing_files")
+
+    issues.extend(collect_duplicate_manifest_entries(present_files, "DUPLICATE_PRESENT_FILE_ENTRY"))
+    issues.extend(collect_duplicate_manifest_entries(missing_files, "DUPLICATE_MISSING_FILE_ENTRY"))
+    if isinstance(present_files, list) and isinstance(missing_files, list):
+        present_set = {value for value in present_files if isinstance(value, str)}
+        missing_set = {value for value in missing_files if isinstance(value, str)}
+        issues.extend(
+            ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", value)
+            for value in sorted(present_set & missing_set)
+        )
 
     if manifest.get("packet") != "phase2_tool_manifest":
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
@@ -295,6 +355,12 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def duplicate_once(text: str, marker: str) -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, f"{marker}\n{marker}", 1)
+
+
 def assert_system_exit_contains(callback, expected_fragment: str) -> None:
     try:
         callback()
@@ -312,21 +378,67 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for path, markers, code in (
-            (CLOSURE_DOC, EXPECTED_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"),
-            (CLOSURE_DOC, EXPECTED_CLOSURE_GAP_MARKERS, "MISSING_CLOSURE_GAP_MARKERS"),
-            (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"),
-            (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_GAP_MARKERS, "MISSING_BOOTSTRAP_GAP_MARKERS"),
-            (DOCS_ROOT_README, EXPECTED_DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"),
-            (TESTS_README, EXPECTED_TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"),
-            (REVIEW_CHECKLIST, EXPECTED_REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS"),
-            (SCRIPTS_README, EXPECTED_SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"),
+        for path, markers, missing_code, duplicate_code in (
+            (
+                CLOSURE_DOC,
+                EXPECTED_DOC_MARKERS,
+                "MISSING_CLOSURE_DOC_MARKERS",
+                "DUPLICATE_CLOSURE_DOC_MARKERS",
+            ),
+            (
+                CLOSURE_DOC,
+                EXPECTED_CLOSURE_GAP_MARKERS,
+                "MISSING_CLOSURE_GAP_MARKERS",
+                "DUPLICATE_CLOSURE_GAP_MARKERS",
+            ),
+            (
+                BOOTSTRAP_NOTES,
+                EXPECTED_BOOTSTRAP_NOTES_MARKERS,
+                "MISSING_BOOTSTRAP_NOTES_MARKERS",
+                "DUPLICATE_BOOTSTRAP_NOTES_MARKERS",
+            ),
+            (
+                BOOTSTRAP_NOTES,
+                EXPECTED_BOOTSTRAP_GAP_MARKERS,
+                "MISSING_BOOTSTRAP_GAP_MARKERS",
+                "DUPLICATE_BOOTSTRAP_GAP_MARKERS",
+            ),
+            (
+                DOCS_ROOT_README,
+                EXPECTED_DOCS_ROOT_MARKERS,
+                "MISSING_DOCS_ROOT_MARKERS",
+                "DUPLICATE_DOCS_ROOT_MARKERS",
+            ),
+            (
+                TESTS_README,
+                EXPECTED_TESTS_README_MARKERS,
+                "MISSING_TESTS_README_MARKERS",
+                "DUPLICATE_TESTS_README_MARKERS",
+            ),
+            (
+                REVIEW_CHECKLIST,
+                EXPECTED_REVIEW_CHECKLIST_MARKERS,
+                "MISSING_REVIEW_CHECKLIST_MARKERS",
+                "DUPLICATE_REVIEW_CHECKLIST_MARKERS",
+            ),
+            (
+                SCRIPTS_README,
+                EXPECTED_SCRIPTS_README_MARKERS,
+                "MISSING_SCRIPTS_README_MARKERS",
+                "DUPLICATE_SCRIPTS_README_MARKERS",
+            ),
         ):
             for marker in markers:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
                 resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
-                assert (code, marker) in collect_issues(root)
+                assert (missing_code, marker) in collect_issues(root)
+                checks_run += 1
+
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(duplicate_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                assert (duplicate_code, f"{marker}:count=2") in collect_issues(root)
                 checks_run += 1
 
         build_self_test_root(root)
@@ -370,6 +482,27 @@ def run_self_test() -> int:
         bad["unexpected"] = "value"
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("UNEXPECTED_MANIFEST_FIELD", "unexpected") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["present_files"] = EXPECTED_PRESENT_FILES + [EXPECTED_PRESENT_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("DUPLICATE_PRESENT_FILE_ENTRY", f"{EXPECTED_PRESENT_FILES[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_MISSING_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("DUPLICATE_MISSING_FILE_ENTRY", f"{EXPECTED_MISSING_FILES[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_PRESENT_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
