@@ -7,14 +7,20 @@ from pathlib import Path
 
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 
+FREEZE_POSTURE_PROMPT = "if the change touches the shared Phase 15 freeze-posture packet"
 FREEZE_POSTURE_MARKERS = (
-    "if the change touches the shared Phase 15 freeze-posture packet",
     "`Documentation/zigux/freeze-map.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-shared-summary-gap.md`",
-    "describe missing validator, tests-root, or make-route companions as repo-reality gaps rather than shipped evidence or Architecture Council approval",
+    "keep the same study-only anchor inventory",
+    "keep the current materialized focused governance companions visible as present evidence",
+    "`scripts/zigux/validate-phase15.py`",
+    "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    "`zigux/tests/phase15_build.zig`",
+    "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "repo-reality gaps rather than shipped evidence or Architecture Council approval",
 )
 
 ENTRY_REVIEW_PROMPT = "if a freeze-map anchor is entering Architecture Council status review"
@@ -45,7 +51,7 @@ ENTRY_REVIEW_FIELDS = (
 
 STAY_IN_C_PROMPT = "if a freeze-map anchor is closing review with a stay-in-C outcome"
 STAY_IN_C_FIELDS = (
-    "the retained `freeze_in_c` decision",
+    "retained `freeze_in_c` decision",
     "required approver set",
     "retained `retired_from_active_discussion` state",
     "current blocker",
@@ -54,9 +60,7 @@ STAY_IN_C_FIELDS = (
 )
 
 BLOCKED_PROMPT = "if a freeze-map anchor remains blocked"
-BLOCKED_OWNER_MARKER = (
-    "current lane owner responsible for keeping that blocked evidence packet up to date"
-)
+BLOCKED_OWNER_MARKER = "current lane owner responsible for keeping that blocked evidence packet up to date"
 
 
 def _read(path: Path) -> str:
@@ -79,9 +83,13 @@ def collect_failures(root: Path) -> list[str]:
     checklist = _read(root / REVIEW_CHECKLIST_PATH)
     failures: list[str] = []
 
-    for marker in FREEZE_POSTURE_MARKERS:
-        if marker not in checklist:
-            failures.append(f"freeze_posture:missing:{marker}")
+    freeze_line = _line_containing(checklist, FREEZE_POSTURE_PROMPT)
+    if freeze_line is None:
+        failures.append(f"freeze_posture:missing:{FREEZE_POSTURE_PROMPT}")
+    else:
+        for marker in FREEZE_POSTURE_MARKERS:
+            if marker not in freeze_line:
+                failures.append(f"freeze_posture:missing:{marker}")
 
     entry_line = _line_containing(checklist, ENTRY_REVIEW_PROMPT)
     if entry_line is None:
@@ -115,8 +123,11 @@ def _sample_review_checklist() -> str:
         "`Documentation/zigux/phase15-study-only-anchor-accounting.md`, "
         "`Documentation/zigux/phase15-handoff-next-steps-survey.md`, and "
         "`Documentation/zigux/phase15-shared-summary-gap.md` keep the same study-only anchor "
-        "inventory and describe missing validator, tests-root, or make-route companions as "
-        "repo-reality gaps rather than shipped evidence or Architecture Council approval?\n"
+        "inventory, keep the current materialized focused governance companions visible as present "
+        "evidence, and keep only the still-missing broader validator-first companions "
+        "`scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, "
+        "`zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` "
+        "framed as repo-reality gaps rather than shipped evidence or Architecture Council approval?\n"
     )
     entry = (
         "  * if a freeze-map anchor is entering Architecture Council status review, are the "
@@ -155,13 +166,11 @@ def run_self_test() -> int:
         _write(
             root / REVIEW_CHECKLIST_PATH,
             _sample_review_checklist().replace(
-                "`Documentation/zigux/phase15-shared-summary-gap.md`", "", 1
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`", "", 1
             ),
         )
         failures = collect_failures(root)
-        expected = [
-            "freeze_posture:missing:`Documentation/zigux/phase15-shared-summary-gap.md`"
-        ]
+        expected = ["freeze_posture:missing:`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`"]
         if failures != expected:
             raise AssertionError(f"unexpected freeze-posture failure: {failures}")
         case_count += 1
@@ -192,16 +201,10 @@ def run_self_test() -> int:
 
         _write(
             root / REVIEW_CHECKLIST_PATH,
-            _sample_review_checklist().replace(
-                "current lane owner responsible for keeping that blocked evidence packet up to date",
-                "",
-                1,
-            ),
+            _sample_review_checklist().replace(BLOCKED_OWNER_MARKER, "", 1),
         )
         failures = collect_failures(root)
-        expected = [
-            "blocked_prompt:missing:current lane owner responsible for keeping that blocked evidence packet up to date"
-        ]
+        expected = [f"blocked_prompt:missing:{BLOCKED_OWNER_MARKER}"]
         if failures != expected:
             raise AssertionError(f"unexpected blocked-prompt failure: {failures}")
         case_count += 1
