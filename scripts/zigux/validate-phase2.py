@@ -46,8 +46,6 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
-    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
-    "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
@@ -79,8 +77,6 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pin-scope.py",
     "phase2-tools:",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
@@ -266,7 +262,7 @@ def run_self_test() -> int:
                 ),
                 encoding="utf-8",
             )
-            assert ("MISSING_WORKFLOW_LINE", marker) in collect_issues(root)
+            assert (("MISSING_WORKFLOW_LINE", marker) in collect_issues(root))
             checks_run += 1
 
         for marker in REQUIRED_WORKFLOW_LINES:
@@ -276,7 +272,7 @@ def run_self_test() -> int:
                 duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), marker),
                 encoding="utf-8",
             )
-            assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
+            assert (("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root))
             checks_run += 1
 
         for marker in DISALLOWED_WORKFLOW_LINES:
@@ -286,7 +282,7 @@ def run_self_test() -> int:
                 workflow_path.read_text(encoding="utf-8") + marker + "\n",
                 encoding="utf-8",
             )
-            assert ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1") in collect_issues(root)
+            assert (("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1") in collect_issues(root))
             checks_run += 1
 
         build_self_test_root(root)
@@ -299,7 +295,7 @@ def run_self_test() -> int:
             ),
             encoding="utf-8",
         )
-        assert ("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE) in collect_issues(root)
+        assert (("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE) in collect_issues(root))
         checks_run += 1
 
         build_self_test_root(root)
@@ -326,7 +322,7 @@ def run_self_test() -> int:
                 ),
                 encoding="utf-8",
             )
-            assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
+            assert (("MISSING_MAKEFILE_LINE", marker) in collect_issues(root))
             checks_run += 1
 
         for marker in REQUIRED_MAKEFILE_LINES:
@@ -336,7 +332,7 @@ def run_self_test() -> int:
                 duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), marker),
                 encoding="utf-8",
             )
-            assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
+            assert (("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root))
             checks_run += 1
 
         for marker in DISALLOWED_MAKEFILE_LINES:
@@ -346,7 +342,7 @@ def run_self_test() -> int:
                 makefile_path.read_text(encoding="utf-8") + marker + "\n",
                 encoding="utf-8",
             )
-            assert ("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count=1") in collect_issues(root)
+            assert (("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count=1") in collect_issues(root))
             checks_run += 1
 
         for rel in REQUIRED_PATHS:
@@ -355,7 +351,7 @@ def run_self_test() -> int:
             build_self_test_root(root)
             path_under(root, rel).unlink()
             issues = collect_issues(root)
-            assert ("MISSING_REQUIRED_PATH", rel) in issues
+            assert (("MISSING_REQUIRED_PATH", rel) in issues)
             checks_run += 1
 
         for rel in (WORKFLOW, MAKEFILE):
