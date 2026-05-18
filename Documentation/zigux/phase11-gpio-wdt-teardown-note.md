@@ -1,6 +1,6 @@
 # Phase 11 GPIO Watchdog Teardown Note
 
-This note restores the missing teardown-facing checkpoint for the bounded Phase 11 `gpio_wdt` packet on current `master`. It stays inside the simple-drivers lane and records only the host-free teardown and stop-policy surfaces that the shipped GPIO survey packet already describes.
+This note keeps the teardown-facing checkpoint for the bounded Phase 11 `gpio_wdt` packet truthful on current `master`. It stays inside the simple-drivers lane and records only the host-free teardown and stop-policy surfaces that the shipped GPIO survey packet already describes.
 ## Status
 
 - `PHASE11_GPIO_WDT_TEARDOWN_STATUS=teardown_handoff_archived`
@@ -10,20 +10,22 @@ This note restores the missing teardown-facing checkpoint for the bounded Phase 
 
 The current teardown-facing GPIO packet on `master` is:
 
+- `drivers/watchdog/gpio_wdt.zig`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `zigux/tests/phase11_gpio_wdt.zig`
 - `zigux/tests/phase11_gpio_wdt_manifest.json`
+- `zigux/tests/phase11_build.zig`
 
 These surfaces keep the teardown packet readable beside the shared Phase 11 replay route without promoting it into a broader runtime-parity claim.
 ## What The Landed Teardown Packet Covers
 
 The current host-free teardown replay keeps these handoffs explicit:
-- `teardownSummary()` and the bounded stop-request outcomes it records
-- the split between watchdog-core stop policy and hardware `always-running` behavior
-- the teardown handoff after descriptor preflight, timeout-property bookkeeping, `platform_set_drvdata()` ordering, and the first bounded register-device request surface
-- teardown-facing failure-mode cues that stay reviewable without claiming live remove-hook or reboot-backed shutdown execution
+- `summarizeTeardown()` and the bounded stop-request outcomes it records
+- `requestStop()` and the split between watchdog-core stop policy and hardware `always-running` behavior
+- `registerDeviceFailureSummary()` and the teardown-facing failure-mode cues that stay reviewable without claiming live remove-hook or reboot-backed shutdown execution
+- the teardown handoff after descriptor preflight, `platform_set_drvdata()` ordering, and the first bounded register-device request surface
 The landed survey-backed packet also keeps the stop-transition and teardown-ownership boundaries visible beside the starter replay without claiming a code-backed `watchdog_set_drvdata()` checkpoint, a code-backed reboot-glue checkpoint, live GPIO execution, platform cleanup callbacks, or host-backed shutdown behavior.
 ## Bounded Meaning
 
