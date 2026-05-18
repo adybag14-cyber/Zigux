@@ -432,7 +432,7 @@ def main() -> int:
             else:
                 raise AssertionError("expected checklist decision-owner drift to fail")
 
-            build_baselineTree(root)
+            build_baseline_tree(root)
             checklist_path = root / CHECKLIST
             checklist_path.write_text(
                 checklist_path.read_text(encoding="utf-8").replace(
