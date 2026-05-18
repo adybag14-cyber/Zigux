@@ -211,7 +211,7 @@ fn hasConsistentProcessAccounting(summary: PollExecutionSummary) bool {
                     summary.completed_ready_buffer_count < summary.attempted_ready_buffer_count and
                     summary.attempted_ready_buffer_count == index + 1 and
                     index == summary.completed_ready_buffer_count and
-                    failure_ready_index >= first_ready_index and
+                    failure_ready_index >= first_ready_index + index and
                     (index != 0 or failure_ready_index == first_ready_index);
             }
 
@@ -271,6 +271,13 @@ pub fn advanceReadyBufferCursor(
     };
 }
 
+pub fn resolveReadyBufferAttemptIndex(
+    buffers: []const BufferObservation,
+    attempt_index: usize,
+) ?usize {
+    return summarizeReadyBufferAttemptLookup(buffers, attempt_index).ready_index;
+}
+
 pub fn summarizeReadyBufferAttemptLookup(
     buffers: []const BufferObservation,
     attempt_index: usize,
@@ -307,13 +314,6 @@ pub fn resolveReadyBufferAttemptLookup(
         .found_ready_index => summary.ready_index.?,
         .missing_ready_index => error.MissingReadyBuffer,
     };
-}
-
-pub fn resolveReadyBufferAttemptIndex(
-    buffers: []const BufferObservation,
-    attempt_index: usize,
-) ?usize {
-    return summarizeReadyBufferAttemptLookup(buffers, attempt_index).ready_index;
 }
 
 pub fn summarizeReadyBuffers(buffers: []const BufferObservation) ReadyBufferSummary {
@@ -844,6 +844,30 @@ test "phase8 perf-buffer poll rejects hand-built failures that point before the 
             .observed_ready_events = 2,
             .ready_count = 2,
             .first_ready_index = 3,
+            .first_error = null,
+        },
+        .attempted_ready_buffer_count = 2,
+        .completed_ready_buffer_count = 1,
+        .processed_record_count = 6,
+        .first_process_error_index = 1,
+        .first_process_error_ready_index = 1,
+        .first_process_error = -11,
+    };
+
+    try std.testing.expectError(
+        PollError.InconsistentProcessingAccountingSummary,
+        resolvePollExecutionResultFromWaitResult(2, impossible_failure),
+    );
+}
+
+test "phase8 perf-buffer poll rejects later failures that still point at the first ready slot" {
+    const impossible_failure = PollExecutionSummary{
+        .poll = .{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 2,
+            .ready_count = 2,
+            .first_ready_index = 1,
             .first_error = null,
         },
         .attempted_ready_buffer_count = 2,
