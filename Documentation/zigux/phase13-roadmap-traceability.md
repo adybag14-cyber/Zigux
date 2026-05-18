@@ -36,14 +36,14 @@ When shared Phase 13 wording changes, keep these current shared surfaces aligned
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
-Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the older Makefile-backed handle explicit as repo-reality-gap vocabulary instead of a materialized shared surface while current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`.
+Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that Phase 2-only wrapper file as a materialized shared Phase 13 surface.
 
 ## Anchor Map
 
 Keep the roadmap-owned helper packet explicit through these bounded owner surfaces:
 
 - `libfs` stays mapped through `Documentation/zigux/phase13-libfs-survey.md`, the shipped `fs/libfs.zig` starter, the direct `zigux/tests/phase13_libfs.zig` replay, the direct `zigux/tests/phase13_libfs_reviewability.zig` companion, and `zigux/tests/phase13_libfs_manifest.json`.
-- `devres` stays mapped through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, the shipped `lib/devres.zig` starter, the direct `zigux/tests/phase13_devres.zig` replay, the direct `zigux/tests/phase13_devres_reviewability.zig` companion, `zigux/tests/phase13_devres_manifest.json`, the shipped DMA-boundary checker pair `scripts/zigux/check-phase13-devres-dma-boundary.py` and `scripts/zigux/check-phase13-devres-mmio-packet.py`, and `zigux/tests/phase13_devres_dma_coherent.zig`. The planning-only `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig` stay adjacent boundary evidence rather than proof of live DMA or scatterlist parity. Older `zigux/tests/phase13_devres_boundary_evidence.zig` and `scripts/zigux/check-phase13-devres-packet.py` should stay framed as stale or missing companion history rather than as the current active devres packet. Keep the scheduled owner split anchored to `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`: the repo packet id remains `P13-L01`, while shared-lane follow-through stays split across `P13-L05` packet truthfulness, `P13-L06` bounded helper work, and `P13-L07` verification-only replay so those labels do not drift into competing devres owner stories.
+- `devres` stays mapped through `Documentation/zigux/phase13-devres-slice.md`, the shipped DMA-boundary checker pair `scripts/zigux/check-phase13-devres-dma-boundary.py` and `scripts/zigux/check-phase13-devres-mmio-packet.py`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`. Older `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps instead of the current active devres packet. Keep the scheduled owner split anchored to `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`: the repo packet id remains `P13-L01`, while shared-lane follow-through stays split across `P13-L05` packet truthfulness, `P13-L06` bounded helper work, and `P13-L07` verification-only replay so those labels do not drift into competing devres owner stories.
 - `landlock/ruleset` stays mapped through `Documentation/zigux/phase13-landlock-ruleset-ownership.md`, `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, the shipped `security/landlock/ruleset.zig` starter, the direct `zigux/tests/phase13_landlock_ruleset.zig` replay, and `zigux/tests/phase13_landlock_ruleset_manifest.json`.
 - `landlock/syscalls` stays mapped through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and the shipped `security/landlock/syscalls.zig` starter. Keep the helper-owned wording tightly scoped to descriptor-backed create-ruleset planning, ruleset-fd install planning, and ruleset-fd stub discipline planning, and keep `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` framed as repo-reality gaps until current `master` materializes them again so the reminder packet does not overstate the live syscall helper surface.
 
@@ -51,30 +51,36 @@ Keep the roadmap-owned helper packet explicit through these bounded owner surfac
 
 Adjacent notifier evidence supports release-surface truthfulness for the same Phase 13 packet, but it still does not become a fifth roadmap anchor.
 
-Current `master` now materializes `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note together with the bounded list and hlist companions explicit as adjacent notifier evidence through:
+Current `master` now materializes `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note together with the bounded list, hlist, and ABI companions explicit as adjacent notifier evidence through:
 
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `zigux/bindings/notifier_abi.zig`
-- `zigux/helpers/notifier_chain_view.zig`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 
-Keep `zigux/Makefile`, `make -C zigux phase13-validate`, and blocked convenience route `make -C zigux phase13` framed as repo-reality gaps here too while the missing shared build companion keeps the broader make-route handle from qualifying as current adjacent evidence.
+Keep `zigux/helpers/notifier_chain_view.zig` framed as a repo-reality gap here too, and keep the returned `zigux/Makefile` file distinct from `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` while the missing shared build companion keeps the broader make-route handle from qualifying as current adjacent evidence.
 
 ## Repo-Reality Gaps
 
 Keep the remaining shared-summary, validator-first, and direct-companion gaps explicit until current `master` materializes them again:
 
-- `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `scripts/zigux/validate-phase13-release.py`
+- `Documentation/zigux/phase13-devres-survey.md`
+- `lib/devres.zig`
+- `zigux/tests/phase13_devres.zig`
+- `zigux/tests/phase13_devres_reviewability.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_boundary_evidence.zig`
+- `zigux/tests/phase13_devres_manifest.json`
+- `scripts/zigux/check-phase13-devres-packet.py`
+- `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
-- `scripts/zigux/check-phase13-notifier-priority-signal.py`
 - `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `zigux/tests/phase13_build.zig`
@@ -82,13 +88,14 @@ Keep the remaining shared-summary, validator-first, and direct-companion gaps ex
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
-- `scripts/zigux/check-phase13-devres-packet.py`
+- `scripts/zigux/check-phase13-notifier-priority-signal.py`
+- `zigux/helpers/notifier_chain_view.zig`
 - `zigux/tests/phase13_notifier_list_manifest.json`
 - `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `scripts/zigux/check-phase13-notifier-packet.py`
 - `include/zigux/notifier_abi.h`
 
-Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `Documentation/zigux/phase13-notifier-list-survey.md` alongside the surviving bounded `devres` coordination packet, so keep those surfaces aligned as shipped shared evidence while the missing validator-first checker packet, the absent shared build companion, the still-missing direct Landlock syscall companions, and the older missing notifier companions stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
+Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `Documentation/zigux/phase13-notifier-list-survey.md` alongside the narrower bounded devres coordination packet, so keep those surfaces aligned as shipped shared evidence while the missing validator-first checker packet, the absent shared build companion, the still-missing direct Landlock syscall companions, the older direct devres companions, and the missing notifier-chain companion stay recorded here as repo-reality gaps. That gap set is also what keeps `make -C zigux phase13` framed as blocked convenience wiring rather than a stable shared replay handle.
 
 ## Boundaries
 
