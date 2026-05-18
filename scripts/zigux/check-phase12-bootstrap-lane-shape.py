@@ -53,9 +53,9 @@ WORKFLOW_STEP_NAMES = [
     "Check current Phase 3 interop packet",
     "Self-test current Phase 3 low-level wrapper survey validator",
     "Check current Phase 3 low-level wrapper survey packet",
-     "Run current Phase 3 low-level wrapper replay",
-     "Run current Phase 3 shared tests-root packet",
-     "Run current Phase 1 shared tests-root smoke",
+    "Run current Phase 3 low-level wrapper replay",
+    "Run current Phase 3 shared tests-root packet",
+    "Run current Phase 1 shared tests-root smoke",
     "Self-test current Phase 4 artifact-diff helper",
     "Self-test current Phase 4 artifact-diff determinism checker",
     "Self-test current Phase 4 artifact-diff validator replay checker",
@@ -86,6 +86,7 @@ WORKFLOW_COMMAND_MARKERS = [
     "uses: actions/setup-python@v6.2.0",
     "python-version: '3.x'",
     "curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"",
+    "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
     "python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"",
     "\"$zig_path\" version",
     "set -euxo pipefail",
@@ -242,6 +243,9 @@ jobs:
         run: |
           set -euxo pipefail
           curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"
+          if ! python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+            return 1
+          fi
           python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"
           "$zig_path" version
       - name: Compile current scripts
@@ -363,10 +367,30 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
+                "          if ! python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then\n"
+                "            return 1\n"
+                "          fi\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_marker:python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
                 "- name: Setup pinned Zig toolchain\n"
                 "        run: |\n"
                 "          set -euxo pipefail\n"
                 "          curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"\n"
+                "          if ! python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then\n"
+                "            return 1\n"
+                "          fi\n"
                 "          python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"\n"
                 "          \"$zig_path\" version\n",
                 "",
@@ -529,7 +553,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=11")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -540,8 +564,9 @@ def main() -> int:
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the "
             "workflow keeps the shipped exact-head push trigger, pinned Zig "
-            "toolchain setup, newer Phase 2 and Phase 3 viability steps, the "
-            "dedicated docs-sanity guards, and the current Phase 8 tail intact."
+            "toolchain setup, archive verification, newer Phase 2 and Phase 3 "
+            "viability steps, the dedicated docs-sanity guards, and the "
+            "current Phase 8 tail intact."
         )
     )
     parser.add_argument(
