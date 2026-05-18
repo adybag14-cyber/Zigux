@@ -98,7 +98,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_MARKERS)
     + len(MAKEFILE_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
-    + 3
+    + 13
     + 8
 )
 
@@ -281,6 +281,14 @@ def build_self_test_root(root: Path) -> None:
     )
 
 
+def assert_policy_issue(root: Path, mutator, expected_issue: tuple[str, str]) -> None:
+    path = resolve_path(root, TOOLCHAIN_POLICY)
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    mutator(payload)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    assert expected_issue in collect_issues(root)
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_toolchain_pin_scope_") as tmp_dir:
@@ -339,20 +347,47 @@ def run_self_test() -> int:
             assert ("MISSING_TOOLCHAIN_CHECKER_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, TOOLCHAIN_POLICY)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["minimum_version"] = "0.16.0"
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "channel_minimum_version_mismatch") in collect_issues(root)
-        checks_run += 1
+        policy_cases = (
+            (lambda payload: payload.__setitem__("phase", "Phase 3"), ("INVALID_POLICY", "phase='Phase 3'")),
+            (lambda payload: payload.__setitem__("channel", ""), ("INVALID_POLICY", "channel")),
+            (lambda payload: payload.__setitem__("minimum_version", ""), ("INVALID_POLICY", "minimum_version")),
+            (
+                lambda payload: payload.__setitem__("minimum_version", "0.16.0"),
+                ("INVALID_POLICY", "channel_minimum_version_mismatch"),
+            ),
+            (lambda payload: payload.__setitem__("archive_sha256", "broken"), ("INVALID_POLICY", "archive_sha256")),
+            (
+                lambda payload: payload.__setitem__("archive_sha256", {"aarch64-linux": "3" * 64}),
+                ("INVALID_POLICY", "archive_sha256_keys=['aarch64-linux']"),
+            ),
+            (
+                lambda payload: payload.__setitem__("archive_sha256", {"x86_64-linux": "abc"}),
+                ("INVALID_POLICY", "archive_sha256[x86_64-linux]"),
+            ),
+            (lambda payload: payload.__setitem__("upgrade_policy", "broken"), ("INVALID_POLICY", "upgrade_policy")),
+            (
+                lambda payload: payload["upgrade_policy"].__setitem__("channel_minimum_lockstep", False),
+                ("INVALID_POLICY", "channel_minimum_lockstep"),
+            ),
+            (
+                lambda payload: payload["upgrade_policy"].__setitem__("archive_target_scope", ["aarch64-linux"]),
+                ("INVALID_POLICY", "archive_target_scope"),
+            ),
+            (
+                lambda payload: payload["upgrade_policy"].__setitem__("required_make_routes", ["phase2-toolchain"]),
+                ("INVALID_POLICY", "required_make_routes"),
+            ),
+        )
+
+        for mutator, expected_issue in policy_cases:
+            build_self_test_root(root)
+            assert_policy_issue(root, mutator, expected_issue)
+            checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOLCHAIN_POLICY)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["archive_sha256"] = {"aarch64-linux": "3" * 64}
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "archive_sha256_keys=['aarch64-linux']") in collect_issues(root)
+        path.write_text("[]\n", encoding="utf-8")
+        assert ("INVALID_POLICY", "expected JSON object") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
