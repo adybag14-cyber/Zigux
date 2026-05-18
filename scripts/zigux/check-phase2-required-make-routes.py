@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -77,7 +79,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(MAKEFILE_MARKERS)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
     + (len(MINIMAL_SURFACE_MARKERS) + len(DEFAULT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
-    + 6
+    + 10
 )
 
 
@@ -241,6 +243,28 @@ def duplicate_exact_line(text: str, marker: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def run_cli(root: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [sys.executable, str(Path(__file__).resolve()), "--root", str(root)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+
+def assert_invalid_cli(root: Path, note_fragment: str | None = None) -> None:
+    result = run_cli(root)
+    policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+    makefile_path = resolve_path(root, MAKEFILE)
+    assert result.returncode == 1
+    assert "PHASE2_REQUIRED_MAKE_ROUTES=invalid" in result.stdout
+    assert f"PHASE2_REQUIRED_POLICY_PATH={policy_path}" in result.stdout
+    assert f"PHASE2_REQUIRED_MAKEFILE_PATH={makefile_path}" in result.stdout
+    assert "PHASE2_REQUIRED_MAKE_ROUTES_NOTE=" in result.stdout
+    if note_fragment is not None:
+        assert note_fragment in result.stdout
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_required_make_routes_") as tmp_dir:
@@ -338,6 +362,36 @@ def run_self_test() -> int:
         policy_payload["upgrade_policy"]["required_make_routes"].append("phase2-cross")
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
         assert ("MISSING_TESTS_ROUTE_MARKERS", "`make -C zigux phase2-cross`") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_path.write_text("{not-json}\n", encoding="utf-8")
+        assert_invalid_cli(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy_payload["upgrade_policy"] = "broken"
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        assert_invalid_cli(root, "invalid upgrade_policy")
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy_payload["upgrade_policy"]["required_make_routes"] = []
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        assert_invalid_cli(root, "invalid required_make_routes")
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy_payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", " "]
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        assert_invalid_cli(root, "invalid required_make_routes")
         checks_run += 1
 
         for path in (TOOLCHAIN_POLICY, WORKFLOW, MAKEFILE):
