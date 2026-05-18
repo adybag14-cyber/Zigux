@@ -11,6 +11,7 @@ Fresh mixed readback on 2026-05-18 confirmed these current sample-root files on 
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_trace_events.zig`
+* `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 * `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
@@ -60,13 +61,13 @@ Keep `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentati
 
 Keep the current direct runtime-module evidence explicit here too: `samples/zigux/runtime_trace_events.zig` still exposes `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking, so the separate runtime lane still has one shipped selftest-hook and lifecycle-parity sample-root proof on current `master`.
 
-Keep the companion boundaries explicit here too: `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps the same narrow packet's unregistered function-thread failures fail-closed, while `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` keeps balanced function-thread registration reusable before and after selftest, including the later selftest_complete duplicate-registration rejection that leaves the summary unchanged before the reusable replay continues.
+Keep the companion boundaries explicit here too: `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps the same narrow packet's unregistered function-thread failures fail-closed, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig` keeps failed-exit rollback explicit after reusable selftest replay by proving `error.OutstandingRegistration` leaves the selftest_complete summary unchanged until the function thread unregisters and then keeps post-exit invalid-lifecycle rejections fail-closed too, while `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` keeps balanced function-thread registration reusable before and after selftest, including the later selftest_complete duplicate-registration rejection that leaves the summary unchanged before the reusable replay continues.
 
 Keep saying clearly that current `master` does not currently expose the broader shared runtime-loader packet, so `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, and the older `samples/zigux/runtime_*_loader.zig` scaffolds stay backlog references unless a fresh repo reread proves they have returned; keep `zigux/Makefile` named only as a readable non-owner surface whose live body still lacks dedicated `phase9-*` runtime-pilot routes, and keep `.github/workflows/zigux-bootstrap.yml` named only as a shared repo-level workflow surface, not as dedicated Phase 9 evidence.
 
 Keep older cross-phase non-owner boundaries explicit: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence.
 
-Treat `samples/zigux/runtime_trace_events_unregistered_gate.zig` as the same narrow runtime packet's fail-closed companion for unregistered function-thread failures and post-exit invalid-lifecycle rejections, including the initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks, and treat `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as the same packet's balanced registration re-entry companion across the initialized and selftest_complete stages, not as proof that the broader shared loader family has returned.
+Treat `samples/zigux/runtime_trace_events_unregistered_gate.zig` as the same narrow runtime packet's fail-closed companion for unregistered function-thread failures and post-exit invalid-lifecycle rejections, including the initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks, treat `samples/zigux/runtime_trace_events_exit_rollback_guard.zig` as the same narrow runtime packet's failed-exit rollback companion, including the selftest_complete-before/after, before-exit/after-exit, and exited-before/after summary-stability checks around `error.OutstandingRegistration` plus the later post-exit invalid-lifecycle rejections, and treat `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as the same packet's balanced registration re-entry companion across the initialized and selftest_complete stages, not as proof that the broader shared loader family has returned.
 
 ## No-extra-sample reminders
 
