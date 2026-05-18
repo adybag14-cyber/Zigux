@@ -91,6 +91,18 @@ EXPECTED_REPLAY_BLOCKER_IDS = (
     "phase1_helpers_zig_slab_zero_after_kmalloc",
     "phase1_helpers_c_harness_missing_c_sources",
 )
+EXPECTED_REPLAY_BLOCKER_KIND = "fixture_mismatch"
+EXPECTED_REPLAY_BLOCKER_PATH = "tools/lib/slab.zig"
+EXPECTED_REPLAY_BLOCKER_FIELD = "slab.zero_after_kmalloc"
+EXPECTED_REPLAY_BLOCKER_EVIDENCE = (
+    "Focused 2026-05-17 scratch replay of `zig build test --build-file "
+    "zigux/tests/build.zig --summary all` failed at `phase1_helpers.zig:595` because the "
+    "committed fixture expects `true` while `tools/lib/slab.zig` still produced `false`."
+)
+EXPECTED_C_HARNESS_REASON = (
+    "The old host-side parity route still depends on helper `tools/lib/*.c` inputs that "
+    "current master no longer ships beside the Phase 1 `.zig` ports."
+)
 
 REPLAY_IMPORTS = (
     'const argv_split = @import("argv_split");',
@@ -164,19 +176,19 @@ def _expected_blockers_payload() -> dict[str, object]:
             "blockers": [
                 {
                     "id": EXPECTED_REPLAY_BLOCKER_IDS[0],
-                    "kind": "fixture_mismatch",
-                    "path": "tools/lib/slab.zig",
-                    "field": "slab.zero_after_kmalloc",
+                    "kind": EXPECTED_REPLAY_BLOCKER_KIND,
+                    "path": EXPECTED_REPLAY_BLOCKER_PATH,
+                    "field": EXPECTED_REPLAY_BLOCKER_FIELD,
                     "expected": True,
                     "actual": False,
-                    "evidence": "Focused 2026-05-17 scratch replay of `zig build test --build-file zigux/tests/build.zig --summary all` failed at `phase1_helpers.zig:595` because the committed fixture expects `true` while `tools/lib/slab.zig` still produced `false`.",
+                    "evidence": EXPECTED_REPLAY_BLOCKER_EVIDENCE,
                 }
             ],
         },
         "c_harness": {
             "path": "zigux/tests/fixtures/phase1_helpers_c_harness.c",
             "state": "blocked",
-            "reason": "The old host-side parity route still depends on helper `tools/lib/*.c` inputs that current master no longer ships beside the Phase 1 `.zig` ports.",
+            "reason": EXPECTED_C_HARNESS_REASON,
             "helper_count": len(EXPECTED_HELPERS),
             "helpers": list(EXPECTED_HELPERS),
             "blocker_id": EXPECTED_REPLAY_BLOCKER_IDS[1],
@@ -452,7 +464,11 @@ def collect_issues(root: Path) -> list[str]:
                     blocker = blocker_list[0]
                     if blocker.get("id") != EXPECTED_REPLAY_BLOCKER_IDS[0]:
                         issues.append(f"blockers_replay_id:{blocker.get('id')!r}")
-                    if blocker.get("field") != "slab.zero_after_kmalloc":
+                    if blocker.get("kind") != EXPECTED_REPLAY_BLOCKER_KIND:
+                        issues.append(f"blockers_replay_kind:{blocker.get('kind')!r}")
+                    if blocker.get("path") != EXPECTED_REPLAY_BLOCKER_PATH:
+                        issues.append(f"blockers_replay_source_path:{blocker.get('path')!r}")
+                    if blocker.get("field") != EXPECTED_REPLAY_BLOCKER_FIELD:
                         issues.append(
                             f"blockers_replay_field:{blocker.get('field')!r}"
                         )
@@ -464,6 +480,8 @@ def collect_issues(root: Path) -> list[str]:
                         issues.append(
                             f"blockers_replay_actual:{blocker.get('actual')!r}"
                         )
+                    if blocker.get("evidence") != EXPECTED_REPLAY_BLOCKER_EVIDENCE:
+                        issues.append("blockers_replay_evidence")
 
             harness_blocker = blockers_payload.get("c_harness")
             if not isinstance(harness_blocker, dict):
@@ -480,6 +498,8 @@ def collect_issues(root: Path) -> list[str]:
                     issues.append(
                         f"blockers_c_harness_state:{harness_blocker.get('state')!r}"
                     )
+                if harness_blocker.get("reason") != EXPECTED_C_HARNESS_REASON:
+                    issues.append("blockers_c_harness_reason")
                 if harness_blocker.get("helper_count") != len(EXPECTED_HELPERS):
                     issues.append(
                         "blockers_c_harness_helper_count:"
@@ -567,7 +587,7 @@ def make_replay_text() -> str:
         (
             "fn loadFixture() void {",
             f"    _ = {REPLAY_ANCHORS[0]};",
-            f"    _ = {REPLAY_ANCHORS[1]}",
+            f"    // {REPLAY_ANCHORS[1]}",
             "}",
             "",
             f"{REPLAY_ANCHORS[2]} {{}}",
@@ -583,13 +603,13 @@ import hashlib
 import json
 from pathlib import Path
 
-SELF_TEST_MARKER = \"ARTIFACT_DIFF_SELF_TEST=pass\"
-TEXT_MARKER = \"MODE=text\"
-JSON_MARKER = \"MODE=json\"
-SHA_MARKER = \"MODE=sha256\"
+SELF_TEST_MARKER = "ARTIFACT_DIFF_SELF_TEST=pass"
+TEXT_MARKER = "MODE=text"
+JSON_MARKER = "MODE=json"
+SHA_MARKER = "MODE=sha256"
 
 def read_text(path: Path) -> str:
-    return path.read_text(encoding=\"utf-8\")
+    return path.read_text(encoding="utf-8")
 
 def canonical_json(path: Path):
     return json.loads(read_text(path))
@@ -598,39 +618,39 @@ def sha256_digest(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def compare_artifacts(mode: str, expected: Path, actual: Path):
-    details = {\"mode\": mode, \"expected\": str(expected), \"actual\": str(actual)}
+    details = {"mode": mode, "expected": str(expected), "actual": str(actual)}
     if not expected.exists() or not actual.exists():
-        details[\"expected_exists\"] = expected.exists()
-        details[\"actual_exists\"] = actual.exists()
+        details["expected_exists"] = expected.exists()
+        details["actual_exists"] = actual.exists()
         return False, details
-    if mode == \"text\":
+    if mode == "text":
         expected_value = read_text(expected)
         actual_value = read_text(actual)
-    elif mode == \"json\":
+    elif mode == "json":
         expected_value = canonical_json(expected)
         actual_value = canonical_json(actual)
-    elif mode == \"sha256\":
+    elif mode == "sha256":
         expected_value = sha256_digest(expected)
         actual_value = sha256_digest(actual)
-        details[\"expected_sha256\"] = expected_value
-        details[\"actual_sha256\"] = actual_value
+        details["expected_sha256"] = expected_value
+        details["actual_sha256"] = actual_value
     else:
-        raise ValueError(f\"unsupported artifact diff mode: {mode}\")
+        raise ValueError(f"unsupported artifact diff mode: {mode}")
     return expected_value == actual_value, details
 
 def render_result_lines(matched: bool, details: dict[str, object]) -> list[str]:
-    lines = [\"ARTIFACT_DIFF=pass\" if matched else \"ARTIFACT_DIFF=fail\"]
-    lines.append(f\"MODE={details['mode']}\")
-    lines.append(f\"EXPECTED={details['expected']}\")
-    lines.append(f\"ACTUAL={details['actual']}\")
-    if matched and \"expected_sha256\" in details:
-        lines.append(f\"SHA256={details['expected_sha256']}\")
-    elif not matched and \"expected_sha256\" in details:
-        lines.append(f\"EXPECTED_SHA256={details['expected_sha256']}\")
-        lines.append(f\"ACTUAL_SHA256={details['actual_sha256']}\")
-    elif not matched and \"expected_exists\" in details:
-        lines.append(f\"EXPECTED_EXISTS={details['expected_exists']}\")
-        lines.append(f\"ACTUAL_EXISTS={details['actual_exists']}\")
+    lines = ["ARTIFACT_DIFF=pass" if matched else "ARTIFACT_DIFF=fail"]
+    lines.append(f"MODE={details['mode']}")
+    lines.append(f"EXPECTED={details['expected']}")
+    lines.append(f"ACTUAL={details['actual']}")
+    if matched and "expected_sha256" in details:
+        lines.append(f"SHA256={details['expected_sha256']}")
+    elif not matched and "expected_sha256" in details:
+        lines.append(f"EXPECTED_SHA256={details['expected_sha256']}")
+        lines.append(f"ACTUAL_SHA256={details['actual_sha256']}")
+    elif not matched and "expected_exists" in details:
+        lines.append(f"EXPECTED_EXISTS={details['expected_exists']}")
+        lines.append(f"ACTUAL_EXISTS={details['actual_exists']}")
     return lines
 """
 
@@ -850,6 +870,38 @@ def run_self_test() -> int:
             json.dumps(payload, indent=2) + "\n",
         )
         cases.append(("blockers_drift", run_check(blockers_drift_root) != 0))
+
+        blockers_replay_evidence_drift_root = build_case_root(
+            tmp_root / "blockers_replay_evidence_drift"
+        )
+        payload = json.loads(make_blockers_json())
+        payload["replay"]["blockers"][0]["evidence"] = "focused replay note drift"
+        write_file(
+            blockers_replay_evidence_drift_root / BLOCKERS_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            (
+                "blockers_replay_evidence_drift",
+                run_check(blockers_replay_evidence_drift_root) != 0,
+            )
+        )
+
+        blockers_c_harness_reason_drift_root = build_case_root(
+            tmp_root / "blockers_c_harness_reason_drift"
+        )
+        payload = json.loads(make_blockers_json())
+        payload["c_harness"]["reason"] = "host-side route drift"
+        write_file(
+            blockers_c_harness_reason_drift_root / BLOCKERS_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            (
+                "blockers_c_harness_reason_drift",
+                run_check(blockers_c_harness_reason_drift_root) != 0,
+            )
+        )
 
         blockers_helpers_drift_root = build_case_root(tmp_root / "blockers_helpers_drift")
         payload = json.loads(make_blockers_json())
