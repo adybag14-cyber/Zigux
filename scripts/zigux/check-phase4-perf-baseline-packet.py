@@ -12,6 +12,8 @@ MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
 MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
+NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+TESTS_README = Path("zigux/tests/README.md")
 
 EXPECTED_COORDINATION_OWNERS = [
     "ABI and Runtime Team",
@@ -22,7 +24,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 45
+EXPECTED_SELF_TEST_CASES = 49
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -103,6 +105,21 @@ REVIEW_CHECKLIST_MARKERS = (
     "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
     "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
     "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval",
+)
+
+NOTE_MARKERS = (
+    "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
+    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.",
+    "Current direct-readback dedicated local-only perf companion members:",
+    "`zigux/tests/phase4_perf_baseline_manifest.json`",
+    "`zigux/tests/phase4_perf_baseline_survey.zig`",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here",
+)
+
+TESTS_README_MARKERS = (
+    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
+    "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
+    "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
 )
 
 
@@ -250,6 +267,18 @@ def validate_root(root: Path) -> list[str]:
     else:
         require_markers(read_text(review_checklist), REVIEW_CHECKLIST_MARKERS, "review_checklist_marker", missing)
 
+    note = root / NOTE
+    if not note.is_file():
+        missing.append(f"file:{NOTE.as_posix()}")
+    else:
+        require_markers(read_text(note), NOTE_MARKERS, "note_marker", missing)
+
+    tests_readme = root / TESTS_README
+    if not tests_readme.is_file():
+        missing.append(f"file:{TESTS_README.as_posix()}")
+    else:
+        require_markers(read_text(tests_readme), TESTS_README_MARKERS, "tests_readme_marker", missing)
+
     return missing
 
 
@@ -265,6 +294,8 @@ def build_fixture_tree(root: Path) -> None:
     write_text(root / SURVEY, read_text(source_root / SURVEY))
     write_text(root / MATRIX, read_text(source_root / MATRIX))
     write_text(root / REVIEW_CHECKLIST, read_text(source_root / REVIEW_CHECKLIST))
+    write_text(root / NOTE, read_text(source_root / NOTE))
+    write_text(root / TESTS_README, read_text(source_root / TESTS_README))
 
 
 def expect_failure(root: Path, expected_prefix: str) -> bool:
@@ -349,6 +380,10 @@ def run_self_test() -> int:
             (MATRIX, "any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners", "any future shared CI perf-promotion claim must name the ABI and Runtime Team as the decision owner and the Shared Subsystems Pod as coordination owners", "matrix_marker:any future shared CI perf-promotion claim must name the Validation and Perf Team as the decision owner and the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners"),
             (REVIEW_CHECKLIST, "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion", "keep the ABI and Runtime Team as the decision owner for any broader shared-CI perf promotion", "review_checklist_marker:keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion"),
             (REVIEW_CHECKLIST, "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval", "keep the pending shared-CI perf-promotion posture implicit", "review_checklist_marker:keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval"),
+            (NOTE, "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`.", "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet-drift.py`.", "note_marker:Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`."),
+            (NOTE, "Current direct-readback dedicated local-only perf companion members:", "Current direct-readback dedicated local-only perf companion set:", "note_marker:Current direct-readback dedicated local-only perf companion members:"),
+            (TESTS_README, "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`", "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet-drift.py`", "tests_readme_marker:Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`"),
+            (TESTS_README, "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`", "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey_drift.zig`", "tests_readme_marker:Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`"),
         )
         for path, old, new, expected_prefix in shared_variants:
             build_fixture_tree(root)
