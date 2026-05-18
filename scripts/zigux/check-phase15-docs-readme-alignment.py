@@ -24,6 +24,8 @@ REQUIRED_MARKERS = (
     "the shared Phase 15 docs-root handoff should also keep",
     "the named reopen trigger",
     "deep-core blocker-posture change",
+    "treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence",
+    "keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim",
 )
 
 
@@ -59,6 +61,8 @@ without implying any Architecture Council approval for a freeze-map status chang
 the shared Phase 15 docs-root handoff should also keep
 the named reopen trigger
 deep-core blocker-posture change
+treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence
+keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim
 """
 
 
@@ -117,6 +121,40 @@ def run_self_test() -> int:
         missing = collect_missing_markers(root)
         if missing != ["docs_readme:deep-core blocker-posture change"]:
             raise AssertionError(f"unexpected missing markers for blocker-posture case: {missing}")
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = [
+            "docs_readme:treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence"
+        ]
+        if missing != expected:
+            raise AssertionError(f"unexpected missing markers for repo-reality-gap case: {missing}")
+        case_count += 1
+
+        _write(
+            root / DOCS_README_PATH,
+            _sample_docs_readme().replace(
+                "keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = [
+            "docs_readme:keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim"
+        ]
+        if missing != expected:
+            raise AssertionError(
+                f"unexpected missing markers for truthfulness-maintenance case: {missing}"
+            )
         case_count += 1
 
     print("PHASE15_DOCS_README_ALIGNMENT_SELF_TEST=pass")
