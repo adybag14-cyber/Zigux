@@ -529,6 +529,13 @@ pub fn build(b: *std.Build) void {
     );
     phase3_xarray_slot_dump_step.dependOn(&phase3_xarray_slot_dump.step);
 
+    const phase3_xarray_slot_slice_step = b.step(
+        "phase3-xarray-slot",
+        "Run the shared Phase 3 xarray-slot starter packet and dump from zigux/tests",
+    );
+    phase3_xarray_slot_slice_step.dependOn(&phase3_xarray_slot_starter_packet.step);
+    phase3_xarray_slot_slice_step.dependOn(&phase3_xarray_slot_dump.step);
+
     const phase3_errptr_xarray_dump_step = b.step(
         "phase3-errptr-xarray-dump",
         "Run the shared Phase 3 err_ptr/xarray dump from zigux/tests",
