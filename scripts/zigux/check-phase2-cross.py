@@ -246,6 +246,12 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").unlink()
+        missing = require_files(root)
+        assert "zigux/tests/fixtures/phase2_cross_targets.json" in missing
+        case_count += 1
+
+        build_self_test_root(root)
         (root / "scripts/zigux/fixdep.zig").unlink()
         missing = require_files(root)
         assert "scripts/zigux/fixdep.zig" in missing
