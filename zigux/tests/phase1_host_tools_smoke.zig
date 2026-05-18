@@ -8,6 +8,10 @@ const hweight = @import("hweight");
 const list_sort = @import("list_sort");
 const rbtree = @import("rbtree");
 const string = @import("string");
+const slab = @import("../../tools/lib/slab.zig");
+const str_error_r = @import("../../tools/lib/str_error_r.zig");
+const vsprintf = @import("../../tools/lib/vsprintf.zig");
+const zalloc = @import("../../tools/lib/zalloc.zig");
 
 const ListSortSmokeEntry = struct {
     key: i32,
@@ -49,6 +53,10 @@ test "phase1 host-tools smoke imports the live helper modules" {
     try std.testing.expect(@hasDecl(rbtree, "find"));
     try std.testing.expect(@hasDecl(rbtree, "matchIterator"));
     try std.testing.expect(@hasDecl(string, "strtobool"));
+    try std.testing.expect(@hasDecl(slab, "kmallocBytes"));
+    try std.testing.expect(@hasDecl(str_error_r, "strErrorR"));
+    try std.testing.expect(@hasDecl(vsprintf, "scnprintf"));
+    try std.testing.expect(@hasDecl(zalloc, "zallocBytes"));
 }
 
 test "phase1 host-tools smoke exercises live helper behavior" {
@@ -99,6 +107,45 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(u64, 32), hweight.swHweight64(0xf0f0_f0f0_f0f0_f0f0));
     try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweight.hweightLong(0xf0f0));
 
+    slab.kmalloc_nr_allocated = 0;
+    const allocated = slab.kmallocBytes(8, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    for (allocated) |byte| {
+        try std.testing.expectEqual(@as(u8, 0), byte);
+    }
+    slab.kfree(allocated);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    var error_buffer: [32]u8 = undefined;
+    try std.testing.expectEqualStrings("Permission denied", str_error_r.strErrorR(13, &error_buffer));
+    var tiny_error_buffer: [8]u8 = undefined;
+    try std.testing.expectEqualStrings("INTERNA", str_error_r.strErrorR(4096, &tiny_error_buffer));
+
+    var render_buffer: [16]u8 = undefined;
+    const rendered_len = vsprintf.scnprintf(&render_buffer, "{s}:{d}", .{ "zigux", 9 });
+    try std.testing.expectEqual(@as(usize, 7), rendered_len);
+    try std.testing.expectEqualStrings("zigux:9", render_buffer[0..rendered_len]);
+
+    var padded_render: [12]u8 = undefined;
+    const padded_len = vsprintf.scnprintfPad(&padded_render, 10, "id={d}", .{7});
+    try std.testing.expectEqual(@as(usize, 9), padded_len);
+    try std.testing.expectEqualStrings("id=7      ", padded_render[0..10]);
+
+    const allocator = std.testing.allocator;
+    var zero_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 6);
+    defer zalloc.zfreeBytes(allocator, &zero_bytes);
+    for (zero_bytes.?) |byte| {
+        try std.testing.expectEqual(@as(u8, 0), byte);
+    }
+    const ZeroValue = struct {
+        count: u32,
+        enabled: bool,
+    };
+    var zero_value: ?*ZeroValue = try zalloc.zallocValue(allocator, ZeroValue);
+    defer zalloc.zfreeValue(allocator, ZeroValue, &zero_value);
+    try std.testing.expectEqual(@as(u32, 0), zero_value.?.count);
+    try std.testing.expectEqual(false, zero_value.?.enabled);
+
     var list_head: list_sort.ListHead = .{};
     list_head.init();
     var list_entries = [_]ListSortSmokeEntry{
@@ -148,10 +195,10 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(nbits, find_bit.findLastBit(&empty_last_map, nbits));
 
     var rendered: [32]u8 = undefined;
-    const rendered_len = bitmap.scnprintf(&map, nbits, &rendered);
+    const bitmap_rendered_len = bitmap.scnprintf(&map, nbits, &rendered);
     var expected: [32]u8 = undefined;
     const expected_text = try std.fmt.bufPrint(&expected, "{d}-{d}", .{ word_bits - 1, word_bits + 1 });
-    try std.testing.expectEqualStrings(expected_text, rendered[0..rendered_len]);
+    try std.testing.expectEqualStrings(expected_text, rendered[0..bitmap_rendered_len]);
 
     var padded = [_]u8{0xaa} ** 6;
     try std.testing.expectEqual(@as(isize, 2), string.strscpyPad(&padded, "hi"));
