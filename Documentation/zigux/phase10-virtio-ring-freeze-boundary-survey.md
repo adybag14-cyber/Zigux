@@ -27,6 +27,17 @@ The risky-transport freeze-boundary posture still belongs to the adjacent MMIO-o
 - shared closure evidence and the current ring survey still agree that risky transport stays blocked on the MMIO-owned bridge even while the queue-local ring packet remains directly reviewable
 - the smallest same-lane follow-through is validation-only: keep this companion note exact-checked by `scripts/zigux/check-phase10-ring-packet.py` so owner-lane drift or stale direct-readback claims fail closed
 
+## Roadmap Parity Evidence
+The ring-owned parity scoreboard against the Phase 10 roadmap is:
+- `virtqueue_wrappers=starter_landed`
+- evidence: `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`
+- `lab_only_driver_validation=starter_landed`
+- evidence: `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, and `scripts/zigux/check-phase10-ring-packet.py`
+- `dual_implementations_for_risky_areas=blocked_on_risky_transport`
+- evidence: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/freeze-map.md`, and the adjacent MMIO-owned blocked `phase10-ring-lab-driver-bridge`
+
+This lane therefore stays roadmap-aligned by keeping queue-local ring parity explicit as current evidence while refusing to overclaim MMIO-owned transport-backed parity.
+
 ## Non-Goals
 - no MMIO helper delivery
 - no ring transport or lifecycle implementation claim
