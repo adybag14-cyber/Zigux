@@ -35,12 +35,21 @@ EXPECTED_DOC_MARKERS = (
     "`PHASE2_NEXT_STEP=restore one remaining broader helper packet at a time now that the closure note, bootstrap companion, shared validator, direct cross checker, dedicated kconfig README checker, dedicated toolchain pin-scope helper, manifest checker, and Linux-style Makefile routes are replayed together on the lane branch`",
 )
 
+EXPECTED_CLOSURE_GAP_MARKERS = (
+    "`scripts/zigux/check-genksyms-bridge.py`",
+    "`scripts/zigux/install-zig.py`",
+)
+
 EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
     "shared cross compile self-test: `python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "shared cross compile gate: `python3 scripts/zigux/check-phase2-cross.py`",
     "Linux-style cross route: `make -C zigux phase2-cross`",
     "the three-target compile matrix in `zigux/tests/fixtures/phase2_cross_targets.json` stays separate from the `x86_64-linux` bootstrap archive pin",
     "the shared and closure validators above are the fail-closed route that keeps this note in the bounded Phase 2 toolchain tranche instead of leaving it as stand-alone reference text",
+)
+
+EXPECTED_BOOTSTRAP_GAP_MARKERS = (
+    "workflow install path remains historical on this branch until `scripts/zigux/install-zig.py` is restored",
 )
 
 EXPECTED_PRESENT_FILES = [
@@ -100,7 +109,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 40
+EXPECTED_SELF_TEST_CASE_COUNT = 43
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -151,9 +160,23 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_missing_markers(closure_text, EXPECTED_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"))
     issues.extend(
         collect_missing_markers(
+            closure_text,
+            EXPECTED_CLOSURE_GAP_MARKERS,
+            "MISSING_CLOSURE_GAP_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
             bootstrap_notes_text,
             EXPECTED_BOOTSTRAP_NOTES_MARKERS,
             "MISSING_BOOTSTRAP_NOTES_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            bootstrap_notes_text,
+            EXPECTED_BOOTSTRAP_GAP_MARKERS,
+            "MISSING_BOOTSTRAP_GAP_MARKERS",
         )
     )
     for text, code in (
@@ -250,8 +273,16 @@ def manifest_json(*, present_files: list[str] | None = None, missing_files: list
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(root, CLOSURE_DOC, "\n".join(EXPECTED_DOC_MARKERS) + "\n")
-    write_text(root, BOOTSTRAP_NOTES, "\n".join(EXPECTED_BOOTSTRAP_NOTES_MARKERS) + "\n")
+    write_text(
+        root,
+        CLOSURE_DOC,
+        "\n".join((*EXPECTED_DOC_MARKERS, *EXPECTED_CLOSURE_GAP_MARKERS)) + "\n",
+    )
+    write_text(
+        root,
+        BOOTSTRAP_NOTES,
+        "\n".join((*EXPECTED_BOOTSTRAP_NOTES_MARKERS, *EXPECTED_BOOTSTRAP_GAP_MARKERS)) + "\n",
+    )
     for path in (DOCS_ROOT_README, TESTS_README, REVIEW_CHECKLIST):
         write_text(root, path, "\n".join(EXPECTED_DOCS_ROOT_MARKERS) + "\n")
     write_text(root, SCRIPTS_README, "\n".join(EXPECTED_SCRIPTS_README_MARKERS) + "\n")
@@ -283,7 +314,9 @@ def run_self_test() -> int:
 
         for path, markers, code in (
             (CLOSURE_DOC, EXPECTED_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"),
+            (CLOSURE_DOC, EXPECTED_CLOSURE_GAP_MARKERS, "MISSING_CLOSURE_GAP_MARKERS"),
             (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"),
+            (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_GAP_MARKERS, "MISSING_BOOTSTRAP_GAP_MARKERS"),
             (DOCS_ROOT_README, EXPECTED_DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"),
             (TESTS_README, EXPECTED_TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"),
             (REVIEW_CHECKLIST, EXPECTED_REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS"),
