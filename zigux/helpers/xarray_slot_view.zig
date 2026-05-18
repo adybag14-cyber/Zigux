@@ -25,6 +25,10 @@ pub const SlotView = struct {
         return .pointer;
     }
 
+    pub fn rawValue(self: SlotView) usize {
+        return self.raw;
+    }
+
     pub fn isNull(self: SlotView) bool {
         return self.kind() == .null;
     }
@@ -65,6 +69,24 @@ pub const SlotView = struct {
 
 pub fn fromRaw(raw: usize) SlotView {
     return .{ .raw = raw };
+}
+
+pub fn nullSlot() SlotView {
+    return fromRaw(0);
+}
+
+pub fn fromValue(value: usize) xa_value.MakeValueError!SlotView {
+    return .{ .raw = try xa_value.makeValue(value) };
+}
+
+pub fn fromErrorCode(code: isize) SlotView {
+    return .{ .raw = err_ptr.fromErrorCode(code) };
+}
+
+pub fn fromPointer(pointer: usize) SlotView {
+    std.debug.assert(pointer != 0);
+    std.debug.assert(!isTaggedInternalEntry(pointer));
+    return .{ .raw = pointer };
 }
 
 pub fn isTaggedInternalEntry(raw: usize) bool {
@@ -124,4 +146,33 @@ test "top err_ptr encoding stays tagged and keeps value and pointer decoders clo
     try std.testing.expectEqual(@as(?isize, -1), slot.errorCode());
     try std.testing.expectEqual(@as(?usize, null), slot.pointerValue());
     try std.testing.expect(isTaggedInternalEntry(raw));
+}
+
+test "constructor helpers keep each xarray slot lane explicit" {
+    const null_slot = nullSlot();
+    const value_slot = try fromValue(29);
+    const err_slot = fromErrorCode(-22);
+    const pointer_slot = fromPointer(0x1000);
+
+    try std.testing.expectEqual(SlotKind.null, null_slot.kind());
+    try std.testing.expectEqual(@as(usize, 0), null_slot.rawValue());
+
+    try std.testing.expectEqual(SlotKind.value, value_slot.kind());
+    try std.testing.expectEqual(try xa_value.makeValue(29), value_slot.rawValue());
+    try std.testing.expectEqual(@as(?usize, 29), value_slot.value());
+
+    try std.testing.expectEqual(SlotKind.err, err_slot.kind());
+    try std.testing.expectEqual(err_ptr.fromErrorCode(-22), err_slot.rawValue());
+    try std.testing.expectEqual(@as(?isize, -22), err_slot.errorCode());
+
+    try std.testing.expectEqual(SlotKind.pointer, pointer_slot.kind());
+    try std.testing.expectEqual(@as(usize, 0x1000), pointer_slot.rawValue());
+    try std.testing.expectEqual(@as(?usize, 0x1000), pointer_slot.pointerValue());
+}
+
+test "value constructor still rejects entries that would overlap err_ptr space" {
+    try std.testing.expectError(
+        error.ValueWouldOverlapErrPtr,
+        fromValue(xa_value.safe_inline_limit + 1),
+    );
 }
