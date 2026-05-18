@@ -190,6 +190,14 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_review_checklist_bench_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][0],
+            ),
+        ),
+        (
             "duplicate_scripts_bench_marker",
             lambda root: mutate_duplicate_marker(
                 root,
@@ -198,11 +206,27 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_closure_validator_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/validate-phase1-closure.py",
+                MARKERS["scripts/zigux/validate-phase1-closure.py"][0],
+            ),
+        ),
+        (
             "missing_tests_bench_marker",
             lambda root: mutate_remove_marker(
                 root,
                 "zigux/tests/README.md",
                 MARKERS["zigux/tests/README.md"][1],
+            ),
+        ),
+        (
+            "duplicate_workflow_shared_reminder_selftest",
+            lambda root: mutate_duplicate_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
             ),
         ),
         (
