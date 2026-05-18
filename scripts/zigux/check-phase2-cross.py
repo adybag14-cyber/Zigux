@@ -306,7 +306,6 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (fixture_path(root)).writeText if False else None
         (fixture_path(root)).write_text(
             json.dumps(
                 {
