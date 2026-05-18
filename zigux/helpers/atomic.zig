@@ -7,6 +7,9 @@ pub const CompareExchangeError = error{
 pub const LoadError = error{
     InvalidLoadOrdering,
 };
+pub const StoreError = error{
+    InvalidStoreOrdering,
+};
 
 fn failureStrength(order: Ordering) ?u8 {
     return switch (order) {
@@ -55,11 +58,30 @@ pub fn loadOrderAllowed(order: Ordering) bool {
     };
 }
 
+pub fn storeOrderAllowed(order: Ordering) bool {
+    return switch (order) {
+        .monotonic, .release, .seq_cst => true,
+        .unordered, .acquire, .acq_rel => false,
+    };
+}
+
 pub fn load(comptime T: type, ptr: *const T, comptime order: Ordering) LoadError!T {
     if (comptime !loadOrderAllowed(order)) {
         return error.InvalidLoadOrdering;
     }
     return @atomicLoad(T, ptr, order);
+}
+
+pub fn store(
+    comptime T: type,
+    ptr: *T,
+    value: T,
+    comptime order: Ordering,
+) StoreError!void {
+    if (comptime !storeOrderAllowed(order)) {
+        return error.InvalidStoreOrdering;
+    }
+    @atomicStore(T, ptr, value, order);
 }
 
 pub fn exchange(
@@ -149,6 +171,16 @@ test "phase3 atomic helper keeps load ordering rules explicit" {
     try std.testing.expect(!loadOrderAllowed(.acq_rel));
 }
 
+test "phase3 atomic helper keeps store ordering rules explicit" {
+    try std.testing.expect(storeOrderAllowed(.monotonic));
+    try std.testing.expect(storeOrderAllowed(.release));
+    try std.testing.expect(storeOrderAllowed(.seq_cst));
+
+    try std.testing.expect(!storeOrderAllowed(.unordered));
+    try std.testing.expect(!storeOrderAllowed(.acquire));
+    try std.testing.expect(!storeOrderAllowed(.acq_rel));
+}
+
 test "phase3 atomic helper wraps atomic loads without widening ordering semantics" {
     var value: u32 = 0x1234_5678;
 
@@ -158,6 +190,22 @@ test "phase3 atomic helper wraps atomic loads without widening ordering semantic
 
     try std.testing.expectError(error.InvalidLoadOrdering, load(u32, &value, .release));
     try std.testing.expectError(error.InvalidLoadOrdering, load(u32, &value, .acq_rel));
+}
+
+test "phase3 atomic helper wraps atomic stores without widening ordering semantics" {
+    var value: u32 = 0x1234_5678;
+
+    try store(u32, &value, 0xCAFE_BABE, .monotonic);
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), value);
+
+    try store(u32, &value, 0xABCD_EF01, .release);
+    try std.testing.expectEqual(@as(u32, 0xABCD_EF01), value);
+
+    try store(u32, &value, 0x1357_9BDF, .seq_cst);
+    try std.testing.expectEqual(@as(u32, 0x1357_9BDF), value);
+
+    try std.testing.expectError(error.InvalidStoreOrdering, store(u32, &value, 0, .acquire));
+    try std.testing.expectError(error.InvalidStoreOrdering, store(u32, &value, 0, .acq_rel));
 }
 
 test "phase3 atomic helper keeps exchange ordering explicit" {
