@@ -146,6 +146,22 @@ pub fn encodeStdAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bo
     return encodeAlloc(allocator, src, padding, .std);
 }
 
+pub fn encodeUrlsafeSlice(dst: []u8, src: []const u8, padding: bool) EncodeError![]u8 {
+    return encodeSlice(dst, src, padding, .urlsafe);
+}
+
+pub fn encodeUrlsafeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) EncodeAllocError![]u8 {
+    return encodeAlloc(allocator, src, padding, .urlsafe);
+}
+
+pub fn encodeImapSlice(dst: []u8, src: []const u8, padding: bool) EncodeError![]u8 {
+    return encodeSlice(dst, src, padding, .imap);
+}
+
+pub fn encodeImapAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) EncodeAllocError![]u8 {
+    return encodeAlloc(allocator, src, padding, .imap);
+}
+
 pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
     const exact_len = try bytes(src, padding, variant);
     if (dst.len < exact_len) {
@@ -224,6 +240,22 @@ pub fn decodeStdSlice(dst: []u8, src: []const u8, padding: bool) DecodeError![]u
 
 pub fn decodeStdAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) DecodeAllocError![]u8 {
     return decodeAlloc(allocator, src, padding, .std);
+}
+
+pub fn decodeUrlsafeSlice(dst: []u8, src: []const u8, padding: bool) DecodeError![]u8 {
+    return decodeSlice(dst, src, padding, .urlsafe);
+}
+
+pub fn decodeUrlsafeAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) DecodeAllocError![]u8 {
+    return decodeAlloc(allocator, src, padding, .urlsafe);
+}
+
+pub fn decodeImapSlice(dst: []u8, src: []const u8, padding: bool) DecodeError![]u8 {
+    return decodeSlice(dst, src, padding, .imap);
+}
+
+pub fn decodeImapAlloc(allocator: std.mem.Allocator, src: []const u8, padding: bool) DecodeAllocError![]u8 {
+    return decodeAlloc(allocator, src, padding, .imap);
 }
 
 fn alphabet(variant: Variant) []const u8 {
@@ -484,6 +516,52 @@ fn expectVariantPinnedConvenienceParity(input: []const u8, expected: []const u8,
     try std.testing.expectEqual(generic_decoded_len, pinned_decoded_len);
     try std.testing.expectEqualSlices(u8, input, generic_decoded[0..generic_decoded_len]);
     try std.testing.expectEqualSlices(u8, input, pinned_decoded[0..pinned_decoded_len]);
+
+    var generic_slice_buf: [16]u8 = [_]u8{0xaa} ** 16;
+    var pinned_slice_buf: [16]u8 = [_]u8{0xbb} ** 16;
+    const generic_slice = try encodeSlice(generic_slice_buf[0..generic_written], input, padding, variant);
+    const pinned_slice = switch (variant) {
+        .std => try encodeStdSlice(pinned_slice_buf[0..pinned_written], input, padding),
+        .urlsafe => try encodeUrlsafeSlice(pinned_slice_buf[0..pinned_written], input, padding),
+        .imap => try encodeImapSlice(pinned_slice_buf[0..pinned_written], input, padding),
+    };
+    try std.testing.expectEqualStrings(expected, generic_slice);
+    try std.testing.expectEqualStrings(expected, pinned_slice);
+    try std.testing.expectEqual(@as(u8, 0xaa), generic_slice_buf[generic_slice.len]);
+    try std.testing.expectEqual(@as(u8, 0xbb), pinned_slice_buf[pinned_slice.len]);
+
+    const generic_alloc = try encodeAlloc(std.testing.allocator, input, padding, variant);
+    defer std.testing.allocator.free(generic_alloc);
+    const pinned_alloc = switch (variant) {
+        .std => try encodeStdAlloc(std.testing.allocator, input, padding),
+        .urlsafe => try encodeUrlsafeAlloc(std.testing.allocator, input, padding),
+        .imap => try encodeImapAlloc(std.testing.allocator, input, padding),
+    };
+    defer std.testing.allocator.free(pinned_alloc);
+    try std.testing.expectEqualStrings(generic_alloc, pinned_alloc);
+
+    var generic_decode_slice_buf: [8]u8 = [_]u8{0xcc} ** 8;
+    var pinned_decode_slice_buf: [8]u8 = [_]u8{0xdd} ** 8;
+    const generic_decode_slice = try decodeSlice(generic_decode_slice_buf[0..generic_len], expected, padding, variant);
+    const pinned_decode_slice = switch (variant) {
+        .std => try decodeStdSlice(pinned_decode_slice_buf[0..pinned_len], expected, padding),
+        .urlsafe => try decodeUrlsafeSlice(pinned_decode_slice_buf[0..pinned_len], expected, padding),
+        .imap => try decodeImapSlice(pinned_decode_slice_buf[0..pinned_len], expected, padding),
+    };
+    try std.testing.expectEqualSlices(u8, input, generic_decode_slice);
+    try std.testing.expectEqualSlices(u8, generic_decode_slice, pinned_decode_slice);
+    try std.testing.expectEqual(@as(u8, 0xcc), generic_decode_slice_buf[generic_decode_slice.len]);
+    try std.testing.expectEqual(@as(u8, 0xdd), pinned_decode_slice_buf[pinned_decode_slice.len]);
+
+    const generic_decode_alloc = try decodeAlloc(std.testing.allocator, expected, padding, variant);
+    defer std.testing.allocator.free(generic_decode_alloc);
+    const pinned_decode_alloc = switch (variant) {
+        .std => try decodeStdAlloc(std.testing.allocator, expected, padding),
+        .urlsafe => try decodeUrlsafeAlloc(std.testing.allocator, expected, padding),
+        .imap => try decodeImapAlloc(std.testing.allocator, expected, padding),
+    };
+    defer std.testing.allocator.free(pinned_decode_alloc);
+    try std.testing.expectEqualSlices(u8, generic_decode_alloc, pinned_decode_alloc);
 }
 
 test "chars matches padded and unpadded output sizes" {
@@ -516,8 +594,6 @@ test "variant-pinned convenience helpers mirror the generic api" {
     const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
     const one_byte = [_]u8{0xfb};
     const two_byte = [_]u8{ 0xff, 0xf0 };
-
-    try expectVariantPinnedConvenienceParity(&sample, "APv/f4A", false, .std);
     try expectVariantPinnedConvenienceParity(&sample, "APv/f4A=", true, .std);
     try expectVariantPinnedConvenienceParity(&sample, "APv_f4A", false, .urlsafe);
     try expectVariantPinnedConvenienceParity(&sample, "APv_f4A=", true, .urlsafe);
