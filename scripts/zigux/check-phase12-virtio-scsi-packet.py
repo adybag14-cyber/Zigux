@@ -40,6 +40,13 @@ SLICE_MARKERS = [
     "- `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice",
     "- `zigux/tests/phase12_build.zig` keeps the direct replay, syntax-lab smoke, repeated-replan gate, repeated-rollback gate, survey gate, and support packet wired into the shared `phase12` smoke and test routes",
     "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or build route drifts",
+    "## Repo-reality boundaries",
+    "- `drivers/nvme/host/pci.zig` now lives in the separate Phase 12 NVMe packet on current `master`, so this `virtio_scsi` support note should treat NVMe as neighboring packet evidence rather than a repo-reality gap",
+    "- `Documentation/zigux/phase12-closure.md` is still absent on the surveyed head",
+]
+
+FORBIDDEN_SLICE_MARKERS = [
+    "- `drivers/nvme/host/pci.zig` is still absent on the surveyed head",
 ]
 
 SUPPORT_MANIFEST_FIXTURE_MARKERS = [
@@ -89,6 +96,12 @@ def require_markers(errors: list[str], rel_path: str, text: str, markers: list[s
             )
 
 
+def forbid_markers(errors: list[str], rel_path: str, text: str, markers: list[str]) -> None:
+    for marker in markers:
+        if marker in text:
+            errors.append(f"forbidden stale marker in {rel_path}: {marker}")
+
+
 def repo_root() -> Path:
     resolved = Path(__file__).resolve()
     return resolved.parents[2] if len(resolved.parents) >= 3 else resolved.parent
@@ -106,7 +119,9 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
     if MARKER not in checker_source:
         errors.append("checker marker missing from checker source")
 
-    require_markers(errors, SLICE_PATH, read_text(root / SLICE_PATH), SLICE_MARKERS)
+    slice_text = read_text(root / SLICE_PATH)
+    require_markers(errors, SLICE_PATH, slice_text, SLICE_MARKERS)
+    forbid_markers(errors, SLICE_PATH, slice_text, FORBIDDEN_SLICE_MARKERS)
     require_markers(
         errors,
         SUPPORT_MANIFEST_FIXTURE_PATH,
@@ -132,6 +147,10 @@ def good_slice_text() -> str:
             "- `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice",
             "- `zigux/tests/phase12_build.zig` keeps the direct replay, syntax-lab smoke, repeated-replan gate, repeated-rollback gate, survey gate, and support packet wired into the shared `phase12` smoke and test routes",
             "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or build route drifts",
+            "",
+            "## Repo-reality boundaries",
+            "- `drivers/nvme/host/pci.zig` now lives in the separate Phase 12 NVMe packet on current `master`, so this `virtio_scsi` support note should treat NVMe as neighboring packet evidence rather than a repo-reality gap",
+            "- `Documentation/zigux/phase12-closure.md` is still absent on the surveyed head",
             "",
         ]
     )
@@ -221,12 +240,34 @@ def run_self_test() -> int:
         write_fixture_tree(tmp_root)
         write_text(
             tmp_root / SLICE_PATH,
-            good_slice_text().replace(SLICE_MARKERS[-1] + "\n", "", 1),
+            good_slice_text().replace(SLICE_MARKERS[5] + "\n", "", 1),
         )
         expect_contains(
             check(tmp_root, source_text=MARKER),
-            SLICE_MARKERS[-1],
+            SLICE_MARKERS[5],
             "missing slice checker marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / SLICE_PATH,
+            good_slice_text().replace(SLICE_MARKERS[7] + "\n", "", 1),
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            SLICE_MARKERS[7],
+            "missing nvme boundary marker",
+        )
+
+        write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / SLICE_PATH,
+            good_slice_text() + FORBIDDEN_SLICE_MARKERS[0] + "\n",
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            FORBIDDEN_SLICE_MARKERS[0],
+            "stale nvme gap marker not rejected",
         )
 
         write_fixture_tree(tmp_root)
@@ -275,7 +316,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST_CASE_COUNT=6")
+    print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
