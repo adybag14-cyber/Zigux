@@ -83,7 +83,7 @@ EXPECTED_SHARED_PRESENT_FILES = [
 ]
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+EXPECTED_SELF_TEST_CASE_COUNT = 25
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -102,9 +102,17 @@ def read_text(root: Path, path: Path) -> str:
 
 
 def read_manifest(root: Path) -> dict[str, object]:
-    payload = json.loads(read_text(root, MANIFEST))
+    resolved = resolve_path(root, MANIFEST)
+    try:
+        raw = resolved.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise SystemExit(f"required file missing: {resolved}") from exc
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"manifest is not valid json: {resolved}") from exc
     if not isinstance(payload, dict):
-        raise SystemExit("phase2 tool manifest is not an object")
+        raise SystemExit(f"manifest is not an object: {resolved}")
     return payload
 
 
@@ -242,6 +250,15 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def assert_system_exit_contains(callback, expected_fragment: str) -> None:
+    try:
+        callback()
+    except SystemExit as exc:
+        assert expected_fragment in str(exc), str(exc)
+        return
+    raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_tool_manifest_packets_") as tmp_dir:
@@ -264,7 +281,6 @@ def run_self_test() -> int:
             checks_run += 1
 
         build_self_test_root(root)
-        writeText if False else None
         write_text(root, MANIFEST, manifest_json(packet="wrong"))
         assert ("INVALID_MANIFEST_FIELD", "packet") in collect_issues(root)
         checks_run += 1
@@ -285,16 +301,19 @@ def run_self_test() -> int:
         checks_run += 1
 
         for field in (
+            "phase",
+            "status",
             "toolchain_bootstrap_doc",
             "closure_validator",
             "closure_doc",
             "shared_validator",
             "makefile",
+            "master_present_branch_missing_files",
             "workflow_surface",
         ):
             build_self_test_root(root)
             bad = json.loads(manifest_json())
-            bad[field] = "wrong"
+            bad[field] = ["wrong"] if field == "master_present_branch_missing_files" else "wrong"
             write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
             assert ("INVALID_MANIFEST_FIELD", field) in collect_issues(root)
             checks_run += 1
@@ -308,9 +327,38 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         bad = json.loads(manifest_json())
+        bad["missing_files"] = EXPECTED_MISSING_FILES + [CHECKER_PATH]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
         bad["present_files"] = [item for item in EXPECTED_PRESENT_FILES if item != EXPECTED_SHARED_PRESENT_FILES[0]]
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("SHARED_TOOL_NOT_MARKED_PRESENT", EXPECTED_SHARED_PRESENT_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_SHARED_PRESENT_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("SHARED_TOOL_STILL_MARKED_MISSING", EXPECTED_SHARED_PRESENT_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, MANIFEST).unlink()
+        assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, "{\n")
+        assert_system_exit_contains(lambda: collect_issues(root), "manifest is not valid json:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, "[]\n")
+        assert_system_exit_contains(lambda: collect_issues(root), "manifest is not an object:")
         checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
