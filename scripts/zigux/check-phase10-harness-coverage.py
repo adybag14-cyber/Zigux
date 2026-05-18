@@ -25,6 +25,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
         "scripts/zigux/check-phase10-harness-coverage.py",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+        "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "drivers/virtio/virtio_input_teardown_observation.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
         "zigux/tests/phase10_virtio_mmio_manifest.json",
@@ -45,6 +47,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": [
         "scripts/zigux/check-phase10-harness-coverage.py",
         "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+        "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "current `master` still does not materialize `scripts/zigux/validate-phase10.py` or `scripts/zigux/validate-phase10-closure.py` through the direct readback available in this lane, while `zigux/Makefile` now rematerializes and its live body exposes `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10`, so keep those still-missing dedicated validator-script names framed as last-known packet members or repo-reality gaps while treating the returned Makefile-backed route stack as the shared build gate",
         "`zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig` are back as directly re-readable helper-local manifest and replay anchors",
         "Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
@@ -209,9 +213,21 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+                "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+                "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:drivers/virtio/virtio_input_queue_callback_preflight.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
                 "Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
                 "Keep the shared build gate implicit.",
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
+            ),
+            (
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+                "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+                "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:drivers/virtio/virtio_input_queue_callback_preflight.zig",
             ),
             (
                 "Documentation/zigux/phase10-virtio-input-module-slice.md",
@@ -257,7 +273,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=10")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
