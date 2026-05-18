@@ -25,7 +25,7 @@ STRING_REVIEW_RULE_LINE = (
     "`Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` "
     "companions are now live broader reminder evidence on current `master`, but string "
     "should stay parked on the helper-local sysfs review anchors unless those direct "
-    "string surfaces drift`"
+    "string surfaces drift."
 )
 
 COUNTED_SEARCH_REVIEW_RULE_LINE = (
