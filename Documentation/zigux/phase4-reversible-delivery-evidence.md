@@ -25,7 +25,7 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=2e16726fec8500136f25afae73e415dbc977faa7`
   * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`
   * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12`
-  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7`
+  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8`
 ## Current Packet
 
 Treat this note as the current shared handoff for the Phase 4 rollback-readiness packet, not as proof that every older companion pin in the status block has already been refreshed from live exact blob capture.
@@ -49,7 +49,7 @@ Current direct contents reads in this run also confirmed the roadmap-backed diff
 
 Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` on current `master`, so the broader review packet has partially recovered past the older all-missing state even though the coupled checker, validator, build, and bitmap replay companions have not all returned through authenticated direct reads yet.
 
-The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
+The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here, so future exact-readback passes can fail closed on stale checker-coverage claims as well as stale packet-member claims.
 
 The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
 
@@ -60,45 +60,3 @@ Historical broader packet references still include `Documentation/zigux/artifact
 Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence even while the broader checker, validator, build, and bitmap replay companions stay in the authenticated-readback gap bucket.
 
 The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up so they stop overstating `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` as missing-current-head companions.
-
-Historical broader validator and owner-map packet members:
-  * `Documentation/zigux/artifact-diff.md`
-  * `Documentation/zigux/phase4-gate-evidence.md`
-  * `Documentation/zigux/phase4-validation-matrix.md`
-  * `scripts/zigux/artifact_diff.py`
-  * `scripts/zigux/check-artifact-diff-contract.py`
-  * `scripts/zigux/check-phase4-artifact-diff-determinism.py`
-  * `scripts/zigux/check-phase4-remaining-gap-matrix.py`
-  * `scripts/zigux/check-phase4-workflow-route-counts.py`
-  * `scripts/zigux/check-phase4-reversible-delivery-pins.py`
-  * `scripts/zigux/validate-phase4.py`
-  * `zigux/tests/phase4_build.zig`
-  * `zigux/Makefile`
-  * `.github/workflows/zigux-bootstrap.yml`
-  * `Documentation/zigux/review-checklist.md`
-
-Use this note as the bounded rollback-ownership handoff until the broader packet returns or is republished. The current direct readback now keeps the rollback-owner reminder, the review-checklist handoff, the tests-root route inventory, the repo-reality warning checker, the dedicated pin checker, the dedicated local-only perf packet, the roadmap-backed atomic64 differential-gate pair, and the directly readable gate-evidence plus validation-matrix notes explicit without pretending that the broader checker, validator, build, or bitmap replay companions are presently readable on current `master`.
-
-The shared packet is still supposed to keep the host-side artifact-diff tooling contract, the rollback-owner map, the lab-matrix rows for the parked starter gaps and the local-only perf-threshold posture, and the validator-first replay routes explicit. The dedicated local-only perf checker, manifest, and survey now define the approved local benchmark commands, the approved local-only acceptable limits, and the still-pending shared-CI promotion posture, but this note should not claim current-head readability for the broader checker, validator, build, or bitmap replay packet members until a same-family lane rereads or republishes them.
-## Owner Split
-
-Use the current owner split exactly as shipped:
-  * `Tooling and Validation Team` owns the shared exact-readback wording, the host-side artifact-diff tooling packet, the lab-matrix note, the remaining-gap checker packet, the tests-root route-inventory truthfulness, the repo-reality warning checker, the dedicated exact-pin checker, the direct-readback dedicated local-only perf checker, and the validator-first route inventory for the Phase 4 packet.
-  * `Validation and Perf Team` owns the dedicated local-only perf packet and any future broader perf-promotion decision.
-  * `ABI and Runtime Team` plus `Shared Subsystems Pod` remain the coordination owners for any wider shared-CI perf promotion because the current landed rollback gates still belong to those families.
-
-Keep the parked starter-gap packets for `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` adjacent but separate. They remain measurable through their own parked survey packets and should not be used as the place to rewrite the shared exact-readback packet or the dedicated local-only perf packet.
-## Review Rules
-
-When Phase 4 follow-through reopens, repair the smallest packet that drifted first.
-  * If the directly readable repo-reality warning packet drifts, repair the directly readable packet member first and then refresh this note.
-  * If a currently readable broader note companion such as `Documentation/zigux/phase4-gate-evidence.md` or `Documentation/zigux/phase4-validation-matrix.md` drifts, refresh the exact pin after rereading the current `master` copy and keep that recovery explicit here without pretending the still-missing checker, validator, build, or bitmap replay companions also returned.
-  * If the broader checker, validator, build, or bitmap replay packet returns, refresh the exact pin after rereading the current `master` copy. Until then, keep the corresponding `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` provenance fields historical rather than mixing them into current-head proof.
-  * If the roadmap-backed `atomic64_diff` pair drifts again, refresh the direct-readback posture only after re-reading those exact current `master` paths and only after the shared reminder surfaces stop overstating that pair as missing destinations.
-  * If the local benchmark commands, acceptable limits, or shared-CI-pending posture drifts, repair the dedicated local-only perf packet first and then return here only after those packet members are directly readable again.
-  * If a later lane needs both, land the packet-local repair first, then refresh this note only after the packet-local state is directly readable on current `master`.
-  * Do not treat the dedicated local-only perf packet as shared CI perf approval until a later bounded Phase 4 lane intentionally widens that policy and names the decision directly.
-  * Do not treat either parked starter-gap packet as shipped starter work while `samples/zigux/kprobe_example.zig` and `samples/zigux/test_fsmount.zig` remain absent on current `master`.
-## Next Bounded Step
-
-Use this note only as a truthful current-head handoff for the directly readable reminder surfaces and the partially recovered broader notes. The next honest same-family follow-through is a shared-summary truthfulness pass for `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md`, followed later by any republish or reread that restores the still-missing broader checker, validator, build, and bitmap replay companions to direct current-head evidence.
