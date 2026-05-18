@@ -142,12 +142,14 @@ Use the shared docs to preserve these bounded cues until a fresh reread restores
 
 ### `kobject_example`
 
-When shared contributor guidance needs the current kobject packet, keep these public-tree-backed companions explicit:
+When shared contributor guidance needs the current kobject packet, keep this public-tree-backed packet explicit:
 
 * `Documentation/zigux/phase5-kobject-sample-survey.md`
+* `samples/zigux/kobject_example.zig`
 * `zigux/tests/phase5_kobject_example.zig`
 * `zigux/tests/phase5_kobject_example_manifest.json`
 * `zigux/tests/phase5_kobject_example_survey.zig`
+* `zigux/tests/phase5_build.zig`
 
 Keep the approved Phase 5 in-memory ownership-and-lifetime idiom reviewable from the shared guide too:
 
