@@ -74,6 +74,12 @@ pub const blocked_boundaries = [_]BridgeBoundary{
         .rationale = "Force-quiescent-state escalation still couples root-node gp_flags, grace-period kthread wake sequencing, and the FQS loop through live rcu_state and rcu_node ownership rather than a narrow bridge seam.",
     },
     .{
+        .id = "poll_cookie_and_sync_waithead_rollover",
+        .summary = "Keep poll-cookie sequencing, polled grace-period completion, and synchronize_rcu wait-head rollover in C.",
+        .anchor_symbols = &.{ "rcu_poll_gp_seq_start_unlocked", "rcu_poll_gp_seq_end_unlocked", "rcu_sr_normal_gp_init" },
+        .rationale = "Poll-cookie visibility still shares gp_seq_polled snapshots, root-node grace-period sequencing, and synchronize_rcu wait-head rollover inside the live Tree RCU state machine rather than a narrow bridge seam.",
+    },
+    .{
         .id = "public_wait_and_callback_barrier",
         .summary = "Keep public wait, polling-cookie, and callback-barrier ownership in C.",
         .anchor_symbols = &.{ "synchronize_rcu", "get_state_synchronize_rcu", "poll_state_synchronize_rcu", "rcu_barrier" },
@@ -106,7 +112,7 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-core-boundary-traceability.md", review_packet[4]);
     try std.testing.expectEqualStrings("Documentation/zigux/phase14-end-to-end-smoke-survey.md", review_packet[5]);
     try std.testing.expectEqualStrings("zigux/tests/phase14_end_to_end_smoke_manifest.json", review_packet[6]);
-    try std.testing.expectEqual(@as(usize, 10), blockedBoundaryCount());
+    try std.testing.expectEqual(@as(usize, 11), blockedBoundaryCount());
     try std.testing.expectEqualStrings("idle_watch_reentry_and_core_invocation", blocked_boundaries[4].id);
     try std.testing.expect(contains(blocked_boundaries[4].summary, "idle-watch"));
     try std.testing.expectEqualStrings("quiescent_state_propagation_and_callback_acceleration", blocked_boundaries[5].id);
@@ -116,8 +122,11 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expectEqualStrings("force_quiescent_state_and_gp_wake_escalation", blocked_boundaries[7].id);
     try std.testing.expect(contains(blocked_boundaries[7].summary, "force-quiescent-state"));
     try std.testing.expect(contains(blocked_boundaries[7].summary, "FQS"));
-    try std.testing.expectEqualStrings("public_wait_and_callback_barrier", blocked_boundaries[8].id);
-    try std.testing.expect(contains(blocked_boundaries[8].summary, "callback-barrier"));
-    try std.testing.expectEqualStrings("cpu_hotplug_callback_migration", blocked_boundaries[9].id);
-    try std.testing.expect(contains(blocked_boundaries[9].summary, "callback migration"));
+    try std.testing.expectEqualStrings("poll_cookie_and_sync_waithead_rollover", blocked_boundaries[8].id);
+    try std.testing.expect(contains(blocked_boundaries[8].summary, "poll-cookie"));
+    try std.testing.expect(contains(blocked_boundaries[8].summary, "wait-head"));
+    try std.testing.expectEqualStrings("public_wait_and_callback_barrier", blocked_boundaries[9].id);
+    try std.testing.expect(contains(blocked_boundaries[9].summary, "callback-barrier"));
+    try std.testing.expectEqualStrings("cpu_hotplug_callback_migration", blocked_boundaries[10].id);
+    try std.testing.expect(contains(blocked_boundaries[10].summary, "callback migration"));
 }
