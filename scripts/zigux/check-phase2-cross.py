@@ -50,6 +50,10 @@ def load_fixture(path: Path) -> dict[str, object]:
     return payload
 
 
+def is_strict_int(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
 def collect_list_issues(payload: object, issue_prefix: str) -> tuple[list[str], list[str] | None]:
     if not isinstance(payload, list):
         return [f"{issue_prefix}:not_list:{payload!r}"], None
@@ -72,8 +76,11 @@ def validate_fixture(root: Path) -> list[str]:
 
     if payload.get("phase") != EXPECTED_PHASE:
         issues.append(f"fixture:phase:{payload.get('phase')!r}")
-    if payload.get("lane") != EXPECTED_LANE:
-        issues.append(f"fixture:lane:{payload.get('lane')!r}")
+
+    lane = payload.get("lane")
+    if not is_strict_int(lane) or lane != EXPECTED_LANE:
+        issues.append(f"fixture:lane:{lane!r}")
+
     if payload.get("status") != EXPECTED_STATUS:
         issues.append(f"fixture:status:{payload.get('status')!r}")
 
@@ -83,9 +90,9 @@ def validate_fixture(root: Path) -> list[str]:
         issues.append(f"fixture:targets:{targets!r}")
 
     target_count = payload.get("target_count")
-    if target_count != len(EXPECTED_TARGETS):
+    if not is_strict_int(target_count) or target_count != len(EXPECTED_TARGETS):
         issues.append(f"fixture:target_count:{target_count!r}")
-    if targets is not None and target_count != len(targets):
+    if targets is not None and (not is_strict_int(target_count) or target_count != len(targets)):
         issues.append(f"fixture:target_count_mismatch:{target_count!r}!={len(targets)!r}")
 
     zig_file_issues, zig_test_files = collect_list_issues(
@@ -311,6 +318,27 @@ def run_self_test() -> int:
         (fixture_path(root)).write_text(
             json.dumps(
                 {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": float(len(EXPECTED_TARGETS)),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert f"fixture:target_count:{float(len(EXPECTED_TARGETS))!r}" in issues
+        assert f"fixture:target_count_mismatch:{float(len(EXPECTED_TARGETS))!r}!={len(EXPECTED_TARGETS)!r}" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
                     "phase": "Phase 3",
                     "lane": EXPECTED_LANE,
                     "status": EXPECTED_STATUS,
@@ -345,6 +373,26 @@ def run_self_test() -> int:
         )
         issues = validate_fixture(root)
         assert "fixture:lane:20" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": float(EXPECTED_LANE),
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert f"fixture:lane:{float(EXPECTED_LANE)!r}" in issues
         case_count += 1
 
         build_self_test_root(root)
