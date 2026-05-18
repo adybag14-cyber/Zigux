@@ -78,3 +78,28 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(type_names, "formatLibbpfBpfLinkType");
     try expectHasDecl(type_names, "formatLibbpfBpfProgType");
 }
+
+test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outputs explicit" {
+    var buffer: [128]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/stats_map",
+        try pin_path.buildMapPinPath(buffer[0..], null, "stats_map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/stats.map",
+        try pin_path.buildValidatedMapPinPath(buffer[0..], "/tmp/bpf.v1", "stats.map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/xdp_dispatch_v1",
+        try pin_path.buildValidatedSanitizedProgramPinPath(buffer[0..], null, "xdp_dispatch.v1"),
+    );
+    try std.testing.expectError(
+        error.InvalidName,
+        pin_path.buildValidatedProgramPinPath(buffer[0..], null, "xdp/dispatch"),
+    );
+    try std.testing.expectError(
+        error.InvalidRootPath,
+        pin_path.buildValidatedSanitizedProgramPinPath(buffer[0..], "tmp/bpf", "xdp_dispatch.v1"),
+    );
+}
