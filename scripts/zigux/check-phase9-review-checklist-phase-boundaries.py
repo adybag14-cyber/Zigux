@@ -87,7 +87,7 @@ DOCS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unre
 DOCS_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 DOCS_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
 DOCS_README_REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable across the initialized and selftest_complete stages"
-DOCS_README_BACKLOG_MARKER = "does not currently expose the older shared runtime-loader packet that earlier reminder surfaces described"
+DOCS_README_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
 DOCS_README_PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 DOCS_README_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
 
