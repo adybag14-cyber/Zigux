@@ -29,6 +29,14 @@ pub fn initListHead(next: usize, prev: usize) ListHead {
     return uapi.initListHead(next, prev);
 }
 
+pub fn initEmptyListHead(self_addr: usize) ListHead {
+    return uapi.initEmptyListHead(self_addr);
+}
+
+pub fn isEmptyListHead(head: ListHead, self_addr: usize) bool {
+    return uapi.isEmptyListHead(head, self_addr);
+}
+
 pub fn emptyHListHead() HListHead {
     return uapi.emptyHListHead();
 }
@@ -37,12 +45,20 @@ pub fn initHListHead(first: usize) HListHead {
     return uapi.initHListHead(first);
 }
 
+pub fn isEmptyHListHead(head: HListHead) bool {
+    return uapi.isEmptyHListHead(head);
+}
+
 pub fn emptyHListNode() HListNode {
     return uapi.emptyHListNode();
 }
 
 pub fn initHListNode(next: usize, pprev: usize) HListNode {
     return uapi.initHListNode(next, pprev);
+}
+
+pub fn isDetachedHListNode(node: HListNode) bool {
+    return uapi.isDetachedHListNode(node);
 }
 
 comptime {
@@ -102,4 +118,26 @@ test "binding raw constructors preserve the uapi link values" {
     try std.testing.expectEqual(uapi.initListHead(list_next, list_prev), initListHead(list_next, list_prev));
     try std.testing.expectEqual(uapi.initHListHead(hfirst), initHListHead(hfirst));
     try std.testing.expectEqual(uapi.initHListNode(hnext, hpprev), initHListNode(hnext, hpprev));
+}
+
+test "binding semantic helpers preserve the uapi empty and detached rules" {
+    var list = uapi.initListHead(0, 0);
+    const list_addr = @intFromPtr(&list);
+    list = initEmptyListHead(list_addr);
+
+    try std.testing.expectEqual(uapi.initEmptyListHead(list_addr), list);
+    try std.testing.expectEqual(uapi.isEmptyListHead(list, list_addr), isEmptyListHead(list, list_addr));
+    try std.testing.expectEqual(uapi.isEmptyHListHead(uapi.emptyHListHead()), isEmptyHListHead(emptyHListHead()));
+    try std.testing.expectEqual(
+        uapi.isEmptyHListHead(uapi.initHListHead(list_addr)),
+        isEmptyHListHead(initHListHead(list_addr)),
+    );
+    try std.testing.expectEqual(
+        uapi.isDetachedHListNode(uapi.emptyHListNode()),
+        isDetachedHListNode(emptyHListNode()),
+    );
+    try std.testing.expectEqual(
+        uapi.isDetachedHListNode(uapi.initHListNode(list_addr, list_addr + @sizeOf(usize))),
+        isDetachedHListNode(initHListNode(list_addr, list_addr + @sizeOf(usize))),
+    );
 }
