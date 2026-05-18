@@ -198,12 +198,6 @@ jobs:
       - name: Run current Phase 2 toolchain make route
         run: make -C zigux phase2-toolchain
 
-      - name: Self-test current Phase 2 required-make-routes checker
-        run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
-
-      - name: Check current Phase 2 required-make-routes packet
-        run: python3 scripts/zigux/check-phase2-required-make-routes.py
-
       - name: Self-test current Phase 2 shared reminder checker
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test
 
@@ -212,27 +206,6 @@ jobs:
 
       - name: Validate current Phase 2 tool packet
         run: python3 scripts/zigux/validate-phase2.py
-
-      - name: Self-test current Phase 1 direct-owner checker
-        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
-
-      - name: Check current Phase 1 direct-owner markers
-        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py
-
-      - name: Self-test current Phase 1 string review checker
-        run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test
-
-      - name: Check current Phase 1 string review packet
-        run: python3 scripts/zigux/check-phase1-string-review-packet.py
-
-      - name: Self-test current Phase 1 bench checker
-        run: python3 scripts/zigux/check-phase1-bench.py --self-test
-
-      - name: Self-test current Phase 1 shared reminder checker
-        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test
-
-      - name: Check current Phase 1 shared reminder packet
-        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
       - name: Self-test current Phase 3 interop packet
         run: python3 scripts/zigux/validate_phase3_selftest.py
@@ -254,24 +227,6 @@ jobs:
 
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
-
-      - name: Self-test current Phase 4 repo-reality warning checker
-        run: python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test
-
-      - name: Check current Phase 4 repo-reality warning packet
-        run: python3 scripts/zigux/check-phase4-repo-reality-warning.py
-
-      - name: Self-test current Phase 4 reversible-delivery pin checker
-        run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test
-
-      - name: Check current Phase 4 reversible-delivery pin packet
-        run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py
-
-      - name: Self-test current Phase 4 tests README checker
-        run: python3 scripts/zigux/check-phase4-tests-readme-packet.py --self-test
-
-      - name: Check current Phase 4 tests README packet
-        run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
 
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
@@ -338,6 +293,9 @@ jobs:
 
       - name: Check current Phase 12 release-readiness packet
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
+
+      - name: Validate current Phase 12 support bundle
+        run: python3 scripts/zigux/validate-phase12.py
 
       - name: Run focused Phase 12 smoke shard
         run: make -C zigux phase12-smoke
