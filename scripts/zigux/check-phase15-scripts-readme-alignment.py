@@ -22,6 +22,7 @@ HANDOFF_CHECKER_REL = "scripts/zigux/check-phase15-review-process-handoff.py"
 GAP_CHECKER_REL = "scripts/zigux/check-phase15-shared-summary-gap.py"
 READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
 REVIEW_PROCESS_MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
+MAKEFILE_REL = "zigux/Makefile"
 
 REQUIRED_FILES = (
     README_REL,
@@ -40,6 +41,7 @@ REQUIRED_FILES = (
     GAP_CHECKER_REL,
     READINESS_MANIFEST_REL,
     REVIEW_PROCESS_MANIFEST_REL,
+    MAKEFILE_REL,
     "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_freeze_map_governance.zig",
     "zigux/tests/phase15_parity_scorecard.zig",
@@ -94,7 +96,6 @@ MISSING_BROADER_PATHS = (
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-    "zigux/Makefile",
 )
 
 STALE_README_MARKERS = (
@@ -104,6 +105,13 @@ STALE_README_MARKERS = (
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_build.zig",
     "zigux/Makefile",
+)
+
+UNEXPECTED_PHASE15_MAKEFILE_MARKERS = (
+    "phase15-validate:",
+    "phase15-test:",
+    "phase15:",
+    ".PHONY: phase15",
 )
 
 
@@ -135,6 +143,7 @@ def validate(root: Path) -> list[str]:
     readiness = _read(root / READINESS_REL)
     shared_gap = _read(root / SHARED_GAP_REL)
     handoff = _read(root / HANDOFF_REL)
+    makefile = _read(root / MAKEFILE_REL)
 
     _require_markers(lane_seq, LANE_SEQ_MARKERS, "lane_seq", failures)
     _require_markers(readiness, READINESS_MARKERS, "readiness", failures)
@@ -152,10 +161,14 @@ def validate(root: Path) -> list[str]:
         marker = f"`{rel}`"
         if marker not in readiness:
             failures.append(f"readiness:missing_gap_path:{marker}")
-        if rel != "zigux/Makefile" and marker not in shared_gap:
+        if marker not in shared_gap:
             failures.append(f"shared_gap:missing_gap_path:{marker}")
         if (root / rel).exists():
             failures.append(f"missing_gap_path_returned:{rel}")
+
+    for marker in UNEXPECTED_PHASE15_MAKEFILE_MARKERS:
+        if marker in makefile:
+            failures.append(f"makefile:unexpected_phase15_route:{marker}")
 
     for marker in STALE_README_MARKERS:
         if marker in readme:
@@ -219,6 +232,13 @@ def _seed(root: Path) -> None:
         "- `scripts/zigux/check-phase15-review-process-handoff.py`\n"
         "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n",
     )
+    _write(
+        root / MAKEFILE_REL,
+        "PYTHON ?= python3\n"
+        ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2\n"
+        "phase2-toolchain:\n"
+        "\t@true\n",
+    )
     for rel in REQUIRED_FILES:
         if not (root / rel).exists():
             _write(root / rel, "placeholder\n")
@@ -250,6 +270,14 @@ def run_self_test() -> int:
         expected = ["missing_gap_path_returned:scripts/zigux/validate-phase15.py"]
         if failures != expected:
             raise AssertionError(f"unexpected returned-gap failure: {failures}")
+
+        route_returned = root / "route_returned"
+        _seed(route_returned)
+        _write(route_returned / MAKEFILE_REL, _read(route_returned / MAKEFILE_REL) + "\nphase15-validate:\n\t@true\n")
+        failures = validate(route_returned)
+        expected = ["makefile:unexpected_phase15_route:phase15-validate:"]
+        if failures != expected:
+            raise AssertionError(f"unexpected makefile-route failure: {failures}")
 
         missing_marker = root / "missing_marker"
         _seed(missing_marker)
