@@ -18,7 +18,6 @@ REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
 PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
-PHASE2_CROSS_TARGETS_REL = "zigux/tests/fixtures/phase2_cross_targets.json"
 
 CHECKERS = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
@@ -56,7 +55,27 @@ EXPECTED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 17
+DISALLOWED_MAKEFILE_LINES = (
+    "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+    "PHASE3_SCRIPT_ROOT := ../scripts/zigux",
+    ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3 phase10-validate phase10-test phase10",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --archive-only --allow-missing",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-toolchain-pinning.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
+    "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
+    "phase2: phase2-validate",
+)
+
+EXPECTED_SELF_TEST_CASE_COUNT = 19
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -74,6 +93,10 @@ def read_text(root: Path, path: Path) -> str:
         raise SystemExit(f"required file missing: {resolved}") from exc
 
 
+def count_exact_lines(text: str, line: str) -> int:
+    return sum(1 for item in text.splitlines() if item == line)
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     scripts_readme_text = read_text(root, SCRIPTS_README)
@@ -82,8 +105,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(root, MAKEFILE)
 
     for marker in EXPECTED_MAKEFILE_LINES:
-        if marker not in makefile_text:
-            issues.append(("MISSING_MAKEFILE_LINES", marker))
+        count = count_exact_lines(makefile_text, marker)
+        if count == 0:
+            issues.append(("MISSING_MAKEFILE_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
+
+    for marker in DISALLOWED_MAKEFILE_LINES:
+        count = count_exact_lines(makefile_text, marker)
+        if count != 0:
+            issues.append(("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count={count}"))
 
     for marker in EXPECTED_PRESENT_FILE_MARKERS:
         if marker not in scripts_readme_text:
@@ -159,6 +190,12 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def duplicate_once(text: str, marker: str) -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, f"{marker}\n{marker}", 1)
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validator_selftest_") as tmp_dir:
@@ -170,7 +207,19 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, MAKEFILE)
         path.write_text(replace_once(path.read_text(encoding="utf-8"), EXPECTED_MAKEFILE_LINES[0]), encoding="utf-8")
-        assert ("MISSING_MAKEFILE_LINES", EXPECTED_MAKEFILE_LINES[0]) in collect_issues(root)
+        assert ("MISSING_MAKEFILE_LINE", EXPECTED_MAKEFILE_LINES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, MAKEFILE)
+        path.write_text(duplicate_once(path.read_text(encoding="utf-8"), EXPECTED_MAKEFILE_LINES[1]), encoding="utf-8")
+        assert ("DUPLICATE_MAKEFILE_LINE", f"{EXPECTED_MAKEFILE_LINES[1]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, MAKEFILE)
+        path.write_text(path.read_text(encoding="utf-8") + DISALLOWED_MAKEFILE_LINES[0] + "\n", encoding="utf-8")
+        assert ("UNEXPECTED_MAKEFILE_LINE", f"{DISALLOWED_MAKEFILE_LINES[0]}:count=1") in collect_issues(root)
         checks_run += 1
 
         for code, path in (
