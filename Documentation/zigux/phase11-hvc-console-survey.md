@@ -27,6 +27,7 @@ coupled continuity remains parked under `P11-L16`.
   - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
   - `zigux/tests/fixtures/phase11_build_inventory.json`
   - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+  - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
   - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
   - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
   - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
@@ -62,6 +63,7 @@ current-head packet below:
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
