@@ -81,6 +81,11 @@ jobs:
           try_download() {
             local url="$1"
             if curl -L --fail "$url" -o "$archive_path"; then
+              if ! python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+                rm -f "$archive_path"
+                rm -rf "$extract_root"
+                return 1
+              fi
               tar -xJf "$archive_path" -C .zig-toolchain
               zig_path="$extract_root/zig"
               if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
@@ -181,6 +186,9 @@ jobs:
       - name: Check current Phase 2 toolchain pin-scope packet
         run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py
 
+      - name: Run current Phase 2 toolchain make route
+        run: make -C zigux phase2-toolchain
+
       - name: Self-test current Phase 2 required-make-routes checker
         run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
 
@@ -255,6 +263,38 @@ jobs:
 
       - name: Check current Phase 4 tests README packet
         run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
+      - name: Self-test current Phase 4 artifact-diff helper
+        run: python3 scripts/zigux/artifact_diff.py --self-test
+
+      - name: Self-test current Phase 4 artifact-diff determinism checker
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+
+      - name: Self-test current Phase 4 artifact-diff validator replay checker
+        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
+
+      - name: Check current Phase 4 artifact-diff validator replay packet
+        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
+
+      - name: Validate Phase 8 tooling routes
+        run: make -C zigux phase8-validate
+
+      - name: Run focused Phase 8 exec-cmd tests
+        run: make -C zigux phase8-exec-cmd-test
+
+      - name: Run Phase 8 tooling tests
+        run: make -C zigux phase8-test
+
+      - name: Self-test current Phase 9 review-checklist boundaries checker
+        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test
+
+      - name: Check current Phase 9 review-checklist boundaries packet
+        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
+
+      - name: Self-test current Phase 9 trace-events runtime packet checker
+        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test
+
+      - name: Check current Phase 9 trace-events runtime packet
+        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
 
       - name: Self-test current Phase 7 shared-control gap checker
         run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test
