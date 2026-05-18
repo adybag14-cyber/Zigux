@@ -84,7 +84,23 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`validate-phase2-closure.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 39
+EXPECTED_MANIFEST_FIELDS = {
+    "packet",
+    "phase",
+    "status",
+    "toolchain_bootstrap_doc",
+    "closure_validator",
+    "closure_doc",
+    "shared_validator",
+    "tool_manifest_checker",
+    "makefile",
+    "present_files",
+    "missing_files",
+    "master_present_branch_missing_files",
+    "workflow_surface",
+}
+
+EXPECTED_SELF_TEST_CASE_COUNT = 40
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -159,6 +175,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "MISSING_SCRIPTS_README_MARKERS",
         )
     )
+
+    unexpected_fields = sorted(set(manifest) - EXPECTED_MANIFEST_FIELDS)
+    if unexpected_fields:
+        issues.extend(("UNEXPECTED_MANIFEST_FIELD", field) for field in unexpected_fields)
 
     if manifest.get("packet") != "phase2_tool_manifest":
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
@@ -311,6 +331,13 @@ def run_self_test() -> int:
             write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
             assert ("INVALID_MANIFEST_FIELD", field) in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["unexpected"] = "value"
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("UNEXPECTED_MANIFEST_FIELD", "unexpected") in collect_issues(root)
+        checks_run += 1
 
         build_self_test_root(root)
         resolve_path(root, CLOSURE_DOC).unlink()
