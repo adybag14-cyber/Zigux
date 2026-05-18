@@ -5,7 +5,7 @@ This note records the bounded Phase 15 Architecture Council sequencing packet fo
 ## Status
 
 - `PHASE15_STATUS=governance_lane_sequencing_packet_landed`
-- `PHASE15_LANE_KEY=arch-council`
+- `PHASE15_LANE_KEY=P15-Y06`
 - `PHASE15_SLICE=architecture-council-governance-lane-boundaries`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
