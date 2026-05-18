@@ -66,6 +66,7 @@ The truthful current-head posture is narrower: the helper itself is directly rea
   * until then, keep follow-up scoped to one reminder-surface or checker repair at a time and do not widen this lane into broader Phase 4 validator, matrix, local-only perf, bitmap, atomic64, or starter-gap work
 ## Owner And Rollback Reminder
   * `Tooling and Validation Team` still owns the shared Phase 4 reminder packet, including the host-side artifact-diff references, repo-reality warning, historical-provenance wording for the broader contract companions, and the directly readable validator-replay checker
+  * the remaining artifact-diff validator follow-through around `scripts/zigux/validate-phase4.py` stays owned by the neighboring validator packet, so this survey should stay narrowed to the directly readable helper and determinism surfaces until that validator packet returns on current `master`
   * this survey now closes only the helper-return truthfulness question for the historical Phase 4 artifact-diff tooling packet; it does not claim that the broader contract or validator packet is directly readable on current `master`
 ## Direct Replay Surface
 
