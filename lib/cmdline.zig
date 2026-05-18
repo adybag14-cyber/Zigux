@@ -56,7 +56,6 @@ fn parseSignedPrefix(text: []const u8) struct {
 
     return switch (text[0]) {
         '-' => .{ .negative = true, .start = 1 },
-        '+' => .{ .negative = false, .start = 1 },
         else => .{ .negative = false, .start = 0 },
     };
 }
@@ -267,9 +266,13 @@ test "memparse applies suffixes before signed clamping" {
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative.value);
     try std.testing.expectEqualStrings("tail", negative.rest);
 
-    const positive = memparse("+3Mmore");
-    try std.testing.expectEqual(@as(u64, 3 << 20), positive.value);
-    try std.testing.expectEqualStrings("more", positive.rest);
+    const leading_plus = memparse("+3Mmore");
+    try std.testing.expectEqual(@as(u64, 0), leading_plus.value);
+    try std.testing.expectEqualStrings("+3Mmore", leading_plus.rest);
+
+    const leading_plus_decimal = memparse("+7tail");
+    try std.testing.expectEqual(@as(u64, 0), leading_plus_decimal.value);
+    try std.testing.expectEqualStrings("+7tail", leading_plus_decimal.rest);
 }
 
 test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
@@ -277,9 +280,9 @@ test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative_hex.value);
     try std.testing.expectEqualStrings("tail", negative_hex.rest);
 
-    const positive_octal = memparse("+010Mmore");
-    try std.testing.expectEqual(@as(u64, 8 << 20), positive_octal.value);
-    try std.testing.expectEqualStrings("more", positive_octal.rest);
+    const unsigned_octal = memparse("010Mmore");
+    try std.testing.expectEqual(@as(u64, 8 << 20), unsigned_octal.value);
+    try std.testing.expectEqualStrings("more", unsigned_octal.rest);
 }
 
 test "parseOptionStr matches only exact bare options" {
