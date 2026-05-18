@@ -54,6 +54,7 @@ COMPANION_MARKERS = (
 )
 VERIFY_MARKERS = (
     "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit",
+    "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
     "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
     "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
 )
@@ -296,6 +297,7 @@ def build_fixture(root: Path) -> None:
         "# Phase 11 HVC Verify Helper Boundary",
         "",
         "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit",
+        "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
         "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
         "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
         "",
@@ -432,6 +434,17 @@ def run_self_test() -> int:
         )
         expect_failure(missing_verify, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`")
 
+        missing_remove_handoff = tmpdir / "missing_remove_handoff"
+        shutil.copytree(fixture, missing_remove_handoff, dirs_exist_ok=True)
+        write(
+            missing_remove_handoff / VERIFY_PATH,
+            read_text(missing_remove_handoff / VERIFY_PATH).replace(
+                "`drivers/tty/hvc/hvc_console_verify.zig` keeps the remove handoff explicit when tty teardown outlives console binding, preserving hangup-driven teardown without implying live `hvc_remove()` execution.",
+                "",
+            ),
+        )
+        expect_failure(missing_remove_handoff, "remove handoff explicit when tty teardown outlives console binding")
+
         missing_matrix = tmpdir / "missing_matrix"
         shutil.copytree(fixture, missing_matrix, dirs_exist_ok=True)
         write(
@@ -528,7 +541,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=16")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=17")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
