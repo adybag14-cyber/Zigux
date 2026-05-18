@@ -26,7 +26,7 @@ test "phase13 devres dma coherent replay anchors the current slice reality" {
     const slice = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-slice.md");
     defer std.testing.allocator.free(slice);
 
-    try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` now materializes one direct replay surface");
+    try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");
     try requireContains(slice, "`Documentation/zigux/phase13-devres-survey.md`");
     try requireContains(slice, "`lib/devres.zig`");
     try requireContains(slice, "repo-reality gaps");
@@ -37,8 +37,8 @@ test "phase13 devres dma coherent replay keeps missing checker surfaces framed a
     defer std.testing.allocator.free(slice);
 
     try requireContains(slice, "`scripts/zigux/check-phase13-devres-packet-alignment.py`");
-    try requireContains(slice, "repo-reality gaps rather than described here as shipped current-`master` evidence");
-    try requireContains(slice, "paired survey, helper, manifest, and broader direct replay packet");
+    try requireContains(slice, "the older direct devres replay, reviewability gate, manifest-backed packet, and packet-alignment checker remain repo-reality gaps");
+    try requireContains(slice, "the broader direct helper packet stays an explicit repo-reality gap");
 }
 
 test "phase13 devres dma coherent replay keeps the planner note helper-first" {
@@ -46,9 +46,9 @@ test "phase13 devres dma coherent replay keeps the planner note helper-first" {
     defer std.testing.allocator.free(note);
 
     try requireContains(note, "pure `dmam_alloc_coherent()` planning surface");
-    try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig` materialized on current `master`");
-    try requireContains(note, "`lib/devres.zig` itself remains an explicit repo-reality gap");
-    try requireContains(note, "does not treat the replay as proof");
+    try requireContains(note, "Adjacent boundary evidence stays unchanged:");
+    try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig`");
+    try requireContains(note, "while keeping live DMA state, scatterlist ownership, and broader devres-group behavior blocked");
     try requireContains(note, "dma_map_*");
     try requireContains(note, "dma_unmap_*");
     try requireContains(note, "dma_sync_*");
@@ -64,8 +64,7 @@ test "phase13 devres dma coherent replay anchors the survey-side scatterlist bou
     defer std.testing.allocator.free(survey);
 
     try requireContains(survey, "helper-first scatterlist helper and replay");
-    try requireContains(survey, "`lib/devres_scatterlist.zig` now provides a helper-first scatterlist lifetime planner");
-    try requireContains(survey, "`zigux/tests/phase13_devres_scatterlist.zig` replays that scatterlist helper surface directly");
+    try requireContains(survey, "`lib/devres_scatterlist.zig` and `zigux/tests/phase13_devres_scatterlist.zig` keep the helper-first scatterlist lifetime slice reviewable");
     try requireContains(survey, "blocked `phase13-devres-live-scatterlist-ownership`");
     try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");
     try requireContains(survey, "blocked `phase13-devres-generic-dma-map-family`");
