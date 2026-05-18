@@ -146,6 +146,18 @@ def _read_json(path: Path) -> object:
 def _expected_blockers_payload() -> dict[str, object]:
     return {
         "status": "parked",
+        "lane_sequencing": {
+            "manifest": MANIFEST_REL.as_posix(),
+            "shared_replay_parked_helper_count": len(EXPECTED_SHARED_REPLAY_PARKED_HELPERS),
+            "shared_replay_parked_helpers": list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS),
+            "direct_anchor_followup_helper_count": len(
+                EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS
+            ),
+            "direct_anchor_followup_helpers": list(
+                EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS
+            ),
+            "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
+        },
         "replay": {
             "path": REPLAY_REL.as_posix(),
             "state": "blocked",
@@ -391,6 +403,35 @@ def collect_issues(root: Path) -> list[str]:
         else:
             if blockers_payload.get("status") != expected_blockers["status"]:
                 issues.append(f"blockers_status:{blockers_payload.get('status')!r}")
+
+            lane_sequencing = blockers_payload.get("lane_sequencing")
+            if not isinstance(lane_sequencing, dict):
+                issues.append("blockers_lane_sequencing:not_json_object")
+            else:
+                if lane_sequencing.get("manifest") != MANIFEST_REL.as_posix():
+                    issues.append(
+                        f"blockers_lane_manifest:{lane_sequencing.get('manifest')!r}"
+                    )
+                parked_count = lane_sequencing.get(
+                    "shared_replay_parked_helper_count"
+                )
+                if parked_count != len(EXPECTED_SHARED_REPLAY_PARKED_HELPERS):
+                    issues.append(f"blockers_lane_shared_count:{parked_count!r}")
+                parked_helpers = lane_sequencing.get("shared_replay_parked_helpers")
+                if parked_helpers != list(EXPECTED_SHARED_REPLAY_PARKED_HELPERS):
+                    issues.append("blockers_lane_shared_helpers")
+                direct_count = lane_sequencing.get(
+                    "direct_anchor_followup_helper_count"
+                )
+                if direct_count != len(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS):
+                    issues.append(f"blockers_lane_direct_count:{direct_count!r}")
+                direct_helpers = lane_sequencing.get(
+                    "direct_anchor_followup_helpers"
+                )
+                if direct_helpers != list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS):
+                    issues.append("blockers_lane_direct_helpers")
+                if lane_sequencing.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
+                    issues.append("blockers_lane_anti_overlap_rule")
 
             replay_blockers = blockers_payload.get("replay")
             if not isinstance(replay_blockers, dict):
@@ -727,19 +768,48 @@ def run_self_test() -> int:
         )
         cases.append(("manifest_drift", run_check(manifest_drift_root) != 0))
 
-        manifest_lane_split_drift_root = build_case_root(tmp_root / "manifest_lane_split_drift")
-        payload = json.loads(make_manifest_json())
-        payload["lane_sequencing"]["shared_replay_parked_helpers"] = payload["lane_sequencing"]["shared_replay_parked_helpers"][1:]
+        manifest_lane_manifest_drift_root = build_case_root(
+            tmp_root / "manifest_lane_manifest_drift"
+        )
+        payload = json.loads(make_blockers_json())
+        payload["lane_sequencing"]["manifest"] = "zigux/tests/fixtures/phase1_helpers.json"
+        write_file(
+            manifest_lane_manifest_drift_root / BLOCKERS_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            (
+                "blockers_lane_manifest_drift",
+                run_check(manifest_lane_manifest_drift_root) != 0,
+            )
+        )
+
+        manifest_lane_split_drift_root = build_case_root(
+            tmp_root / "manifest_lane_split_drift"
+        )
+        payload = json.loads(make_blockers_json())
+        payload["lane_sequencing"]["shared_replay_parked_helpers"] = payload[
+            "lane_sequencing"
+        ]["shared_replay_parked_helpers"][1:]
+        payload["lane_sequencing"]["shared_replay_parked_helper_count"] = len(
+            payload["lane_sequencing"]["shared_replay_parked_helpers"]
+        )
         payload["lane_sequencing"]["direct_anchor_followup_helpers"] = [
             EXPECTED_SHARED_REPLAY_PARKED_HELPERS[0],
             *payload["lane_sequencing"]["direct_anchor_followup_helpers"],
         ]
+        payload["lane_sequencing"]["direct_anchor_followup_helper_count"] = len(
+            payload["lane_sequencing"]["direct_anchor_followup_helpers"]
+        )
         write_file(
-            manifest_lane_split_drift_root / MANIFEST_REL,
+            manifest_lane_split_drift_root / BLOCKERS_REL,
             json.dumps(payload, indent=2) + "\n",
         )
         cases.append(
-            ("manifest_lane_split_drift", run_check(manifest_lane_split_drift_root) != 0)
+            (
+                "blockers_lane_split_drift",
+                run_check(manifest_lane_split_drift_root) != 0,
+            )
         )
 
         manifest_lane_rule_drift_root = build_case_root(tmp_root / "manifest_lane_rule_drift")
