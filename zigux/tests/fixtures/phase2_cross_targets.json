@@ -1,0 +1,15 @@
+{
+  "phase": "Phase 2",
+  "lane": 21,
+  "status": "starter",
+  "target_count": 3,
+  "targets": [
+    "x86_64-linux-musl",
+    "aarch64-linux-musl",
+    "riscv64-linux-musl"
+  ],
+  "zig_test_files": [
+    "scripts/zigux/kconfig/conf_bridge.zig",
+    "scripts/zigux/kconfig/confdata_bridge.zig"
+  ]
+}
