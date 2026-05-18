@@ -243,6 +243,36 @@ test "phase11 gpio_wdt drvdata ownership checkpoint keeps pre-registration owner
     try std.testing.expect(level_drvdata.blocked_on_platform_registration);
 }
 
+test "phase11 gpio_wdt registration-intent checkpoint keeps watchdog-core setup order explicit" {
+    var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
+    const prestarted_intent = prestarted_watchdog.registrationIntentCheckpointSummary(true);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.toggle, prestarted_intent.hw_algo);
+    try std.testing.expect(prestarted_intent.always_running);
+    try std.testing.expect(prestarted_intent.timeout_init_requested);
+    try std.testing.expect(prestarted_intent.nowayout_from_module_param);
+    try std.testing.expect(prestarted_intent.stop_on_reboot_requested);
+    try std.testing.expect(prestarted_intent.pre_registration_start_requested);
+    try std.testing.expect(prestarted_intent.timeout_init_stays_before_nowayout);
+    try std.testing.expect(prestarted_intent.nowayout_stays_before_stop_on_reboot);
+    try std.testing.expect(prestarted_intent.stop_on_reboot_stays_before_pre_registration_start);
+    try std.testing.expect(prestarted_intent.pre_registration_start_stays_before_registration);
+    try std.testing.expect(prestarted_intent.blocked_on_platform_registration);
+
+    var dormant_watchdog = try gpio_wdt.GpioWatchdogLab.init(.level, 500, false);
+    const dormant_intent = dormant_watchdog.registrationIntentCheckpointSummary(false);
+    try std.testing.expectEqual(gpio_wdt.HardwareAlgorithm.level, dormant_intent.hw_algo);
+    try std.testing.expect(!dormant_intent.always_running);
+    try std.testing.expect(dormant_intent.timeout_init_requested);
+    try std.testing.expect(!dormant_intent.nowayout_from_module_param);
+    try std.testing.expect(dormant_intent.stop_on_reboot_requested);
+    try std.testing.expect(!dormant_intent.pre_registration_start_requested);
+    try std.testing.expect(dormant_intent.timeout_init_stays_before_nowayout);
+    try std.testing.expect(dormant_intent.nowayout_stays_before_stop_on_reboot);
+    try std.testing.expect(dormant_intent.stop_on_reboot_stays_before_pre_registration_start);
+    try std.testing.expect(dormant_intent.pre_registration_start_stays_before_registration);
+    try std.testing.expect(dormant_intent.blocked_on_platform_registration);
+}
+
 test "phase11 gpio_wdt registration handoff summary records startup state, stop policy, and watchdog metadata" {
     var prestarted_watchdog = try gpio_wdt.GpioWatchdogLab.init(.toggle, 20, true);
     const prestarted_handoff = prestarted_watchdog.registrationHandoffSummary(true);
