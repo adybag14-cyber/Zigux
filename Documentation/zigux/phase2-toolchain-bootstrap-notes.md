@@ -16,6 +16,7 @@ It stays branch-scoped: live `master` still lacks parts of the broader toolchain
 - `PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`
 - `PHASE2_SHARED_VALIDATOR=scripts/zigux/validate-phase2.py`
 - `PHASE2_SHARED_MAKEFILE=zigux/Makefile`
+- `PHASE2_TOOLCHAIN_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/install-zig.py`
 
 ## Present Current Branch Packet
 
@@ -42,14 +43,15 @@ It stays branch-scoped: live `master` still lacks parts of the broader toolchain
 
 - repeated authenticated current-branch reads still returned missing for:
   - `scripts/zigux/install-zig.py`
+- current `master` already directly serves `scripts/zigux/install-zig.py`, so keep it in the master-present branch-missing bucket instead of treating it as a toolchain gap on both sides
 - `scripts/zigux/check-phase2-toolchain-pin-scope.py` is now present on this lane branch as well as current `master`, so the remaining branch-side toolchain gap is the installer-backed helper rather than the direct pin-scope guard
-- treat the installer-backed helper as the remaining current-master toolchain gap until that file is re-materialized on this branch too
+- treat the installer-backed helper as the remaining current master-present branch-missing toolchain gap until that file is re-materialized on this branch too
 
 ## Review Notes
 
 - `scripts/zigux/check-phase2-toolchain-pinning.py` remains the surviving direct toolchain guard on the branch; keep this note aligned with that checker while the dedicated pin-scope helper now travels with the same branch-local packet
-- `scripts/zigux/check-zig-toolchain.py` is now directly readable on current `master`; keep this note aligned with that shared Zig-version guard while `scripts/zigux/install-zig.py` remains the missing installer-backed companion
-- `.github/workflows/zigux-bootstrap.yml` now runs `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, so keep this branch-local toolchain note aligned with the shipped pinned-channel and pinned-archive integrity probes while the installer-backed helper remains the missing companion
+- `scripts/zigux/check-zig-toolchain.py` is now directly readable on current `master`; keep this note aligned with that shared Zig-version guard while `scripts/zigux/install-zig.py` remains the master-present branch-missing installer-backed companion
+- `.github/workflows/zigux-bootstrap.yml` now runs `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, so keep this branch-local toolchain note aligned with the shipped pinned-channel and pinned-archive integrity probes while the installer-backed helper remains the missing companion on this branch
 - `scripts/zigux/check-phase2-toolchain-pin-scope.py` is now directly readable on the lane branch too, so keep this note explicit that the helper is part of the current branch-local toolchain evidence rather than a pending replay gap
 - `scripts/zigux/check-phase2-tool-manifest-packets.py` keeps the branch-local manifest packet aligned with this note, the closure note, and the shared validators without implying that the installer-backed helper is already back on this branch
 - `scripts/zigux/validate-phase2.py` and `zigux/Makefile` are now part of the branch-local shared toolchain packet, so this note should stop treating them as still-missing closure-side work
