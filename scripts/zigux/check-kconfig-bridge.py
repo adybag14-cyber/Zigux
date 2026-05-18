@@ -28,7 +28,7 @@ REQUIRED_CONF_HELPER_ANCHORS = [
     'conf bridge emits explicit empty allconfig override for allmodconfig',
     'conf bridge emits randconfig tunables when present',
     'conf bridge emits explicit randconfig allconfig override when present',
-    'conf bridge omits randconfig allconfig sentinel without explicit override',
+    'conf bridge emits randconfig allconfig sentinel without explicit override',
     'conf bridge emits yes2modconfig argv and env',
     'conf bridge emits defconfig mode argument before kconfig',
     'conf bridge emits savedefconfig mode argument before kconfig',
@@ -216,6 +216,9 @@ def collect_conf_manifest_issues(
         str(case["expected"]) for case in conf_cases if str(case["mode"]) in ALLCONFIG_SENTINEL_MODES
     ]
     expected_allconfig_override_packet = [str(case["expected"]) for case in conf_cases if "allconfig" in case]
+    expected_randconfig_env_packet = [
+        str(case["expected"]) for case in conf_cases if "seed" in case or "probability" in case
+    ]
 
     exact_fields = {
         "tool": "scripts/zigux/kconfig/conf_bridge.zig",
@@ -240,6 +243,7 @@ def collect_conf_manifest_issues(
         "syncconfig_env_packet": expected_syncconfig_env_packet,
         "allconfig_sentinel_packet": expected_allconfig_sentinel_packet,
         "allconfig_override_packet": expected_allconfig_override_packet,
+        "randconfig_env_packet": expected_randconfig_env_packet,
     }
     for field_name, expected_values in sequence_fields.items():
         actual_values = manifest.get(field_name)
@@ -467,7 +471,7 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "oldconfig", "mode": "oldconfig", "kconfig": "Kconfig", "config": "refresh/.config", "arch": "x86", "expected": "oldconfig_expected.json"},
                     {"name": "allnoconfig", "mode": "allnoconfig", "kconfig": "Kconfig", "config": "none/.config", "arch": "arm64", "expected": "allnoconfig_expected.json"},
                     {"name": "allyesconfig", "mode": "allyesconfig", "kconfig": "Kconfig", "config": "yes/.config", "arch": "arm64", "expected": "allyesconfig_expected.json"},
-                    {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "expected": "allmodconfig_expected.json"},
+                    {"name": "allmodconfig", "mode": "allmodconfig", "kconfig": "Kconfig", "config": "mod/.config", "arch": "arm", "allconfig": "", "expected": "allmodconfig_expected.json"},
                     {"name": "alldefconfig", "mode": "alldefconfig", "kconfig": "Kconfig", "config": "build/.config", "arch": "arm64", "expected": "alldefconfig_expected.json"},
                     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "allrandom.config", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
@@ -546,6 +550,10 @@ def build_self_test_root(root: Path) -> None:
                     "alldefconfig_expected.json",
                 ],
                 "allconfig_override_packet": [
+                    "allmodconfig_expected.json",
+                    "randconfig_expected.json",
+                ],
+                "randconfig_env_packet": [
                     "randconfig_expected.json",
                 ],
             },
@@ -782,7 +790,6 @@ def run_self_test() -> int:
         assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_ACTUAL" for issue in issues)
         assert any(issue[0] == "CONF_SOURCE_HELPER_LOCAL_ANCHORS_EXPECTED" for issue in issues)
         checks_run += 1
-
 
         build_self_test_root(root)
         source = conf_bridge_path.read_text(encoding="utf-8")
