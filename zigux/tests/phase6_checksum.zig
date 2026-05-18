@@ -155,6 +155,25 @@ test "phase 6 checksum carry helpers preserve one's-complement replacement behav
     try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
 }
 
+test "phase 6 checksum negate stays involutive across representative carry edges" {
+    const cases = [_]struct {
+        sum: u32,
+        expected: u32,
+    }{
+        .{ .sum = 0x0000_0000, .expected = 0x0000_0000 },
+        .{ .sum = 0x0000_0001, .expected = 0xffff_ffff },
+        .{ .sum = 0x0001_0000, .expected = 0xffff_0000 },
+        .{ .sum = 0x1234_5678, .expected = 0xedcb_a988 },
+        .{ .sum = 0xffff_ffff, .expected = 0x0000_0001 },
+        .{ .sum = 0xdead_bef0, .expected = 0x2152_4110 },
+    };
+
+    for (cases) |case| {
+        try std.testing.expectEqual(case.expected, checksum.negate(case.sum));
+        try std.testing.expectEqual(case.sum, checksum.negate(checksum.negate(case.sum)));
+    }
+}
+
 test "phase 6 checksum incremental helpers preserve odd-offset carry discipline" {
     const seed = 0x1357_9bdf;
     const fragment = 0x2468_ace0;
