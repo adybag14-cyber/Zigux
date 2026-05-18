@@ -16,6 +16,7 @@ REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
+INSTALLER_PATH = "scripts/zigux/install-zig.py"
 
 EXPECTED_DOC_MARKERS = (
     "`PHASE2_STATUS=lane24-branch-restacked`",
@@ -27,6 +28,7 @@ EXPECTED_DOC_MARKERS = (
     "`PHASE2_TOOLCHAIN_BOOTSTRAP_NOTES=Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`PHASE2_SHARED_VALIDATOR=scripts/zigux/validate-phase2.py`",
     "`PHASE2_SHARED_MAKEFILE=zigux/Makefile`",
+    "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
@@ -36,7 +38,7 @@ EXPECTED_DOC_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/install-zig.py`",
-    "is now replayed on this lane branch as well as current `master`",
+    "current `master` already directly serves `scripts/zigux/install-zig.py`",
     "`PHASE2_NEXT_STEP=restore one remaining broader checker or installer-backed helper packet at a time now that the closure note, bootstrap companion, shared validator, dedicated kconfig README checker, dedicated toolchain pin-scope guard, manifest checker, and Linux-style Makefile routes are replayed together on the lane branch`",
 )
 
@@ -51,12 +53,13 @@ EXPECTED_BOOTSTRAP_NOTES_MARKERS = (
     "`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`PHASE2_SHARED_VALIDATOR=scripts/zigux/validate-phase2.py`",
     "`PHASE2_SHARED_MAKEFILE=zigux/Makefile`",
+    "`PHASE2_TOOLCHAIN_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "is now directly readable on the lane branch too",
+    "current `master` already directly serves `scripts/zigux/install-zig.py`",
     "`PHASE2_TOOLCHAIN_NEXT_STEP=restore the remaining installer-backed helper now that the shared validator, direct Zig-version guard, dedicated pin-scope helper, and Linux-style Makefile routes are back on the lane branch`",
 )
 
@@ -85,7 +88,7 @@ EXPECTED_MISSING_FILES = [
     "scripts/zigux/install-zig.py",
 ]
 
-EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
+EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = [INSTALLER_PATH]
 
 EXPECTED_DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
@@ -102,7 +105,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 35
+EXPECTED_SELF_TEST_CASE_COUNT = 36
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -237,6 +240,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for relpath in master_present_branch_missing_files:
         if resolve_manifest_relpath(root, relpath).exists():
             issues.append(("MASTER_BRANCH_MISSING_FILE_PRESENT_IN_TREE", relpath))
+        if relpath not in missing_set:
+            issues.append(("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", relpath))
 
     return issues
 
@@ -372,12 +377,12 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(missing_files=["scripts/zigux/check-phase2-cross.py", 7]))
+        write_text(root, MANIFEST, manifest_json(missing_files=[INSTALLER_PATH, 7]))
         assert ("INVALID_MANIFEST_FIELD", "missing_files") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=["scripts/zigux/install-zig.py", 7]))
+        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[INSTALLER_PATH, 7]))
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in collect_issues(root)
         checks_run += 1
 
@@ -388,7 +393,14 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(missing_files=EXPECTED_MISSING_FILES[:-1]))
-        assert ("INVALID_MANIFEST_FIELD", "missing_files") in collect_issues(root)
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "missing_files") in issues
+        assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", INSTALLER_PATH) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[]))
+        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -407,15 +419,9 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_placeholder(root, EXPECTED_MISSING_FILES[-1])
-        write_text(
-            root,
-            MANIFEST,
-            manifest_json(master_present_branch_missing_files=[EXPECTED_MISSING_FILES[-1]]),
-        )
+        write_placeholder(root, INSTALLER_PATH)
         issues = collect_issues(root)
-        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
-        assert ("MASTER_BRANCH_MISSING_FILE_PRESENT_IN_TREE", EXPECTED_MISSING_FILES[-1]) in issues
+        assert ("MASTER_BRANCH_MISSING_FILE_PRESENT_IN_TREE", INSTALLER_PATH) in issues
         checks_run += 1
 
         build_self_test_root(root)
