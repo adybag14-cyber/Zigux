@@ -52,7 +52,6 @@ README_MARKERS = (
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
-    "scripts/zigux/validate-phase3.py",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
 )
 
@@ -122,12 +121,11 @@ VALIDATOR_SUPPORT_MARKERS = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
-    "scripts/zigux/validate-phase3.py",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
-    "Current `master` does still ship the shared ABI validator entrypoint through `scripts/zigux/validate-phase3.py`, so treat that validator as separately readable support for the shared ABI binding surface rather than as an absent broader route.",
-    "`zigux/tests/README.md` still needs one narrow truthfulness pass to stop framing `scripts/zigux/validate-phase3.py` as absent while keeping the broader export/UAPI survey and catalog routes parked as repo-reality gaps.",
-    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct tracker for the remaining tests-root validator-presence follow-through while keeping scripts-root inventory follow-through separate.",
+    "Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py`, but that single entrypoint should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.",
+    "`zigux/tests/README.md` now aligns with that bounded starter, notifier-binding, focused export/UAPI layout replay, and low-level-wrapper reminder packet, so shared-summary follow-through can stay separate from this validator-support note unless a fresh reread finds new same-packet drift on current `master`.",
+    "`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root shared reminder packet while keeping scripts-root inventory follow-through separate.",
     "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
 )
 
@@ -257,7 +255,6 @@ def _populate_repo(root: Path) -> None:
     _write(root / SCRIPTS_README_PATH, "\n".join(SCRIPTS_README_MARKERS) + "\n")
     _write(root / SELFTEST_DRIVER_PATH, "\n".join(SELFTEST_DRIVER_MARKERS) + "\n")
 
-
 def _expect_issue(issues: list[str], expected: str) -> bool:
     return expected in issues
 
@@ -305,20 +302,19 @@ def run_self_test() -> int:
         (VALIDATOR_SUPPORT_PATH, "scripts/zigux/validate-phase3-export-uapi-survey.py", "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, "zigux/tests/phase3_export_uapi_layout.zig", "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, "zigux/tests/phase3_export_uapi_layout_build.zig", "validator-support note"),
-        (VALIDATOR_SUPPORT_PATH, "scripts/zigux/validate-phase3.py", "validator-support note"),
         (
             VALIDATOR_SUPPORT_PATH,
-            "Current `master` does still ship the shared ABI validator entrypoint through `scripts/zigux/validate-phase3.py`, so treat that validator as separately readable support for the shared ABI binding surface rather than as an absent broader route.",
+            "Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py`, but that single entrypoint should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.",
             "validator-support note",
         ),
         (
             VALIDATOR_SUPPORT_PATH,
-            "`zigux/tests/README.md` still needs one narrow truthfulness pass to stop framing `scripts/zigux/validate-phase3.py` as absent while keeping the broader export/UAPI survey and catalog routes parked as repo-reality gaps.",
+            "`zigux/tests/README.md` now aligns with that bounded starter, notifier-binding, focused export/UAPI layout replay, and low-level-wrapper reminder packet, so shared-summary follow-through can stay separate from this validator-support note unless a fresh reread finds new same-packet drift on current `master`.",
             "validator-support note",
         ),
         (
             VALIDATOR_SUPPORT_PATH,
-            "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct tracker for the remaining tests-root validator-presence follow-through while keeping scripts-root inventory follow-through separate.",
+            "`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root shared reminder packet while keeping scripts-root inventory follow-through separate.",
             "validator-support note",
         ),
         (VALIDATOR_SUPPORT_PATH, "scripts/zigux/validate-phase3-validator-support-surface.py", "validator-support note"),
