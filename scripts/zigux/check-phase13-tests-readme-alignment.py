@@ -11,7 +11,7 @@ TESTS_README = Path("zigux/tests/README.md")
 PHASE13_HEADING = "Phase 13 review packet"
 PHASE13_SECTION_END = "Tests-root reviewer prompt:"
 
-REQUIRED_BULLET_MARKERS = (
+REQUIRED_SHIPPED_MARKERS = (
     "`Documentation/zigux/phase13-contributor-workflow-guide.md`",
     "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
     "`Documentation/zigux/phase13-release-coordination-matrix.md`",
@@ -47,10 +47,13 @@ REQUIRED_BULLET_MARKERS = (
     "`zigux/tests/phase13_landlock_syscalls_manifest.json`",
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`",
-    "`zigux/helpers/notifier_chain_view.zig`",
     "`zigux/bindings/notifier_abi.zig`",
     "`include/zigux/abi.h`",
     "`drivers/tty/hvc/hvc_console.h`",
+)
+
+REQUIRED_GAP_MARKERS = (
+    "`zigux/helpers/notifier_chain_view.zig`",
 )
 
 REQUIRED_TEXT = (
@@ -63,6 +66,7 @@ REQUIRED_TEXT = (
 )
 
 FORBIDDEN_SHIPPED_LINES = (
+    "- `zigux/helpers/notifier_chain_view.zig`",
     "- `make -C zigux phase13-validate`",
     "- `make -C zigux phase13`",
 )
@@ -74,6 +78,10 @@ FORBIDDEN_TEXT = (
     "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
     "Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
     "Current `master` also materializes the devres helper packet through `lib/devres.zig`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `zigux/tests/phase13_devres_manifest.json`, so broader contributor wording should keep that direct boundary-evidence replay explicit beside the shared devres packet instead of treating it as a missing companion.",
+)
+
+GAP_MARKER_SENTENCE = (
+    "Keep `zigux/helpers/notifier_chain_view.zig` framed as an adjacent repo-reality gap rather than a shipped shared surface."
 )
 
 
@@ -99,7 +107,11 @@ def extract_phase13_shipped_section(text: str) -> str:
 
 
 def collect_missing_markers(text: str) -> list[str]:
-    return [marker for marker in REQUIRED_BULLET_MARKERS if marker not in text]
+    return [marker for marker in REQUIRED_SHIPPED_MARKERS if marker not in text]
+
+
+def collect_missing_gap_markers(text: str) -> list[str]:
+    return [marker for marker in REQUIRED_GAP_MARKERS if marker not in text]
 
 
 def collect_missing_text(text: str) -> list[str]:
@@ -107,8 +119,8 @@ def collect_missing_text(text: str) -> list[str]:
 
 
 def collect_forbidden_shipped_markers(text: str) -> list[str]:
-    section = extract_phase13_shipped_section(text)
-    return [line for line in FORBIDDEN_SHIPPED_LINES if line in section]
+    shipped_section = extract_phase13_shipped_section(text)
+    return [line for line in FORBIDDEN_SHIPPED_LINES if line in shipped_section]
 
 
 def collect_forbidden_text(text: str) -> list[str]:
@@ -120,6 +132,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for marker in collect_missing_markers(tests_readme_text):
         issues.append(("MISSING_MARKER", marker))
+    for marker in collect_missing_gap_markers(tests_readme_text):
+        issues.append(("MISSING_GAP_MARKER", marker))
     for fragment in collect_missing_text(tests_readme_text):
         issues.append(("MISSING_TEXT", fragment))
     for marker in collect_forbidden_shipped_markers(tests_readme_text):
@@ -153,9 +167,11 @@ def build_self_test_root(root: Path) -> None:
         "",
         "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:",
     ]
-    section_lines.extend(f"- {marker}" for marker in REQUIRED_BULLET_MARKERS)
+    section_lines.extend(f"- {marker}" for marker in REQUIRED_SHIPPED_MARKERS)
     section_lines.append("")
     section_lines.extend(REQUIRED_TEXT[1:])
+    section_lines.append("")
+    section_lines.append(GAP_MARKER_SENTENCE)
     section_lines.append("")
     section_lines.append(PHASE13_SECTION_END)
     write_text(resolve_path(root, TESTS_README), "\n".join(section_lines) + "\n")
@@ -178,26 +194,17 @@ def run_self_test() -> int:
 
         path = resolve_path(root, TESTS_README)
         path.write_text(
-            replace_once(
-                path.read_text(encoding="utf-8"),
-                "`zigux/helpers/notifier_chain_view.zig`",
-            ),
+            replace_once(path.read_text(encoding="utf-8"), "`zigux/helpers/notifier_chain_view.zig`"),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert (
-            "MISSING_MARKER",
-            "`zigux/helpers/notifier_chain_view.zig`",
-        ) in issues
+        assert ("MISSING_GAP_MARKER", "`zigux/helpers/notifier_chain_view.zig`") in issues
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TESTS_README)
         path.write_text(
-            replace_once(
-                path.read_text(encoding="utf-8"),
-                REQUIRED_TEXT[1],
-            ),
+            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[1]),
             encoding="utf-8",
         )
         issues = collect_issues(root)
@@ -207,10 +214,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, TESTS_README)
         path.write_text(
-            replace_once(
-                path.read_text(encoding="utf-8"),
-                REQUIRED_TEXT[-1],
-            ),
+            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[-1]),
             encoding="utf-8",
         )
         issues = collect_issues(root)
@@ -220,10 +224,7 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, TESTS_README)
         path.write_text(
-            replace_once(
-                path.read_text(encoding="utf-8"),
-                REQUIRED_TEXT[0],
-            ),
+            replace_once(path.read_text(encoding="utf-8"), REQUIRED_TEXT[0]),
             encoding="utf-8",
         )
         issues = collect_issues(root)
@@ -235,27 +236,23 @@ def run_self_test() -> int:
         path.write_text(
             path.read_text(encoding="utf-8").replace(
                 "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n",
-                "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n- `make -C zigux phase13-validate`\n",
+                "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:\n- `zigux/helpers/notifier_chain_view.zig`\n",
                 1,
             ),
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert ("FORBIDDEN_SHIPPED_MARKER", "- `make -C zigux phase13-validate`") in issues
+        assert ("FORBIDDEN_SHIPPED_MARKER", "- `zigux/helpers/notifier_chain_view.zig`") in issues
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TESTS_README)
         path.write_text(
-            path.read_text(encoding="utf-8")
-            + "\nCurrent `master` also materializes the devres helper packet through `lib/devres.zig`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `zigux/tests/phase13_devres_manifest.json`, so broader contributor wording should keep that direct boundary-evidence replay explicit beside the shared devres packet instead of treating it as a missing companion.\n",
+            path.read_text(encoding="utf-8") + "\n" + FORBIDDEN_TEXT[-1] + "\n",
             encoding="utf-8",
         )
         issues = collect_issues(root)
-        assert (
-            "FORBIDDEN_TEXT",
-            "Current `master` also materializes the devres helper packet through `lib/devres.zig`, `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, and `zigux/tests/phase13_devres_manifest.json`, so broader contributor wording should keep that direct boundary-evidence replay explicit beside the shared devres packet instead of treating it as a missing companion.",
-        ) in issues
+        assert ("FORBIDDEN_TEXT", FORBIDDEN_TEXT[-1]) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -287,7 +284,7 @@ def main() -> int:
     if issues:
         return emit_issues(issues)
     print("PHASE13_TESTS_README_ALIGNMENT=pass")
-    print(f"PHASE13_TESTS_README_ALIGNMENT_MARKER_COUNT={len(REQUIRED_BULLET_MARKERS)}")
+    print(f"PHASE13_TESTS_README_ALIGNMENT_MARKER_COUNT={len(REQUIRED_SHIPPED_MARKERS)}")
     return 0
 
 
