@@ -10,7 +10,7 @@ The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surface
 - `PHASE13_SHARED_SUMMARY_GUARD=shipped`
 - stable guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - companion handoff check: `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`
-- blocked route family remains outside the shared handle: `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13`
+- blocked route family remains outside the shared handle: current `master` rematerializes `zigux/Makefile`, but `make -C zigux phase13-validate` and `make -C zigux phase13` still remain repo-reality-gap route names
 
 ## What Closed
 
@@ -30,9 +30,10 @@ The remaining follow-up is broader README and tests-root packet refresh work, no
 
 Fresh authenticated file checks in this run keep that follow-up narrower than the older reminder packet. `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` now materialize on current `master`, so they should stay recorded as returned adjacent notifier evidence rather than as repo-reality gaps.
 
+Fresh authenticated file checks in this run also resolve `zigux/Makefile`, so keep the file itself explicit as returned build-surface evidence while leaving only `make -C zigux phase13-validate` and `make -C zigux phase13` in the remaining repo-reality-gap route list.
+
 Keep these paths recorded as repo-reality gaps until current `master` rematerializes them:
 
-- `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `scripts/zigux/validate-phase13-release.py`
@@ -50,7 +51,7 @@ Keep these paths recorded as repo-reality gaps until current `master` rematerial
 1. Run `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.
 2. Run `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`.
 3. Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned adjacent notifier evidence without turning them into part of the stable shared replay handle.
-4. Keep the Makefile-backed route family and the still-missing notifier and build companions recorded as repo-reality gaps rather than promoting them into shipped contributor workflow evidence.
+4. Keep `zigux/Makefile` explicit as a returned file, but keep `make -C zigux phase13-validate`, `make -C zigux phase13`, and the still-missing notifier and build companions recorded as repo-reality gaps rather than promoting them into shipped contributor workflow evidence.
 5. Treat broader docs-root, scripts-root, and tests-root refresh as a separate same-lane follow-up step.
 
 ## Boundaries
