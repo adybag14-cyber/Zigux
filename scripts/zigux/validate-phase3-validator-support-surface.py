@@ -54,15 +54,15 @@ REQUIRED_MARKERS = (
     "scripts/zigux/phase3_catalog.py",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
-    "zigux/tests/phase3_low_level_wrappers.zig",
-    "zigux/tests/phase3_low_level_wrappers_build.zig",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
+    "Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, but that separate wrapper reminder should not be used here to imply that the broader validator-support or export/UAPI replay packet has returned.",
     "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now all reflect that bounded three-slice posture",
     "`Documentation/zigux/phase3-shared-reminder-gap.md` now records that the earlier shared-reminder sentence drift is closed on current `master`.",
     "`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.",
     "Keep any remaining follow-up focused on separate scripts-root inventory drift if that broader surface changes again.",
     "This note is limited to the current validator-support posture for Phase 3.",
+    "records the separately landed low-level-wrapper packet without promoting it into broader validator support",
 )
 
 SELF_TEST_CASES = (
@@ -107,16 +107,8 @@ SELF_TEST_CASES = (
         "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     ),
     (
-        "zigux/tests/phase3_low_level_wrappers.zig",
-        "zigux/tests/phase3_low_level_wrappers.zig",
-    ),
-    (
-        "zigux/tests/phase3_low_level_wrappers_build.zig",
-        "zigux/tests/phase3_low_level_wrappers_build.zig",
-    ),
-    (
-        "scripts/zigux/validate-phase3.py",
-        "scripts/zigux/validate-phase3.py",
+        "Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, but that separate wrapper reminder should not be used here to imply that the broader validator-support or export/UAPI replay packet has returned.",
+        "Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, but that separate wrapper reminder should not be used here to imply that the broader validator-support or export/UAPI replay packet has returned.",
     ),
     (
         "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now all reflect that bounded three-slice posture",
@@ -133,6 +125,10 @@ SELF_TEST_CASES = (
     (
         "Keep any remaining follow-up focused on separate scripts-root inventory drift if that broader surface changes again.",
         "Keep any remaining follow-up focused on separate scripts-root inventory drift if that broader surface changes again.",
+    ),
+    (
+        "records the separately landed low-level-wrapper packet without promoting it into broader validator support",
+        "records the separately landed low-level-wrapper packet without promoting it into broader validator support",
     ),
 )
 EXPECTED_SELF_TEST_CASE_COUNT = len(SELF_TEST_CASES) + 1
