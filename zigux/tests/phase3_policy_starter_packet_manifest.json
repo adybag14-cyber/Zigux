@@ -9,6 +9,7 @@
     "Documentation/zigux/phase3-validator-support-surface.md",
     "include/zigux/abi.h",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/notifier_abi.zig",
     "zigux/helpers/panic_policy.zig",
     "zigux/helpers/allocator_policy.zig",
     "zigux/helpers/unsafe_policy.zig",
