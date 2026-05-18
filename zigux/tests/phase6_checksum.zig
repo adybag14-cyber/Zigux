@@ -246,12 +246,20 @@ test "phase 6 checksum pseudo-header helpers match direct accumulation" {
         referencePseudoHeaderV4(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17),
         checksum.tcpUdpNofold(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17),
     );
+    try std.testing.expectEqual(
+        referenceFold(referencePseudoHeaderV4(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17)),
+        checksum.tcpUdpMagic(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17),
+    );
 
     const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
     const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
     try std.testing.expectEqual(
         referencePseudoHeaderV6(payload_seed, &v6_saddr, &v6_daddr, 0x0001_2345, 58),
         checksum.tcpUdpV6Nofold(payload_seed, &v6_saddr, &v6_daddr, 0x0001_2345, 58),
+    );
+    try std.testing.expectEqual(
+        referenceFold(referencePseudoHeaderV6(payload_seed, &v6_saddr, &v6_daddr, 0x0001_2345, 58)),
+        checksum.tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, 0x0001_2345, 58),
     );
 }
 
