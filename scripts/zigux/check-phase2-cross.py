@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import shutil
 import subprocess
@@ -104,22 +106,32 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def build_self_test_root(root: Path) -> None:
+def write_fixture(root: Path, payload: object) -> None:
     write_text(
         root / "zigux/tests/fixtures/phase2_cross_targets.json",
-        json.dumps(
-            {
-                "phase": "Phase 2",
-                "status": EXPECTED_STATUS,
-                "target_count": len(EXPECTED_TARGETS),
-                "targets": EXPECTED_TARGETS,
-                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
-            },
-            indent=2,
-        )
-        + "\n",
+        json.dumps(payload, indent=2) + "\n",
+    )
+
+
+def build_self_test_root(root: Path) -> None:
+    write_fixture(
+        root,
+        {
+            "phase": "Phase 2",
+            "status": EXPECTED_STATUS,
+            "target_count": len(EXPECTED_TARGETS),
+            "targets": EXPECTED_TARGETS,
+            "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+        },
     )
     write_text(root / "scripts/zigux/fixdep.zig", 'test "stub" {}\n')
+
+
+def capture_cross_compile(root: Path, target: str, zig: str) -> tuple[int, str]:
+    stdout = io.StringIO()
+    with contextlib.redirect_stdout(stdout):
+        result = run_cross_compile(root, target, zig)
+    return result, stdout.getvalue()
 
 
 def run_self_test() -> int:
@@ -132,19 +144,15 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 2",
-                    "status": EXPECTED_STATUS,
-                    "target_count": 2,
-                    "targets": EXPECTED_TARGETS[:-1],
-                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
-                },
-                indent=2,
-            )
-            + "\n",
-            encoding="utf-8",
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": 2,
+                "targets": EXPECTED_TARGETS[:-1],
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+            },
         )
         issues = validate_fixture(root)
         assert any(issue.startswith("fixture:targets:") for issue in issues)
@@ -152,23 +160,89 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").writeText if False else None
-        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text(
-            json.dumps(
-                {
-                    "phase": "Phase 2",
-                    "status": "open",
-                    "target_count": len(EXPECTED_TARGETS),
-                    "targets": EXPECTED_TARGETS,
-                    "zig_test_files": EXPECTED_ZIG_TEST_FILES,
-                },
-                indent=2,
-            )
-            + "\n",
-            encoding="utf-8",
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": "open",
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+            },
         )
         issues = validate_fixture(root)
         assert "fixture:status:'open'" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase X",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:phase:'Phase X'" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": ["scripts/zigux/other.zig"],
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:zig_test_files:['scripts/zigux/other.zig']" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "zigux/tests/fixtures/phase2_cross_targets.json").write_text("{\n", encoding="utf-8")
+        try:
+            validate_fixture(root)
+        except json.JSONDecodeError:
+            case_count += 1
+        else:
+            raise AssertionError("invalid JSON did not raise JSONDecodeError")
+
+        build_self_test_root(root)
+        write_fixture(root, ["not", "an", "object"])
+        try:
+            validate_fixture(root)
+        except ValueError as exc:
+            assert str(exc) == "fixture must be a JSON object"
+            case_count += 1
+        else:
+            raise AssertionError("non-object fixture did not raise ValueError")
+
+        build_self_test_root(root)
+        result, output = capture_cross_compile(root, "powerpc-linux-musl", "/bin/true")
+        assert result == 1
+        assert "PHASE2_CROSS_NOTE=target not listed in fixture" in output
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": [123],
+            },
+        )
+        result, output = capture_cross_compile(root, EXPECTED_TARGETS[0], "/bin/true")
+        assert result == 1
+        assert "PHASE2_CROSS_NOTE=fixture zig_test_files is invalid" in output
         case_count += 1
 
         build_self_test_root(root)
