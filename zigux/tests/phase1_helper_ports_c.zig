@@ -125,3 +125,55 @@ test "lane10 helper ports match committed parity fixture" {
     try std.testing.expectEqual(fixture.vsprintf.pad_len, padded_len);
     try std.testing.expectEqualStrings(fixture.vsprintf.pad_text, padded_buffer[0..8]);
 }
+
+test "lane10 helper ports keep current edge contracts" {
+    var parsed = try loadFixture(std.testing.allocator);
+    defer parsed.deinit();
+    const fixture = parsed.value;
+
+    const allocator = std.testing.allocator;
+
+    slab.kmalloc_nr_allocated = 0;
+    slab.kfree(null);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    var empty_error_buffer: [0]u8 = .{};
+    try std.testing.expectEqual(@as(usize, 0), str_error_r.strErrorR(2, &empty_error_buffer).len);
+
+    var single_error_buffer: [1]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, 0), str_error_r.strErrorR(2, &single_error_buffer).len);
+    try std.testing.expectEqual(@as(u8, 0), single_error_buffer[0]);
+
+    var truncated_error_buffer: [8]u8 = undefined;
+    const truncated_error = str_error_r.strErrorR(4096, &truncated_error_buffer);
+    try std.testing.expectEqualStrings(fixture.str_error_r.unknown[0..truncated_error.len], truncated_error);
+    try std.testing.expectEqual(@as(u8, 0), truncated_error_buffer[truncated_error.len]);
+
+    var empty_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 0);
+    defer zalloc.zfreeBytes(allocator, &empty_bytes);
+    try std.testing.expectEqual(@as(usize, 0), empty_bytes.?.len);
+    zalloc.zfreeBytes(allocator, &empty_bytes);
+    try std.testing.expect(empty_bytes == null);
+    zalloc.zfreeBytes(allocator, &empty_bytes);
+    try std.testing.expect(empty_bytes == null);
+
+    const EmptyValue = struct {};
+    var empty_value: ?*EmptyValue = null;
+    zalloc.zfreeValue(allocator, EmptyValue, &empty_value);
+    try std.testing.expect(empty_value == null);
+
+    var single_vsnprintf_buffer: [1]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, 0), vsprintf.scnprintf(&single_vsnprintf_buffer, "{s}", .{"zigux"}));
+    try std.testing.expectEqual(@as(u8, 0), single_vsnprintf_buffer[0]);
+
+    var scnprintf_buffer: [7]u8 = undefined;
+    var vscnprintf_buffer: [7]u8 = undefined;
+    const scnprintf_written = vsprintf.scnprintf(&scnprintf_buffer, "{s}:{d}", .{ "zigux", 7 });
+    const vscnprintf_written = vsprintf.vscnprintf(&vscnprintf_buffer, "{s}:{d}", .{ "zigux", 7 });
+    try std.testing.expectEqual(scnprintf_written, vscnprintf_written);
+    try std.testing.expectEqualStrings(scnprintf_buffer[0..scnprintf_written], vscnprintf_buffer[0..vscnprintf_written]);
+
+    var zero_pad_buffer: [4]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, 0), vsprintf.scnprintfPad(&zero_pad_buffer, 0, "id={d}", .{7}));
+    try std.testing.expectEqual(@as(u8, 0), zero_pad_buffer[0]);
+}
