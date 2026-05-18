@@ -25,6 +25,9 @@ test "phase 7 rbtree survey keeps the direct anchor packet aligned with repo rea
     const string_helpers_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
     defer allocator.free(string_helpers_tests);
 
+    const argv_split_helper = try readRepoFile(allocator, "lib/argv_split.zig");
+    defer allocator.free(argv_split_helper);
+
     try std.testing.expectEqualStrings("P7-L13", active_lane_key);
 
     try expectContains(
@@ -52,7 +55,7 @@ test "phase 7 rbtree survey keeps the direct anchor packet aligned with repo rea
     );
     try expectContains(
         tests_readme,
-        "leave `string_helpers`, `cmdline`, and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond rbtree",
+        "leave `cmdline` and `argv_split` follow-through parked until a fresh same-lane reread justifies widening beyond the directly readable string_helpers packet and the surviving rbtree survey anchor",
     );
 
     try expectContains(
@@ -65,7 +68,7 @@ test "phase 7 rbtree survey keeps the direct anchor packet aligned with repo rea
     );
     try expectContains(
         direct_anchor_note,
-        "`string_helpers` stays the only directly readable helper implementation packet in this lane today",
+        "`string_helpers` stays the only directly readable full helper-local Phase 7 packet in this lane today",
     );
     try expectContains(
         direct_anchor_note,
@@ -73,8 +76,15 @@ test "phase 7 rbtree survey keeps the direct anchor packet aligned with repo rea
     );
     try expectContains(
         direct_anchor_note,
-        "do not present `argv_split` or the broader `rbtree` helper-local slice, checker, manifest, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`",
+        "`lib/argv_split.zig` is directly readable again on current `master`, but the dedicated Phase 7 `argv_split` slice, survey, manifest, and shared build-route packet still need a fresh same-lane reread or republish before they can count as a full helper-local review surface",
     );
+    try expectContains(
+        direct_anchor_note,
+        "do not present the broader `argv_split` review packet or the broader `rbtree` helper-local slice, checker, manifest, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`",
+    );
+
+    try expectContains(argv_split_helper, "pub const ArgvSplitResult = struct");
+    try expectContains(argv_split_helper, "pub fn argvSplit");
 
     try expectContains(string_helpers_slice, "PHASE7_STATUS=starter_landed");
     try expectContains(string_helpers_slice, "`lib/string_helpers.zig`");
