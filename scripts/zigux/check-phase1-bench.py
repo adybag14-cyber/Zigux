@@ -125,7 +125,7 @@ def load_runtime_expectations(path: Path) -> tuple[str, object]:
     except FileNotFoundError:
         return ("expectations_missing", path)
     except json.JSONDecodeError as exc:
-        return ("expectations_json_error", exc)
+        return ("expectations_json_error", (path, exc))
 
     kind, payload = validate_expectations(expectations)
     if kind != "pass":
@@ -392,7 +392,7 @@ def run_self_test() -> None:
     "PHASE1_BENCH_LIST_SORT_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
-    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_FIND_ADD_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
   ],
@@ -406,7 +406,7 @@ def run_self_test() -> None:
     "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
     "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
     "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+    "PHASE1_BENCH_FIND_ADD_CHECKSUM": 10,
     "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12
   }
@@ -576,9 +576,11 @@ def run_self_test() -> None:
         invalid_expectations_path.write_text("{", encoding="utf-8")
         kind, payload = load_runtime_expectations(invalid_expectations_path)
         assert kind == "expectations_json_error"
-        assert isinstance(payload, json.JSONDecodeError)
-        assert payload.lineno == 1
-        assert payload.colno == 2
+        path, exc = payload
+        assert path == invalid_expectations_path
+        assert isinstance(exc, json.JSONDecodeError)
+        assert exc.lineno == 1
+        assert exc.colno == 2
     case_count += 1
 
     status_mismatch_output = ok_output.replace(
@@ -975,10 +977,12 @@ def main() -> int:
         print(f"PHASE1_BENCH_EXPECTATIONS={payload}")
         return 1
     if kind == "expectations_json_error":
-        exc = payload
+        path, exc = payload
+        assert isinstance(path, Path)
         assert isinstance(exc, json.JSONDecodeError)
         print("PHASE1_BENCH_CHECK=fail")
         print("PHASE1_BENCH_CHECK_REASON=expectations_json_error")
+        print(f"PHASE1_BENCH_EXPECTATIONS={path}")
         print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
         print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
         print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
