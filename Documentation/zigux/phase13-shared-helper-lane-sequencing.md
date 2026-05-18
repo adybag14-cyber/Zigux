@@ -18,7 +18,7 @@ Adjacent notifier evidence stays in scope for release-surface truthfulness, but 
 Keep the current owner map explicit:
 
 - `libfs` owns the `fs/libfs.zig` foothold and its focused reviewability packet
-- `devres` owns the `lib/devres.zig` packet, including the boundary-evidence replay already visible on current `master`
+- `devres` owns the currently readable DMA-boundary and scatterlist helper packet through `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `lib/devres.zig` plus the older direct devres survey, reviewability, and boundary-evidence packet stay recorded as repo-reality gaps on current `master`
 - `landlock/ruleset` owns the ruleset ownership, slice, survey, and focused manifest-backed replay
 - `landlock/syscalls` owns the syscall governance and slice, while the survey and focused reviewability companions stay recorded as repo-reality gaps on current `master`
 - adjacent notifier evidence owns only release-surface truthfulness, not a fifth helper family
