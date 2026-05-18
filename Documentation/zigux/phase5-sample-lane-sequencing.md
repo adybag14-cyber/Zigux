@@ -29,6 +29,8 @@ Treat those four anchors as the full Phase 5 destination set unless the roadmap 
 Fresh repo-first inspection in this run confirmed that current `master` still keeps the shared Phase 5 reminder packet reviewable through these directly readable surfaces:
 
 - `Documentation/zigux/README.md`
+- `Documentation/zigux/phase5-kfifo-sample-survey.md`
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
 - `Documentation/zigux/phase5-sample-review-guide.md`
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
