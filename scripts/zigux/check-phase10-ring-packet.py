@@ -31,6 +31,7 @@ MARKERS = {
     "Documentation/zigux/phase10-virtio-ring-survey.md": [
         "`Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`",
         "`zigux/tests/phase10_virtio_ring_manifest.json`",
+        "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
         "`phase10-virtio-ring-survey-gate`",
         "`phase10-virtqueue-shape-helper`",
         "the ring lane still stays below transport-backed work: the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
@@ -195,6 +196,10 @@ def run_self_test() -> int:
         expect_missing_marker(
             "Documentation/zigux/phase10-virtio-ring-survey.md",
             "`Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-survey.md",
+            "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
         )
         expect_missing_marker(
             "Documentation/zigux/phase10-virtio-ring-survey.md",
