@@ -82,6 +82,9 @@ PHASE9_BUFFER_STEPS = (
     ("Check current Phase 9 review-checklist boundaries packet", "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py"),
     ("Self-test current Phase 9 trace-events runtime packet checker", "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test"),
     ("Check current Phase 9 trace-events runtime packet", "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py"),
+    ("Run current Phase 9 trace-events runtime sample tests", "zig test samples/zigux/runtime_trace_events.zig"),
+    ("Run current Phase 9 unregistered gate companion tests", "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig"),
+    ("Run current Phase 9 registration reentry companion tests", "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig"),
 )
 
 PHASE7_HANDOFF_STEPS = (
@@ -136,6 +139,9 @@ REQUIRED_FILE_RELS = (
     Path("scripts/zigux/check-phase4-artifact-diff-validator-replays.py"),
     Path("scripts/zigux/check-phase9-review-checklist-phase-boundaries.py"),
     Path("scripts/zigux/check-phase9-trace-events-runtime-packet.py"),
+    Path("samples/zigux/runtime_trace_events.zig"),
+    Path("samples/zigux/runtime_trace_events_unregistered_gate.zig"),
+    Path("samples/zigux/runtime_trace_events_registration_reentry_gate.zig"),
     Path("scripts/zigux/check-phase7-shared-control-gap.py"),
     Path("scripts/zigux/check-phase10-bootstrap-route.py"),
     Path("scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
@@ -152,7 +158,7 @@ REQUIRED_NOTE_LINES = (
     "- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 1 shared tests-root smoke`",
     "- `PHASE1_WORKFLOW_PHASE4_ARTIFACT_DIFF_TAIL=Self-test current Phase 4 artifact-diff helper,Self-test current Phase 4 artifact-diff determinism checker,Self-test current Phase 4 artifact-diff validator replay checker,Check current Phase 4 artifact-diff validator replay packet`",
     "- `PHASE1_WORKFLOW_PHASE8_BUFFER=Validate Phase 8 tooling routes,Run focused Phase 8 exec-cmd tests,Run Phase 8 tooling tests`",
-    "- `PHASE1_WORKFLOW_PHASE9_BUFFER=Self-test current Phase 9 review-checklist boundaries checker,Check current Phase 9 review-checklist boundaries packet,Self-test current Phase 9 trace-events runtime packet checker,Check current Phase 9 trace-events runtime packet`",
+    "- `PHASE1_WORKFLOW_PHASE9_BUFFER=Self-test current Phase 9 review-checklist boundaries checker,Check current Phase 9 review-checklist boundaries packet,Self-test current Phase 9 trace-events runtime packet checker,Check current Phase 9 trace-events runtime packet,Run current Phase 9 trace-events runtime sample tests,Run current Phase 9 unregistered gate companion tests,Run current Phase 9 registration reentry companion tests`",
     "- `PHASE1_WORKFLOW_PHASE7_HANDOFF=Self-test current Phase 7 shared-control gap checker,Check current Phase 7 shared-control gap packet`",
     "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/validate-phase1-closure.py,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench,python3 scripts/zigux/check-phase1-bench.py`",
 )
@@ -273,6 +279,9 @@ def collect_failures(root: Path) -> list[str]:
         "Check current Phase 9 review-checklist boundaries packet",
         "Self-test current Phase 9 trace-events runtime packet checker",
         "Check current Phase 9 trace-events runtime packet",
+        "Run current Phase 9 trace-events runtime sample tests",
+        "Run current Phase 9 unregistered gate companion tests",
+        "Run current Phase 9 registration reentry companion tests",
         "Self-test current Phase 7 shared-control gap checker",
         "Check current Phase 7 shared-control gap packet",
         "Self-test current Phase 10 bootstrap route checker",
@@ -301,7 +310,7 @@ def build_note_text() -> str:
             *REQUIRED_NOTE_LINES,
             "- keep the lane scoped to the current Phase 1 workflow-viability pair instead of reviving the older closure-side Phase 1 validator routes.",
             "- keep the workflow-viability pair immediately after the current Phase 1 shared reminder packet, then preserve the current Phase 3 buffer before the shared Phase 1 smoke route.",
-            "- keep the current Phase 4 artifact-diff helper and validator replay block ahead of the current Phase 8 tooling routes, then preserve the current Phase 9 review-checklist and trace-events packet before the Phase 7 shared-control pair.",
+            "- keep the current Phase 4 artifact-diff helper and validator replay block ahead of the current Phase 8 tooling routes, then preserve the current Phase 9 review-checklist, trace-events packet, and companion sample tests before the Phase 7 shared-control pair.",
             "- if the workflow moves again, refresh this same three-file packet first instead of widening into unrelated reminder or closure lanes.",
             "",
         )
@@ -415,6 +424,15 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "workflow_step:Self-test current Phase 9 review-checklist boundaries checker:expected=1:actual=0" not in failures:
             print("self-test:missing_phase9_checker_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, "      - name: Run current Phase 9 registration reentry companion tests\n"))
+        failures = collect_failures(root)
+        if "workflow_step:Run current Phase 9 registration reentry companion tests:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase9_companion_test_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
