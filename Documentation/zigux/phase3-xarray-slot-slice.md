@@ -1,10 +1,9 @@
-# Phase 3 xarray slot Slice
+# Phase 3 xarray-slot Slice
 
-This note records the current helper-local Phase 3 `xarray_slot` interop slice on current `master`.
+This note records one bounded Phase 3 helper-side xarray-slot packet on current `master`.
 
 ## Current Slice
 
-- `Documentation/zigux/phase3-errptr-xarray-slice.md`
 - `zigux/helpers/err_ptr.zig`
 - `zigux/helpers/xa_value.zig`
 - `zigux/helpers/xarray_slot_view.zig`
@@ -57,9 +56,9 @@ That keeps one shared-tests-root starter hook and one tiny C-vs-Zig parity repla
 
 ## Current Gap
 
-This is still not the broader Phase 3 shared validator-support packet. `zigux/tests/fixtures/phase3_xarray_slot_manifest.json` now treats `Documentation/zigux/phase3-xarray-slot-slice.md` as the missing docs-root follow-through while still listing `Documentation/zigux/phase3-validator-support-surface.md` and `scripts/zigux/validate-phase3.py` as separate repo-reality gaps for this helper-local packet.
+This is still not the broader Phase 3 shared validator-support packet. The docs-root xarray-slot slice note is now landed, and `zigux/tests/fixtures/phase3_xarray_slot_manifest.json` keeps the remaining nearby repo-reality follow-up narrowed to `Documentation/zigux/phase3-validator-support-surface.md` and `scripts/zigux/validate-phase3.py`.
 
-That means the landed `xarray_slot` helper, starter checker, dump checker, and fixture-backed parity packet are real current-`master` evidence, but they should stay helper-local until a fresh same-lane reread decides whether the broader validator-support note or shared validator entrypoint should absorb them. This note should not be used to imply that the broader Phase 3 export/UAPI survey, shared replay packet, catalog wiring, IDR family, or IDA family has returned.
+That means the landed `xarray_slot` helper, starter checker, dump checker, fixture-backed parity packet, and this docs-root note are real current-`master` evidence, but they should stay helper-local until a fresh same-lane reread decides whether the broader validator-support note or shared validator entrypoint should absorb them. This note should not be used to imply that the broader Phase 3 export/UAPI survey, shared replay packet, catalog wiring, IDR family, or IDA family has returned.
 
 ## Scope
 
