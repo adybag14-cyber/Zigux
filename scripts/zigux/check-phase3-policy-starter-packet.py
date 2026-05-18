@@ -426,6 +426,12 @@ def validate_repo(repo_root: Path) -> list[str]:
                     repo_reality_gaps,
                     issues,
                 )
+                for gap in repo_reality_gaps:
+                    if (repo_root / gap).exists():
+                        issues.append(
+                            "phase3_policy_starter_packet_manifest.json repo_reality_gaps entry is present on disk: "
+                            f"{gap}"
+                        )
                 for gap in REQUIRED_REPO_REALITY_GAPS:
                     if gap not in repo_reality_gaps:
                         issues.append(
@@ -533,8 +539,23 @@ def run_self_test() -> int:
             print(f"expected repo-reality-gap guard was not reported: {expected_missing_gap}")
             return 1
 
+        _populate_repo(root)
+        manifest_path = root / MANIFEST_PATH
+        manifest = json.loads(_read(manifest_path))
+        manifest["repo_reality_gaps"].append(TEST_PATH.as_posix())
+        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_present_gap = (
+            "phase3_policy_starter_packet_manifest.json repo_reality_gaps entry is present on disk: "
+            "zigux/tests/phase3_policy_starter_packet.zig"
+        )
+        if expected_present_gap not in issues:
+            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
+            print(f"expected present-on-disk gap guard was not reported: {expected_present_gap}")
+            return 1
+
     print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 5}")
+    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 6}")
     return 0
 
 
