@@ -149,7 +149,7 @@ FORBIDDEN_MARKERS = {
 }
 
 
-def read_text(root: Path) -> str:
+def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
 
 
