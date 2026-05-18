@@ -270,6 +270,10 @@ pub fn findAdd(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
     return null;
 }
 
+pub fn rb_find_add(node: *Node, root: *Root, cmp: CmpNodeFn) ?*Node {
+    return findAdd(node, root, cmp);
+}
+
 pub fn findAddCached(node: *Node, root: *RootCached, cmp: CmpNodeFn) ?*Node {
     var link = &root.root.node;
     var parent: ?*Node = null;
@@ -314,6 +318,10 @@ pub fn find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
     return null;
 }
 
+pub fn rb_find(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
+    return find(key, root, cmp);
+}
+
 pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
     var node = root.node;
     var match: ?*Node = null;
@@ -333,6 +341,10 @@ pub fn findFirst(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node
     return match;
 }
 
+pub fn rb_find_first(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) ?*Node {
+    return findFirst(key, root, cmp);
+}
+
 pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {
     const candidate = next(node) orelse return null;
     if (cmp(key, candidate) != 0) {
@@ -341,12 +353,20 @@ pub fn nextMatch(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node
     return candidate;
 }
 
+pub fn rb_next_match(key: *const anyopaque, node: *const Node, cmp: CmpKeyFn) ?*Node {
+    return nextMatch(key, node, cmp);
+}
+
 pub fn matchIterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {
     return .{
         .key = key,
         .cmp = cmp,
         .current = findFirst(key, root, cmp),
     };
+}
+
+pub fn rb_match_iterator(key: *const anyopaque, root: *const Root, cmp: CmpKeyFn) MatchIterator {
+    return matchIterator(key, root, cmp);
 }
 
 fn transplant(root: *Root, victim: *Node, replacement: ?*Node) void {
@@ -780,6 +800,26 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
         }
     }.compare;
 
+    const cmp = struct {
+        fn compare(lhs: *const Node, rhs: *const Node) i32 {
+            const lhs_entry: *const Entry = @fieldParentPtr("node", lhs);
+            const rhs_entry: *const Entry = @fieldParentPtr("node", rhs);
+            if (lhs_entry.key < rhs_entry.key) return -1;
+            if (lhs_entry.key > rhs_entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    const keyCmp = struct {
+        fn compare(key: *const anyopaque, node: *const Node) i32 {
+            const wanted: *const i32 = @ptrCast(@alignCast(key));
+            const entry: *const Entry = @fieldParentPtr("node", node);
+            if (wanted.* < entry.key) return -1;
+            if (wanted.* > entry.key) return 1;
+            return 0;
+        }
+    }.compare;
+
     var primary_entries = [_]Entry{
         .{ .key = 10 },
         .{ .key = 20 },
@@ -792,6 +832,10 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
         .{ .key = 5 },
         .{ .key = 15 },
     };
+    var primary_insert_probe = Entry{ .key = 12 };
+    var alias_insert_probe = Entry{ .key = 12 };
+    var primary_duplicate_probe = Entry{ .key = 15 };
+    var alias_duplicate_probe = Entry{ .key = 15 };
     var primary_replacement = Entry{ .key = 10 };
     var alias_replacement = Entry{ .key = 10 };
     var primary_root = Root.init();
@@ -801,8 +845,17 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
         add(&alias_entry.node, &alias_root, less);
     }
 
-    var primary_forward: [4]i32 = undefined;
-    var alias_forward: [4]i32 = undefined;
+    try std.testing.expectEqual(@as(?*Node, null), findAdd(&primary_insert_probe.node, &primary_root, cmp));
+    try std.testing.expectEqual(@as(?*Node, null), rb_find_add(&alias_insert_probe.node, &alias_root, cmp));
+
+    const primary_existing = findAdd(&primary_duplicate_probe.node, &primary_root, cmp) orelse return error.TestUnexpectedResult;
+    const alias_existing = rb_find_add(&alias_duplicate_probe.node, &alias_root, cmp) orelse return error.TestUnexpectedResult;
+    const primary_existing_entry: *const Entry = @fieldParentPtr("node", primary_existing);
+    const alias_existing_entry: *const Entry = @fieldParentPtr("node", alias_existing);
+    try std.testing.expectEqual(primary_existing_entry.key, alias_existing_entry.key);
+
+    var primary_forward: [5]i32 = undefined;
+    var alias_forward: [5]i32 = undefined;
     var count: usize = 0;
     var current = first(&primary_root);
     while (current) |node| : (current = next(node)) {
@@ -821,9 +874,10 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
 
     try std.testing.expectEqual(count, alias_count);
     try std.testing.expectEqualSlices(i32, primary_forward[0..count], alias_forward[0..alias_count]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 12, 15, 20 }, primary_forward[0..count]);
 
-    var primary_reverse: [4]i32 = undefined;
-    var alias_reverse: [4]i32 = undefined;
+    var primary_reverse: [5]i32 = undefined;
+    var alias_reverse: [5]i32 = undefined;
     count = 0;
     current = last(&primary_root);
     while (current) |node| : (current = prev(node)) {
@@ -842,6 +896,33 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
 
     try std.testing.expectEqual(count, alias_count);
     try std.testing.expectEqualSlices(i32, primary_reverse[0..count], alias_reverse[0..alias_count]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 20, 15, 12, 10, 5 }, primary_reverse[0..count]);
+
+    const wanted = @as(i32, 15);
+    const primary_found = find(&wanted, &primary_root, keyCmp) orelse return error.TestUnexpectedResult;
+    const alias_found = rb_find(&wanted, &alias_root, keyCmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 15), @as(*const Entry, @fieldParentPtr("node", primary_found)).key);
+    try std.testing.expectEqual(@as(i32, 15), @as(*const Entry, @fieldParentPtr("node", alias_found)).key);
+
+    const missing = @as(i32, 17);
+    try std.testing.expect(find(&missing, &primary_root, keyCmp) == null);
+    try std.testing.expect(rb_find(&missing, &alias_root, keyCmp) == null);
+
+    const primary_first_match = findFirst(&wanted, &primary_root, keyCmp) orelse return error.TestUnexpectedResult;
+    const alias_first_match = rb_find_first(&wanted, &alias_root, keyCmp) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 15), @as(*const Entry, @fieldParentPtr("node", primary_first_match)).key);
+    try std.testing.expectEqual(@as(i32, 15), @as(*const Entry, @fieldParentPtr("node", alias_first_match)).key);
+    try std.testing.expect(nextMatch(&wanted, primary_first_match, keyCmp) == null);
+    try std.testing.expect(rb_next_match(&wanted, alias_first_match, keyCmp) == null);
+
+    var primary_iter = matchIterator(&wanted, &primary_root, keyCmp);
+    var alias_iter = rb_match_iterator(&wanted, &alias_root, keyCmp);
+    const primary_iter_node = primary_iter.next() orelse return error.TestUnexpectedResult;
+    const alias_iter_node = alias_iter.next() orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(i32, 15), @as(*const Entry, @fieldParentPtr("node", primary_iter_node)).key);
+    try std.testing.expectEqual(@as(i32, 15), @as(*const Entry, @fieldParentPtr("node", alias_iter_node)).key);
+    try std.testing.expect(primary_iter.next() == null);
+    try std.testing.expect(alias_iter.next() == null);
 
     replaceNode(&primary_entries[0].node, &primary_replacement.node, &primary_root);
     rb_replace_node(&alias_entries[0].node, &alias_replacement.node, &alias_root);
@@ -864,6 +945,7 @@ test "rbtree ordered Linux-style aliases mirror traversal and replacement helper
 
     try std.testing.expectEqual(count, alias_count);
     try std.testing.expectEqualSlices(i32, primary_forward[0..count], alias_forward[0..alias_count]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 5, 10, 12, 15, 20 }, primary_forward[0..count]);
 }
 
 test "rbtree eraseInit detaches erased node" {
