@@ -160,6 +160,20 @@ test "ctype latin1 non-letter gaps stay unchanged" {
     try std.testing.expectEqual(division_sign, toupper(division_sign));
 }
 
+test "ctype latin1 non-breaking space keeps Linux whitespace flags" {
+    const nbsp: u8 = 0xA0;
+
+    try std.testing.expect(isspace(nbsp));
+    try std.testing.expect(isprint(nbsp));
+    try std.testing.expect(!isgraph(nbsp));
+    try std.testing.expect(!ispunct(nbsp));
+    try std.testing.expect(!isalpha(nbsp));
+    try std.testing.expect(!isdigit(nbsp));
+    try std.testing.expectEqual(nbsp, tolower(nbsp));
+    try std.testing.expectEqual(nbsp, fastTolower(nbsp));
+    try std.testing.expectEqual(nbsp, toupper(nbsp));
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
