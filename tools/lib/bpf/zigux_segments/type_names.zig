@@ -174,6 +174,13 @@ pub fn libbpfBpfProgTypeStr(prog_type: u32) ?[]const u8 {
     return prog_type_names[prog_type];
 }
 
+fn expectDenseNameTable(table: []const ?[]const u8) !void {
+    for (table) |entry| {
+        try std.testing.expect(entry != null);
+        try std.testing.expect(entry.?.len != 0);
+    }
+}
+
 test "map type names stay table-driven and bounded" {
     try std.testing.expectEqualStrings("unspec", libbpfBpfMapTypeStr(0).?);
     try std.testing.expectEqualStrings("ringbuf", libbpfBpfMapTypeStr(27).?);
@@ -203,4 +210,11 @@ test "program type names stay explicit and bounded" {
     try std.testing.expectEqualStrings("tracing", libbpfBpfProgTypeStr(26).?);
     try std.testing.expectEqualStrings("netfilter", libbpfBpfProgTypeStr(32).?);
     try std.testing.expect(libbpfBpfProgTypeStr(99) == null);
+}
+
+test "all shipped libbpf name tables stay dense for every in-range value" {
+    try expectDenseNameTable(map_type_names[0..]);
+    try expectDenseNameTable(attach_type_names[0..]);
+    try expectDenseNameTable(link_type_names[0..]);
+    try expectDenseNameTable(prog_type_names[0..]);
 }
