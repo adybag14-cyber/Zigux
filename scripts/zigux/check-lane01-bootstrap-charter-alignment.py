@@ -12,6 +12,7 @@ LEDGER_PATH = Path("zigux-alpha/BOOTSTRAP_COMMIT_LEDGER.md")
 README_MARKERS = (
     "`zigux-alpha` is the Zigux bootstrap workspace.",
     "Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.",
+    "The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.",
     "`Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.",
     "`Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.",
     "[Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)",
@@ -64,6 +65,7 @@ def _sample_readme() -> str:
 Rules
 - Keep product planning and bootstrap artifacts here first.
 - Use the roadmap and bootstrap commit ledger together when choosing the next bootstrap lane.
+- The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.
 
 Active product surfaces
 - `Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.
@@ -130,6 +132,23 @@ def run_self_test() -> int:
         ]
         if missing != expected:
             raise AssertionError(f"unexpected missing markers for README rule case: {missing}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace(
+                "The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = [
+            "readme:The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth."
+        ]
+        if missing != expected:
+            raise AssertionError(f"unexpected missing markers for README ledger-scope case: {missing}")
         _write(root / README_PATH, _sample_readme())
         case_count += 1
 
