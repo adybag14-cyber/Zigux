@@ -208,6 +208,12 @@ jobs:
       - name: Self-test current Phase 1 bench checker
         run: python3 scripts/zigux/check-phase1-bench.py --self-test
 
+      - name: Self-test current Phase 1 closure-gates checker
+        run: python3 scripts/zigux/check-phase1-closure-gates.py --self-test
+
+      - name: Check current Phase 1 closure-gates packet
+        run: python3 scripts/zigux/check-phase1-closure-gates.py
+
       - name: Self-test current Phase 1 shared reminder checker
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test
 
