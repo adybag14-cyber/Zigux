@@ -136,3 +136,18 @@ test "kmallocArray treats zero-sized elements as freeable zero-sized allocations
     kfree(zero_sized);
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
+
+test "kmallocArray zeroes fresh allocations after earlier dirty frees" {
+    kmalloc_nr_allocated = 0;
+
+    const first = kmallocArray(4, 1, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    @memset(first, 0xaa);
+    kfree(first);
+    try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
+
+    const second = kmallocArray(4, 1, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(second);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, second);
+}
