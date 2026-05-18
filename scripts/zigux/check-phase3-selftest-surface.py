@@ -122,8 +122,12 @@ VALIDATOR_SUPPORT_MARKERS = (
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "zigux/tests/phase3_export_uapi_layout.zig",
     "zigux/tests/phase3_export_uapi_layout_build.zig",
+    "scripts/zigux/validate-phase3.py",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
+    "Current `master` does still ship the shared ABI validator entrypoint through `scripts/zigux/validate-phase3.py`, so treat that validator as separately readable support for the shared ABI binding surface rather than as an absent broader route.",
+    "`zigux/tests/README.md` still needs one narrow truthfulness pass to stop framing `scripts/zigux/validate-phase3.py` as absent while keeping the broader export/UAPI survey and catalog routes parked as repo-reality gaps.",
+    "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct tracker for the remaining tests-root validator-presence follow-through while keeping scripts-root inventory follow-through separate.",
     "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
 )
 
@@ -301,6 +305,22 @@ def run_self_test() -> int:
         (VALIDATOR_SUPPORT_PATH, "scripts/zigux/validate-phase3-export-uapi-survey.py", "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, "zigux/tests/phase3_export_uapi_layout.zig", "validator-support note"),
         (VALIDATOR_SUPPORT_PATH, "zigux/tests/phase3_export_uapi_layout_build.zig", "validator-support note"),
+        (VALIDATOR_SUPPORT_PATH, "scripts/zigux/validate-phase3.py", "validator-support note"),
+        (
+            VALIDATOR_SUPPORT_PATH,
+            "Current `master` does still ship the shared ABI validator entrypoint through `scripts/zigux/validate-phase3.py`, so treat that validator as separately readable support for the shared ABI binding surface rather than as an absent broader route.",
+            "validator-support note",
+        ),
+        (
+            VALIDATOR_SUPPORT_PATH,
+            "`zigux/tests/README.md` still needs one narrow truthfulness pass to stop framing `scripts/zigux/validate-phase3.py` as absent while keeping the broader export/UAPI survey and catalog routes parked as repo-reality gaps.",
+            "validator-support note",
+        ),
+        (
+            VALIDATOR_SUPPORT_PATH,
+            "`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct tracker for the remaining tests-root validator-presence follow-through while keeping scripts-root inventory follow-through separate.",
+            "validator-support note",
+        ),
         (VALIDATOR_SUPPORT_PATH, "scripts/zigux/validate-phase3-validator-support-surface.py", "validator-support note"),
         (
             VALIDATOR_SUPPORT_PATH,
