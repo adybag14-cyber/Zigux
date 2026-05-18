@@ -594,6 +594,7 @@ test "variant-pinned convenience helpers mirror the generic api" {
     const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
     const one_byte = [_]u8{0xfb};
     const two_byte = [_]u8{ 0xff, 0xf0 };
+    try expectVariantPinnedConvenienceParity(&sample, "APv/f4A", false, .std);
     try expectVariantPinnedConvenienceParity(&sample, "APv/f4A=", true, .std);
     try expectVariantPinnedConvenienceParity(&sample, "APv_f4A", false, .urlsafe);
     try expectVariantPinnedConvenienceParity(&sample, "APv_f4A=", true, .urlsafe);
