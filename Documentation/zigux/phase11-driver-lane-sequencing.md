@@ -33,7 +33,7 @@ Current direct rereads in this run still kept the HVC continuity packet readable
 
 Current direct rereads in this run still did not rematerialize `scripts/zigux/check-phase11-hvc-survey-packet.py`, so keep that dedicated survey-checker path framed as an HVC-local repo-reality gap until a future reread proves it returned.
 
-Current direct rereads in this run did not rematerialize `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, `zigux/tests/phase11_build.zig`, or `zigux/Makefile`, so shared-note repairs should not present those paths as live current-head evidence until a later reread proves they returned.
+Current direct rereads in this run did not rematerialize `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, or `zigux/tests/phase11_build.zig`. Current `master` does rematerialize `zigux/Makefile`, but its live body still does not expose a dedicated Phase 11 route, so shared-note repairs should keep the returned file distinct from the still-missing Phase 11 build handles instead of presenting the file itself as a repo-reality gap.
 
 ## Sequencing Rules
 
