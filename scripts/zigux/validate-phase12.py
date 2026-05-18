@@ -40,6 +40,7 @@ VIRTIO_SCSI_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-scsi-packe
 VIRTIO_SCSI_BOUNDARY_CHECKER_PATH = (
     "scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py"
 )
+NVME_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-nvme-pci-packet.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
@@ -73,6 +74,7 @@ REQUIRED_FILES = [
     RELEASE_READINESS_CHECKER_PATH,
     VIRTIO_SCSI_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
+    NVME_PACKET_CHECKER_PATH,
     VALIDATOR_PATH,
     TESTS_README_PATH,
     MAKEFILE_PATH,
@@ -159,6 +161,7 @@ REQUIRED_MARKERS = {
     ],
     VALIDATOR_PATH: [
         VIRTIO_SCSI_PACKET_CHECKER_PATH,
+        NVME_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_MANIFEST_PATH,
         VIRTIO_SCSI_SURVEY_GATE_PATH,
         "PHASE12_VALIDATOR_SELF_TEST=pass",
@@ -258,6 +261,7 @@ FIXTURE_TEXT = {
     RELEASE_READINESS_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH: "#!/usr/bin/env python3\n",
+    NVME_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VALIDATOR_PATH: "\n".join(REQUIRED_MARKERS[VALIDATOR_PATH]) + "\n",
     TESTS_README_PATH: "# zigux/tests\n",
     MAKEFILE_PATH: "\n".join(REQUIRED_MARKERS[MAKEFILE_PATH]) + "\n",
@@ -311,6 +315,7 @@ def run_self_test() -> int:
             RELEASE_READINESS_SURVEY_PATH,
             RAW_GITHUB_COVERAGE_PATH,
             VIRTIO_SCSI_PACKET_CHECKER_PATH,
+            NVME_PACKET_CHECKER_PATH,
             VIRTIO_SCSI_MANIFEST_PATH,
             VIRTIO_SCSI_SURVEY_GATE_PATH,
             VIRTIO_SCSI_SUPPORT_MANIFEST_PATH,
@@ -343,7 +348,8 @@ def run_self_test() -> int:
             (NVME_FALLBACK_PATH, REQUIRED_MARKERS[NVME_FALLBACK_PATH][6]),
             (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][0]),
             (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][1]),
-            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][3]),
+            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][2]),
+            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][4]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_root(base)
