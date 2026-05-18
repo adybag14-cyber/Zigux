@@ -24,7 +24,6 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
         32 * 1024,
     );
     defer std.testing.allocator.free(note);
-
     try expectContains(note, "\"/proc/%d/fdinfo/%d\"");
     try expectContains(note, "map_type");
     try expectContains(note, "key_size");
@@ -33,7 +32,11 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "map_flags");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `bpf_obj_get()` reopen flow");
-    try expectContains(note, "map-reuse-compatibility remains queued");
+    try expectContains(note, "helper-only `mapReuseObservationFromFdinfo()` handoff");
+    try expectContains(note, "planning-only `resolveReusePinnedMapAttempt()` gating");
+    try expectContains(note, "planning-only `planTokenPreparation()` gating");
+    try expectContains(note, "no live bpffs opens");
+    try expectContains(note, "no descriptor replacement, transfer, or close ownership semantics");
 }
 
 test "phase 8 file-path handle bridge helper stays wired into its focused Phase 8 build shard" {
@@ -62,22 +65,64 @@ test "phase 8 file-path handle bridge helper stays wired into the shared Phase 8
     try expectContains(shared_build_file, "phase8-file-path-handle-bridge-tests");
 }
 
-test "phase 8 file-path handle bridge helper keeps linux-style make routes wired into the shared Phase 8 packet" {
-    const makefile = try readWorkspaceFile(
+test "phase 8 file-path handle bridge proof keeps helper-local routing evidence smaller than deferred setup-side routing" {
+    const boundary_note = try readWorkspaceFile(
         std.testing.allocator,
-        "zigux/Makefile",
-        64 * 1024,
+        "Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md",
+        32 * 1024,
     );
-    defer std.testing.allocator.free(makefile);
+    defer std.testing.allocator.free(boundary_note);
 
-    try expectContains(makefile, "phase8-file-path-handle-bridge-test:");
-    try expectContains(makefile, "zigux/tests/phase8_file_path_handle_bridge_only_build.zig --summary all");
-    try expectContains(makefile, "phase8-test:");
-    try expectContains(makefile, "zigux/tests/phase8_build.zig --summary all");
-    try expectContains(
-        makefile,
-        "phase8: phase8-validate phase8-test phase8-cpu-mask-test phase8-exec-cmd-test phase8-help-test phase8-help-kallsyms-test phase8-kallsyms-test phase8-file-path-handle-bridge-test phase8-libbpf-segments-test phase8-perf-buffer-poll-test",
+    try expectContains(boundary_note, "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`");
+    try expectContains(boundary_note, "advanceOnlineCpuCursor()");
+    try expectContains(boundary_note, "summarizeNextOnlineCpuRoute()");
+    try expectContains(boundary_note, "summarizeOnlineCpuRouting()");
+    try expectContains(boundary_note, "It also does not claim the deferred `perf-buffer-online-cpu-routing` packet");
+    try expectContains(boundary_note, "per-CPU `perf_event_open()` setup");
+    try expectContains(boundary_note, "epoll-backed perf FD registration");
+
+    const routing_helper = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+        32 * 1024,
     );
+    defer std.testing.allocator.free(routing_helper);
+
+    try expectContains(routing_helper, "pub fn advanceOnlineCpuCursor(");
+    try expectContains(routing_helper, "pub fn summarizeNextOnlineCpuRoute(");
+    try expectContains(routing_helper, "pub fn summarizeOnlineCpuRouting(");
+    try expectContains(
+        routing_helper,
+        "test \"summarizeOnlineCpuRouting reports the first routed online CPU whose fd slot is empty\" {",
+    );
+}
+
+test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and deferred bridge split explicit" {
+    const manifest = try readWorkspaceFile(
+        std.testing.allocator,
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        48 * 1024,
+    );
+    defer std.testing.allocator.free(manifest);
+
+    try expectContains(
+        manifest,
+        "\"slug\": \"fdinfo-map-info-helpers\",\n \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "\"slug\": \"map-reuse-compatibility\",\n \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "\"slug\": \"file-path-and-handle-bridge\",\n \"status\": \"deferred_high_risk\"",
+    );
+    try expectContains(
+        manifest,
+        "This remaining file-path and handle bridge still crosses real procfs reads, bpffs opens, token creation, bpf_obj_get() reopen flow, and fd ownership semantics, so the helper-first packet should keep it deferred.",
+    );
+    try expectContains(manifest, "direct procfs reads and descriptor ownership flow");
+    try expectContains(manifest, "token creation, bpffs reopen flow, and other fd-handle bridge side effects");
 }
 
 test "phase 8 file-path handle bridge helper keeps proc fdinfo path formatting explicit" {
@@ -97,6 +142,7 @@ test "phase 8 file-path handle bridge helper keeps fdinfo map info parsing compa
         \\max_entries: 1024
         \\map_flags: 0x20
     );
+
     const summary = file_path_handle_bridge.summarizeFdinfoMapInfo(parsed);
 
     try std.testing.expectEqual(@as(?u32, 5), parsed.map_type);
