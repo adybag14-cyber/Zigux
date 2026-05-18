@@ -55,6 +55,19 @@ test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweightLong(0xf0f0));
 }
 
+test "software hweight helpers keep low-width limits and full-width boundaries" {
+    try std.testing.expectEqual(@as(u32, 0), swHweight8(0x100));
+    try std.testing.expectEqual(@as(u32, 8), swHweight8(0x1ff));
+    try std.testing.expectEqual(@as(u32, 0), swHweight16(0x1_0000));
+    try std.testing.expectEqual(@as(u32, 16), swHweight16(0x1_ffff));
+    try std.testing.expectEqual(@as(u32, 0), swHweight32(0));
+    try std.testing.expectEqual(@as(u32, 32), swHweight32(0xffff_ffff));
+    try std.testing.expectEqual(@as(u64, 0), swHweight64(0));
+    try std.testing.expectEqual(@as(u64, 64), swHweight64(0xffff_ffff_ffff_ffff));
+    try std.testing.expectEqual(@as(usize, @popCount(@as(usize, 0x1_0000))), hweightLong(0x1_0000));
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweightLong(std.math.maxInt(usize)));
+}
+
 test "Linux-style hweight aliases mirror the primary helper surface" {
     try std.testing.expectEqual(swHweight8(0xf0), __sw_hweight8(0xf0));
     try std.testing.expectEqual(swHweight16(0xf0f0), __sw_hweight16(0xf0f0));
