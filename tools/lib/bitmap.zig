@@ -252,6 +252,10 @@ pub fn equal(src1: []const Word, src2: []const Word, nbits: usize) bool {
     }
 
     const lim = nbits / bits_per_long;
+    if ((nbits & (bits_per_long - 1)) == 0) {
+        return std.mem.eql(Word, src1[0..lim], src2[0..lim]);
+    }
+
     for (0..lim) |idx| {
         if (src1[idx] != src2[idx]) {
             return false;
@@ -603,6 +607,16 @@ test "bitmap zero-bit logical helpers stay explicit" {
     const len = scnprintf(lhs[0..0], 0, &buffer);
     try std.testing.expectEqual(@as(usize, 0), len);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xcc, 0xcc }, &buffer);
+}
+
+test "bitmap equal fast path ignores storage beyond an exact word boundary" {
+    const nbits = bits_per_long;
+    const lhs = [_]Word{ 0b1011, @as(Word, 1) << 7 };
+    const rhs = [_]Word{ 0b1011, @as(Word, 1) << 13 };
+    const changed = [_]Word{ 0b1001, lhs[1] };
+
+    try std.testing.expect(equal(&lhs, &rhs, nbits));
+    try std.testing.expect(!equal(&lhs, &changed, nbits));
 }
 
 test "bitmap and andnot equal intersects subset" {
