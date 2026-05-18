@@ -49,4 +49,8 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(type_names, "libbpfBpfMapTypeStr");
     try expectHasDecl(type_names, "libbpfBpfLinkTypeStr");
     try expectHasDecl(type_names, "libbpfBpfProgTypeStr");
+    try expectHasDecl(type_names, "formatLibbpfBpfAttachType");
+    try expectHasDecl(type_names, "formatLibbpfBpfMapType");
+    try expectHasDecl(type_names, "formatLibbpfBpfLinkType");
+    try expectHasDecl(type_names, "formatLibbpfBpfProgType");
 }
