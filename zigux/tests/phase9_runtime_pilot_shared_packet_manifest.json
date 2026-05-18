@@ -1,0 +1,139 @@
+{
+  "lane_key": "P9-L11",
+  "phase": "Phase 9",
+  "scope": "manifest, catalog, and ownership map tighten delivery-discipline evidence for existing work",
+  "roadmap_anchor": {
+    "primary_goal": "enter runtime kernels through tests and samples, not production pressure",
+    "linux_anchor": "samples/trace_events/trace-events-sample.c",
+    "required_features": [
+      "first loadable Zigux runtime modules",
+      "selftest hooks",
+      "runtime module lifecycle parity"
+    ],
+    "recommended_destinations": [
+      "zigux/tests/runtime_*",
+      "samples/zigux/runtime_*"
+    ]
+  },
+  "catalog": {
+    "shared_review_surfaces": [
+      "Documentation/zigux/README.md",
+      "Documentation/zigux/review-checklist.md",
+      "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+      "scripts/zigux/README.md",
+      "samples/zigux/README.md",
+      "zigux/tests/README.md",
+      "scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
+      "scripts/zigux/check-phase9-trace-events-runtime-packet.py"
+    ],
+    "direct_runtime_packet": [
+      "samples/zigux/runtime_trace_events.zig",
+      "samples/zigux/runtime_trace_events_unregistered_gate.zig",
+      "samples/zigux/runtime_trace_events_exit_rollback_guard.zig",
+      "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
+    ],
+    "adjacent_family_local_surfaces": [
+      "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+      "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+      "zigux/tests/runtime_trace_events_manifest.json",
+      "zigux/tests/runtime_trace_events_survey.zig"
+    ],
+    "absent_backlog_files": [
+      "zigux/tests/phase9_build.zig",
+      "zigux/kernel/runtime_loader.zig",
+      "zigux/kernel/runtime_loader_contract.zig",
+      "samples/zigux/runtime_trace_events_loader.zig"
+    ],
+    "non_owner_boundaries": {
+      "phase2_config_surface": [
+        "scripts/zigux/kconfig/conf_bridge.zig",
+        "scripts/zigux/kconfig/confdata_bridge.zig"
+      ],
+      "phase3_export_boundary": [
+        "rust/exports.c",
+        "zigux/kernel/export_shim.zig"
+      ],
+      "freeze_map_anchors": [
+        "Documentation/zigux/freeze-map.md",
+        "Documentation/zigux/phase15-study-only-anchor-accounting.md",
+        "kernel/workqueue.c",
+        "kernel/trace/ring_buffer.c"
+      ]
+    }
+  },
+  "catalog_counts": {
+    "shared_review_surfaces": 8,
+    "direct_runtime_packet": 4,
+    "adjacent_family_local_surfaces": 4,
+    "absent_backlog_files": 4,
+    "ownership_entries": 13
+  },
+  "ownership_map": [
+    {
+      "surface": "Documentation/zigux/README.md",
+      "owner": "P9-L11",
+      "role": "docs_root_shared_summary"
+    },
+    {
+      "surface": "Documentation/zigux/review-checklist.md",
+      "owner": "P9-L11",
+      "role": "shared_review_gate"
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md",
+      "owner": "P9-L11",
+      "role": "shared_lane_note"
+    },
+    {
+      "surface": "scripts/zigux/README.md",
+      "owner": "P9-L11",
+      "role": "scripts_root_shared_summary"
+    },
+    {
+      "surface": "samples/zigux/README.md",
+      "owner": "P9-L11",
+      "role": "samples_root_shared_boundary"
+    },
+    {
+      "surface": "zigux/tests/README.md",
+      "owner": "P9-L11",
+      "role": "tests_root_shared_boundary"
+    },
+    {
+      "surface": "scripts/zigux/check-phase9-review-checklist-phase-boundaries.py",
+      "owner": "P9-L11",
+      "role": "shared_boundary_checker"
+    },
+    {
+      "surface": "scripts/zigux/check-phase9-trace-events-runtime-packet.py",
+      "owner": "P9-L11",
+      "role": "shared_packet_checker"
+    },
+    {
+      "surface": ".github/workflows/zigux-bootstrap.yml",
+      "owner": "P9-L11",
+      "role": "shared_repo_workflow_guard"
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
+      "owner": "P9-L09",
+      "role": "adjacent_family_local_note"
+    },
+    {
+      "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
+      "owner": "P9-L09",
+      "role": "adjacent_family_local_survey"
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_manifest.json",
+      "owner": "P9-L09",
+      "role": "adjacent_family_local_manifest"
+    },
+    {
+      "surface": "zigux/tests/runtime_trace_events_survey.zig",
+      "owner": "P9-L09",
+      "role": "adjacent_family_local_gate"
+    }
+  ],
+  "next_gate": "Keep the shared reminder packet machine-readable and reread the exact packet before widening back into shared runtime-loader, dedicated phase9 build-route, or validate-phase9 claims."
+}
