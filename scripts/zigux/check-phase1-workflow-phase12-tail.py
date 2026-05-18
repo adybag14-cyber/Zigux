@@ -190,7 +190,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_adjacency_line")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"))
@@ -236,6 +236,38 @@ def run_self_test() -> int:
         expected = f"workflow_adjacent_chain:missing:{'->'.join(PHASE12_CHAIN)}"
         if expected not in failures:
             print("self-test:phase12_chain_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        selftest_block = (
+            f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"
+            f"        run: {PHASE12_SELFTEST_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + selftest_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE12_SELFTEST_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_selftest_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE12_SELFTEST_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_selftest_run_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        check_block = (
+            f"      - name: {PHASE12_CHECK_STEP[0]}\n"
+            f"        run: {PHASE12_CHECK_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + check_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE12_CHECK_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_check_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE12_CHECK_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_check_run_not_detected")
             return 1
         case_count += 1
 
