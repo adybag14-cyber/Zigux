@@ -45,9 +45,16 @@ MATRIX_MARKERS = [
 VERIFY_MARKERS = [
     "pub fn summarizeStopTeardown(request: StopTeardownRequest) StopTeardownSummary",
     "pub fn summarizeRestartFailureMode(request: RestartFailureModeRequest) RestartFailureModeSummary",
+    "pub fn summarizeRemoveTeardown(request: RemoveTeardownRequest) RemoveTeardownSummary",
     'test "phase11 dw_wdt verify keeps stop teardown ownership explicit"',
     'test "phase11 dw_wdt verify keeps inactive and missing-drvdata teardown paths distinct"',
+    'test "phase11 dw_wdt verify keeps inactive registered teardown hooks explicit"',
+    'test "phase11 dw_wdt verify keeps unregistered teardown hooks distinct from watchdog unregister"',
     'test "phase11 dw_wdt verify keeps restart failure modes explicit"',
+    'test "phase11 dw_wdt verify keeps missing-drvdata restart failures explicit"',
+    'test "phase11 dw_wdt verify keeps remove teardown heartbeat continuation explicit"',
+    'test "phase11 dw_wdt verify keeps remove teardown reset-backed shutdown explicit"',
+    'test "phase11 dw_wdt verify keeps idle remove distinct from running teardown"',
 ]
 
 
