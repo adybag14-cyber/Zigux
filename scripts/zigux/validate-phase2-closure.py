@@ -102,7 +102,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -281,6 +281,7 @@ def manifest_json(
     present_files: list[str] | None = None,
     missing_files: list[str] | None = None,
     master_present_branch_missing_files: list[str] | None = None,
+    workflow_surface: str = ".github/workflows/zigux-bootstrap.yml",
 ) -> str:
     payload = {
         "packet": packet,
@@ -299,7 +300,7 @@ def manifest_json(
             if master_present_branch_missing_files is None
             else master_present_branch_missing_files
         ),
-        "workflow_surface": ".github/workflows/zigux-bootstrap.yml",
+        "workflow_surface": workflow_surface,
     }
     return json.dumps(payload, indent=2) + "\n"
 
@@ -358,6 +359,7 @@ def run_self_test() -> int:
             ("shared_validator", {"shared_validator": "scripts/zigux/other.py"}),
             ("tool_manifest_checker", {"tool_manifest_checker": "scripts/zigux/other.py"}),
             ("makefile", {"makefile": "zigux/Other.mk"}),
+            ("workflow_surface", {"workflow_surface": ".github/workflows/other.yml"}),
         ):
             build_self_test_root(root)
             write_text(root, MANIFEST, manifest_json(**kwargs))
