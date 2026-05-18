@@ -834,6 +834,18 @@ test "genksyms bridge keeps version side effect before long help" {
     }
 }
 
+test "genksyms bridge keeps version side effect before short help" {
+    const args = [_][]const u8{"-Vh"};
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .command => |command| switch (command) {
+            .help => |version_count| try testing.expectEqual(@as(usize, 1), version_count),
+            else => return error.ExpectedHelpCommand,
+        },
+        else => return error.ExpectedCommand,
+    }
+}
+
 test "genksyms bridge keeps long version side effect before long help" {
     const args = [_][]const u8{
         "--version",
