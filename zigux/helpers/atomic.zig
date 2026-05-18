@@ -73,6 +73,15 @@ pub fn compareExchangeWeak(
     return @cmpxchgWeak(T, ptr, expected_value, desired_value, success, failure);
 }
 
+pub fn fetchNand(
+    comptime T: type,
+    ptr: *T,
+    operand: T,
+    comptime order: Ordering,
+) T {
+    return @atomicRmw(T, ptr, .Nand, operand, order);
+}
+
 test "phase3 atomic helper keeps compare-exchange ordering rules explicit" {
     try std.testing.expect(compareExchangeFailureOrderAllowed(.monotonic, .monotonic));
     try std.testing.expect(compareExchangeFailureOrderAllowed(.release, .monotonic));
@@ -117,4 +126,14 @@ test "phase3 atomic helper wraps compare-exchange without widening failure seman
         compareExchangeWeak(u32, &value, 2, 5, .seq_cst, .release),
     );
     try std.testing.expectEqual(@as(u32, 2), value);
+}
+
+test "phase3 atomic helper keeps fetch-nand updates explicit" {
+    var value: u8 = 0b1111_0000;
+
+    try std.testing.expectEqual(@as(u8, 0b1111_0000), fetchNand(u8, &value, 0b1100_1100, .seq_cst));
+    try std.testing.expectEqual(@as(u8, 0b0011_1111), value);
+
+    try std.testing.expectEqual(@as(u8, 0b0011_1111), fetchNand(u8, &value, 0b0000_1111, .monotonic));
+    try std.testing.expectEqual(@as(u8, 0b1111_0000), value);
 }
