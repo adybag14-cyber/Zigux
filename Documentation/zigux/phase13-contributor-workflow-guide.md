@@ -15,30 +15,35 @@ Keep broad contributor wording aligned with the active Phase 13 helper packet ce
 
 Adjacent notifier evidence still matters for release-surface truthfulness, but it remains adjacent evidence rather than a fifth helper family.
 
-## Stable Shared Handle
+## Stable Contributor-Facing Handle
 
 Keep the contributor-facing shared handle aligned through:
 
 1. `Documentation/zigux/phase13-contributor-workflow-guide.md`
-2. `Documentation/zigux/phase13-release-coordination-matrix.md`
-3. `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
-4. `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+2. `scripts/zigux/README.md`
+3. `zigux/tests/README.md`
+4. `Documentation/zigux/phase13-release-coordination-matrix.md`
+5. `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 
-stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+Keep `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard for those reminder surfaces rather than as the contributor-facing handle itself.
 
 `zigux/Makefile`, `make -C zigux phase13-validate`, and `make -C zigux phase13` stay recorded as repo-reality gaps until current `master` rematerializes the shared build handle.
 
 ## Shared Surfaces To Reread Together
 
-When shared Phase 13 wording changes, reread these contributor-facing surfaces together:
+When shared Phase 13 wording changes, reread these contributor-facing and support surfaces together:
 
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 
-Keep broader README and tests-root packet refresh as a separate same-lane follow-up instead of mixing it into helper-local packet work.
+Keep broader docs-root refresh as a separate same-lane follow-up instead of mixing it into helper-local packet work.
 
 ## Helper-Local Packets
 
@@ -99,7 +104,8 @@ Keep `zigux/helpers/notifier_chain_view.zig`, `scripts/zigux/check-phase13-notif
 
 Before landing a broad Phase 13 reminder change, check that:
 
-- the shared contributor surfaces still describe the same active helper packet
+- the contributor-facing handle still runs through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
+- the release-coordination matrix and shared-helper sequencing note still describe the same active helper packet
 - the stable shared-summary guard remains `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
 - adjacent notifier evidence stays adjacent rather than becoming a fifth helper family
