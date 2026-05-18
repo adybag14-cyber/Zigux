@@ -14,6 +14,7 @@ ROOT = (
 )
 
 CURRENT_RING_PACKET_FILES = [
+    "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_build.zig",
@@ -24,6 +25,13 @@ CURRENT_RING_PACKET_FILES = [
 ]
 
 MARKERS = {
+    "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
+        "drivers/virtio/virtio_ring_verify.zig",
+        "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
+        "while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing.",
+        "Keep the queue-local ring helper ladder, the wrapper-facing verify replay, and the focused replays framed as direct current-head evidence",
+        "the remaining direct ring gap is the dedicated survey replay",
+    ],
     "drivers/virtio/virtio_ring.zig": [
         "pub fn defineQueue(",
         "pub fn publishDescriptorChain(self: *Self, queue_index: u16) !void {",
@@ -72,7 +80,6 @@ MARKERS = {
         "var readiness = try ring.queueResetReadinessSummary(2);",
         'try std.testing.expectEqualStrings("unpublished_chains", @tagName(readiness.blocker.?));',
         "const reset = try ring.resetQueue(2);",
-        "const after_reset = try ring.notificationSummary(2);",
         "const kick_after_reset = try ring.prepareKick(2);",
     ],
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig": [
@@ -164,6 +171,18 @@ def run_self_test() -> int:
             case_count += 1
 
         expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "drivers/virtio/virtio_ring_verify.zig",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "the remaining direct ring gap is the dedicated survey replay",
+        )
+        expect_missing_marker(
             "drivers/virtio/virtio_ring.zig",
             "pub fn prepareKick(self: *Self, queue_index: u16) !QueueNotificationSummary {",
         )
@@ -231,6 +250,7 @@ def run_self_test() -> int:
             "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
             "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
         )
+        expect_missing_file("Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md")
         expect_missing_file("drivers/virtio/virtio_ring.zig")
         expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
