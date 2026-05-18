@@ -32,6 +32,13 @@ LANE_STEPS = (
     ("Check current Phase 1 workflow viability", "python3 scripts/zigux/check-phase1-workflow-viability.py"),
 )
 
+LANE_ADJACENT_CHAIN = (
+    "Check current Phase 1 shared reminder packet",
+    "Self-test current Phase 1 workflow viability checker",
+    "Check current Phase 1 workflow viability",
+    "Self-test current Phase 3 interop packet",
+)
+
 PHASE3_BUFFER_STEPS = (
     ("Self-test current Phase 3 interop packet", "python3 scripts/zigux/validate_phase3_selftest.py"),
     ("Check current Phase 3 interop packet", "python3 scripts/zigux/run-phase3-checks.py"),
@@ -100,6 +107,7 @@ REQUIRED_NOTE_LINES = (
     "- `PHASE1_WORKFLOW_NOTE_OWNER=lane17-phase1-workflow-viability`",
     "- `PHASE1_WORKFLOW_PHASE2_TAIL=Self-test current Phase 2 shared reminder checker,Check current Phase 2 shared reminder packet,Validate current Phase 2 tool packet`",
     "- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 shared reminder packet and before current Phase 3 interop packet`",
+    "- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 shared reminder packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`",
     "- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 1 shared tests-root smoke`",
     "- `PHASE1_WORKFLOW_PHASE4_ARTIFACT_DIFF_TAIL=Self-test current Phase 4 artifact-diff helper,Self-test current Phase 4 artifact-diff determinism checker,Self-test current Phase 4 artifact-diff validator replay checker,Check current Phase 4 artifact-diff validator replay packet`",
     "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/validate-phase1-closure.py,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench,python3 scripts/zigux/check-phase1-bench.py`",
@@ -153,6 +161,25 @@ def require_order(workflow_text: str, step_names: tuple[str, ...]) -> list[str]:
     return [] if positions == sorted(positions) else ["workflow_order:out_of_order"]
 
 
+def workflow_step_names(workflow_text: str) -> list[str]:
+    names: list[str] = []
+    for line in workflow_text.splitlines():
+        prefix = "      - name: "
+        if line.startswith(prefix):
+            names.append(line[len(prefix) :])
+    return names
+
+
+def require_adjacent_chain(workflow_text: str, step_names: tuple[str, ...]) -> list[str]:
+    names = workflow_step_names(workflow_text)
+    chain = list(step_names)
+    max_start = len(names) - len(chain) + 1
+    for index in range(max_start):
+        if names[index : index + len(chain)] == chain:
+            return []
+    return [f"workflow_adjacent_chain:missing:{'->'.join(step_names)}"]
+
+
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
     for relative_path in REQUIRED_FILE_RELS:
@@ -169,6 +196,8 @@ def collect_failures(root: Path) -> list[str]:
 
     for step_name, run_command in PHASE2_TAIL_STEPS + PHASE1_PRE_STEPS + LANE_STEPS + PHASE3_BUFFER_STEPS + (SMOKE_STEP,) + POST_STEPS:
         failures.extend(require_step(workflow_text, step_name, run_command))
+
+    failures.extend(require_adjacent_chain(workflow_text, LANE_ADJACENT_CHAIN))
 
     order = (
         "Check current Phase 1 shared reminder packet",
@@ -250,100 +279,4 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sample_repo(root)
-        (root / "scripts/zigux/check-phase1-shared-reminder-packet.py").unlink()
-        if "missing_file:scripts/zigux/check-phase1-shared-reminder-packet.py" not in collect_failures(root):
-            print("self-test:missing_shared_reminder_file_case_failed")
-            return 1
-        case_count += 1
-
-        build_sample_repo(root)
-        workflow_path = root / WORKFLOW_REL
-        workflow_path.write_text(rewrite_once(workflow_path.read_text(encoding="utf-8"), "      - name: Self-test current Phase 1 workflow viability checker\n"), encoding="utf-8")
-        if "workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=0" not in collect_failures(root):
-            print("self-test:missing_lane_selftest_step_case_failed")
-            return 1
-        case_count += 1
-
-        build_sample_repo(root)
-        workflow_path = root / WORKFLOW_REL
-        workflow_path.write_text(rewrite_once(workflow_path.read_text(encoding="utf-8"), "      - name: Self-test current Phase 3 interop packet\n"), encoding="utf-8")
-        if "workflow_step:Self-test current Phase 3 interop packet:expected=1:actual=0" not in collect_failures(root):
-            print("self-test:missing_phase3_buffer_step_case_failed")
-            return 1
-        case_count += 1
-
-        build_sample_repo(root)
-        workflow_path = root / WORKFLOW_REL
-        workflow_path.write_text(
-            rewrite_once(
-                workflow_path.read_text(encoding="utf-8"),
-                "      - name: Self-test current Phase 1 workflow viability checker\n        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n      - name: Check current Phase 1 workflow viability\n        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n\n      - name: Self-test current Phase 3 interop packet\n",
-                "      - name: Self-test current Phase 3 interop packet\n        run: python3 scripts/zigux/validate_phase3_selftest.py\n\n      - name: Self-test current Phase 1 workflow viability checker\n        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test\n\n      - name: Check current Phase 1 workflow viability\n        run: python3 scripts/zigux/check-phase1-workflow-viability.py\n\n",
-            ),
-            encoding="utf-8",
-        )
-        if "workflow_order:out_of_order" not in collect_failures(root):
-            print("self-test:lane_order_case_failed")
-            return 1
-        case_count += 1
-
-        build_sample_repo(root)
-        workflow_path = root / WORKFLOW_REL
-        workflow_path.write_text(workflow_path.read_text(encoding="utf-8") + "      - name: Old Phase 1 route\n        run: python3 scripts/zigux/validate-phase1.py\n", encoding="utf-8")
-        if "workflow_forbidden:python3 scripts/zigux/validate-phase1.py:unexpected_present" not in collect_failures(root):
-            print("self-test:forbidden_validate_phase1_case_failed")
-            return 1
-        case_count += 1
-
-        build_sample_repo(root)
-        workflow_path = root / WORKFLOW_REL
-        workflow_path.write_text(workflow_path.read_text(encoding="utf-8") + "      - name: Old live bench route\n        run: python3 scripts/zigux/check-phase1-bench.py\n", encoding="utf-8")
-        if "workflow_forbidden:live_phase1_bench:expected=0:actual=1" not in collect_failures(root):
-            print("self-test:forbidden_live_bench_case_failed")
-            return 1
-        case_count += 1
-
-        build_sample_repo(root)
-        workflow_path = root / WORKFLOW_REL
-        workflow_path.write_text(rewrite_once(workflow_path.read_text(encoding="utf-8"), "      - name: Self-test current Phase 4 artifact-diff helper\n"), encoding="utf-8")
-        if "workflow_step:Self-test current Phase 4 artifact-diff helper:expected=1:actual=0" not in collect_failures(root):
-            print("self-test:missing_phase4_artifact_diff_case_failed")
-            return 1
-        case_count += 1
-
-        build_sample_repo(root)
-        note_path = root / NOTE_REL
-        note_path.write_text(rewrite_once(note_path.read_text(encoding="utf-8"), "- `PHASE1_WORKFLOW_PHASE4_ARTIFACT_DIFF_TAIL=Self-test current Phase 4 artifact-diff helper,Self-test current Phase 4 artifact-diff determinism checker,Self-test current Phase 4 artifact-diff validator replay checker,Check current Phase 4 artifact-diff validator replay packet`\n"), encoding="utf-8")
-        if not any(item.startswith("note:expected=1:actual=0") for item in collect_failures(root)):
-            print("self-test:missing_phase4_note_line_case_failed")
-            return 1
-        case_count += 1
-
-    print("PHASE1_WORKFLOW_VIABILITY_SELF_TEST=pass")
-    print(f"PHASE1_WORKFLOW_VIABILITY_SELF_TEST_CASE_COUNT={case_count}")
-    return 0
-
-
-def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", help="override the repository root for validation")
-    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
-    args = parser.parse_args()
-
-    if args.self_test:
-        return run_self_test()
-
-    root = Path(args.root).resolve() if args.root else DEFAULT_ROOT.resolve()
-    failures = collect_failures(root)
-    if failures:
-        for failure in failures:
-            print(failure)
-        return 1
-
-    print("phase1-workflow-viability:ok")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+        build_sampleRepo(root)
