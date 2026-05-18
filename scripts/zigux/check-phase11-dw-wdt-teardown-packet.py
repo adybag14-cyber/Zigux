@@ -10,6 +10,8 @@ from pathlib import Path
 REQUIRED_FILES = {
     "matrix": Path("Documentation/zigux/phase11-dw-wdt-validation-matrix.md"),
     "teardown_note": Path("Documentation/zigux/phase11-dw-wdt-teardown-note.md"),
+    "plan": Path("Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"),
+    "registration_scaffold": Path("zigux/tests/phase11_dw_wdt_registration_scaffold.zig"),
     "verify_file": Path("drivers/watchdog/dw_wdt_verify.zig"),
 }
 
@@ -25,15 +27,38 @@ TEARDOWN_NOTE_MARKERS = [
     "whether hardware remains running after remove when reset control is unavailable",
 ]
 
+PLAN_MARKERS = [
+    "optional reset-control absence can still remain a ready-to-register scaffold branch while `reset_control_deassert` stays visible as an unrequested outcome rather than an implicit blocker",
+    "model reset-control availability and reset-release intent as explicit outcome-bearing steps while preserving the already-readable ready-to-register branch when reset control is absent",
+    "keep optional reset-control absence explicit as a ready-to-register scaffold branch so the bounded packet does not overstate reset wiring as mandatory before host-free registration review",
+]
+
+REGISTRATION_SCAFFOLD_MARKERS = [
+    'test "platform registration scaffold summary keeps optional reset-control absence explicit" {',
+    "dw_wdt.RegistrationScaffoldState.ready_to_register",
+    'try std.testing.expectEqualStrings("reset_control_deassert", summary.reset_release_call);',
+    "try std.testing.expect(!summary.reset_release_requested);",
+]
+
 VERIFY_FILE_MARKERS = [
     'test "phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit" {',
     'test "phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct" {',
     'test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit" {',
 ]
 
+MARKERS_BY_LABEL = {
+    "matrix": MATRIX_MARKERS,
+    "teardown_note": TEARDOWN_NOTE_MARKERS,
+    "plan": PLAN_MARKERS,
+    "registration_scaffold": REGISTRATION_SCAFFOLD_MARKERS,
+    "verify_file": VERIFY_FILE_MARKERS,
+}
+
 SELF_TEST_CASES = (
     ("matrix_marker_missing", "matrix", MATRIX_MARKERS[0]),
     ("teardown_note_marker_missing", "teardown_note", TEARDOWN_NOTE_MARKERS[1]),
+    ("plan_marker_missing", "plan", PLAN_MARKERS[0]),
+    ("registration_scaffold_marker_missing", "registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[0]),
     ("verify_marker_missing", "verify_file", VERIFY_FILE_MARKERS[2]),
 )
 
@@ -50,12 +75,7 @@ def check_repo(root: Path) -> list[str]:
             missing.append(f"missing_file:{rel_path.as_posix()}")
             continue
         text = read_text(path)
-        markers = {
-            "matrix": MATRIX_MARKERS,
-            "teardown_note": TEARDOWN_NOTE_MARKERS,
-            "verify_file": VERIFY_FILE_MARKERS,
-        }[label]
-        for marker in markers:
+        for marker in MARKERS_BY_LABEL[label]:
             if marker not in text:
                 missing.append(f"missing_marker:{label}:{marker}")
     return missing
@@ -66,18 +86,11 @@ def seed_fixture(root: Path) -> None:
         path = root / rel_path
         path.parent.mkdir(parents=True, exist_ok=True)
 
-    (root / REQUIRED_FILES["matrix"]).write_text(
-        "\n".join(MATRIX_MARKERS),
-        encoding="utf-8",
-    )
-    (root / REQUIRED_FILES["teardown_note"]).write_text(
-        "\n".join(TEARDOWN_NOTE_MARKERS),
-        encoding="utf-8",
-    )
-    (root / REQUIRED_FILES["verify_file"]).write_text(
-        "\n".join(VERIFY_FILE_MARKERS),
-        encoding="utf-8",
-    )
+    for label, markers in MARKERS_BY_LABEL.items():
+        (root / REQUIRED_FILES[label]).write_text(
+            "\n".join(markers),
+            encoding="utf-8",
+        )
 
 
 def run_self_test() -> None:
@@ -110,13 +123,15 @@ def run_self_test() -> None:
 
 
 def parse_args() -> argparse.Namespace:
+    script_path = Path(__file__).resolve()
+    default_root = script_path.parents[2] if len(script_path.parents) > 2 else Path.cwd()
     parser = argparse.ArgumentParser(
         description="Fail-close the Phase 11 DesignWare watchdog teardown packet."
     )
     parser.add_argument(
         "--root",
         type=Path,
-        default=Path(__file__).resolve().parents[2],
+        default=default_root,
         help="repository root to inspect",
     )
     parser.add_argument(
@@ -143,7 +158,7 @@ def main() -> int:
     print(f"PHASE11_DW_WDT_TEARDOWN_PACKET_FILE_COUNT={len(REQUIRED_FILES)}")
     print(
         "PHASE11_DW_WDT_TEARDOWN_PACKET_MARKER_COUNT="
-        f"{len(MATRIX_MARKERS) + len(TEARDOWN_NOTE_MARKERS) + len(VERIFY_FILE_MARKERS)}"
+        f"{sum(len(markers) for markers in MARKERS_BY_LABEL.values())}"
     )
     return 0
 
