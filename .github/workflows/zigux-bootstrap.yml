@@ -203,6 +203,24 @@ jobs:
       - name: Check current Phase 2 shared reminder packet
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
 
+      - name: Validate current Phase 2 tool packet
+        run: python3 scripts/zigux/validate-phase2.py
+
+      - name: Self-test current Phase 2 fixdep gate checker
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
+
+      - name: Check current Phase 2 fixdep gate packet
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py
+
+      - name: Self-test current Phase 2 fixdep diff checker
+        run: python3 scripts/zigux/check-fixdep-diff.py --self-test
+
+      - name: Check current Phase 2 fixdep diff packet
+        run: python3 scripts/zigux/check-fixdep-diff.py
+
+      - name: Run current Phase 2 fixdep direct replay
+        run: zig test scripts/zigux/fixdep.zig
+
       - name: Self-test current Phase 1 direct-owner checker
         run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
 
