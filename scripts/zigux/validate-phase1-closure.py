@@ -113,6 +113,7 @@ EXPECTED_RBTREE_HELPER_TEST_ANCHORS = [
     'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
     'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
     'test "rbtree eraseInit detaches erased node"',
+    'test "rbtree eraseInit clears singleton roots before reseed"',
     'test "rbtree postorder and empty node helpers behave"',
     'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
     'test "rbtree nextMatch walks the duplicate range in order"',
@@ -415,9 +416,9 @@ EXPECTED_STRING_PACKET = {
     "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
     "shared_replace_char_cstr_review_summary": (
         "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, "
-        "trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated "
-        "embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without "
-        "widening helper-local memparse ownership"
+        "trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the "
+        "dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule "
+        "explicit without widening helper-local memparse ownership"
     ),
     "parity_fixture_keys": [
         "strtobool_y",
@@ -449,29 +450,18 @@ EXPECTED_MARKERS = {
     "restore_state": "`PHASE1_CLOSURE_RESTORE_STATE=docs_plus_validator`",
     "helper_count": "`PHASE1_HELPER_COUNT=13`",
     "reminder_packet": (
-        "`PHASE1_CURRENT_REMINDER_PACKET="
-        "Documentation/zigux/phase1-closure.md,"
-        "Documentation/zigux/phase1-host-helper-lane-sequencing.md,"
-        "Documentation/zigux/README.md,"
-        "Documentation/zigux/review-checklist.md,"
-        "scripts/zigux/README.md,"
-        "scripts/zigux/check-phase1-string-review-packet.py,"
-        "scripts/zigux/check-phase1-direct-owner-markers.py,"
-        "scripts/zigux/validate-phase1-closure.py,"
-        "zigux/tests/README.md,"
-        "zigux/tests/build.zig,"
-        "zigux/tests/phase1_host_tools_smoke.zig,"
-        "zigux/tests/fixtures/phase1_helper_manifest.json`"
+        "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,"
+        "Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,"
+        "Documentation/zigux/review-checklist.md,scripts/zigux/README.md,"
+        "scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,"
+        "scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,"
+        "zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`"
     ),
     "gap_packet": (
-        "`PHASE1_CURRENT_GAP_PACKET="
-        "scripts/zigux/validate-phase1.py,"
-        "scripts/zigux/check-phase1-parity.py,"
-        "zigux/tests/phase1_helpers.zig,"
-        "zigux/tests/phase1_bench.zig,"
+        "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,"
+        "zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,"
         "zigux/tests/fixtures/phase1_bench_expectations.json,"
-        "zigux/tests/fixtures/phase1_helpers_c_harness.c,"
-        "zigux/Makefile`"
+        "zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`"
     ),
     "closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
@@ -482,67 +472,80 @@ EXPECTED_MARKERS = {
     ),
 }
 
-FORBIDDEN_MARKERS = (
-    "`PHASE1_CLOSURE_RESTORE_STATE=docs_only`",
+FORBIDDEN_MARKERS = {
     "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`",
-    "`PHASE1_NEXT_SAFE_STEP=add scripts/zigux/validate-phase1-closure.py on current master and then sync one shared reminder surface against this restored closure note`",
-    "scripts/zigux/validate-phase1-closure.py,scripts/zigux/check-phase1-parity.py",
-)
+    "`PHASE1_NEXT_SAFE_STEP=restore the missing phase1 closure note first`",
+}
 
 
-def repo_root(root: str | None) -> Path:
-    return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
+def repo_root(override: str | None) -> Path:
+    return Path(override).resolve() if override else DEFAULT_ROOT
 
 
 def load_text(root: Path, relative_path: Path) -> str:
-    return (root / relative_path).read_text(encoding="utf-8")
+    path = root / relative_path
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        raise FileNotFoundError(relative_path.as_posix()) from None
 
 
-def load_json(root: Path, relative_path: Path) -> object:
-    return json.loads(load_text(root, relative_path))
-
-
-def require_exact_occurrence(text: str, label: str, marker: str) -> list[str]:
-    count = text.count(marker)
-    if count != 1:
-        return [f"{label}:expected=1:actual={count}"]
-    return []
+def require_exact_occurrence(text: str, label: str, needle: str) -> list[str]:
+    count = text.count(needle)
+    if count == 1:
+        return []
+    return [f"{label}:expected_once:{needle}:actual_count={count}"]
 
 
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
-    if actual != expected:
-        return [f"{label}:expected={expected!r}:actual={actual!r}"]
-    return []
+    if actual == expected:
+        return []
+    return [f"{label}:expected={expected!r}:actual={actual!r}"]
 
 
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
-
     for relative_path in REQUIRED_FILES:
-        if not (root / relative_path).exists():
+        if not (root / relative_path).is_file():
             failures.append(f"missing_file:{relative_path.as_posix()}")
+
     if failures:
         return failures
 
     closure_text = load_text(root, PHASE1_CLOSURE_REL)
     for label, marker in EXPECTED_MARKERS.items():
         failures.extend(
-            require_exact_occurrence(closure_text, f"phase1_closure:{label}", marker)
+            require_exact_occurrence(closure_text, f"{PHASE1_CLOSURE_REL.as_posix()}:{label}", marker)
         )
 
     for marker in FORBIDDEN_MARKERS:
-        if marker in closure_text:
-            failures.append(f"phase1_closure:forbidden={marker}")
+        count = closure_text.count(marker)
+        if count:
+            failures.append(
+                f"{PHASE1_CLOSURE_REL.as_posix()}:forbidden_marker:{marker}:actual_count={count}"
+            )
 
-    manifest = load_json(root, MANIFEST_REL)
+    try:
+        manifest = json.loads(load_text(root, MANIFEST_REL))
+    except json.JSONDecodeError as exc:
+        return [f"{MANIFEST_REL.as_posix()}:json_decode_error:{exc}"]
+
     if not isinstance(manifest, dict):
         return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
 
     failures.extend(
-        require_exact_value(f"{MANIFEST_REL.as_posix()}:phase", manifest.get("phase"), "Phase 1")
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:phase",
+            manifest.get("phase"),
+            "Phase 1",
+        )
     )
     failures.extend(
-        require_exact_value(f"{MANIFEST_REL.as_posix()}:status", manifest.get("status"), "closed")
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:status",
+            manifest.get("status"),
+            "closed",
+        )
     )
     failures.extend(
         require_exact_value(
