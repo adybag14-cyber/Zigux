@@ -56,8 +56,9 @@ If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-firs
 2. `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
 3. `python3 scripts/zigux/validate-phase12.py`
 4. reminder-only wrapper vocabulary until it returns: `make -C zigux phase12-validate`
-5. shipped wrapper rerun with the attached toolchain: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
-6. shipped wrapper rerun with the attached toolchain: `make -C zigux phase12 ZIG=<attached-zig-path>`
+5. attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`
+6. attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-test ZIG=<attached-zig-path>`
+7. attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12 ZIG=<attached-zig-path>`
 
 Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.
 
