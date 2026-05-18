@@ -82,4 +82,41 @@ static inline zigux_boundary_header zigux_uapi_boundary_header_canonicalize(zigu
     return header;
 }
 
+static inline zigux_boundary_header zigux_boundary_header_make(uint16_t flags)
+{
+    return zigux_uapi_boundary_header_current(flags);
+}
+
+static inline zigux_boundary_header zigux_boundary_header_make_compatible(
+    uint32_t size,
+    uint16_t flags)
+{
+    return zigux_uapi_boundary_header_compatible(size, flags);
+}
+
+static inline int zigux_boundary_header_is_current_abi_version(uint16_t abi_version)
+{
+    return zigux_uapi_boundary_header_has_current_abi_version(abi_version);
+}
+
+static inline int zigux_boundary_header_is_compatible_size(uint32_t size)
+{
+    return size >= (uint32_t)sizeof(zigux_boundary_header);
+}
+
+static inline int zigux_boundary_header_is_canonical_size(uint32_t size)
+{
+    return size == (uint32_t)sizeof(zigux_boundary_header);
+}
+
+static inline int zigux_boundary_header_is_compatible(zigux_boundary_header header)
+{
+    return zigux_uapi_boundary_header_is_compatible(header);
+}
+
+static inline int zigux_boundary_header_is_canonical(zigux_boundary_header header)
+{
+    return zigux_uapi_boundary_header_is_canonical(header);
+}
+
 #endif
