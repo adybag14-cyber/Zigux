@@ -24,6 +24,7 @@ test "phase10 virtio mmio survey note keeps the dedicated survey gate explicit b
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio_verify.zig");
+    try expectContains(survey_note, "interrupt-ack disposition review");
     try expectContains(survey_note, "config-write disposition reporting");
     try expectContains(survey_note, "feature-negotiation deltas");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");
@@ -44,6 +45,7 @@ test "phase10 virtio mmio survey gate keeps manifest lane identity and risky tra
 
     try expectContains(manifest, "\"lane_key\": \"P10-L11\"");
     try expectContains(manifest, "\"risky_transport_posture\": \"blocked_on_risky_transport\"");
+    try expectContains(manifest, "\"id\": \"phase10-mmio-interrupt-ack-disposition-helper\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-mmio-survey-gate\"");
 }
 
