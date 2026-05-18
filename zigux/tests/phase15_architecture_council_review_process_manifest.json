@@ -55,7 +55,8 @@
     "`Documentation/zigux/phase15-shared-summary-gap.md`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
-    "one focused review-process checker plus the shared-summary gap checker"
+    "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
+    "one focused review-process checker, one focused tests-readme checker, and the shared-summary gap checker"
   ],
   "shared_gap_expected_present_paths": [
     "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
