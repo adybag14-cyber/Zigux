@@ -9,6 +9,7 @@ Fresh mixed readback on 2026-05-18 confirmed these current sample-root files on 
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kretprobe_example.zig`
+* `samples/zigux/trace_events_sample.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
@@ -27,7 +28,7 @@ Current `master` keeps the bytestream sample-root port directly readable in `sam
 Current `master` keeps the kretprobe sample-root port directly readable in `samples/zigux/` through `samples/zigux/kretprobe_example.zig`.
 For the trace-events anchor, keep shared contributor guidance grounded in the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` plus the shared reminder packet. Fresh public-tree reread also reconfirms `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig` as current public-tree-backed companion evidence on `master`, while the bounded formatting companion remains the direct authenticated sample-root proof.
 Keep the kobject anchor framed as a roadmap-backed Phase 5 target plus shared-reminder, current public-tree-backed companion, or repo-reality-gap surface rather than as current direct sample-root proof.
-Keep shared contributor guidance honest about that narrower packet instead of repeating the older broader direct-sample split.
+Keep shared contributor guidance honest about that split-readback packet instead of repeating the older narrower trace-events wording or overstating direct authenticated proof.
 
 ## Phase 5 reminder
 
