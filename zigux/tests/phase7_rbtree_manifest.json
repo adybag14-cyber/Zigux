@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-18T11:26:05Z",
+  "verified_on_utc": "2026-05-18T12:38:00Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
@@ -26,7 +26,7 @@
     "zigux/tests/phase7_build.zig",
     "scripts/zigux/validate-phase7.py"
   ],
-  "readable_makefile_markers": [
+  "absent_makefile_markers": [
     "phase7-validate:",
     "phase7-rbtree-test:",
     "phase7-rbtree-survey:",
@@ -43,7 +43,7 @@
     "the surviving survey-plus-manifest anchor must not be presented as proof that the broader rbtree helper, dedicated test, fixture, checker, or shared build files have returned on current master",
     "same-lane follow-through stays inside the surviving survey and manifest anchors until a fresh reread proves another rbtree companion returned on current master",
     "cross-helper truthfulness must keep the landed string_helpers packet explicit instead of repeating the older blocked-by-missing-string-helper claim",
-    "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` now exposes the current `phase7-*` wrapper routes, `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps, and the missing helper, dedicated test, checker, and shared build files still block any claim that the broader rbtree build packet returned"
+    "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` is directly readable again but still lacks dedicated `phase7-*` wrapper routes, `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps, and the missing helper, dedicated test, checker, and shared build files still block any claim that the broader rbtree build packet returned"
   ],
   "next_bounded_step": "Keep same-lane follow-through limited to survey-or-manifest truthfulness until a fresh reread proves the rbtree slice note, helper, dedicated test, fixtures, checker, or shared Phase 7 build files returned on current master."
 }
