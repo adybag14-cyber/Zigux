@@ -366,6 +366,22 @@ def run_self_test() -> int:
         f"{CASES_PATH}:expected_non_empty_json_list",
     )
 
+    non_object_cases = copy_valid_cases(valid_cases)
+    non_object_cases[0] = "sample"
+    expect_failure(
+        "non_object_case_entry",
+        lambda: validate_cases(non_object_cases),
+        f"{CASES_PATH}:entry[0]:expected_json_object",
+    )
+
+    missing_name_cases = copy_valid_cases(valid_cases)
+    missing_name_cases[0].pop("name", None)
+    expect_failure(
+        "missing_case_name",
+        lambda: validate_cases(missing_name_cases),
+        f"{CASES_PATH}:entry[0]:missing_non_empty_name",
+    )
+
     duplicate_name_cases = copy_valid_cases(valid_cases)
     duplicate_name_cases[1]["name"] = duplicate_name_cases[0]["name"]
     expect_failure(
@@ -524,7 +540,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 15}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 17}")
     return 0
 
 
