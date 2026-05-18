@@ -246,6 +246,61 @@ test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff be
     try std.testing.expectEqual(@as(?[]const u8, null), collected[exec_cmd.max_execl_slots - 2]);
 }
 
+test "phase 8 exec-cmd focused replay keeps pure deferred handoff builders explicit" {
+    const config = exec_cmd.Config{
+        .exec_name = "perf",
+        .prefix = "/usr/libexec/perf-core",
+        .exec_path = "libexec/perf-core",
+        .exec_path_env = "PERF_EXEC_PATH",
+    };
+
+    var deferred_execv = try exec_cmd.buildDeferredExecvCall(
+        std.testing.allocator,
+        config,
+        &[_][]const u8{ "record", "-a" },
+    );
+    defer deferred_execv.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings("perf", deferred_execv.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred_execv.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred_execv.argv[2].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execv.argv[3]);
+
+    var empty_execv = try exec_cmd.buildDeferredExecvCall(
+        std.testing.allocator,
+        config,
+        &.{},
+    );
+    defer empty_execv.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings("perf", empty_execv.argv[0].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), empty_execv.argv[1]);
+
+    var deferred_execl = try exec_cmd.buildDeferredExeclCall(
+        std.testing.allocator,
+        config,
+        "record",
+        &[_]?[]const u8{ "-a", "--stdio", null, "--ignored" },
+    );
+    defer deferred_execl.deinit(std.testing.allocator);
+
+    try std.testing.expectEqualStrings("perf", deferred_execl.argv[0].?);
+    try std.testing.expectEqualStrings("record", deferred_execl.argv[1].?);
+    try std.testing.expectEqualStrings("-a", deferred_execl.argv[2].?);
+    try std.testing.expectEqualStrings("--stdio", deferred_execl.argv[3].?);
+    try std.testing.expectEqual(@as(?[]const u8, null), deferred_execl.argv[4]);
+
+    try std.testing.expectError(
+        error.MissingNullTerminator,
+        exec_cmd.buildDeferredExeclCall(
+            std.testing.allocator,
+            config,
+            "record",
+            &[_]?[]const u8{ "-a", "--stdio" },
+        ),
+    );
+}
+
 test "phase 8 exec-cmd slice note keeps the helper-vs-phase ownership boundary explicit" {
     const slice = try readRepoFile("Documentation/zigux/phase8-exec-cmd-slice.md");
     defer std.testing.allocator.free(slice);
