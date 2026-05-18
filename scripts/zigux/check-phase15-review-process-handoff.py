@@ -84,6 +84,12 @@ def collect_failures(root: Path) -> list[str]:
         failures.append(
             "review checklist is missing the Phase 15 Architecture Council entry-review prompt"
         )
+    else:
+        for field in manifest["required_review_fields"]:
+            if field not in checklist_entry_prompt:
+                failures.append(
+                    f"review checklist entry prompt is missing required review field: {field}"
+                )
 
     for field in manifest["stay_in_c_closeout_fields"]:
         if field not in review_process:
@@ -467,6 +473,17 @@ def run_self_test() -> int:
             "review checklist is missing the Phase 15 Architecture Council entry-review prompt"
         ]:
             raise AssertionError(f"unexpected checklist-prompt failure: {failures}")
+
+        _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("required approver set, ", "", 1),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "review checklist entry prompt is missing required review field: required approver set"
+        ]:
+            raise AssertionError(f"unexpected checklist-field failure: {failures}")
 
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(
