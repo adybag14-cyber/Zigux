@@ -54,7 +54,6 @@ TESTS_README_REQUIRED_MARKERS = [
     "`Documentation/zigux/phase8-libbpf-segment-survey.md`",
     "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
     "`zigux/tests/phase8_libbpf_segments.zig`",
-    "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
     "`zigux/Makefile`",
     "keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence",
     "if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`",
@@ -83,7 +82,6 @@ PERF_BUFFER_POLL_TEST_REQUIRED_MARKERS = [
     '"`Documentation/zigux/phase8-libbpf-segment-survey.md`"',
     '"`zigux/tests/phase8_perf_buffer_poll_only_build.zig`"',
     '"`zigux/tests/phase8_libbpf_segments.zig`"',
-    '"`zigux/tests/phase8_libbpf_segments_only_build.zig`"',
     '"`zigux/Makefile`"',
     '"keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence"',
     '"Phase 8 flow - the current userspace-adjacent tooling reminder should stay anchored to the surviving perf-buffer poll packet together with the mixed-source file-path-handle bridge packet and its shipped validator and make routes, instead of reconstructing older help, kallsyms, or broader shared-bridge claims from paths that current `master` still does not serve directly"',
@@ -196,7 +194,6 @@ Phase 8 review packet
   * `Documentation/zigux/phase8-libbpf-segment-survey.md`
   * `zigux/tests/phase8_perf_buffer_poll_only_build.zig`
   * `zigux/tests/phase8_libbpf_segments.zig`
-  * `zigux/tests/phase8_libbpf_segments_only_build.zig`
   * `zigux/Makefile`
   * keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence
   * if future same-lane work rematerializes the remaining broader docs, focused perf-buffer build shard, shared libbpf segment replay, or Makefile routes, or changes the focused bridge shard, the shared build replay, or the libbpf segment review packet, refresh this tests-root summary only after rereading the current direct-readback anchors together with the mixed-source file-path-handle bridge packet on current `master`
@@ -226,7 +223,6 @@ test \"phase 8 perf-buffer poll tests README keeps the current direct-readback p
     _ = \"`Documentation/zigux/phase8-libbpf-segment-survey.md`\";
     _ = \"`zigux/tests/phase8_perf_buffer_poll_only_build.zig`\";
     _ = \"`zigux/tests/phase8_libbpf_segments.zig`\";
-    _ = \"`zigux/tests/phase8_libbpf_segments_only_build.zig`\";
     _ = \"`zigux/Makefile`\";
     _ = \"keep the narrower current Phase 8 reminder tied to the directly readable tests-readme checker plus the surviving perf-buffer poll checker, helper, and focused test packet, while also keeping the landed mixed-source file-path-handle bridge packet visible through the shared bridge-boundary survey, bridge slice, validator entrypoint, focused bridge proof, and helper-local replay instead of treating that same-lane bridge surface as missing current-master evidence\";
 }
