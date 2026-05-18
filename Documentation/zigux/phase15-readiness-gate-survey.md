@@ -9,7 +9,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
-- role: keep the Architecture Council governance packet honest about what is ready for reminder-surface maintenance and what still remains blocked because the broader validator, manifest, and build companions are missing on current `master`
+- role: keep the Architecture Council governance packet honest about what is ready for reminder-surface maintenance and what still remains blocked because the broader validator, manifest, build, and lane-owner companions are missing on current `master`
 
 ## Why this note exists
 
@@ -20,7 +20,7 @@ Current `master` already carries the freeze map, the freeze-map governance note,
 This survey keeps those two truths together:
 
 - the governance packet is materially landed and reviewable
-- the missing validator, manifest, and build companions still block any claim that the broader Phase 15 replay route is fully ready
+- the missing validator, manifest, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready
 
 ## Current directly readable readiness packet
 
