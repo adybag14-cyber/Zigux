@@ -12,7 +12,7 @@ This note tracks the bounded Phase 5 reference-sample survey for the roadmap's `
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
   - `Documentation/zigux/phase5-sample-review-guide.md`
   - `samples/zigux/README.md`
-  - `zigux/tests/README.md`
+  - omission readback for `zigux/tests/README.md`
   - `samples/zigux/bytestream_fifo.zig`
   - public-tree blob readback for `zigux/tests/phase5_bytestream_fifo.zig`
   - authenticated contents readback for `zigux/tests/phase5_bytestream_fifo_manifest.json`
@@ -36,7 +36,7 @@ Fresh repo-first inspection on 2026-05-18 confirmed these same-lane facts:
 - the broader exact behavior packet is still reviewable through public-tree blob readback for `zigux/tests/phase5_bytestream_fifo.zig`, which currently carries four focused replay tests for lane scoping, transfer counts, helper boundaries, queue-shape boundaries, preview behavior, and lifecycle guards.
 - the manifest-backed packet remains directly readable through authenticated contents readback for `zigux/tests/phase5_bytestream_fifo_manifest.json`.
 - the survey packet remains publicly visible through `zigux/tests/phase5_bytestream_fifo_survey.zig`, which currently carries four survey-packet checks that keep this note, the manifest, and the split-readback wording aligned.
-- the shared review path still runs through `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `zigux/tests/README.md`, the directly readable manifest companion, the public-tree `zigux/tests/phase5_bytestream_fifo.zig` focused replay, the public-tree `zigux/tests/phase5_bytestream_fifo_survey.zig` survey gate, and the public-tree `zigux/tests/phase5_build.zig` route.
+- the shared review path still runs through `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, the directly readable manifest companion, the public-tree `zigux/tests/phase5_bytestream_fifo.zig` focused replay, the public-tree `zigux/tests/phase5_bytestream_fifo_survey.zig` survey gate, and the public-tree `zigux/tests/phase5_build.zig` route, while `zigux/tests/README.md` currently stays a tests-root omission readback rather than a bytestream-specific review surface.
 - authenticated GitHub contents reads in this environment still do not recover `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, or `zigux/tests/phase5_build.zig`, so reminder surfaces should describe the split readback honestly instead of calling those files absent or pretending the connector path already recovered them all.
 
 That means the honest same-lane posture today is:
@@ -44,7 +44,7 @@ That means the honest same-lane posture today is:
 - the roadmap-backed kfifo sample idiom is still present at the sample root
 - the ownership rule remains non-runtime and fixed-buffer-backed
 - the sample-root file itself now exposes three direct self-checks
-- the remaining cross-file replay, survey-truthfulness, and shared-build companion checks stay reviewable through the focused replay packet, the survey packet, and the public-tree Phase 5 build route
+- the tests-root guide currently contributes only an omission readback for this packet, while the remaining cross-file replay, survey-truthfulness, and shared-build companion checks stay reviewable through the focused replay packet, the survey packet, and the public-tree Phase 5 build route
 - current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample, so this bytestream packet must not be used to imply bitmap-side sample delivery or reopen the separate later-phase runtime bitmap family
 
 ## Approved idiom for the current bytestream sample
