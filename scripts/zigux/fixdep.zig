@@ -140,8 +140,7 @@ const Processor = struct {
         if (try self.remember(&self.config_seen, token)) {
             return;
         }
-        try writer.print("    $(wildcard include/config/{s}) \\\
-", .{token});
+        try writer.print("    $(wildcard include/config/{s}) \\\n", .{token});
     }
 
     fn parseConfigFile(self: *Processor, writer: anytype, text: []const u8) !void {
@@ -291,13 +290,11 @@ const Processor = struct {
             if (is_source) {
                 if (!saw_any_target) {
                     saw_any_target = true;
-                    try writer.print("source_{s} := {s}\n\ndeps_{s} := \\\
-", .{ target, token.items, target });
+                    try writer.print("source_{s} := {s}\n\ndeps_{s} := \\\n", .{ target, token.items, target });
                     need_parse = true;
                 }
             } else if (!isIgnoredFile(token.items) and !try self.remember(&self.file_seen, token.items)) {
-                try writer.print("  {s} \\\
-", .{token.items});
+                try writer.print("  {s} \\\n", .{token.items});
                 need_parse = true;
             }
 
@@ -424,9 +421,7 @@ test "config parsing trims _MODULE and deduplicates symbols" {
     );
 
     try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_CORE) \\\
-    $(wildcard include/config/ZIGUX_DEBUG) \\\
-",
+        "    $(wildcard include/config/ZIGUX_CORE) \\\n    $(wildcard include/config/ZIGUX_DEBUG) \\\n",
         capture.list.items,
     );
 }
@@ -468,8 +463,50 @@ test "config parsing ignores prefixed CONFIG tokens for C parity" {
     );
 
     try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_REAL) \\\
-",
+        "    $(wildcard include/config/ZIGUX_REAL) \\\n",
+        capture.list.items,
+    );
+}
+
+test "config parsing accepts punctuation-delimited CONFIG tokens" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 96),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn flush(_: *@This()) !void {}
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseConfigFile(
+        &capture,
+        "(CONFIG_ZIGUX_WRAP) + CONFIG_ZIGUX_AFTER_MODULE,HELLO_CONFIG_ZIGUX_IGNORED",
+    );
+
+    try std.testing.expectEqualStrings(
+        "    $(wildcard include/config/ZIGUX_WRAP) \\\n" ++
+            "    $(wildcard include/config/ZIGUX_AFTER) \\\n",
         capture.list.items,
     );
 }
@@ -511,8 +548,7 @@ test "config parsing stops at the first embedded NUL" {
     );
 
     try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_CORE) \\\
-",
+        "    $(wildcard include/config/ZIGUX_CORE) \\\n",
         capture.list.items,
     );
 }
@@ -593,9 +629,7 @@ test "dep parsing keeps escaped spaces inside tokens" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
-  dep\\ name.rmeta \\\
-\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dep\\ name.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -638,14 +672,10 @@ test "dep parsing continues dependency lines across escaped newlines" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\
-" ++
-            "  dep-first.so \\\
-" ++
-            "  dep-second.so \\\
-" ++
-            "  dep-third.so \\\
-" ++
+        "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\n" ++
+            "  dep-first.so \\\n" ++
+            "  dep-second.so \\\n" ++
+            "  dep-third.so \\\n" ++
             "\n" ++
             "continued.o: $(deps_continued.o)\n\n" ++
             "$(deps_continued.o):\n",
@@ -691,8 +721,7 @@ test "dep parsing skips bytes after the first embedded NUL" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
-\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -844,8 +873,7 @@ test "dependency file reads beyond the legacy one mebibyte ceiling" {
     try std.testing.expect(dep_text.len > 1024 * 1024);
     try processor.parseDepFile(&capture, dep_text, "sample.o");
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
-\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -886,10 +914,7 @@ test "escaped hash dependency survives concatenated target comment path" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
-  dir#crate.rmeta \\\
-  later.rmeta \\\
-\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dir#crate.rmeta \\\n  later.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -992,22 +1017,14 @@ test "runFixdep matches multi-target parity packet with escaped hash and deduped
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_module/sample2.o := {s}\n\n" ++
-            "source_module/sample2.o := {s}\n\ndeps_module/sample2.o := \\\
-" ++
-            "    $(wildcard include/config/ZIGUX_MULTI) \\\
-" ++
-            "  {s} \\\
-" ++
-            "    $(wildcard include/config/ZIGUX_HASH) \\\
-" ++
-            "    $(wildcard include/config/ZIGUX_SHARED) \\\
-" ++
-            "  {s} \\\
-" ++
-            "    $(wildcard include/config/ZIGUX_SECOND) \\\
-" ++
-            "  {s} \\\
-" ++
+            "source_module/sample2.o := {s}\n\ndeps_module/sample2.o := \\\n" ++
+            "    $(wildcard include/config/ZIGUX_MULTI) \\\n" ++
+            "  {s} \\\n" ++
+            "    $(wildcard include/config/ZIGUX_HASH) \\\n" ++
+            "    $(wildcard include/config/ZIGUX_SHARED) \\\n" ++
+            "  {s} \\\n" ++
+            "    $(wildcard include/config/ZIGUX_SECOND) \\\n" ++
+            "  {s} \\\n" ++
             "\n" ++
             "module/sample2.o: $(deps_module/sample2.o)\n\n" ++
             "$(deps_module/sample2.o):\n",
@@ -1122,12 +1139,9 @@ test "runFixdep reads escaped-space dependency paths and emits config deps" {
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_sample_escaped_space.o := {s}\n\n" ++
-            "source_sample_escaped_space.o := {s}\n\ndeps_sample_escaped_space.o := \\\
-" ++
-            "  {s} \\\
-" ++
-            "    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \\\
-" ++
+            "source_sample_escaped_space.o := {s}\n\ndeps_sample_escaped_space.o := \\\n" ++
+            "  {s} \\\n" ++
+            "    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \\\n" ++
             "\n" ++
             "sample_escaped_space.o: $(deps_sample_escaped_space.o)\n\n" ++
             "$(deps_sample_escaped_space.o):\n",
@@ -1242,14 +1256,10 @@ test "runFixdep reads escaped-colon dependency paths and trims shared _MODULE co
     const expected = try std.fmt.allocPrint(
         std.testing.allocator,
         "savedcmd_sample_escaped_colon.o := {s}\n\n" ++
-            "source_sample_escaped_colon.o := {s}\n\ndeps_sample_escaped_colon.o := \\\
-" ++
-            "  {s} \\\
-" ++
-            "    $(wildcard include/config/ZIGUX_COLON) \\\
-" ++
-            "    $(wildcard include/config/ZIGUX_SHARED_COLON) \\\
-" ++
+            "source_sample_escaped_colon.o := {s}\n\ndeps_sample_escaped_colon.o := \\\n" ++
+            "  {s} \\\n" ++
+            "    $(wildcard include/config/ZIGUX_COLON) \\\n" ++
+            "    $(wildcard include/config/ZIGUX_SHARED_COLON) \\\n" ++
             "\n" ++
             "sample_escaped_colon.o: $(deps_sample_escaped_colon.o)\n\n" ++
             "$(deps_sample_escaped_colon.o):\n",
