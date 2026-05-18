@@ -75,6 +75,6 @@ The current closure packet is intentionally narrow and replayable:
 
 ## Next Step
 
-The next bounded same-lane follow-through is to align the broader docs-root and checklist reminder wording so the restored closure note, shipped `scripts/zigux/validate-phase2.py` entrypoint, and shipped make-wrapper packet are no longer described there as repo-reality gaps.
+The next bounded same-lane follow-through is to leave this closure packet parked unless a future Phase 2 reread finds fresh drift between the restored closure-side packet and the shared docs-root, checklist, scripts-root, or tests-root reminders, or unless one of the missing validator-first, installer, or direct cross-route companions returns on current `master`.
 
-- `PHASE2_NEXT_SAFE_STEP=sync the remaining docs-root and checklist Phase 2 reminder surfaces to the restored closure note, shipped validate-phase2 entrypoint, and shipped make-wrapper packet`
+- `PHASE2_NEXT_SAFE_STEP=leave the restored Phase 2 closure packet parked unless shared reminder drift reopens around the current closure-side packet or the missing validator-first, installer, or direct cross-route companions return on current master`
