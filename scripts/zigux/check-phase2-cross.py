@@ -28,6 +28,7 @@ EXPECTED_ZIG_TEST_FILES = [
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
 ]
+DEFAULT_ZIG_TIMEOUT_SECONDS = 300
 
 
 def fixture_path(root: Path) -> Path:
@@ -132,14 +133,27 @@ def load_configured_lists(root: Path) -> tuple[list[str], list[str]] | tuple[Non
     return targets, zig_test_files
 
 
-def replay_target(root: Path, target: str, zig: str, zig_test_files: list[str]) -> int:
+def replay_target(
+    root: Path,
+    target: str,
+    zig: str,
+    zig_test_files: list[str],
+    timeout_seconds: int = DEFAULT_ZIG_TIMEOUT_SECONDS,
+) -> int:
     for rel_path in zig_test_files:
         try:
             completed = subprocess.run(
                 [zig, "test", rel_path, "-target", target, "--test-no-exec"],
                 cwd=root,
                 check=False,
+                timeout=timeout_seconds,
             )
+        except subprocess.TimeoutExpired as exc:
+            print("PHASE2_CROSS=fail")
+            print(f"PHASE2_CROSS_TARGET={target}")
+            print(f"PHASE2_CROSS_FAILED_FILE={rel_path}")
+            print(f"PHASE2_CROSS_NOTE=zig timed out: {exc}")
+            return 1
         except OSError as exc:
             print("PHASE2_CROSS=fail")
             print(f"PHASE2_CROSS_TARGET={target}")
@@ -154,7 +168,12 @@ def replay_target(root: Path, target: str, zig: str, zig_test_files: list[str]) 
     return 0
 
 
-def run_cross_compile(root: Path, target: str, zig: str) -> int:
+def run_cross_compile(
+    root: Path,
+    target: str,
+    zig: str,
+    timeout_seconds: int = DEFAULT_ZIG_TIMEOUT_SECONDS,
+) -> int:
     targets, zig_test_files = load_configured_lists(root)
     if targets is None or zig_test_files is None:
         return 1
@@ -165,7 +184,7 @@ def run_cross_compile(root: Path, target: str, zig: str) -> int:
         print("PHASE2_CROSS_NOTE=target not listed in fixture")
         return 1
 
-    result = replay_target(root, target, zig, zig_test_files)
+    result = replay_target(root, target, zig, zig_test_files, timeout_seconds=timeout_seconds)
     if result != 0:
         return result
 
@@ -176,13 +195,17 @@ def run_cross_compile(root: Path, target: str, zig: str) -> int:
     return 0
 
 
-def run_all_targets(root: Path, zig: str) -> int:
+def run_all_targets(
+    root: Path,
+    zig: str,
+    timeout_seconds: int = DEFAULT_ZIG_TIMEOUT_SECONDS,
+) -> int:
     targets, zig_test_files = load_configured_lists(root)
     if targets is None or zig_test_files is None:
         return 1
 
     for target in targets:
-        result = replay_target(root, target, zig, zig_test_files)
+        result = replay_target(root, target, zig, zig_test_files, timeout_seconds=timeout_seconds)
         if result != 0:
             print("PHASE2_CROSS_REPLAY_MODE=all-targets")
             return result
@@ -220,13 +243,22 @@ def build_self_test_root(root: Path) -> None:
     write_text(root / "scripts/zigux/kconfig/confdata_bridge.zig", 'test "stub" {}\n')
 
 
-def make_fake_zig(path: Path, log_path: Path, fail_target: str | None = None) -> None:
+def make_fake_zig(
+    path: Path,
+    log_path: Path,
+    fail_target: str | None = None,
+    sleep_seconds: int | None = None,
+) -> None:
     fail_clause = ""
     if fail_target is not None:
         fail_clause = f'case "$*" in *"{fail_target}"*) exit 7 ;; esac\n'
+    sleep_clause = ""
+    if sleep_seconds is not None:
+        sleep_clause = f"sleep {sleep_seconds}\n"
     script = (
         "#!/bin/sh\n"
         f'printf "%s\\n" "$*" >> "{log_path}"\n'
+        f"{sleep_clause}"
         f"{fail_clause}"
         "exit 0\n"
     )
@@ -659,6 +691,28 @@ def run_self_test() -> int:
         case_count += 1
 
         build_self_test_root(root)
+        timeout_log = root / "timeout-zig.log"
+        timeout_zig = root / "fake-zig-timeout.sh"
+        make_fake_zig(timeout_zig, timeout_log, sleep_seconds=2)
+        timeout_code, timeout_output = run_main(
+            [
+                "--root",
+                str(root),
+                "--target",
+                EXPECTED_TARGETS[0],
+                "--zig",
+                str(timeout_zig),
+                "--timeout-seconds",
+                "1",
+            ]
+        )
+        assert timeout_code == 1
+        assert "PHASE2_CROSS_NOTE=zig timed out:" in timeout_output
+        assert f"PHASE2_CROSS_TARGET={EXPECTED_TARGETS[0]}" in timeout_output
+        assert f"PHASE2_CROSS_FAILED_FILE={EXPECTED_ZIG_TEST_FILES[0]}" in timeout_output
+        case_count += 1
+
+        build_self_test_root(root)
         missing_target_code, missing_target_output = run_main(
             ["--root", str(root), "--target", "powerpc64-linux-musl", "--zig", "/bin/true"]
         )
@@ -741,6 +795,12 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--target", help="Run the configured Zig test files for one target.")
     parser.add_argument("--all-targets", action="store_true", help="Run the configured Zig test files for every listed target.")
     parser.add_argument("--zig", help="Path to the Zig executable for target-mode replays.")
+    parser.add_argument(
+        "--timeout-seconds",
+        type=int,
+        default=DEFAULT_ZIG_TIMEOUT_SECONDS,
+        help="Per-target timeout for Zig target-mode replays.",
+    )
     args = parser.parse_args(argv)
 
     if args.self_test:
@@ -788,8 +848,8 @@ def main(argv: list[str] | None = None) -> int:
             return 1
 
         if args.target:
-            return run_cross_compile(root, args.target, zig)
-        return run_all_targets(root, zig)
+            return run_cross_compile(root, args.target, zig, timeout_seconds=args.timeout_seconds)
+        return run_all_targets(root, zig, timeout_seconds=args.timeout_seconds)
 
     payload = load_fixture(fixture_path(root))
     targets = payload["targets"]
