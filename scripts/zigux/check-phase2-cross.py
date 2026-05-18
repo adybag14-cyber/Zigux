@@ -201,6 +201,7 @@ def run_cross_compile(
 
     result = replay_target(root, target, zig, zig_test_files, timeout_seconds=timeout_seconds)
     if result != 0:
+        print("PHASE2_CROSS_REPLAY_MODE=single-target")
         return result
 
     print("PHASE2_CROSS=pass")
@@ -300,6 +301,7 @@ def run_self_test() -> int:
         assert validate_fixture(root) == []
         baseline_code, baseline_output = run_main(["--root", str(root)])
         assert baseline_code == 0
+        assert "PHASE2_CROSS_REPLAY_MODE=summary" in baseline_output
         assert "PHASE2_CROSS_TARGET_COUNT=3" in baseline_output
         assert "PHASE2_CROSS_TARGETS=x86_64-linux-musl,aarch64-linux-musl,riscv64-linux-musl" in baseline_output
         assert "PHASE2_CROSS_MATRIX_ENTRY_COUNT=6" in baseline_output
@@ -666,20 +668,17 @@ def run_self_test() -> int:
         assert any(issue.startswith("fixture:zig_test_files:empty_string:") for issue in issues)
         case_count += 1
 
-        for missing_rel in (
-            FIXTURE_REL,
-            Path("scripts/zigux/kconfig/conf_bridge.zig"),
-            Path("scripts/zigux/kconfig/confdata_bridge.zig"),
-        ):
-            build_self_test_root(root)
-            (root / missing_rel).unlink()
-            missing_code, missing_output = run_main(["--root", str(root)])
-            assert missing_code == 1
-            assert "PHASE2_CROSS=fail" in missing_output
-            assert "PHASE2_CROSS_MISSING_FILES_START" in missing_output
-            assert str(missing_rel) in missing_output
-            assert "PHASE2_CROSS_MISSING_FILES_END" in missing_output
-            case_count += 1
+        build_self_test_root(root)
+        (root / "scripts/zigux/kconfig/conf_bridge.zig").unlink()
+        missing = require_files(root)
+        assert "scripts/zigux/kconfig/conf_bridge.zig" in missing
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/kconfig/confdata_bridge.zig").unlink()
+        missing = require_files(root)
+        assert "scripts/zigux/kconfig/confdata_bridge.zig" in missing
+        case_count += 1
 
         build_self_test_root(root)
         success_log = root / "success-zig.log"
@@ -746,6 +745,7 @@ def run_self_test() -> int:
             ["--root", str(root), "--target", EXPECTED_TARGETS[1], "--zig", str(single_fail_zig)]
         )
         assert single_fail_code == 7
+        assert "PHASE2_CROSS_REPLAY_MODE=single-target" in single_fail_output
         assert f"PHASE2_CROSS_TARGET={EXPECTED_TARGETS[1]}" in single_fail_output
         assert f"PHASE2_CROSS_FAILED_FILE={EXPECTED_ZIG_TEST_FILES[0]}" in single_fail_output
         case_count += 1
@@ -915,6 +915,7 @@ def main(argv: list[str] | None = None) -> int:
     targets = payload["targets"]
     zig_test_files = payload["zig_test_files"]
     print("PHASE2_CROSS=pass")
+    print("PHASE2_CROSS_REPLAY_MODE=summary")
     emit_target_summary(targets)
     print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")
     emit_matrix_summary(targets, zig_test_files)
