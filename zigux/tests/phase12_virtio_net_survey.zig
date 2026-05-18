@@ -1,439 +1,204 @@
 const std = @import("std");
 
 const SurveySummary = struct {
-
- virtio_net_c_lines: usize,
-
- preexisting_phase10_test_files: usize,
-
- preexisting_phase10_build_present: bool,
-
- preexisting_virtio_core_zig_present: bool,
-
- preexisting_virtio_ring_zig_present: bool,
-
- preexisting_virtio_input_zig_present: bool,
-
- preexisting_phase12_build_present: bool,
-
- preexisting_phase12_virtio_net_survey_present: bool,
-
- preexisting_phase12_survey_note_present: bool,
-
- preexisting_virtio_net_zig_present: bool,
- preexisting_phase12_virtio_net_syntax_lab_present: bool,
-
+    virtio_net_c_lines: usize,
+    preexisting_phase10_test_files: usize,
+    preexisting_phase10_build_present: bool,
+    preexisting_virtio_core_zig_present: bool,
+    preexisting_virtio_ring_zig_present: bool,
+    preexisting_virtio_input_zig_present: bool,
+    preexisting_phase12_build_present: bool,
+    preexisting_phase12_virtio_net_survey_present: bool,
+    preexisting_phase12_survey_note_present: bool,
+    preexisting_virtio_net_zig_present: bool,
+    preexisting_phase12_virtio_net_syntax_lab_present: bool,
 };
 
 const RoadmapGapStatus = struct {
-
- required_by_roadmap: bool,
-
- status: []const u8,
-
- current_surface: []const u8,
-
- blocked_by: []const u8,
-
+    required_by_roadmap: bool,
+    status: []const u8,
+    current_surface: []const u8,
+    blocked_by: []const u8,
 };
 
 const RoadmapGapCheck = struct {
-
- dma_safe_abstractions: RoadmapGapStatus,
-
- queueing_correctness: RoadmapGapStatus,
-
- throughput_and_recovery_parity: RoadmapGapStatus,
-
- segmented_rollout: RoadmapGapStatus,
-
+    dma_safe_abstractions: RoadmapGapStatus,
+    queueing_correctness: RoadmapGapStatus,
+    throughput_and_recovery_parity: RoadmapGapStatus,
+    segmented_rollout: RoadmapGapStatus,
 };
 
 const Gap = struct {
-
- id: []const u8,
-
- status: []const u8,
-
- kind: []const u8,
- zigux_destination: []const u8,
-
- why_now: []const u8,
-
+    id: []const u8,
+    status: []const u8,
+    kind: []const u8,
+    zigux_destination: []const u8,
+    why_now: []const u8,
 };
 
 const Manifest = struct {
-
- lane_key: []const u8,
-
- phase: []const u8,
-
- surveyed_commit: []const u8,
-
- verified_on: []const u8,
-
- anchor: []const u8,
-
- roadmap_destinations: []const []const u8,
-
- survey_summary: SurveySummary,
-
- roadmap_gap_check: RoadmapGapCheck,
-
- gaps: []const Gap,
-
+    lane_key: []const u8,
+    phase: []const u8,
+    surveyed_commit: []const u8,
+    verified_on: []const u8,
+    anchor: []const u8,
+    roadmap_destinations: []const []const u8,
+    survey_summary: SurveySummary,
+    roadmap_gap_check: RoadmapGapCheck,
+    gaps: []const Gap,
 };
 
 fn readFileAlloc(path: []const u8, limit: usize) ![]u8 {
-
- var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-
- defer io_instance.deinit();
- return try std.Io.Dir.cwd().readFileAlloc(
-
- io_instance.io(),
-
- path,
-
- std.testing.allocator,
-
- .limited(limit),
-
- );
-
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+    return try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        path,
+        std.testing.allocator,
+        .limited(limit),
+    );
 }
 
 fn pathExists(path: []const u8) !bool {
-
- var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
-
- defer io_instance.deinit();
-
- const file = std.Io.Dir.cwd().openFile(io_instance.io(), path, .{}) catch |err| switch (err) {
-
- error.FileNotFound => return false,
-
- else => return err,
-
- };
-
- file.close(io_instance.io());
-
- return true;
-
-}
-test "phase12 virtio net survey manifest keeps the bounded transmit-recycle packet truthful" {
-
- const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
-
- defer std.testing.allocator.free(manifest_json);
-
- const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
-
- defer parsed.deinit();
-
- const manifest = parsed.value;
-
- try std.testing.expectEqualStrings("P12-L04", manifest.lane_key);
- try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-
- try std.testing.expectEqualStrings("bb423a0308879c18054c720bbccb67a3de3e0951", manifest.surveyed_commit);
-
- try std.testing.expectEqualStrings("2026-05-15", manifest.verified_on);
-
- try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
-
- try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
-
- try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
- try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
-
- try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
-
- try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
-
- try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
-
- try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_zig_present);
- try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
-
- try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
-
- try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
-
- try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
-
- try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
- try std.testing.expectEqualStrings("starter_present_runtime_data_path_blocked", manifest.roadmap_gap_check.dma_safe_abstractions.status);
-
- try std.testing.expectEqualStrings("starter_queue_summary_control_queue_recovery_refill_payload_shape_and_transmit_recycle_present_direct_gate_present_shared_smoke_present", manifest.roadmap_gap_check.queueing_correctness.status);
- try std.testing.expectEqualStrings("starter_control_queue_payload_shape_refill_and_transmit_recycle_present_throughput_gate_missing", manifest.roadmap_gap_check.throughput_and_recovery_parity.status);
-
- try std.testing.expectEqualStrings("starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_direct_lab_present_shared_route_present", manifest.roadmap_gap_check.segmented_rollout.status);
-
- var saw_starter = false;
-
- var saw_syntax_lab = false;
-
- var saw_build_gap = false;
- var saw_queue_summary_followup = false;
-
- var saw_control_queue_followup = false;
-
- var saw_control_payload_followup = false;
-
- var saw_recovery_gap = false;
-
- var saw_refill_gap = false;
-
- var saw_transmit_recycle_gap = false;
-
- var saw_runtime_gap = false;
-
- try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
-
- for (manifest.gaps) |gap| {
-
- try std.testing.expect(gap.id.len > 0);
-
- try std.testing.expect(gap.kind.len > 0);
-
- try std.testing.expect(gap.why_now.len > 0);
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-mergeable-receive-buffer-starter")) {
-
- saw_starter = true;
-
- try std.testing.expectEqualStrings("starter_landed", gap.status);
-
- try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "mergeable receive-buffer planner") != null);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-syntax-lab-gate")) {
-
- saw_syntax_lab = true;
- try std.testing.expectEqualStrings("starter_landed_and_shared_smoke_wired", gap.status);
-
- try std.testing.expectEqualStrings("zigux/tests/phase12_virtio_net_syntax_lab.zig", gap.zigux_destination);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-build-gate")) {
-
- saw_build_gap = true;
-
- try std.testing.expectEqualStrings("shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay", gap.status);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-queue-topology-followup")) {
- saw_queue_summary_followup = true;
-
- try std.testing.expectEqualStrings("landed_on_master", gap.status);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "queue-topology summary") != null);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-control-queue-followup")) {
-
- saw_control_queue_followup = true;
-
- try std.testing.expectEqualStrings("landed_on_master", gap.status);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "control-queue recovery planner") != null);
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS resync") != null);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-control-queue-payload-shaping-followup")) {
-
- saw_control_payload_followup = true;
-
- try std.testing.expectEqualStrings("landed_on_master", gap.status);
-
- try std.testing.expectEqualStrings("drivers/net/virtio_net.zig", gap.zigux_destination);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "receive-mode") != null);
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "hash-report") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "MAC") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "VLAN") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "RSS") != null);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-queue-recovery-followup")) {
-
- saw_recovery_gap = true;
-
- try std.testing.expectEqualStrings("starter_landed", gap.status);
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "freezeForReset()") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "planControlQueuePayloadShape()") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "recoveryQueuePlan()") != null);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-refill-order-followup")) {
-
- saw_refill_gap = true;
-
- try std.testing.expectEqualStrings("landed_on_master", gap.status);
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "receive-refill summary") != null);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-transmit-recycle-followup")) {
-
- saw_transmit_recycle_gap = true;
-
- try std.testing.expectEqualStrings("landed_on_master", gap.status);
-
- try std.testing.expectEqualStrings("drivers/net/virtio_net_transmit_recycle.zig", gap.zigux_destination);
-
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transmit-recycle summary") != null);
- try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "wake-threshold") != null);
-
- }
-
- if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
-
- saw_runtime_gap = true;
-
- try std.testing.expectEqualStrings("blocked_on_dma_transport_runtime", gap.status);
-
- }
-
- }
-
- try std.testing.expect(saw_starter);
-
- try std.testing.expect(saw_syntax_lab);
-
- try std.testing.expect(saw_build_gap);
-
- try std.testing.expect(saw_queue_summary_followup);
- try std.testing.expect(saw_control_queue_followup);
-
- try std.testing.expect(saw_control_payload_followup);
-
- try std.testing.expect(saw_recovery_gap);
-
- try std.testing.expect(saw_refill_gap);
-
- try std.testing.expect(saw_transmit_recycle_gap);
-
- try std.testing.expect(saw_runtime_gap);
-
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const file = std.Io.Dir.cwd().openFile(io_instance.io(), path, .{}) catch |err| switch (err) {
+        error.FileNotFound => return false,
+        else => return err,
+    };
+
+    file.close(io_instance.io());
+    return true;
 }
 
-test "phase12 virtio net survey note stays aligned with the bounded transmit-recycle follow-up" {
+test "phase12 virtio net survey manifest keeps the bounded post reset replay packet truthful" {
+    const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
+    defer std.testing.allocator.free(manifest_json);
 
- const survey_note = try readFileAlloc("Documentation/zigux/phase12-virtio-net-survey.md", 20 * 1024);
- defer std.testing.allocator.free(survey_note);
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
 
- const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
+    const manifest = parsed.value;
 
- defer std.testing.allocator.free(manifest_json);
+    try std.testing.expectEqualStrings("P12-L02", manifest.lane_key);
+    try std.testing.expectEqualStrings("Phase 12", manifest.phase);
+    try std.testing.expectEqualStrings("b53ec2bd507d0b3283486e76acc273b184ad5bf8", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2026-05-18", manifest.verified_on);
+    try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
+    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
 
- const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    try std.testing.expect(manifest.survey_summary.virtio_net_c_lines >= 7000);
+    try std.testing.expectEqual(@as(usize, 7), manifest.survey_summary.preexisting_phase10_test_files);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase10_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_core_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_ring_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_input_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
 
- defer parsed.deinit();
+    try std.testing.expectEqualStrings(
+        "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_and_post_reset_replay_present_direct_gate_present_shared_smoke_present",
+        manifest.roadmap_gap_check.queueing_correctness.status,
+    );
+    try std.testing.expectEqualStrings(
+        "starter_control_queue_payload_shape_refill_transmit_recycle_and_post_reset_replay_present_runtime_completion_missing",
+        manifest.roadmap_gap_check.throughput_and_recovery_parity.status,
+    );
+    try std.testing.expectEqualStrings(
+        "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_post_reset_replay_direct_lab_present_shared_route_present",
+        manifest.roadmap_gap_check.segmented_rollout.status,
+    );
 
- const manifest = parsed.value;
+    var saw_post_reset_replay_gap = false;
+    var saw_runtime_gap = false;
 
- try std.testing.expectEqualStrings("2026-05-15", manifest.verified_on);
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-transmit-recycle-followup") != null);
+    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    for (manifest.gaps) |gap| {
+        try std.testing.expect(gap.id.len > 0);
+        try std.testing.expect(gap.kind.len > 0);
+        try std.testing.expect(gap.why_now.len > 0);
 
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `drivers/net/virtio_net.zig`") != null);
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-post-reset-replay-followup")) {
+            saw_post_reset_replay_gap = true;
+            try std.testing.expectEqualStrings("landed_on_master", gap.status);
+            try std.testing.expectEqualStrings("drivers/net/virtio_net_post_reset_replay.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-snapshot refresh checkpoints") != null);
+        }
 
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`") != null);
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
+            saw_runtime_gap = true;
+            try std.testing.expectEqualStrings("blocked_on_dma_transport_runtime", gap.status);
+        }
+    }
 
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeQueueTopology()") != null);
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeReceiveRefill()") != null);
+    try std.testing.expect(saw_post_reset_replay_gap);
+    try std.testing.expect(saw_runtime_gap);
+}
 
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "controlQueueRecoveryPlan()") != null);
+test "phase12 virtio net survey note stays aligned with the bounded post reset replay follow-up" {
+    const survey_note = try readFileAlloc("Documentation/zigux/phase12-virtio-net-survey.md", 20 * 1024);
+    defer std.testing.allocator.free(survey_note);
 
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "planControlQueuePayloadShape()") != null);
+    const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
+    defer std.testing.allocator.free(manifest_json);
 
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "recoveryQueuePlan()") != null);
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
 
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeTransmitRecycle()") != null);
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig`") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig`") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe receive ownership") != null);
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "exact reviewability refresh") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, survey_note, "bb423a0308879c18054c720bbccb67a3de3e0951") != null);
-
+    const manifest = parsed.value;
+    try std.testing.expectEqualStrings("2026-05-18", manifest.verified_on);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-post-reset-replay-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane owner: `P12-L02`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/net/virtio_net_post_reset_replay.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizePostResetReplay()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_post_reset_replay.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe receive ownership") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded complex-driver or segmented-helper step") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "b53ec2bd507d0b3283486e76acc273b184ad5bf8") != null);
 }
 
 test "phase12 virtio net survey gate keeps present lane files explicit" {
-
- try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_manifest.json"));
-
- try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_survey.zig"));
- try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-net-survey.md"));
-
- try std.testing.expect(try pathExists("drivers/net/virtio_net.zig"));
-
- try std.testing.expect(try pathExists("drivers/net/virtio_net_transmit_recycle.zig"));
-
- try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net.zig"));
-
- try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_transmit_recycle.zig"));
- try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
-
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_manifest.json"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_survey.zig"));
+    try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-net-survey.md"));
+    try std.testing.expect(try pathExists("drivers/net/virtio_net.zig"));
+    try std.testing.expect(try pathExists("drivers/net/virtio_net_transmit_recycle.zig"));
+    try std.testing.expect(try pathExists("drivers/net/virtio_net_post_reset_replay.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_transmit_recycle.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_post_reset_replay.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
 }
 
 test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit" {
+    const syntax_lab = try readFileAlloc("zigux/tests/phase12_virtio_net_syntax_lab.zig", 32 * 1024);
+    defer std.testing.allocator.free(syntax_lab);
 
- const syntax_lab = try readFileAlloc("zigux/tests/phase12_virtio_net_syntax_lab.zig", 32 * 1024);
-
- defer std.testing.allocator.free(syntax_lab);
-
- try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps control queue payload shaping separate from runtime commands") != null);
- try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps rss payload shaping aligned with tunnel-header recovery") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "planControlQueuePayloadShape") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "controlQueueRecoveryPlan") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "rss_config_payload_bytes") != null);
- try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_hash_report_payload") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_mergeable_buffer_refill") != null);
-
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps control queue payload shaping separate from runtime commands") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps rss payload shaping aligned with tunnel-header recovery") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "planControlQueuePayloadShape") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "controlQueueRecoveryPlan") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "rss_config_payload_bytes") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_hash_report_payload") != null);
+    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_mergeable_buffer_refill") != null);
 }
 
 test "phase12 virtio net survey gate keeps transmit recycle helper and replay markers explicit" {
+    const helper = try readFileAlloc("drivers/net/virtio_net_transmit_recycle.zig", 16 * 1024);
+    defer std.testing.allocator.free(helper);
 
- const helper = try readFileAlloc("drivers/net/virtio_net_transmit_recycle.zig", 16 * 1024);
- defer std.testing.allocator.free(helper);
+    const replay = try readFileAlloc("zigux/tests/phase12_virtio_net_transmit_recycle.zig", 16 * 1024);
+    defer std.testing.allocator.free(replay);
 
- const replay = try readFileAlloc("zigux/tests/phase12_virtio_net_transmit_recycle.zig", 16 * 1024);
- defer std.testing.allocator.free(replay);
-
- try std.testing.expect(std.mem.indexOf(u8, helper, "pub const default_wake_threshold: u16 = 2;") != null);
- try std.testing.expect(std.mem.indexOf(u8, helper, "pub const RecycleDisposition = enum") != null);
- try std.testing.expect(std.mem.indexOf(u8, helper, "pub fn summarizeTransmitRecycle") != null);
- try std.testing.expect(std.mem.indexOf(u8, helper, "return error.CompletedDescriptorOverflow;") != null);
- try std.testing.expect(std.mem.indexOf(u8, helper, "error.QueueCountOverflow") != null);
- try std.testing.expect(std.mem.indexOf(u8, helper, ".wake_queue") != null);
- try std.testing.expect(std.mem.indexOf(u8, helper, ".keep_stopped") != null);
- try std.testing.expect(std.mem.indexOf(u8, helper, ".keep_running") != null);
-
- try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle summary stays anchored to virtio_net.c") != null);
- try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle keeps a stopped queue parked below the wake threshold") != null);
- try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle keeps running queues running even when recycle frees enough descriptors") != null);
- try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle rejects impossible completion counts") != null);
- try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle fails closed when the free-descriptor count would overflow") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper, "pub const default_wake_threshold: u16 = 2;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper, "pub const RecycleDisposition = enum") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper, ".wake_queue") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper, ".keep_stopped") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper, ".keep_running") != null);
+    try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle summary stays anchored to virtio_net.c") != null);
+    try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 virtio net transmit recycle keeps a stopped queue parked below the wake threshold") != null);
 }
