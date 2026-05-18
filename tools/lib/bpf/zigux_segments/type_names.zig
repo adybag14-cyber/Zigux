@@ -210,6 +210,21 @@ fn expectDenseNameTable(table: []const ?[]const u8) !void {
     }
 }
 
+fn expectFormatterMatchesKnownEntries(
+    comptime formatter: fn ([]u8, u32) error{NoSpaceLeft}![]const u8,
+    table: []const ?[]const u8,
+) !void {
+    var buffer: [64]u8 = undefined;
+
+    for (table, 0..) |entry, index| {
+        try std.testing.expect(entry != null);
+        try std.testing.expectEqualStrings(
+            entry.?,
+            try formatter(buffer[0..], @intCast(index)),
+        );
+    }
+}
+
 test "map type names stay table-driven and bounded" {
     try std.testing.expectEqualStrings("unspec", libbpfBpfMapTypeStr(0).?);
     try std.testing.expectEqualStrings("ringbuf", libbpfBpfMapTypeStr(27).?);
@@ -258,6 +273,37 @@ test "stable formatters keep known names unchanged and unknown ids reviewable" {
 
     try std.testing.expectEqualStrings("netfilter", try formatLibbpfBpfProgType(prog_buffer[0..], 32));
     try std.testing.expectEqualStrings("unknown_prog_type(77)", try formatLibbpfBpfProgType(prog_buffer[0..], 77));
+}
+
+test "all shipped libbpf type-name formatters round-trip every in-range value" {
+    try expectFormatterMatchesKnownEntries(formatLibbpfBpfMapType, map_type_names[0..]);
+    try expectFormatterMatchesKnownEntries(formatLibbpfBpfAttachType, attach_type_names[0..]);
+    try expectFormatterMatchesKnownEntries(formatLibbpfBpfLinkType, link_type_names[0..]);
+    try expectFormatterMatchesKnownEntries(formatLibbpfBpfProgType, prog_type_names[0..]);
+}
+
+test "stable formatters keep one-past-table ids readable" {
+    var map_buffer: [64]u8 = undefined;
+    var attach_buffer: [64]u8 = undefined;
+    var link_buffer: [64]u8 = undefined;
+    var prog_buffer: [64]u8 = undefined;
+
+    try std.testing.expectEqualStrings(
+        "unknown_map_type(35)",
+        try formatLibbpfBpfMapType(map_buffer[0..], map_type_names.len),
+    );
+    try std.testing.expectEqualStrings(
+        "unknown_attach_type(59)",
+        try formatLibbpfBpfAttachType(attach_buffer[0..], attach_type_names.len),
+    );
+    try std.testing.expectEqualStrings(
+        "unknown_link_type(15)",
+        try formatLibbpfBpfLinkType(link_buffer[0..], link_type_names.len),
+    );
+    try std.testing.expectEqualStrings(
+        "unknown_prog_type(33)",
+        try formatLibbpfBpfProgType(prog_buffer[0..], prog_type_names.len),
+    );
 }
 
 test "all shipped libbpf name tables stay dense for every in-range value" {
