@@ -55,11 +55,30 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     const parsed = cmdline.memparse("64K tail");
     try std.testing.expectEqual(@as(u64, 64 << 10), parsed.value);
     try std.testing.expectEqualStrings(" tail", parsed.rest);
+
+    const signed = cmdline.memparse("-2K tail");
+    try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), signed.value);
+    try std.testing.expectEqualStrings(" tail", signed.rest);
+
+    const saturated = cmdline.memparse("+9223372036854775808");
+    try std.testing.expectEqual(@as(u64, @intCast(std.math.maxInt(i64))), saturated.value);
+    try std.testing.expectEqualStrings("", saturated.rest);
+
     try std.testing.expect(cmdline.parseOptionStr("rootwait,quiet", "quiet"));
     try std.testing.expect(cmdline.parseOptionStr(",quiet", ""));
     try std.testing.expect(cmdline.parseOptionStr("rootwait,,quiet", ""));
     try std.testing.expect(!cmdline.parseOptionStr("quiet,", ""));
     try std.testing.expect(!cmdline.parseOptionStr("rootwait,quiet", "debug"));
+
+    const keyed = cmdline.nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("console", keyed.param);
+    try std.testing.expectEqualStrings("ttyS0,115200", keyed.value.?);
+    try std.testing.expectEqualStrings("root=\"/dev/sda1 quiet\" panic=-1", keyed.remaining);
+
+    const quoted_pair = cmdline.nextArg(keyed.remaining) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("root", quoted_pair.param);
+    try std.testing.expectEqualStrings("/dev/sda1 quiet", quoted_pair.value.?);
+    try std.testing.expectEqualStrings("panic=-1", quoted_pair.remaining);
 
     const quoted = cmdline.nextArg("\"mode=fast path\" tail") orelse return error.TestUnexpectedResult;
     try std.testing.expectEqualStrings("mode", quoted.param);
