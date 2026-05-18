@@ -35,6 +35,7 @@ SLICE_MARKERS = [
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_input_probe_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_teardown_observation.zig",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
@@ -529,6 +530,24 @@ def run_self_test() -> int:
             "phase10-input-live-packet-self-test:build_survey_test",
         )
         build_path.write_text(original_build, encoding="utf-8")
+        case_count += 1
+
+        slice_note_path = root / "Documentation/zigux/phase10-virtio-input-slice.md"
+        original_slice_note = slice_note_path.read_text(encoding="utf-8")
+        slice_note_path.write_text(
+            original_slice_note.replace(
+                "drivers/virtio/virtio_input_teardown_observation.zig",
+                "drivers/virtio/virtio_input_teardown_observation_missing.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            root,
+            "slice_note:drivers/virtio/virtio_input_teardown_observation.zig",
+            "phase10-input-live-packet-self-test:slice_note_teardown_helper_path",
+        )
+        slice_note_path.write_text(original_slice_note, encoding="utf-8")
         case_count += 1
 
         module_note_path = root / "Documentation/zigux/phase10-virtio-input-module-slice.md"
