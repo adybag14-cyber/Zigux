@@ -131,7 +131,7 @@ def _sample_manifest() -> str:
         {
             "lane_key": "P15-L08",
             "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-17",
+            "surveyed_commit": "current-master-readback-2026-05-18",
             "decision_record_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
             "required_review_fields": [
                 "exact Linux anchor path",
@@ -205,7 +205,7 @@ def _sample_review_process() -> str:
 - `PHASE15_STATUS=architecture_council_review_process_landed`
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
 - this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, and the focused Zig replay are landed through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, and `zigux/tests/phase15_architecture_council_review_process.zig`
 
 Any freeze-map anchor entering Architecture Council status review must keep all of the following explicit:
