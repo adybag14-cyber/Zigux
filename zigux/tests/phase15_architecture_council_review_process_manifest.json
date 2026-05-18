@@ -7,6 +7,8 @@
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
   "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
   "checker": "scripts/zigux/check-phase15-review-process-handoff.py",
+  "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
+  "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
   "required_review_fields": [
     "exact Linux anchor path",
     "roadmap phase",
