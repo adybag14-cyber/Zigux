@@ -53,7 +53,7 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "current `master` still does not materialize `scripts/zigux/validate-phase10.py` through the direct readback available in this lane, but it now rematerializes `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, and `zigux/Makefile`; keep the still-missing broader validator-script name framed as a last-known packet member or repo-reality gap while treating the returned closure validator, closure manifest, and Makefile-backed `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` route stack as the shared closure and build gate",
         "`zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig` are back as directly re-readable helper-local manifest and replay anchors",
-        "Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
+        "Use the directly re-readable closure validator and closure manifest together with the returned core-survey, ring, input, MMIO, and Makefile-backed route anchors before widening shared wording back into direct claims about the still-missing core-side companions or the still-missing broader `scripts/zigux/validate-phase10.py` surface.",
         "Treat the shared `zigux/tests/phase10_build.zig` route as already-landed validation evidence",
         "Current `master` also rematerializes `zigux/tests/phase10_virtio_ring_survey.zig`, so keep that dedicated ring survey gate explicit with `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and the shared `zigux/tests/phase10_build.zig` route instead of framing the survey gate as a direct-readback gap.",
     ],
@@ -254,9 +254,9 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-                "Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
-                "Keep the shared build gate implicit.",
-                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:Keep the returned `zigux/Makefile` body together with `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate rather than restating them as gaps.",
+                "Use the directly re-readable closure validator and closure manifest together with the returned core-survey, ring, input, MMIO, and Makefile-backed route anchors before widening shared wording back into direct claims about the still-missing core-side companions or the still-missing broader `scripts/zigux/validate-phase10.py` surface.",
+                "Use the directly re-readable closure validator and closure manifest together with the returned core-survey, ring, input, and MMIO route anchors before widening shared wording back into direct claims about the still-missing core-side companions.",
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:Use the directly re-readable closure validator and closure manifest together with the returned core-survey, ring, input, MMIO, and Makefile-backed route anchors before widening shared wording back into direct claims about the still-missing core-side companions or the still-missing broader `scripts/zigux/validate-phase10.py` surface.",
             ),
             (
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
