@@ -164,7 +164,8 @@ def _sample_manifest() -> str:
                 "`Documentation/zigux/phase15-shared-summary-gap.md`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
-                "one focused review-process checker plus the shared-summary gap checker",
+                "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
+                "one focused review-process checker, one focused tests-readme checker, and the shared-summary gap checker",
             ],
             "shared_gap_expected_present_paths": [
                 "`zigux/tests/phase15_architecture_council_review_process.zig`",
@@ -246,7 +247,8 @@ def _sample_handoff_note() -> str:
 - `Documentation/zigux/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`, which together keep one focused review-process checker plus the shared-summary gap checker materialized on current `master`
+- `scripts/zigux/check-phase15-tests-readme-alignment.py`
+- `scripts/zigux/check-phase15-shared-summary-gap.py`, which together keep one focused review-process checker, one focused tests-readme checker, and the shared-summary gap checker materialized on current `master`
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
@@ -266,9 +268,9 @@ def _sample_gap_note() -> str:
 
 
 def _sample_test_file() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
-test \"placeholder focused review-process replay exists\" {
+test "placeholder focused review-process replay exists" {
     try std.testing.expect(true);
 }
 """
@@ -319,6 +321,7 @@ def run_self_test() -> int:
         if failures != ["review checklist prompt is missing required review field: exact Linux anchor path"]:
             raise AssertionError(f"unexpected checklist failure: {failures}")
 
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(
             root / HANDOFF_NOTE_PATH,
@@ -331,6 +334,19 @@ def run_self_test() -> int:
             "handoff note is missing required marker: `Documentation/zigux/review-checklist.md`"
         ]:
             raise AssertionError(f"unexpected handoff failure: {failures}")
+
+        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
+        _write(
+            root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace(
+                "- `scripts/zigux/check-phase15-tests-readme-alignment.py`\n", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "handoff note is missing required marker: `scripts/zigux/check-phase15-tests-readme-alignment.py`"
+        ]:
+            raise AssertionError(f"unexpected tests-readme handoff failure: {failures}")
 
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(
