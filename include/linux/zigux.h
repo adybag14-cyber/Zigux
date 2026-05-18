@@ -146,7 +146,8 @@ static inline uint32_t zigux_boundary_header_requested_extra_bytes(
 
 static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)
 {
-    return zigux_dev_t_fields_is_valid(fields);
+    return fields.major <= ZIGUX_DEV_MAJOR_MAX &&
+        fields.minor <= ZIGUX_DEV_MINOR_MASK;
 }
 
 static inline int zigux_uapi_dev_t_fields_range_is_valid(
@@ -154,7 +155,11 @@ static inline int zigux_uapi_dev_t_fields_range_is_valid(
     struct zigux_dev_t_fields end
 )
 {
-    return zigux_dev_t_fields_range_is_valid(start, end);
+    if (!zigux_uapi_dev_t_fields_is_valid(start) ||
+        !zigux_uapi_dev_t_fields_is_valid(end))
+        return 0;
+    return start.major < end.major ||
+        (start.major == end.major && start.minor <= end.minor);
 }
 
 #endif
