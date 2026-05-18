@@ -1,5 +1,6 @@
 const std = @import("std");
 const abi = @import("abi_bindings");
+const dev_t_binding = @import("dev_t_binding");
 const version_binding = @import("version_binding");
 const uapi_version = @import("uapi_version");
 
@@ -10,6 +11,7 @@ pub const uapi_dev_t_packet_present: u32 = 1;
 
 pub const Version = version_binding.Version;
 pub const BoundaryHeader = abi.BoundaryHeader;
+pub const DevTFields = dev_t_binding.Fields;
 
 pub fn currentVersion() Version {
     return version_binding.current();
@@ -70,6 +72,14 @@ pub fn boundaryHeaderRequestedExtraBytes(header: BoundaryHeader) u32 {
 
 pub fn canonicalizeBoundaryHeader(header: BoundaryHeader) BoundaryHeader {
     return abi.canonicalizeHeader(header);
+}
+
+pub fn devTFieldsAreValid(fields: DevTFields) bool {
+    return dev_t_binding.validate(fields);
+}
+
+pub fn devTFieldsRangeIsValid(start: DevTFields, end: DevTFields) bool {
+    return dev_t_binding.validateRange(start, end);
 }
 
 test "header family binding mirrors current version compatibility surface" {
@@ -146,4 +156,39 @@ test "header family binding keeps boundary header compatibility helpers direct" 
     try std.testing.expectEqual(@as(u16, abi.ABI_VERSION), normalized.abi_version);
     try std.testing.expectEqual(expanded.flags, normalized.flags);
     try std.testing.expect(boundaryHeaderIsCanonical(normalized));
+}
+
+test "header family binding mirrors Linux-facing dev_t validation helpers" {
+    const valid = DevTFields{
+        .major = dev_t_binding.max_major,
+        .minor = dev_t_binding.max_minor,
+    };
+    const same = DevTFields{
+        .major = dev_t_binding.max_major,
+        .minor = dev_t_binding.max_minor,
+    };
+    const invalid_major = DevTFields{
+        .major = dev_t_binding.max_major + 1,
+        .minor = 0,
+    };
+    const invalid_minor = DevTFields{
+        .major = 0,
+        .minor = dev_t_binding.max_minor + 1,
+    };
+    const earlier = DevTFields{
+        .major = dev_t_binding.max_major,
+        .minor = dev_t_binding.max_minor - 1,
+    };
+
+    try std.testing.expect(devTFieldsAreValid(valid));
+    try std.testing.expect(dev_t_binding.validate(valid));
+    try std.testing.expect(devTFieldsAreValid(same));
+    try std.testing.expect(!devTFieldsAreValid(invalid_major));
+    try std.testing.expect(!devTFieldsAreValid(invalid_minor));
+
+    try std.testing.expect(devTFieldsRangeIsValid(valid, same));
+    try std.testing.expect(dev_t_binding.validateRange(valid, same));
+    try std.testing.expect(!devTFieldsRangeIsValid(valid, earlier));
+    try std.testing.expect(!devTFieldsRangeIsValid(valid, invalid_minor));
+    try std.testing.expect(!devTFieldsRangeIsValid(invalid_major, same));
 }
