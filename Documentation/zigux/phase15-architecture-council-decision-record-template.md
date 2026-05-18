@@ -41,8 +41,8 @@ This is a review packet template, not approval by itself.
 - the required approver set:
 - `retired_from_active_discussion` state:
 - automatic return-to-blocked trigger:
-- reopen triggers:
-- trigger-specific evidence refresh:
+- the reopen triggers:
+- the trigger-specific evidence refresh:
 - the evidence archive path that will be refreshed before any later reopen request:
 
 ## Reopen Evidence
