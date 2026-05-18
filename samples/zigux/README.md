@@ -4,7 +4,7 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Fresh mixed readback on 2026-05-17 confirmed these current sample-root files on `master`:
+Fresh mixed readback on 2026-05-18 confirmed these current sample-root files on `master`:
 
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
@@ -14,7 +14,7 @@ Fresh mixed readback on 2026-05-17 confirmed these current sample-root files on 
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 * `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
-The authenticated contents route used for this lane confirmed the direct bytestream, kretprobe, and formatting-companion entries above. Earlier reminder surfaces still mention the older kobject sample-root route, but that path still needs a fresh reread before this README can treat it as current direct sample-root evidence.
+The authenticated contents route used for this lane reconfirmed the direct bytestream, kretprobe, trace-events formatting-companion, and runtime trace-events entries above. Earlier reminder surfaces still mention the older kobject sample-root route, but that path still needs a fresh reread before this README can treat it as current direct sample-root evidence.
 
 The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux anchors:
 
@@ -31,7 +31,9 @@ Keep shared contributor guidance honest about that narrower packet instead of re
 
 ## Phase 5 reminder
 
-When a shared Phase 5 guide, checklist, or README mentions the bytestream anchor, keep the roadmap-backed non-runtime lane explicit while treating `samples/zigux/bytestream_fifo.zig` as current direct sample-root proof and `Documentation/zigux/phase5-kfifo-sample-survey.md`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` only as companion evidence or repo-reality-gap surfaces until a fresh reread proves direct authenticated-contents proof for those broader packet files again.
+When a shared Phase 5 guide, checklist, or README mentions the bytestream anchor, treat `samples/zigux/bytestream_fifo.zig` as the current direct sample-root proof for the roadmap-backed non-runtime lane.
+Keep `zigux/tests/phase5_bytestream_fifo.zig` and `zigux/tests/phase5_bytestream_fifo_survey.zig` explicit as directly readable paired test evidence when the bytestream packet needs a primary replay witness.
+Keep `Documentation/zigux/phase5-kfifo-sample-survey.md`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and the shared `zigux/tests/phase5_build.zig` route framed as current public-tree-backed companion evidence or repo-reality-gap surfaces until a fresh reread proves direct authenticated proof again.
 When a shared Phase 5 guide, checklist, or README mentions the kobject anchor, keep the roadmap-backed non-runtime lane explicit while treating `samples/zigux/kobject_example.zig`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig` only as current public-tree-backed companion evidence or repo-reality-gap surfaces until a fresh reread proves direct authenticated-contents proof again.
 When a shared Phase 5 guide, checklist, or README mentions the kretprobe anchor, treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for the roadmap-backed non-runtime lane.
 For the trace-events anchor, keep `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, and the paired shared reminder surfaces explicit instead of treating the older direct `samples/zigux/trace_events_sample.zig` path as current proof before a fresh reread restores it.
