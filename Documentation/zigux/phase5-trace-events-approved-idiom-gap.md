@@ -40,6 +40,22 @@ Keep the approved formatting idiom bounded to the current landed reminder packet
 
 That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the full non-runtime trace-events sample packet is again readable through the public tree, the bounded formatting companion remains directly readable through the authenticated sample-root route, and the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof.
 
+## Exact checks run on 2026-05-18
+
+This run verified the current formatting companion with the attached Zig toolchain `0.17.0-dev.87+9b177a7d2` using a focused `zig test` against the current `master` file body.
+
+The exact checks that passed were:
+
+- `phase 5 trace-events formatting companion keeps the selected-string cue reviewable`
+- `phase 5 trace-events formatting companion keeps lifecycle boundaries explicit`
+- `phase 5 trace-events formatting companion keeps bounded destination failures explicit`
+
+Those checks confirmed this current sample behavior:
+
+- `runAnchorReplay(7)` still keeps the roadmap anchor explicit, transitions from `.initialized` to `.replay_complete`, selects `"Gandalf"`, and renders `"iter=7"` with length `6` while keeping four focus cues visible.
+- lifecycle boundaries still fail closed: replay before `init()` and `exit()` before initialization both reject with `error.InvalidLifecycleTransition`; negative replay input rejects with `error.InvalidIterationCount`; replay after `exit()` rejects again; the successful replay-plus-exit path leaves `init_runs`, `replay_runs`, and `exit_runs` at `1` each.
+- bounded destination behavior is now directly covered too: `formatIterationMessageInto(12, [5]u8)` returns `error.NoSpaceLeft` without changing the sample stage or incrementing `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` returns `"iter=12"` and keeps the sample in the `.initialized` stage.
+
 ## Review boundary
 
 Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample outside the bounded trace-events companion.
@@ -59,4 +75,4 @@ Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/v
 
 ## Next bounded step
 
-Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still treats the returned non-runtime sample packet as absent, loses the selected-string plus `iter=%d` cue, or stops framing `zigux/tests/phase5_build.zig` as public-tree-backed companion evidence while authenticated contents reread still misses that path.
+Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still treats the returned non-runtime sample packet as absent, loses the selected-string plus `iter=%d` cue, stops mentioning the bounded destination failure check, or stops framing `zigux/tests/phase5_build.zig` as public-tree-backed companion evidence while authenticated contents reread still misses that path.
