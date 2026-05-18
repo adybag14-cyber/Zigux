@@ -103,6 +103,10 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{DOCS_README_PATH}")
 
         write_fixture_tree(base)
+        (base / WORKFLOW_PATH).unlink()
+        expect_failure(base, f"missing_file:{WORKFLOW_PATH}")
+
+        write_fixture_tree(base)
         survey_path = base / SURVEY_PATH
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
@@ -117,7 +121,7 @@ def run_self_test() -> int:
         expect_failure(base, f"missing_file:{BUILD_ONLY_CHECKER_PATH}")
 
         print("PHASE12_BOOTSTRAP_DOCS_SANITY_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_DOCS_SANITY_SELF_TEST_CASE_COUNT=4")
+        print("PHASE12_BOOTSTRAP_DOCS_SANITY_SELF_TEST_CASE_COUNT=5")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -126,8 +130,8 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate the small Phase 12 bootstrap docs-root sanity packet so "
-            "the workflow keeps its current reminder markers explicit."
+            "Validate the small Phase 12 bootstrap docs sanity packet so the "
+            "workflow keeps its current reminder markers explicit."
         )
     )
     parser.add_argument(
