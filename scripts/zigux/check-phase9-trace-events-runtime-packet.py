@@ -56,6 +56,7 @@ SEQUENCING_REENTRY_GATE_MARKER = (
 )
 TESTS_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 TESTS_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
+SAMPLES_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
 SAMPLES_README_REENTRY_GATE_DETAIL_MARKER = (
     "Treat `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` as the same packet's balanced registration re-entry companion across the initialized and selftest_complete stages"
 )
@@ -248,6 +249,7 @@ FILE_MARKERS = {
     SAMPLES_README_PATH: [
         TRACE_EVENTS_SAMPLE_MARKER,
         UNREGISTERED_GATE_SAMPLE_MARKER,
+        SAMPLES_README_FAIL_CLOSED_MARKER,
         REENTRY_GATE_SAMPLE_MARKER,
         TRACE_EVENTS_PACKET_CHECKER_MARKER,
         SELFTEST_HOOK_MARKER,
