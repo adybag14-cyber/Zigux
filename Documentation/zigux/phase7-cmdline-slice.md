@@ -79,4 +79,5 @@ This helper-local Phase 7 cmdline slice does not yet claim:
 
 ## Next Bounded Step
 
-Build the matching helper-local review packet for `lib/argv_split.zig` while keeping `rbtree` parked until direct helper evidence rematerializes under `lib/` on current `master`.
+Keep the dedicated cmdline survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet, and reopen only if those same-lane reminder surfaces drift or a fresh reread proves the missing dedicated test or fixture companions returned on current `master`.
+Route adjacent `argv_split`, `string_helpers`, and `rbtree` follow-through to their own Phase 7 helper-local packets.
