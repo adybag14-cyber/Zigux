@@ -7,13 +7,14 @@ This directory is the sample-root boundary for Zigux.
 Fresh mixed readback on 2026-05-17 confirmed these current sample-root files on `master`:
 
 * `samples/zigux/README.md`
+* `samples/zigux/bytestream_fifo.zig`
 * `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `samples/zigux/runtime_trace_events.zig`
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
 * `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
-The authenticated contents route used for this lane confirmed the direct kretprobe and formatting-companion entries above. Earlier reminder surfaces still mention older bytestream and kobject sample-root routes, but those paths need a fresh reread before this README can treat them as current direct sample-root evidence.
+The authenticated contents route used for this lane confirmed the direct bytestream, kretprobe, and formatting-companion entries above. Earlier reminder surfaces still mention the older kobject sample-root route, but that path still needs a fresh reread before this README can treat it as current direct sample-root evidence.
 
 The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux anchors:
 
@@ -22,14 +23,15 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
+Current `master` keeps the bytestream sample-root port directly readable in `samples/zigux/` through `samples/zigux/bytestream_fifo.zig`.
 Current `master` keeps the kretprobe sample-root port directly readable in `samples/zigux/` through `samples/zigux/kretprobe_example.zig`.
 For the trace-events anchor, keep shared contributor guidance grounded in the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` plus the shared reminder packet until a fresh reread proves `samples/zigux/trace_events_sample.zig` has returned on current `master`.
-Keep the bytestream and kobject anchors framed as roadmap-backed Phase 5 targets plus shared-reminder, current public-tree-backed companion, or repo-reality-gap surfaces rather than as current direct sample-root proof.
+Keep the kobject anchor framed as a roadmap-backed Phase 5 target plus shared-reminder, current public-tree-backed companion, or repo-reality-gap surface rather than as current direct sample-root proof.
 Keep shared contributor guidance honest about that narrower packet instead of repeating the older broader direct-sample split.
 
 ## Phase 5 reminder
 
-When a shared Phase 5 guide, checklist, or README mentions the bytestream anchor, keep the roadmap-backed non-runtime lane explicit while treating `samples/zigux/bytestream_fifo.zig`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` only as current public-tree-backed companion evidence or repo-reality-gap surfaces until a fresh reread proves direct authenticated-contents proof again.
+When a shared Phase 5 guide, checklist, or README mentions the bytestream anchor, keep the roadmap-backed non-runtime lane explicit while treating `samples/zigux/bytestream_fifo.zig` as current direct sample-root proof and `Documentation/zigux/phase5-kfifo-sample-survey.md`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, and `zigux/tests/phase5_build.zig` only as companion evidence or repo-reality-gap surfaces until a fresh reread proves direct authenticated-contents proof for those broader packet files again.
 When a shared Phase 5 guide, checklist, or README mentions the kobject anchor, keep the roadmap-backed non-runtime lane explicit while treating `samples/zigux/kobject_example.zig`, `Documentation/zigux/phase5-kobject-sample-survey.md`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, `zigux/tests/phase5_kobject_example_survey.zig`, and `zigux/tests/phase5_build.zig` only as current public-tree-backed companion evidence or repo-reality-gap surfaces until a fresh reread proves direct authenticated-contents proof again.
 When a shared Phase 5 guide, checklist, or README mentions the kretprobe anchor, treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for the roadmap-backed non-runtime lane.
 For the trace-events anchor, keep `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, and the paired shared reminder surfaces explicit instead of treating the older direct `samples/zigux/trace_events_sample.zig` path as current proof before a fresh reread restores it.
