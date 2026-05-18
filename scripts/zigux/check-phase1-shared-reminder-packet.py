@@ -220,8 +220,24 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "duplicate_docs_direct_checks_marker",
+            lambda root: mutate_duplicate_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][1],
+            ),
+        ),
+        (
             "missing_docs_bench_self_test_marker",
             lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][2],
+            ),
+        ),
+        (
+            "duplicate_docs_bench_self_test_marker",
+            lambda root: mutate_duplicate_marker(
                 root,
                 "Documentation/zigux/README.md",
                 MARKERS["Documentation/zigux/README.md"][2],
@@ -264,8 +280,24 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "duplicate_review_checklist_smoke_anchor_marker",
+            lambda root: mutate_duplicate_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][0],
+            ),
+        ),
+        (
             "missing_review_checklist_smoke_route_marker",
             lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][1],
+            ),
+        ),
+        (
+            "duplicate_review_checklist_smoke_route_marker",
+            lambda root: mutate_duplicate_marker(
                 root,
                 "Documentation/zigux/review-checklist.md",
                 MARKERS["Documentation/zigux/review-checklist.md"][1],
