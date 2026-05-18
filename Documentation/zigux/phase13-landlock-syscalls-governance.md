@@ -14,19 +14,18 @@ Current `master` materializes the syscall helper starter plus the docs-root owne
 - `security/landlock/syscalls.zig`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `zigux/Makefile`
 
-Current `master` still does not materialize the older direct replay companions or shared replay route through:
+Current `master` still does not materialize the older direct replay companions or the dedicated Phase 13 shared replay route through:
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `zigux/tests/phase13_build.zig`
-- `scripts/zigux/validate-phase13-release.py`
-- `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-Keep that live shape explicit as a bounded helper starter plus docs-root governance packet, not as a fully materialized shared replay path.
+Keep that live shape explicit as a bounded helper starter plus docs-root governance packet with a returned shared build file but no dedicated Phase 13 shared replay route, not as a fully materialized shared replay path.
 
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
