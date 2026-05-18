@@ -15,6 +15,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_input_probe_preflight_module.addImport("virtio_input", virtio_input_module);
+    const virtio_input_queue_callback_preflight_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/virtio/virtio_input_queue_callback_preflight.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_input_queue_callback_preflight_module.addImport("virtio_input", virtio_input_module);
     const virtio_input_registration_preflight_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_input_registration_preflight.zig"),
         .target = target,
@@ -80,6 +86,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_input_queue_callback_preflight_module.addImport("virtio_input", virtio_input_module);
+    phase10_virtio_input_queue_callback_preflight_module.addImport(
+        "virtio_input_queue_callback_preflight",
+        virtio_input_queue_callback_preflight_module,
+    );
 
     const phase10_virtio_input_registration_preflight_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input_registration_preflight.zig"),
