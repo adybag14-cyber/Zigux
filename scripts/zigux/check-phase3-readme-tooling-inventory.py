@@ -34,6 +34,9 @@ SHARED_TESTS_ROUTES_MARKER = "scripts/zigux/check-phase3-shared-tests-routes.py"
 HEADER_MARKER = "include/linux/zigux.h"
 UAPI_MARKER = "zigux/uapi/dev_t.zig"
 NOTIFIER_BINDING_MARKER = "zigux/bindings/notifier_abi.zig"
+VALIDATOR_SUPPORT_NOTE_MARKER = "Documentation/zigux/phase3-validator-support-surface.md"
+SELFTEST_SURFACE_MARKER = "scripts/zigux/check-phase3-selftest-surface.py"
+MMIO_HELPER_MARKER = "zigux/helpers/mmio.zig"
 LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER = (
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py"
 )
@@ -188,6 +191,15 @@ README_MARKER_CASES = (
     (HEADER_MARKER, "expected missing header README marker was not reported"),
     (UAPI_MARKER, "expected missing UAPI README marker was not reported"),
     (NOTIFIER_BINDING_MARKER, "expected missing notifier-binding README marker was not reported"),
+    (
+        VALIDATOR_SUPPORT_NOTE_MARKER,
+        "expected missing validator-support note README marker was not reported",
+    ),
+    (
+        SELFTEST_SURFACE_MARKER,
+        "expected missing selftest-surface README marker was not reported",
+    ),
+    (MMIO_HELPER_MARKER, "expected missing MMIO helper README marker was not reported"),
     (LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_MARKER, "expected missing low-level-wrapper survey validator README marker was not reported"),
     (LOW_LEVEL_WRAPPER_SURVEY_SELFTEST_MARKER, "expected missing low-level-wrapper survey self-test README marker was not reported"),
     (LOW_LEVEL_WRAPPER_REPLAY_MARKER, "expected missing low-level-wrapper replay README marker was not reported"),
