@@ -10,6 +10,7 @@ DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REQUIRED_TESTS_README_MARKERS = (
     "Phase 2 review packet",
+    "current direct-readback Phase 2 kconfig bridge packet:",
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`Documentation/zigux/phase2-closure.md`",
     "`Documentation/zigux/review-checklist.md`",
@@ -18,6 +19,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
+    "current shared Phase 2 kconfig route: `make -C zigux phase2-kconfig`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
