@@ -79,7 +79,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(MAKEFILE_MARKERS)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
     + (len(MINIMAL_SURFACE_MARKERS) + len(DEFAULT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
-    + 10
+    + 12
 )
 
 
@@ -129,11 +129,23 @@ def load_required_make_routes(policy_path: Path) -> list[str]:
     routes = upgrade_policy.get("required_make_routes")
     if not isinstance(routes, list) or not routes:
         raise ValueError(f"invalid required_make_routes in {policy_path}")
+
     normalized: list[str] = []
+    seen: set[str] = set()
     for route in routes:
         if not isinstance(route, str) or not route.strip():
             raise ValueError(f"invalid required_make_routes in {policy_path}")
-        normalized.append(route.strip())
+        normalized_route = route.strip()
+        if normalized_route in seen:
+            raise ValueError(
+                f"duplicate required_make_routes entry in {policy_path}: {normalized_route}"
+            )
+        if normalized_route not in REQUIRED_PHASE2_PHONY_TARGETS:
+            raise ValueError(
+                f"unsupported required_make_routes entry in {policy_path}: {normalized_route}"
+            )
+        normalized.append(normalized_route)
+        seen.add(normalized_route)
     return normalized
 
 
@@ -330,6 +342,7 @@ def run_self_test() -> int:
             for marker in MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
+                resolved.writeText if False else None
                 resolved.write_text(
                     replace_once(resolved.read_text(encoding="utf-8"), marker),
                     encoding="utf-8",
@@ -392,6 +405,22 @@ def run_self_test() -> int:
         policy_payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", " "]
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
         assert_invalid_cli(root, "invalid required_make_routes")
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy_payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-toolchain"]
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        assert_invalid_cli(root, "duplicate required_make_routes entry")
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+        policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        policy_payload["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain", "phase2-imaginary"]
+        policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
+        assert_invalid_cli(root, "unsupported required_make_routes entry")
         checks_run += 1
 
         for path in (TOOLCHAIN_POLICY, WORKFLOW, MAKEFILE):
