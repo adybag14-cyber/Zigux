@@ -29,6 +29,8 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
     ROOT / "scripts" / "zigux" / "validate-phase2.py",
+    ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
+    ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "zigux" / "Makefile",
     POLICY_PATH,
     BOOTSTRAP_NOTES,
@@ -36,6 +38,10 @@ SURFACE_PATHS = (
     REVIEW_CHECKLIST,
     TESTS_README,
     TOOL_MANIFEST_PATH,
+    ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
 )
 
 WORKFLOW_SETUP_MARKERS = (
