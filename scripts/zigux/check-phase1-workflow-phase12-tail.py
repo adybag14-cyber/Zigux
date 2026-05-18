@@ -219,7 +219,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase12_selftest_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         check_block = (
