@@ -914,4 +914,22 @@ test "confdata bridge keeps only the last state across unset and set transitions
         "{\"counts\":{\"set\":2,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"string\",\"value\":\"enabled\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"value\",\"value\":\"7\"}]}\n",
         capture.list.items,
     );
+
+    var duplicate_unset = try parseConfig(allocator,
+        \\# CONFIG_REPEAT is not set
+        \\# CONFIG_REPEAT is not set
+        \\CONFIG_KEEP=7
+        \\
+    );
+    defer deinitSummary(allocator, &duplicate_unset);
+
+    try std.testing.expectEqual(@as(usize, 1), duplicate_unset.set_count);
+    try std.testing.expectEqual(@as(usize, 1), duplicate_unset.unset_count);
+    try std.testing.expectEqual(@as(usize, 2), duplicate_unset.entries.len);
+    try std.testing.expectEqualStrings("CONFIG_REPEAT", duplicate_unset.entries[0].name);
+    try std.testing.expectEqual(EntryKind.unset, duplicate_unset.entries[0].kind);
+    try std.testing.expectEqualStrings("n", duplicate_unset.entries[0].value);
+    try std.testing.expectEqualStrings("CONFIG_KEEP", duplicate_unset.entries[1].name);
+    try std.testing.expectEqual(EntryKind.value, duplicate_unset.entries[1].kind);
+    try std.testing.expectEqualStrings("7", duplicate_unset.entries[1].value);
 }
