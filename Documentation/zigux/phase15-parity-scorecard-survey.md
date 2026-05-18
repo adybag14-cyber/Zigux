@@ -9,7 +9,7 @@ This document records the bounded Phase 15 roadmap-facing survey for the live pa
 - `PHASE15_SLICE=parity-roadmap-readback-alignment`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - scope: one survey-grade note that compares the roadmap's parity-scorecard requirement against the live scorecard note, machine-readable JSON, and dedicated Zig guard without widening into new deep-core implementation or shared-summary follow-through
-- survey rechecked against current `master` on 2026-05-17; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-17`
+- survey rechecked against current `master` on 2026-05-18; the dedicated parity-scorecard packet now carries dated readback marker `current-master-readback-2026-05-18`
 - product boundary:
   - `Documentation/zigux/phase15-parity-scorecard.md`
   - `zigux/tests/phase15_parity_scorecard.json`
@@ -24,7 +24,7 @@ The honest same-lane question on current `master` is no longer whether Zigux lac
 
 ## Current master readback
 
-The 2026-05-17 reread shows these dedicated parity-scorecard surfaces present on current `master`:
+The 2026-05-18 reread shows these dedicated parity-scorecard surfaces present on current `master`:
 
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `zigux/tests/phase15_parity_scorecard.json`
@@ -35,7 +35,7 @@ Those three surfaces now agree on the dedicated parity-scorecard packet shape:
 - lane key: `P15-L03`
 - slice: `parity-scorecard-baseline`
 - provenance mode: `dated_master_readback`
-- surveyed commit marker: `current-master-readback-2026-05-17`
+- surveyed commit marker: `current-master-readback-2026-05-18`
 - posture: `blocked_posture_accounting_not_port_readiness`
 
 The live machine-readable metrics now cover:
@@ -65,9 +65,8 @@ The dedicated scorecard note, machine-readable JSON companion, and dedicated Zig
 
 The only same-lane drift this survey needed to close was survey truthfulness:
 
-- this survey note still reported a 2026-05-14 reread after the dedicated parity-scorecard packet moved to the 2026-05-17 dated-readback posture
-- it still named the dedicated parity-scorecard packet as `P15-Y03` even though the live scorecard note, JSON companion, and Zig guard now agree on `P15-L03`
-- it still repeated the older `current-master-readback-2026-05-13` marker even though the live dedicated packet now agrees on `current-master-readback-2026-05-17`
+- this survey note still reported a 2026-05-17 reread after the dedicated parity-scorecard packet moved to the 2026-05-18 dated-readback posture
+- it still repeated the older dated-readback marker even though the live dedicated packet now agrees on `current-master-readback-2026-05-18`
 
 That survey-local truthfulness gap is now closed.
 
