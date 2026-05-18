@@ -84,7 +84,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`validate-phase2-closure.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 20
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -105,9 +105,13 @@ def read_text(root: Path, path: Path) -> str:
 def read_manifest(root: Path) -> dict[str, object]:
     resolved = resolve_path(root, MANIFEST)
     try:
-        payload = json.loads(resolved.read_text(encoding="utf-8"))
+        raw = resolved.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {resolved}") from exc
+    try:
+        payload = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"manifest is not valid json: {resolved}") from exc
     if not isinstance(payload, dict):
         raise SystemExit(f"manifest is not an object: {resolved}")
     return payload
@@ -240,6 +244,15 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def assert_system_exit_contains(callback, expected_fragment: str) -> None:
+    try:
+        callback()
+    except SystemExit as exc:
+        assert expected_fragment in str(exc), str(exc)
+        return
+    raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_validator_") as tmp_dir:
@@ -297,6 +310,26 @@ def run_self_test() -> int:
             write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
             assert ("INVALID_MANIFEST_FIELD", field) in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, CLOSURE_DOC).unlink()
+        assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, MANIFEST).unlink()
+        assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, "{\n")
+        assert_system_exit_contains(lambda: collect_issues(root), "manifest is not valid json:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, "[]\n")
+        assert_system_exit_contains(lambda: collect_issues(root), "manifest is not an object:")
+        checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
