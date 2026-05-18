@@ -257,8 +257,14 @@ def run_self_test() -> int:
             ('"decision_owner": "Validation and Perf Team"', '"decision_owner": "ABI and Runtime Team"', 'manifest_marker:"decision_owner": "Validation and Perf Team"'),
             ('"rollback_owner": "Validation and Perf Team"', '"rollback_owner": "ABI and Runtime Team"', 'manifest_marker:"rollback_owner": "Validation and Perf Team"'),
             (
-                '"coordination_owners": [\n    "ABI and Runtime Team",\n    "Shared Subsystems Pod"\n  ]',
-                '"coordination_owners": [\n    "ABI and Replay Team",\n    "Shared Subsystems Pod"\n  ]',
+                '"coordination_owners": [\n'
+                '    "ABI and Runtime Team",\n'
+                '    "Shared Subsystems Pod"\n'
+                '  ]',
+                '"coordination_owners": [\n'
+                '    "ABI and Replay Team",\n'
+                '    "Shared Subsystems Pod"\n'
+                '  ]',
                 "manifest_json:coordination_owners:",
             ),
             ('"local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending."', '"local_only_posture_note": "The dedicated perf-baseline survey still needs shared CI approval."', "manifest_json:local_only_posture_note:"),
