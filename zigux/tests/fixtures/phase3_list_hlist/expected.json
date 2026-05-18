@@ -1,0 +1,26 @@
+{
+  "hlist_empty": {
+    "empty": true,
+    "head_links_match": true,
+    "len": 0,
+    "tail_next_null": true
+  },
+  "hlist_pair": {
+    "empty": false,
+    "head_links_match": true,
+    "len": 2,
+    "tail_next_null": true
+  },
+  "list_empty": {
+    "circular": true,
+    "empty": true,
+    "head_links_match": true,
+    "len": 0
+  },
+  "list_pair": {
+    "circular": true,
+    "empty": false,
+    "head_links_match": true,
+    "len": 2
+  }
+}
