@@ -16,6 +16,15 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
 )
+CHECKER_OUTPUT_MARKERS = (
+    'print("PHASE2_CROSS_REPLAY_MODE=single-target")',
+    'print(f"PHASE2_CROSS_TARGET={target}")',
+    'print(f"PHASE2_CROSS_TARGET_COUNT={len(targets)}")',
+    "print(f\"PHASE2_CROSS_TARGETS={','.join(targets)}\")",
+    'print(f"PHASE2_CROSS_FILE_COUNT={len(zig_test_files)}")',
+    'print(f"PHASE2_CROSS_MATRIX_ENTRY_COUNT={len(matrix_entries)}")',
+    'print("PHASE2_CROSS_MATRIX_ENTRIES=" + ",".join(matrix_entries))',
+)
 
 SCRIPTS_README_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
@@ -56,7 +65,7 @@ TESTS_ALIGNMENT_MARKERS = (
     "\"`make -C zigux phase2-cross`\",",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 44
+EXPECTED_SELF_TEST_CASE_COUNT = 59
 
 
 def read_text(path: Path) -> str:
@@ -94,6 +103,7 @@ def collect_exact_line_issues(text: str, markers: tuple[str, ...], missing_code:
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
+    surface_paths = {path: resolve_path(root, path) for path in SURFACE_PATHS}
     issues.extend(
         collect_missing_markers(
             read_text(resolve_path(root, SCRIPTS_README)),
@@ -133,8 +143,17 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     for path in SURFACE_PATHS:
-        if not resolve_path(root, path).exists():
+        if not surface_paths[path].exists():
             issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
+    if surface_paths[SURFACE_PATHS[0]].exists():
+        issues.extend(
+            collect_exact_line_issues(
+                read_text(surface_paths[SURFACE_PATHS[0]]),
+                CHECKER_OUTPUT_MARKERS,
+                "MISSING_CHECKER_OUTPUT_MARKERS",
+                "DUPLICATE_CHECKER_OUTPUT_MARKERS",
+            )
+        )
     return issues
 
 
@@ -163,14 +182,20 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, KBUILD_ROUTES), "\n".join(KBUILD_ROUTE_MARKERS) + "\n")
     write_text(resolve_path(root, TOOLCHAIN_PINNING), "\n".join(TOOLCHAIN_PINNING_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_ALIGNMENT), "\n".join(TESTS_ALIGNMENT_MARKERS) + "\n")
-    for path in SURFACE_PATHS:
-        write_text(resolve_path(root, path), "present\n")
+    write_text(resolve_path(root, SURFACE_PATHS[0]), "\n".join(CHECKER_OUTPUT_MARKERS) + "\n")
+    write_text(resolve_path(root, SURFACE_PATHS[1]), "present\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
+
+
+def replace_all(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement)
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
@@ -210,7 +235,7 @@ def run_self_test() -> int:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
                 resolved.write_text(
-                    replace_once(resolved.read_text(encoding="utf-8"), marker),
+                    replace_all(resolved.read_text(encoding="utf-8"), marker),
                     encoding="utf-8",
                 )
                 issues = collect_issues(root)
@@ -221,6 +246,7 @@ def run_self_test() -> int:
             (KBUILD_ROUTES, KBUILD_ROUTE_MARKERS, "MISSING_KBUILD_ROUTE_MARKERS", "DUPLICATE_KBUILD_ROUTE_MARKERS"),
             (TOOLCHAIN_PINNING, TOOLCHAIN_PINNING_MARKERS, "MISSING_TOOLCHAIN_PINNING_MARKERS", "DUPLICATE_TOOLCHAIN_PINNING_MARKERS"),
             (TESTS_ALIGNMENT, TESTS_ALIGNMENT_MARKERS, "MISSING_TESTS_ALIGNMENT_MARKERS", "DUPLICATE_TESTS_ALIGNMENT_MARKERS"),
+            (SURFACE_PATHS[0], CHECKER_OUTPUT_MARKERS, "MISSING_CHECKER_OUTPUT_MARKERS", "DUPLICATE_CHECKER_OUTPUT_MARKERS"),
         )
 
         for path, markers, missing_code, duplicate_code in exact_line_cases:
@@ -260,6 +286,11 @@ def run_self_test() -> int:
         for path, _, _, _ in exact_line_cases:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
+            if path == SURFACE_PATHS[0]:
+                issues = collect_issues(root)
+                assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
+                checks_run += 1
+                continue
             try:
                 collect_issues(root)
             except SystemExit as exc:
@@ -299,7 +330,7 @@ def main() -> int:
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
-        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
+        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS) + len(CHECKER_OUTPUT_MARKERS)}"
     )
     print(f"PHASE2_CROSS_ALIGNMENT_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
     return 0
