@@ -31,14 +31,11 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
-test "phase 7 rbtree survey keeps reusable leaf-library ownership scoped to argv_split and rbtree anchors" {
+test "phase 7 rbtree survey keeps the surviving anchor scoped to rbtree only" {
     const allocator = std.testing.allocator;
 
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_rbtree_manifest.json");
     defer allocator.free(manifest_json);
-
-    const argv_split_manifest = try readRepoFile(allocator, "zigux/tests/phase7_argv_split_manifest.json");
-    defer allocator.free(argv_split_manifest);
 
     const sequencing_note = try readRepoFile(allocator, "Documentation/zigux/phase7-helper-lane-sequencing.md");
     defer allocator.free(sequencing_note);
@@ -73,19 +70,8 @@ test "phase 7 rbtree survey keeps reusable leaf-library ownership scoped to argv
     try expectStringSliceContains(manifest.ownership_focus, "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` now exposes the current `phase7-*` wrapper routes, `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps, and the missing helper, dedicated test, checker, and shared build files still block any claim that the broader rbtree build packet returned");
     try expectContains(manifest.next_bounded_step, "survey-or-manifest truthfulness");
 
-    for ([_][]const u8{
-        "\"lane_key\": \"P7-L09\"",
-        "\"anchor\": \"lib/argv_split.c\"",
-        "\"lib/argv_split.zig\"",
-        "\"zigux/tests/phase7_argv_split_survey.zig\"",
-        "\"zigux/tests/phase7_argv_split_manifest.json\"",
-        "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage",
-    }) |needle| {
-        try expectContains(argv_split_manifest, needle);
-    }
-
-    try expectContains(sequencing_note, "`argv_split` currently survives through `lib/argv_split.zig` plus the helper-local anchors `zigux/tests/phase7_argv_split_survey.zig` and `zigux/tests/phase7_argv_split_manifest.json`.");
     try expectContains(sequencing_note, "`rbtree` currently survives through the direct anchors `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json`.");
     try expectContains(sequencing_note, "keep same-lane work anchored to those two surviving files");
     try expectContains(sequencing_note, "keep the change inside the surviving survey-or-manifest anchor instead of implying helper, fixture, checker, or build-route recovery");
+    try expectContains(sequencing_note, "Treat scheduled lane `P7-Y04` as the rbtree alias for `P7-L13`");
 }
