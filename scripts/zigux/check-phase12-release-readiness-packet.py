@@ -81,8 +81,8 @@ REQUIRED_MARKERS = {
     RELEASE_READINESS_SURVEY_PATH: [
         "`PHASE12_STATUS=active`",
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "`scripts/zigux/check-build-only-phase12-surface.py` now matches that shipped support-checker-plus-validate-route reminder too",
-        "the broader reviewer-facing reminder family now keeps the absent standalone `scripts/zigux/check-phase12-cross.py` file explicit instead of overstating a cross-checker surface that current `master` does not ship",
+        "The route story is the real PMO drift on current `master`: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, but current `zigux/Makefile` no longer provides a shared `phase12-validate`, `phase12-smoke`, or `phase12` wrapper route.",
+        "That means the PMO release notes must treat those route names as stale reminder text until same-lane work rematerializes them, rather than presenting them as shipped current-`master` evidence.",
         "make -C zigux phase12-validate",
     ],
     RELEASE_SEQUENCING_PATH: [
@@ -100,7 +100,7 @@ REQUIRED_MARKERS = {
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support route: `scripts/zigux/validate-phase12.py` and `make -C zigux phase12-validate`",
         "Current `master` now ships the degraded-workflow bundle `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, and `make -C zigux phase12-validate`",
-        "PMO / Release Management: keep `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, and `scripts/zigux/README.md` aligned around the same active-not-closed release posture, the same smoke-first packet, and the same repo-local `.zig-toolchain` then attached-Zig degraded rerun order. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` remain the next reminder-only follow-through because they still trail the shipped `phase12-validate` support bundle and dedicated release-readiness checker.",
+        "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the shipped `phase12-validate` support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.",
@@ -126,7 +126,7 @@ REQUIRED_EXACT_COUNT_MARKERS = {
         "`Documentation/zigux/phase12-release-coordination-matrix.md`": 1,
     },
     RELEASE_COORDINATION_MATRIX_PATH: {
-        "PMO / Release Management: keep `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, this matrix, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, and `scripts/zigux/README.md` aligned around the same active-not-closed release posture, the same smoke-first packet, and the same repo-local `.zig-toolchain` then attached-Zig degraded rerun order. `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` remain the next reminder-only follow-through because they still trail the shipped `phase12-validate` support bundle and dedicated release-readiness checker.": 1,
+        "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the shipped `phase12-validate` support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.": 1,
     },
     RAW_GITHUB_COVERAGE_SURVEY_PATH: {
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.": 1,
