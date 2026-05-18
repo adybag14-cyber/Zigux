@@ -5,6 +5,7 @@ pub const QueueShapeSummary = virtio_ring.QueueShapeSummary;
 pub const QueueNotificationSummary = virtio_ring.QueueNotificationSummary;
 pub const NotificationDataSummary = virtio_ring.NotificationDataSummary;
 pub const UsedBufferPollSummary = virtio_ring.UsedBufferPollSummary;
+pub const CallbackEnableSummary = virtio_ring.CallbackEnableSummary;
 pub const DelayedCallbackSummary = virtio_ring.DelayedCallbackSummary;
 pub const BrokenQueueSummary = virtio_ring.BrokenQueueSummary;
 pub const QueueResetReadinessSummary = virtio_ring.QueueResetReadinessSummary;
@@ -37,6 +38,13 @@ pub fn summarizeUsedBufferPoll(
     return ring.pollUsedBuffers(queue_index);
 }
 
+pub fn summarizeEnableCallback(
+    ring: *virtio_ring.VirtioRingLab,
+    queue_index: u16,
+) !CallbackEnableSummary {
+    return ring.enableCallback(queue_index);
+}
+
 pub fn summarizeDelayedCallback(
     ring: *virtio_ring.VirtioRingLab,
     queue_index: u16,
@@ -64,6 +72,10 @@ pub fn queueNeedsResetPoll(summary: QueueResetReadinessSummary) bool {
 
 pub fn queueHasBrokenCallbackFence(summary: BrokenQueueSummary) bool {
     return summary.broken and !summary.callback_enabled;
+}
+
+pub fn callbackEnableNeedsPoll(summary: CallbackEnableSummary) bool {
+    return summary.should_poll;
 }
 
 pub fn delayedCallbackBudgetExhausted(summary: DelayedCallbackSummary) bool {
@@ -213,6 +225,45 @@ test "phase10 virtio ring verify keeps used-buffer polling progress explicit aft
     try std.testing.expectEqual(@as(u16, 1), summary.newly_used_chain_count);
     try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
     try std.testing.expect(summary.has_newly_used_chains);
+}
+
+test "phase10 virtio ring verify keeps callback-enable wrapper explicit about pending used work" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(4, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(4);
+    try ring.publishDescriptorChain(4);
+    _ = try ring.prepareKick(4);
+    try ring.recordUsedChains(4, 2);
+    try ring.disableCallback(4);
+
+    var summary = try summarizeEnableCallback(&ring, 4);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 4), summary.queue_index);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 2), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), summary.pending_used_chain_count);
+    try std.testing.expect(summary.should_poll);
+    try std.testing.expect(callbackEnableNeedsPoll(summary));
+
+    const poll = try ring.pollUsedBuffers(4);
+    try std.testing.expectEqual(@as(u16, 2), poll.newly_used_chain_count);
+
+    summary = try summarizeEnableCallback(&ring, 4);
+    try std.testing.expect(summary.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 2), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), summary.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.pending_used_chain_count);
+    try std.testing.expect(!summary.should_poll);
+    try std.testing.expect(!callbackEnableNeedsPoll(summary));
+}
+
+test "phase10 virtio ring verify rejects callback-enable replay on broken queues" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(6, 8, .packed_ring, true, true);
+    _ = try ring.markBroken(6);
+    try std.testing.expectError(error.QueueBroken, summarizeEnableCallback(&ring, 6));
 }
 
 test "phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit" {
