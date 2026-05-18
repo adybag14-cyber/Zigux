@@ -31,6 +31,7 @@ The roadmap-backed Phase 7 ownership map still uses six non-overlapping buckets 
   - `zigux/tests/phase7_string_helpers_survey.zig`
   - `zigux/tests/phase7_string_helpers_manifest.json`
   - `zigux/tests/phase7_string_helpers_sample_boundary.zig`
+  - `samples/zigux/README.md`
   - scheduled alias note: recurring scheduled lane `P7-Y01` is the older schedule label for this same string-helpers packet and must be treated as the same owner, not as a second helper lane
   - packet-label alias note: the surviving string-helpers slice, survey, and manifest surfaces may still use the internal label `helper-local`; treat that label as the same `P7-L04` owner, not as a second string-helpers lane
 - cmdline packet, lane `P7-L05`:
