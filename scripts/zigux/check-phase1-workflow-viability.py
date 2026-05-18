@@ -366,7 +366,7 @@ def run_self_test() -> int:
             return 1
         case_count += 1
 
-        build_sampleRepo(root)
+        build_sample_repo(root)
         (root / "scripts/zigux/validate-phase2.py").unlink()
         if "missing_file:scripts/zigux/validate-phase2.py" not in collect_failures(root):
             print("self-test:missing_phase2_validate_file_case_failed")
