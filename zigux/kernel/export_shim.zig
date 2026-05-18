@@ -5,6 +5,8 @@ const abi = @import("abi_bindings");
 const dev_t = @import("dev_t_binding");
 const version = @import("version_binding");
 
+const invalid_argument: i32 = -22;
+
 pub const BoundaryHeader = abi.BoundaryHeader;
 pub const ExportStatus = abi.ExportStatus;
 pub const Facility = abi.Facility;
@@ -37,6 +39,20 @@ pub fn errorStatus(code: i32, facility: Facility) ExportStatus {
         .facility = @intFromEnum(facility),
         .flags = if (code < 0) abi.STATUS_FLAG_ERROR else 0,
     };
+}
+
+pub fn validateDeviceFields(fields: DevTFields) ExportStatus {
+    if (dev_t.validate(fields)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
+}
+
+pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {
+    return validateDeviceFields(makeDevTFields(major, minor));
+}
+
+pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {
+    if (dev_t.validateRange(start, end)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
 }
 
 test "export shim preserves the canonical boundary header and version snapshot" {
@@ -84,4 +100,28 @@ test "export shim forwards starter dev_t fields without changing layout semantic
     try testing.expectEqual(@as(u32, 29), fields.minor);
     try testing.expect(dev_t.eql(fields, same));
     try testing.expect(!dev_t.eql(fields, different));
+}
+
+test "export shim relays bounded dev_t validation through status helpers" {
+    const valid = validateDeviceNumber(dev_t.max_major, dev_t.max_minor);
+    const invalid = validateDeviceNumber(dev_t.max_major + 1, 0);
+    const good_range = validateDeviceRange(
+        makeDevTFields(1, 2),
+        makeDevTFields(1, 3),
+    );
+    const bad_range = validateDeviceRange(
+        makeDevTFields(1, 3),
+        makeDevTFields(1, 2),
+    );
+
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), valid.facility);
+    try testing.expectEqual(@as(u16, 0), valid.flags);
+
+    try testing.expectEqual(@as(i32, invalid_argument), invalid.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), invalid.facility);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid.flags);
+
+    try testing.expectEqual(@as(i32, 0), good_range.code);
+    try testing.expectEqual(@as(i32, invalid_argument), bad_range.code);
 }
