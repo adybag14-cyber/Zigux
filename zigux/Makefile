@@ -150,7 +150,7 @@ phase10-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase10-closure.py
 
 phase10-test:
-	cd $(ZIGUX_ROOT) && zig build test --build-file zigux/tests/phase10_build.zig --summary all
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
 
 phase10: phase10-validate phase10-test
 
