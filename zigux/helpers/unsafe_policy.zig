@@ -7,6 +7,11 @@ pub const AccessBoundary = enum {
     raw_pointer_bridge,
 };
 
+pub const PolicyError = error{
+    InvalidInteropPolicy,
+    UnsafeScopeDenied,
+};
+
 pub fn modeFromInteropPolicyBytes(mode: u8, reserved: u8) ?abi.UnsafeScope {
     if (reserved != 0) return null;
     return switch (mode) {
@@ -69,12 +74,36 @@ pub fn accessBoundaryFromByte(scope: u8) ?AccessBoundary {
     return accessBoundaryFromInteropPolicyBytes(scope, 0);
 }
 
+fn requireBoundary(mode: abi.UnsafeScope, expected: AccessBoundary) PolicyError!void {
+    if (accessBoundaryFor(mode) != expected) {
+        return error.UnsafeScopeDenied;
+    }
+}
+
+fn requireBoundaryPolicyBytes(mode: u8, reserved: u8, expected: AccessBoundary) PolicyError!void {
+    const resolved = modeFromInteropPolicyBytes(mode, reserved) orelse return error.InvalidInteropPolicy;
+    try requireBoundary(resolved, expected);
+}
+
+fn requireOutcome(result: anyerror!void) ?anyerror {
+    result catch |err| return err;
+    return null;
+}
+
 pub fn allowsTypedOnlyAccess(mode: abi.UnsafeScope) bool {
     return accessBoundaryFor(mode) == .typed_safe;
 }
 
 pub fn permitsNoUnsafe(mode: abi.UnsafeScope) bool {
     return allowsTypedOnlyAccess(mode);
+}
+
+pub fn requireTypedOnlyAccess(mode: abi.UnsafeScope) PolicyError!void {
+    try requireBoundary(mode, .typed_safe);
+}
+
+pub fn requireNoUnsafe(mode: abi.UnsafeScope) PolicyError!void {
+    try requireTypedOnlyAccess(mode);
 }
 
 pub fn isUnsafe(mode: abi.UnsafeScope) bool {
@@ -105,12 +134,24 @@ pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {
     return requiresVolatileMmioAccess(mode);
 }
 
+pub fn requireVolatileMmioAccess(mode: abi.UnsafeScope) PolicyError!void {
+    try requireBoundary(mode, .volatile_mmio_window);
+}
+
+pub fn requireVolatileMmio(mode: abi.UnsafeScope) PolicyError!void {
+    try requireVolatileMmioAccess(mode);
+}
+
 pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {
     return accessBoundaryFor(mode) == .raw_pointer_bridge;
 }
 
 pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {
     return requiresRawPointerBridge(mode);
+}
+
+pub fn requireRawPointerBridge(mode: abi.UnsafeScope) PolicyError!void {
+    try requireBoundary(mode, .raw_pointer_bridge);
 }
 
 pub fn allowsTypedOnlyAccessPolicyBytes(mode: u8, reserved: u8) bool {
@@ -135,6 +176,30 @@ pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {
 
 pub fn permitsNoUnsafeByte(scope: u8) bool {
     return allowsTypedOnlyAccessByte(scope);
+}
+
+pub fn requireTypedOnlyAccessPolicyBytes(mode: u8, reserved: u8) PolicyError!void {
+    try requireBoundaryPolicyBytes(mode, reserved, .typed_safe);
+}
+
+pub fn requireTypedOnlyAccessInteropPolicy(policy: abi.InteropPolicy) PolicyError!void {
+    try requireTypedOnlyAccessPolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn requireTypedOnlyAccessByte(mode: u8) PolicyError!void {
+    try requireTypedOnlyAccessPolicyBytes(mode, 0);
+}
+
+pub fn requireNoUnsafePolicyBytes(scope: u8, reserved: u8) PolicyError!void {
+    try requireTypedOnlyAccessPolicyBytes(scope, reserved);
+}
+
+pub fn requireNoUnsafeInteropPolicy(policy: abi.InteropPolicy) PolicyError!void {
+    try requireTypedOnlyAccessInteropPolicy(policy);
+}
+
+pub fn requireNoUnsafeByte(scope: u8) PolicyError!void {
+    try requireTypedOnlyAccessByte(scope);
 }
 
 pub fn requiresDedicatedAuditPolicyBytes(scope: u8, reserved: u8) bool {
@@ -173,6 +238,18 @@ pub fn permitsVolatileMmioByte(scope: u8) bool {
     return requiresVolatileMmioAccessByte(scope);
 }
 
+pub fn requireVolatileMmioPolicyBytes(mode: u8, reserved: u8) PolicyError!void {
+    try requireBoundaryPolicyBytes(mode, reserved, .volatile_mmio_window);
+}
+
+pub fn requireVolatileMmioInteropPolicy(policy: abi.InteropPolicy) PolicyError!void {
+    try requireVolatileMmioPolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn requireVolatileMmioByte(mode: u8) PolicyError!void {
+    try requireVolatileMmioPolicyBytes(mode, 0);
+}
+
 pub fn requiresRawPointerBridgePolicyBytes(mode: u8, reserved: u8) bool {
     return requiresRawPointerBridge(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
 }
@@ -195,6 +272,18 @@ pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {
 
 pub fn permitsRawPointerBridgeByte(scope: u8) bool {
     return requiresRawPointerBridgeByte(scope);
+}
+
+pub fn requireRawPointerBridgePolicyBytes(mode: u8, reserved: u8) PolicyError!void {
+    try requireBoundaryPolicyBytes(mode, reserved, .raw_pointer_bridge);
+}
+
+pub fn requireRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) PolicyError!void {
+    try requireRawPointerBridgePolicyBytes(policy.unsafe_scope, policy.reserved);
+}
+
+pub fn requireRawPointerBridgeByte(mode: u8) PolicyError!void {
+    try requireRawPointerBridgePolicyBytes(mode, 0);
 }
 
 test "phase3 unsafe policy keeps access boundaries explicit" {
@@ -299,6 +388,136 @@ test "phase3 unsafe policy alias entrypoints stay synchronized" {
         try std.testing.expectEqual(
             requiresRawPointerBridgeInteropPolicy(policy),
             permitsRawPointerBridgeInteropPolicy(policy),
+        );
+    }
+}
+
+test "phase3 unsafe policy require helpers keep boundaries explicit" {
+    const safe_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const raw_pointer_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 1,
+    };
+
+    try requireTypedOnlyAccess(.none);
+    try requireNoUnsafe(.none);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireTypedOnlyAccess(.volatile_mmio));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireNoUnsafe(.raw_pointer_bridge));
+
+    try requireVolatileMmioAccess(.volatile_mmio);
+    try requireVolatileMmio(.volatile_mmio);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioAccess(.none));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmio(.raw_pointer_bridge));
+
+    try requireRawPointerBridge(.raw_pointer_bridge);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridge(.volatile_mmio));
+
+    try requireTypedOnlyAccessByte(@intFromEnum(abi.UnsafeScope.none));
+    try requireNoUnsafePolicyBytes(@intFromEnum(abi.UnsafeScope.none), 0);
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        requireTypedOnlyAccessByte(@intFromEnum(abi.UnsafeScope.volatile_mmio)),
+    );
+    try std.testing.expectError(
+        error.InvalidInteropPolicy,
+        requireNoUnsafePolicyBytes(@intFromEnum(abi.UnsafeScope.none), 1),
+    );
+
+    try requireVolatileMmioByte(@intFromEnum(abi.UnsafeScope.volatile_mmio));
+    try requireVolatileMmioPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0);
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        requireVolatileMmioPolicyBytes(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 0),
+    );
+    try std.testing.expectError(
+        error.InvalidInteropPolicy,
+        requireVolatileMmioPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 1),
+    );
+
+    try requireRawPointerBridgeInteropPolicy(raw_pointer_policy);
+    try requireRawPointerBridgeByte(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireRawPointerBridgeInteropPolicy(mmio_policy));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireRawPointerBridgeInteropPolicy(reserved_policy));
+
+    try requireTypedOnlyAccessInteropPolicy(safe_policy);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireTypedOnlyAccessInteropPolicy(mmio_policy));
+}
+
+test "phase3 unsafe policy require aliases stay synchronized" {
+    const typed_modes = [_]abi.UnsafeScope{ .none, .volatile_mmio, .raw_pointer_bridge };
+    const known_scopes = [_]u8{
+        @intFromEnum(abi.UnsafeScope.none),
+        @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        9,
+    };
+    const reserved_values = [_]u8{ 0, 1 };
+    const policies = [_]abi.InteropPolicy{
+        .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 0, .reserved = 0 },
+        .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 1, .reserved = 0 },
+        .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 2, .reserved = 0 },
+        .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 2, .reserved = 1 },
+        .{ .panic_mode = 0, .allocator_mode = 0, .unsafe_scope = 9, .reserved = 0 },
+    };
+
+    for (typed_modes) |mode| {
+        try std.testing.expectEqual(
+            requireOutcome(requireTypedOnlyAccess(mode)),
+            requireOutcome(requireNoUnsafe(mode)),
+        );
+        try std.testing.expectEqual(
+            requireOutcome(requireVolatileMmioAccess(mode)),
+            requireOutcome(requireVolatileMmio(mode)),
+        );
+    }
+
+    for (known_scopes) |scope| {
+        try std.testing.expectEqual(
+            requireOutcome(requireTypedOnlyAccessByte(scope)),
+            requireOutcome(requireNoUnsafeByte(scope)),
+        );
+        try std.testing.expectEqual(
+            requireOutcome(requireVolatileMmioByte(scope)),
+            requireOutcome(requireVolatileMmioPolicyBytes(scope, 0)),
+        );
+        try std.testing.expectEqual(
+            requireOutcome(requireRawPointerBridgeByte(scope)),
+            requireOutcome(requireRawPointerBridgePolicyBytes(scope, 0)),
+        );
+    }
+
+    for (known_scopes) |scope| {
+        for (reserved_values) |reserved| {
+            try std.testing.expectEqual(
+                requireOutcome(requireTypedOnlyAccessPolicyBytes(scope, reserved)),
+                requireOutcome(requireNoUnsafePolicyBytes(scope, reserved)),
+            );
+        }
+    }
+
+    for (policies) |policy| {
+        try std.testing.expectEqual(
+            requireOutcome(requireTypedOnlyAccessInteropPolicy(policy)),
+            requireOutcome(requireNoUnsafeInteropPolicy(policy)),
         );
     }
 }
