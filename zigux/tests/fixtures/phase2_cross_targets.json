@@ -1,0 +1,30 @@
+{
+  "phase": "Phase 2",
+  "status": "seeded",
+  "scope": "bounded direct-cross target matrix for the phase2-cross route",
+  "targets": [
+    {
+      "zig_target": "x86_64-linux",
+      "coverage": "pinned-archive-bootstrap",
+      "route": "phase2-toolchain",
+      "notes": "current bootstrap archive target pinned by scripts/zigux/zig-toolchain-policy.json"
+    },
+    {
+      "zig_target": "aarch64-linux",
+      "coverage": "direct-cross-route-planned",
+      "route": "phase2-cross",
+      "notes": "bounded direct-cross target row pending workflow and make-route integration"
+    },
+    {
+      "zig_target": "riscv64-linux",
+      "coverage": "direct-cross-route-planned",
+      "route": "phase2-cross",
+      "notes": "bounded direct-cross target row pending workflow and make-route integration"
+    }
+  ],
+  "notes": [
+    "The direct phase2-cross checker is now materialized as a fixture-backed packet even though current master still keeps the shared route itself aligned through scripts/zigux/check-phase2-cross-selftest-alignment.py.",
+    "Keep the pinned x86_64-linux archive row anchored to scripts/zigux/zig-toolchain-policy.json so the direct-cross matrix does not drift away from the live toolchain packet.",
+    "Treat aarch64-linux and riscv64-linux as bounded planned rows until the workflow and make-wrapper packet explicitly replays this checker on current master."
+  ]
+}
