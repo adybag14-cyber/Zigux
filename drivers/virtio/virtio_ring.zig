@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const queue_capacity: usize = 8;
 pub const max_descriptor_count: u16 = 1024;
+pub const packed_notification_wrap_bit: u16 = 1 << 15;
 
 pub const QueueLayout = enum {
     split,
@@ -34,6 +35,18 @@ pub const QueueNotificationSummary = struct {
     num_added: u16,
     notification_count: usize,
     needs_kick: bool,
+};
+
+pub const NotificationDataSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    descriptor_count: u16,
+    layout: QueueLayout,
+    avail_idx_shadow: u16,
+    next_avail_idx: u16,
+    next_avail_wrap_counter: bool,
+    encoded_next: u16,
+    notification_data: u32,
 };
 
 pub const UsedBufferPollSummary = struct {
@@ -391,6 +404,50 @@ pub const VirtioRingLab = struct {
             .num_added = slot.num_added,
             .notification_count = slot.notification_count,
             .needs_kick = slot.num_added != 0,
+        };
+    }
+
+    pub fn notificationDataSummary(self: *const Self, queue_index: u16) !NotificationDataSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+
+        const NextState = struct {
+            next_avail_idx: u16,
+            next_avail_wrap_counter: bool,
+            encoded_next: u16,
+        };
+
+        const next: NextState = switch (slot.layout) {
+            .split => .{
+                .next_avail_idx = slot.avail_idx_shadow,
+                .next_avail_wrap_counter = false,
+                .encoded_next = slot.avail_idx_shadow,
+            },
+            .packed_ring => blk: {
+                const wrapped_total: u32 = slot.avail_idx_shadow;
+                const next_avail_idx: u16 = @intCast(wrapped_total % slot.descriptor_count);
+                const wrap_counter = ((wrapped_total / slot.descriptor_count) & 1) != 0;
+                const encoded_next = next_avail_idx |
+                    (if (wrap_counter) packed_notification_wrap_bit else 0);
+                break :blk .{
+                    .next_avail_idx = next_avail_idx,
+                    .next_avail_wrap_counter = wrap_counter,
+                    .encoded_next = encoded_next,
+                };
+            },
+        };
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .descriptor_count = slot.descriptor_count,
+            .layout = slot.layout,
+            .avail_idx_shadow = slot.avail_idx_shadow,
+            .next_avail_idx = next.next_avail_idx,
+            .next_avail_wrap_counter = next.next_avail_wrap_counter,
+            .encoded_next = next.encoded_next,
+            .notification_data = (@as(u32, next.encoded_next) << 16) | queue_index,
         };
     }
 
