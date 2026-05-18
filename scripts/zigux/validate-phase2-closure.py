@@ -11,6 +11,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
+WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 PHASE2_CLOSURE_REL = Path("Documentation/zigux/phase2-closure.md")
 PHASE2_BOOTSTRAP_NOTES_REL = Path("Documentation/zigux/phase2-toolchain-bootstrap-notes.md")
 PHASE2_VALIDATE_REL = Path("scripts/zigux/validate-phase2.py")
@@ -26,6 +27,7 @@ MANIFEST_REL = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 ARTIFACT_MANIFEST_REL = Path("zigux/tests/fixtures/phase2_artifact_tools_manifest.json")
 
 REQUIRED_FILES = (
+    WORKFLOW_REL,
     PHASE2_CLOSURE_REL,
     PHASE2_BOOTSTRAP_NOTES_REL,
     PHASE2_VALIDATE_REL,
@@ -69,6 +71,12 @@ FORBIDDEN_CLOSURE_MARKERS = (
     "Current `master` still does not directly materialize the older closure-validator companion, installer hook, and direct cross-route companions",
 )
 
+REQUIRED_WORKFLOW_LINES = (
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "run: python3 scripts/zigux/validate-phase2.py",
+)
+
 REQUIRED_MAKEFILE_LINES = (
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
@@ -79,8 +87,10 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(REQUIRED_CLOSURE_MARKERS)
     + len(FORBIDDEN_CLOSURE_MARKERS)
+    + len(REQUIRED_WORKFLOW_LINES)
+    + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
-    + 2
+    + 3
 )
 
 
@@ -114,6 +124,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if issues:
         return issues
 
+    workflow_text = read_text(resolve(root, WORKFLOW_REL))
     closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
 
@@ -124,6 +135,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     for marker in FORBIDDEN_CLOSURE_MARKERS:
         if marker in closure_text:
             issues.append(("FORBIDDEN_CLOSURE_MARKER", marker))
+
+    for marker in REQUIRED_WORKFLOW_LINES:
+        count = count_exact_lines(workflow_text, marker)
+        if count == 0:
+            issues.append(("MISSING_WORKFLOW_LINE", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -190,6 +208,7 @@ The remaining current `master` repo-reality gaps are the installer and direct cr
 - `make -C zigux phase2-validate`
 - `make -C zigux phase2`
 """
+    write_text(resolve(root, WORKFLOW_REL), "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
     write_text(resolve(root, PHASE2_CLOSURE_REL), closure_text)
     write_text(resolve(root, PHASE2_BOOTSTRAP_NOTES_REL), "present\n")
     write_text(resolve(root, PHASE2_VALIDATE_REL), "present\n")
@@ -233,6 +252,15 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_closure_validate_") as tmp_dir:
@@ -257,6 +285,25 @@ def run_self_test() -> int:
             assert ("FORBIDDEN_CLOSURE_MARKER", marker) in issues
             checks_run += 1
 
+        for marker in REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve(root, WORKFLOW_REL)
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "run: python3 scripts/zigux/other.py"),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_WORKFLOW_LINE", marker) in issues
+            checks_run += 1
+
+        for marker in REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve(root, WORKFLOW_REL)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in issues
+            checks_run += 1
+
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             path = resolve(root, MAKEFILE_REL)
@@ -268,7 +315,7 @@ def run_self_test() -> int:
             assert ("MISSING_MAKEFILE_LINE", marker) in issues
             checks_run += 1
 
-        for rel in (PHASE2_CLOSURE_REL, MAKEFILE_REL):
+        for rel in (PHASE2_CLOSURE_REL, WORKFLOW_REL, MAKEFILE_REL):
             build_self_test_root(root)
             resolve(root, rel).unlink()
             issues = collect_issues(root)
