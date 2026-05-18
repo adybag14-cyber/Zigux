@@ -124,6 +124,23 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "fastTolower leaves non-uppercase punctuation unchanged" {
+    try std.testing.expectEqual(@as(u8, '['), fastTolower('['));
+    try std.testing.expectEqual(@as(u8, '\\'), fastTolower('\\'));
+    try std.testing.expectEqual(@as(u8, '^'), fastTolower('^'));
+}
+
+test "ctype latin1 table anchors preserve case mapping" {
+    const upper_a_grave: u8 = 0xC0;
+    const lower_a_grave: u8 = 0xE0;
+
+    try std.testing.expect(isupper(upper_a_grave));
+    try std.testing.expect(islower(lower_a_grave));
+    try std.testing.expectEqual(lower_a_grave, tolower(upper_a_grave));
+    try std.testing.expectEqual(lower_a_grave, fastTolower(upper_a_grave));
+    try std.testing.expectEqual(upper_a_grave, toupper(lower_a_grave));
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
