@@ -63,6 +63,10 @@ pub fn errorStatus(code: i32, facility: Facility) ExportStatus {
     };
 }
 
+pub fn statusIsOk(status: ExportStatus) bool {
+    return (status.flags & abi.STATUS_FLAG_ERROR) == 0;
+}
+
 pub fn validateDeviceFields(fields: DevTFields) ExportStatus {
     if (dev_t.validate(fields)) return okStatus(.kernel);
     return errorStatus(invalid_argument, .kernel);
@@ -140,6 +144,22 @@ test "export shim status helpers keep facility and error flags explicit" {
     try testing.expectEqual(@as(i32, 7), non_error.code);
     try testing.expectEqual(@as(u16, @intFromEnum(Facility.drivers)), non_error.facility);
     try testing.expectEqual(@as(u16, 0), non_error.flags);
+}
+
+test "export shim mirrors the exported status-ok flag contract" {
+    const ok = okStatus(.helpers);
+    const negative = errorStatus(-12, .kernel);
+    const positive = errorStatus(7, .drivers);
+    const flagged_positive = ExportStatus{
+        .code = 7,
+        .facility = @intFromEnum(Facility.drivers),
+        .flags = abi.STATUS_FLAG_ERROR,
+    };
+
+    try testing.expect(statusIsOk(ok));
+    try testing.expect(!statusIsOk(negative));
+    try testing.expect(statusIsOk(positive));
+    try testing.expect(!statusIsOk(flagged_positive));
 }
 
 test "export shim forwards starter dev_t fields without changing layout semantics" {
