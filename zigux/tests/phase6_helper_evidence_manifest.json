@@ -8,8 +8,10 @@
     "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
+    "zigux/Makefile",
     "zigux/tests/phase6_build.zig",
-    "scripts/zigux/check-phase6-shared-surface.py",
+    "zigux/tests/phase6_helper_evidence_manifest.json",
+    "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-present-entrypoints.py"
   ],
   "roadmap_anchors": [
@@ -96,7 +98,6 @@
     "Documentation/zigux/phase6-perf-gate-survey.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
-    "zigux/tests/phase6_helper_parity_manifest.json",
     "zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig",
     "zigux/tests/phase6_base64_c_parity.zig",
     "zigux/tests/phase6_base64_c_casegen.zig",
@@ -108,19 +109,23 @@
     "scripts/zigux/check-phase6-checksum-c-parity.py",
     "scripts/zigux/check-phase6-hexdump-packet.py"
   ],
-  "last_known_shared_replay_inventory": [
-    "python3 scripts/zigux/check-phase6-base64-c-parity.py",
+  "current_shared_replay_inventory": [
+    "zig build phase6-base64-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-base64-test",
     "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-base64-perf",
-    "python3 scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
-    "python3 scripts/zigux/check-phase6-checksum-c-parity.py",
+    "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-bsearch-test",
+    "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
-    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
+    "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
-    "make -C zigux phase6-bsearch-test",
     "make -C zigux phase6-hexdump-review",
+    "zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-test",
+    "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-perf"
   ]
 }
