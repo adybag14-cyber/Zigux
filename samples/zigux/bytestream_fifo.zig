@@ -548,15 +548,26 @@ pub const BytestreamFifoSample = struct {
 };
 
 test "bytestream fifo sample replays the Linux anchor result sequence" {
-    const contract = BytestreamFifoSample.reviewContract();
+    const expected_focus = [_]SampleFocus{
+        .bounded_fifo_order,
+        .wraparound_requeue,
+        .peek_and_skip,
+        .non_destructive_snapshot,
+        .preview_truncation,
+        .remaining_capacity,
+        .queue_shape_boundaries,
+        .helper_boundaries,
+        .reset_and_replay,
+        .ownership_and_lifetime,
+    };
 
     var sample = BytestreamFifoSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
 
     try std.testing.expectEqualStrings(BytestreamFifoSample.descriptor().anchor, replay.anchor);
-    try std.testing.expectEqual(@as(usize, contract.focus.len), replay.checked_focus.len);
-    for (contract.focus, replay.checked_focus) |expected, actual| {
+    try std.testing.expectEqual(@as(usize, expected_focus.len), replay.checked_focus.len);
+    for (expected_focus, replay.checked_focus) |expected, actual| {
         try std.testing.expectEqual(expected, actual);
     }
     try std.testing.expectEqual(SampleStage.initialized, replay.stage_before_replay);
@@ -566,4 +577,95 @@ test "bytestream fifo sample replays the Linux anchor result sequence" {
     try std.testing.expectEqualSlices(u8, &.{ 0, 1 }, replay.second_out[0..]);
     try std.testing.expectEqual(@as(usize, fifo_capacity), replay.final_len);
     try std.testing.expectEqualSlices(u8, expected_anchor_result[0..], replay.final_sequence[0..]);
+}
+
+test "bytestream fifo sample keeps preview and wrapped-span boundaries reviewable at sample root" {
+    var sample = BytestreamFifoSample{};
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runPreviewBoundaryReplay());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runWrappedPreviewReplay());
+
+    try sample.init();
+    const preview = try sample.runPreviewBoundaryReplay();
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5 }, preview.snapshot_prefix[0..]);
+    try std.testing.expectEqualSlices(u8, &.{ 2, 3, 4, 5, 6, 7, 8, 9 }, preview.preview_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, 10), preview.preview_total_visible);
+    try std.testing.expectEqual(@as(usize, 10), preview.queue_len_after_preview);
+    try std.testing.expectEqual(@as(usize, 22), preview.available_after_preview);
+    try std.testing.expectEqual(@as(usize, 7), preview.visible_span_after_preview.head_index);
+    try std.testing.expectEqual(@as(usize, 17), preview.visible_span_after_preview.tail_index);
+    try std.testing.expectEqual(@as(usize, 10), preview.visible_span_after_preview.total_visible);
+    try std.testing.expectEqual(@as(usize, 10), preview.visible_span_after_preview.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), preview.visible_span_after_preview.second_window_len);
+    try std.testing.expect(!preview.visible_span_after_preview.wraps);
+
+    const wrapped = try sample.runWrappedPreviewReplay();
+    try std.testing.expectEqualSlices(u8, "hell", wrapped.drained_prefix[0..]);
+    try std.testing.expectEqualSlices(u8, &.{ 200, 201, 202, 203 }, wrapped.refill_values[0..]);
+    try std.testing.expectEqualSlices(u8, &.{ 'o', 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, wrapped.snapshot_prefix[0..]);
+    try std.testing.expectEqualSlices(u8, &.{ 'o', 0, 1, 2, 3, 4, 5, 6 }, wrapped.preview_prefix[0..]);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped.preview_total_visible);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped.queue_len_after_preview);
+    try std.testing.expectEqual(@as(usize, 0), wrapped.available_after_preview);
+    try std.testing.expectEqual(@as(usize, 4), wrapped.visible_span_after_preview.head_index);
+    try std.testing.expectEqual(@as(usize, 4), wrapped.visible_span_after_preview.tail_index);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), wrapped.visible_span_after_preview.total_visible);
+    try std.testing.expectEqual(@as(usize, 28), wrapped.visible_span_after_preview.first_window_len);
+    try std.testing.expectEqual(@as(usize, 4), wrapped.visible_span_after_preview.second_window_len);
+    try std.testing.expect(wrapped.visible_span_after_preview.wraps);
+    try std.testing.expect(sample.usesWrappedStorageWindow());
+}
+
+test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries reviewable at sample root" {
+    var sample = BytestreamFifoSample{};
+
+    try std.testing.expectEqual(@as(?u8, null), sample.peekByte());
+    try std.testing.expectEqual(@as(?u8, null), sample.skipByte());
+    try std.testing.expectEqual(@as(usize, 0), sample.enqueueSlice(&.{}));
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.exit());
+
+    try sample.init();
+    const capacity_replay = try sample.runRemainingCapacityReplay();
+    try std.testing.expectEqual(@as(usize, fifo_capacity), capacity_replay.available_after_init);
+    try std.testing.expectEqual(@as(usize, fifo_capacity - 5), capacity_replay.available_after_hello);
+    try std.testing.expectEqual(@as(usize, 0), capacity_replay.available_when_full);
+    try std.testing.expectEqual(@as(usize, 1), capacity_replay.available_after_skip);
+    try std.testing.expectEqual(@as(usize, 0), capacity_replay.available_after_wrap_refill);
+    try std.testing.expectEqual(@as(usize, 8), capacity_replay.available_after_partial_drain);
+    try std.testing.expectEqual(@as(usize, 24), capacity_replay.queue_len_after_partial_drain);
+    try std.testing.expect(!capacity_replay.wrapped_when_full);
+    try std.testing.expect(capacity_replay.wrapped_after_wrap_refill);
+    try std.testing.expectEqualSlices(u8, "ello", capacity_replay.drained_prefix[0..4]);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 1, 2, 3 }, capacity_replay.drained_prefix[4..]);
+    try std.testing.expectEqual(@as(usize, 9), capacity_replay.visible_span_after_partial_drain.head_index);
+    try std.testing.expectEqual(@as(usize, 1), capacity_replay.visible_span_after_partial_drain.tail_index);
+    try std.testing.expectEqual(@as(usize, 23), capacity_replay.visible_span_after_partial_drain.first_window_len);
+    try std.testing.expectEqual(@as(usize, 1), capacity_replay.visible_span_after_partial_drain.second_window_len);
+    try std.testing.expect(capacity_replay.visible_span_after_partial_drain.wraps);
+
+    sample.reset();
+    try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
+    var short_drain: [3]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, short_drain.len), sample.drain(short_drain[0..]));
+    try std.testing.expectEqualSlices(u8, "hel", short_drain[0..]);
+    try std.testing.expectEqual(@as(?u8, 'l'), sample.peekByte());
+
+    var remainder: [2]u8 = undefined;
+    try std.testing.expectEqual(@as(usize, remainder.len), sample.dequeueSlice(remainder[0..]));
+    try std.testing.expectEqualSlices(u8, "lo", remainder[0..]);
+    try std.testing.expectEqual(@as(usize, 0), sample.drain(short_drain[0..]));
+
+    _ = try sample.runAnchorReplay();
+    const lifecycle = sample.lifecycleSummary();
+    try std.testing.expectEqual(SampleStage.replay_complete, lifecycle.stage);
+    try std.testing.expectEqual(@as(usize, 1), lifecycle.init_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.exit_run_count);
+    try std.testing.expectEqual(@as(usize, 0), lifecycle.queue_len);
+    try std.testing.expectEqual(StorageBacking.embedded_fixed_buffer, lifecycle.storage_backing);
+
+    try sample.exit();
+    try std.testing.expectEqual(SampleStage.exited, sample.stage());
+    try std.testing.expectEqual(@as(usize, 1), sample.exit_runs);
+    try std.testing.expectEqual(@as(usize, fifo_capacity), sample.available());
+    try std.testing.expectError(error.InvalidLifecycleTransition, sample.runAnchorReplay());
 }
