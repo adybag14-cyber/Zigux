@@ -92,6 +92,9 @@ pub fn hexDumpLineLength(
 ) usize {
     const rowsize = normalizedRowsize(rowsize_input);
     const len = @min(len_input, rowsize);
+    if (len == 0) {
+        return 0;
+    }
     const groupsize = normalizedGroupsize(len, groupsize_input);
     const ngroups = len / groupsize;
 
@@ -416,6 +419,7 @@ test "hexDumpLineLength mirrors formatter normalization" {
         want: usize,
     }{
         .{ .len = 0, .rowsize = 16, .groupsize = 1, .ascii = false, .want = 0 },
+        .{ .len = 0, .rowsize = 16, .groupsize = 1, .ascii = true, .want = 0 },
         .{ .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .want = 47 },
         .{ .len = 16, .rowsize = 7, .groupsize = 3, .ascii = false, .want = 47 },
         .{ .len = 16, .rowsize = 7, .groupsize = 3, .ascii = true, .want = 65 },
@@ -543,6 +547,8 @@ test "hexDumpToBuffer reports normalized required length for empty and zero-size
     var empty: [1]u8 = undefined;
 
     try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..], false));
+    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..0], false));
+    try std.testing.expectEqual(@as(usize, 0), hexDumpToBuffer(test_data_b[0..0], 16, 1, empty[0..0], true));
     try std.testing.expectEqual(@as(u8, 0), empty[0]);
 
     try std.testing.expectEqual(@as(usize, 65), hexDumpToBuffer(test_data_b[0..16], 7, 3, empty[0..0], true));
