@@ -28,7 +28,7 @@ REQUIRED_CONF_HELPER_ANCHORS = [
     'conf bridge emits explicit empty allconfig override for allmodconfig',
     'conf bridge emits randconfig tunables when present',
     'conf bridge emits explicit randconfig allconfig override when present',
-    'conf bridge emits randconfig allconfig sentinel without explicit override',
+    'conf bridge omits randconfig allconfig sentinel without explicit override',
     'conf bridge emits yes2modconfig argv and env',
     'conf bridge emits defconfig mode argument before kconfig',
     'conf bridge emits savedefconfig mode argument before kconfig',
@@ -779,7 +779,7 @@ def run_self_test() -> int:
             "CONFDATA_CASE_ORDER_ACTUAL",
             "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,malformed_unset_comment_tokens,last_state_transitions,duplicate_malformed_quoted_assignment",
         ) in issues
-        assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
+        assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues)
         checks_run += 1
 
         build_self_test_root(root)
