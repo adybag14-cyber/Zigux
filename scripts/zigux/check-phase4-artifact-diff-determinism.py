@@ -53,6 +53,22 @@ SURVEY_MARKERS = (
     "The helper itself is directly readable again on current `master` through `scripts/zigux/artifact_diff.py`",
 )
 
+SURVEY_REPLAY_MARKERS = (
+    "Current directly readable replay and warning surfaces in this run were:",
+    "`python3 scripts/zigux/artifact_diff.py --self-test`",
+    "`python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test`",
+    "`python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`",
+    "`python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`",
+    "`python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`",
+    "The direct validator replay command should fail closed until `scripts/zigux/validate-phase4.py` returns on current `master`:",
+    "`python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`",
+    "Historical broader companion replay names remain outside current direct-readback proof until those files return on current `master`:",
+    "`python3 scripts/zigux/check-artifact-diff-contract.py --self-test`",
+    "`python3 scripts/zigux/check-artifact-diff-contract.py`",
+    "`python3 scripts/zigux/validate-phase4.py`",
+    "`make -C zigux phase4-validate`",
+)
+
 NOTE_MARKERS = (
     "The broader Phase 4 validator, lab-matrix, and local-only perf companions are still repo-reality gaps in this run",
     "Historical broader validator and owner-map packet members:",
@@ -140,6 +156,7 @@ def check(root: Path) -> None:
     repo_warning = read(root, REPO_WARNING)
 
     require_markers(survey, SURVEY_MARKERS, SURVEY.as_posix())
+    require_markers(survey, SURVEY_REPLAY_MARKERS, SURVEY.as_posix())
     require_paths_listed(survey, SURVEY_DIRECT_PACKET, SURVEY.as_posix())
     require_paths_listed(
         survey,
@@ -183,6 +200,24 @@ def fixture_root(root: Path) -> None:
     * `scripts/zigux/validate-phase4.py`
 
 The helper itself is directly readable again on current `master` through `scripts/zigux/artifact_diff.py`.
+
+## Direct Replay Surface
+
+Current directly readable replay and warning surfaces in this run were:
+  * `python3 scripts/zigux/artifact_diff.py --self-test`
+  * `python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test`
+  * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`
+  * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`
+  * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`
+
+The direct validator replay command should fail closed until `scripts/zigux/validate-phase4.py` returns on current `master`:
+  * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
+
+Historical broader companion replay names remain outside current direct-readback proof until those files return on current `master`:
+  * `python3 scripts/zigux/check-artifact-diff-contract.py --self-test`
+  * `python3 scripts/zigux/check-artifact-diff-contract.py`
+  * `python3 scripts/zigux/validate-phase4.py`
+  * `make -C zigux phase4-validate`
 """,
     )
     write(
@@ -255,8 +290,8 @@ def self_test() -> None:
         write(
             root / SURVEY,
             read(root, SURVEY).replace(
-                "`scripts/zigux/artifact_diff.py`",
-                "`scripts/zigux/not-the-right-helper.py`",
+                "The helper itself is directly readable again on current `master` through `scripts/zigux/artifact_diff.py`.",
+                "The helper returned through `scripts/zigux/not-the-right-helper.py` instead.",
                 1,
             ),
         )
@@ -266,6 +301,26 @@ def self_test() -> None:
             cases += 1
         else:
             raise AssertionError("expected survey helper drift to fail")
+
+        fixture_root(root)
+        require_markers(read(root, SURVEY), SURVEY_REPLAY_MARKERS, "survey_replay")
+        cases += 1
+
+        fixture_root(root)
+        write(
+            root / SURVEY,
+            read(root, SURVEY).replace(
+                "`python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`",
+                "`python3 scripts/zigux/not-the-right-replay.py`",
+                1,
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected survey replay drift to fail")
 
         fixture_root(root)
         write(
