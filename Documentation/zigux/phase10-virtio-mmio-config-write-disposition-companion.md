@@ -52,12 +52,12 @@ Current `master` readback keeps this narrower MMIO packet explicit through:
 - `Documentation/zigux/phase10-virtio-mmio-survey.md` keeps the bounded transport-identity, queue-readiness, feature-negotiation, and config-write-disposition survey aligned with the same blocked lifecycle-and-IRQ boundary
 - `zigux/tests/phase10_virtio_mmio.zig` keeps the helper-local probe-gating, queue-readiness, feature-negotiation, and config-write-disposition replays explicit
 - `zigux/tests/phase10_virtio_mmio_survey.zig` rereads the parked survey note together with the shared `zigux/tests/phase10_build.zig` gate
-- `zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and blocked slice note explicit beside the helper-local packet
-- repeated authenticated contents reads still return missing only for `Documentation/zigux/phase10-virtio-mmio-slice.md`, so keep just that adjacent MMIO packet member framed as a repo-reality gap until a fresh reread proves it materializes again
+- `zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and slice note explicit beside the helper-local packet
+- `Documentation/zigux/phase10-virtio-mmio-slice.md` now materializes as the packet-local slice companion, keeping the helper, survey, manifest, and blocked transport boundary aligned beside the config-write detail surface
 
 ## Safe Reading
 
-Use this companion as the packet-local explanation for the MMIO config-write disposition helper together with the live MMIO survey, the direct helper file, the verify wrapper, the helper-local MMIO tests, the dedicated MMIO survey gate, the MMIO manifest companion, and the shared Phase 10 build gate.
+Use this companion as the packet-local explanation for the MMIO config-write disposition helper together with the live MMIO survey, the direct helper file, the verify wrapper, the helper-local MMIO tests, the dedicated MMIO survey gate, the MMIO manifest companion, the MMIO slice companion, and the shared Phase 10 build gate.
 
 It should not be read as a claim that the MMIO lane has crossed into transport-backed writes, queue execution, IRQ delivery, DMA, or lifecycle closure.
 
