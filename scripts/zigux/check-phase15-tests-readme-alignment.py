@@ -26,7 +26,6 @@ DIRECT_PACKET_PATHS = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase15-docs-readme-alignment.py",
     "scripts/zigux/check-phase15-scripts-readme-alignment.py",
-    "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
     "scripts/zigux/check-phase15-readiness-gate-packet.py",
