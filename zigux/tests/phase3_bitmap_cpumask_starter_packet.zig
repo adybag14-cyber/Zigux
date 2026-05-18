@@ -11,20 +11,54 @@ test "bitmap cpumask starter binding preserves the helper-local layout" {
     try testing.expectEqual(@as(u32, 1), binding.bitmap_summary_abi_version);
     try testing.expectEqual(@as(u32, 1), binding.cpumask_view_abi_version);
 
+    try testing.expectEqual(@as(usize, @sizeOf(usize) + 8), binding.bitmap_view_size);
+    try testing.expectEqual(@as(usize, @alignOf(usize)), binding.bitmap_view_align);
     try testing.expectEqual(@as(usize, 0), binding.bitmap_view_words_addr_offset);
     try testing.expectEqual(@as(usize, @sizeOf(usize)), binding.bitmap_view_nbits_offset);
     try testing.expectEqual(@as(usize, @sizeOf(usize) + 4), binding.bitmap_view_word_count_offset);
 
+    try testing.expectEqual(@as(usize, 16), binding.bitmap_summary_size);
+    try testing.expectEqual(@as(usize, 4), binding.bitmap_summary_align);
     try testing.expectEqual(@as(usize, 0), binding.bitmap_summary_first_set_offset);
     try testing.expectEqual(@as(usize, 4), binding.bitmap_summary_first_zero_offset);
     try testing.expectEqual(@as(usize, 8), binding.bitmap_summary_weight_offset);
     try testing.expectEqual(@as(usize, 12), binding.bitmap_summary_reserved_offset);
 
+    try testing.expectEqual(@as(usize, @sizeOf(usize) + 16), binding.cpumask_view_size);
+    try testing.expectEqual(@as(usize, @alignOf(usize)), binding.cpumask_view_align);
     try testing.expectEqual(@as(usize, 0), binding.cpumask_view_words_addr_offset);
     try testing.expectEqual(@as(usize, @sizeOf(usize)), binding.cpumask_view_nbits_offset);
     try testing.expectEqual(@as(usize, @sizeOf(usize) + 4), binding.cpumask_view_word_count_offset);
     try testing.expectEqual(@as(usize, @sizeOf(usize) + 8), binding.cpumask_view_nr_cpu_ids_offset);
     try testing.expectEqual(@as(usize, @sizeOf(usize) + 12), binding.cpumask_view_reserved_offset);
+}
+
+test "bitmap cpumask starter binding constructors keep reserved and projected fields explicit" {
+    const bitmap = binding.initBitmapView(0x1234, 73, 2);
+    const summary = binding.initBitmapSummary(5, 9, 12);
+    const cpumask = binding.initCpumaskView(0x5678, bitmap_view.bits_per_word + 9, 2, bitmap_view.bits_per_word + 9);
+    const projected = binding.asBitmap(cpumask);
+
+    try testing.expectEqual(@as(usize, 0x1234), bitmap.words_addr);
+    try testing.expectEqual(@as(u32, 73), bitmap.nbits);
+    try testing.expectEqual(@as(u32, 2), bitmap.word_count);
+
+    try testing.expectEqual(@as(u32, 5), summary.first_set);
+    try testing.expectEqual(@as(u32, 9), summary.first_zero);
+    try testing.expectEqual(@as(u32, 12), summary.weight);
+    try testing.expectEqual(@as(u32, 0), summary.reserved);
+
+    try testing.expectEqual(@as(usize, 0x5678), cpumask.words_addr);
+    try testing.expectEqual(bitmap_view.bits_per_word + 9, cpumask.nbits);
+    try testing.expectEqual(@as(u32, 2), cpumask.word_count);
+    try testing.expectEqual(bitmap_view.bits_per_word + 9, cpumask.nr_cpu_ids);
+    try testing.expectEqual(@as(u32, 0), cpumask.reserved);
+    try testing.expect(cpumask_view.isValid(cpumask));
+
+    try testing.expectEqual(cpumask.words_addr, projected.words_addr);
+    try testing.expectEqual(cpumask.nbits, projected.nbits);
+    try testing.expectEqual(cpumask.word_count, projected.word_count);
+    try testing.expect(bitmap_view.isValid(projected));
 }
 
 test "bitmap starter helpers keep first set first zero and weight aligned" {
