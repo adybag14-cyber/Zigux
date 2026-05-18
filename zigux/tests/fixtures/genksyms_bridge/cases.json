@@ -195,6 +195,15 @@
     "expected": "repeated_version_expected.json"
   },
   {
+    "name": "repeated_long_version",
+    "argv": [
+      "--version",
+      "--ver"
+    ],
+    "mode": "process_json",
+    "expected": "repeated_version_expected.json"
+  },
+  {
     "name": "unsupported_long_option",
     "argv": [
       "--unknown"
