@@ -19,6 +19,8 @@ EXPECTED_VALIDATOR_REPLAY_MARKERS = [
 
 EXPECTED_HISTORICAL_GAP_MARKERS = [
     "The broader Phase 4 validator, lab-matrix, and bitmap-diff companions are still repo-reality gaps in this run",
+    "`Documentation/zigux/artifact-diff.md`",
+    "`scripts/zigux/check-artifact-diff-contract.py`",
     "`scripts/zigux/validate-phase4.py`",
 ]
 
@@ -93,8 +95,7 @@ def make_historical_gap_fixture(root: Path) -> None:
         "\n".join(
             [
                 "# Phase 4 Reversible Delivery Evidence",
-                EXPECTED_HISTORICAL_GAP_MARKERS[0],
-                EXPECTED_HISTORICAL_GAP_MARKERS[1],
+                *EXPECTED_HISTORICAL_GAP_MARKERS,
             ]
         )
         + "\n",
