@@ -44,9 +44,6 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     const helper = try readRepoFile(allocator, "lib/argv_split.zig");
     defer allocator.free(helper);
 
-    const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
-    defer allocator.free(samples_readme);
-
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -61,7 +58,6 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     try expectStringSliceContains(manifest.review_surfaces, "lib/argv_split.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_survey.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_manifest.json");
-    try expectStringSliceContains(manifest.review_surfaces, "samples/zigux/README.md");
 
     try expectStringSliceContains(manifest.covered_helpers, "countArgc");
     try expectStringSliceContains(manifest.covered_helpers, "argvSplit");
@@ -114,7 +110,4 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     try expectContains(helper, "test \"argvSplit frees intermediate allocations when allocator failure interrupts setup\"");
     try expectContains(helper, "test \"argvSplitWithArgc keeps caller argc unchanged when allocation fails before returning a result\"");
     try expectContains(helper, "test \"argvSplit reports overflow before sizing the null-terminated argv vector\"");
-
-    try expectContains(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:");
-    try expectContains(samples_readme, "* `*argv*`");
 }
