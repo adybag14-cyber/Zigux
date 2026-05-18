@@ -136,6 +136,16 @@
     "normalize_stderr": true
   },
   {
+    "name": "abbreviated_long_version_before_invalid_long_option",
+    "argv": [
+      "--ver",
+      "--unknown"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_invalid_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
     "name": "version_before_missing_short_option_argument",
     "argv": [
       "-Vr"
