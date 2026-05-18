@@ -49,8 +49,9 @@ REQUIRED_MARKERS = (
     "`zigux/bindings/notifier_abi.zig`",
     "`include/zigux/abi.h`",
     "`drivers/tty/hvc/hvc_console.h`",
-    "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
-    "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note framed as an adjacent repo-reality gap rather than as shipped tests-root evidence.",
+    "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, or `scripts/zigux/check-phase13-notifier-priority-signal.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
+    "Current `master` does materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that guard explicit as shipped shared-summary evidence aligned with the contributor workflow guide and roadmap-traceability note instead of repeating it as a missing tests-root gap.",
+    "Current `master` also materializes the adjacent notifier survey plus the direct-evidence shards `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, so keep those six paths explicit as shipped adjacent evidence without counting them as extra shared replay steps.",
     "Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
 )
 
@@ -59,16 +60,16 @@ REQUIRED_TEXT = (
 )
 
 FORBIDDEN_SHIPPED_LINES = (
-    "- `Documentation/zigux/phase13-notifier-list-survey.md`",
     "- `zigux/Makefile`",
     "- `make -C zigux phase13-validate`",
     "- `make -C zigux phase13`",
-    "- `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
 )
 
 FORBIDDEN_TEXT = (
     "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`",
     "Keep `make -C zigux phase13-validate` as the stable contributor-facing handle until the shared build companion lands",
+    "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note framed as an adjacent repo-reality gap rather than as shipped tests-root evidence.",
+    "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
 )
 
 
@@ -148,9 +149,9 @@ def build_self_test_root(root: Path) -> None:
         "",
         "Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:",
     ]
-    section_lines.extend(f"- {marker}" for marker in REQUIRED_MARKERS[:-3])
+    section_lines.extend(f"- {marker}" for marker in REQUIRED_MARKERS[:-4])
     section_lines.append("")
-    section_lines.extend(REQUIRED_MARKERS[-3:])
+    section_lines.extend(REQUIRED_MARKERS[-4:])
     section_lines.append("")
     section_lines.append(PHASE13_SECTION_END)
     write_text(resolve_path(root, TESTS_README), "\n".join(section_lines) + "\n")
@@ -239,13 +240,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, TESTS_README)
         path.write_text(
-            path.read_text(encoding="utf-8") + "\nCurrent `master` still exposes `make -C zigux phase13` through `zigux/Makefile`.\n",
+            path.read_text(encoding="utf-8")
+            + "\nCurrent `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note framed as an adjacent repo-reality gap rather than as shipped tests-root evidence.\n",
             encoding="utf-8",
         )
         issues = collect_issues(root)
         assert (
             "FORBIDDEN_TEXT",
-            "Current `master` still exposes `make -C zigux phase13` through `zigux/Makefile`",
+            "Current `master` still does not materialize `Documentation/zigux/phase13-notifier-list-survey.md`, so keep that note framed as an adjacent repo-reality gap rather than as shipped tests-root evidence.",
         ) in issues
         checks_run += 1
 
