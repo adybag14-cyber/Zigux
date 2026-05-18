@@ -50,6 +50,18 @@ test "dev_t binding equality stays field based" {
     try testing.expect(!dev_t.eql(left, different));
 }
 
+test "starter dev_t validation keeps the boundary range explicit" {
+    const valid = dev_t.init(dev_t.max_major, dev_t.max_minor);
+    const invalid_major = dev_t.init(dev_t.max_major + 1, 0);
+    const invalid_minor = dev_t.init(0, dev_t.max_minor + 1);
+
+    try testing.expect(dev_t.validate(valid));
+    try testing.expect(!dev_t.validate(invalid_major));
+    try testing.expect(!dev_t.validate(invalid_minor));
+    try testing.expect(dev_t.validateRange(dev_t.init(1, 2), dev_t.init(1, 3)));
+    try testing.expect(!dev_t.validateRange(dev_t.init(1, 3), dev_t.init(1, 2)));
+}
+
 test "version binding equality stays field based" {
     const current = version.current();
     const same = version.Version{
@@ -109,4 +121,28 @@ test "starter export shim forwards dev_t fields without changing starter layout 
     try testing.expectEqual(@as(u32, 29), fields.minor);
     try testing.expect(dev_t.eql(fields, same));
     try testing.expect(!dev_t.eql(fields, different));
+}
+
+test "starter export shim relays dev_t validation status" {
+    const valid = export_shim.validateDeviceNumber(dev_t.max_major, dev_t.max_minor);
+    const invalid = export_shim.validateDeviceNumber(dev_t.max_major + 1, 0);
+    const valid_range = export_shim.validateDeviceRange(
+        export_shim.makeDevTFields(1, 2),
+        export_shim.makeDevTFields(1, 3),
+    );
+    const invalid_range = export_shim.validateDeviceRange(
+        export_shim.makeDevTFields(1, 3),
+        export_shim.makeDevTFields(1, 2),
+    );
+
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), valid.facility);
+    try testing.expectEqual(@as(u16, 0), valid.flags);
+
+    try testing.expectEqual(@as(i32, -22), invalid.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid.facility);
+    try testing.expectEqual(@as(u16, 1), invalid.flags);
+
+    try testing.expectEqual(@as(i32, 0), valid_range.code);
+    try testing.expectEqual(@as(i32, -22), invalid_range.code);
 }
