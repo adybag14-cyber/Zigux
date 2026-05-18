@@ -20,6 +20,15 @@ CHECK_COMMANDS = (
     (Path("scripts/zigux/check-phase3-selftest-surface.py"), ()),
 )
 
+SELF_TEST_MISSING_CASES = (
+    (0, "expected missing leading script was not reported"),
+    (3, "expected shared-tests-routes script omission was not reported"),
+    (4, "expected readme-tooling script omission was not reported"),
+    (5, "expected validator-support script omission was not reported"),
+    (6, "expected low-level-wrapper script omission was not reported"),
+    (7, "expected selftest-surface script omission was not reported"),
+)
+
 
 def validate_script_list(repo_root: Path) -> list[str]:
     missing: list[str] = []
@@ -61,54 +70,36 @@ def run_packet(repo_root: Path) -> int:
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_check_runner_") as temp_dir:
         root = Path(temp_dir)
-        for rel_path, _args in CHECK_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
+
+        def populate_repo() -> None:
+            for rel_path, _args in CHECK_COMMANDS:
+                path = root / rel_path
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    "#!/usr/bin/env python3\nraise SystemExit(0)\n",
+                    encoding="utf-8",
+                )
+
+        populate_repo()
 
         if validate_script_list(root):
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected synthetic phase3 check set to validate")
             return 1
 
-        first_path = CHECK_COMMANDS[0][0]
-        (root / first_path).unlink()
-        missing = validate_script_list(root)
-        expected = f"missing phase3 check script: {first_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
-            print("expected missing leading script was not reported")
-            return 1
-
-        for rel_path, _args in CHECK_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
-
-        shared_routes_path = CHECK_COMMANDS[3][0]
-        (root / shared_routes_path).unlink()
-        missing = validate_script_list(root)
-        expected = f"missing phase3 check script: {shared_routes_path.as_posix()}"
-        if expected not in missing:
-            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
-            print("expected shared-tests-routes script omission was not reported")
-            return 1
-
-        for rel_path, _args in CHECK_COMMANDS:
-            path = root / rel_path
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(
-                "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                encoding="utf-8",
-            )
+        for index, message in SELF_TEST_MISSING_CASES:
+            populate_repo()
+            missing_path = CHECK_COMMANDS[index][0]
+            (root / missing_path).unlink()
+            missing = validate_script_list(root)
+            expected = f"missing phase3 check script: {missing_path.as_posix()}"
+            if expected not in missing:
+                print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+                print(message)
+                return 1
 
         failing_path = CHECK_COMMANDS[-2][0]
+        populate_repo()
         (root / failing_path).write_text(
             "#!/usr/bin/env python3\n"
             "import sys\n"
@@ -124,7 +115,10 @@ def run_self_test() -> int:
             return 1
 
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
-        print("PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT=4")
+        print(
+            "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
+            f"{len(SELF_TEST_MISSING_CASES) + 2}"
+        )
         return 0
 
 
