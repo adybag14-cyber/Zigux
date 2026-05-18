@@ -55,7 +55,7 @@ NOTE_REQ = (
     "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` on current `master`",
     "The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff",
-    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up",
+    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` still need a same-family follow-up",
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
@@ -164,7 +164,7 @@ def baseline_note() -> str:
         "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here.",
         f"The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run: authenticated contents reads returned missing for {gap_packet}.",
         "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff.",
-        "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up.",
+        "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` still need a same-family follow-up.",
         "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`.",
         "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence.",
         "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
@@ -325,7 +325,7 @@ def main() -> int:
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up.",
+                    "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` still need a same-family follow-up.",
                     "The shared reminder surfaces are already fully current.",
                 ),
                 encoding="utf-8",
