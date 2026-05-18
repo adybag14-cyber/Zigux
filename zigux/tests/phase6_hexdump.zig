@@ -93,3 +93,31 @@ test "phase 6 hexdump direct helper entrypoints stay aligned with the packet" {
     const text = try hexdump.bin2hex(encoded[0..], fixtures.data_b[0..4]);
     try std.testing.expectEqualStrings("be32db7b", text);
 }
+
+test "phase 6 hexdump direct pack helpers keep uppercase and lowercase nibble parity" {
+    try std.testing.expectEqual(@as(u8, '0'), hexdump.hexAscHi(0x0f));
+    try std.testing.expectEqual(@as(u8, 'f'), hexdump.hexAscLo(0x0f));
+    try std.testing.expectEqual(@as(u8, 'B'), hexdump.hexAscUpperHi(0xbe));
+    try std.testing.expectEqual(@as(u8, 'E'), hexdump.hexAscUpperLo(0xbe));
+
+    var lower: [6]u8 = undefined;
+    var upper: [6]u8 = undefined;
+    var lower_rest: []u8 = lower[0..];
+    var upper_rest: []u8 = upper[0..];
+    for (fixtures.data_b[0..3]) |byte| {
+        lower_rest = try hexdump.hexBytePack(lower_rest, byte);
+        upper_rest = try hexdump.hexBytePackUpper(upper_rest, byte);
+    }
+
+    try std.testing.expectEqual(@as(usize, 0), lower_rest.len);
+    try std.testing.expectEqual(@as(usize, 0), upper_rest.len);
+    try std.testing.expectEqualStrings("be32db", &lower);
+    try std.testing.expectEqualStrings("BE32DB", &upper);
+
+    var tiny_lower = [_]u8{0xaa};
+    var tiny_upper = [_]u8{0xbb};
+    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePack(tiny_lower[0..], 0x5c));
+    try std.testing.expectError(hexdump.HexError.DestinationTooSmall, hexdump.hexBytePackUpper(tiny_upper[0..], 0x5c));
+    try std.testing.expectEqual(@as(u8, 0xaa), tiny_lower[0]);
+    try std.testing.expectEqual(@as(u8, 0xbb), tiny_upper[0]);
+}
