@@ -227,6 +227,7 @@ pub const VirtioRingLab = struct {
 
     pub fn recordUsedChains(self: *Self, queue_index: u16, used_chain_count: u16) !void {
         const slot = try self.checkedQueueSlot(queue_index);
+        if (slot.broken) return error.QueueBroken;
         if (used_chain_count == 0) return error.EmptyUsedBatch;
         if (used_chain_count > slot.outstanding_chain_count) return error.UsedBatchExceedsOutstanding;
 
