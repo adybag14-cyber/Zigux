@@ -18,6 +18,7 @@ CHECK_COMMANDS = (
     (Path("scripts/zigux/check-phase3-shared-tests-routes.py"), ()),
     (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ()),
     (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ()),
+    (Path("scripts/zigux/validate-phase3-export-uapi-survey.py"), ()),
     (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ()),
     (Path("scripts/zigux/check-phase3-selftest-surface.py"), ()),
 )
@@ -29,8 +30,9 @@ SELF_TEST_MISSING_CASES = (
     (5, "expected shared-tests-routes script omission was not reported"),
     (6, "expected readme-tooling script omission was not reported"),
     (7, "expected validator-support script omission was not reported"),
-    (8, "expected low-level-wrapper script omission was not reported"),
-    (9, "expected selftest-surface script omission was not reported"),
+    (8, "expected export-uapi survey script omission was not reported"),
+    (9, "expected low-level-wrapper script omission was not reported"),
+    (10, "expected selftest-surface script omission was not reported"),
 )
 
 
