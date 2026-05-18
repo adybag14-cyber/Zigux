@@ -100,6 +100,13 @@ OPTIONAL_CHECKS = (
         required=False,
         requires=(str(ARTIFACT_DIFF_HELPER_REL),),
     ),
+    CheckSpec(
+        name="phase1-scripts-readme-alignment",
+        script_rel="scripts/zigux/check-phase1-scripts-readme-alignment.py",
+        self_test_args=("--self-test",),
+        live_args=("--root", "{root}"),
+        required=False,
+    ),
 )
 
 
@@ -317,6 +324,19 @@ def run_self_test() -> int:
         )
         issues, _ = collect_issues(optional_live_root)
         assert any(issue.startswith("optional_live_failed:phase1-replay-blockers") for issue in issues), issues
+        case_count += 1
+
+        optional_scripts_readme_live_root = base / "optional_scripts_readme_live"
+        build_sample_repo(optional_scripts_readme_live_root)
+        build_stub_script(
+            optional_scripts_readme_live_root / "scripts/zigux/check-phase1-scripts-readme-alignment.py",
+            live_exit=1,
+        )
+        issues, _ = collect_issues(optional_scripts_readme_live_root)
+        assert any(
+            issue.startswith("optional_live_failed:phase1-scripts-readme-alignment")
+            for issue in issues
+        ), issues
         case_count += 1
 
         bench_skip_root = base / "bench_skip"
