@@ -98,7 +98,6 @@ README_PRESENT_MARKERS = (
 
 README_WARNING_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/validate-phase2-closure.py`",
     "`scripts/zigux/install-zig.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
@@ -131,11 +130,10 @@ BOOTSTRAP_PRESENT_MARKERS = (
 
 BOOTSTRAP_WARNING_MARKERS = (
     "Repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/validate-phase2-closure.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "Treat the absent validator-first, direct cross-route, and installer names as historical packet members",
+    "Treat the absent installer and direct cross-route names as historical packet members",
 )
 
 BOOTSTRAP_GAP_FORBIDDEN_MARKERS = (
@@ -210,16 +208,15 @@ EXPECTED_TOOL_MANIFEST = {
         ],
     },
     "repo_reality_gaps": [
-        "scripts/zigux/validate-phase2-closure.py",
         "scripts/zigux/install-zig.py",
         "scripts/zigux/check-phase2-cross.py",
         "zigux/tests/fixtures/phase2_cross_targets.json",
     ],
     "notes": [
-        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
+        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, the restored tranche-closure note, and the restored closure validator.",
         "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
-        "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished.",
+        "Do not treat missing installer and direct cross-route names as directly readable current-master evidence until they are republished.",
     ],
 }
 
