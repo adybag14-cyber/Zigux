@@ -89,6 +89,7 @@ WORKFLOW_TRACE_EVENTS_SAMPLE_MARKER = "zig test samples/zigux/runtime_trace_even
 WORKFLOW_UNREGISTERED_GATE_MARKER = "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig"
 WORKFLOW_EXIT_ROLLBACK_GUARD_MARKER = "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig"
 WORKFLOW_REENTRY_GATE_MARKER = "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
+WORKFLOW_SURVEY_GATE_MARKER = "zig test zigux/tests/runtime_trace_events_survey.zig"
 
 SAMPLE_REQUIRED_MARKERS = [
     '.name = "runtime_trace_events"',
@@ -402,6 +403,7 @@ FILE_MARKERS = {
         WORKFLOW_UNREGISTERED_GATE_MARKER,
         WORKFLOW_EXIT_ROLLBACK_GUARD_MARKER,
         WORKFLOW_REENTRY_GATE_MARKER,
+        WORKFLOW_SURVEY_GATE_MARKER,
     ],
 }
 
