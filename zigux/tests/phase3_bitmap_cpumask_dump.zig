@@ -82,7 +82,7 @@ pub fn main(init: std.process.Init) !void {
     const cpumask_summary = cpumask_view.summarize(cpumask);
 
     var cpumask_cross_words = [_]usize{
-        (@as(usize, 1) << 5) | (@as(usize, 1) << 63),
+        (@as(usize, 1) << 5) | (@as(usize, 1) << (bitmap_view.bits_per_word - 1)),
         (@as(usize, 1) << 1) | (@as(usize, 1) << 6) | (@as(usize, 1) << 10),
     };
     const cpumask_cross = cpumask_view.viewFromWords(cpumask_cross_words[0..], bitmap_view.bits_per_word + 11);
