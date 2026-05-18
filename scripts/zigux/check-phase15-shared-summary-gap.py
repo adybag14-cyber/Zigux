@@ -22,8 +22,10 @@ MATERIALIZED_GOVERNANCE_PATHS = (
 
 MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_architecture_council_review_process.zig",
+    "zigux/tests/phase15_architecture_council_review_process_build.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "scripts/zigux/check-phase15-review-process-handoff.py",
+    "scripts/zigux/check-phase15-tests-readme-alignment.py",
 )
 
 STILL_MISSING_VALIDATOR_FIRST_PATHS = (
@@ -171,6 +173,14 @@ def run_self_test() -> int:
         expected = [f"expected materialized focused companion missing: {MATERIALIZED_FOCUSED_COMPANIONS[0]}"]
         if failures != expected:
             raise AssertionError(f"unexpected focused-companion failure: {failures}")
+
+        focused_checker_root = root / "focused_checker"
+        _seed_repo(focused_checker_root)
+        (focused_checker_root / MATERIALIZED_FOCUSED_COMPANIONS[-1]).unlink()
+        failures = collect_failures(focused_checker_root)
+        expected = [f"expected materialized focused companion missing: {MATERIALIZED_FOCUSED_COMPANIONS[-1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected focused-checker failure: {failures}")
 
         rematerialized_root = root / "rematerialized"
         _seed_repo(rematerialized_root)
