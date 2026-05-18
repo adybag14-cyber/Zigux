@@ -11,10 +11,18 @@ import sys
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 CLOSURE_NOTE_PATH = Path("Documentation/zigux/phase10-closure-evidence.md")
 
+SELF_TEST_STEP = "Self-test current Phase 10 bootstrap route checker"
+SELF_TEST_CMD = "python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test"
+CHECK_STEP = "Check current Phase 10 bootstrap route"
+CHECK_CMD = "python3 scripts/zigux/check-phase10-bootstrap-route.py"
 VALIDATE_STEP = "Validate Phase 10 checker-backed review packet"
 VALIDATE_CMD = "make -C zigux phase10-validate"
 TEST_STEP = "Run Phase 10 helper tests"
 TEST_CMD = "make -C zigux phase10-test"
+SELF_TEST_RUN_LINE = f"run: {SELF_TEST_CMD}\n"
+CHECK_RUN_LINE = f"run: {CHECK_CMD}\n"
+VALIDATE_RUN_LINE = f"run: {VALIDATE_CMD}\n"
+TEST_RUN_LINE = f"run: {TEST_CMD}\n"
 NOTE_SCRIPT_MARKER = "`scripts/zigux/check-phase10-bootstrap-route.py`"
 NOTE_ROUTE_PHRASE = (
     "fails closed if the bootstrap workflow drops `make -C zigux "
@@ -51,14 +59,24 @@ def require_order(text: str, earlier: str, later: str, label: str) -> None:
 
 
 def check_workflow(text: str) -> None:
-    require_marker(text, VALIDATE_STEP, "workflow step name")
+    require_marker(text, SELF_TEST_STEP, "workflow self-test step name")
+    require_marker(text, SELF_TEST_CMD, "workflow self-test command")
+    require_marker(text, CHECK_STEP, "workflow checker step name")
+    require_marker(text, CHECK_CMD, "workflow checker command")
+    require_marker(text, VALIDATE_STEP, "workflow validate step name")
     require_marker(text, VALIDATE_CMD, "workflow validate command")
     require_marker(text, TEST_STEP, "workflow test step name")
     require_marker(text, TEST_CMD, "workflow test command")
-    require_exact_count(text, VALIDATE_CMD, 1, "workflow command")
-    require_exact_count(text, TEST_CMD, 1, "workflow command")
+    require_exact_count(text, SELF_TEST_RUN_LINE, 1, "workflow run line")
+    require_exact_count(text, CHECK_RUN_LINE, 1, "workflow run line")
+    require_exact_count(text, VALIDATE_RUN_LINE, 1, "workflow run line")
+    require_exact_count(text, TEST_RUN_LINE, 1, "workflow run line")
+    require_order(text, SELF_TEST_STEP, CHECK_STEP, "workflow step order")
+    require_order(text, CHECK_STEP, VALIDATE_STEP, "workflow step order")
     require_order(text, VALIDATE_STEP, TEST_STEP, "workflow step order")
-    require_order(text, VALIDATE_CMD, TEST_CMD, "workflow command order")
+    require_order(text, SELF_TEST_RUN_LINE, CHECK_RUN_LINE, "workflow command order")
+    require_order(text, CHECK_RUN_LINE, VALIDATE_RUN_LINE, "workflow command order")
+    require_order(text, VALIDATE_RUN_LINE, TEST_RUN_LINE, "workflow command order")
 
 
 def check_note(text: str) -> None:
@@ -89,7 +107,35 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
     check_workflow(good_workflow)
     check_note(good_note)
 
-    bad_workflow_missing_validate = good_workflow.replace(VALIDATE_CMD, "python3 scripts/zigux/validate-phase10.py", 1)
+    bad_workflow_missing_self_test = good_workflow.replace(
+        SELF_TEST_CMD,
+        "python3 scripts/zigux/check-phase10-bootstrap-route-missing.py --self-test",
+        1,
+    )
+    try:
+        check_workflow(bad_workflow_missing_self_test)
+    except SystemExit as exc:
+        assert SELF_TEST_CMD in str(exc)
+    else:
+        raise AssertionError("expected missing self-test command failure")
+
+    bad_workflow_missing_check = good_workflow.replace(
+        CHECK_CMD,
+        "python3 scripts/zigux/check-phase10-bootstrap-route-missing.py",
+        1,
+    )
+    try:
+        check_workflow(bad_workflow_missing_check)
+    except SystemExit as exc:
+        assert CHECK_CMD in str(exc)
+    else:
+        raise AssertionError("expected missing checker command failure")
+
+    bad_workflow_missing_validate = good_workflow.replace(
+        VALIDATE_CMD,
+        "python3 scripts/zigux/validate-phase10.py",
+        1,
+    )
     try:
         check_workflow(bad_workflow_missing_validate)
     except SystemExit as exc:
@@ -98,10 +144,10 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
         raise AssertionError("expected missing validate command failure")
 
     bad_workflow_reordered = good_workflow.replace(
-        f"      - name: {VALIDATE_STEP}\n        run: {VALIDATE_CMD}\n"
-        f"      - name: {TEST_STEP}\n        run: {TEST_CMD}\n",
-        f"      - name: {TEST_STEP}\n        run: {TEST_CMD}\n"
+        f"      - name: {CHECK_STEP}\n        run: {CHECK_CMD}\n"
         f"      - name: {VALIDATE_STEP}\n        run: {VALIDATE_CMD}\n",
+        f"      - name: {VALIDATE_STEP}\n        run: {VALIDATE_CMD}\n"
+        f"      - name: {CHECK_STEP}\n        run: {CHECK_CMD}\n",
         1,
     )
     try:
@@ -111,7 +157,11 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
     else:
         raise AssertionError("expected reordered workflow failure")
 
-    bad_note_missing_script = good_note.replace(NOTE_SCRIPT_MARKER, "`scripts/zigux/check-phase10-other.py`", 1)
+    bad_note_missing_script = good_note.replace(
+        NOTE_SCRIPT_MARKER,
+        "`scripts/zigux/check-phase10-other.py`",
+        1,
+    )
     try:
         check_note(bad_note_missing_script)
     except SystemExit as exc:
@@ -128,7 +178,7 @@ The shared bootstrap-route guard now stays explicit through `scripts/zigux/check
         raise AssertionError("expected missing note route phrase failure")
 
     print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass")
-    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=4")
+    print("PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
