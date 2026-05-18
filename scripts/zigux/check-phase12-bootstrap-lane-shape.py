@@ -46,6 +46,7 @@ WORKFLOW_STEP_NAMES = [
     "Self-test current kconfig bridge checker",
     "Check current kconfig bridge packet",
     "Run current Phase 2 confdata bridge unit tests",
+    "Run current Phase 2 toolchain make route",
     "Self-test current Phase 2 shared reminder checker",
     "Check current Phase 2 shared reminder packet",
     "Validate current Phase 2 tool packet",
@@ -117,6 +118,7 @@ WORKFLOW_COMMAND_MARKERS = [
     "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test",
     "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
     "python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+    "make -C zigux phase2-toolchain",
     "make -C zigux phase12-validate",
     "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
     "make -C zigux phase12-smoke",
@@ -129,6 +131,7 @@ WORKFLOW_COMMAND_MARKERS = [
 
 WORKFLOW_EXACT_LINES = [
     "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "        run: make -C zigux phase2-toolchain",
     "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
     "        run: make -C zigux phase12-validate",
     "        run: make -C zigux phase8-validate",
@@ -269,6 +272,8 @@ jobs:
         run: python3 scripts/zigux/check-kconfig-bridge.py
       - name: Run current Phase 2 confdata bridge unit tests
         run: zig test scripts/zigux/kconfig/confdata_bridge.zig
+      - name: Run current Phase 2 toolchain make route
+        run: make -C zigux phase2-toolchain
       - name: Self-test current Phase 2 shared reminder checker
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test
       - name: Check current Phase 2 shared reminder packet
@@ -482,6 +487,19 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
+                "- name: Run current Phase 2 toolchain make route\n"
+                "        run: make -C zigux phase2-toolchain\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Run current Phase 2 toolchain make route")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
                 "  push:\n    branches: [ master ]\n  pull_request:\n",
                 "  push:\n    branches: [ master ]\n    paths:\n      - '.github/workflows/zigux-bootstrap.yml'\n  pull_request:\n",
                 1,
@@ -553,7 +571,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=12")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=13")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -564,9 +582,9 @@ def main() -> int:
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the "
             "workflow keeps the shipped exact-head push trigger, pinned Zig "
-            "toolchain setup, archive verification, newer Phase 2 and Phase 3 "
-            "viability steps, the dedicated docs-sanity guards, and the "
-            "current Phase 8 tail intact."
+            "toolchain setup, archive verification, the current Phase 2 "
+            "toolchain make route, newer Phase 2 and Phase 3 viability steps, "
+            "the dedicated docs-sanity guards, and the current Phase 8 tail intact."
         )
     )
     parser.add_argument(
