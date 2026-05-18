@@ -1,6 +1,4 @@
 const std = @import("std");
-const helper_err_ptr = @import("helper_err_ptr");
-const helper_xa_value = @import("helper_xa_value");
 const uapi = @import("uapi_err_ptr_xarray");
 
 pub const max_errno = uapi.max_errno;
@@ -52,30 +50,30 @@ pub fn isPointerLike(raw: usize) bool {
 }
 
 comptime {
-    std.debug.assert(max_errno == helper_err_ptr.max_errno);
-    std.debug.assert(err_floor == helper_err_ptr.err_floor);
-    std.debug.assert(value_tag_mask == helper_xa_value.value_tag_mask);
-    std.debug.assert(safe_inline_limit == helper_xa_value.safe_inline_limit);
+    std.debug.assert(max_errno == uapi.max_errno);
+    std.debug.assert(err_floor == uapi.err_floor);
+    std.debug.assert(value_tag_mask == uapi.value_tag_mask);
+    std.debug.assert(safe_inline_limit == uapi.safe_inline_limit);
 }
 
-test "binding mirrors helper-local err_ptr and xa_value constants" {
-    try std.testing.expectEqual(helper_err_ptr.max_errno, max_errno);
-    try std.testing.expectEqual(helper_err_ptr.err_floor, err_floor);
-    try std.testing.expectEqual(helper_xa_value.value_tag_mask, value_tag_mask);
-    try std.testing.expectEqual(helper_xa_value.safe_inline_limit, safe_inline_limit);
-    try std.testing.expectEqual(helper_err_ptr.fromErrorCode(-22), fromErrorCode(-22));
-    try std.testing.expectEqual(helper_err_ptr.fromErrorCode(-1), fromErrorCode(-1));
+test "binding stays aligned with the published uapi constants" {
+    try std.testing.expectEqual(uapi.max_errno, max_errno);
+    try std.testing.expectEqual(uapi.err_floor, err_floor);
+    try std.testing.expectEqual(uapi.value_tag_mask, value_tag_mask);
+    try std.testing.expectEqual(uapi.safe_inline_limit, safe_inline_limit);
+    try std.testing.expectEqual(uapi.fromErrorCode(-22), fromErrorCode(-22));
+    try std.testing.expectEqual(uapi.fromErrorCode(-1), fromErrorCode(-1));
 }
 
-test "binding mirrors helper-local value tagging behavior" {
+test "binding mirrors the published value tagging behavior" {
     const zero_raw = try makeValue(0);
     const sample_raw = try makeValue(29);
     const limit_raw = try makeValue(safe_inline_limit);
 
-    try std.testing.expectEqual(try helper_xa_value.makeValue(0), zero_raw);
-    try std.testing.expectEqual(try helper_xa_value.makeValue(29), sample_raw);
-    try std.testing.expectEqual(try helper_xa_value.makeValue(helper_xa_value.safe_inline_limit), limit_raw);
-    try std.testing.expectEqual(helper_xa_value.toValue(sample_raw), toValue(sample_raw));
+    try std.testing.expectEqual(try uapi.makeValue(0), zero_raw);
+    try std.testing.expectEqual(try uapi.makeValue(29), sample_raw);
+    try std.testing.expectEqual(try uapi.makeValue(uapi.safe_inline_limit), limit_raw);
+    try std.testing.expectEqual(uapi.toValue(sample_raw), toValue(sample_raw));
     try std.testing.expect(isValue(zero_raw));
     try std.testing.expectEqual(EntryKind.value, classify(sample_raw));
     try std.testing.expectEqual(err_floor, limit_raw + 2);
