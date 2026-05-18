@@ -71,6 +71,7 @@ Before changing this checklist from open to closed, reread these files together:
 - `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`
 - `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`
 - `Documentation/zigux/phase12-libbpf-verify-shard-note.md`
+- `Documentation/zigux/phase12-libbpf-segment-survey.md`
 - `Documentation/zigux/phase12-virtio-net-survey.md`
 - `Documentation/zigux/phase12-virtio-scsi-survey.md`
 - `Documentation/zigux/phase12-nvme-pci-slice.md`
