@@ -207,6 +207,36 @@ test "low boundary keeps null, inline zero, then pointer-like in order" {
     try std.testing.expect(!isTaggedInternalEntry(pointer_raw));
 }
 
+test "constructor helpers keep the low boundary lanes distinct" {
+    const null_slot = nullSlot();
+    const value_slot = try fromValue(0);
+    const pointer_slot = fromPointer(2);
+
+    try std.testing.expectEqual(@as(usize, 0), null_slot.rawValue());
+    try std.testing.expectEqual(@as(usize, 1), value_slot.rawValue());
+    try std.testing.expectEqual(@as(usize, 2), pointer_slot.rawValue());
+
+    try std.testing.expectEqual(null_slot.rawValue() + 1, value_slot.rawValue());
+    try std.testing.expectEqual(value_slot.rawValue() + 1, pointer_slot.rawValue());
+
+    try std.testing.expectEqual(SlotKind.null, null_slot.kind());
+    try std.testing.expectEqual(@as(?usize, null), null_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), null_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), null_slot.pointerValue());
+
+    try std.testing.expectEqual(SlotKind.value, value_slot.kind());
+    try std.testing.expectEqual(@as(?usize, 0), value_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), value_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), value_slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(value_slot.rawValue()));
+
+    try std.testing.expectEqual(SlotKind.pointer, pointer_slot.kind());
+    try std.testing.expectEqual(@as(?usize, 2), pointer_slot.pointerValue());
+    try std.testing.expectEqual(@as(?usize, null), pointer_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), pointer_slot.errorCode());
+    try std.testing.expect(!isTaggedInternalEntry(pointer_slot.rawValue()));
+}
+
 test "inline zero stays a tagged value and keeps other decoders closed" {
     const raw = try xa_value.makeValue(0);
     const slot = fromRaw(raw);
