@@ -48,6 +48,18 @@ pub fn bytes(src: []const u8, padding: bool, variant: Variant) DecodeError!usize
     return decodedLength(src, padding, variant);
 }
 
+pub fn bytesStd(src: []const u8, padding: bool) DecodeError!usize {
+    return bytes(src, padding, .std);
+}
+
+pub fn bytesUrlsafe(src: []const u8, padding: bool) DecodeError!usize {
+    return bytes(src, padding, .urlsafe);
+}
+
+pub fn bytesImap(src: []const u8, padding: bool) DecodeError!usize {
+    return bytes(src, padding, .imap);
+}
+
 pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError!usize {
     const needed = chars(src.len, padding);
     if (dst.len < needed) {
@@ -98,6 +110,18 @@ pub fn encode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Encod
     }
 
     return out_index;
+}
+
+pub fn encodeStd(dst: []u8, src: []const u8, padding: bool) EncodeError!usize {
+    return encode(dst, src, padding, .std);
+}
+
+pub fn encodeUrlsafe(dst: []u8, src: []const u8, padding: bool) EncodeError!usize {
+    return encode(dst, src, padding, .urlsafe);
+}
+
+pub fn encodeImap(dst: []u8, src: []const u8, padding: bool) EncodeError!usize {
+    return encode(dst, src, padding, .imap);
 }
 
 pub fn encodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) EncodeError![]u8 {
@@ -158,6 +182,18 @@ pub fn decode(dst: []u8, src: []const u8, padding: bool, variant: Variant) Decod
     }
     out_index += try decodeTailFromMap(dst[out_index..], src[src_index..], map);
     return out_index;
+}
+
+pub fn decodeStd(dst: []u8, src: []const u8, padding: bool) DecodeError!usize {
+    return decode(dst, src, padding, .std);
+}
+
+pub fn decodeUrlsafe(dst: []u8, src: []const u8, padding: bool) DecodeError!usize {
+    return decode(dst, src, padding, .urlsafe);
+}
+
+pub fn decodeImap(dst: []u8, src: []const u8, padding: bool) DecodeError!usize {
+    return decode(dst, src, padding, .imap);
 }
 
 pub fn decodeSlice(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError![]u8 {
@@ -368,6 +404,40 @@ fn expectShortTailRoundTripSweep(variant: Variant, padding: bool) !void {
     }
 }
 
+fn expectVariantPinnedConvenienceParity(input: []const u8, expected: []const u8, padding: bool, variant: Variant) !void {
+    var generic_buf: [16]u8 = undefined;
+    var pinned_buf: [16]u8 = undefined;
+    const generic_written = try encode(generic_buf[0..], input, padding, variant);
+    const pinned_written = switch (variant) {
+        .std => try encodeStd(pinned_buf[0..], input, padding),
+        .urlsafe => try encodeUrlsafe(pinned_buf[0..], input, padding),
+        .imap => try encodeImap(pinned_buf[0..], input, padding),
+    };
+    try std.testing.expectEqual(generic_written, pinned_written);
+    try std.testing.expectEqualStrings(expected, generic_buf[0..generic_written]);
+    try std.testing.expectEqualStrings(expected, pinned_buf[0..pinned_written]);
+
+    const generic_len = try bytes(expected, padding, variant);
+    const pinned_len = switch (variant) {
+        .std => try bytesStd(expected, padding),
+        .urlsafe => try bytesUrlsafe(expected, padding),
+        .imap => try bytesImap(expected, padding),
+    };
+    try std.testing.expectEqual(generic_len, pinned_len);
+
+    var generic_decoded: [8]u8 = undefined;
+    var pinned_decoded: [8]u8 = undefined;
+    const generic_decoded_len = try decode(generic_decoded[0..], expected, padding, variant);
+    const pinned_decoded_len = switch (variant) {
+        .std => try decodeStd(pinned_decoded[0..], expected, padding),
+        .urlsafe => try decodeUrlsafe(pinned_decoded[0..], expected, padding),
+        .imap => try decodeImap(pinned_decoded[0..], expected, padding),
+    };
+    try std.testing.expectEqual(generic_decoded_len, pinned_decoded_len);
+    try std.testing.expectEqualSlices(u8, input, generic_decoded[0..generic_decoded_len]);
+    try std.testing.expectEqualSlices(u8, input, pinned_decoded[0..pinned_decoded_len]);
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -392,6 +462,26 @@ test "bytes reports decoded output sizes and rejects malformed input" {
     try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg", true, .std));
     try std.testing.expectError(DecodeError.InvalidInput, bytes("Zm9v====", true, .std));
     try std.testing.expectError(DecodeError.InvalidInput, bytes("Zg==", false, .urlsafe));
+}
+
+test "variant-pinned convenience helpers mirror the generic api" {
+    const sample = [_]u8{ 0x00, 0xfb, 0xff, 0x7f, 0x80 };
+    const one_byte = [_]u8{0xfb};
+    const two_byte = [_]u8{ 0xff, 0xf0 };
+
+    try expectVariantPinnedConvenienceParity(&sample, "APv/f4A", false, .std);
+    try expectVariantPinnedConvenienceParity(&sample, "APv/f4A=", true, .std);
+    try expectVariantPinnedConvenienceParity(&sample, "APv_f4A", false, .urlsafe);
+    try expectVariantPinnedConvenienceParity(&sample, "APv_f4A=", true, .urlsafe);
+    try expectVariantPinnedConvenienceParity(&sample, "APv,f4A", false, .imap);
+    try expectVariantPinnedConvenienceParity(&sample, "APv,f4A=", true, .imap);
+
+    try expectVariantPinnedConvenienceParity(&one_byte, "+w", false, .std);
+    try expectVariantPinnedConvenienceParity(&one_byte, "-w", false, .urlsafe);
+    try expectVariantPinnedConvenienceParity(&one_byte, "+w", false, .imap);
+    try expectVariantPinnedConvenienceParity(&two_byte, "//A=", true, .std);
+    try expectVariantPinnedConvenienceParity(&two_byte, "__A=", true, .urlsafe);
+    try expectVariantPinnedConvenienceParity(&two_byte, ",,A=", true, .imap);
 }
 
 test "encode covers standard and variant alphabets" {
