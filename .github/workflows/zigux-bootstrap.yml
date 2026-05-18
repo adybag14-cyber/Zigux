@@ -222,6 +222,12 @@ jobs:
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
+      - name: Self-test current Phase 1 workflow viability checker
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py --self-test
+
+      - name: Check current Phase 1 workflow viability
+        run: python3 scripts/zigux/check-phase1-workflow-viability.py
+
       - name: Self-test current Phase 3 interop packet
         run: python3 scripts/zigux/validate_phase3_selftest.py
 
@@ -260,6 +266,7 @@ jobs:
 
       - name: Check current Phase 4 tests README packet
         run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
+
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
 
