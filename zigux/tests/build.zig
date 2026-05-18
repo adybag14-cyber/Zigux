@@ -49,6 +49,26 @@ fn addPhase1HostToolsSmoke(
         .target = target,
         .optimize = optimize,
     });
+    const ctype_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/ctype.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hweight_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/hweight.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const list_sort_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/list_sort.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const rbtree_module = b.createModule(.{
+        .root_source_file = b.path("../../tools/lib/rbtree.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
     const string_module = b.createModule(.{
         .root_source_file = b.path("../../tools/lib/string.zig"),
         .target = target,
@@ -60,6 +80,10 @@ fn addPhase1HostToolsSmoke(
     root_module.addImport("cmdline", cmdline_module);
     root_module.addImport("find_bit", find_bit_module);
     root_module.addImport("bitmap", bitmap_module);
+    root_module.addImport("ctype", ctype_module);
+    root_module.addImport("hweight", hweight_module);
+    root_module.addImport("list_sort", list_sort_module);
+    root_module.addImport("rbtree", rbtree_module);
     root_module.addImport("string", string_module);
 
     const tests = b.addTest(.{
@@ -90,6 +114,12 @@ fn addPhase3DevTStarterPacket(
         .optimize = optimize,
     });
     dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);
+    const version_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    version_binding.addImport("uapi_version", uapi_version);
 
     const abi_bindings = b.createModule(.{
         .root_source_file = b.path("../bindings/abi.zig"),
@@ -103,7 +133,7 @@ fn addPhase3DevTStarterPacket(
     });
     export_shim.addImport("abi_bindings", abi_bindings);
     export_shim.addImport("dev_t_binding", dev_t_binding);
-    export_shim.addImport("version_binding", uapi_version);
+    export_shim.addImport("version_binding", version_binding);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_dev_t_starter_packet.zig"),
@@ -112,7 +142,7 @@ fn addPhase3DevTStarterPacket(
     });
     root_module.addImport("uapi_dev_t", uapi_dev_t);
     root_module.addImport("dev_t_binding", dev_t_binding);
-    root_module.addImport("version_binding", uapi_version);
+    root_module.addImport("version_binding", version_binding);
     root_module.addImport("export_shim", export_shim);
 
     const tests = b.addTest(.{
@@ -149,6 +179,46 @@ fn addPhase3ErrPtrXarrayStarterPacket(
 
     const tests = b.addTest(.{
         .name = "phase3-errptr-xarray-starter-packet",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
+fn addPhase3XarraySlotStarterPacket(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const err_ptr = b.createModule(.{
+        .root_source_file = b.path("../helpers/err_ptr.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const xa_value = b.createModule(.{
+        .root_source_file = b.path("../helpers/xa_value.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    xa_value.addImport("err_ptr", err_ptr);
+    const xarray_slot_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/xarray_slot_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    xarray_slot_view.addImport("err_ptr", err_ptr);
+    xarray_slot_view.addImport("xa_value", xa_value);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_xarray_slot_starter_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("err_ptr", err_ptr);
+    root_module.addImport("xa_value", xa_value);
+    root_module.addImport("xarray_slot_view", xarray_slot_view);
+
+    const tests = b.addTest(.{
+        .name = "phase3-xarray-slot-starter-packet",
         .root_module = root_module,
     });
     return b.addRunArtifact(tests);
@@ -334,6 +404,56 @@ fn addPhase3PolicyStarterPacket(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3LowLevelWrappers(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const abi_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
+    const atomic = b.createModule(.{
+        .root_source_file = b.path("../helpers/atomic.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const barrier = b.createModule(.{
+        .root_source_file = b.path("../helpers/barrier.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const mmio = b.createModule(.{
+        .root_source_file = b.path("../helpers/mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mmio.addImport("abi_bindings", abi_bindings);
+    mmio.addImport("unsafe_policy", unsafe_policy);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_low_level_wrappers.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("atomic", atomic);
+    root_module.addImport("barrier", barrier);
+    root_module.addImport("mmio", mmio);
+
+    const tests = b.addTest(.{
+        .name = "phase3-low-level-wrappers",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -358,6 +478,30 @@ fn addPhase3AbiDump(
     return b.addRunArtifact(exe);
 }
 
+fn addPhase12VirtioNetThroughputParity(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_throughput_parity.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const throughput_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_throughput_parity.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("virtio_net_throughput_parity", throughput_module);
+
+    const tests = b.addTest(.{
+        .name = "phase12-virtio-net-throughput-parity",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
@@ -365,14 +509,15 @@ pub fn build(b: *std.Build) void {
     const phase1_host_tools_smoke = addPhase1HostToolsSmoke(b, target, optimize);
     const phase3_dev_t_starter_packet = addPhase3DevTStarterPacket(b, target, optimize);
     const phase3_errptr_xarray_starter_packet = addPhase3ErrPtrXarrayStarterPacket(b, target, optimize);
+    const phase3_xarray_slot_starter_packet = addPhase3XarraySlotStarterPacket(b, target, optimize);
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
     const phase3_bitmap_cpumask_starter_packet = addPhase3BitmapCpumaskStarterPacket(b, target, optimize);
     const phase3_bitmap_cpumask_dump = addPhase3BitmapCpumaskDump(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
+    const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
+    const phase12_virtio_net_throughput_parity = addPhase12VirtioNetThroughputParity(b, target, optimize);
 
-    // Keep the shared tests root centered on anchors that are still present on
-    // current master while reintroducing a compact Phase 1 host-tools smoke path.
     const phase12_virtio_net_survey = addSurveyTest(
         b,
         "phase12-virtio-net-survey",
@@ -398,6 +543,12 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 3 err_ptr/xarray starter packet from zigux/tests",
     );
     phase3_errptr_xarray_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
+
+    const phase3_xarray_slot_step = b.step(
+        "phase3-xarray-slot-starter-packet",
+        "Run the shared Phase 3 xarray-slot starter packet from zigux/tests",
+    );
+    phase3_xarray_slot_step.dependOn(&phase3_xarray_slot_starter_packet.step);
 
     const phase3_errptr_xarray_dump_step = b.step(
         "phase3-errptr-xarray-dump",
@@ -430,13 +581,21 @@ pub fn build(b: *std.Build) void {
     );
     phase3_policy_step.dependOn(&phase3_policy_starter_packet.step);
 
+    const phase3_low_level_wrapper_step = b.step(
+        "phase3-low-level-wrappers",
+        "Run the shared Phase 3 low-level wrapper packet from zigux/tests",
+    );
+    phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
+
     const phase3_test_step = b.step(
         "phase3-test",
         "Run the current shared Phase 3 starter packet bundle from zigux/tests",
     );
     phase3_test_step.dependOn(&phase3_dev_t_starter_packet.step);
     phase3_test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
+    phase3_test_step.dependOn(&phase3_xarray_slot_starter_packet.step);
     phase3_test_step.dependOn(&phase3_policy_starter_packet.step);
+    phase3_test_step.dependOn(&phase3_low_level_wrappers.step);
 
     const phase3_dump_step = b.step(
         "phase3-dump",
@@ -446,9 +605,16 @@ pub fn build(b: *std.Build) void {
 
     const phase12_step = b.step(
         "phase12-virtio-net-survey",
-        "Run the Phase 12 virtio net survey anchor from the shared tests root",
+        "Run the Phase 12 virtio net survey and throughput-parity anchors from the shared tests root",
     );
     phase12_step.dependOn(&phase12_virtio_net_survey.step);
+    phase12_step.dependOn(&phase12_virtio_net_throughput_parity.step);
+
+    const phase12_throughput_step = b.step(
+        "phase12-virtio-net-throughput-parity",
+        "Run the Phase 12 virtio net throughput-parity anchor from the shared tests root",
+    );
+    phase12_throughput_step.dependOn(&phase12_virtio_net_throughput_parity.step);
 
     const smoke_step = b.step(
         "smoke",
@@ -457,6 +623,7 @@ pub fn build(b: *std.Build) void {
     smoke_step.dependOn(&phase1_host_tools_smoke.step);
     smoke_step.dependOn(phase3_test_step);
     smoke_step.dependOn(&phase12_virtio_net_survey.step);
+    smoke_step.dependOn(&phase12_virtio_net_throughput_parity.step);
 
     const test_step = b.step(
         "test",
@@ -465,4 +632,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&phase1_host_tools_smoke.step);
     test_step.dependOn(phase3_test_step);
     test_step.dependOn(&phase12_virtio_net_survey.step);
+    test_step.dependOn(&phase12_virtio_net_throughput_parity.step);
 }
