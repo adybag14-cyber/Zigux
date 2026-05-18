@@ -1,6 +1,6 @@
 # Phase 1 String Roadmap-Ledger Gap
 
-This note records the bounded `tools/lib/string.zig` gap between the Phase 1 plan and the currently readable `master` tree.
+This note records the bounded `tools/lib/string.zig` follow-through between the Phase 1 plan and the currently readable `master` tree.
 
 ## Roadmap And Ledger Expectation
 
@@ -11,16 +11,16 @@ This note records the bounded `tools/lib/string.zig` gap between the Phase 1 pla
 
 ## Current Repo Reality
 
-- current public-tree readback of `tools/lib` shows `cmdline.zig` as the only directly readable `.zig` helper in that directory in this environment
-- authenticated contents reads for `tools/lib/string.zig` on current `master` return missing
+- current live reads now recover `tools/lib/string.zig` on `master`
+- the directly readable helper file still carries the Phase 1 string direct-anchor packet, including the helper-local sysfs review anchors named by `sysfsStreq()`, `sysfs_streq()`, `sysfsMatchString()`, and `sysfs_match_string()`
 - current Phase 1 reminder surfaces still name `tools/lib/string.zig` as a direct-anchor helper in `Documentation/zigux/phase1-host-helper-lane-sequencing.md` and `zigux/tests/fixtures/phase1_helper_manifest.json`
 
 ## Current Lane Decision
 
-- treat `tools/lib/string.zig` as a roadmap-and-ledger target that is not currently materialized on readable `master`
-- keep this lane on repo-truthfulness survey work only until the helper file itself or a narrower current-master replacement surface is directly readable again
-- do not present the current string manifest anchors as direct helper-file proof while `tools/lib/string.zig` remains unreadable on current `master`
+- treat `tools/lib/string.zig` as both a roadmap-and-ledger target and direct current-`master` helper evidence again
+- keep this lane on one string-only direct-anchor follow-through at a time instead of falling back to broader roadmap-only survey wording
+- use the live helper file plus the existing manifest-backed string review packet as the trustworthy current Phase 1 string evidence
 
 ## Next Bounded Step
 
-- align the current Phase 1 reminder packet one surface at a time so it distinguishes the roadmap-ledger string target from direct current-master helper evidence
+- reread the current Phase 1 string reminder packet one surface at a time and repair only the next string-only note or checker that still understates `tools/lib/string.zig` as direct current-`master` helper evidence
