@@ -354,6 +354,26 @@ def run_self_test() -> int:
                     "status": EXPECTED_STATUS,
                     "target_count": len(EXPECTED_TARGETS),
                     "targets": EXPECTED_TARGETS,
+                    "zig_test_files": "scripts/zigux/kconfig/conf_bridge.zig",
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert any(issue.startswith("fixture:zig_test_files:not_list:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
                     "zig_test_files": [EXPECTED_ZIG_TEST_FILES[0], 7],
                 },
                 indent=2,
@@ -363,6 +383,32 @@ def run_self_test() -> int:
         )
         issues = validate_fixture(root)
         assert any(issue.startswith("fixture:zig_test_files:non_string:") for issue in issues)
+        case_count += 1
+
+        build_self_test_root(root)
+        (fixture_path(root)).write_text(
+            json.dumps(
+                {
+                    "phase": EXPECTED_PHASE,
+                    "lane": EXPECTED_LANE,
+                    "status": EXPECTED_STATUS,
+                    "target_count": len(EXPECTED_TARGETS),
+                    "targets": EXPECTED_TARGETS,
+                    "zig_test_files": [
+                        EXPECTED_ZIG_TEST_FILES[0],
+                        "scripts/zigux/kconfig/other_bridge.zig",
+                    ],
+                },
+                indent=2,
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        issues = validate_fixture(root)
+        assert (
+            "fixture:zig_test_files:['scripts/zigux/kconfig/conf_bridge.zig', "
+            "'scripts/zigux/kconfig/other_bridge.zig']"
+        ) in issues
         case_count += 1
 
         build_self_test_root(root)
@@ -449,6 +495,18 @@ def run_self_test() -> int:
         single_lines = single_log.read_text(encoding="utf-8").splitlines()
         assert len(single_lines) == len(EXPECTED_ZIG_TEST_FILES)
         assert all(f"-target {EXPECTED_TARGETS[1]} --test-no-exec" in line for line in single_lines)
+        case_count += 1
+
+        build_self_test_root(root)
+        single_fail_log = root / "single-fail-zig.log"
+        single_fail_zig = root / "fake-zig-single-fail.sh"
+        make_fake_zig(single_fail_zig, single_fail_log, fail_target=EXPECTED_TARGETS[1])
+        single_fail_code, single_fail_output = run_main(
+            ["--root", str(root), "--target", EXPECTED_TARGETS[1], "--zig", str(single_fail_zig)]
+        )
+        assert single_fail_code == 7
+        assert f"PHASE2_CROSS_TARGET={EXPECTED_TARGETS[1]}" in single_fail_output
+        assert f"PHASE2_CROSS_FAILED_FILE={EXPECTED_ZIG_TEST_FILES[0]}" in single_fail_output
         case_count += 1
 
         build_self_test_root(root)
