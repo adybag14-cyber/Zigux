@@ -81,8 +81,8 @@ REQUIRED_MARKERS = {
     RELEASE_READINESS_SURVEY_PATH: [
         "`PHASE12_STATUS=active`",
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
-        "The route story is the real PMO drift on current `master`: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, but current `zigux/Makefile` no longer provides a shared `phase12-validate`, `phase12-smoke`, or `phase12` wrapper route.",
-        "That means the PMO release notes must treat those route names as stale reminder text until same-lane work rematerializes them, rather than presenting them as shipped current-`master` evidence.",
+        "The route story on current `master` is split rather than absent: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again, but it still does not provide `phase12-validate`.",
+        "That means the PMO release notes can treat `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again, while `make -C zigux phase12-validate` must stay reminder-only text until same-lane work rematerializes that wrapper.",
         "make -C zigux phase12-validate",
     ],
     RELEASE_SEQUENCING_PATH: [
@@ -203,7 +203,7 @@ def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
 
 SELF_TEST_CASES = build_self_test_cases()
 EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 61
+EXPECTED_SELF_TEST_CASE_COUNT = 60
 
 
 def write_fixture_tree(root: Path) -> None:
