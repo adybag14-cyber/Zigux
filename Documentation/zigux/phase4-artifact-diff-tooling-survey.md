@@ -61,6 +61,8 @@ Treat those broader contract counts as last-known provenance only. They are usef
 The real same-lane drift was that the restored helper packet had current-head readback again, but this survey still stopped short of recording the exact helper checks it now proves.
 
 The truthful current-head posture is narrower: the helper itself is directly readable again on current `master` through `scripts/zigux/artifact_diff.py`, and this survey now records the exact current helper-side checks and output shapes that were replayed in this run, while `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/validate-phase4.py` remain broader missing companions.
+
+The direct replay surface below is now part of the checked packet as well: `scripts/zigux/check-phase4-artifact-diff-determinism.py` now fails closed if this survey drops any published helper, warning, determinism, validator-replay, or historical broader replay command that future same-family reruns still need to see spelled out.
 ## Next Safe Step
   * if a future same-family lane republishes `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-artifact-diff-contract.py`, or `scripts/zigux/validate-phase4.py`, re-read the exact current packet first, rerun `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, and then decide whether the older broader contract counts still match the republished current-head files before promoting them back to current-head evidence in the same change
   * until then, keep follow-up scoped to one reminder-surface or checker repair at a time and do not widen this lane into broader Phase 4 validator, matrix, local-only perf, bitmap, atomic64, or starter-gap work
