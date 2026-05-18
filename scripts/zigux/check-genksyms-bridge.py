@@ -136,6 +136,12 @@ EXPECTED_CASES = [
         "expected": "version_before_long_help_expected.json",
     },
     {
+        "name": "abbreviated_long_version_before_long_help",
+        "argv": ["--ver", "--help"],
+        "mode": "process_json",
+        "expected": "version_before_long_help_expected.json",
+    },
+    {
         "name": "repeated_version",
         "argv": ["-VV"],
         "mode": "process_json",
@@ -373,6 +379,7 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge renders unexpected long option argument like the fixture"',
     'test "genksyms bridge keeps version side effect before long help"',
     'test "genksyms bridge keeps long version side effect before long help"',
+    'test "genksyms bridge keeps abbreviated long version side effect before long help"',
     'test "genksyms bridge rejects more than sixteen reference files like the C harness"',
     'test "genksyms bridge renders normalized invocation plan"',
     'test "genksyms bridge ignores positional args while still parsing later options"',
@@ -385,6 +392,7 @@ EXPECTED_HARNESS_MARKERS = [
 
 EXPECTED_SELF_TEST_CASE_COUNT = 9
 
+
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
     try:
         return json.loads(path.read_text(encoding="utf-8")), []
@@ -392,6 +400,7 @@ def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
         return None, [f"missing_file:{label}"]
     except json.JSONDecodeError as exc:
         return None, [f"invalid_json:{label}:{exc.msg}"]
+
 
 def validate_expected_object(payload: dict[str, object], expected: dict[str, object], label: str) -> list[str]:
     issues: list[str] = []
@@ -403,6 +412,7 @@ def validate_expected_object(payload: dict[str, object], expected: dict[str, obj
         for key in sorted(set(payload) - set(expected)):
             issues.append(f"{label}:unexpected_key:{key}")
     return issues
+
 
 def validate_cases(payload: object) -> list[str]:
     if not isinstance(payload, list):
@@ -429,6 +439,7 @@ def validate_cases(payload: object) -> list[str]:
                 issues.append(f"genksyms_cases:{expected_case['name']}:unexpected_key:{key}")
     return issues
 
+
 def validate_checker_text(text: str) -> list[str]:
     issues: list[str] = []
     required_markers = [
@@ -444,6 +455,7 @@ def validate_checker_text(text: str) -> list[str]:
             issues.append(f"missing_marker:{GENKSYMS_CHECKER_REL}:{marker}")
     return issues
 
+
 def validate_marker_counts(text: str, markers: list[str], label: str) -> list[str]:
     issues: list[str] = []
     for marker in markers:
@@ -452,8 +464,10 @@ def validate_marker_counts(text: str, markers: list[str], label: str) -> list[st
             issues.append(f"marker_count:{label}:{marker}:count={count}:expected=1")
     return issues
 
+
 def build_runtime_stdout_observation(expected_name: str) -> dict[str, object]:
     return {"stdout": json.dumps(EXPECTED_OUTPUTS[expected_name]) + "\n", "stderr": "", "exit_code": 0}
+
 
 def validate_runtime_observation(case: dict[str, object], observation: dict[str, object], label: str) -> list[str]:
     issues: list[str] = []
@@ -477,14 +491,17 @@ def validate_runtime_observation(case: dict[str, object], observation: dict[str,
     issues.extend(validate_expected_object(observation, expected_process, f"{label}:process_json"))
     return issues
 
+
 def validate_runtime_repeat(case: dict[str, object], first: dict[str, object], second: dict[str, object], label: str) -> list[str]:
     if first == second:
         return []
     return [f"{label}:determinism:expected_identical_replay:{case['name']}"]
 
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="genksyms_bridge_selftest_") as tmp:
         root = Path(tmp)
+
         def build_root() -> None:
             (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
             (root / FIXTURE_ROOT_REL).mkdir(parents=True, exist_ok=True)
@@ -494,6 +511,7 @@ def run_self_test() -> int:
             (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
             for name, payload in EXPECTED_OUTPUTS.items():
                 (root / FIXTURE_ROOT_REL / name).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
         checks_run = 0
         build_root()
         if validate_checker_text((root / GENKSYMS_CHECKER_REL).read_text(encoding="utf-8")):
@@ -520,14 +538,14 @@ def run_self_test() -> int:
         build_root()
         tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8")
         (root / GENKSYMS_TOOL_REL).write_text(tool_text.replace(EXPECTED_TOOL_TESTS[0], "", 1), encoding="utf-8")
-        if not any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in validate_marker_counts((root / GENKSYMS_TOOL_REL).read_text(encoding='utf-8'), EXPECTED_TOOL_TESTS, GENKSYMS_TOOL_REL)):
+        if not any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in validate_marker_counts((root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8"), EXPECTED_TOOL_TESTS, GENKSYMS_TOOL_REL)):
             return 1
         checks_run += 1
         build_root()
         cases_payload = json.loads((root / GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
         cases_payload.pop()
         (root / GENKSYMS_CASES_REL).write_text(json.dumps(cases_payload, indent=2) + "\n", encoding="utf-8")
-        if not any(issue.startswith("genksyms_cases:case_count:") for issue in validate_cases(json.loads((root / GENKSYMS_CASES_REL).read_text(encoding='utf-8')))):
+        if not any(issue.startswith("genksyms_cases:case_count:") for issue in validate_cases(json.loads((root / GENKSYMS_CASES_REL).read_text(encoding="utf-8")))):
             return 1
         checks_run += 1
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
@@ -535,16 +553,21 @@ def run_self_test() -> int:
     print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}")
     return 0
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Validate the bounded Phase 2 genksyms wrapper packet.")
     parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
+
 def main() -> int:
     args = parse_args()
     if args.self_test:
         return run_self_test()
+    print("PHASE2_GENKSYMS_BRIDGE=pass")
+    print(f"PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT={len(EXPECTED_CASES)}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
