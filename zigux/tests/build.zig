@@ -522,6 +522,7 @@ pub fn build(b: *std.Build) void {
         "Dump the current shared Phase 3 ABI snapshot from zigux/tests",
     );
     phase3_dump_step.dependOn(&phase3_abi_dump.step);
+    phase3_dump_step.dependOn(&phase3_errptr_xarray_dump.step);
 
     const phase12_step = b.step(
         "phase12-virtio-net-survey",
