@@ -8,7 +8,7 @@ This note records the bounded current-head readback for the latest `drivers/virt
 - `PHASE10_FAMILY=virtio-mmio`
 - `PHASE10_SURFACE=config-write-disposition-observation`
 - `PHASE10_PROVENANCE_MODE=dated_master_readback`
-- surveyed against current `master` readback on `2026-05-17`
+- surveyed against current `master` readback on `2026-05-18`
 - scope: document the helper-local disposition summary that reports byte-level config-write deltas while keeping the broader MMIO lifecycle, IRQ, DMA, queue setup, and probe or remove packet blocked
 - role: packet-local current-head companion for the Phase 10 MMIO packet, aligned with the live MMIO survey while keeping the byte-level disposition rung explicit on its own terms
 
@@ -45,17 +45,18 @@ The helper remains planning-only and observation-only. It surfaces what a staged
 
 ## Current Repo Reality
 
-The current MMIO family is still best read as a bounded lab helper packet:
+Current `master` readback keeps this narrower MMIO packet explicit through:
 
 - `drivers/virtio/virtio_mmio.zig` carries the richer config-write disposition observation helper
 - `drivers/virtio/virtio_mmio_verify.zig` keeps the changed-byte-count and queue-readiness wrapper proof explicit beside the helper
-- `Documentation/zigux/phase10-virtio-mmio-survey.md` now names the disposition helper and the same blocked lifecycle-and-IRQ boundary
-- `zigux/tests/phase10_build.zig` still imports `drivers/virtio/virtio_mmio.zig` into the shared Phase 10 build gate for helper-local MMIO coverage
-- repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-mmio-slice.md`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, and `zigux/tests/phase10_virtio_mmio_manifest.json`, so keep those adjacent MMIO packet members framed as repo-reality gaps until a fresh reread proves they materialize again
+- `Documentation/zigux/phase10-virtio-mmio-survey.md` keeps the bounded transport-identity, queue-readiness, feature-negotiation, and config-write-disposition survey aligned with the same blocked lifecycle-and-IRQ boundary
+- `zigux/tests/phase10_virtio_mmio.zig` keeps the helper-local probe-gating, queue-readiness, feature-negotiation, and config-write-disposition replays explicit
+- `zigux/tests/phase10_virtio_mmio_survey.zig` rereads the parked survey note together with the shared `zigux/tests/phase10_build.zig` gate
+- repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-mmio-slice.md` and `zigux/tests/phase10_virtio_mmio_manifest.json`, so keep only those adjacent MMIO packet members framed as repo-reality gaps until a fresh reread proves they materialize again
 
 ## Safe Reading
 
-Use this companion as the packet-local explanation for the MMIO config-write disposition helper together with the live MMIO survey, the direct helper file, the verify wrapper, and the shared Phase 10 build gate.
+Use this companion as the packet-local explanation for the MMIO config-write disposition helper together with the live MMIO survey, the direct helper file, the verify wrapper, the helper-local MMIO tests, the dedicated MMIO survey gate, and the shared Phase 10 build gate.
 
 It should not be read as a claim that the MMIO lane has crossed into transport-backed writes, queue execution, IRQ delivery, DMA, or lifecycle closure.
 
