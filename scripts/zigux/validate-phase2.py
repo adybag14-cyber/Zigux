@@ -53,6 +53,11 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
+DISALLOWED_WORKFLOW_LINES = (
+    "name: Run current Phase 2 genksyms bridge unit tests",
+    "run: zig test scripts/zigux/genksyms.zig",
+)
+
 REQUIRED_MAKEFILE_LINES = (
     ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2",
     "phase2-toolchain:",
@@ -72,6 +77,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
+    + len(DISALLOWED_WORKFLOW_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_MAKEFILE_LINES)
     + (len(REQUIRED_PATHS) - 1)
@@ -136,6 +142,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_LINE", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINE", f"{marker}:count={count}"))
+
+    for marker in DISALLOWED_WORKFLOW_LINES:
+        count = count_exact_lines(workflow_text, marker)
+        if count != 0:
+            issues.append(("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count={count}"))
 
     for marker in REQUIRED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -224,6 +235,16 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
+        for marker in DISALLOWED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            workflow_path = path_under(root, WORKFLOW)
+            workflow_path.write_text(
+                workflow_path.read_text(encoding="utf-8") + marker + "\n",
+                encoding="utf-8",
+            )
+            assert ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1") in collect_issues(root)
+            checks_run += 1
+
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             makefile_path = path_under(root, MAKEFILE)
@@ -291,6 +312,7 @@ def main() -> int:
     print("PHASE2_VALIDATION=pass")
     print(f"PHASE2_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     print(f"PHASE2_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE2_DISALLOWED_WORKFLOW_LINE_COUNT={len(DISALLOWED_WORKFLOW_LINES)}")
     print(f"PHASE2_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     return 0
 
