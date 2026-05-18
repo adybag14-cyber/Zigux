@@ -88,6 +88,7 @@ Phase 3 notes
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
 - `zigux/tests/phase3_policy_starter_packet.zig`
 - `zigux/tests/phase3_policy_starter_packet_build.zig`
+- `zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `scripts/zigux/check-phase3-dev-t-starter-packet.py`
 - `python3 scripts/zigux/check-phase3-dev-t-starter-packet.py --self-test`
 - `python3 scripts/zigux/check-phase3-errptr-xarray-starter-packet.py --self-test`
