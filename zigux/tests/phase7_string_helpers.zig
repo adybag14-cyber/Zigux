@@ -12,6 +12,11 @@ fn runKstrdupQuotableWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]
     }
 }
 
+fn runKstrdupQuotableFileWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]const u8) !void {
+    const quoted = try string_helpers.kstrdupQuotableFile(allocator, src);
+    allocator.free(quoted);
+}
+
 fn runKstrdupQuotableCmdlineWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]const u8) !void {
     if (try string_helpers.kstrdupQuotableCmdline(allocator, src)) |quoted| {
         allocator.free(quoted);
@@ -389,6 +394,21 @@ test "phase 7 string helpers starter quotes special log-hazard bytes without wid
     try std.testing.expectEqualStrings("path", bounded);
 }
 
+test "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit" {
+    const missing = try string_helpers.kstrdupQuotableFile(std.testing.allocator, null);
+    defer std.testing.allocator.free(missing);
+    try std.testing.expectEqualStrings("<unknown>", missing);
+
+    const source = [_]u8{ '/', 't', 'm', 'p', '/', 'l', 'o', 'g', '\n', '"', 0, 'x' };
+    const quoted = try string_helpers.kstrdupQuotableFile(std.testing.allocator, &source);
+    defer std.testing.allocator.free(quoted);
+    try std.testing.expectEqualStrings("/tmp/log\\x0A\\x22", quoted);
+
+    const alias = try string_helpers.kstrdup_quotable_file(std.testing.allocator, "dev\\\"node");
+    defer std.testing.allocator.free(alias);
+    try std.testing.expectEqualStrings("dev\\x5C\\x22node", alias);
+}
+
 test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {
     const cmdline = [_]u8{ 'z', 'i', 'g', 0, 'b', 'u', 'i', 'l', 'd', '\n', '"', 0, 0 };
     const quoted = (try string_helpers.kstrdupQuotableCmdline(std.testing.allocator, &cmdline)).?;
@@ -432,7 +452,19 @@ test "phase 7 string helpers starter reports kstrdupQuotable allocation failure 
     try std.testing.checkAllAllocationFailures(
         std.testing.allocator,
         runKstrdupQuotableWithFailingAllocator,
-        .{ "phase7\nquote\"", },
+        .{
+            "phase7\nquote\"",
+        },
+    );
+}
+
+test "phase 7 string helpers starter reports kstrdupQuotableFile allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupQuotableFileWithFailingAllocator,
+        .{
+            "/tmp/phase7\nquote\"",
+        },
     );
 }
 
@@ -440,7 +472,9 @@ test "phase 7 string helpers starter reports kstrdupQuotableCmdline allocation f
     try std.testing.checkAllAllocationFailures(
         std.testing.allocator,
         runKstrdupQuotableCmdlineWithFailingAllocator,
-        .{ "zig\x00test\x00\x00", },
+        .{
+            "zig\x00test\x00\x00",
+        },
     );
 }
 
