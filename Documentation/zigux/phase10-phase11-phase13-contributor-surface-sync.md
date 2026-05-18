@@ -13,7 +13,8 @@ Shared surfaces to keep aligned:
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-devres-slice.md`
-- `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`
+- `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
 - `Documentation/zigux/phase13-landlock-ruleset-slice.md`
 - `Documentation/zigux/phase13-landlock-ruleset-survey.md`
