@@ -59,5 +59,8 @@
   ],
   "allconfig_override_packet": [
     "randconfig_expected.json"
+  ],
+  "randconfig_env_packet": [
+    "randconfig_expected.json"
   ]
 }
