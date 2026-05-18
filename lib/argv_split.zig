@@ -519,6 +519,46 @@ test "argvFree mirrors argv_free release ownership and stays safe after teardown
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
+test "non-blank argvSplit results keep caller-owned teardown isolated across siblings" {
+    var first = try argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
+    var second = try argvSplit(std.testing.allocator, "init=/bin/sh quiet");
+    defer second.deinit(std.testing.allocator);
+
+    const first_storage_ptr = first.storage.ptr;
+    const first_argv_ptr = first.argv.ptr;
+    const first_argv_null_terminated_ptr = first.argv_null_terminated.ptr;
+    const second_storage_ptr = second.storage.ptr;
+    const second_argv_ptr = second.argv.ptr;
+    const second_argv_null_terminated_ptr = second.argv_null_terminated.ptr;
+    const second_c_argv = second.cArgv();
+
+    try std.testing.expect(first_storage_ptr != second_storage_ptr);
+    try std.testing.expect(first_argv_ptr != second_argv_ptr);
+    try std.testing.expect(first_argv_null_terminated_ptr != second_argv_null_terminated_ptr);
+    try std.testing.expect(first.cArgv() != second_c_argv);
+    try std.testing.expectEqualStrings("console=ttyS0", first.argv[0]);
+    try std.testing.expectEqualStrings("root=/dev/vda", first.argv[1]);
+    try std.testing.expectEqualStrings("init=/bin/sh", second.argv[0]);
+    try std.testing.expectEqualStrings("quiet", second.argv[1]);
+
+    first.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), first.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), first.storage[first.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), first.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), first.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), first.cArgv()[0]);
+
+    try std.testing.expect(second.storage.ptr == second_storage_ptr);
+    try std.testing.expect(second.argv.ptr == second_argv_ptr);
+    try std.testing.expect(second.argv_null_terminated.ptr == second_argv_null_terminated_ptr);
+    try std.testing.expect(second.cArgv() == second_c_argv);
+    try std.testing.expectEqualStrings("init=/bin/sh", second.argv[0]);
+    try std.testing.expectEqualStrings("quiet", second.argv[1]);
+    try std.testing.expectEqualStrings("init=/bin/sh", std.mem.span(second.cArgv()[0].?));
+    try std.testing.expectEqualStrings("quiet", std.mem.span(second.cArgv()[1].?));
+}
+
 test "argvSplit frees intermediate allocations when allocator failure interrupts setup" {
     try std.testing.checkAllAllocationFailures(
         std.testing.allocator,
