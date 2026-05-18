@@ -177,3 +177,51 @@ test "lane10 helper ports keep current edge contracts" {
     try std.testing.expectEqual(@as(usize, 0), vsprintf.scnprintfPad(&zero_pad_buffer, 0, "id={d}", .{7}));
     try std.testing.expectEqual(@as(u8, 0), zero_pad_buffer[0]);
 }
+
+test "lane10 helper ports keep current helper-local safety contracts" {
+    const allocator = std.testing.allocator;
+
+    slab.kmalloc_nr_allocated = 0;
+    try std.testing.expect(slab.kmallocArray(4, 2, 0) == null);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+    try std.testing.expect(slab.kmallocArray(std.math.maxInt(usize), 2, slab.GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    var known_message_buffer: [6]u8 = undefined;
+    const known_message = str_error_r.strErrorR(0, &known_message_buffer);
+    try std.testing.expectEqualStrings("Succe", known_message);
+    try std.testing.expectEqual(@as(u8, 0), known_message_buffer[known_message_buffer.len - 1]);
+
+    var truncated_pad_buffer: [8]u8 = undefined;
+    const truncated_pad_len = vsprintf.scnprintfPad(&truncated_pad_buffer, 4, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 4), truncated_pad_len);
+    try std.testing.expectEqualStrings("zigu", truncated_pad_buffer[0..truncated_pad_len]);
+    try std.testing.expectEqual(@as(u8, 0), truncated_pad_buffer[truncated_pad_len]);
+
+    const AggregateValue = struct {
+        bytes: [4]u8,
+        flags: [2]bool,
+        maybe_count: ?usize,
+    };
+
+    var aggregate_value: ?*AggregateValue = try zalloc.zallocValue(allocator, AggregateValue);
+    defer zalloc.zfreeValue(allocator, AggregateValue, &aggregate_value);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, &aggregate_value.?.bytes);
+    try std.testing.expectEqualSlices(bool, &.{ false, false }, &aggregate_value.?.flags);
+    try std.testing.expect(aggregate_value.?.maybe_count == null);
+
+    zalloc.zfreeValue(allocator, AggregateValue, &aggregate_value);
+    try std.testing.expect(aggregate_value == null);
+    zalloc.zfreeValue(allocator, AggregateValue, &aggregate_value);
+    try std.testing.expect(aggregate_value == null);
+
+    var dirty_bytes: ?[]u8 = try zalloc.zallocBytes(allocator, 4);
+    try std.testing.expect(dirty_bytes != null);
+    @memset(dirty_bytes.?, 0xaa);
+    zalloc.zfreeBytes(allocator, &dirty_bytes);
+    try std.testing.expect(dirty_bytes == null);
+
+    dirty_bytes = try zalloc.zallocBytes(allocator, 4);
+    defer zalloc.zfreeBytes(allocator, &dirty_bytes);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, dirty_bytes.?);
+}
