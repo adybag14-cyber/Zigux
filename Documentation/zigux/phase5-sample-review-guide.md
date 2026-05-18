@@ -26,19 +26,19 @@ Treat those four anchors as the approved Phase 5 destination set unless the road
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-18 confirmed that current `master` now directly serves the bounded bytestream note-and-sample proof through these paths:
+Fresh repo-first inspection on 2026-05-18 confirmed that current `master` now directly serves the bounded bytestream sample-plus-tests packet through these paths:
 
 * `Documentation/zigux/phase5-kfifo-sample-survey.md`
 * `samples/zigux/bytestream_fifo.zig`
-
-That same reread also confirmed that the broader bytestream replay companions still need to stay in the split-readback bucket for now:
-
 * `zigux/tests/phase5_bytestream_fifo.zig`
-* `zigux/tests/phase5_bytestream_fifo_survey.zig`
 * `zigux/tests/phase5_bytestream_fifo_manifest.json`
+* `zigux/tests/phase5_bytestream_fifo_survey.zig`
+
+That same reread also confirmed that the shared build companion still needs to stay in the split-readback bucket for now:
+
 * `zigux/tests/phase5_build.zig`
 
-Keep the direct bytestream note-and-sample proof explicit while the focused replay, survey replay, manifest, and shared build companions stay framed as current public-tree-backed or mixed-readback evidence instead of flattening them back into one all-missing or all-restored packet.
+Keep the direct bytestream sample-plus-tests packet explicit while the shared build companion stays framed as current public-tree-backed evidence instead of flattening the packet back into a sample-only story or treating the shared build route as returned authenticated proof.
 
 The same 2026-05-18 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:
 
@@ -78,7 +78,7 @@ Keep those shared surfaces honest about the restored direct kretprobe packet, th
 
 ## Bytestream posture
 
-For `kfifo`, follow the restored direct note-and-sample proof through `Documentation/zigux/phase5-kfifo-sample-survey.md` and `samples/zigux/bytestream_fifo.zig`.
+For `kfifo`, follow the restored direct sample-plus-tests packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`.
 
 Keep the current ten-cue review contract explicit in shared contributor guidance when a bytestream reminder surface is refreshed:
 
@@ -93,11 +93,11 @@ Keep the current ten-cue review contract explicit in shared contributor guidance
 * `reset_and_replay`
 * `ownership_and_lifetime`
 
-Use the direct note-and-sample proof to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
+Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
 
 Keep the current split explicit too:
 
-* `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_survey.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_build.zig` remain current public-tree-backed or mixed-readback companion evidence until a fresh reread proves broader direct authenticated proof again
+* `zigux/tests/phase5_build.zig` remains current public-tree-backed companion evidence until a fresh reread proves broader direct authenticated proof again
 * same-lane follow-through should repair one reminder surface at a time instead of reclassifying the whole bytestream packet from memory or older wording alone
 * the lane still stays non-runtime and should not widen into procfs, user-copy, locking, runtime loader, or module-registration claims
 
@@ -172,7 +172,7 @@ Do not describe that formatting cue as a fifth Phase 5 sample, a standalone form
 
 ## Review posture
 
-Because current `master` keeps the restored direct bytestream note-and-sample proof, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in the public-tree-backed-companion-plus-authenticated-gap bucket, same-lane follow-through should stay inside these bounded categories:
+Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in the public-tree-backed-companion-plus-authenticated-gap bucket, same-lane follow-through should stay inside these bounded categories:
 
 * one bytestream reminder-surface truthfulness repair at a time
 * one trace-events reminder-surface truthfulness repair at a time
@@ -182,7 +182,7 @@ Because current `master` keeps the restored direct bytestream note-and-sample pr
 
 Avoid:
 
-* treating the restored bytestream note-and-sample proof as permission to promote still-split replay, survey, manifest, or shared-build companions into direct authenticated proof
+* treating the restored direct bytestream sample-plus-tests packet as permission to promote the shared `zigux/tests/phase5_build.zig` route into direct authenticated proof
 * treating the narrower trace-events packet as either fully absent or fully direct authenticated sample proof when current `master` still keeps the bounded formatting companion direct, the older broader sample-local companion paths missing from authenticated contents reread, and the shared `zigux/tests/phase5_build.zig` route in support-material posture
 * treating `zigux/tests/phase5_build.zig` as direct authenticated proof while the current lane still only has repo-reality-gap or historical-support wording for that shared build route
 * treating the `kobject` anchor as a returned direct sample packet while current authenticated rereads still keep its older sample-root and tests-root packet members out of direct-proof status
