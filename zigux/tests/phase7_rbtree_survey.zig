@@ -8,7 +8,10 @@ const Manifest = struct {
     roadmap_destinations: []const []const u8,
     current_direct_readback_state: []const u8,
     visible_paths: []const []const u8,
+    readable_non_owner_paths: []const []const u8,
     missing_paths: []const []const u8,
+    absent_makefile_markers: []const []const u8,
+    absent_workflow_markers: []const []const u8,
     ownership_focus: []const []const u8,
     next_bounded_step: []const u8,
 };
@@ -41,6 +44,12 @@ test "phase 7 rbtree survey keeps the surviving anchor packet truthful" {
     const sequencing_note = try readRepoFile(allocator, "Documentation/zigux/phase7-helper-lane-sequencing.md");
     defer allocator.free(sequencing_note);
 
+    const makefile = try readRepoFile(allocator, "zigux/Makefile");
+    defer allocator.free(makefile);
+
+    const workflow = try readRepoFile(allocator, ".github/workflows/zigux-bootstrap.yml");
+    defer allocator.free(workflow);
+
     const string_helper = try readRepoFile(allocator, "lib/string_helpers.zig");
     defer allocator.free(string_helper);
 
@@ -72,6 +81,9 @@ test "phase 7 rbtree survey keeps the surviving anchor packet truthful" {
     try expectStringSliceContains(manifest.visible_paths, "zigux/tests/phase7_rbtree_survey.zig");
     try expectStringSliceContains(manifest.visible_paths, "zigux/tests/phase7_rbtree_manifest.json");
 
+    try expectStringSliceContains(manifest.readable_non_owner_paths, "zigux/Makefile");
+    try expectStringSliceContains(manifest.readable_non_owner_paths, ".github/workflows/zigux-bootstrap.yml");
+
     try expectStringSliceContains(manifest.missing_paths, "Documentation/zigux/phase7-rbtree-slice.md");
     try expectStringSliceContains(manifest.missing_paths, "lib/rbtree.zig");
     try expectStringSliceContains(manifest.missing_paths, "zigux/tests/phase7_rbtree.zig");
@@ -81,14 +93,38 @@ test "phase 7 rbtree survey keeps the surviving anchor packet truthful" {
     try expectStringSliceContains(manifest.missing_paths, "zigux/tests/phase7_build.zig");
     try expectStringSliceContains(manifest.missing_paths, "scripts/zigux/validate-phase7.py");
 
+    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7-validate:");
+    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-test:");
+    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7-rbtree-survey:");
+    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7-test:");
+    try expectStringSliceContains(manifest.absent_makefile_markers, "phase7:");
+
+    try expectStringSliceContains(manifest.absent_workflow_markers, "Validate Phase 7 runtime helper gates");
+    try expectStringSliceContains(manifest.absent_workflow_markers, "Run Phase 7 runtime helper tests");
+    try expectStringSliceContains(manifest.absent_workflow_markers, "make -C zigux phase7-validate");
+    try expectStringSliceContains(manifest.absent_workflow_markers, "make -C zigux phase7-test");
+
     try expectStringSliceContains(manifest.ownership_focus, "the surviving survey-plus-manifest anchor must not be presented as proof that the broader rbtree helper, dedicated test, fixture, checker, or shared build routes have returned on current master");
     try expectStringSliceContains(manifest.ownership_focus, "same-lane follow-through stays inside the surviving survey and manifest anchors until a fresh reread proves another rbtree companion returned on current master");
     try expectStringSliceContains(manifest.ownership_focus, "cross-helper truthfulness must keep the landed string_helpers packet explicit instead of repeating the older blocked-by-missing-string-helper claim");
+    try expectStringSliceContains(manifest.ownership_focus, "build-graph truthfulness must keep readable non-owner surfaces explicit: `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` are current readable evidence, but their missing `phase7-*` route markers still block any claim that the shared rbtree build packet returned");
     try expectContains(manifest.next_bounded_step, "survey-or-manifest truthfulness");
 
     try expectContains(sequencing_note, "rbtree currently survives through the direct anchors `zigux/tests/phase7_rbtree_survey.zig` and `zigux/tests/phase7_rbtree_manifest.json`.");
     try expectContains(sequencing_note, "keep same-lane work anchored to those two surviving files");
     try expectContains(sequencing_note, "instead of repeating the older blocked-by-missing-string-helpers story");
+    try expectContains(sequencing_note, "shared wrapper stack as parked reminder vocabulary until those files rematerialize");
+
+    try expectNotContains(makefile, "phase7-validate:");
+    try expectNotContains(makefile, "phase7-rbtree-test:");
+    try expectNotContains(makefile, "phase7-rbtree-survey:");
+    try expectNotContains(makefile, "phase7-test:");
+    try expectNotContains(makefile, "phase7:");
+
+    try expectNotContains(workflow, "Validate Phase 7 runtime helper gates");
+    try expectNotContains(workflow, "Run Phase 7 runtime helper tests");
+    try expectNotContains(workflow, "make -C zigux phase7-validate");
+    try expectNotContains(workflow, "make -C zigux phase7-test");
 
     try expectContains(string_helper, "pub fn sysfsStreq");
     try expectContains(string_helper, "pub fn kstrdupQuotableCmdline");
