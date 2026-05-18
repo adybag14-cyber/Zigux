@@ -274,6 +274,44 @@ test "constructor tagging stays aligned at both slot cutoffs" {
     try std.testing.expectEqual(@as(?isize, -1), top_err.errorCode());
 }
 
+test "constructor accessors stay lane-specific at both slot cutoffs" {
+    const low_null = nullSlot();
+    const low_value = try fromValue(0);
+    const low_pointer = fromPointer(2);
+    const high_value = try fromValue(xa_value.safe_inline_limit);
+    const high_pointer = fromPointer(err_ptr.err_floor - 1);
+    const first_err = fromErrorCode(-4095);
+    const top_err = fromErrorCode(-1);
+
+    try std.testing.expectEqual(@as(?usize, null), low_null.value());
+    try std.testing.expectEqual(@as(?isize, null), low_null.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), low_null.pointerValue());
+
+    try std.testing.expectEqual(@as(?usize, 0), low_value.value());
+    try std.testing.expectEqual(@as(?isize, null), low_value.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), low_value.pointerValue());
+
+    try std.testing.expectEqual(@as(?usize, null), low_pointer.value());
+    try std.testing.expectEqual(@as(?isize, null), low_pointer.errorCode());
+    try std.testing.expectEqual(@as(?usize, 2), low_pointer.pointerValue());
+
+    try std.testing.expectEqual(@as(?usize, xa_value.safe_inline_limit), high_value.value());
+    try std.testing.expectEqual(@as(?isize, null), high_value.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), high_value.pointerValue());
+
+    try std.testing.expectEqual(@as(?usize, null), high_pointer.value());
+    try std.testing.expectEqual(@as(?isize, null), high_pointer.errorCode());
+    try std.testing.expectEqual(@as(?usize, err_ptr.err_floor - 1), high_pointer.pointerValue());
+
+    try std.testing.expectEqual(@as(?usize, null), first_err.value());
+    try std.testing.expectEqual(@as(?isize, -4095), first_err.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), first_err.pointerValue());
+
+    try std.testing.expectEqual(@as(?usize, null), top_err.value());
+    try std.testing.expectEqual(@as(?isize, -1), top_err.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), top_err.pointerValue());
+}
+
 test "inline zero stays a tagged value and keeps other decoders closed" {
     const raw = try xa_value.makeValue(0);
     const slot = fromRaw(raw);
