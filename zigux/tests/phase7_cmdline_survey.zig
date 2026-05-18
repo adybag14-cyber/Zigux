@@ -28,7 +28,9 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectContains(slice_note, "`nextArg()` and `next_arg`");
     try expectContains(slice_note, "`memparse()`");
     try expectContains(slice_note, "Current `master` still ships no standalone `samples/zigux/*cmdline*` reference sample");
-    try expectContains(slice_note, "Build the matching helper-local review packet for `lib/argv_split.zig`");
+    try expectContains(slice_note, "Keep the dedicated cmdline survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet");
+    try expectContains(slice_note, "Route adjacent `argv_split`, `string_helpers`, and `rbtree` follow-through to their own Phase 7 helper-local packets.");
+    try expectNotContains(slice_note, "Build the matching helper-local review packet for `lib/argv_split.zig`");
     try expectNotContains(slice_note, "standalone string-helper delivery");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_cmdline_manifest.json");
@@ -44,7 +46,8 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectContains(manifest, "\"getOptions\"");
     try expectContains(manifest, "\"nextArg\"");
     try expectContains(manifest, "\"memparse\"");
-    try expectContains(manifest, "\"next_bounded_step\": \"Build the matching helper-local review packet for `lib/argv_split.zig` while keeping `rbtree` parked");
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated cmdline survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet");
+    try expectNotContains(manifest, "\"next_bounded_step\": \"Build the matching helper-local review packet for `lib/argv_split.zig` while keeping `rbtree` parked");
     try expectNotContains(manifest, "\"stringEscapeMem\"");
     try expectNotContains(manifest, "\"devm_kasprintf_strarray\"");
 
