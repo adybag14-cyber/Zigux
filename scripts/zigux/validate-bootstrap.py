@@ -56,12 +56,13 @@ REQUIRED_PATHS = (
 )
 
 WORKFLOW_SUBSTRING_MARKERS = (
-    "- name: Setup pinned Zig toolchain",
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
 )
 
 WORKFLOW_LINE_MARKERS = (
+    "- name: Setup pinned Zig toolchain",
+    "- name: Compile current scripts",
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
@@ -80,6 +81,8 @@ WORKFLOW_LINE_MARKERS = (
 # the live Lane 03 packet instead of drifting later into unrelated Phase 2 or
 # Phase 3 workflow sections.
 WORKFLOW_ORDER_MARKERS = (
+    "- name: Setup pinned Zig toolchain",
+    "- name: Compile current scripts",
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
@@ -138,7 +141,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + (len(REQUIRED_PATHS) - 1)
-    + 17
+    + 19
 )
 
 
@@ -506,6 +509,38 @@ def run_self_test() -> int:
         assert (
             "OUT_OF_ORDER_WORKFLOW_MARKER",
             "run: make -C zigux phase2-toolchain -> run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "- name: Compile current scripts",
+                "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "- name: Compile current scripts -> run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "- name: Setup pinned Zig toolchain",
+                "- name: Compile current scripts",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "- name: Setup pinned Zig toolchain -> - name: Compile current scripts",
         ) in collect_issues(root)
         checks_run += 1
 
