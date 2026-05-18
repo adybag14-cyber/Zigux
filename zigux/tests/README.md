@@ -50,7 +50,7 @@ Key entrypoints
   * `Documentation/zigux/README.md`
   * `zigux/tests/fixtures/phase1_helper_manifest.json`
   * `zigux/tests/fixtures/phase1_helpers.json`
-  * current direct-readback Phase 1 reminder packet: `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`
+  * current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`
   * repo-reality warning for the broader Phase 1 installer-backed closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`
   * the restored `Documentation/zigux/phase1-closure.md` note and `scripts/zigux/validate-phase1-closure.py` now keep the current-master-safe closure packet explicit from the tests root, while `scripts/zigux/check-phase1-bench.py` remains the shipped bench-side checker for the remaining shared reminder wording
   * current `master` does ship `scripts/zigux/check-phase1-bench.py`, so keep the remaining shared reminder follow-through on the broader docs-root, checklist, and tests-root bench wording instead of treating the checker itself as a missing tests-root route
