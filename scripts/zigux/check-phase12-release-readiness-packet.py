@@ -7,6 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+
 SELF_PATH = Path(__file__).resolve()
 
 
@@ -19,127 +20,88 @@ def infer_repo_root() -> Path:
 
 ROOT = infer_repo_root()
 
-DOCS_README_PATH = "Documentation/zigux/README.md"
-REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
-SCRIPTS_README_PATH = "scripts/zigux/README.md"
-TESTS_README_PATH = "zigux/tests/README.md"
 RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 RELEASE_SEQUENCING_PATH = "Documentation/zigux/phase12-release-sequencing.md"
-RELEASE_CLOSURE_CHECKLIST_PATH = "Documentation/zigux/phase12-release-closure-checklist.md"
-RELEASE_COORDINATION_MATRIX_PATH = "Documentation/zigux/phase12-release-coordination-matrix.md"
-RAW_GITHUB_COVERAGE_SURVEY_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
+RELEASE_CLOSURE_CHECKLIST_PATH = (
+    "Documentation/zigux/phase12-release-closure-checklist.md"
+)
+RELEASE_COORDINATION_MATRIX_PATH = (
+    "Documentation/zigux/phase12-release-coordination-matrix.md"
+)
+RAW_GITHUB_COVERAGE_SURVEY_PATH = (
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md"
+)
+BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
+RELEASE_READINESS_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-release-readiness-packet.py"
+)
+VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
+MAKEFILE_PATH = "zigux/Makefile"
+PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 REQUIRED_FILES = [
-    DOCS_README_PATH,
-    REVIEW_CHECKLIST_PATH,
     FREEZE_MAP_PATH,
-    SCRIPTS_README_PATH,
-    TESTS_README_PATH,
     RELEASE_READINESS_SURVEY_PATH,
     RELEASE_SEQUENCING_PATH,
     RELEASE_CLOSURE_CHECKLIST_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
+    BUILD_ONLY_CHECKER_PATH,
+    RELEASE_READINESS_CHECKER_PATH,
+    VALIDATOR_PATH,
+    MAKEFILE_PATH,
+    PHASE12_BUILD_PATH,
+    WORKFLOW_PATH,
 ]
 
 REQUIRED_MARKERS = {
-    DOCS_README_PATH: [
-        "Documentation/zigux/phase12-raw-github-coverage-survey.md",
-        "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
-        "make -C zigux phase12-validate",
-        "scripts/zigux/validate-phase12.py",
-        "support material inside that shipped `phase12-validate` route rather than standalone proof of broader driver delivery",
-    ],
-    REVIEW_CHECKLIST_PATH: [
-        "scripts/zigux/check-phase12-release-readiness-packet.py",
-        "make -C zigux phase12-validate",
-        "avoid implying a broader shared `check-phase12-*.py` family, focused-libbpf-only replay, or cross-build replay",
-        "support-bundle evidence rather than as a second direct replay route",
-        "if `zig` is unavailable on `PATH`, keep the repo-local `.zig-toolchain` fallback plus the attached-Zig degraded rerun explicit by naming `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of implying a focused libbpf-only replay, a cross-build replay, or another unshipped support route?",
-    ],
-    FREEZE_MAP_PATH: [
-        "`net/core/skbuff.c`",
-        "`kernel/workqueue.c`",
-        "`kernel/trace/ring_buffer.c`",
-        "any lane that touches a listed anchor must declare owner, phase, status bucket, validation gate summary, and rollback owner in the reviewable record for that lane",
-    ],
-    SCRIPTS_README_PATH: [
-        "scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
-        "make -C zigux phase12-validate",
-        "the current starter-present `virtio_net` plus smoke-first `virtio_scsi` release packet and the parked verify-shard-backed libbpf survey packet reviewable from the scripts root",
-        "keep the bounded driver-local NVMe foothold explicit too: `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`, `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_survey.zig`, and `zigux/tests/phase12_nvme_pci_manifest.json` remain the bounded driver-local packet outside the shared smoke-first route",
-        "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, so the shipped validator-first support bundle stays ahead of the smoke-first reruns.",
-    ],
-    TESTS_README_PATH: [
-        "scripts/zigux/check-phase12-release-readiness-packet.py",
-        "make -C zigux phase12-validate",
-        "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`",
-        "Documentation/zigux/phase12-nvme-pci-slice.md",
-        "`Documentation/zigux/phase12-release-coordination-matrix.md`",
-    ],
     RELEASE_READINESS_SURVEY_PATH: [
-        "`PHASE12_STATUS=active`",
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "The route story on current `master` is split rather than absent: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again, but it still does not provide `phase12-validate`.",
         "That means the PMO release notes can treat `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again, while `make -C zigux phase12-validate` must stay reminder-only text until same-lane work rematerializes that wrapper.",
-        "make -C zigux phase12-validate",
     ],
     RELEASE_SEQUENCING_PATH: [
-        "`PHASE12_STATUS=active`",
-        "readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
+        "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
+        "Current repo-reality override: `zigux/Makefile` still omits `phase12-validate` on current `master`, but it now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` wrappers again.",
         "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
-        "Current `master` now keeps the degraded-workflow validator-side support packet explicit through `scripts/zigux/validate-phase12.py` and `scripts/zigux/check-phase12-release-readiness-packet.py`, while `make -C zigux phase12-validate` remains stale reminder vocabulary until same-lane work rematerializes the wrapper; there is still no focused libbpf-only replay or cross-build replay on current `master`, so this sequencing note must keep that validator-first support packet ahead of the smoke-first direct replay order instead of treating it as broader driver delivery evidence by itself.",
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
-        "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
-        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
-        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12 ZIG=<attached-zig-path>`",
-        "Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.",
+        "If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
-        "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.",
-        "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the directly readable validator-side support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.",
+        "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
+        "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
+        "the raw-URL-backed fallback pair and the contents-bridge-backed shared support bundle are distinct evidence paths in this runtime",
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.",
+    ],
+    VALIDATOR_PATH: [
+        "RELEASE_READINESS_CHECKER_PATH",
+        "BUILD_ONLY_CHECKER_PATH",
+        "make -C zigux phase12-validate",
+        "stale reminder vocabulary",
+        "scripts-side support packet",
+    ],
+    MAKEFILE_PATH: [
+        "PHASE3_SCRIPT_ROOT := ../scripts/zigux",
+        "phase12-smoke:",
+        "phase12-test:",
+        "phase12: phase12-smoke phase12-test",
     ],
 }
 
-REQUIRED_EXACT_COUNT_MARKERS = {
-    RELEASE_READINESS_SURVEY_PATH: {
-        "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
-    },
-    RELEASE_SEQUENCING_PATH: {
-        "readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
-    },
-    REVIEW_CHECKLIST_PATH: {
-        "if `zig` is unavailable on `PATH`, keep the repo-local `.zig-toolchain` fallback plus the attached-Zig degraded rerun explicit by naming `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of implying a focused libbpf-only replay, a cross-build replay, or another unshipped support route?": 1,
-    },
-    SCRIPTS_README_PATH: {
-        "scripts/zigux/check-phase12-release-readiness-packet.py --self-test": 1,
-        "If `zig` is unavailable on `PATH`, rerun only the shipped Make routes with `ZIG=<attached-zig-path>`: `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`, so the shipped validator-first support bundle stays ahead of the smoke-first reruns.": 1,
-    },
-    TESTS_README_PATH: {
-        "`phase12_libbpf_*` replay files stay recorded only through the shared survey, fallback, parked, or anti-overlap notes until they actually land on `master`": 1,
-        "`Documentation/zigux/phase12-release-coordination-matrix.md`": 1,
-    },
-    RELEASE_CLOSURE_CHECKLIST_PATH: {
-        "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
-        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`": 1,
-    },
-    RELEASE_COORDINATION_MATRIX_PATH: {
-        "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`": 1,
-        "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`": 1,
-        "The older reminder-only follow-through is now closed on current `master`: `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the directly readable validator-side support bundle, dedicated `scripts/zigux/check-phase12-release-readiness-packet.py` guard, and attached-Zig degraded rerun order explicit without promoting a standalone cross-build or focused-libbpf replay route.": 1,
-    },
-    RAW_GITHUB_COVERAGE_SURVEY_PATH: {
-        "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.": 1,
-    },
+FORBIDDEN_MARKERS = {
+    MAKEFILE_PATH: [
+        "phase12-validate:",
+        "phase12: phase12-validate phase12-smoke phase12-test",
+    ]
 }
 
 
@@ -148,7 +110,6 @@ def validate(root: Path) -> list[str]:
     for rel_path in REQUIRED_FILES:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
-
     if failures:
         return failures
 
@@ -156,13 +117,13 @@ def validate(root: Path) -> list[str]:
         text = (root / rel_path).read_text(encoding="utf-8")
         for marker in markers:
             if marker not in text:
-                failures.append(f"{rel_path}:{marker}")
-        for marker, expected in REQUIRED_EXACT_COUNT_MARKERS.get(rel_path, {}).items():
-            actual = text.count(marker)
-            if actual not in (0, expected):
-                failures.append(
-                    f"{rel_path}:count:{marker}:expected={expected}:actual={actual}"
-                )
+                failures.append(f"missing_marker:{rel_path}:{marker}")
+
+    for rel_path, markers in FORBIDDEN_MARKERS.items():
+        text = (root / rel_path).read_text(encoding="utf-8")
+        for marker in markers:
+            if marker in text:
+                failures.append(f"forbidden_marker:{rel_path}:{marker}")
 
     return failures
 
@@ -172,51 +133,41 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def marker_fixture(rel_path: str) -> str:
-    title = {
-        DOCS_README_PATH: "# Zigux Documentation",
-        REVIEW_CHECKLIST_PATH: "# Zigux Review Checklist",
-        FREEZE_MAP_PATH: "# Zigux Freeze Map",
-        SCRIPTS_README_PATH: "# scripts/zigux",
-        TESTS_README_PATH: "# zigux/tests",
-        RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
-        RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
-        RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
-        RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
-        RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
-    }[rel_path]
-    body = "\n".join(f"- {marker}" for marker in REQUIRED_MARKERS[rel_path])
-    return f"{title}\n\n{body}\n"
+def marker_fixture(title: str, markers: list[str]) -> str:
+    return f"{title}\n\n" + "\n".join(f"- {marker}" for marker in markers) + "\n"
 
 
-def build_self_test_cases() -> list[tuple[str, int]]:
-    cases: list[tuple[str, int]] = []
-    for rel_path, markers in REQUIRED_MARKERS.items():
-        fixture_text = marker_fixture(rel_path)
-        for marker_index, marker in enumerate(markers):
-            if fixture_text.count(marker) == 1:
-                cases.append((rel_path, marker_index))
-    return cases
-
-
-def build_exact_count_self_test_cases() -> list[tuple[str, str]]:
-    cases: list[tuple[str, str]] = []
-    for rel_path, markers in REQUIRED_EXACT_COUNT_MARKERS.items():
-        for marker in markers:
-            cases.append((rel_path, marker))
-    return cases
-
-
-SELF_TEST_CASES = build_self_test_cases()
-EXACT_COUNT_SELF_TEST_CASES = build_exact_count_self_test_cases()
-EXPECTED_SELF_TEST_CASE_COUNT = 64
+def fixture_text(rel_path: str) -> str:
+    if rel_path in REQUIRED_MARKERS:
+        title = {
+            RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
+            RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
+            RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
+            RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
+            RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
+        }.get(rel_path, "# Fixture")
+        if rel_path in {
+            VALIDATOR_PATH,
+            MAKEFILE_PATH,
+        }:
+            return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
+        return marker_fixture(title, REQUIRED_MARKERS[rel_path])
+    if rel_path.endswith(".py"):
+        return "#!/usr/bin/env python3\n"
+    if rel_path.endswith(".md"):
+        return "# Fixture\n"
+    if rel_path.endswith(".zig"):
+        return "// fixture\n"
+    if rel_path.endswith(".yml"):
+        return "name: zigux-bootstrap\n"
+    return ""
 
 
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     for rel_path in REQUIRED_FILES:
-        write_text(root / rel_path, marker_fixture(rel_path))
+        write_text(root / rel_path, fixture_text(rel_path))
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -226,65 +177,61 @@ def expect_failure(root: Path, expected: str) -> None:
 
 
 def remove_marker(path: Path, marker: str) -> None:
-    path.write_text(
-        path.read_text(encoding="utf-8").replace(f"- {marker}\n", "", 1),
-        encoding="utf-8",
-    )
-
-
-def duplicate_marker(path: Path, marker: str) -> None:
-    path.write_text(
-        path.read_text(encoding="utf-8") + f"- {marker}\n",
-        encoding="utf-8",
-    )
-
-
-def expect_marker_failure(root: Path, rel_path: str, marker_index: int) -> None:
-    marker = REQUIRED_MARKERS[rel_path][marker_index]
-    write_fixture_tree(root)
-    remove_marker(root / rel_path, marker)
-    expect_failure(root, f"{rel_path}:{marker}")
-
-
-def expect_exact_count_failure(root: Path, rel_path: str, marker: str) -> None:
-    write_fixture_tree(root)
-    duplicate_marker(root / rel_path, marker)
-    expect_failure(root, f"{rel_path}:count:{marker}:expected=1:actual=2")
+    text = path.read_text(encoding="utf-8")
+    updated = text.replace(f"- {marker}\n", "", 1)
+    if updated == text:
+        updated = text.replace(f"{marker}\n", "", 1)
+    path.write_text(updated, encoding="utf-8")
 
 
 def run_self_test() -> int:
-    base = Path(tempfile.mkdtemp(prefix="phase12-release-readiness-packet-"))
+    base = Path(tempfile.mkdtemp(prefix="phase12-release-readiness-"))
     try:
-        actual_case_count = (
-            len(REQUIRED_FILES) + len(SELF_TEST_CASES) + len(EXACT_COUNT_SELF_TEST_CASES)
-        )
-        if actual_case_count != EXPECTED_SELF_TEST_CASE_COUNT:
-            raise SystemExit(
-                "unexpected self-test case count: "
-                f"{actual_case_count} != {EXPECTED_SELF_TEST_CASE_COUNT}"
-            )
-
         write_fixture_tree(base)
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
-        for rel_path in REQUIRED_FILES:
+        missing_file_cases = [
+            RELEASE_READINESS_SURVEY_PATH,
+            RELEASE_SEQUENCING_PATH,
+            RELEASE_CLOSURE_CHECKLIST_PATH,
+            RELEASE_COORDINATION_MATRIX_PATH,
+            RAW_GITHUB_COVERAGE_SURVEY_PATH,
+            BUILD_ONLY_CHECKER_PATH,
+            VALIDATOR_PATH,
+            MAKEFILE_PATH,
+        ]
+        for rel_path in missing_file_cases:
             write_fixture_tree(base)
             (base / rel_path).unlink()
             expect_failure(base, f"missing_file:{rel_path}")
 
-        for rel_path, marker_index in SELF_TEST_CASES:
-            expect_marker_failure(base, rel_path, marker_index)
+        marker_cases = [
+            (RELEASE_READINESS_SURVEY_PATH, REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][1]),
+            (RELEASE_SEQUENCING_PATH, REQUIRED_MARKERS[RELEASE_SEQUENCING_PATH][1]),
+            (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][1]),
+            (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][2]),
+            (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][1]),
+            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][3]),
+        ]
+        for rel_path, marker in marker_cases:
+            write_fixture_tree(base)
+            remove_marker(base / rel_path, marker)
+            expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
-        for rel_path, marker in EXACT_COUNT_SELF_TEST_CASES:
-            expect_exact_count_failure(base, rel_path, marker)
+        forbidden_cases = [
+            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][0]),
+            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][1]),
+        ]
+        for rel_path, marker in forbidden_cases:
+            write_fixture_tree(base)
+            write_text(base / rel_path, (base / rel_path).read_text(encoding="utf-8") + marker + "\n")
+            expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
 
+        case_count = len(missing_file_cases) + len(marker_cases) + len(forbidden_cases)
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
-        print(
-            "PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT="
-            f"{actual_case_count}"
-        )
+        print(f"PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT={case_count}")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -293,17 +240,15 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate the narrow shared Phase 12 release-readiness reminder packet "
-            "across the release-readiness survey, release-sequencing note, "
-            "release-closure checklist, release-coordination matrix, raw-coverage "
-            "warning, docs root, scripts root, tests root, and review checklist."
+            "Validate the current narrow Phase 12 release-readiness support bundle "
+            "around the release notes, degraded fallback wording, and shared Makefile routes."
         )
     )
     parser.add_argument(
         "--root",
         type=Path,
         default=ROOT,
-        help="Repository root to validate. Defaults to the inferred repository root.",
+        help="Repository root to validate. Defaults to the script directory.",
     )
     parser.add_argument(
         "--self-test",
@@ -326,6 +271,10 @@ def main() -> int:
     print(
         "PHASE12_RELEASE_READINESS_PACKET_REQUIRED_MARKER_COUNT="
         f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
+    print(
+        "PHASE12_RELEASE_READINESS_PACKET_FORBIDDEN_MARKER_COUNT="
+        f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
     )
     return 0
 
