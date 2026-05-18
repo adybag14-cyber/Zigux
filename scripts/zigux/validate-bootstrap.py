@@ -33,6 +33,16 @@ UPGRADE_POLICY_KEYS = {
     "required_make_routes",
 }
 
+
+class DuplicateTrackingDict(dict[str, object]):
+    def __init__(self, pairs: list[tuple[str, object]]) -> None:
+        super().__init__()
+        self.duplicate_keys: list[str] = []
+        for key, value in pairs:
+            if key in self and key not in self.duplicate_keys:
+                self.duplicate_keys.append(key)
+            self[key] = value
+
 REQUIRED_PATHS = (
     SCRIPTS_README,
     TOOLCHAIN_CHECKER,
@@ -118,7 +128,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + (len(REQUIRED_PATHS) - 1)
-    + 13
+    + 16
 )
 
 
@@ -215,12 +225,17 @@ def collect_workflow_order_issues(workflow_text: str) -> list[tuple[str, str]]:
 def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     try:
-        payload = json.loads(read_text(root, TOOLCHAIN_POLICY))
+        payload = json.loads(
+            read_text(root, TOOLCHAIN_POLICY),
+            object_pairs_hook=DuplicateTrackingDict,
+        )
     except json.JSONDecodeError as exc:
         return [("INVALID_POLICY_JSON", exc.msg)]
 
     if not isinstance(payload, dict):
         return [("INVALID_POLICY", "expected JSON object")]
+    if isinstance(payload, DuplicateTrackingDict) and payload.duplicate_keys:
+        issues.append(("INVALID_POLICY", f"duplicate_policy_keys={payload.duplicate_keys!r}"))
 
     unexpected_policy_keys = sorted(set(payload) - POLICY_KEYS)
     if unexpected_policy_keys:
@@ -242,6 +257,10 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(archive_sha256, dict):
         issues.append(("INVALID_POLICY", "archive_sha256"))
     else:
+        if isinstance(archive_sha256, DuplicateTrackingDict) and archive_sha256.duplicate_keys:
+            issues.append(
+                ("INVALID_POLICY", f"duplicate_archive_sha256_keys={archive_sha256.duplicate_keys!r}")
+            )
         if list(archive_sha256.keys()) != EXPECTED_POLICY["archive_target_scope"]:
             issues.append(("INVALID_POLICY", f"archive_sha256_keys={list(archive_sha256.keys())!r}"))
         for target, digest in archive_sha256.items():
@@ -252,6 +271,13 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(upgrade_policy, dict):
         issues.append(("INVALID_POLICY", "upgrade_policy"))
     else:
+        if isinstance(upgrade_policy, DuplicateTrackingDict) and upgrade_policy.duplicate_keys:
+            issues.append(
+                (
+                    "INVALID_POLICY",
+                    f"duplicate_upgrade_policy_keys={upgrade_policy.duplicate_keys!r}",
+                )
+            )
         unexpected_upgrade_policy_keys = sorted(set(upgrade_policy) - UPGRADE_POLICY_KEYS)
         if unexpected_upgrade_policy_keys:
             issues.append(
@@ -564,6 +590,47 @@ def run_self_test() -> int:
         policy_path = path_under(root, TOOLCHAIN_POLICY)
         policy_path.write_text("{invalid json\n", encoding="utf-8")
         assert any(code == "INVALID_POLICY_JSON" for code, _ in collect_issues(root))
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = path_under(root, TOOLCHAIN_POLICY)
+        policy_path.write_text(
+            '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+            + ("3" * 64)
+            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+            encoding="utf-8",
+        )
+        assert ("INVALID_POLICY", "duplicate_policy_keys=['phase']") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = path_under(root, TOOLCHAIN_POLICY)
+        policy_path.write_text(
+            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+            + ("3" * 64)
+            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+            encoding="utf-8",
+        )
+        assert (
+            "INVALID_POLICY",
+            "duplicate_upgrade_policy_keys=['channel_minimum_lockstep']",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        policy_path = path_under(root, TOOLCHAIN_POLICY)
+        policy_path.write_text(
+            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+            + ("3" * 64)
+            + '","x86_64-linux":"'
+            + ("4" * 64)
+            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+            encoding="utf-8",
+        )
+        assert (
+            "INVALID_POLICY",
+            "duplicate_archive_sha256_keys=['x86_64-linux']",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
