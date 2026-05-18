@@ -27,6 +27,17 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     unsafe_policy.addImport("abi_bindings", abi_bindings);
+    const layout_assert = b.createModule(.{
+        .root_source_file = b.path("../helpers/layout_assert.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const narrow_surface = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow_surface.addImport("abi_bindings", abi_bindings);
 
     const root_module = b.createModule(.{
         .root_source_file = b.path("phase3_policy_starter_packet.zig"),
@@ -37,6 +48,8 @@ pub fn build(b: *std.Build) void {
     root_module.addImport("panic_policy", panic_policy);
     root_module.addImport("allocator_policy", allocator_policy);
     root_module.addImport("unsafe_policy", unsafe_policy);
+    root_module.addImport("layout_assert", layout_assert);
+    root_module.addImport("narrow_surface", narrow_surface);
 
     const unit_tests = b.addTest(.{
         .root_module = root_module,
