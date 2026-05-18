@@ -477,6 +477,30 @@ test "runGenksymsCrc skips a carriage-return-newline EOF tail after an exact-buf
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
 }
 
+test "runGenksymsCrc trims a carriage return that lands at the exact buffer edge before a newline continuation" {
+    var edge_crlf_then_line = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 3);
+    defer edge_crlf_then_line.deinit(std.testing.allocator);
+    try edge_crlf_then_line.appendNTimes(std.testing.allocator, 'a', c_line_payload_len - 1);
+    try edge_crlf_then_line.append(std.testing.allocator, '\r');
+    try edge_crlf_then_line.append(std.testing.allocator, '\n');
+    try edge_crlf_then_line.appendSlice(std.testing.allocator, "x\n");
+
+    var capture = try Capture(16384).init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc(edge_crlf_then_line.items, &capture);
+
+    const trimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(edge_crlf_then_line.items[0 .. c_line_payload_len - 1])});
+    defer std.testing.allocator.free(trimmed_crc);
+    const untrimmed_crc = try std.fmt.allocPrint(std.testing.allocator, "0x{x:0>8}", .{crc32(edge_crlf_then_line.items[0..c_line_payload_len])});
+    defer std.testing.allocator.free(untrimmed_crc);
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, trimmed_crc) != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, untrimmed_crc) == null);
+    try std.testing.expect(std.mem.count(u8, capture.list.items, "crc_hex") == 2);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"x\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r\"") == null);
+}
+
 test "runGenksymsCrc skips repeated carriage-return continuations after an exact-buffer split" {
     var exact_then_crlf = try std.ArrayList(u8).initCapacity(std.testing.allocator, c_line_payload_len + 5);
     defer exact_then_crlf.deinit(std.testing.allocator);
@@ -619,7 +643,7 @@ test "runGenksymsCrc trims carriage returns and escapes json-sensitive bytes" {
     try runGenksymsCrc("quoted \"symbol\"\tpath\\name\r\n\r\n", &capture);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"quoted \\\"symbol\\\"\\tpath\\\\name\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"crc_hex\":\"0x3527e580\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\r") == null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"") == null);
 }
 
 test "runGenksymsCrc escapes remaining control bytes as valid JSON" {
