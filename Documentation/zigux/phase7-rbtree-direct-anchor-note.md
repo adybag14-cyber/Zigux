@@ -23,7 +23,7 @@ Repo-reality warning for the broader Phase 7 rbtree packet:
 
 Keep the current Phase 7 reminder surface tied to the surviving rbtree survey-plus-manifest anchor packet plus the directly readable string-helpers helper-local packet:
 - `string_helpers` stays the only directly readable full helper-local Phase 7 packet in this lane today
-- `cmdline` stays reviewable through the parked Phase 1 helper packet
+- `cmdline` stays reviewable through the returned Phase 7 helper-local foothold
 - `lib/argv_split.zig` is directly readable again on current `master`, but the dedicated Phase 7 `argv_split` slice, survey, manifest, and shared build-route packet still need a fresh same-lane reread or republish before they can count as a full helper-local review surface
 - do not present the broader `argv_split` review packet or the broader `rbtree` helper-local slice, checker, dedicated test, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`
 
