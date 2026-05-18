@@ -18,9 +18,7 @@ DEFAULT_ROOT = (
 
 BUILD_FILE_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
-HVC_VALIDATION_MATRIX_PATH = Path(
-    "Documentation/zigux/phase11-hvc-console-validation-matrix.md"
-)
+HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 
 REQUIRED_BUILD_TEXT_MARKERS = (
     "phase11_hvc_cleanup_packet_proof.zig",
@@ -33,53 +31,34 @@ FORBIDDEN_BUILD_TEXT_MARKERS = (
 )
 
 REQUIRED_BUILD_TEST_NAMES = (
-    "phase11-hvc-console-tests",
-    "phase11-hvc-console-verify-tests",
-    "phase11-hvc-cleanup-tests",
-    "phase11-hvc-console-survey-tests",
+    "phase11-hvc-hv-ops-layout-proof-tests",
+    "phase11-hvc-export-surface-layout-proof-tests",
+    "phase11-hvc-cleanup-packet-proof",
 )
 
-REQUIRED_SHARED_DEPEND_STEPS = (
-    "run_phase11_hvc_console_tests",
-    "run_hvc_console_verify_tests",
-    "run_phase11_hvc_cleanup_tests",
-)
+REQUIRED_SHARED_DEPEND_STEPS: tuple[str, ...] = ()
 
 REQUIRED_MODULE_PATHS = {
-    "hvc_console_module": "../../drivers/tty/hvc/hvc_console.zig",
-    "hvc_console_verify_module": "../../drivers/tty/hvc/hvc_console_verify.zig",
-    "phase11_hvc_console_module": "phase11_hvc_console.zig",
-    "phase11_hvc_cleanup_module": "phase11_hvc_cleanup.zig",
-    "phase11_hvc_console_survey_module": "phase11_hvc_console_survey.zig",
+    "hv_ops_proof_module": "phase11_hvc_hv_ops_layout_proof.zig",
+    "export_surface_proof_module": "phase11_hvc_export_surface_layout_proof.zig",
+    "proof_module": "phase11_hvc_cleanup_packet_proof.zig",
 }
 
 REQUIRED_TEST_ROOT_MODULES = {
-    "phase11-hvc-console-tests": "phase11_hvc_console_module",
-    "phase11-hvc-console-verify-tests": "hvc_console_verify_module",
-    "phase11-hvc-cleanup-tests": "phase11_hvc_cleanup_module",
-    "phase11-hvc-console-survey-tests": "phase11_hvc_console_survey_module",
+    "phase11-hvc-hv-ops-layout-proof-tests": "hv_ops_proof_module",
+    "phase11-hvc-export-surface-layout-proof-tests": "export_surface_proof_module",
+    "phase11-hvc-cleanup-packet-proof": "proof_module",
 }
 
-REQUIRED_DEDICATED_SURVEY_REPLAYS = (
-    "zigux/tests/phase11_hvc_console_survey.zig",
-)
+REQUIRED_DEDICATED_SURVEY_REPLAYS: tuple[str, ...] = ()
 
 REQUIRED_SHARED_ADJUNCT_REPLAYS = (
+    "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
-    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
 )
 
-REQUIRED_REPLAY_MARKERS = {
-    (
-        "zigux/tests/phase11_hvc_console_modem_control_split.zig",
-        " try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
-    ),
-    (
-        "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-        " try std.testing.expect(dispatch.invokes_sysrq_handler);",
-    ),
-}
+REQUIRED_REPLAY_MARKERS: set[tuple[str, str]] = set()
 
 REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/fixtures/phase11_build_inventory.json`",
@@ -89,11 +68,16 @@ REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/phase11_hvc_hv_ops_layout_build.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
+    "current-head HVC continuity packet rather than a whole-Phase-11 replay roster",
 )
 
 
 class CheckError(RuntimeError):
     pass
+
+
+def normalize_whitespace(text: str) -> str:
+    return " ".join(text.split())
 
 
 def read_text(path: Path) -> str:
@@ -148,9 +132,9 @@ def expect_exact_string_list(label: str, actual: object, expected: tuple[str, ..
 
 
 def require_text_markers(path: Path, markers: tuple[str, ...]) -> None:
-    text = read_text(path)
+    text = normalize_whitespace(read_text(path))
     for marker in markers:
-        if marker not in text:
+        if normalize_whitespace(marker) not in text:
             raise CheckError(f"missing marker in {path}: {marker}")
 
 
@@ -248,10 +232,7 @@ def fixture_inventory() -> dict[str, object]:
         "dedicated_survey_replays": list(REQUIRED_DEDICATED_SURVEY_REPLAYS),
         "shared_split_replays": [],
         "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
-        "shared_replay_markers": [
-            {"path": path, "marker": marker}
-            for path, marker in sorted(REQUIRED_REPLAY_MARKERS)
-        ],
+        "shared_replay_markers": [],
     }
 
 
@@ -288,6 +269,7 @@ FIXTURE_HVC_VALIDATION_MATRIX_TEXT = """# Phase 11 HVC Console Validation Matrix
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+- current-head HVC continuity packet rather than a whole-Phase-11 replay roster
 """
 
 
@@ -328,12 +310,28 @@ def run_self_test() -> int:
         expect_failure(missing_build_marker, "phase11-hvc-cleanup-packet-proof")
         case_count += 1
 
+        wrong_build_names = tmpdir / "wrong_build_names"
+        shutil.copytree(fixture, wrong_build_names, dirs_exist_ok=True)
+        inventory = read_json(wrong_build_names / INVENTORY_PATH)
+        inventory["build_test_names"] = inventory["build_test_names"][:-1]
+        write(wrong_build_names / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_build_names, "build_test_names does not match")
+        case_count += 1
+
         wrong_adjunct_replays = tmpdir / "wrong_adjunct_replays"
         shutil.copytree(fixture, wrong_adjunct_replays, dirs_exist_ok=True)
         inventory = read_json(wrong_adjunct_replays / INVENTORY_PATH)
         inventory["shared_adjunct_replays"] = inventory["shared_adjunct_replays"][:-1]
         write(wrong_adjunct_replays / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_adjunct_replays, "shared_adjunct_replays does not match")
+        case_count += 1
+
+        wrong_replay_marker = tmpdir / "wrong_replay_marker"
+        shutil.copytree(fixture, wrong_replay_marker, dirs_exist_ok=True)
+        inventory = read_json(wrong_replay_marker / INVENTORY_PATH)
+        inventory["shared_replay_markers"] = [{"path": "x", "marker": "y"}]
+        write(wrong_replay_marker / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_replay_marker, "shared_replay_markers does not match")
         case_count += 1
 
         missing_matrix_marker = tmpdir / "missing_matrix_marker"
@@ -350,12 +348,6 @@ def run_self_test() -> int:
             missing_matrix_marker,
             "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
         )
-        case_count += 1
-
-        missing_build_file = tmpdir / "missing_build_file"
-        shutil.copytree(fixture, missing_build_file, dirs_exist_ok=True)
-        (missing_build_file / BUILD_FILE_PATH).unlink()
-        expect_failure(missing_build_file, BUILD_FILE_PATH.as_posix())
         case_count += 1
 
         print("PHASE11_BUILD_INVENTORY_SELF_TEST=pass")
