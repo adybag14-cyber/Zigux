@@ -102,6 +102,10 @@ def collect_failures(root: Path) -> list[str]:
     return failures
 
 
+def expected_line_failure(relative_path: Path, label: str, actual: int) -> str:
+    return f"{relative_path.as_posix()}:{label}:expected=1:actual={actual}"
+
+
 def write_file(root: Path, relative_path: Path, text: str) -> None:
     path = root / relative_path
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -121,13 +125,33 @@ def build_sample_repo(root: Path) -> None:
 
 
 def run_self_test() -> int:
-    cases: list[tuple[str, Path | None, str | None, str]] = [("success", None, None, "none")]
+    cases: list[tuple[str, Path | None, str | None, str, list[str]]] = [
+        ("success", None, None, "none", []),
+        ("missing_workflow", WORKFLOW_REL, None, "missing_file", [f"missing_file:{WORKFLOW_REL.as_posix()}"]),
+        ("missing_bench_checker", BENCH_CHECKER_REL, None, "missing_file", [f"missing_file:{BENCH_CHECKER_REL.as_posix()}"]),
+    ]
     for relative_path, labels in REQUIRED_EXACT_LINES.items():
-        for _, line in labels.items():
-            cases.append((f"missing_{relative_path.name}", relative_path, line, "remove"))
-            cases.append((f"duplicate_{relative_path.name}", relative_path, line, "duplicate"))
+        for label, line in labels.items():
+            cases.append(
+                (
+                    f"missing_{relative_path.name}_{label}",
+                    relative_path,
+                    line,
+                    "remove",
+                    [expected_line_failure(relative_path, label, 0)],
+                )
+            )
+            cases.append(
+                (
+                    f"duplicate_{relative_path.name}_{label}",
+                    relative_path,
+                    line,
+                    "duplicate",
+                    [expected_line_failure(relative_path, label, 2)],
+                )
+            )
 
-    for name, relative_path, needle, operation in cases:
+    for name, relative_path, needle, operation, expected_failures in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-bench-reminder-{name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
@@ -140,6 +164,8 @@ def run_self_test() -> int:
                 elif operation == "duplicate":
                     text = text.replace(needle, needle + "\n" + needle, 1)
                 target.write_text(text, encoding="utf-8")
+            elif relative_path and operation == "missing_file":
+                (root / relative_path).unlink()
 
             failures = collect_failures(root)
             if name == "success":
@@ -150,8 +176,10 @@ def run_self_test() -> int:
                     return 1
                 continue
 
-            if not failures:
-                print(f"self-test:{name}:expected_failure")
+            if failures != expected_failures:
+                print(f"self-test:{name}:unexpected_failures")
+                print(f"expected={expected_failures!r}")
+                print(f"actual={failures!r}")
                 return 1
 
     print("phase1-bench-reminder-packet:self-test=pass")
