@@ -801,6 +801,11 @@ test "memparse handles decimal hexadecimal octal and suffixes" {
     const octal = memparse("010K");
     try std.testing.expectEqual(@as(u64, 8 << 10), octal.value);
     try std.testing.expectEqualStrings("", octal.rest);
+
+    const binary_unit = memparse("64KiB rest");
+    const cmdline_binary_unit = cmdline.memparse("64KiB rest");
+    try std.testing.expectEqual(cmdline_binary_unit.value, binary_unit.value);
+    try std.testing.expectEqualStrings(cmdline_binary_unit.rest, binary_unit.rest);
 }
 
 test "memparse keeps original rest when sign is not followed by digits" {
@@ -831,6 +836,10 @@ test "memparse clamps explicit positive signed overflow" {
     const suffixed = memparse("+9223372036854775808Ktail");
     try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), suffixed.value);
     try std.testing.expectEqualStrings("tail", suffixed.rest);
+
+    const cmdline_suffixed = cmdline.memparse("+9223372036854775808Ktail");
+    try std.testing.expectEqual(cmdline_suffixed.value, suffixed.value);
+    try std.testing.expectEqualStrings(cmdline_suffixed.rest, suffixed.rest);
 }
 
 test "memparse keeps signed values and their trailing rest aligned" {
