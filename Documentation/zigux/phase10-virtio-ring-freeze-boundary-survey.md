@@ -16,15 +16,15 @@ The product roadmap still keeps Phase 10 focused on virtio and lab-driver provin
 ## Current Repo Reality
 Current `master` still keeps the ring boundary reviewable through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/freeze-map.md`, `scripts/zigux/check-phase10-ring-packet.py`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig`.
 
-Repeated direct contents reads still return missing for `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig` on current `master`, so keep the queue-local ring helper ladder framed as manifest-backed review vocabulary rather than direct current-head evidence.
+Repeated direct contents reads now materialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig` on current `master`, while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing. Keep the queue-local ring helper ladder, the wrapper-facing verify replay, and the focused replays framed as direct current-head evidence while treating the dedicated survey replay as the remaining direct ring gap.
 
 The risky-transport freeze-boundary posture still belongs to the adjacent MMIO-owned blocked `phase10-ring-lab-driver-bridge` packet. This note therefore does not claim queue setup or reset execution, IRQ delivery, DMA paths, or probe/remove lifecycle behavior.
 
 ## Gap Crosswalk
 - current packet lane on master: `P10-L10`
 - adjacent freeze-boundary owner: `P10-L11`
-- direct ring helper and replay paths still remain missing on current `master`, so the bounded virtqueue-wrapper ladder stays in manifest-backed review vocabulary rather than direct shipped evidence
-- shared closure evidence and the current ring survey agree that `virtqueue_wrappers=repo_reality_gap` while risky transport stays blocked on the MMIO-owned bridge
+- the remaining direct ring gap is the dedicated survey replay: `zigux/tests/phase10_virtio_ring_survey.zig` still stays missing on current `master`, while the queue-local helper ladder, wrapper-facing verify replay, and the focused prepare-kick, reset-reuse, broken-queue, and delayed-callback replays are directly readable again
+- shared closure evidence and the current ring survey still agree that risky transport stays blocked on the MMIO-owned bridge even while the queue-local ring packet remains directly reviewable
 - the smallest same-lane follow-through is validation-only: keep this companion note exact-checked by `scripts/zigux/check-phase10-ring-packet.py` so owner-lane drift or stale direct-readback claims fail closed
 
 ## Non-Goals
