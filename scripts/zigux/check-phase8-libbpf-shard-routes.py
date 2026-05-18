@@ -23,20 +23,15 @@ REQUIRED_FILES = (
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
-        "`zigux/tests/phase8_libbpf_segments.zig`",
-        "`zigux/tests/phase8_libbpf_segments_only_build.zig`",
+        "Current exact readback",
         "`tools/lib/bpf/zigux_segments/verify.zig`",
+        "`tools/lib/bpf/zigux_segments/type_names.zig`",
+        "`tools/lib/bpf/zigux_segments/pin_path.zig`",
+        "`tools/lib/bpf/zigux_segments/manifest.json`",
+        "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
-        "`Documentation/zigux/phase8-perf-buffer-poll-slice.md`",
-        "`make -C zigux phase8-libbpf-segments-test`",
-        "`make -C zigux phase8-perf-buffer-poll-test`",
-        "`make -C zigux phase8-test`",
-        "`zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all`",
-        "`zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all`",
-        "`zig build test --build-file zigux/tests/phase8_build.zig --summary all`",
-        "`python3 scripts/zigux/validate-phase8.py --self-test`",
-        "`python3 scripts/zigux/check-phase8-validator-flow.py --self-test`",
-        "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+        "`zigux/tests/phase8_build.zig`",
+        "reminder-surface or verify-shard evidence",
     ),
     DOCS_README_PATH: (
         "Phase 8 notes",
