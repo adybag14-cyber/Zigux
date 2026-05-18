@@ -13,17 +13,21 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
+PHASE1_CLOSURE_REL = Path("Documentation/zigux/phase1-closure.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 TESTS_README_REL = Path("zigux/tests/README.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+PHASE1_CLOSURE_VALIDATOR_REL = Path("scripts/zigux/validate-phase1-closure.py")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 
 REQUIRED_FILES = (
     LANE_NOTE_REL,
     DOCS_ROOT_REL,
+    PHASE1_CLOSURE_REL,
     REVIEW_CHECKLIST_REL,
     TESTS_README_REL,
     SCRIPTS_README_REL,
+    PHASE1_CLOSURE_VALIDATOR_REL,
     MANIFEST_REL,
 )
 
@@ -133,28 +137,22 @@ MANIFEST_EXPECTATIONS = {
     ("lane_sequencing", "anti_overlap_rule"): EXPECTED_ANTI_OVERLAP_RULE,
 }
 
-
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
-
 
 def load_text(root: Path, relative_path: Path) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
-
 def load_json(root: Path, relative_path: Path) -> object:
     return json.loads(load_text(root, relative_path))
-
 
 def require_exact_line(text: str, label: str, line: str) -> list[str]:
     expected = line.strip()
     count = sum(1 for current_line in text.splitlines() if current_line.strip() == expected)
     return [] if count == 1 else [f"{label}:expected=1:actual={count}"]
 
-
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
     return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
-
 
 def nested_value(data: object, path: tuple[str, ...]) -> object:
     current = data
@@ -164,78 +162,44 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
         current = current.get(key)
     return current
 
-
 def collect_direct_owner_failures(root: Path) -> list[str]:
     failures: list[str] = []
-
     for relative_path in REQUIRED_FILES:
         if not (root / relative_path).exists():
             failures.append(f"missing_file:{relative_path.as_posix()}")
     if failures:
         return failures
-
     for relative_path, labels in REQUIRED_EXACT_LINES.items():
         text = load_text(root, relative_path)
         for label, line in labels.items():
-            failures.extend(
-                require_exact_line(text, f"{relative_path.as_posix()}:{label}", line)
-            )
-
+            failures.extend(require_exact_line(text, f"{relative_path.as_posix()}:{label}", line))
     manifest = load_json(root, MANIFEST_REL)
     if not isinstance(manifest, dict):
         return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
-
     for path, expected in MANIFEST_EXPECTATIONS.items():
-        failures.extend(
-            require_exact_value(
-                f"{MANIFEST_REL.as_posix()}:{'.'.join(path)}",
-                nested_value(manifest, path),
-                expected,
-            )
-        )
-
+        failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:{'.'.join(path)}", nested_value(manifest, path), expected))
     return failures
-
 
 def write_file(root: Path, relative_path: Path, text: str) -> None:
     destination = root / relative_path
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_text(text, encoding="utf-8")
 
-
 def sample_text(relative_path: Path) -> str:
     labels = REQUIRED_EXACT_LINES[relative_path]
     return "# sample\n\n" + "\n".join(labels.values()) + "\n"
 
-
 def sample_manifest() -> str:
-    return (
-        json.dumps(
-            {
-                "phase": EXPECTED_PHASE,
-                "status": EXPECTED_STATUS,
-                "helper_count": len(EXPECTED_HELPERS),
-                "helpers": EXPECTED_HELPERS,
-                "lane_sequencing": {
-                    "shared_replay_parked_helpers": EXPECTED_SHARED_REPLAY_PARKED_HELPERS,
-                    "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS,
-                    "rule_summary": EXPECTED_RULE_SUMMARY,
-                    "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
-                },
-            },
-            indent=2,
-        )
-        + "\n"
-    )
-
+    return (json.dumps({"phase": EXPECTED_PHASE, "status": EXPECTED_STATUS, "helper_count": len(EXPECTED_HELPERS), "helpers": EXPECTED_HELPERS, "lane_sequencing": {"shared_replay_parked_helpers": EXPECTED_SHARED_REPLAY_PARKED_HELPERS, "direct_anchor_followup_helpers": EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS, "rule_summary": EXPECTED_RULE_SUMMARY, "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE}}, indent=2) + "\n")
 
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
         if relative_path == MANIFEST_REL:
             write_file(root, relative_path, sample_manifest())
-        else:
+        elif relative_path in REQUIRED_EXACT_LINES:
             write_file(root, relative_path, sample_text(relative_path))
-
+        else:
+            write_file(root, relative_path, f"# sample for {relative_path.as_posix()}\n")
 
 def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
     manifest_path = root / MANIFEST_REL
@@ -253,38 +217,34 @@ def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
         current[final_key] = f"{value} drift"
     manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
-
 def run_self_test() -> int:
-    cases: list[tuple[str, Path | None, str | tuple[str, ...] | None, str]] = [
-        ("success", None, None, "none"),
-    ]
-
+    cases: list[tuple[str, Path | None, str | tuple[str, ...] | None, str]] = [("success", None, None, "none")]
     for relative_path, labels in REQUIRED_EXACT_LINES.items():
         for label, line in labels.items():
             cases.append((f"missing_{relative_path.name}_{label}", relative_path, line, "remove"))
             cases.append((f"duplicate_{relative_path.name}_{label}", relative_path, line, "duplicate"))
-
     for path in MANIFEST_EXPECTATIONS:
         cases.append((f"manifest_{'_'.join(path)}", MANIFEST_REL, path, "manifest"))
-
+    cases.extend([("missing_phase1_closure_file", PHASE1_CLOSURE_REL, None, "missing_file"), ("missing_phase1_closure_validator_file", PHASE1_CLOSURE_VALIDATOR_REL, None, "missing_file")])
     for name, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-direct-owner-{name}-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
-
-            if relative_path and needle:
+            if relative_path:
                 target = root / relative_path
-                if operation in {"remove", "duplicate"}:
-                    assert isinstance(needle, str)
-                    text = target.read_text(encoding="utf-8")
-                    if operation == "remove":
-                        target.write_text(text.replace(needle + "\n", "", 1), encoding="utf-8")
-                    else:
-                        target.write_text(text.replace(needle, needle + "\n" + needle, 1), encoding="utf-8")
-                elif operation == "manifest":
-                    assert isinstance(needle, tuple)
-                    mutate_manifest(root, needle)
-
+                if operation == "missing_file":
+                    target.unlink()
+                elif needle:
+                    if operation in {"remove", "duplicate"}:
+                        assert isinstance(needle, str)
+                        text = target.read_text(encoding="utf-8")
+                        if operation == "remove":
+                            target.write_text(text.replace(needle + "\n", "", 1), encoding="utf-8")
+                        else:
+                            target.write_text(text.replace(needle, needle + "\n" + needle, 1), encoding="utf-8")
+                    elif operation == "manifest":
+                        assert isinstance(needle, tuple)
+                        mutate_manifest(root, needle)
             failures = collect_direct_owner_failures(root)
             if name == "success":
                 if failures:
@@ -293,33 +253,26 @@ def run_self_test() -> int:
                         print(failure)
                     return 1
                 continue
-
             if not failures:
                 print(f"self-test:{name}:expected_failure")
                 return 1
-
     print("self-test:ok")
     return 0
-
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", help="override the repository root for validation")
     parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
     failures = collect_direct_owner_failures(repo_root(args.root))
     if failures:
         for failure in failures:
             print(failure)
         return 1
-
     print("phase1-direct-owner-markers:ok")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
