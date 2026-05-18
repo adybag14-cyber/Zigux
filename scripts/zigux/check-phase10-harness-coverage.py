@@ -142,7 +142,7 @@ SHARED_FREEZE_BOUNDARY_MARKERS = [
 ]
 
 MAKEFILE_MARKERS = [
-    ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3 phase10-validate phase10-test phase10",
+    ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3 phase3-export-uapi-layout-test phase8-validate phase8-exec-cmd-test phase8-test phase8 phase10-validate phase10-test phase10",
     "phase10-validate:",
     "$(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py",
     "$(PYTHON) scripts/zigux/check-phase10-ring-packet.py",
