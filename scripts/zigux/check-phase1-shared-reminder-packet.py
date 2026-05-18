@@ -26,20 +26,20 @@ REQUIRED_FILES = (
 MARKERS = {
     "Documentation/zigux/README.md": (
         "keep the live owner map, the restored closure note and closure validator, the parked shared-replay-versus-direct-anchor split, the shipped bench checker, and the current Phase 1 reminder packet explicit from the docs root without rebuilding the broader host-tools closure stack from older missing validator and replay surfaces.",
-        "`scripts/zigux/check-phase1-bench.py`",
-        "`python3 scripts/zigux/check-phase1-bench.py --self-test`",
+        "`Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` keep the current-master-safe closure packet explicit",
+        "`python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded current reminder checks",
     ),
     "Documentation/zigux/phase1-closure.md": (
         "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
         "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
     "Documentation/zigux/review-checklist.md": (
-        "`zigux/tests/build.zig` and `zigux/tests/phase1_host_tools_smoke.zig` stay explicit as the shipped shared-smoke reminder anchors while `scripts/zigux/check-phase1-bench.py` stays explicit as the shipped bench-side checker anchor for the remaining shared reminder wording",
-        "`python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded live reminder checks and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the bounded live shared smoke route",
+        "`Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` keep the shipped current-`master` Phase 1 reminder packet explicit",
+        "`python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded live reminder checks",
     ),
     "scripts/zigux/README.md": (
+        "`Documentation/zigux/phase1-closure.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/validate-phase1-closure.py` remain the current reminder-surface companions for that packet",
         "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it",
-        "`Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` are back on current `master`",
     ),
     "scripts/zigux/check-phase1-bench.py": (
         "RBTREE_REQUIRED_EXACT_CHECKSUMS = {",
@@ -50,8 +50,8 @@ MARKERS = {
         "PHASE1_CLOSURE_SELF_TEST=pass",
     ),
     "zigux/tests/README.md": (
-        "current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`",
-        "current `master` does ship `scripts/zigux/check-phase1-bench.py`",
+        "current direct-readback Phase 1 reminder packet: `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`",
+        "the restored `Documentation/zigux/phase1-closure.md` note and `scripts/zigux/validate-phase1-closure.py` now keep the current-master-safe closure packet explicit from the tests root, while `scripts/zigux/check-phase1-bench.py` remains the shipped bench-side checker for the remaining shared reminder wording",
     ),
     "zigux/tests/build.zig": (
         'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
@@ -174,6 +174,22 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_docs_closure_companion_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][1],
+            ),
+        ),
+        (
+            "missing_docs_selftest_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][2],
+            ),
+        ),
+        (
             "missing_closure_note",
             lambda root: (root / "Documentation/zigux/phase1-closure.md").unlink(),
         ),
@@ -190,19 +206,83 @@ def run_self_test() -> int:
             ),
         ),
         (
-            "duplicate_scripts_bench_marker",
-            lambda root: mutate_duplicate_marker(
+            "missing_review_checklist_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][0],
+            ),
+        ),
+        (
+            "missing_review_checklist_selftest_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/review-checklist.md",
+                MARKERS["Documentation/zigux/review-checklist.md"][1],
+            ),
+        ),
+        (
+            "missing_scripts_companion_marker",
+            lambda root: mutate_remove_marker(
                 root,
                 "scripts/zigux/README.md",
                 MARKERS["scripts/zigux/README.md"][0],
             ),
         ),
         (
-            "missing_tests_bench_marker",
+            "duplicate_scripts_bench_marker",
+            lambda root: mutate_duplicate_marker(
+                root,
+                "scripts/zigux/README.md",
+                MARKERS["scripts/zigux/README.md"][1],
+            ),
+        ),
+        (
+            "missing_validator_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/validate-phase1-closure.py",
+                MARKERS["scripts/zigux/validate-phase1-closure.py"][0],
+            ),
+        ),
+        (
+            "missing_tests_build_route_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][1],
+            ),
+        ),
+        (
+            "missing_tests_smoke_anchor_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][1],
+            ),
+        ),
+        (
+            "missing_tests_direct_packet_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/README.md",
+                MARKERS["zigux/tests/README.md"][0],
+            ),
+        ),
+        (
+            "missing_tests_closure_marker",
             lambda root: mutate_remove_marker(
                 root,
                 "zigux/tests/README.md",
                 MARKERS["zigux/tests/README.md"][1],
+            ),
+        ),
+        (
+            "duplicate_workflow_shared_reminder_selftest",
+            lambda root: mutate_duplicate_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][1],
             ),
         ),
         (
@@ -211,6 +291,14 @@ def run_self_test() -> int:
                 root,
                 ".github/workflows/zigux-bootstrap.yml",
                 MARKERS[".github/workflows/zigux-bootstrap.yml"][0],
+            ),
+        ),
+        (
+            "missing_workflow_shared_reminder_live_check",
+            lambda root: mutate_remove_marker(
+                root,
+                ".github/workflows/zigux-bootstrap.yml",
+                MARKERS[".github/workflows/zigux-bootstrap.yml"][2],
             ),
         ),
         (
