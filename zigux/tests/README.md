@@ -65,6 +65,38 @@ Key entrypoints
   * keep the pinned `x86_64-linux` bootstrap archive note, the live `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` replay, and the repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet
   * repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep those older validator-first, installer, and direct cross-route names framed as historical packet members rather than direct tests-root evidence
   * keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
+  * current direct-readback Phase 3 shared reminder packet:
+    `Documentation/zigux/phase3-abi-slice.md`
+    `Documentation/zigux/phase3-errptr-xarray-slice.md`
+    `Documentation/zigux/phase3-policy-slice.md`
+    `Documentation/zigux/phase3-validator-support-surface.md`
+    `include/linux/zigux.h`
+    `include/zigux/dev_t.h`
+    `include/zigux/abi.h`
+    `zigux/uapi/version.zig`
+    `zigux/uapi/dev_t.zig`
+    `zigux/bindings/dev_t.zig`
+    `zigux/bindings/abi.zig`
+    `zigux/helpers/err_ptr.zig`
+    `zigux/helpers/xa_value.zig`
+    `zigux/helpers/panic_policy.zig`
+    `zigux/helpers/allocator_policy.zig`
+    `zigux/helpers/unsafe_policy.zig`
+    `zigux/tests/phase3_dev_t_starter_packet.zig`
+    `zigux/tests/phase3_dev_t_starter_packet_build.zig`
+    `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
+    `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
+    `zigux/tests/phase3_policy_starter_packet.zig`
+    `zigux/tests/phase3_policy_starter_packet_build.zig`
+    `zigux/tests/phase3_policy_starter_packet_manifest.json`
+    `scripts/zigux/check-phase3-dev-t-starter-packet.py`
+    `scripts/zigux/check-phase3-errptr-xarray-starter-packet.py`
+    `scripts/zigux/check-phase3-policy-starter-packet.py`
+  * keep the current bounded Phase 3 packet explicit in the tests root: the directly readable starter packet, focused helper-local `err_ptr` / `xarray` slice, and focused policy slice are shipped current-`master` evidence here
+  * keep the returned notifier-binding and focused export/UAPI layout replay pair explicit here instead of leaving `zigux/bindings/notifier_abi.zig`, `zigux/kernel/export_shim.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, and `zigux/tests/phase3_export_uapi_layout_build.zig` framed as broader repo-reality gaps
+  * current bounded low-level-wrapper reminder packet: `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`
+  * instead of presenting the broader validator, export/UAPI layout, low-level-wrapper, catalog, IDR, or IDA packet as shipped tests-root evidence
+  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `scripts/zigux/validate-phase3.py`, `scripts/zigux/phase3_catalog.py`, and `zigux/tests/fixtures/phase3_abi_manifest.json`, so keep those broader export/UAPI survey, shared validator, and catalog routes framed as repo-reality gaps rather than direct tests-root evidence
   * roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`
   * current direct-readback Phase 4 rollback packet:
     `Documentation/zigux/phase4-reversible-delivery-evidence.md`
