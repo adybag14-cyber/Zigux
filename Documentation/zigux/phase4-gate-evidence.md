@@ -2,7 +2,7 @@
 
 This note records the last fully pinned broader Phase 4 rollback-ownership and lab-matrix packet. Keep the narrower reversible-delivery handoff as the direct-readback source when authenticated contents reads for the broader packet still flap, while the local-only perf and parked survey packets remain intentionally separate.
 ## Status
-  * `PHASE4_EVIDENCE_DATE=2026-05-16`
+  * `PHASE4_EVIDENCE_DATE=2026-05-18`
   * `PHASE4_EVIDENCE_MODE=github_connector_readback`
   * `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
   * `PHASE4_EXACT_READBACK_REF=master`
@@ -24,7 +24,7 @@ This note records the last fully pinned broader Phase 4 rollback-ownership and l
   * `PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=4a4c07e5f7b90fc96f06c86a17d3d30aa0d5b694`
   * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=a3493c3039fc771ce59c967d6a80df93bba2bd2e`
   * `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=a4d7606eb18969dc5150e4ee43a02cda643972eb`
-  * `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=fdd0d9202be5261502f0dea81ff03b19ceb171ff`
+  * `PHASE4_RUNTIME_ATOMIC64_REVIEW_CHECKLIST_BLOB_SHA=7d064cd234e87f7a1b6c23bcbed43334d3334e6a`
   * `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`
   * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`
   * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=baseline_round_trip,shipped_target_count_drift,missing_exact_readback_heading,validator_blob_pin_drift,phase4_build_manifest_blob_pin_drift,phase4_build_survey_blob_pin_drift,phase9_build_manifest_blob_pin_drift,phase9_build_survey_blob_pin_drift,doc_readme_blob_pin_drift,script_readme_blob_pin_drift,tests_readme_blob_pin_drift,gate_evidence_self_test_case_count_drift,gate_evidence_self_test_cases_drift,shared_validator_reruns_gate_evidence_check_drift,shared_validator_reruns_gate_evidence_self_test_drift,shared_validator_expected_target_count_drift,shared_validator_expected_self_test_case_count_drift,runtime_atomic64_survey_packet_presence_drift,bitmap_diff_survey_replay_marker_drift,kprobe_gap_packet_presence_drift,kprobe_owner_drift,kprobe_validation_entrypoint_drift,kprobe_next_step_drift,perf_baseline_packet_presence_drift,perf_baseline_note_split_marker_drift,perf_baseline_owner_drift,perf_baseline_shared_promotion_status_drift,test_fsmount_gap_packet_presence_drift,test_fsmount_threshold_posture_drift,test_fsmount_owner_drift,test_fsmount_validation_entrypoint_drift,test_fsmount_linux_style_wrapper_drift,test_fsmount_next_step_drift,missing_note_file`
