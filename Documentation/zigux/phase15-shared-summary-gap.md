@@ -8,7 +8,7 @@ This note records the current bounded Phase 15 shared-summary drift between the 
 - `PHASE15_LANE_KEY=P15-L02`
 - `PHASE15_SLICE=materialized-governance-packet-truthfulness-refresh`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
 - role: keep the current Phase 15 governance packet honest now that both the broader governance notes and the focused review-process replay companion are materialized, while the remaining work stays narrowed to shared-summary truthfulness rather than stale missing-path carryover or implied approval
 
 ## Why this note exists
@@ -17,9 +17,11 @@ Phase 15 is supposed to govern the mixed-language steady state honestly. Current
 
 The current same-lane truthfulness task is no longer to treat the previously parked focused review-process replay companion as missing. It is to keep the broad reminder surfaces aligned with the now-materialized packet while still refusing to imply Architecture Council approval or direct deep-core delivery just because more review companions are landed.
 
+This refresh closes the note's dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-18 governance packet, including the now-current stay-in-C policy companion, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
+
 ## Materialized Phase 15 governance assets
 
-The following paths were previously treated as missing in this shared-gap packet but are now materialized on current `master` and must be treated as present governance evidence:
+The following paths now count as present governance evidence on current `master` and must stay explicit in this shared-gap packet:
 
 - `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
@@ -56,6 +58,7 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
@@ -76,7 +79,7 @@ Treat the current Phase 15 shared-summary state as a wording-and-alignment check
 - if a materialized Phase 15 governance asset or materialized focused review-process companion disappears, tighten this note and `scripts/zigux/check-phase15-shared-summary-gap.py` immediately
 - do not treat the still-missing broader validator-first companions as shipped evidence until direct current-tree reads recover them
 - do not treat present focused companions as Architecture Council approval or direct deep-core delivery evidence by themselves
-- if docs-root, checklist, scripts-root, or tests-root wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
+- if docs-root, checklist, scripts-root, tests-root, or adjacent stay-in-C wording drifts, fix only the smallest truthful reminder surface instead of widening into freeze-map approval or deep-core implementation claims
 - keep tests-root follow-through separate from review-process and parity-scorecard packet maintenance unless the same direct evidence forces them back together
 
 ## Non-goals
@@ -90,4 +93,4 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above or one of the materialized focused companions disappears and forces the shared-gap packet to narrow again.
+Keep this note parked unless a fresh reread shows one of the broad Phase 15 reminder surfaces drifting away from the materialized governance packet above, the stay-in-C companion changes enough to force a smaller shared-summary refresh, or one of the materialized focused companions disappears and forces the shared-gap packet to narrow again.
