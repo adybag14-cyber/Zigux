@@ -103,6 +103,8 @@ SAMPLES_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 SAMPLES_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 SAMPLES_README_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
 SAMPLES_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
+SAMPLES_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
+SAMPLES_README_REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable before and after selftest"
 
 CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
@@ -200,6 +202,8 @@ SAMPLES_README_REQUIRED_MARKERS = [
     SAMPLES_README_LIFECYCLE_MARKER,
     SAMPLES_README_BACKLOG_MARKER,
     SAMPLES_README_UNREGISTERED_GATE_MARKER,
+    SAMPLES_README_REENTRY_GATE_MARKER,
+    SAMPLES_README_REENTRY_COMPANION_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
@@ -344,7 +348,7 @@ Keep saying clearly that current `master` {SAMPLES_README_BACKLOG_MARKER}, so `z
 
 Keep older cross-phase non-owner boundaries explicit: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}.
 
-Treat {SAMPLES_README_UNREGISTERED_GATE_MARKER} as a companion reminder inside that same narrow runtime packet, not as proof that the broader shared loader family has returned.
+Treat {SAMPLES_README_UNREGISTERED_GATE_MARKER} as a companion reminder inside that same narrow runtime packet's fail-closed boundary, not as proof that the broader shared loader family has returned. Treat {SAMPLES_README_REENTRY_GATE_MARKER} as the same packet's registration-reentry companion that keeps {SAMPLES_README_REENTRY_COMPANION_MARKER}, not as proof that the broader shared loader family has returned.
 """
 
 
@@ -427,7 +431,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, fail-closed companion, backlog posture, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, fail-closed companion, balanced registration re-entry companion, backlog posture, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
     )
     parser.add_argument(
         "--repo-root",
