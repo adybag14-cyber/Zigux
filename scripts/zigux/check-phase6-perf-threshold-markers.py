@@ -23,9 +23,18 @@ PHASE6_BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 REQUIRED_SNIPPETS = {
     BASE64_VECTORS_PATH: [
         '.{ .label = "STD_PAD", .payload = perf_payload, .padding = true, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+        '.{ .label = "STD_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "std", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+        '.{ .label = "URLSAFE_PAD", .payload = perf_payload, .padding = true, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
         '.{ .label = "URLSAFE_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "urlsafe", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+        '.{ .label = "IMAP_PAD", .payload = perf_payload, .padding = true, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
         '.{ .label = "IMAP_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
         "try std.testing.expectEqual(expected.len, perf_cases.len);",
+        "try std.testing.expect(saw_std_pad);",
+        "try std.testing.expect(saw_std_no_pad);",
+        "try std.testing.expect(saw_urlsafe_pad);",
+        "try std.testing.expect(saw_urlsafe_no_pad);",
+        "try std.testing.expect(saw_imap_pad);",
+        "try std.testing.expect(saw_imap_no_pad);",
     ],
     BASE64_PERF_PATH: [
         "for (fixtures.perf_cases, 0..) |case, idx| {",
@@ -36,7 +45,9 @@ REQUIRED_SNIPPETS = {
     CHECKSUM_VECTORS_PATH: [
         '.{ .label = "64B", .bytes = &perf_payload_64b, .iterations = 200_000, .max_slowdown_pct = 150 },',
         '.{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },',
+        '.{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0xb498_d304_d0ee_aea5 },',
         '.{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0xc457_3e1a_cc20_3461 },',
+        "try std.testing.expectEqual(expected.len, perf_cases.len);",
     ],
     CHECKSUM_PERF_PATH: [
         '.{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0x3193_4305_ba03_9b45 },',
@@ -47,6 +58,7 @@ REQUIRED_SNIPPETS = {
     HEXDUMP_VECTORS_PATH: [
         '.{ .label = "16B-plain-g1", .len = 16, .rowsize = 16, .groupsize = 1, .ascii = false, .reps = 40_000, .max_slowdown_pct = 175 },',
         '.{ .label = "32B-ascii-g2", .len = 32, .rowsize = 32, .groupsize = 2, .ascii = true, .reps = 10_000, .max_slowdown_pct = 550 },',
+        '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
         '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
         'try std.testing.expectEqual(@as(usize, 4), perf_cases.len);',
     ],
@@ -65,8 +77,8 @@ REQUIRED_SNIPPETS = {
 SELF_TEST_CASES = [
     (
         BASE64_VECTORS_PATH,
-        '.{ .label = "IMAP_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
-        '.{ .label = "IMAP_NO_PAD", .payload = perf_payload, .padding = false, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 350 },',
+        '.{ .label = "IMAP_PAD", .payload = perf_payload, .padding = true, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },',
+        '.{ .label = "IMAP_PAD", .payload = perf_payload, .padding = true, .variant_name = "imap", .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 350 },',
     ),
     (
         BASE64_PERF_PATH,
@@ -75,8 +87,8 @@ SELF_TEST_CASES = [
     ),
     (
         CHECKSUM_VECTORS_PATH,
-        '.{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },',
-        '.{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 8_000, .max_slowdown_pct = 150 },',
+        '.{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0xb498_d304_d0ee_aea5 },',
+        '.{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0xb498_d304_d0ee_aea6 },',
     ),
     (
         CHECKSUM_PERF_PATH,
@@ -85,8 +97,8 @@ SELF_TEST_CASES = [
     ),
     (
         HEXDUMP_VECTORS_PATH,
-        '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 600 },',
-        '.{ .label = "16B-ascii-g8", .len = 16, .rowsize = 16, .groupsize = 8, .ascii = true, .reps = 20_000, .max_slowdown_pct = 650 },',
+        '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 550 },',
+        '.{ .label = "16B-ascii-g4", .len = 16, .rowsize = 16, .groupsize = 4, .ascii = true, .reps = 20_000, .max_slowdown_pct = 575 },',
     ),
     (
         HEXDUMP_PERF_PATH,
