@@ -13,6 +13,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-contributor-workflow-guide.md": [
         "stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "`zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or `make -C zigux phase13`, so keep the file itself distinct from those missing Phase 13 route names and keep only the route names recorded as repo-reality gaps until the shared build handle returns.",
+        "Keep `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` recorded as repo-reality gaps until they rematerialize on current `master`.",
     ],
     "Documentation/zigux/phase13-release-coordination-matrix.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
@@ -21,6 +22,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13` as shipped evidence",
+        "`landlock/syscalls` owns the syscall governance, slice, and helper starter surface through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, the shared `zigux/tests/phase13_build.zig` route, and the live credential, file-descriptor-installation, and ruleset-state surfaces stay recorded as repo-reality gaps on current `master`",
     ],
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
         "This note records the closure of the old missing-checker gap.",
@@ -34,6 +36,7 @@ REQUIRED_MARKERS = {
         "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface, and keep the returned `zigux/Makefile` file distinct from the still-missing `make -C zigux phase13-validate` and blocked convenience route `make -C zigux phase13` names instead of treating that Phase 2-only wrapper file as a materialized shared Phase 13 surface.",
         "Current `master` now materializes `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `Documentation/zigux/phase13-notifier-list-survey.md` alongside the narrower bounded devres coordination packet, so keep those surfaces aligned as shipped shared evidence while the missing validator-first checker packet, the absent shared build companion, the still-missing direct Landlock syscall companions, the older direct devres companions, and the missing notifier-chain companion stay recorded here as repo-reality gaps.",
         "`devres` stays mapped through `Documentation/zigux/phase13-devres-slice.md`, the shipped DMA-boundary checker pair `scripts/zigux/check-phase13-devres-dma-boundary.py` and `scripts/zigux/check-phase13-devres-mmio-packet.py`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`.",
+        "Keep the helper-owned wording tightly scoped to descriptor-backed create-ruleset planning, ruleset-fd install planning, and ruleset-fd stub discipline planning, and keep `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` framed as repo-reality gaps until current `master` materializes them again so the reminder packet does not overstate the live syscall helper surface.",
     ],
     "scripts/zigux/README.md": [
         "keep `scripts/zigux/check-phase13-shared-summary-surfaces.py`, `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned shared-summary and adjacent notifier evidence on current `master` instead of leaving them in the repo-reality-gap list",
@@ -59,6 +62,8 @@ FORBIDDEN_MARKERS = (
     "Current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, or `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep those validator-first and checker names framed as repo-reality gaps rather than shipped tests-root evidence.",
     "Current `master` still does not materialize `zigux/Makefile`, `make -C zigux phase13-validate`, or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.",
     "Older `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps instead of the current active devres packet.",
+    "`Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`",
+    "`landlock/syscalls` owns the syscall governance, slice, survey, and focused helper-local replay packet through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`",
 )
 
 
@@ -261,6 +266,36 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "forbidden_marker:Documentation/zigux/phase13-roadmap-traceability.md:Older `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps instead of the current active devres packet."
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8")
+            + "`Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "forbidden_marker:Documentation/zigux/phase13-contributor-workflow-guide.md:`Documentation/zigux/phase13-landlock-syscalls-survey.md`, `security/landlock/syscalls.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json`"
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        sequencing_path = tempdir / "Documentation/zigux/phase13-shared-helper-lane-sequencing.md"
+        sequencing_path.write_text(
+            sequencing_path.read_text(encoding="utf-8").replace(
+                "`landlock/syscalls` owns the syscall governance, slice, and helper starter surface through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, the shared `zigux/tests/phase13_build.zig` route, and the live credential, file-descriptor-installation, and ruleset-state surfaces stay recorded as repo-reality gaps on current `master`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-shared-helper-lane-sequencing.md:`landlock/syscalls` owns the syscall governance, slice, and helper starter surface through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, the shared `zigux/tests/phase13_build.zig` route, and the live credential, file-descriptor-installation, and ruleset-state surfaces stay recorded as repo-reality gaps on current `master`"
             in issues
         )
         populate_repo(tempdir)
