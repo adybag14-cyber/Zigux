@@ -84,7 +84,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`validate-phase2-closure.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 24
+EXPECTED_SELF_TEST_CASE_COUNT = 39
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -261,19 +261,20 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for path, marker, code in (
-            (CLOSURE_DOC, EXPECTED_DOC_MARKERS[0], "MISSING_CLOSURE_DOC_MARKERS"),
-            (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_NOTES_MARKERS[0], "MISSING_BOOTSTRAP_NOTES_MARKERS"),
-            (DOCS_ROOT_README, EXPECTED_DOCS_ROOT_MARKERS[0], "MISSING_DOCS_ROOT_MARKERS"),
-            (TESTS_README, EXPECTED_TESTS_README_MARKERS[0], "MISSING_TESTS_README_MARKERS"),
-            (REVIEW_CHECKLIST, EXPECTED_REVIEW_CHECKLIST_MARKERS[0], "MISSING_REVIEW_CHECKLIST_MARKERS"),
-            (SCRIPTS_README, EXPECTED_SCRIPTS_README_MARKERS[0], "MISSING_SCRIPTS_README_MARKERS"),
+        for path, markers, code in (
+            (CLOSURE_DOC, EXPECTED_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"),
+            (BOOTSTRAP_NOTES, EXPECTED_BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"),
+            (DOCS_ROOT_README, EXPECTED_DOCS_ROOT_MARKERS, "MISSING_DOCS_ROOT_MARKERS"),
+            (TESTS_README, EXPECTED_TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"),
+            (REVIEW_CHECKLIST, EXPECTED_REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS"),
+            (SCRIPTS_README, EXPECTED_SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"),
         ):
-            build_self_test_root(root)
-            resolved = resolve_path(root, path)
-            resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert (code, marker) in collect_issues(root)
-            checks_run += 1
+            for marker in markers:
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                assert (code, marker) in collect_issues(root)
+                checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(present_files=EXPECTED_PRESENT_FILES[:-1]))
