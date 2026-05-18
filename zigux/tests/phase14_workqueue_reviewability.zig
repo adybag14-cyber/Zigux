@@ -56,7 +56,7 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expectEqualStrings("9b98d3b9c812840bf279508030be0b8de093736c", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
     try std.testing.expectEqualStrings("blocked_maintenance", manifest.maintenance_handoff.current_lane_posture);
-    try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqualStrings(
         "zig test zigux/tests/phase14_workqueue_reviewability.zig",
         manifest.maintenance_handoff.replay_before_trusting[0],
@@ -65,7 +65,7 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
         "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
         manifest.maintenance_handoff.replay_before_trusting[1],
     );
-    try std.testing.expectEqualStrings("make -C zigux phase14", manifest.maintenance_handoff.replay_before_trusting[2]);
+    try std.testing.expect(std.mem.indexOf(u8, manifest_json, "make -C zigux phase14") == null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, manifest.maintenance_handoff.next_future_target, "workqueue-local") != null);
 
@@ -112,6 +112,10 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase14_workqueue_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary-map-only submission routing through `queue_work_on()` and `__queue_work()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary-map-only allocation and attribute shaping through `__alloc_workqueue()` and `devm_alloc_workqueue()`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase14_workqueue_reviewability.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase14_build.zig --summary all") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` still lacks the older `phase14-*` Makefile wrappers") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase14") == null);
 
     const traceability_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
