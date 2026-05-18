@@ -29,6 +29,11 @@ test "phase 7 cmdline survey keeps the helper-plus-survey foothold truthful" {
     try expectContains(sequencing_note, "That means `P7-L05` should keep same-lane follow-through limited to the returned helper plus survey foothold");
     try expectContains(sequencing_note, "because the current slot could directly reread `lib/cmdline.zig` plus `zigux/tests/phase7_cmdline_survey.zig`");
     try expectContains(sequencing_note, "If the drift is `cmdline`, first confirm whether the helper-plus-survey foothold");
+    try expectContains(sequencing_note, "`Documentation/zigux/phase7-cmdline-slice.md`");
+    try expectContains(sequencing_note, "`zigux/tests/phase7_cmdline.zig`");
+    try expectContains(sequencing_note, "`zigux/tests/phase7_cmdline_manifest.json`");
+    try expectContains(sequencing_note, "`zigux/tests/fixtures/phase7_cmdline_next_arg_vectors.zig`");
+    try expectContains(sequencing_note, "keep same-lane work limited to that returned helper-plus-survey foothold or to reminder truthfulness");
     try expectNotContains(sequencing_note, "`cmdline` now survives only through a helper-only foothold in this environment.");
 
     try expectContains(helper, "pub fn parseOptionStr");
