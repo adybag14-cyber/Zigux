@@ -50,11 +50,10 @@ pub fn crc32(s: []const u8) u32 {
     return partialCrc32(s, 0xffff_ffff) ^ 0xffff_ffff;
 }
 
-fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
-    if (text.len > 0 and text[text.len - 1] == '\r') {
-        return text[0 .. text.len - 1];
-    }
-    return text;
+fn trimTrailingCarriageReturns(text: []const u8) []const u8 {
+    var end = text.len;
+    while (end > 0 and text[end - 1] == '\r') : (end -= 1) {}
+    return text[0..end];
 }
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
@@ -73,7 +72,7 @@ pub fn runGenksymsCrc(input: []const u8, writer: anytype) !void {
     var it = std.mem.splitScalar(u8, input, '\n');
     var first = true;
     while (it.next()) |raw_line| {
-        const line = trimTrailingCarriageReturn(raw_line);
+        const line = trimTrailingCarriageReturns(raw_line);
         if (line.len == 0) continue;
         if (!first) try writer.writeByte(',');
         first = false;
@@ -187,6 +186,43 @@ test "runGenksymsCrc trims carriage returns and escapes json-sensitive bytes" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"quoted \\\"symbol\\\"\\tpath\\\\name\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"crc_hex\":\"0x3527e580\"") != null);
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"input\":\"\\r") == null);
+}
+
+test "runGenksymsCrc trims repeated trailing carriage returns before hashing" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc("int\r\r\n", &capture);
+    try std.testing.expectEqualStrings("{\"cases\":[{\"input\":\"int\",\"crc_hex\":\"0x1451dab1\"}]}\n", capture.list.items);
 }
 
 test "runGenksymsCrc emits empty cases array for blank-only input" {
