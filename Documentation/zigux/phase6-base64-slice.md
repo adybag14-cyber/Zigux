@@ -38,10 +38,12 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 
 The current base64 helper surface exercised by this slice covers:
 
-- `chars`
-- `bytes`
-- `encode`
-- `decode`
+- generic `chars`, `bytes`, `encode`, and `decode`
+- variant-pinned `bytesStd`, `bytesUrlsafe`, and `bytesImap`
+- variant-pinned `encodeStd`, `encodeUrlsafe`, and `encodeImap`
+- variant-pinned `decodeStd`, `decodeUrlsafe`, and `decodeImap`
+- exact-span ownership companions `encodeSlice`, `encodeAlloc`, `decodeSlice`, and `decodeAlloc`
+- standard-pinned exact-span ownership companions `encodeStdSlice`, `encodeStdAlloc`, `decodeStdSlice`, and `decodeStdAlloc`
 - `Variant.std`
 - `Variant.urlsafe`
 - `Variant.imap`
@@ -55,6 +57,8 @@ The current tests check:
 - one-byte and two-byte URL-safe and IMAP tail parity with and without padding
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
+- helper-local convenience parity between the generic and variant-pinned size, encode, and decode entrypoints
+- exact-span slice and allocator ownership paths for the generic and standard-pinned helper entrypoints
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
@@ -74,4 +78,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete parity or portability drift in the current standard, URL-safe, or IMAP packet. If the base64 family reopens for review-surface follow-through, keep it to one small truthfulness step inside this slice note or the shared helper-evidence row, or to one fresh direct-read recovery pass for the direct C parity companions, instead of widening into broader Phase 6 shared-note churn.
+Leave this helper parked unless fresh repo inspection shows a concrete parity, portability, or helper-surface truthfulness drift in the current generic, variant-pinned, or exact-span ownership packet. If the base64 family reopens for review-surface follow-through, keep it to one small truthfulness step inside this slice note or to one fresh direct-read recovery pass for the direct C parity companions, instead of widening into broader Phase 6 shared-note churn.
