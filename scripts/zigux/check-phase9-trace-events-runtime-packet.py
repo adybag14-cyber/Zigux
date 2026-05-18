@@ -70,8 +70,14 @@ SAMPLES_README_SUMMARY_STABILITY_MARKER = (
 )
 SURVEY_NOTE_WITNESS_MARKER = "Current `master` also now keeps one direct family-local `zigux/tests/runtime_*` witness for that same packet:"
 SURVEY_NOTE_SAMPLE_LOCAL_MARKER = "sample-local pilot-module reviewability"
+SURVEY_NOTE_INITIALIZED_EXIT_MARKER = (
+    'The direct sample also now keeps initialized-stage clean exit explicit: `test "trace-events sample preserves initialized summary across direct exit without selftest"` proves zero selftest runs stay explicit, the initialized summary stays unchanged until `exit()` succeeds, and later lifecycle calls remain rejected without drift.'
+)
 MODULE_SLICE_ALIGNMENT_MARKER = "The paired family-local survey packet through `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig`"
 MODULE_SLICE_BOUNDARY_MARKER = "broader shared runtime-loader packet"
+MODULE_SLICE_INITIALIZED_EXIT_MARKER = (
+    'The direct initialized-stage exit proof in `test "trace-events sample preserves initialized summary across direct exit without selftest"` keeps zero selftest runs explicit, preserves the initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.'
+)
 MANIFEST_ALIGNMENT_FOCUS_MARKER = '"alignment_focus": "sample-local pilot-module reviewability rather than returned shared runtime-loader parity"'
 MANIFEST_SURVEY_NOTE_MARKER = '"survey_note_path": "Documentation/zigux/phase9-runtime-trace-events-survey.md"'
 MANIFEST_MODULE_SLICE_MARKER = '"module_slice_path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"'
@@ -326,6 +332,7 @@ FILE_MARKERS = {
         LIFECYCLE_MARKER,
         SURVEY_NOTE_WITNESS_MARKER,
         SURVEY_NOTE_SAMPLE_LOCAL_MARKER,
+        SURVEY_NOTE_INITIALIZED_EXIT_MARKER,
         ABSENT_PHASE9_BUILD_MARKER,
         ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
         ABSENT_RUNTIME_LOADER_CONTRACT_MARKER,
@@ -343,6 +350,7 @@ FILE_MARKERS = {
         LIFECYCLE_MARKER,
         MODULE_SLICE_ALIGNMENT_MARKER,
         MODULE_SLICE_BOUNDARY_MARKER,
+        MODULE_SLICE_INITIALIZED_EXIT_MARKER,
         ABSENT_PHASE9_BUILD_MARKER,
     ],
     SAMPLES_README_PATH: [
@@ -461,7 +469,10 @@ def run_self_test() -> int:
         for rel_path, markers in FILE_MARKERS.items():
             for marker in markers:
                 seed_fixture_tree(base)
-                write_text(base / rel_path, "missing target marker fixture\n")
+                current = read_text(base, rel_path)
+                if marker not in current:
+                    raise SystemExit(f"fixture missing expected marker before mutation: {rel_path}:{marker}")
+                write_text(base / rel_path, current.replace(marker, ""))
                 expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
         for rel_path in FILE_MARKERS:
