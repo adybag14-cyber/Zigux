@@ -29,8 +29,7 @@
   "repo_reality_gaps": [
     "Documentation/zigux/phase3-xarray-slot-slice.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
-    "shared xarray-slot starter wiring in zigux/tests/build.zig",
     "scripts/zigux/validate-phase3.py"
   ],
-  "next_safe_step": "layer the shared tests-root hook and docs-root note onto current master after this helper-local packet lands"
+  "next_safe_step": "layer the docs-root xarray-slot slice note onto current master now that the shared tests-root hook is landed"
 }
