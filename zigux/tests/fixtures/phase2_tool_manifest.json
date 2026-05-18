@@ -1,65 +1,39 @@
 {
-  "phase": "Phase 2",
-  "status": "active",
-  "scope": "current directly readable scripts-root kbuild, toolchain, kconfig, make-wrapper, and tranche-closure reminder packet",
-  "workflow": ".github/workflows/zigux-bootstrap.yml",
-  "present_surfaces": {
-    "review_surfaces": [
-      "Documentation/zigux/phase2-closure.md",
-      "Documentation/zigux/review-checklist.md",
-      "scripts/zigux/README.md",
-      "zigux/tests/README.md"
-    ],
-    "closure_notes": [
-      "Documentation/zigux/phase2-closure.md",
-      "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
-    ],
-    "checkers": [
-      "scripts/zigux/check-zig-toolchain.py",
-      "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-      "scripts/zigux/check-phase2-kbuild-routes.py",
-      "scripts/zigux/check-phase2-tests-readme-alignment.py",
-      "scripts/zigux/check-phase2-cross-selftest-alignment.py",
-      "scripts/zigux/check-phase2-toolchain-pinning.py",
-      "scripts/zigux/check-phase2-toolchain-pin-scope.py",
-      "scripts/zigux/check-phase2-required-make-routes.py",
-      "scripts/zigux/check-phase2-docs-shared-reminder.py"
-    ],
-    "bridge_helpers": [
-      "scripts/zigux/kconfig/conf_bridge.zig",
-      "scripts/zigux/kconfig/confdata_bridge.zig"
-    ],
-    "policy": [
-      "scripts/zigux/zig-toolchain-policy.json"
-    ],
-    "make_wrappers": [
-      "zigux/Makefile",
-      "make -C zigux phase2-toolchain",
-      "make -C zigux phase2-tools",
-      "make -C zigux phase2-kconfig",
-      "make -C zigux phase2-cross",
-      "make -C zigux phase2-validate",
-      "make -C zigux phase2"
-    ],
-    "artifact_support": [
-      "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
-    ],
-    "fixture_roster": [
-      "zigux/tests/fixtures/kconfig_bridge/cases.json",
-      "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
-      "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
-    ]
-  },
-  "repo_reality_gaps": [
+  "packet": "phase2_tool_manifest",
+  "phase": "phase2",
+  "status": "lane22_branch_closure_packet_restacked",
+  "toolchain_bootstrap_doc": "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
+  "closure_validator": "scripts/zigux/validate-phase2-closure.py",
+  "closure_doc": "Documentation/zigux/phase2-closure.md",
+  "shared_validator": "scripts/zigux/validate-phase2.py",
+  "tool_manifest_checker": "scripts/zigux/check-phase2-tool-manifest-packets.py",
+  "makefile": "zigux/Makefile",
+  "present_files": [
+    "Documentation/zigux/phase2-closure.md",
+    "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
     "scripts/zigux/validate-phase2-closure.py",
-    "scripts/zigux/install-zig.py",
+    "scripts/zigux/validate-phase2.py",
     "scripts/zigux/check-phase2-cross.py",
-    "zigux/tests/fixtures/phase2_cross_targets.json"
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "zigux/Makefile",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "Documentation/zigux/README.md",
+    "Documentation/zigux/review-checklist.md",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-zig-toolchain.py"
   ],
-  "notes": [
-    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
-    "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
-    "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
-    "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished."
-  ]
+  "missing_files": [
+    "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/install-zig.py"
+  ],
+  "master_present_branch_missing_files": [],
+  "workflow_surface": ".github/workflows/zigux-bootstrap.yml"
 }
