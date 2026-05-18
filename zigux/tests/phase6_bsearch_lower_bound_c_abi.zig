@@ -70,3 +70,58 @@ test "phase 6 bsearch descending raw c abi bounds stay comparator-driven" {
     try expectRange(descending_duplicates[0..], 1, .{ .lower = descending_duplicates.len, .upper = descending_duplicates.len }, compare);
     try expectRange(descending_duplicates[0..], 50, .{ .lower = 0, .upper = 0 }, compare);
 }
+
+test "phase 6 bsearch descending raw c abi mutable wrappers keep duplicate-span write-through aligned" {
+    const compare = compareCOpaqueDescendingInt;
+    const target = @as(u32, 21);
+
+    var mutable_duplicates = fixtures.representative_descending_duplicate_values;
+    const mutable_lower = bsearch.bsearchLowerBoundMutable(
+        &target,
+        @ptrCast(mutable_duplicates[0..].ptr),
+        mutable_duplicates.len,
+        @sizeOf(u32),
+        compare,
+    ) orelse return error.ExpectedMatch;
+    const typed_mutable_lower: *u32 = @ptrCast(@alignCast(mutable_lower));
+    try std.testing.expectEqual(@as(u32, 21), typed_mutable_lower.*);
+    try std.testing.expectEqual(@intFromPtr(&mutable_duplicates[3]), @intFromPtr(typed_mutable_lower));
+
+    const mutable_bytes = bsearch.bsearchEqualRangeMutable(
+        &target,
+        @ptrCast(mutable_duplicates[0..].ptr),
+        mutable_duplicates.len,
+        @sizeOf(u32),
+        compare,
+    );
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(u32)), mutable_bytes.len);
+    const typed_mutable_bytes: [*]u32 = @ptrCast(@alignCast(mutable_bytes.ptr));
+    typed_mutable_bytes[1] = 22;
+    try std.testing.expectEqual(@as(u32, 22), mutable_duplicates[4]);
+
+    var insertion_duplicates = fixtures.representative_descending_duplicate_values;
+    const missing_target = @as(u32, 20);
+    const missing_lower = bsearch.bsearchLowerBoundMutable(
+        &missing_target,
+        @ptrCast(insertion_duplicates[0..].ptr),
+        insertion_duplicates.len,
+        @sizeOf(u32),
+        compare,
+    ) orelse return error.ExpectedMatch;
+    const typed_missing_lower: *u32 = @ptrCast(@alignCast(missing_lower));
+    try std.testing.expectEqual(@as(u32, 12), typed_missing_lower.*);
+    try std.testing.expectEqual(@intFromPtr(&insertion_duplicates[6]), @intFromPtr(typed_missing_lower));
+
+    const missing_bytes = bsearch.bsearchEqualRangeMutable(
+        &missing_target,
+        @ptrCast(insertion_duplicates[0..].ptr),
+        insertion_duplicates.len,
+        @sizeOf(u32),
+        compare,
+    );
+    try std.testing.expectEqual(@as(usize, 0), missing_bytes.len);
+    try std.testing.expectEqual(
+        @intFromPtr(@as([*]u8, @ptrCast(insertion_duplicates[0..].ptr)) + (6 * @sizeOf(u32))),
+        @intFromPtr(missing_bytes.ptr),
+    );
+}
