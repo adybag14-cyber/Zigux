@@ -111,6 +111,7 @@ pub const RulesetFdInstallRequest = struct {
     label: []const u8 = "[landlock-ruleset]",
     flags: u32 = O_RDWR | O_CLOEXEC,
     ruleset_present: bool = true,
+    ruleset_fops_present: bool = true,
 };
 
 pub const RulesetFdInstallPlan = struct {
@@ -118,6 +119,7 @@ pub const RulesetFdInstallPlan = struct {
     label: []const u8,
     validates_label: bool,
     validates_install_flags: bool,
+    validates_file_operations_binding: bool,
     performs_anon_inode_getfd: bool,
     returns_new_fd: bool,
     releases_ruleset_on_fd_failure: bool,
@@ -288,6 +290,9 @@ pub const SyscallsHelperLab = struct {
         if (!request.ruleset_present) {
             return error.MissingRuleset;
         }
+        if (!request.ruleset_fops_present) {
+            return error.MissingRulesetFileOperations;
+        }
         if (!std.mem.eql(u8, request.label, "[landlock-ruleset]")) {
             return error.InvalidAnonInodeLabel;
         }
@@ -300,6 +305,7 @@ pub const SyscallsHelperLab = struct {
             .label = request.label,
             .validates_label = true,
             .validates_install_flags = true,
+            .validates_file_operations_binding = true,
             .performs_anon_inode_getfd = true,
             .returns_new_fd = true,
             .releases_ruleset_on_fd_failure = true,
@@ -530,22 +536,26 @@ test "landlock syscalls add-rule top-level wrapper rejects disabled boot and mis
     }));
 }
 
-test "landlock syscalls ruleset fd install keeps anon inode label and failure release explicit" {
+test "landlock syscalls ruleset fd install keeps anon inode label, fops binding, and failure release explicit" {
     const plan = try SyscallsHelperLab.planInstallRulesetFd(.{});
 
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
     try std.testing.expectEqualStrings("[landlock-ruleset]", plan.label);
     try std.testing.expect(plan.validates_label);
     try std.testing.expect(plan.validates_install_flags);
+    try std.testing.expect(plan.validates_file_operations_binding);
     try std.testing.expect(plan.performs_anon_inode_getfd);
     try std.testing.expect(plan.returns_new_fd);
     try std.testing.expect(plan.releases_ruleset_on_fd_failure);
     try std.testing.expectEqual(@as(u32, O_RDWR | O_CLOEXEC), plan.install_flags);
 }
 
-test "landlock syscalls ruleset fd install rejects missing rulesets labels and flags" {
+test "landlock syscalls ruleset fd install rejects missing rulesets fops labels and flags" {
     try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planInstallRulesetFd(.{
         .ruleset_present = false,
+    }));
+    try std.testing.expectError(error.MissingRulesetFileOperations, SyscallsHelperLab.planInstallRulesetFd(.{
+        .ruleset_fops_present = false,
     }));
     try std.testing.expectError(error.InvalidAnonInodeLabel, SyscallsHelperLab.planInstallRulesetFd(.{
         .label = "[wrong-label]",
