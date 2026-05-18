@@ -25,6 +25,13 @@ EXPECTED_TARGETS = [
 EXPECTED_ZIG_TEST_FILES = [
     "scripts/zigux/fixdep.zig",
 ]
+EXPECTED_FIXTURE_FIELDS = {
+    "phase",
+    "status",
+    "target_count",
+    "targets",
+    "zig_test_files",
+}
 
 
 def require_files(root: Path) -> list[str]:
@@ -42,9 +49,23 @@ def load_fixture(path: Path) -> dict[str, object]:
     return payload
 
 
+def collect_duplicate_entries(values: object, prefix: str) -> list[str]:
+    if not isinstance(values, list):
+        return []
+
+    counts: dict[str, int] = {}
+    for value in values:
+        key = value if isinstance(value, str) else repr(value)
+        counts[key] = counts.get(key, 0) + 1
+    return [f"{prefix}:{key}:count={count}" for key, count in counts.items() if count > 1]
+
+
 def validate_fixture(root: Path) -> list[str]:
     issues: list[str] = []
     payload = load_fixture(root / FIXTURE_REL)
+
+    unexpected_fields = sorted(set(payload) - EXPECTED_FIXTURE_FIELDS)
+    issues.extend(f"fixture:unexpected_field:{field}" for field in unexpected_fields)
 
     if payload.get("phase") != "Phase 2":
         issues.append(f"fixture:phase:{payload.get('phase')!r}")
@@ -56,10 +77,12 @@ def validate_fixture(root: Path) -> list[str]:
         issues.append(f"fixture:targets:{targets!r}")
     if payload.get("target_count") != len(EXPECTED_TARGETS):
         issues.append(f"fixture:target_count:{payload.get('target_count')!r}")
+    issues.extend(collect_duplicate_entries(targets, "fixture:duplicate_target"))
 
     zig_test_files = payload.get("zig_test_files")
     if zig_test_files != EXPECTED_ZIG_TEST_FILES:
         issues.append(f"fixture:zig_test_files:{zig_test_files!r}")
+    issues.extend(collect_duplicate_entries(zig_test_files, "fixture:duplicate_zig_test_file"))
     return issues
 
 
@@ -226,6 +249,52 @@ def run_self_test() -> int:
         )
         issues = validate_fixture(root)
         assert "fixture:zig_test_files:['scripts/zigux/other.zig']" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS + [EXPECTED_TARGETS[0]],
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+            },
+        )
+        issues = validate_fixture(root)
+        assert f"fixture:duplicate_target:{EXPECTED_TARGETS[0]}:count=2" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES + [EXPECTED_ZIG_TEST_FILES[0]],
+            },
+        )
+        issues = validate_fixture(root)
+        assert f"fixture:duplicate_zig_test_file:{EXPECTED_ZIG_TEST_FILES[0]}:count=2" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+                "unexpected": True,
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:unexpected_field:unexpected" in issues
         case_count += 1
 
         build_self_test_root(root)
