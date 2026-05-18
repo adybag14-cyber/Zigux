@@ -376,6 +376,91 @@ fn addPhase3LowLevelWrappers(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3AbiReplay(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const abi_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const uapi_dev_t = b.createModule(.{
+        .root_source_file = b.path("../uapi/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const dev_t_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);
+    const uapi_version = b.createModule(.{
+        .root_source_file = b.path("../uapi/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const version_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    version_binding.addImport("uapi_version", uapi_version);
+    const export_shim = b.createModule(.{
+        .root_source_file = b.path("../kernel/export_shim.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    export_shim.addImport("abi_bindings", abi_bindings);
+    export_shim.addImport("dev_t_binding", dev_t_binding);
+    export_shim.addImport("version_binding", version_binding);
+    const panic_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/panic_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    panic_policy.addImport("abi_bindings", abi_bindings);
+    const allocator_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/allocator_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    allocator_policy.addImport("abi_bindings", abi_bindings);
+    const unsafe_policy = b.createModule(.{
+        .root_source_file = b.path("../helpers/unsafe_policy.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    unsafe_policy.addImport("abi_bindings", abi_bindings);
+    const narrow_unsafe = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow_unsafe.addImport("abi_bindings", abi_bindings);
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("abi_bindings", abi_bindings);
+    root_module.addImport("allocator_policy", allocator_policy);
+    root_module.addImport("dev_t_binding", dev_t_binding);
+    root_module.addImport("export_shim", export_shim);
+    root_module.addImport("narrow_unsafe", narrow_unsafe);
+    root_module.addImport("panic_policy", panic_policy);
+    root_module.addImport("unsafe_policy", unsafe_policy);
+    root_module.addImport("version_binding", version_binding);
+
+    const tests = b.addTest(.{
+        .name = "phase3-abi",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -443,6 +528,7 @@ pub fn build(b: *std.Build) void {
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
+    const phase3_abi_replay = addPhase3AbiReplay(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
     const phase12_virtio_net_throughput_parity = addPhase12VirtioNetThroughputParity(
         b,
@@ -506,6 +592,18 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 3 low-level wrapper packet from zigux/tests",
     );
     phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
+
+    const phase3_abi_step = b.step(
+        "phase3-abi",
+        "Run the shared Phase 3 ABI replay from zigux/tests",
+    );
+    phase3_abi_step.dependOn(&phase3_abi_replay.step);
+
+    const phase3_abi_dump_step = b.step(
+        "phase3-abi-dump",
+        "Dump the current shared Phase 3 ABI snapshot directly from zigux/tests",
+    );
+    phase3_abi_dump_step.dependOn(&phase3_abi_dump.step);
 
     const phase3_test_step = b.step(
         "phase3-test",
