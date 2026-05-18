@@ -352,7 +352,7 @@ pub fn nextArg(args: []const u8) NextArgResult {
         if (std.ascii.isWhitespace(ch) and !in_quote) {
             break;
         }
-        if (equals_idx == null and ch == '=') {
+        if (equals_idx == null and ch == '=' and idx != token_start) {
             equals_idx = idx;
         }
         if (ch == '"') {
@@ -652,6 +652,20 @@ test "nextArg stays inside the first NUL for bare and key value tokens" {
     try std.testing.expectEqualStrings("console", keyed.param);
     try std.testing.expectEqualStrings("ttyS0", keyed.value.?);
     try std.testing.expectEqualStrings("", keyed.remaining);
+}
+
+test "nextArg keeps leading equals tokens as bare parameters" {
+    const parsed = nextArg("=ttyS0 tail");
+    try std.testing.expectEqualStrings("=ttyS0", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
+
+test "nextArg keeps quoted leading equals tokens as bare parameters" {
+    const parsed = nextArg("\"=ttyS0\" tail");
+    try std.testing.expectEqualStrings("=ttyS0", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
 test "nextArg parses key value pairs and quoted values" {
