@@ -48,6 +48,15 @@ ABSENT_SHARED_CONTROL_ROUTE_MARKERS = {
         "phase7-validate:",
         "phase7-test:",
         "phase7:",
+        "phase7-string-helpers-test:",
+        "phase7-string-helpers-survey:",
+        "phase7-string-helpers-sample-boundary:",
+        "phase7-cmdline-test:",
+        "phase7-cmdline-survey:",
+        "phase7-argv-split-test:",
+        "phase7-argv-split-survey:",
+        "phase7-rbtree-test:",
+        "phase7-rbtree-survey:",
     ],
 }
 
