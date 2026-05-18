@@ -117,6 +117,36 @@ pub const ListView = struct {
         return null;
     }
 
+    fn firstCycleEntry(self: ListView) ?*const ListHead {
+        var slow = self.first();
+        var fast = self.first();
+
+        while (fast) |fast_node| {
+            const fast_mid = ptrFromRaw(fast_node.next) orelse return null;
+            if (fast_mid == self.head) return null;
+
+            const fast_end = ptrFromRaw(fast_mid.next) orelse return null;
+            if (fast_end == self.head) return null;
+
+            slow = if (slow) |slow_node| ptrFromRaw(slow_node.next) else null;
+            const slow_node = slow orelse return null;
+            if (slow_node == self.head) return null;
+
+            fast = fast_end;
+            if (slow_node == fast_end) {
+                var entry = self.first() orelse return null;
+                var cycle_cursor = slow_node;
+                while (entry != cycle_cursor) {
+                    entry = ptrFromRaw(entry.next) orelse return null;
+                    cycle_cursor = ptrFromRaw(cycle_cursor.next) orelse return null;
+                }
+                return entry;
+            }
+        }
+
+        return null;
+    }
+
     pub fn hasCycle(self: ListView) bool {
         return self.firstCycleWitness() != null;
     }
@@ -127,6 +157,8 @@ pub const ListView = struct {
     }
 
     pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak {
+        const cycle_entry = self.firstCycleEntry();
+        var revisited_cycle_entry = false;
         var expected_prev = @intFromPtr(self.head);
         var current_index: usize = 0;
         var cursor = ptrFromRaw(self.head.next) orelse {
@@ -138,6 +170,19 @@ pub const ListView = struct {
         };
 
         while (cursor != self.head) {
+            if (cycle_entry) |entry| {
+                if (cursor == entry) {
+                    if (revisited_cycle_entry) {
+                        return .{
+                            .current_index = current_index,
+                            .expected_prev = expected_prev,
+                            .actual_prev = cursor.prev,
+                        };
+                    }
+                    revisited_cycle_entry = true;
+                }
+            }
+
             if (cursor.prev != expected_prev) {
                 return .{
                     .current_index = current_index,
@@ -252,6 +297,11 @@ test "list view reports a cycle witness and fails aggregate helpers closed" {
     const witness = view.firstCycleWitness().?;
     try std.testing.expectEqual(@as(usize, 2), witness.slow_index);
     try std.testing.expectEqual(@as(usize, 4), witness.fast_index);
+
+    const breakage = view.firstBrokenBacklink().?;
+    try std.testing.expectEqual(@as(usize, 2), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&second)), breakage.expected_prev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
 }
 
 test "list view reports the first broken backlink witness" {
