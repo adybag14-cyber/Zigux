@@ -8,10 +8,10 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-18`
   * `PHASE4_REVERSIBLE_DELIVERY_MODE=github_connector_readback`
   * `PHASE4_REVERSIBLE_DELIVERY_EXACT_READBACK_REF=master`
-  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_NOTE_BLOB_SHA=3a9ec33876a9308ee0a27ad2b9966e73132d7027`
-  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=df4a7ab61b728e64b169bf02d4e30ef4ebe1220e`
-  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=048f6b9dee482026748e5b9fa6be77a03f4fb2f4`
-  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=4d59621b53f6815a976423b5fbf2318ace438a99`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_NOTE_BLOB_SHA=89cef146d53c5c87c88b26ee329fd35cf5d470c4`
+  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=071afa18dedba21a705e4dab23009bab6f8d04b0`
+  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=4d692a01713bc727471f1e0b97e1ff889206acc4`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=c83fe5eddafc1ae586d2543363db332bd5b30097`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=44955f39e37b9389b3b97e7d710c25b1841aedf3`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=2e7b03fa41b7fe705ce73158b55249c729caa2fd`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=57ecc3199ca4608828771456f8b6c417c4ab9f1c`
@@ -19,7 +19,7 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=e6501c3281cc7adaab44e10c600dd52865f024c7`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=20327887d490ac94feda047293e0ba320aabe3a5`
-  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=03388832fabf4353f145007cf68bf5bd56ae28d0`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=e41eb75ebe25d53116315f664282e8b741a75576`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA=5a37abd5f8c02414c9ca8e9d24043a8e8e29f428`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=049c1f90422a49ea83b5e50bf9f9fde9aa5bb501`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=2e16726fec8500136f25afae73e415dbc977faa7`
@@ -53,7 +53,7 @@ The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CAS
 
 The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
 
-The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for the now-directly-readable gate-evidence and validation-matrix notes, and historical provenance for the still-missing checker, validator, build, and bitmap replay companions.
+The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for this note, the review checklist, the tests-root reminder, the recovered gate-evidence and validation-matrix notes, and the dedicated local-only perf checker plus companion packet, and historical provenance for the still-missing checker, validator, build, and bitmap replay companions.
 
 Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.
 
