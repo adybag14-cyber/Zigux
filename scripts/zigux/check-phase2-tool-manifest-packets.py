@@ -23,12 +23,14 @@ SHARED_VALIDATOR_PATH = "scripts/zigux/validate-phase2.py"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_SURFACE_PATH = ".github/workflows/zigux-bootstrap.yml"
 PIN_SCOPE_CHECKER_PATH = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
+INSTALLER_PATH = "scripts/zigux/install-zig.py"
 
 CLOSURE_DOC_MARKERS = (
     "`PHASE2_TOOL_MANIFEST_CHECKER=scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "branch-local manifest packet",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/install-zig.py`",
 )
 
 BOOTSTRAP_NOTES_MARKERS = (
@@ -36,6 +38,7 @@ BOOTSTRAP_NOTES_MARKERS = (
     "`scripts/zigux/check-phase2-tool-manifest-packets.py`",
     "branch-local manifest packet",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`PHASE2_TOOLCHAIN_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/install-zig.py`",
 )
 
 PHASE2_VALIDATOR_MARKERS = (
@@ -49,6 +52,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase2-tool-manifest-packets.py"',
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py"',
     '"master_present_branch_missing_files"',
+    '"scripts/zigux/install-zig.py"',
 )
 
 EXPECTED_PRESENT_FILES = [
@@ -76,9 +80,9 @@ EXPECTED_MISSING_FILES = [
     "scripts/zigux/install-zig.py",
 ]
 
-EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
+EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [INSTALLER_PATH]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 32
+EXPECTED_SELF_TEST_CASE_COUNT = 33
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -205,6 +209,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("PIN_SCOPE_STILL_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH))
     if PIN_SCOPE_CHECKER_PATH not in present_files:
         issues.append(("PIN_SCOPE_NOT_MARKED_PRESENT", PIN_SCOPE_CHECKER_PATH))
+    if INSTALLER_PATH not in master_present_branch_missing_files:
+        issues.append(("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH))
+    if INSTALLER_PATH not in missing_files:
+        issues.append(("INSTALLER_NOT_MARKED_BRANCH_MISSING", INSTALLER_PATH))
 
     return issues
 
@@ -345,7 +353,17 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(missing_files=EXPECTED_MISSING_FILES[:-1]))
-        assert ("INVALID_MANIFEST_FIELD", "missing_files") in collect_issues(root)
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "missing_files") in issues
+        assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", INSTALLER_PATH) in issues
+        assert ("INSTALLER_NOT_MARKED_BRANCH_MISSING", INSTALLER_PATH) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[]))
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
+        assert ("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -354,6 +372,7 @@ def run_self_test() -> int:
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
         assert ("MASTER_PRESENT_PATH_MARKED_PRESENT", PIN_SCOPE_CHECKER_PATH) in issues
         assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH) in issues
+        assert ("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -420,6 +439,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
         assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", "scripts/zigux/extra-missing.py") in issues
+        assert ("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH) in issues
         checks_run += 1
 
         build_self_test_root(root)
@@ -460,7 +480,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(args.root)
+    issues = collect_issues(args.root.resolve())
     if issues:
         return emit_issues(issues)
 
