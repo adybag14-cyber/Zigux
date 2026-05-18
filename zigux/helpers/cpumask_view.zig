@@ -117,6 +117,40 @@ test "cpumask tail masking keeps a full bounded mask from leaking absent cpus" {
     try std.testing.expectEqual(bitmap.bits_per_word + 11, summary.weight);
 }
 
+test "cpumask exact-word windows keep full-word masks explicit" {
+    var backing = [_]Word{
+        ~@as(Word, 0),
+        (@as(Word, 1) << 5),
+    };
+    const view = viewFromWords(backing[0..], bitmap.bits_per_word * 2);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expectEqual(~@as(Word, 0), bitmap.lastWordMask(bitmap.bits_per_word * 2));
+    try std.testing.expect(cpuIsSet(view, bitmap.bits_per_word + 5));
+    try std.testing.expect(!cpuIsSet(view, bitmap.bits_per_word + 6));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(view));
+    try std.testing.expectEqual(bitmap.bits_per_word, firstAbsentCpu(view));
+    try std.testing.expectEqual(bitmap.bits_per_word + 1, weight(view));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(bitmap.bits_per_word, summary.first_zero);
+    try std.testing.expectEqual(bitmap.bits_per_word + 1, summary.weight);
+}
+
+test "cpumask validity rejects non-empty views without backing storage" {
+    const invalid = binding.initCpumaskView(0, 1, 1, 1);
+    const summary = summarize(invalid);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!cpuIsSet(invalid, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "cpumask validity rejects malformed word counts and closes helpers" {
     const invalid = binding.initCpumaskView(0, bitmap.bits_per_word + 1, 1, bitmap.bits_per_word + 1);
     const summary = summarize(invalid);
