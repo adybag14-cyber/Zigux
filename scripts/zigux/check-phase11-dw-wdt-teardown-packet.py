@@ -2,29 +2,24 @@
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import tempfile
 from pathlib import Path
 
 
 REQUIRED_FILES = {
-    "matrix": Path("Documentation/zigux/phase11-dw-wdt-validation-matrix.md"),
-    "teardown_note": Path("Documentation/zigux/phase11-dw-wdt-teardown-note.md"),
+    "alignment_note": Path("Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md"),
     "plan": Path("Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md"),
+    "manifest": Path("zigux/tests/phase11_dw_wdt_manifest.json"),
     "registration_scaffold": Path("zigux/tests/phase11_dw_wdt_registration_scaffold.zig"),
-    "verify_file": Path("drivers/watchdog/dw_wdt_verify.zig"),
 }
 
-MATRIX_MARKERS = [
-    "remove and teardown failure-mode split",
-    "the reset-controlled remove, idle-remove, and IRQ-mode teardown-outcome replays in `drivers/watchdog/dw_wdt_verify.zig`",
-    "keep this remove-and-teardown boundary stable while the lane stays host-free and registration-first",
-]
-
-TEARDOWN_NOTE_MARKERS = [
-    "preserving continued-heartbeat semantics when the hardware is non-stoppable",
-    "separating the idle no-op, reset-controlled stop, and continued-heartbeat outcomes",
-    "whether hardware remains running after remove when reset control is unavailable",
+ALIGNMENT_NOTE_MARKERS = [
+    "# Phase 11 DesignWare Verify Alignment Gap",
+    "- `drivers/watchdog/dw_wdt_verify.zig` currently keeps stop-teardown ownership, inactive-versus-missing-`drvdata` teardown branching, and restart failure-mode coverage explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, PM behavior, or live MMIO validation",
+    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the resolved matrix-versus-manifest alignment and the current verify-helper scope fail-closed",
+    "- the next substantive non-doc move should remain one platform-backed acquisition scaffold only",
 ]
 
 PLAN_MARKERS = [
@@ -40,26 +35,27 @@ REGISTRATION_SCAFFOLD_MARKERS = [
     "try std.testing.expect(!summary.reset_release_requested);",
 ]
 
-VERIFY_FILE_MARKERS = [
-    'test "phase11 dw_wdt verify keeps remove teardown heartbeat continuation explicit" {',
-    'test "phase11 dw_wdt verify keeps remove teardown reset-backed shutdown explicit" {',
-    'test "phase11 dw_wdt verify keeps idle remove distinct from running teardown" {',
-]
+EXPECTED_MANIFEST_LANE = "P11-L05"
+EXPECTED_MANIFEST_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
+VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
+VERIFY_DESTINATION = "drivers/watchdog/dw_wdt_verify.zig"
+READY_NEXT_GAP_ID = "phase11-dw-wdt-live-platform-pm"
+READY_NEXT_DESTINATION = "zigux/tests/phase11_dw_wdt.zig"
 
 MARKERS_BY_LABEL = {
-    "matrix": MATRIX_MARKERS,
-    "teardown_note": TEARDOWN_NOTE_MARKERS,
+    "alignment_note": ALIGNMENT_NOTE_MARKERS,
     "plan": PLAN_MARKERS,
     "registration_scaffold": REGISTRATION_SCAFFOLD_MARKERS,
-    "verify_file": VERIFY_FILE_MARKERS,
 }
 
 SELF_TEST_CASES = (
-    ("matrix_marker_missing", "matrix", MATRIX_MARKERS[0]),
-    ("teardown_note_marker_missing", "teardown_note", TEARDOWN_NOTE_MARKERS[1]),
+    ("alignment_note_marker_missing", "alignment_note", ALIGNMENT_NOTE_MARKERS[1]),
     ("plan_marker_missing", "plan", PLAN_MARKERS[0]),
-    ("registration_scaffold_marker_missing", "registration_scaffold", REGISTRATION_SCAFFOLD_MARKERS[0]),
-    ("verify_marker_missing", "verify_file", VERIFY_FILE_MARKERS[2]),
+    (
+        "registration_scaffold_marker_missing",
+        "registration_scaffold",
+        REGISTRATION_SCAFFOLD_MARKERS[0],
+    ),
 )
 
 
@@ -67,9 +63,75 @@ def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def check_manifest(root: Path) -> list[str]:
+    failures: list[str] = []
+    manifest_path = root / REQUIRED_FILES["manifest"]
+    if not manifest_path.is_file():
+        return [f"missing_file:{REQUIRED_FILES['manifest'].as_posix()}"]
+
+    try:
+        manifest = json.loads(read_text(manifest_path))
+    except json.JSONDecodeError as exc:
+        return [f"invalid_json:{manifest_path.as_posix()}:{exc}"]
+
+    if manifest.get("lane_key") != EXPECTED_MANIFEST_LANE:
+        failures.append(f"manifest_lane_key:{manifest.get('lane_key')!r}")
+    if manifest.get("surveyed_commit") != EXPECTED_MANIFEST_PIN:
+        failures.append(f"manifest_surveyed_commit:{manifest.get('surveyed_commit')!r}")
+
+    summary = manifest.get("survey_summary")
+    if not isinstance(summary, dict):
+        failures.append("manifest_survey_summary:missing_or_not_object")
+    else:
+        if summary.get("dw_wdt_registration_scaffold_present") is not True:
+            failures.append("manifest_registration_scaffold_present")
+
+    gaps = manifest.get("gaps")
+    if not isinstance(gaps, list):
+        failures.append("manifest_gaps:missing_or_not_list")
+        return failures
+
+    verify_gap = None
+    ready_next_gap = None
+    for gap in gaps:
+        if not isinstance(gap, dict):
+            failures.append("manifest_gap:not_object")
+            continue
+        if gap.get("id") == VERIFY_GAP_ID:
+            verify_gap = gap
+        if gap.get("id") == READY_NEXT_GAP_ID:
+            ready_next_gap = gap
+
+    if verify_gap is None:
+        failures.append(f"manifest_missing_gap:{VERIFY_GAP_ID}")
+    else:
+        if verify_gap.get("zigux_destination") != VERIFY_DESTINATION:
+            failures.append(
+                "manifest_verify_destination:"
+                f"{verify_gap.get('zigux_destination')!r}"
+            )
+        if verify_gap.get("status") != "starter_landed":
+            failures.append(f"manifest_verify_status:{verify_gap.get('status')!r}")
+
+    if ready_next_gap is None:
+        failures.append(f"manifest_missing_gap:{READY_NEXT_GAP_ID}")
+    else:
+        if ready_next_gap.get("status") != "ready_next":
+            failures.append(f"manifest_ready_next_status:{ready_next_gap.get('status')!r}")
+        if ready_next_gap.get("zigux_destination") != READY_NEXT_DESTINATION:
+            failures.append(
+                "manifest_ready_next_destination:"
+                f"{ready_next_gap.get('zigux_destination')!r}"
+            )
+
+    return failures
+
+
 def check_repo(root: Path) -> list[str]:
     missing: list[str] = []
     for label, rel_path in REQUIRED_FILES.items():
+        if label == "manifest":
+            continue
         path = root / rel_path
         if not path.is_file():
             missing.append(f"missing_file:{rel_path.as_posix()}")
@@ -78,6 +140,7 @@ def check_repo(root: Path) -> list[str]:
         for marker in MARKERS_BY_LABEL[label]:
             if marker not in text:
                 missing.append(f"missing_marker:{label}:{marker}")
+    missing.extend(check_manifest(root))
     return missing
 
 
@@ -87,10 +150,34 @@ def seed_fixture(root: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
 
     for label, markers in MARKERS_BY_LABEL.items():
-        (root / REQUIRED_FILES[label]).write_text(
-            "\n".join(markers),
-            encoding="utf-8",
+        (root / REQUIRED_FILES[label]).write_text("\n".join(markers), encoding="utf-8")
+
+    (root / REQUIRED_FILES["manifest"]).write_text(
+        json.dumps(
+            {
+                "lane_key": EXPECTED_MANIFEST_LANE,
+                "surveyed_commit": EXPECTED_MANIFEST_PIN,
+                "survey_summary": {
+                    "dw_wdt_registration_scaffold_present": True,
+                },
+                "gaps": [
+                    {
+                        "id": VERIFY_GAP_ID,
+                        "status": "starter_landed",
+                        "zigux_destination": VERIFY_DESTINATION,
+                    },
+                    {
+                        "id": READY_NEXT_GAP_ID,
+                        "status": "ready_next",
+                        "zigux_destination": READY_NEXT_DESTINATION,
+                    },
+                ],
+            },
+            indent=2,
         )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def run_self_test() -> None:
@@ -100,9 +187,7 @@ def run_self_test() -> None:
 
         baseline = check_repo(root)
         if baseline:
-            raise SystemExit(
-                "baseline self-test fixture failed: " + ", ".join(baseline)
-            )
+            raise SystemExit("baseline self-test fixture failed: " + ", ".join(baseline))
 
         case_count = 1
         for case_name, label, marker in SELF_TEST_CASES:
@@ -118,6 +203,48 @@ def run_self_test() -> None:
                 )
             case_count += 1
 
+        manifest_lane_case = root / "manifest_lane_case"
+        shutil.copytree(root, manifest_lane_case)
+        manifest_path = manifest_lane_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["lane_key"] = "P11-L10"
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        failures = check_repo(manifest_lane_case)
+        if "manifest_lane_key:'P11-L10'" not in failures:
+            raise SystemExit(f"manifest lane self-test failed: {failures}")
+        case_count += 1
+
+        manifest_destination_case = root / "manifest_destination_case"
+        shutil.copytree(root, manifest_destination_case)
+        manifest_path = manifest_destination_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["gaps"][0]["zigux_destination"] = "drivers/watchdog/dw_wdt.zig"
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        failures = check_repo(manifest_destination_case)
+        if "manifest_verify_destination:'drivers/watchdog/dw_wdt.zig'" not in failures:
+            raise SystemExit(f"manifest destination self-test failed: {failures}")
+        case_count += 1
+
+        manifest_ready_next_case = root / "manifest_ready_next_case"
+        shutil.copytree(root, manifest_ready_next_case)
+        manifest_path = manifest_ready_next_case / REQUIRED_FILES["manifest"]
+        data = json.loads(read_text(manifest_path))
+        data["gaps"][1]["status"] = "starter_landed"
+        manifest_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        failures = check_repo(manifest_ready_next_case)
+        if "manifest_ready_next_status:'starter_landed'" not in failures:
+            raise SystemExit(f"manifest ready-next self-test failed: {failures}")
+        case_count += 1
+
+        missing_file_case = root / "missing_file_case"
+        shutil.copytree(root, missing_file_case)
+        (missing_file_case / REQUIRED_FILES["alignment_note"]).unlink()
+        failures = check_repo(missing_file_case)
+        expected_missing = f"missing_file:{REQUIRED_FILES['alignment_note'].as_posix()}"
+        if expected_missing not in failures:
+            raise SystemExit(f"missing-file self-test failed: {failures}")
+        case_count += 1
+
         print("PHASE11_DW_WDT_TEARDOWN_PACKET_SELF_TEST=pass")
         print(f"PHASE11_DW_WDT_TEARDOWN_PACKET_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -126,7 +253,7 @@ def parse_args() -> argparse.Namespace:
     script_path = Path(__file__).resolve()
     default_root = script_path.parents[2] if len(script_path.parents) > 2 else Path.cwd()
     parser = argparse.ArgumentParser(
-        description="Fail-close the Phase 11 DesignWare watchdog teardown packet."
+        description="Fail-close the current Phase 11 DesignWare watchdog teardown packet."
     )
     parser.add_argument(
         "--root",
