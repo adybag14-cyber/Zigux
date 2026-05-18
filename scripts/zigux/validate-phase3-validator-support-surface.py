@@ -28,39 +28,38 @@ REQUIRED_NOTE_MARKERS = (
     "zigux/tests/phase3_export_uapi_layout_build.zig",
     'It does not currently ship the broader export/UAPI survey, catalog, or shared Phase 3 replay packet that older reminder surfaces still name, even though the shared `scripts/zigux/validate-phase3.py` validator entrypoint and `scripts/zigux/check-phase3-abi.py` shared ABI checker are directly readable on current `master`.',
     "scripts/zigux/check-phase3-abi.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/phase3_catalog.py",
     "Documentation/zigux/phase3-abi-header-family-survey.md",
     "Documentation/zigux/phase3-abi-h-boundary-next-step.md",
     'Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, but those two shared validation surfaces should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.',
     'Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, and it separately ships the adjacent export/UAPI layout replay pair through `zigux/tests/phase3_export_uapi_layout.zig` and `zigux/tests/phase3_export_uapi_layout_build.zig`, but those separate wrapper and replay surfaces should not be used here to imply that the broader validator-support or export/UAPI survey packet has returned.',
-    '`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root shared reminder packet while keeping scripts-root inventory follow-through separate.',
+    '`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root reminder together with the still-pending tests-root follow-through while keeping scripts-root inventory work separate.',
     '`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.',
     "records the separately landed low-level-wrapper packet without promoting it into broader validator support",
-    "records the shared docs-root and tests-root reminders as aligned while keeping scripts-root follow-through separate",
+    "records the shared docs-root reminder as aligned while keeping the remaining tests-root follow-through and scripts-root inventory work separate",
 )
 
 REQUIRED_SHARED_GAP_MARKERS = (
-    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, but the shared docs-root and tests-root Phase 3 summaries still lag that return and need a bounded shared-reminder refresh",
-    "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh Documentation/zigux/README.md and zigux/tests/README.md together so both shared Phase 3 reminders keep the returned packet-local export/UAPI survey note and validator explicit while leaving the wider linux-header-governance, catalog, and manifest gaps parked",
-    '`Documentation/zigux/README.md` currently still needs refresh: it keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` inside the repo-reality-gap bucket even though the packet-local survey note and validator now materialize on current `master`.',
-    '`zigux/tests/README.md` currently still needs the same refresh: it keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` framed as missing broader survey evidence even though both packet-local surfaces now read back on current `master`.',
-    "The earlier shared-reminder drift has narrowed but is not closed on the shared docs-root and tests-root summaries.",
+    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the shared docs-root Phase 3 summary now reflects that return, and the remaining shared-reminder follow-through is the tests-root summary",
+    "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh zigux/tests/README.md so the shared Phase 3 tests-root summary keeps the returned packet-local export/UAPI survey note and validator explicit while leaving the wider linux-header-governance, catalog, and manifest gaps parked",
+    '`Documentation/zigux/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` explicit as returned packet-local shared reminder evidence instead of framing them as repo-reality gaps.',
+    '`zigux/tests/README.md` currently still needs the first bounded Phase 3 shared-summary refresh: it does not yet keep `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` explicit as returned tests-root evidence beside the starter, helper, policy, and layout-replay packet.',
+    "The earlier shared-reminder drift has narrowed again and is now limited to the tests-root summary.",
 )
 
 SELF_TEST_NOTE_MARKERS = (
     "This note records the current validator-facing Phase 3 surface on live `master`.",
     'It does not currently ship the broader export/UAPI survey, catalog, or shared Phase 3 replay packet that older reminder surfaces still name, even though the shared `scripts/zigux/validate-phase3.py` validator entrypoint and `scripts/zigux/check-phase3-abi.py` shared ABI checker are directly readable on current `master`.',
     'Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, but those two shared validation surfaces should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.',
-    '`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root shared reminder packet while keeping scripts-root inventory follow-through separate.',
+    '`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root reminder together with the still-pending tests-root follow-through while keeping scripts-root inventory work separate.',
     '`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.',
 )
 
 SELF_TEST_GAP_MARKERS = (
-    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, but the shared docs-root and tests-root Phase 3 summaries still lag that return and need a bounded shared-reminder refresh",
-    "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh Documentation/zigux/README.md and zigux/tests/README.md together so both shared Phase 3 reminders keep the returned packet-local export/UAPI survey note and validator explicit while leaving the wider linux-header-governance, catalog, and manifest gaps parked",
-    "The earlier shared-reminder drift has narrowed but is not closed on the shared docs-root and tests-root summaries.",
+    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the shared docs-root Phase 3 summary now reflects that return, and the remaining shared-reminder follow-through is the tests-root summary",
+    "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh zigux/tests/README.md so the shared Phase 3 tests-root summary keeps the returned packet-local export/UAPI survey note and validator explicit while leaving the wider linux-header-governance, catalog, and manifest gaps parked",
+    "The earlier shared-reminder drift has narrowed again and is now limited to the tests-root summary.",
 )
 
 
