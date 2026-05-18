@@ -65,21 +65,34 @@ test "export shim mirrors boundary header predicate helpers" {
         .abi_version = export_shim.abi_version + 1,
         .flags = 0,
     };
+    const canonicalized = export_shim.canonicalizeHeader(future);
 
     try testing.expect(export_shim.isCurrentAbiVersion(canonical.abi_version));
     try testing.expect(export_shim.isCanonicalSize(canonical.size));
     try testing.expect(export_shim.isCompatibleSize(canonical.size));
     try testing.expect(export_shim.headerIsCanonical(canonical));
     try testing.expect(export_shim.headerIsCompatible(canonical));
+    try testing.expect(!export_shim.extendsBoundary(canonical));
+    try testing.expectEqual(@as(u32, 0), export_shim.requestedExtraBytes(canonical));
 
     try testing.expect(!export_shim.isCanonicalSize(future.size));
     try testing.expect(export_shim.isCompatibleSize(future.size));
     try testing.expect(!export_shim.headerIsCanonical(future));
     try testing.expect(export_shim.headerIsCompatible(future));
+    try testing.expect(export_shim.extendsBoundary(future));
+    try testing.expectEqual(@as(u32, 16), export_shim.requestedExtraBytes(future));
 
     try testing.expect(!export_shim.isCurrentAbiVersion(stale.abi_version));
     try testing.expect(!export_shim.headerIsCanonical(stale));
     try testing.expect(!export_shim.headerIsCompatible(stale));
+    try testing.expect(!export_shim.extendsBoundary(stale));
+    try testing.expectEqual(@as(u32, 0), export_shim.requestedExtraBytes(stale));
+
+    try testing.expectEqual(export_shim.header_size, canonicalized.size);
+    try testing.expectEqual(export_shim.abi_version, canonicalized.abi_version);
+    try testing.expectEqual(future.flags, canonicalized.flags);
+    try testing.expect(export_shim.headerIsCanonical(canonicalized));
+    try testing.expect(!export_shim.extendsBoundary(canonicalized));
 }
 
 test "export shim keeps facility tagged statuses explicit" {
