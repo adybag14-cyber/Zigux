@@ -16,7 +16,16 @@ DEFAULT_ROOT = (
     else Path.cwd()
 )
 
-BUILD_FILE_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
+REQUIRED_PROOF_ROUTE = {
+    "proof_build_file": "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "proof_replay_command": "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "proof_step_name": "test",
+    "proof_step_description": "Run the focused Phase 11 HVC cleanup packet proof",
+    "proof_test_artifact_name": "phase11-hvc-cleanup-packet-proof",
+    "proof_root_source_file": "phase11_hvc_cleanup_packet_proof.zig",
+}
+
+BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 
@@ -96,6 +105,12 @@ def read_json(path: Path) -> dict[str, object]:
     return value
 
 
+def expect_string(label: str, value: object) -> str:
+    if not isinstance(value, str):
+        raise CheckError(f"expected string for {label}")
+    return value
+
+
 def expect_string_list(label: str, value: object) -> list[str]:
     if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
         raise CheckError(f"expected string list for {label}")
@@ -126,6 +141,13 @@ def mapping_from_entries(
     return mapping
 
 
+def expect_exact_string(label: str, actual: object, expected: str) -> str:
+    value = expect_string(label, actual)
+    if value != expected:
+        raise CheckError(f"{label} does not match the current-head Phase 11 packet")
+    return value
+
+
 def expect_exact_string_list(label: str, actual: object, expected: tuple[str, ...]) -> None:
     if expect_string_list(label, actual) != list(expected):
         raise CheckError(f"{label} does not match the current-head Phase 11 packet")
@@ -138,16 +160,59 @@ def require_text_markers(path: Path, markers: tuple[str, ...]) -> None:
             raise CheckError(f"missing marker in {path}: {marker}")
 
 
+def build_route_markers_from_inventory(inventory: dict[str, object]) -> tuple[str, ...]:
+    root_source_file = expect_exact_string(
+        "proof_root_source_file",
+        inventory.get("proof_root_source_file"),
+        REQUIRED_PROOF_ROUTE["proof_root_source_file"],
+    )
+    test_artifact_name = expect_exact_string(
+        "proof_test_artifact_name",
+        inventory.get("proof_test_artifact_name"),
+        REQUIRED_PROOF_ROUTE["proof_test_artifact_name"],
+    )
+    step_name = expect_exact_string(
+        "proof_step_name",
+        inventory.get("proof_step_name"),
+        REQUIRED_PROOF_ROUTE["proof_step_name"],
+    )
+    step_description = expect_exact_string(
+        "proof_step_description",
+        inventory.get("proof_step_description"),
+        REQUIRED_PROOF_ROUTE["proof_step_description"],
+    )
+    proof_build_file = expect_exact_string(
+        "proof_build_file",
+        inventory.get("proof_build_file"),
+        REQUIRED_PROOF_ROUTE["proof_build_file"],
+    )
+    proof_replay_command = expect_exact_string(
+        "proof_replay_command",
+        inventory.get("proof_replay_command"),
+        REQUIRED_PROOF_ROUTE["proof_replay_command"],
+    )
+    if proof_replay_command != f"zig build test --build-file {proof_build_file}":
+        raise CheckError("proof_replay_command does not match proof_build_file")
+    return (
+        f'.root_source_file = b.path("{root_source_file}")',
+        f'.name = "{test_artifact_name}"',
+        f'const test_step = b.step("{step_name}", "{step_description}");',
+    )
+
+
 def run_check(root: Path) -> None:
+    inventory = read_json(root / INVENTORY_PATH)
     build_text = read_text(root / BUILD_FILE_PATH)
     for marker in REQUIRED_BUILD_TEXT_MARKERS:
+        if marker not in build_text:
+            raise CheckError(f"missing marker in {BUILD_FILE_PATH}: {marker}")
+    for marker in build_route_markers_from_inventory(inventory):
         if marker not in build_text:
             raise CheckError(f"missing marker in {BUILD_FILE_PATH}: {marker}")
     for marker in FORBIDDEN_BUILD_TEXT_MARKERS:
         if marker in build_text:
             raise CheckError(f"forbidden marker present in {BUILD_FILE_PATH}: {marker}")
 
-    inventory = read_json(root / INVENTORY_PATH)
     expect_exact_string_list(
         "build_test_names",
         inventory.get("build_test_names"),
@@ -218,6 +283,7 @@ def write(path: Path, text: str) -> None:
 
 def fixture_inventory() -> dict[str, object]:
     return {
+        **REQUIRED_PROOF_ROUTE,
         "build_test_names": list(REQUIRED_BUILD_TEST_NAMES),
         "shared_test_depend_steps": list(REQUIRED_SHARED_DEPEND_STEPS),
         "module_root_source_files": [
@@ -308,6 +374,14 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_build_marker, "phase11-hvc-cleanup-packet-proof")
+        case_count += 1
+
+        wrong_proof_command = tmpdir / "wrong_proof_command"
+        shutil.copytree(fixture, wrong_proof_command, dirs_exist_ok=True)
+        inventory = read_json(wrong_proof_command / INVENTORY_PATH)
+        inventory["proof_replay_command"] = "zig build test --build-file zigux/tests/phase11_build.zig"
+        write(wrong_proof_command / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_proof_command, "proof_replay_command does not match")
         case_count += 1
 
         wrong_build_names = tmpdir / "wrong_build_names"
