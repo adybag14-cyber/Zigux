@@ -15,6 +15,11 @@ SCRIPTS_ROOT = Path("scripts/zigux/README.md")
 REPO_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 DIRECT_HELPER = Path("scripts/zigux/artifact_diff.py")
 SELF_PATH = Path("scripts/zigux/check-phase4-artifact-diff-determinism.py")
+REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
+TESTS_README = Path("zigux/tests/README.md")
+PINS_CHECKER = Path("scripts/zigux/check-phase4-reversible-delivery-pins.py")
+VALIDATOR_REPLAYS = Path("scripts/zigux/check-phase4-artifact-diff-validator-replays.py")
+EXPECTED_SELF_TEST_CASES = 12
 
 HISTORICAL_ARTIFACT_DIFF_PACKET = (
     "Documentation/zigux/artifact-diff.md",
@@ -78,6 +83,30 @@ REPO_WARNING_MARKERS = (
     "broader packet entries are now present and the repo-reality warning must be narrowed",
 )
 
+REVIEW_CHECKLIST_MARKERS = (
+    "Phase 4 exact-readback packet remains the current shared rollback reminder",
+    "The dedicated local-only perf packet remains outside the shared validator-first route",
+    "broader validator, lab-matrix, and bitmap-diff companions still remain repo-reality gaps",
+)
+
+TESTS_README_MARKERS = (
+    "current shared Phase 4 ownership reminder",
+    "artifact-diff contract references",
+    "remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md`",
+)
+
+PINS_CHECKER_MARKERS = (
+    "PHASE4_REVERSIBLE_DELIVERY_STATUS=shared_evidence_packet_requires_partial_repo_reality_recheck",
+    "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16",
+    "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14",
+)
+
+VALIDATOR_REPLAY_MARKERS = (
+    "Historical broader validator packet members that still stay explicit here:",
+    "scripts/zigux/validate-phase4.py",
+    "scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+)
+
 MISSING_BROADER_ARTIFACT_DIFF_COMPANIONS = (
     "Documentation/zigux/artifact-diff.md",
     "scripts/zigux/check-artifact-diff-contract.py",
@@ -138,6 +167,10 @@ def check(root: Path) -> None:
     docs_root = read(root, DOCS_ROOT)
     scripts_root = read(root, SCRIPTS_ROOT)
     repo_warning = read(root, REPO_WARNING)
+    review_checklist = read(root, REVIEW_CHECKLIST)
+    tests_readme = read(root, TESTS_README)
+    pins_checker = read(root, PINS_CHECKER)
+    validator_replays = read(root, VALIDATOR_REPLAYS)
 
     require_markers(survey, SURVEY_MARKERS, SURVEY.as_posix())
     require_paths_listed(survey, SURVEY_DIRECT_PACKET, SURVEY.as_posix())
@@ -152,6 +185,10 @@ def check(root: Path) -> None:
     require_markers(docs_root, DOCS_ROOT_MARKERS, DOCS_ROOT.as_posix())
     require_markers(scripts_root, SCRIPTS_ROOT_MARKERS, SCRIPTS_ROOT.as_posix())
     require_markers(repo_warning, REPO_WARNING_MARKERS, REPO_WARNING.as_posix())
+    require_markers(review_checklist, REVIEW_CHECKLIST_MARKERS, REVIEW_CHECKLIST.as_posix())
+    require_markers(tests_readme, TESTS_README_MARKERS, TESTS_README.as_posix())
+    require_markers(pins_checker, PINS_CHECKER_MARKERS, PINS_CHECKER.as_posix())
+    require_markers(validator_replays, VALIDATOR_REPLAY_MARKERS, VALIDATOR_REPLAYS.as_posix())
     require_current_repo_reality(root)
 
 
@@ -230,18 +267,47 @@ Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `D
         root / REPO_WARNING,
         """#!/usr/bin/env python3
 MISSING_BROADER_PACKET = (
-    "Documentation/zigux/phase4-gate-evidence.md",
-    "scripts/zigux/validate-phase4.py",
+    \"Documentation/zigux/phase4-gate-evidence.md\",
+    \"scripts/zigux/validate-phase4.py\",
 )
-ERROR_TEXT = "broader packet entries are now present and the repo-reality warning must be narrowed"
+ERROR_TEXT = \"broader packet entries are now present and the repo-reality warning must be narrowed\"
+""",
+    )
+    write(
+        root / REVIEW_CHECKLIST,
+        """# Review Checklist
+
+- Phase 4 exact-readback packet remains the current shared rollback reminder while the broader validator-first packet is still only partially recovered.
+- The dedicated local-only perf packet remains outside the shared validator-first route while shared CI promotion stays pending.
+- broader validator, lab-matrix, and bitmap-diff companions still remain repo-reality gaps until same-family readback fully returns.
+""",
+    )
+    write(
+        root / TESTS_README,
+        """# zigux/tests
+
+current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone.
+""",
+    )
+    write(
+        root / PINS_CHECKER,
+        """# pins
+PHASE4_REVERSIBLE_DELIVERY_STATUS=shared_evidence_packet_requires_partial_repo_reality_recheck
+PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16
+PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14
+""",
+    )
+    write(
+        root / VALIDATOR_REPLAYS,
+        """# validator replays
+Historical broader validator packet members that still stay explicit here:
+- `scripts/zigux/validate-phase4.py`
+- `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
 """,
     )
     write(root / DIRECT_HELPER, "# helper returned\n")
     write(root / SELF_PATH, "# current checker\n")
-    write(root / Path("Documentation/zigux/review-checklist.md"), "# checklist\n")
-    write(root / Path("zigux/tests/README.md"), "# tests guide\n")
-    write(root / Path("scripts/zigux/check-phase4-reversible-delivery-pins.py"), "# pins\n")
-    write(root / Path("scripts/zigux/check-phase4-artifact-diff-validator-replays.py"), "# validator replays\n")
+    write(root / Path("scripts/zigux/check-artifact-diff-contract.py.disabled"), "# placeholder\n")
 
 
 def self_test() -> None:
@@ -252,11 +318,12 @@ def self_test() -> None:
         check(root)
         cases += 1
 
+        fixture_root(root)
         write(
             root / SURVEY,
             read(root, SURVEY).replace(
-                "`scripts/zigux/artifact_diff.py`",
-                "`scripts/zigux/not-the-right-helper.py`",
+                "The helper itself is directly readable again on current `master` through `scripts/zigux/artifact_diff.py`.",
+                "The helper itself is directly readable again on current `master` through `scripts/zigux/not-the-right-helper.py`.",
                 1,
             ),
         )
@@ -313,6 +380,66 @@ def self_test() -> None:
             raise AssertionError("expected scripts-root drift to fail")
 
         fixture_root(root)
+        write(
+            root / REVIEW_CHECKLIST,
+            read(root, REVIEW_CHECKLIST).replace(
+                "The dedicated local-only perf packet remains outside the shared validator-first route",
+                "The dedicated local-only perf packet now belongs on the shared validator-first route",
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected review-checklist drift to fail")
+
+        fixture_root(root)
+        write(
+            root / TESTS_README,
+            read(root, TESTS_README).replace(
+                "artifact-diff contract references",
+                "artifact-diff placeholder references",
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected tests-readme drift to fail")
+
+        fixture_root(root)
+        write(
+            root / PINS_CHECKER,
+            read(root, PINS_CHECKER).replace(
+                "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14",
+                "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8",
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected pins-checker drift to fail")
+
+        fixture_root(root)
+        write(
+            root / VALIDATOR_REPLAYS,
+            read(root, VALIDATOR_REPLAYS).replace(
+                "Historical broader validator packet members that still stay explicit here:",
+                "Historical broader helper packet members that still stay explicit here:",
+            ),
+        )
+        try:
+            check(root)
+        except RuntimeError:
+            cases += 1
+        else:
+            raise AssertionError("expected validator-replays drift to fail")
+
+        fixture_root(root)
         (root / DIRECT_HELPER).unlink()
         try:
             check(root)
@@ -347,6 +474,11 @@ def self_test() -> None:
             cases += 1
         else:
             raise AssertionError("expected repo-warning drift to fail")
+
+        if cases != EXPECTED_SELF_TEST_CASES:
+            raise AssertionError(
+                f"expected {EXPECTED_SELF_TEST_CASES} self-test cases, saw {cases}"
+            )
 
     print("PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass")
     print(f"PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CASE_COUNT={cases}")
