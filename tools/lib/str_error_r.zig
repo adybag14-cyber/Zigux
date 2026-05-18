@@ -51,6 +51,21 @@ test "strErrorR truncates known messages and keeps a terminator" {
     try std.testing.expectEqual(@as(u8, 0), buffer[5]);
 }
 
+test "strErrorR truncates generated internal errors and keeps a terminator" {
+    var buffer: [12]u8 = undefined;
+    const rendered = strErrorR(4096, &buffer);
+
+    var expected_storage: [64]u8 = undefined;
+    const full = try std.fmt.bufPrint(
+        &expected_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, buffer.len },
+    );
+
+    try std.testing.expectEqualStrings(full[0 .. buffer.len - 1], rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
+}
+
 test "strErrorR handles empty and single-byte buffers without exposing bytes" {
     var empty: [0]u8 = undefined;
     try std.testing.expectEqualStrings("", strErrorR(2, &empty));
