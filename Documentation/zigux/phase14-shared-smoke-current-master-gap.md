@@ -50,8 +50,8 @@ Those readable notes and paths keep the current narrow posture visible:
 - `zigux/Makefile` is directly readable again through the contents path, and its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes, but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
 - that means the older validator-local exact-line handoff is still not the next honest same-lane fix: before revisiting `MAKE_EXACT_LINES`, any shared reminder surface that drifts again needs to keep the visible post-Phase-2 Makefile route families and the readable non-owner posture explicit instead of calling the returned file a Phase-2-only surface
 - `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` now keep the broadened study-only Phase 14 packet and the readable-but-not-Phase-14 Makefile warning aligned on current `master`
-- the live skbuff packet is still parked on `phase14-skbuff-live-ownership-blocker`
-- the skbuff note still records seven review-only boundary-map areas and `full_bundle_only` compile evidence
+- the skbuff survey now keeps `phase14-skbuff-anchor-packet-missing` explicit as the current repo-readback gap layered on top of the unchanged freeze-in-C ownership boundary
+- the skbuff note now treats the earlier `full_bundle_only` compile path as archival-only vocabulary and explicitly says there is no honest skbuff-local compile route on current `master`
 - the Phase 15 companion still keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit as study-only anchors rather than active port claims
 
 ## Remaining Shared-Smoke Readback Gap
