@@ -316,6 +316,70 @@ def run_self_test() -> int:
             "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
             "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
         )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+            "while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing.",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn publishDescriptorChain(self: *Self, queue_index: u16) !void {",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn pollUsedBuffers(self: *Self, queue_index: u16) !UsedBufferPollSummary {",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn enableCallback(self: *Self, queue_index: u16) !CallbackEnableSummary {",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn markBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn clearBroken(self: *Self, queue_index: u16) !BrokenQueueSummary {",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "pub fn resetQueue(self: *Self, queue_index: u16) !QueueResetSummary {",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "if (slot.broken) return error.QueueBroken;",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring.zig",
+            "if (slot.broken) return error.QueueResetWhileBroken;",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring_verify.zig",
+            "pub fn summarizeDelayedCallback(",
+        )
+        expect_missing_marker(
+            "drivers/virtio/virtio_ring_verify.zig",
+            "pub fn summarizeResetReadiness(",
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_build.zig",
+            '.root_source_file = b.path("../../drivers/virtio/virtio_ring.zig"),',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_build.zig",
+            '.root_source_file = b.path("phase10_virtio_ring_delayed_callback_budget.zig"),',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"lane_key": "P10-L10"',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"status": "repo_reality_gap"',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
+            "try std.testing.expect(summary.should_poll);",
+        )
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-survey.md")
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md")
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-slice.md")
