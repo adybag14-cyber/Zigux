@@ -3,14 +3,14 @@
 ## Status
 - `PHASE13_STATUS=active`
 - `PHASE13_LANE=P13-L02`
-- `PHASE13_SCOPE=iomap-mmio-safety-validate-route-gap`
-- `PHASE13_READBACK=master-readback-2026-05-17`
+- `PHASE13_SCOPE=iomap-mmio-safety-route-gap`
+- `PHASE13_READBACK=master-readback-2026-05-18`
 
 ## Packet Reading
-- The Phase 13 roadmap still keeps `lib/devres.c` inside bounded shared-helper delivery, so the current devres MMIO packet should stay reviewable through the shipped helper-local checker surfaces rather than through stale validator-first names.
-- `scripts/zigux/README.md` now treats `scripts/zigux/check-phase13-devres-mmio-packet.py` as shipped Phase 13 evidence and explicitly frames the older `scripts/zigux/validate-phase13-release.py` and `scripts/zigux/check-phase13-devres-packet-alignment.py` names as repo-reality gaps on current `master`.
-- `zigux/Makefile` still routes `phase13-validate` through `scripts/zigux/validate-phase13-release.py` and `scripts/zigux/check-phase13-devres-packet-alignment.py`, while it does not call `scripts/zigux/check-phase13-devres-mmio-packet.py`.
-- That leaves the current gap route-local rather than helper-local: the shipped MMIO checker exists, but the shared validation entrypoint still points at older devres validator names that the scripts-root packet now describes as absent repo-reality surfaces.
+- The Phase 13 roadmap still keeps `lib/devres.c` inside bounded shared-helper delivery, so the current devres MMIO packet should stay reviewable through helper-first evidence instead of stale validator-first or stale Makefile-route names.
+- `Documentation/zigux/phase13-devres-slice.md` and `zigux/tests/phase13_devres_dma_coherent.zig` now keep the surviving devres packet narrow on current `master`: one direct replay surface remains, while the broader survey, helper, manifest, and older direct replay packet stay explicit repo-reality gaps.
+- `scripts/zigux/README.md` now records the same current route picture from the scripts root: `zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, and current `master` still does not materialize `scripts/zigux/validate-phase13-release.py` or `scripts/zigux/check-phase13-devres-packet-alignment.py`.
+- That makes the current gap route-local and narrower than the older draft `P13-L02` story: current `master` does not ship a shared Phase 13 rerun hook for the surviving devres MMIO evidence at all, so the truthful next move is to keep that absence explicit until a fresh shared route packet lands.
 
 ## Next Bounded Step
-Refresh `zigux/Makefile` so `phase13-validate` points at the shipped devres MMIO packet guard, then reread `.github/workflows/zigux-bootstrap.yml` and the broader Phase 13 reminder notes together to keep the shared route truthful without widening into helper behavior, DMA ownership, or release-summary prose.
+Refresh one shared Phase 13 rerun packet only after rereading `scripts/zigux/README.md`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, `Documentation/zigux/phase13-devres-slice.md`, and `zigux/tests/phase13_devres_dma_coherent.zig` together so any returned route names the current surviving devres packet instead of the older missing validator-first surfaces.
