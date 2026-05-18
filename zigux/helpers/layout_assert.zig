@@ -1,4 +1,5 @@
 const std = @import("std");
+const abi = @import("abi_bindings");
 
 pub const LayoutError = error{
     SizeMismatch,
@@ -29,6 +30,100 @@ pub fn expectFieldLayout(
     expected_offset: usize,
 ) LayoutError!void {
     try expectOffset(T, field_name, expected_offset);
+}
+
+pub fn assertBoundaryHeaderLayout() LayoutError!void {
+    try expectLayout(abi.BoundaryHeader, 8, 4);
+    try expectFieldLayout(abi.BoundaryHeader, "size", 0);
+    try expectFieldLayout(abi.BoundaryHeader, "abi_version", 4);
+    try expectFieldLayout(abi.BoundaryHeader, "flags", 6);
+}
+
+pub fn assertExportStatusLayout() LayoutError!void {
+    try expectLayout(abi.ExportStatus, 8, 4);
+    try expectFieldLayout(abi.ExportStatus, "code", 0);
+    try expectFieldLayout(abi.ExportStatus, "facility", 4);
+    try expectFieldLayout(abi.ExportStatus, "flags", 6);
+}
+
+pub fn assertInteropPolicyLayout() LayoutError!void {
+    try expectLayout(abi.InteropPolicy, 4, 1);
+    try expectFieldLayout(abi.InteropPolicy, "panic_mode", 0);
+    try expectFieldLayout(abi.InteropPolicy, "allocator_mode", 1);
+    try expectFieldLayout(abi.InteropPolicy, "unsafe_scope", 2);
+    try expectFieldLayout(abi.InteropPolicy, "reserved", 3);
+}
+
+pub fn assertNotifierBlockLayout() LayoutError!void {
+    const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
+    const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(abi.NotifierBlock));
+
+    try expectLayout(abi.NotifierBlock, expected_size, @alignOf(usize));
+    try expectFieldLayout(abi.NotifierBlock, "notifier_call", 0);
+    try expectFieldLayout(abi.NotifierBlock, "next", @sizeOf(usize));
+    try expectFieldLayout(abi.NotifierBlock, "priority", @sizeOf(usize) * 2);
+}
+
+pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {
+    try expectLayout(
+        abi.ChainPriorityIncrease,
+        @sizeOf(usize) * 2 + @sizeOf(i32) * 2,
+        @alignOf(usize),
+    );
+    try expectFieldLayout(abi.ChainPriorityIncrease, "previous_index", 0);
+    try expectFieldLayout(abi.ChainPriorityIncrease, "current_index", @sizeOf(usize));
+    try expectFieldLayout(abi.ChainPriorityIncrease, "previous_priority", @sizeOf(usize) * 2);
+    try expectFieldLayout(
+        abi.ChainPriorityIncrease,
+        "current_priority",
+        @sizeOf(usize) * 2 + @sizeOf(i32),
+    );
+}
+
+pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {
+    try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 12, 4);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window", 0);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window", 4);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status", 8);
+}
+
+pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout() LayoutError!void {
+    try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, 12, 4);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied", 0);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped", 4);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered", 8);
+}
+
+pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout() LayoutError!void {
+    try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, 12, 4);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget", 0);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window", 4);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags", 8);
+}
+
+pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout() LayoutError!void {
+    try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, 12, 4);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted", 0);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied", 4);
+    try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped", 8);
+}
+
+pub fn assertInteropPolicyModeValues() void {
+    std.debug.assert(abi.PANIC_ABORT == @intFromEnum(abi.PanicMode.abort));
+    std.debug.assert(abi.PANIC_BUG == @intFromEnum(abi.PanicMode.bug));
+    std.debug.assert(abi.PANIC_WARN == @intFromEnum(abi.PanicMode.warn));
+    std.debug.assert(abi.ALLOC_CALLER_PROVIDED == @intFromEnum(abi.AllocatorMode.caller_provided));
+    std.debug.assert(abi.ALLOC_KERNEL_HEAP == @intFromEnum(abi.AllocatorMode.kernel_heap));
+    std.debug.assert(abi.ALLOC_ARENA == @intFromEnum(abi.AllocatorMode.arena));
+    std.debug.assert(abi.UNSAFE_NONE == @intFromEnum(abi.UnsafeScope.none));
+    std.debug.assert(abi.UNSAFE_VOLATILE_MMIO == @intFromEnum(abi.UnsafeScope.volatile_mmio));
+    std.debug.assert(abi.UNSAFE_RAW_POINTER_BRIDGE == @intFromEnum(abi.UnsafeScope.raw_pointer_bridge));
+}
+
+pub fn assertNotifierResultValues() void {
+    std.debug.assert(abi.NOTIFIER_DONE == @intFromEnum(abi.NotifierResult.done));
+    std.debug.assert(abi.NOTIFIER_OK == @intFromEnum(abi.NotifierResult.ok));
+    std.debug.assert(abi.NOTIFIER_STOP == @intFromEnum(abi.NotifierResult.stop));
 }
 
 test "layout assert keeps starter header layouts explicit" {
