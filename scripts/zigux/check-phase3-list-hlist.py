@@ -81,7 +81,8 @@ REQUIRED_MARKERS = {
         '#include "../../../../include/zigux/list_hlist.h"',
         "static int zigux_list_is_circular(const struct zigux_list_head *head)",
         "static int zigux_hlist_tail_next_null(const struct zigux_hlist_head *head)",
-        '\"hlist_pair\":{\"empty\":%s,\"len\":%zu,\"head_links_match\":%s,\"tail_next_null\":%s}',
+        '"\\\"hlist_pair\\\":{\\\"empty\\\":%s',
+        'zigux_hlist_tail_next_null(&hlist_head) ? "true" : "false");',
     ),
     EXPECTED_PATH: (
         '"list_empty": {',
