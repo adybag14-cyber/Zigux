@@ -75,3 +75,20 @@ test "scnprintfPad truncates without adding padding when logical size is smaller
     try std.testing.expectEqualStrings("zigu", buffer[0..written]);
     try std.testing.expectEqual(@as(u8, 0), buffer[written]);
 }
+
+test "vscnprintf mirrors scnprintf truncation and terminates single-byte buffers" {
+    var vscn_buffer: [6]u8 = undefined;
+    var scn_buffer: [6]u8 = undefined;
+
+    const vscn_written = vscnprintf(&vscn_buffer, "{s}", .{"zigux!"});
+    const scn_written = scnprintf(&scn_buffer, "{s}", .{"zigux!"});
+
+    try std.testing.expectEqual(scn_written, vscn_written);
+    try std.testing.expectEqualStrings(scn_buffer[0..scn_written], vscn_buffer[0..vscn_written]);
+    try std.testing.expectEqual(@as(u8, 0), vscn_buffer[vscn_written]);
+
+    var tiny = [_]u8{0xaa};
+    const tiny_written = vscnprintf(&tiny, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 0), tiny_written);
+    try std.testing.expectEqual(@as(u8, 0), tiny[0]);
+}
