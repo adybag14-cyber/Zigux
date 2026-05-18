@@ -153,6 +153,25 @@ test "bitmap tail masking keeps a full bounded bitmap from leaking zero bits" {
     try std.testing.expectEqual(bits_per_word + 11, summary.weight);
 }
 
+test "bitmap tail masking ignores out-of-range set bits in the last word" {
+    var backing = [_]Word{
+        0,
+        @as(Word, 1) << (11 + 3),
+    };
+    const view = viewFromWords(backing[0..], bits_per_word + 11);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(!testBit(view, bits_per_word + 10));
+    try std.testing.expect(!testBit(view, bits_per_word + 11));
+    try std.testing.expectEqual(bits_per_word + 11, firstSet(view));
+    try std.testing.expectEqual(@as(u32, 0), firstZero(view));
+    try std.testing.expectEqual(@as(u32, 0), weight(view));
+    try std.testing.expectEqual(bits_per_word + 11, summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap exact-word windows keep full-word masks explicit" {
     var backing = [_]Word{
         ~@as(Word, 0),
