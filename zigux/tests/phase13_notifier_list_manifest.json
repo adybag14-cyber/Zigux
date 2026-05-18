@@ -1,0 +1,76 @@
+{
+  "lane_key": "P13-L18",
+  "phase": "Phase 13",
+  "surveyed_commit": "master-readback-2026-05-18",
+  "anchor": "drivers/tty/hvc/hvc_console.h",
+  "roadmap_position": "adjacent notifier/list_head evidence beside the Phase 13 shared-helper anchors",
+  "survey_summary": {
+    "current_phase13_build_present": false,
+    "current_binding_present": true,
+    "current_list_view_present": true,
+    "current_hlist_view_present": true,
+    "current_abi_header_present": true,
+    "current_hvc_notifier_header_present": true,
+    "current_notifier_packet_checker_present": true,
+    "current_phase13_notifier_list_manifest_present": true,
+    "current_phase13_notifier_list_reviewability_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase13-notifier-adjacent-abi",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "zigux/bindings/notifier_abi.zig",
+      "why_now": "Current master ships a bounded notifier/list ABI foothold that keeps notifier priority order plus list_head and hlist link truthfulness readable without claiming callback execution or registration behavior."
+    },
+    {
+      "id": "phase13-notifier-list-view-helper",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "zigux/helpers/list_view.zig",
+      "why_now": "The adjacent packet includes a read-only list_head helper that walks circular lists and reports the first broken backlink witness without widening into mutation."
+    },
+    {
+      "id": "phase13-notifier-hlist-view-helper",
+      "status": "starter_landed",
+      "kind": "helper_surface",
+      "zigux_destination": "zigux/helpers/hlist_view.zig",
+      "why_now": "The adjacent packet includes a read-only hlist helper that checks pprev continuity and tail termination without claiming live notifier registration or teardown behavior."
+    },
+    {
+      "id": "phase13-notifier-focused-packet-checker",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase13-notifier-packet.py",
+      "why_now": "The focused checker now fail-closes on the survey, manifest, reviewability gate, ABI foothold, list_head and hlist helpers, and HVC notifier declarations for the shipped adjacent packet."
+    },
+    {
+      "id": "phase13-notifier-reviewability-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_notifier_list_reviewability.zig",
+      "why_now": "A focused Zig reviewability gate now keeps the adjacent packet readable through exact manifest, survey, and checker markers without widening the shared Phase 13 replay bundle."
+    },
+    {
+      "id": "phase13-notifier-chain-helper-gap",
+      "status": "blocked_on_helper_scope",
+      "kind": "helper_surface",
+      "zigux_destination": "zigux/helpers/notifier_chain_view.zig",
+      "why_now": "Current master still keeps the adjacent packet on the shipped ABI plus list_head and hlist witnesses and does not rematerialize the older direct notifier-chain helper."
+    },
+    {
+      "id": "phase13-notifier-priority-signal-gap",
+      "status": "blocked_on_checker_followthrough",
+      "kind": "validation",
+      "zigux_destination": "scripts/zigux/check-phase13-notifier-priority-signal.py",
+      "why_now": "The new focused packet checker keeps the adjacent packet fail-closed, but the separate priority-signal companion is still absent on current master."
+    },
+    {
+      "id": "phase13-build-route-gap",
+      "status": "blocked_on_missing_shared_build_surface",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase13_build.zig",
+      "why_now": "The shared Phase 13 build handle still does not rematerialize on current master, so the adjacent notifier packet stays reviewable through the focused checker and direct Zig gate instead of joining the shared replay bundle."
+    }
+  ]
+}
