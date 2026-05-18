@@ -185,6 +185,7 @@
         "find_first_serial",
         "next_match_serials",
         "match_iterator_serials",
+        "cached_leftmost_return_serials",
         "next_match_terminal_null"
       ],
       "cached_leftmost_fixture_keys": [
@@ -241,6 +242,12 @@
         "test \"list sort preserves sorted unique input\"",
         "test \"list sort preserves stable bucket order across parity groups\"",
         "test \"list sort preserves stable modulo bucket order across a longer merge path\"",
+        "test \"list sort accepts non-unit comparator magnitudes\"",
+        "test \"list sort honors comparator context with non-unit magnitudes\"",
+        "test \"list sort reuses non-unit comparator context across repeated reordering\"",
+        "test \"list sort accepts signed subtractive comparator\"",
+        "test \"list sort reuses signed subtractive comparator context across repeated reordering\"",
+        "test \"list sort preserves current signed-subtractive order when a later pass ties everything\"",
         "test \"list sort preserves input order when every comparison ties\"",
         "test \"list sort handles empty and singleton lists\""
       ],
@@ -251,17 +258,23 @@
         "bool_sorted_keys",
         "bool_sorted_ordinals"
       ],
-      "shared_replay_summary": "the committed Phase 1 fixture still owns the tri-state and boolean-style comparator parity keys for list_sort, while current master keeps comparator-context handling, repeat-sort circular-list integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, and empty-or-singleton handling explicit at the helper surface until the broader shared replay packet returns",
+      "shared_replay_summary": "the committed Phase 1 fixture still owns the tri-state and boolean-style comparator parity keys for list_sort, while current master keeps comparator-context handling, repeat-sort circular-list integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, non-unit comparator-magnitude handling, non-unit comparator-context reordering, repeated non-unit comparator-context reordering, signed subtractive comparator handling, repeated signed subtractive comparator-context reordering, signed-subtractive tie-preserving rerun behavior, all-ties stability, and empty-or-singleton handling explicit at the helper surface until the broader shared replay packet returns",
       "comparator_context_anchor": "test \"list sort honors comparator context\"",
       "repeat_sort_anchor": "test \"list sort can reorder the same circular list twice\"",
       "reverse_link_anchor": "test \"list sort keeps reverse links aligned after reordering\"",
       "sorted_input_anchor": "test \"list sort preserves sorted unique input\"",
       "parity_bucket_anchor": "test \"list sort preserves stable bucket order across parity groups\"",
       "modulo_bucket_anchor": "test \"list sort preserves stable modulo bucket order across a longer merge path\"",
+      "non_unit_magnitude_anchor": "test \"list sort accepts non-unit comparator magnitudes\"",
+      "non_unit_context_anchor": "test \"list sort honors comparator context with non-unit magnitudes\"",
+      "non_unit_repeat_sort_anchor": "test \"list sort reuses non-unit comparator context across repeated reordering\"",
+      "signed_subtractive_anchor": "test \"list sort accepts signed subtractive comparator\"",
+      "signed_subtractive_repeat_sort_anchor": "test \"list sort reuses signed subtractive comparator context across repeated reordering\"",
+      "signed_subtractive_ties_anchor": "test \"list sort preserves current signed-subtractive order when a later pass ties everything\"",
       "all_ties_anchor": "test \"list sort preserves input order when every comparison ties\"",
       "empty_singleton_anchor": "test \"list sort handles empty and singleton lists\"",
-      "review_packet_summary": "keep list_sort parked in the shared-replay helper family for fixture ownership, but reread the helper-local proof packet before reopening the lane: current master already names direct witnesses for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, and empty-or-singleton handling beside the committed parity keys",
-      "next_safe_step_note": "If this helper lane reopens, keep list_sort parked unless a fresh reread finds drift in the committed `tri_sorted_*` or `bool_sorted_*` fixture keys, or in the current helper-local anchors for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, all-ties stability, or empty-or-singleton handling; do not widen into the missing shared replay stack by default."
+      "review_packet_summary": "keep list_sort parked in the shared-replay helper family for fixture ownership, but reread the helper-local proof packet before reopening the lane: current master already names direct witnesses for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, non-unit comparator-magnitude handling, non-unit comparator-context reordering, repeated non-unit comparator-context reordering, signed subtractive comparator handling, repeated signed subtractive comparator-context reordering, signed-subtractive tie-preserving rerun behavior, all-ties stability, and empty-or-singleton handling beside the committed parity keys",
+      "next_safe_step_note": "If this helper lane reopens, keep list_sort parked unless a fresh reread finds drift in the committed `tri_sorted_*` or `bool_sorted_*` fixture keys, or in the current helper-local anchors for comparator-context ordering, repeat-sort circular integrity, reverse-link alignment, sorted-input idempotence, parity-bucket stability, longer modulo-bucket stability, non-unit comparator-magnitude handling, non-unit comparator-context reordering, repeated non-unit comparator-context reordering, signed subtractive comparator handling, repeated signed subtractive comparator-context reordering, signed-subtractive tie-preserving rerun behavior, all-ties stability, or empty-or-singleton handling; do not widen into the missing shared replay stack by default."
     },
     "tools/lib/string.zig": {
       "helper_test_anchors": [
