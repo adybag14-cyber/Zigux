@@ -103,6 +103,15 @@ EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS = [
     'test "Linux-style aliases mirror the primary find helpers"',
 ]
 
+EXPECTED_FIND_BIT_SOURCE_SYMBOLS = [
+    "pub fn findFirstAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
+    "pub fn find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
+    "pub fn _find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
+    "pub fn findNextAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
+    "pub fn _find_next_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize, start: usize) usize {",
+]
+
 EXPECTED_FIND_BIT_REVIEW_FIELDS = {
     "same_word_start_masks": 'test "single-word next scans honor start masks"',
     "inclusive_boundary_start": 'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
@@ -316,6 +325,14 @@ def collect_failures(root: Path) -> list[str]:
                 anchor,
             )
         )
+    for symbol in EXPECTED_FIND_BIT_SOURCE_SYMBOLS:
+        failures.extend(
+            require_exact_occurrence(
+                find_bit_text,
+                f"{FIND_BIT_HELPER_REL.as_posix()}:source_symbol",
+                symbol,
+            )
+        )
 
     return failures
 
@@ -376,7 +393,10 @@ def make_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(root / FIND_BIT_HELPER_REL, "\n".join(EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS) + "\n")
+    write_text(
+        root / FIND_BIT_HELPER_REL,
+        "\n".join(EXPECTED_FIND_BIT_SOURCE_SYMBOLS + EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS) + "\n",
+    )
 
 
 def run_self_test() -> int:
@@ -564,6 +584,18 @@ def run_self_test() -> int:
                     indent=2,
                 )
                 + "\n",
+            ),
+            False,
+        ),
+        (
+            "missing_find_bit_source_symbol",
+            lambda root: write_text(
+                root / FIND_BIT_HELPER_REL,
+                replace_once(
+                    load_text(root, FIND_BIT_HELPER_REL),
+                    EXPECTED_FIND_BIT_SOURCE_SYMBOLS[0] + "\n",
+                    "",
+                ),
             ),
             False,
         ),
