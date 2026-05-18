@@ -44,6 +44,8 @@ Those directly readable surfaces agree on the same bounded message:
 
 The landed workqueue packet is strong enough to keep the following review-only areas explicit:
 
+  * boundary-map-only submission routing through `queue_work_on()` and `__queue_work()`
+  * boundary-map-only allocation and attribute shaping through `__alloc_workqueue()` and `devm_alloc_workqueue()`
   * pending-bit claim windows
   * delayed timer handoff back into `__queue_work()`
   * delayed requeue governance
@@ -51,6 +53,8 @@ The landed workqueue packet is strong enough to keep the following review-only a
   * rescuer mayday coordination
   * scheduler-visible worker-state transitions
   * hotplug topology rebinding
+
+Those two boundary-map-only entrypoint groups are the current roadmap-backed bridge foothold. The rest of the packet stays review-only so Phase 14 can keep `kernel/workqueue.c` honest as a boundary-study target without implying live worker execution or wrapper ownership.
 
 The packet is still blocked from claiming:
 
