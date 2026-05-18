@@ -37,7 +37,7 @@ That remains high-value because `virtio_net.c` spans probe-time negotiation, que
 - current `master` now carries `zigux/tests/phase12_virtio_net_survey.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net_manifest.json`
 - current `master` now carries `zigux/tests/phase12_build.zig`
-- the shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable beside the direct starter packet
+- the shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable beside the direct starter packet, while the post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route
 
 Those checks mean the current lane is no longer a reland placeholder. The published packet now keeps a bounded Zig starter, direct test packet, dedicated syntax lab, dedicated survey gate, manifest, and shared Phase 12 build route on `master`, while still stopping below any live runtime DMA or transport-backed data-path claim.
 
@@ -57,7 +57,7 @@ The truthful current boundary is still intentionally narrow:
 
 - the bounded starter and its directly coupled tests are present on `master`
 - the starter now includes the queue-resume, transmit-recycle, and post-reset replay follow-ups beside queue-topology, refill-order, control-queue recovery, control-queue payload shaping, and queue-reset recovery reviewability
-- the shared Phase 12 build route includes the dedicated `virtio_net` syntax-lab smoke shard plus the direct queue-resume and transmit-recycle replays
+- the shared Phase 12 build route includes the dedicated `virtio_net` syntax-lab smoke shard plus the direct queue-resume and transmit-recycle replays, while the post-reset replay remains outside `zigux/tests/phase12_build.zig`
 - the packet still does not claim live DMA-safe receive ownership, page-pool wiring, refill execution, transport-backed submit flow, interrupt-backed completion handling, or full `net_device` lifecycle parity
 - throughput and recovery parity remain roadmap requirements that need later bounded follow-ups before any broader complex-driver claim becomes honest
 
@@ -90,5 +90,5 @@ If this lane reopens, keep the follow-through inside the same packet.
 The next bounded step is:
 
 1. reread `Documentation/zigux/phase12-virtio-net-survey.md`, `zigux/tests/phase12_virtio_net_manifest.json`, and `zigux/tests/phase12_virtio_net_survey.zig` together
-2. fix only the next packet-local stale scaffold, perf-drift note, or exact reviewability refresh
+2. fix only the next packet-local stale scaffold, build-route omission note, or exact reviewability refresh
 3. leave queue-execution, throughput, and broader recovery expansion to their own later Phase 12 follow-up lanes
