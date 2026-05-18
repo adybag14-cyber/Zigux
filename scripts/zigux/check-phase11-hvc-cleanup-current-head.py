@@ -504,7 +504,6 @@ def run_self_test() -> int:
         missing_hv_ops_root = tmpdir / "missing_hv_ops_marker"
         shutil.copytree(fixture, missing_hv_ops_root, dirs_exist_ok=True)
         hv_ops_path = missing_hv_ops_root / HV_OPS_PROOF_PATH
-        hv_ops_path.writeText = None
         hv_ops_path.write_text(
             hv_ops_path.read_text(encoding="utf-8").replace(
                 'try expectContains(hvc_header, "(*dtr_rts)");',
