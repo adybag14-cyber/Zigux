@@ -183,8 +183,14 @@ pub fn build(b: *std.Build) void {
 
     const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");
     hexdump_test_step.dependOn(&run_hexdump_tests.step);
+    hexdump_test_step.dependOn(&run_hexdump_perf_matrix_tests.step);
     const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");
     hexdump_review_step.dependOn(&run_hexdump_perf_matrix_tests.step);
+    const hexdump_perf_matrix_test_step = b.step(
+        "phase6-hexdump-perf-matrix-test",
+        "Run Phase 6 hexdump perf matrix preflight",
+    );
+    hexdump_perf_matrix_test_step.dependOn(&run_hexdump_perf_matrix_tests.step);
 
     const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 helper perf gate");
     base64_perf_step.dependOn(&run_base64_perf.step);
@@ -202,4 +208,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_bsearch_c_abi_budget_tests.step);
     test_step.dependOn(&run_checksum_tests.step);
     test_step.dependOn(&run_hexdump_tests.step);
+    test_step.dependOn(&run_hexdump_perf_matrix_tests.step);
 }
