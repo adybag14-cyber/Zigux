@@ -157,6 +157,67 @@ test "phase10 virtio ring verify keeps broken queue fences visible until clear" 
     try std.testing.expectEqual(@as(u16, 1), poll.newly_used_chain_count);
 }
 
+test "phase10 virtio ring verify exposes reset-readiness blocker ordering after clearBroken releases queue debt" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(2, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(2);
+    try ring.publishDescriptorChain(2);
+
+    var readiness = try summarizeResetReadiness(&ring, 2);
+    try std.testing.expectEqualStrings("unpublished_chains", @tagName(readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 2), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), readiness.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
+    try std.testing.expect(!readiness.reset_ready);
+
+    _ = try ring.markBroken(2);
+    readiness = try summarizeResetReadiness(&ring, 2);
+    try std.testing.expectEqualStrings("queue_broken", @tagName(readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 2), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), readiness.outstanding_chain_count);
+
+    const cleared = try ring.clearBroken(2);
+    try std.testing.expect(!cleared.broken);
+    try std.testing.expectEqual(@as(u16, 2), cleared.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), cleared.outstanding_chain_count);
+
+    readiness = try summarizeResetReadiness(&ring, 2);
+    try std.testing.expectEqualStrings("unpublished_chains", @tagName(readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 2), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), readiness.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
+
+    const kick = try ring.prepareKick(2);
+    try std.testing.expect(kick.needs_kick);
+    try std.testing.expectEqual(@as(u16, 2), kick.num_added);
+
+    readiness = try summarizeResetReadiness(&ring, 2);
+    try std.testing.expectEqualStrings("outstanding_chains", @tagName(readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 0), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), readiness.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
+
+    try ring.recordUsedChains(2, 2);
+    readiness = try summarizeResetReadiness(&ring, 2);
+    try std.testing.expectEqualStrings("unpolled_used_chains", @tagName(readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 0), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), readiness.pending_used_chain_count);
+    try std.testing.expect(queueNeedsResetPoll(readiness));
+
+    const poll = try ring.pollUsedBuffers(2);
+    try std.testing.expectEqual(@as(u16, 2), poll.newly_used_chain_count);
+
+    readiness = try summarizeResetReadiness(&ring, 2);
+    try std.testing.expect(readiness.reset_ready);
+    try std.testing.expect(readiness.blocker == null);
+    try std.testing.expectEqual(@as(u16, 0), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
+    try std.testing.expect(!queueNeedsResetPoll(readiness));
+}
+
 test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {
     var ring = virtio_ring.VirtioRingLab{};
     try ring.defineQueue(6, 8, .packed_ring, true, true);
