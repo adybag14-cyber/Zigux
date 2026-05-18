@@ -3,7 +3,7 @@
 This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.
 
 - surveyed head: `61e026c`
-- lane scope: shared helper-evidence rows only
+- lane scope: shared helper-evidence rows and machine-readable manifest only
 - shared scripts-root reminder: `scripts/zigux/README.md`
 - shared tests-root reminder: `zigux/tests/README.md`
 - shared docs-root reminder: `Documentation/zigux/README.md`
