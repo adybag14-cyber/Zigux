@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-ARTIFACT_DIFF = ROOT / "scripts" / "zigux" / "artifact_diff.py"
+ARTIFACT_DIFF_REL = Path("scripts") / "zigux" / "artifact_diff.py"
 
 EXPECTED_CONTRACT_CASES = [
     "helper_self_test",
@@ -20,6 +20,8 @@ EXPECTED_CONTRACT_CASES = [
     "cli_missing_required_args",
     "cli_missing_actual_operand",
     "cli_invalid_mode",
+    "bytes_family_legacy_sha256_alias_pass",
+    "sha256_family_legacy_bytes_mode_rejected",
     "text_pass",
     "text_pass_repeat",
     "text_mismatch",
@@ -113,6 +115,14 @@ INVALID_MODE_ERROR_BY_FAMILY = {
     ),
 }
 
+LEGACY_BOUNDARY_ERROR_BY_FAMILY = {
+    "sha256": (
+        "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] "
+        "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
+        "choice: 'bytes' (choose from text, json, sha256)"
+    ),
+}
+
 HELP_LINES_BY_FAMILY = {
     "bytes": BYTES_HELP_LINES,
     "sha256": SHA256_HELP_LINES,
@@ -169,6 +179,9 @@ EXPECTED_SELF_TEST_CASES = [
     "parser_error_bytes_round_trip",
     "parser_error_sha256_round_trip",
     "parser_error_drift",
+    "family_boundary_bytes_alias_round_trip",
+    "family_boundary_sha256_rejected_round_trip",
+    "family_boundary_drift",
     "contract_summary_round_trip",
     "contract_summary_base_count_drift",
     "contract_summary_repeat_count_drift",
@@ -178,7 +191,7 @@ EXPECTED_SELF_TEST_CASES = [
 
 def run_helper(args: list[str], *, root: Path) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(root / ARTIFACT_DIFF), *args],
+        [sys.executable, str(root / ARTIFACT_DIFF_REL), *args],
         check=False,
         capture_output=True,
         text=True,
@@ -442,6 +455,32 @@ def run_check(root: Path) -> int:
             repeat_count=2,
         )
 
+        blob_a.write_bytes(b"zigux-artifact-diff")
+        blob_b.write_bytes(b"zigux-artifact-diff")
+
+        if family == "bytes":
+            run_contract_case(
+                root,
+                ["--mode", "sha256", str(blob_a), str(blob_b)],
+                expected_exit=0,
+                expected_lines=[
+                    "ARTIFACT_DIFF=pass",
+                    "MODE=bytes",
+                    f"EXPECTED={blob_a}",
+                    f"ACTUAL={blob_b}",
+                    f"SHA256={expected_sha256_hex(blob_a)}",
+                ],
+            )
+        else:
+            run_error_contract_case(
+                root,
+                ["--mode", "bytes", str(blob_a), str(blob_b)],
+                expected_exit=2,
+                expected_stdout_lines=[],
+                expected_stderr_normalized=LEGACY_BOUNDARY_ERROR_BY_FAMILY[family],
+                repeat_count=2,
+            )
+
         run_contract_case(
             root,
             ["--mode", "text", str(expected), str(actual)],
@@ -623,8 +662,6 @@ def run_check(root: Path) -> int:
             ],
         )
 
-        blob_a.write_bytes(b"zigux-artifact-diff")
-        blob_b.write_bytes(b"zigux-artifact-diff")
         run_contract_case(
             root,
             ["--mode", hash_mode_arg, str(blob_a), str(blob_b)],
@@ -792,11 +829,34 @@ def run_self_test() -> int:
     )
     covered_cases.append("parser_error_drift")
 
+    if "legacy_sha256_alias" not in HELPER_SELF_TEST_LINES_BY_FAMILY["bytes"][2]:
+        raise AssertionError("bytes family legacy alias marker drifted")
+    covered_cases.append("family_boundary_bytes_alias_round_trip")
+
+    if "choice: 'bytes' (choose from text, json, sha256)" not in LEGACY_BOUNDARY_ERROR_BY_FAMILY["sha256"]:
+        raise AssertionError("sha256 family bytes rejection drifted")
+    covered_cases.append("family_boundary_sha256_rejected_round_trip")
+
+    expect_assertion(
+        "family_boundary_drift",
+        lambda: assert_output_lines(
+            [
+                LEGACY_BOUNDARY_ERROR_BY_FAMILY["sha256"].replace(
+                    "choice: 'bytes'",
+                    "choice: 'binary'",
+                )
+            ],
+            [LEGACY_BOUNDARY_ERROR_BY_FAMILY["sha256"]],
+            "family_boundary",
+        ),
+    )
+    covered_cases.append("family_boundary_drift")
+
     assert_contract_summary_output(expected_contract_summary_lines())
     covered_cases.append("contract_summary_round_trip")
 
     bad_base_count = expected_contract_summary_lines()
-    bad_base_count[1] = "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=22"
+    bad_base_count[1] = "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=24"
     expect_assertion(
         "contract_summary_base_count_drift",
         lambda: assert_contract_summary_output(bad_base_count),
@@ -812,7 +872,7 @@ def run_self_test() -> int:
     covered_cases.append("contract_summary_repeat_count_drift")
 
     bad_case_count = expected_contract_summary_lines()
-    bad_case_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27"
+    bad_case_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=29"
     expect_assertion(
         "contract_summary_case_count_drift",
         lambda: assert_contract_summary_output(bad_case_count),
