@@ -23,9 +23,11 @@ DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
+    "pinned archive-integrity replay",
     "pinned Zig toolchain",
 )
 
