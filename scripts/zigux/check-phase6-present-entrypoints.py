@@ -106,7 +106,7 @@ EXPECTED_HELPERS = [
             "scripts/zigux/check-phase6-checksum-c-parity.py",
         ],
         "slice_note": "Documentation/zigux/phase6-checksum-slice.md",
-        "current_review_posture": "direct-readback-limited",
+        "current_review_posture": "direct-helper-readback-restored",
     },
     {
         "key": "hexdump",
@@ -126,7 +126,6 @@ EXPECTED_HELPERS = [
 EXPECTED_CURRENT_REPO_REALITY_GAPS = [
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md",
-    "Documentation/zigux/phase6-checksum-slice.md",
     "Documentation/zigux/phase6-hexdump-slice.md",
     "Documentation/zigux/phase6-hexdump-perf-refresh.md",
     "zigux/tests/phase6_helper_parity_manifest.json",
@@ -161,7 +160,6 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback warning",
     "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
     "- `Documentation/zigux/phase6-perf-gate-survey.md`",
-    "- `Documentation/zigux/phase6-checksum-slice.md`",
     "- `Documentation/zigux/phase6-hexdump-slice.md`",
     "- `Documentation/zigux/phase6-hexdump-perf-refresh.md`",
     "- `zigux/tests/phase6_helper_parity_manifest.json`",
@@ -174,7 +172,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- focused C ABI replays: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
     "- last-known companion packet members still needing fresh direct reads: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     "- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, and the restored shared build foothold `zigux/tests/phase6_build.zig`, while the dedicated corpus checker still needs fresh direct reads before it is presented as current shipped evidence",
-    "- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence now includes `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders; the slice note and direct C parity members still need fresh direct reads before they are presented as current shipped evidence",
+    "- current review posture: direct helper-local evidence is readable again through `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `Documentation/zigux/phase6-checksum-slice.md`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders, while the direct C parity companions still need fresh direct reads before they are presented as current shipped evidence",
     "- current review posture: the roadmap-backed hexdump packet still points at the right formatting and slowdown surfaces, but current direct evidence is limited to this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders until fresh direct reads confirm the helper-local replay, dedicated slowdown replay, perf-matrix preflight, checker, perf refresh note, and slice note again",
     "## Last-known shared replay inventory",
     "- `make -C zigux phase6-hexdump-perf`",
@@ -366,17 +364,17 @@ def run_self_test() -> None:
 
         write(
             catalog_path,
-            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[17] + "\n", "", 1),
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[16] + "\n", "", 1),
         )
-        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[17])
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[16])
         cases_run += 1
         scaffold_repo(root)
 
         write(
             catalog_path,
-            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[18] + "\n", "", 1),
+            read_text(catalog_path).replace(REQUIRED_CATALOG_SNIPPETS[17] + "\n", "", 1),
         )
-        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[18])
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[17])
         cases_run += 1
         scaffold_repo(root)
 
@@ -480,7 +478,7 @@ def run_self_test() -> None:
 
         manifest = json.loads(read_text(manifest_path))
         manifest["helpers"][2]["current_review_posture"] = (
-            "direct-helper-readback-restored"
+            "direct-readback-limited"
         )
         write(manifest_path, json.dumps(manifest, indent=2) + "\n")
         expect_failure(root, "helper packet mismatch")
