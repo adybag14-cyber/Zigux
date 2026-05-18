@@ -33,6 +33,10 @@ MAKEFILE_MARKERS = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
     "phase2-kconfig:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
     "phase2-cross:",
@@ -42,7 +46,7 @@ MAKEFILE_MARKERS = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 8
+EXPECTED_SELF_TEST_CASE_COUNT = 12
 
 
 def read_text(path: Path) -> str:
@@ -102,7 +106,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     makefile_text = read_text(resolve_path(root, MAKEFILE))
     for marker in MAKEFILE_MARKERS:
-        if marker not in makefile_text:
+        if count_exact_lines(makefile_text, marker) == 0:
             issues.append(("MISSING_MAKEFILE_MARKERS", marker))
 
     for path, gap_code, route_code in (
@@ -159,6 +163,15 @@ def replace_once(text: str, marker: str) -> str:
     return text.replace(marker, "", 1)
 
 
+def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_required_make_routes_") as tmp_dir:
@@ -167,6 +180,16 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
+
+        for marker in (MAKEFILE_MARKERS[10], MAKEFILE_MARKERS[11], MAKEFILE_MARKERS[12], MAKEFILE_MARKERS[13]):
+            build_self_test_root(root)
+            makefile_path = resolve_path(root, MAKEFILE)
+            makefile_path.write_text(
+                replace_exact_line(makefile_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("MISSING_MAKEFILE_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         makefile_path = resolve_path(root, MAKEFILE)
