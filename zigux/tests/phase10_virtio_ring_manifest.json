@@ -1,5 +1,5 @@
 {
-  "lane_key": "P10-L10",
+  "lane_key": "P10-L05",
   "phase": "Phase 10",
   "surveyed_commit": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
   "anchor": "drivers/virtio/virtio_ring.c",
