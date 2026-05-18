@@ -53,7 +53,8 @@ Phase 2 notes
 - `zigux/tests/fixtures/kconfig_bridge/cases.json`
 now keep the current directly readable Phase 2 toolchain, kbuild, and kconfig bridge packet visible from the docs root instead of rebuilding the older closure-side validator stack from missing current-`master` paths.
   * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, so treat those closure-side, validator-first, cross-route, artifact-roster, and Linux-style make-route names as historical packet members until same-lane work rematerializes them on `master`.
-  * keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the pinned Zig toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, the current kconfig fixture roster, and the current reminder routes `make -C zigux phase2-validate` plus `make -C zigux phase2`, without reviving missing closure, cross-target, artifact-tools, installer, or make-wrapper proof text.
+  * keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the pinned Zig toolchain policy, the surviving kbuild and alignment guards, the live `conf_bridge` plus `confdata_bridge` helpers, the current kconfig fixture roster, and the current reminder routes `make -C zigux phase2-validate` plus `make -C zigux phase2`.
+  * without reviving missing closure, cross-target, artifact-tools, installer, or make-wrapper proof text.
 Phase 3 notes
 - `Documentation/zigux/phase3-abi-slice.md`
 - `Documentation/zigux/phase3-errptr-xarray-slice.md`
@@ -96,7 +97,7 @@ Phase 4 notes
 - `scripts/zigux/check-phase4-repo-reality-warning.py`
 - `scripts/zigux/check-phase4-reversible-delivery-pins.py`
 Phase 4 notes - `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` now keep the current direct-readback rollback packet reviewable from the docs root while the broader validator, lab-matrix, local-only perf, and bitmap-diff companions remain repo-reality gaps on current `master`.
-  * keep the broader Phase 4 repo-reality gaps explicit from the docs root too: `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` should stay framed as broader missing-current-head companions until fresh authenticated readback restores them.
+  * keep the broader Phase 4 repo-reality gaps explicit from the docs root too: `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, `zigux/tests/atomic64_diff.zig`, `zigux/tests/runtime_atomic64_diff.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` should stay framed as broader missing-current-head companions until fresh authenticated readback restores them.
   * keep the pending shared-CI perf-promotion posture explicit instead of implying those broader Phase 4 routes are live current-head evidence.
 Phase 5 notes
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
@@ -123,6 +124,22 @@ now keep the current Phase 6 docs-root reminder packet explicit from the documen
   * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` docs-root evidence.
   * keep the docs-root Phase 6 summary aligned with `Documentation/zigux/phase6-helper-evidence-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, and `scripts/zigux/check-phase6-present-entrypoints.py`, so the shared helper packet keeps the bounded base64, bsearch, checksum, and hexdump evidence rows truthful without widening into missing helper-local parity or perf surfaces.
   * keep the roadmap-backed leaf-helper anchors explicit here too: `lib/base64.c`, `lib/bsearch.c`, `lib/checksum.c`, and `lib/hexdump.c` stay the Phase 6 scope, and follow-through should remain limited to reminder-surface truthfulness, helper-local parity, or perf-gate drift inside that bounded packet rather than runtime-core or freeze-map targets.
+Phase 9 notes
+- `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
+- `Documentation/zigux/review-checklist.md`
+- `samples/zigux/README.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`
+- `scripts/zigux/check-phase9-trace-events-runtime-packet.py`
+- `samples/zigux/runtime_trace_events.zig`
+- `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+- `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
+now keep the current docs-root Phase 9 reminder packet explicit from the documentation root so contributor guidance matches the surviving narrow trace-events runtime sample family without reviving the removed shared runtime-loader packet by implication.
+  * keep the docs-root Phase 9 summary aligned with `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`, so the docs root mirrors the same narrow runtime selftest-hook, lifecycle, fail-closed, and balanced registration-reentry packet that current `master` still exposes.
+  * keep the current direct runtime-module evidence explicit here too: `samples/zigux/runtime_trace_events.zig` still exposes `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking, while `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps the same narrow packet's unregistered function-thread failures fail-closed plus its initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks, and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` keeps balanced function-thread registration reusable across the initialized and selftest_complete stages instead of implying the broader shared runtime-loader family returned.
+  * current `master` does not currently expose the broader shared runtime-loader packet, so `zigux/tests/phase9_build.zig`, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the older `samples/zigux/runtime_*_loader.zig` scaffolds should stay framed as backlog references unless a fresh repo reread proves they have returned.
+  * keep the older non-owner boundaries explicit here too: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence, and keep `kernel/workqueue.c` plus `kernel/trace/ring_buffer.c` framed only through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` instead of as runtime-pilot bridge-readiness cues.
 Phase 13 notes
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
@@ -155,17 +172,28 @@ now keep the current docs-root Phase 14 reminder packet honest from the document
   * keep the four roadmap-owned anchors explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay in the study-only boundary bucket, while `net/core/skbuff.c` and `kernel/rcu/tree.c` stay freeze-in-C anchors until the Architecture Council records a status change with parity-scorecard evidence. This docs-root reminder should keep those anchors visible without implying direct Phase 14 parity delivery.
   * keep the next honest follow-through narrow and notes-first: either re-materialize the missing shared-smoke survey, validator, and build packet on current `master`, or tighten the remaining broad reminder surfaces so they only claim directly recoverable evidence. The attached-toolchain fallback remains a separate recorded same-family guidance gap and should not be turned into a new replay route or an anchor-local status change from this docs-root note.
 Phase 15 notes
+- `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-parity-scorecard-survey.md`
 - `Documentation/zigux/phase15-readiness-gate-survey.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+- `Documentation/zigux/phase15-shared-summary-gap.md`
 - `scripts/zigux/check-phase15-docs-readme-alignment.py`
 - `scripts/zigux/check-phase15-scripts-readme-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/validate-phase15.py`
+- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
+- `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
+- `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 now keep the current docs-root Phase 15 handoff packet explicit from the documentation root without implying any Architecture Council approval for a freeze-map status change.
-  * the shared Phase 15 docs-root handoff should also keep the named reopen trigger, any deep-core blocker-posture change, and the current governance reminder split explicit through the readiness survey, handoff survey, governance sequencing note, study-only anchor accounting note, the docs-root and scripts-root alignment checkers, the shared-summary gap checker, and the focused review-process handoff checker.
-  * treat `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig` as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence, and keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim.
+  * the shared Phase 15 docs-root handoff should also keep the named reopen trigger, any deep-core blocker-posture change, and the current governance reminder split explicit through the freeze-map governance note, the Architecture Council review-process note, the dedicated decision-record template, the indefinite-C policy note, the parity scorecard plus roadmap-facing survey, the readiness and handoff surveys, the governance sequencing note, the study-only anchor accounting note, the shared-summary gap note, the docs-root and scripts-root alignment checkers, the shared-summary gap checker, the focused review-process handoff checker, and the dedicated `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, `zigux/tests/phase15_indefinite_c_policy.json`, and `zigux/tests/phase15_indefinite_c_policy.zig` companions while the four freeze-in-C anchors and two study-only anchors stay parked.
+  * treat `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes as broader repo-reality gap vocabulary here until direct current-`master` readback proves they have returned as landed evidence, and keep the current docs-root reminder narrowed to truthfulness maintenance rather than a fresh freeze-map status change claim.
