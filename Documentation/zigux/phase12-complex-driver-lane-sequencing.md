@@ -24,17 +24,9 @@ It keeps the starter-present network packet and the storage-facing reminder surf
 - Treat the current `virtio_net` family as a starter-present direct-replay packet
 - `drivers/net/virtio_net.zig`, `zigux/tests/phase12_virtio_net.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig` are now present on `master`
 - `drivers/net/virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `drivers/net/virtio_net_queue_resume.zig`, and `zigux/tests/phase12_virtio_net_queue_resume.zig` are now present on `master` as bounded transmit-disposition and queue-resume reviewability follow-ups inside that same shared packet
-- Keep the shared validator-first then smoke-first order fixed unless a new shipped route lands first:
-  1. `make -C zigux phase12-validate`
-  2. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-  3. `make -C zigux phase12-smoke`
-  4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-  5. `make -C zigux phase12`
-- Keep the degraded-workflow support bundle explicit beside that same order too:
-  - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
-  - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
-  - `make -C zigux phase12-validate`
-- Keep the current partial direct-read bridge explicit too: `Documentation/zigux/phase12-raw-github-coverage-survey.md` now records that `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, and `zigux/Makefile` are directly readable on current `master`, while `zigux/tests/phase12_build.zig` still fails through the same bridge, so that readable checker-plus-workflow-plus-scripts-plus-Makefile set stays reminder evidence only rather than proof for the larger shared packet.
+- Keep the shared validator-first then smoke-first packet wording explicit, but current `zigux/Makefile` no longer ships `phase12-validate`, `phase12-smoke`, or `phase12`, so those route names are stale reminder vocabulary rather than current wrapper proof until same-lane work rematerializes them.
+- The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, while the older `make -C zigux phase12-validate`, `make -C zigux phase12-smoke`, and `make -C zigux phase12` names stay documented only as shared reminder text until the wrapper layer returns on current `master`.
+- Keep the current partial direct-read bridge explicit too: `Documentation/zigux/phase12-raw-github-coverage-survey.md` now records that `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, and `zigux/Makefile` are directly readable on current `master`, while `zigux/tests/phase12_build.zig` still fails through the same bridge, and the readable Makefile still stops short of the `phase12-*` wrappers, so that checker-plus-workflow-plus-scripts-plus-Makefile set stays reminder evidence only rather than proof for the larger shared packet.
 
 ## Anti-Overlap Rules
 
@@ -52,9 +44,9 @@ It keeps the starter-present network packet and the storage-facing reminder surf
 
 - stops undercounting the newly landed `virtio_net` starter
 - This note must not imply active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`.
-- This note must keep the shared release wording bounded to the starter-present `virtio_net` packet, its bounded `virtio_net_transmit_recycle` and `virtio_net_queue_resume` reviewability follow-ups, the directly readable but still survey-lane-split `virtio_scsi` rollback-lab packet, the published-but-still-unwired NVMe foothold, and the shipped validator-first support bundle.
+- This note must keep the shared release wording bounded to the starter-present `virtio_net` packet, its bounded `virtio_net_transmit_recycle` and `virtio_net_queue_resume` reviewability follow-ups, the directly readable but still survey-lane-split `virtio_scsi` rollback-lab packet, the published-but-still-unwired NVMe foothold, and the directly readable validator-side support bundle while the `phase12-*` Make-wrapper names remain stale reminder vocabulary on current `master`.
 - This note must not recast the parked libbpf packet as direct shared replay or as a second active complex-driver lane.
 
 ## Next Bounded Step
 
-If the shared Phase 12 packet moves again, reread this note beside `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `scripts/zigux/check-build-only-phase12-surface.py`, and `zigux/tests/README.md` before widening any driver-local claims. If the `virtio_scsi` packet drifts again, keep future same-lane follow-through parked inside one shared anti-overlap or checker truthfulness repair at a time, and leave exact survey-packet lane-key or verified-on realignment to the packet-local `P12-L09` surfaces rather than re-blurring the shared and driver-local Phase 12 lanes here.
+If the shared Phase 12 packet moves again, reread this note beside `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `scripts/zigux/check-build-only-phase12-surface.py`, and `zigux/tests/README.md` before widening any driver-local claims. If the `virtio_scsi` packet drifts again, keep future same-lane follow-through parked inside one shared anti-overlap or checker truthfulness repair at a time, and leave exact survey-packet lane-key or verified-on realignment to the packet-local `P12-L09` surfaces rather than re-blurring the shared and driver-local Phase 12 lanes.
