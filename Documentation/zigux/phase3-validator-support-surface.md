@@ -2,7 +2,7 @@
 
 This note records the current validator-facing Phase 3 surface on live `master`.
 
-Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice with both starter-packet and fixture-backed parity coverage, one focused helper-local policy slice with a reusable layout guard and bounded narrow-surface cross-check, and one adjacent export/UAPI layout replay pair. It does not currently ship the broader validator, export/UAPI survey, catalog, or shared Phase 3 replay packet that older reminder surfaces still name.
+Current `master` now carries one bounded `dev_t` starter packet with paired `dev_t` and version bindings plus a directly readable export shim companion, one focused helper-local `err_ptr` / `xarray` interop slice with both starter-packet and fixture-backed parity coverage, one focused helper-local policy slice with a reusable layout guard and bounded narrow-surface cross-check, and one adjacent export/UAPI layout replay pair. It does not currently ship the broader export/UAPI survey, catalog, or shared Phase 3 replay packet that older reminder surfaces still name, even though the shared `scripts/zigux/validate-phase3.py` validator entrypoint is directly readable on current `master`.
 
 ## Current starter packet present on `master`
 
@@ -71,9 +71,9 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 
 ## Review boundary
 
-Keep the shared Phase 3 reminder packet anchored to those three current-tree-backed slices until additional validator, broader export/UAPI survey, or shared replay proof lands.
+Keep the shared Phase 3 reminder packet anchored to those three current-tree-backed slices until additional broader export/UAPI survey or shared replay proof lands.
 
-Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, its starter export shim companion, its helper-local fixture-backed parity packet, the focused policy slice, or the adjacent export/UAPI layout replay pair as evidence that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
+Do not treat the current starter packet, its manifest-backed replay guard, its direct Zig compile replay, its starter export shim companion, its helper-local fixture-backed parity packet, the focused policy slice, the directly readable shared validator entrypoint, or the adjacent export/UAPI layout replay pair as evidence that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes already ship on `master`.
 
 ## Sampled broader gaps still absent on `master`
 
@@ -86,7 +86,7 @@ The following representative Phase 3 routes still read as absent on the live tre
 - `Documentation/zigux/phase3-abi-header-family-survey.md`
 - `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
 
-Current `master` does still ship the shared ABI validator entrypoint through `scripts/zigux/validate-phase3.py`, so treat that validator as separately readable support for the shared ABI binding surface rather than as an absent broader route.
+Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py`, but that single entrypoint should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.
 
 Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, and it separately ships the adjacent export/UAPI layout replay pair through `zigux/tests/phase3_export_uapi_layout.zig` and `zigux/tests/phase3_export_uapi_layout_build.zig`, but those separate wrapper and replay surfaces should not be used here to imply that the broader validator-support or export/UAPI survey packet has returned.
 
@@ -94,9 +94,9 @@ Current `master` does still ship the adjacent low-level-wrapper packet through `
 
 `Documentation/zigux/README.md` now reflects that bounded three-slice posture together with the returned notifier binding companion and adjacent export/UAPI layout replay, and should stay aligned with `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
 
-`zigux/tests/README.md` still needs one narrow truthfulness pass to stop framing `scripts/zigux/validate-phase3.py` as absent while keeping the broader export/UAPI survey and catalog routes parked as repo-reality gaps.
+`zigux/tests/README.md` now aligns with that bounded starter, notifier-binding, focused export/UAPI layout replay, and low-level-wrapper reminder packet, so shared-summary follow-through can stay separate from this validator-support note unless a fresh reread finds new same-packet drift on current `master`.
 
-`Documentation/zigux/phase3-shared-reminder-gap.md` remains the direct tracker for the remaining tests-root validator-presence follow-through while keeping scripts-root inventory follow-through separate.
+`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root shared reminder packet while keeping scripts-root inventory follow-through separate.
 
 `scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.
 
@@ -104,4 +104,4 @@ Keep any remaining follow-up focused on separate scripts-root inventory drift or
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, the helper-local fixture-backed parity packet, the focused policy slice, and the adjacent export/UAPI layout replay pair explicit; marks representative broader validator and export-boundary survey routes as current gaps; records the separately landed low-level-wrapper packet without promoting it into broader validator support; and records the docs-root reminder as aligned while leaving the remaining tests-root validator-presence follow-up and scripts-root inventory follow-through explicit. This note does not claim that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, the helper-local fixture-backed parity packet, the focused policy slice, the separately readable shared validator entrypoint, and the adjacent export/UAPI layout replay pair explicit; marks representative broader export-boundary survey, catalog, and shared replay routes as current gaps; records the separately landed low-level-wrapper packet without promoting it into broader validator support; and records the shared docs-root and tests-root reminders as aligned while keeping scripts-root follow-through separate. This note does not claim that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
