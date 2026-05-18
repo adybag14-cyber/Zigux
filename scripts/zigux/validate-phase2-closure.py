@@ -111,7 +111,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 38
+EXPECTED_SELF_TEST_CASE_COUNT = 39
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -139,6 +139,8 @@ def read_manifest(root: Path) -> dict[str, object]:
         payload = json.loads(resolved.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {resolved}") from exc
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"invalid json in required file: {resolved}: {exc}") from exc
     if not isinstance(payload, dict):
         raise SystemExit(f"manifest is not an object: {resolved}")
     return payload
@@ -482,7 +484,17 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        resolve_path(root, MANIFEST).write_text("[]\n", encoding="utf-8")
+        resolve_path(root, MANIFEST).write_text("{not-json}\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid json in required file" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid manifest json did not abort")
+
+        build_self_test_root(root)
+        resolve_path(root, MANIFEST).writeText("[]\n", encoding="utf-8")
         try:
             collect_issues(root)
         except SystemExit as exc:
