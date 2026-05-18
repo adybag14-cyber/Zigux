@@ -4,7 +4,7 @@ This note tracks the bounded Phase 5 survey for the roadmap's `samples/kprobes/k
 ## Status
 
   * `PHASE5_STATUS=restored-direct-sample-packet`
-  * `PHASE5_LANE_KEY=P5-Y05`
+  * `PHASE5_LANE_KEY=P5-L18`
   * `PHASE5_SLICE=kretprobe-sample-review-note-truthfulness`
   * `PHASE5_SURVEYED_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
   * scope: close one sample-local review-note gap without widening into Phase 9 runtime work
