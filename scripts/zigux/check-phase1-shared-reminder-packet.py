@@ -246,6 +246,22 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "missing_tests_build_route_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/build.zig",
+                MARKERS["zigux/tests/build.zig"][1],
+            ),
+        ),
+        (
+            "missing_tests_smoke_anchor_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/phase1_host_tools_smoke.zig",
+                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][1],
+            ),
+        ),
+        (
             "missing_tests_direct_packet_marker",
             lambda root: mutate_remove_marker(
                 root,
