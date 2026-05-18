@@ -25,6 +25,13 @@ REQUIRED_PROOF_ROUTE = {
     "proof_root_source_file": "phase11_hvc_cleanup_packet_proof.zig",
 }
 
+EXACT_CURRENT_CHECKS = (
+    "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase11-build-inventory.py",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+)
+
 BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
@@ -248,6 +255,11 @@ def run_check(root: Path) -> None:
         FORBIDDEN_BUILD_TEXT_MARKERS,
     )
     expect_exact_string_list(
+        "exact_current_checks",
+        inventory.get("exact_current_checks"),
+        EXACT_CURRENT_CHECKS,
+    )
+    expect_exact_string_list(
         "dedicated_survey_replays",
         inventory.get("dedicated_survey_replays"),
         REQUIRED_DEDICATED_SURVEY_REPLAYS,
@@ -295,6 +307,7 @@ def fixture_inventory() -> dict[str, object]:
             for test_name, module in REQUIRED_TEST_ROOT_MODULES.items()
         ],
         "forbidden_markers": list(FORBIDDEN_BUILD_TEXT_MARKERS),
+        "exact_current_checks": list(EXACT_CURRENT_CHECKS),
         "dedicated_survey_replays": list(REQUIRED_DEDICATED_SURVEY_REPLAYS),
         "shared_split_replays": [],
         "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
@@ -390,6 +403,14 @@ def run_self_test() -> int:
         inventory["build_test_names"] = inventory["build_test_names"][:-1]
         write(wrong_build_names / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_build_names, "build_test_names does not match")
+        case_count += 1
+
+        wrong_exact_checks = tmpdir / "wrong_exact_checks"
+        shutil.copytree(fixture, wrong_exact_checks, dirs_exist_ok=True)
+        inventory = read_json(wrong_exact_checks / INVENTORY_PATH)
+        inventory["exact_current_checks"] = inventory["exact_current_checks"][:-1]
+        write(wrong_exact_checks / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_exact_checks, "exact_current_checks does not match")
         case_count += 1
 
         wrong_adjunct_replays = tmpdir / "wrong_adjunct_replays"
