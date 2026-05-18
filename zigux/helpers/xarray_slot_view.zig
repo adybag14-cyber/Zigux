@@ -120,6 +120,35 @@ test "gap below err floor stays pointer-like and leaves tagged decoders closed" 
     try std.testing.expect(!isTaggedInternalEntry(raw));
 }
 
+test "cutoff boundary keeps value, pointer-like gap, then err in order" {
+    const value_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
+    const gap_raw = err_ptr.err_floor - 1;
+    const err_raw = err_ptr.err_floor;
+
+    const value_slot = fromRaw(value_raw);
+    const gap_slot = fromRaw(gap_raw);
+    const err_slot = fromRaw(err_raw);
+
+    try std.testing.expectEqual(err_ptr.err_floor - 2, value_raw);
+    try std.testing.expectEqual(value_raw + 1, gap_raw);
+    try std.testing.expectEqual(gap_raw + 1, err_raw);
+
+    try std.testing.expect(value_slot.isValue());
+    try std.testing.expectEqual(@as(?usize, xa_value.safe_inline_limit), value_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), value_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), value_slot.pointerValue());
+
+    try std.testing.expect(gap_slot.isPointer());
+    try std.testing.expectEqual(@as(?usize, gap_raw), gap_slot.pointerValue());
+    try std.testing.expectEqual(@as(?usize, null), gap_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), gap_slot.errorCode());
+
+    try std.testing.expect(err_slot.isErr());
+    try std.testing.expectEqual(@as(?isize, -4095), err_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), err_slot.value());
+    try std.testing.expectEqual(@as(?usize, null), err_slot.pointerValue());
+}
+
 test "inline zero stays a tagged value and keeps other decoders closed" {
     const raw = try xa_value.makeValue(0);
     const slot = fromRaw(raw);
