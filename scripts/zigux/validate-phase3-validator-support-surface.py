@@ -41,11 +41,11 @@ REQUIRED_NOTE_MARKERS = (
 )
 
 REQUIRED_SHARED_GAP_MARKERS = (
-    "PHASE3_SHARED_REMINDER_GAP=current master keeps the docs-root and tests-root Phase 3 summaries aligned with the landed notifier binding companion, bounded kernel-export-shim note, focused export/UAPI layout replay, low-level-wrapper reminder packet, and separately readable shared validator entrypoint",
-    "PHASE3_SHARED_REMINDER_NEXT_STEP=leave future same-lane follow-through parked unless a fresh reread shows a different bounded Phase 3 reminder surface changed again",
-    '`Documentation/zigux/README.md` is now aligned with the bounded current packet: it keeps `Documentation/zigux/phase3-kernel-export-shim-governance.md`, `zigux/bindings/notifier_abi.zig`, `zigux/tests/phase3_export_uapi_layout.zig`, `zigux/tests/phase3_export_uapi_layout_build.zig`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, and the low-level-wrapper helper-and-build surfaces explicit while still framing `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `Documentation/zigux/phase3-linux-zigux-header-governance.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, and `zigux/tests/fixtures/phase3_abi_manifest.json` as repo-reality gaps.',
-    '`zigux/tests/README.md` is now aligned on the returned notifier-binding, kernel-export-shim, focused export/UAPI layout replay, low-level-wrapper reminder packet, and separately readable shared validator entrypoint instead of keeping `scripts/zigux/validate-phase3.py` inside the broader repo-reality-gap list.',
-    "The earlier shared-reminder drift is now closed on both the shared docs-root and tests-root summaries.",
+    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, but the shared docs-root and tests-root Phase 3 summaries still lag that return and need a bounded shared-reminder refresh",
+    "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh Documentation/zigux/README.md and zigux/tests/README.md together so both shared Phase 3 reminders keep the returned packet-local export/UAPI survey note and validator explicit while leaving the wider linux-header-governance, catalog, and manifest gaps parked",
+    '`Documentation/zigux/README.md` currently still needs refresh: it keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` inside the repo-reality-gap bucket even though the packet-local survey note and validator now materialize on current `master`.',
+    '`zigux/tests/README.md` currently still needs the same refresh: it keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` framed as missing broader survey evidence even though both packet-local surfaces now read back on current `master`.',
+    "The earlier shared-reminder drift has narrowed but is not closed on the shared docs-root and tests-root summaries.",
 )
 
 SELF_TEST_NOTE_MARKERS = (
@@ -56,9 +56,9 @@ SELF_TEST_NOTE_MARKERS = (
 )
 
 SELF_TEST_GAP_MARKERS = (
-    "PHASE3_SHARED_REMINDER_GAP=current master keeps the docs-root and tests-root Phase 3 summaries aligned with the landed notifier binding companion, bounded kernel-export-shim note, focused export/UAPI layout replay, low-level-wrapper reminder packet, and separately readable shared validator entrypoint",
-    "PHASE3_SHARED_REMINDER_NEXT_STEP=leave future same-lane follow-through parked unless a fresh reread shows a different bounded Phase 3 reminder surface changed again",
-    "The earlier shared-reminder drift is now closed on both the shared docs-root and tests-root summaries.",
+    "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, but the shared docs-root and tests-root Phase 3 summaries still lag that return and need a bounded shared-reminder refresh",
+    "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh Documentation/zigux/README.md and zigux/tests/README.md together so both shared Phase 3 reminders keep the returned packet-local export/UAPI survey note and validator explicit while leaving the wider linux-header-governance, catalog, and manifest gaps parked",
+    "The earlier shared-reminder drift has narrowed but is not closed on the shared docs-root and tests-root summaries.",
 )
 
 
