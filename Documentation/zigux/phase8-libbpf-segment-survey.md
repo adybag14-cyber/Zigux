@@ -24,7 +24,7 @@ Exact current-`master` readback on 2026-05-18 still returns content for:
 - `tools/lib/bpf/zigux_segments/pin_path.zig`
 
 Those directly readable files keep a smaller helper-first packet explicit today:
-- `verify.zig` still imports `file_path_handle_bridge.zig`, `online_cpu_routing.zig`, `logging.zig`, `perf_buffer_poll.zig`, `pin_path.zig`, and `type_names.zig`, and it still checks bridge-local entrypoints such as `planTokenPreparation()` together with the routing-summary names `advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and `summarizeOnlineCpuRouting()`.
+- `verify.zig` still imports `file_path_handle_bridge.zig`, `online_cpu_routing.zig`, `logging.zig`, `perf_buffer_poll.zig`, `pin_path.zig`, and `type_names.zig`; it still checks bridge-local entrypoints such as `planTokenPreparation()` together with the routing-summary names `advanceOnlineCpuCursor()`, `summarizeNextOnlineCpuRoute()`, and `summarizeOnlineCpuRouting()`; and it now directly replays stable pin-path helper outputs for the default bpffs root, validated rooted pin paths, validated sanitized pin paths, and invalid name/root failures.
 - `type_names.zig` keeps the stable libbpf type-name tables and formatter outputs explicit.
 - `pin_path.zig` keeps the bounded bpffs path join, validation, and sanitization helpers explicit.
 - `Documentation/zigux/README.md` still keeps the broader Phase 8 libbpf helper packet visible from the docs root, including the bridge and routing surfaces.
@@ -43,7 +43,7 @@ It also means the coupled shared reminder packet stays on narrower footing today
 ## Current bounded gap
 The real same-lane gap is truthfulness about directly readable segment evidence, not a new helper implementation claim.
 
-Current `master` still exposes a real helper-first Phase 8 libbpf packet, but the directly readable subset is smaller than the broader bridge-and-build packet still named by docs-root reminder surfaces and `verify.zig`.
+Current `master` still exposes a real helper-first Phase 8 libbpf packet, and the focused verify shard now carries direct stable-output evidence for the currently readable pin-path helper surface, but the directly readable subset is still smaller than the broader bridge-and-build packet named by docs-root reminder surfaces.
 
 So the dedicated survey needs to keep four facts explicit at the same time:
 - the roadmap still calls for segmented libbpf delivery under `tools/lib/bpf/zigux_segments/`
