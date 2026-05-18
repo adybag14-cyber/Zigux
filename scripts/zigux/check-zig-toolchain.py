@@ -210,6 +210,7 @@ def iter_zig_search_roots(root: Path = ROOT) -> list[Path]:
     add_search_root(root / ".toolchains")
 
     for parent in root.parents:
+        add_search_root(parent / ".zig-toolchain")
         add_search_root(parent / ".toolchains")
         add_search_root(parent / "toolchains")
 
@@ -625,11 +626,16 @@ def run_self_test() -> int:
         alt_zig.write_text("#!/bin/sh\n", encoding="utf-8")
         alt_zig.chmod(0o755)
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(pinned_zig))
-        pinned_parent_root = root.parent / ".toolchains" / "nested" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
-        pinned_parent_root.mkdir(parents=True, exist_ok=True)
-        parent_pinned_zig = pinned_parent_root / "zig"
+        parent_pinned_root = root.parent / ".zig-toolchain" / "nested" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        parent_pinned_root.mkdir(parents=True, exist_ok=True)
+        parent_pinned_zig = parent_pinned_root / "zig"
         parent_pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
         parent_pinned_zig.chmod(0o755)
+        older_parent_fallback_root = root.parent / ".toolchains" / "nested" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        older_parent_fallback_root.mkdir(parents=True, exist_ok=True)
+        older_parent_fallback_zig = older_parent_fallback_root / "zig"
+        older_parent_fallback_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        older_parent_fallback_zig.chmod(0o755)
         pinned_zig.unlink()
         alt_zig.unlink()
         nonexec_repo_zig = root / ".zig-toolchain" / "zig"
