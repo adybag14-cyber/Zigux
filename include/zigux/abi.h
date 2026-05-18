@@ -89,6 +89,20 @@ struct zigux_notifier_block {
     int32_t priority;
 };
 
+struct zigux_list_head {
+    uintptr_t next;
+    uintptr_t prev;
+};
+
+struct zigux_hlist_head {
+    uintptr_t first;
+};
+
+struct zigux_hlist_node {
+    uintptr_t next;
+    uintptr_t pprev;
+};
+
 static inline int zigux_notifier_chain_has_nonincreasing_priority(
     const struct zigux_notifier_block *head)
 {
@@ -138,6 +152,53 @@ static inline int zigux_notifier_first_chain_priority_increase(
     }
 
     return 0;
+}
+
+static inline int zigux_list_has_consistent_backlinks(
+    const struct zigux_list_head *head)
+{
+    uintptr_t expected_prev;
+    const struct zigux_list_head *cursor;
+
+    if (!head)
+        return 0;
+
+    expected_prev = (uintptr_t)head;
+    cursor = (const struct zigux_list_head *)(uintptr_t)head->next;
+    if (!cursor)
+        return 0;
+
+    while (cursor != head) {
+        if (cursor->prev != expected_prev)
+            return 0;
+        expected_prev = (uintptr_t)cursor;
+        cursor = (const struct zigux_list_head *)(uintptr_t)cursor->next;
+        if (!cursor)
+            return 0;
+    }
+
+    return head->prev == expected_prev;
+}
+
+static inline int zigux_hlist_has_consistent_prev_links(
+    const struct zigux_hlist_head *head)
+{
+    uintptr_t expected_pprev;
+    const struct zigux_hlist_node *cursor;
+
+    if (!head)
+        return 0;
+
+    expected_pprev = (uintptr_t)&head->first;
+    cursor = (const struct zigux_hlist_node *)(uintptr_t)head->first;
+    while (cursor) {
+        if (cursor->pprev != expected_pprev)
+            return 0;
+        expected_pprev = (uintptr_t)&cursor->next;
+        cursor = (const struct zigux_hlist_node *)(uintptr_t)cursor->next;
+    }
+
+    return 1;
 }
 
 static inline zigux_boundary_header zigux_default_header(uint16_t flags)
