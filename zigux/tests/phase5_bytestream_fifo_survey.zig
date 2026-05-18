@@ -53,7 +53,7 @@ test "phase 5 bytestream fifo manifest still records the bounded replay contract
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
 }
 
-test "phase 5 bytestream fifo survey packet keeps split-readback guidance explicit" {
+test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidance explicit" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -84,9 +84,9 @@ test "phase 5 bytestream fifo survey packet keeps split-readback guidance explic
     defer std.testing.allocator.free(survey_note);
 
     const required_mentions = [_][]const u8{
-        "PHASE5_STATUS=verified-split-readback-packet",
+        "PHASE5_STATUS=verified-direct-sample-and-tests-packet",
         "PHASE5_SLICE=kfifo-reference-sample-readback",
-        "across those two paths",
+        "sample-plus-tests packet",
         "sample-root file currently carries three in-file self-checks",
         "four focused replay tests",
         "four survey-packet checks",
@@ -94,7 +94,7 @@ test "phase 5 bytestream fifo survey packet keeps split-readback guidance explic
         "StorageBacking.embedded_fixed_buffer",
         "reviewContract().focus",
         "draining `\"hello\"` into a three-byte buffer yields `\"hel\"`",
-        "authenticated GitHub contents reads in this environment still do not recover `zigux/tests/phase5_bytestream_fifo.zig`",
+        "authenticated GitHub contents reads in this environment still do not recover `zigux/tests/phase5_build.zig`",
         "current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample",
     };
     for (required_mentions) |needle| {
@@ -108,6 +108,7 @@ test "phase 5 bytestream fifo survey packet keeps split-readback guidance explic
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_STATUS=parked") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "sample-root file currently carries one in-file self-check") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed all six in-file checks") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "still do not recover `zigux/tests/phase5_bytestream_fifo.zig`") == null);
 }
 
 test "phase 5 bytestream fifo survey note records the exact current check split" {
