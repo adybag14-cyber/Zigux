@@ -183,6 +183,9 @@ jobs:
       - name: Check current Phase 2 toolchain pin-scope packet
         run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py
 
+      - name: Run current Phase 2 toolchain make route
+        run: make -C zigux phase2-toolchain
+
       - name: Self-test current Phase 2 required-make-routes checker
         run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
 
@@ -257,7 +260,6 @@ jobs:
 
       - name: Check current Phase 4 tests README packet
         run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
-
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
 
