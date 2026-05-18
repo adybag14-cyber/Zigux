@@ -22,6 +22,7 @@ phase2-tools:
 phase2-kconfig:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py
+	cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/conf_bridge.zig
 	cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/confdata_bridge.zig
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py
