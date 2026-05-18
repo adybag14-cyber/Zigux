@@ -16,6 +16,17 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
 )
+FIXTURE_MARKERS = (
+    '"phase": "Phase 2",',
+    '"lane": 21,',
+    '"status": "starter",',
+    '"target_count": 3,',
+    '"x86_64-linux-musl",',
+    '"aarch64-linux-musl",',
+    '"riscv64-linux-musl"',
+    '"scripts/zigux/kconfig/conf_bridge.zig",',
+    '"scripts/zigux/kconfig/confdata_bridge.zig"',
+)
 CHECKER_OUTPUT_MARKERS = (
     'print("PHASE2_CROSS_REPLAY_MODE=single-target")',
     'print(f"PHASE2_CROSS_TARGET={target}")',
@@ -64,8 +75,6 @@ TESTS_ALIGNMENT_MARKERS = (
     "\"`python3 scripts/zigux/check-phase2-cross-selftest-alignment.py`\",",
     "\"`make -C zigux phase2-cross`\",",
 )
-
-EXPECTED_SELF_TEST_CASE_COUNT = 59
 
 
 def read_text(path: Path) -> str:
@@ -154,6 +163,15 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 "DUPLICATE_CHECKER_OUTPUT_MARKERS",
             )
         )
+    if surface_paths[SURFACE_PATHS[1]].exists():
+        issues.extend(
+            collect_exact_line_issues(
+                read_text(surface_paths[SURFACE_PATHS[1]]),
+                FIXTURE_MARKERS,
+                "MISSING_FIXTURE_MARKERS",
+                "DUPLICATE_FIXTURE_MARKERS",
+            )
+        )
     return issues
 
 
@@ -183,7 +201,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, TOOLCHAIN_PINNING), "\n".join(TOOLCHAIN_PINNING_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_ALIGNMENT), "\n".join(TESTS_ALIGNMENT_MARKERS) + "\n")
     write_text(resolve_path(root, SURFACE_PATHS[0]), "\n".join(CHECKER_OUTPUT_MARKERS) + "\n")
-    write_text(resolve_path(root, SURFACE_PATHS[1]), "present\n")
+    write_text(resolve_path(root, SURFACE_PATHS[1]), "\n".join(FIXTURE_MARKERS) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -247,6 +265,16 @@ def run_self_test() -> int:
             (TOOLCHAIN_PINNING, TOOLCHAIN_PINNING_MARKERS, "MISSING_TOOLCHAIN_PINNING_MARKERS", "DUPLICATE_TOOLCHAIN_PINNING_MARKERS"),
             (TESTS_ALIGNMENT, TESTS_ALIGNMENT_MARKERS, "MISSING_TESTS_ALIGNMENT_MARKERS", "DUPLICATE_TESTS_ALIGNMENT_MARKERS"),
             (SURFACE_PATHS[0], CHECKER_OUTPUT_MARKERS, "MISSING_CHECKER_OUTPUT_MARKERS", "DUPLICATE_CHECKER_OUTPUT_MARKERS"),
+            (SURFACE_PATHS[1], FIXTURE_MARKERS, "MISSING_FIXTURE_MARKERS", "DUPLICATE_FIXTURE_MARKERS"),
+        )
+
+        expected_case_count = (
+            1
+            + sum(len(markers) for _, markers, _ in presence_cases)
+            + (2 * sum(len(markers) for _, markers, _, _ in exact_line_cases))
+            + len(presence_cases)
+            + len(exact_line_cases)
+            + len(SURFACE_PATHS)
         )
 
         for path, markers, missing_code, duplicate_code in exact_line_cases:
@@ -286,7 +314,7 @@ def run_self_test() -> int:
         for path, _, _, _ in exact_line_cases:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
-            if path == SURFACE_PATHS[0]:
+            if path in SURFACE_PATHS:
                 issues = collect_issues(root)
                 assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
                 checks_run += 1
@@ -306,7 +334,7 @@ def run_self_test() -> int:
             assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
             checks_run += 1
 
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+    assert checks_run == expected_case_count
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
@@ -330,7 +358,7 @@ def main() -> int:
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
-        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS) + len(CHECKER_OUTPUT_MARKERS)}"
+        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS) + len(CHECKER_OUTPUT_MARKERS) + len(FIXTURE_MARKERS)}"
     )
     print(f"PHASE2_CROSS_ALIGNMENT_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
     return 0
