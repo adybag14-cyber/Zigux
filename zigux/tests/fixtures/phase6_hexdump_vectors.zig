@@ -377,6 +377,20 @@ test "phase 6 hexdump curated length packet stays bounded to the documented matr
     }
 }
 
+test "phase 6 hexdump empty-length fixtures keep plain and ascii rows silent" {
+    var buffer = [_]u8{0xaa};
+
+    try std.testing.expectEqualStrings("", prepareExpectedLine(buffer[0..], 0, 16, 1, false));
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+
+    buffer[0] = 0xaa;
+    try std.testing.expectEqualStrings("", prepareExpectedLine(buffer[0..], 0, 16, 1, true));
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+
+    try std.testing.expectEqual(@as(usize, 0), expectedLength(0, 16, 1, false));
+    try std.testing.expectEqual(@as(usize, 0), expectedLength(0, 16, 1, true));
+}
+
 test "phase 6 hexdump perf packet stays aligned with the documented matrix" {
     try std.testing.expectEqual(@as(usize, 4), perf_cases.len);
     try std.testing.expectEqual(@as(u64, 600), perf_cases[3].max_slowdown_pct);
