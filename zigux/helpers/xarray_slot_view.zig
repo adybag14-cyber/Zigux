@@ -149,6 +149,37 @@ test "cutoff boundary keeps value, pointer-like gap, then err in order" {
     try std.testing.expectEqual(@as(?usize, null), err_slot.pointerValue());
 }
 
+test "low boundary keeps null, inline zero, then pointer-like in order" {
+    const null_raw: usize = 0;
+    const value_raw = try xa_value.makeValue(0);
+    const pointer_raw = value_raw + 1;
+
+    const null_slot = fromRaw(null_raw);
+    const value_slot = fromRaw(value_raw);
+    const pointer_slot = fromRaw(pointer_raw);
+
+    try std.testing.expectEqual(@as(usize, 1), value_raw);
+    try std.testing.expectEqual(null_raw + 1, value_raw);
+    try std.testing.expectEqual(value_raw + 1, pointer_raw);
+
+    try std.testing.expect(null_slot.isNull());
+    try std.testing.expectEqual(@as(?usize, null), null_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), null_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), null_slot.pointerValue());
+
+    try std.testing.expect(value_slot.isValue());
+    try std.testing.expectEqual(@as(?usize, 0), value_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), value_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), value_slot.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(value_raw));
+
+    try std.testing.expect(pointer_slot.isPointer());
+    try std.testing.expectEqual(@as(?usize, pointer_raw), pointer_slot.pointerValue());
+    try std.testing.expectEqual(@as(?usize, null), pointer_slot.value());
+    try std.testing.expectEqual(@as(?isize, null), pointer_slot.errorCode());
+    try std.testing.expect(!isTaggedInternalEntry(pointer_raw));
+}
+
 test "inline zero stays a tagged value and keeps other decoders closed" {
     const raw = try xa_value.makeValue(0);
     const slot = fromRaw(raw);
