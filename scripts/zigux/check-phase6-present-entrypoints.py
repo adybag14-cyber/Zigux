@@ -178,6 +178,7 @@ REQUIRED_CATALOG_SNIPPETS = [
 ]
 
 CATALOG_SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
+SELF_TEST_CASE_COUNT = 33
 
 
 class ValidationError(RuntimeError):
@@ -576,6 +577,11 @@ def run_self_test() -> None:
         (root / REQUIRED_HELPER_PATHS[0]).unlink()
         expect_failure(root, REQUIRED_HELPER_PATHS[0].as_posix())
         cases_run += 1
+
+        if cases_run != SELF_TEST_CASE_COUNT:
+            raise AssertionError(
+                f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}"
+            )
 
     print("PHASE6_PRESENT_ENTRYPOINTS_SELF_TEST=pass")
     print(f"PHASE6_PRESENT_ENTRYPOINTS_SELF_TEST_CASE_COUNT={cases_run}")
