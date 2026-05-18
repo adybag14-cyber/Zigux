@@ -172,7 +172,7 @@ Current `master` still does not materialize `scripts/zigux/check-phase14-release
 Keep the four roadmap-owned anchors explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain study-only anchors, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors unless a later Architecture Council packet records a status change.
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 14 reminder keep the recovered documentation packet, the blob-readable validator surface, the directly readable workqueue reviewability shard, the attached-toolchain rerun vocabulary, the readable-but-Phase-2-only Makefile posture, and the still-missing executable-layer gaps aligned without reviving the older `phase14-*` Makefile routes as shipped current-`master` evidence?
+- Does the bounded Phase 14 reminder keep the recovered documentation packet, the blob-readable validator surface, the directly readable workqueue reviewability shard, the attached-toolchain rerun vocabulary, the readable current `zigux/Makefile` surface that now exposes shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes while still omitting all `phase14-*` targets, and the still-missing executable-layer gaps aligned without reviving the older `phase14-*` Makefile routes as shipped current-`master` evidence?
 
 ## Phase 15 governance packet
 
