@@ -263,6 +263,7 @@ def run_self_test() -> int:
             RELEASE_READINESS_SURVEY_PATH,
             RAW_GITHUB_COVERAGE_PATH,
             VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
+            SCRIPTS_README_PATH,
             MAKEFILE_PATH,
             PHASE12_BUILD_PATH,
         ]
@@ -277,9 +278,11 @@ def run_self_test() -> int:
                 REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][1],
             ),
             (RAW_GITHUB_COVERAGE_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH][2]),
+            (RAW_GITHUB_COVERAGE_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH][3]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][2]),
             (NVME_FALLBACK_PATH, REQUIRED_MARKERS[NVME_FALLBACK_PATH][6]),
             (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][0]),
+            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][3]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_root(base)
