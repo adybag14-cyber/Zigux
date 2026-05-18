@@ -22,7 +22,7 @@ That means the older scripts-root omission recorded by this note is no longer th
 
 The remaining readback split is narrower:
 - the reminder surfaces now keep the attached-toolchain fallback explicit
-- `zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
+- `zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
 - `scripts/zigux/validate-phase14.py` and the broader executable packet still remain mixed-readback or missing-path companions in this lane rather than fully recovered contents-path evidence
 
 ## Why this matters
@@ -37,7 +37,7 @@ The attached-toolchain fallback wording itself is no longer the gap.
 
 The active same-lane follow-through has narrowed to the broader shared-reminder split around mixed readback modes:
 1. keep `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `scripts/zigux/README.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, and `Documentation/zigux/phase14-shared-smoke-current-master-gap.md` aligned on the fact that the fallback examples are already present in the surviving reminder surfaces
-2. keep `zigux/Makefile` framed as readable current repo evidence that currently proves the shipped Phase 2, Phase 3, Phase 6, Phase 8, Phase 10, and Phase 12 routes rather than as returned proof of the older `phase14-*` routes
+2. keep `zigux/Makefile` framed as readable current repo evidence that currently proves the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes rather than as returned proof of the older `phase14-*` routes
 3. keep `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, and the other executable packet members framed according to the exact readback mode that is actually available in this lane
 
 ## Non-goals
