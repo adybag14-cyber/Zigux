@@ -69,9 +69,9 @@ pub const blocked_boundaries = [_]BridgeBoundary{
     },
     .{
         .id = "force_quiescent_state_and_gp_wake_escalation",
-        .summary = "Keep force-quiescent-state escalation, grace-period wake coordination, and FQS looping in C.",
+        .summary = "Keep force-quiescent-state escalation, stall-escalation wake coordination, and FQS looping in C.",
         .anchor_symbols = &.{ "rcu_force_quiescent_state", "rcu_gp_kthread_wake", "rcu_gp_fqs_loop" },
-        .rationale = "Force-quiescent-state escalation still couples root-node gp_flags, grace-period kthread wake sequencing, and the FQS loop through live rcu_state and rcu_node ownership rather than a narrow bridge seam.",
+        .rationale = "Force-quiescent-state escalation still couples root-node gp_flags, grace-period kthread wake sequencing, stall-escalation wakeups, and the FQS loop through live rcu_state and rcu_node ownership rather than a narrow bridge seam.",
     },
     .{
         .id = "poll_cookie_and_sync_waithead_rollover",
@@ -121,6 +121,7 @@ test "tree bridge boundary map stays review-only" {
     try std.testing.expect(contains(blocked_boundaries[6].summary, "batch invocation"));
     try std.testing.expectEqualStrings("force_quiescent_state_and_gp_wake_escalation", blocked_boundaries[7].id);
     try std.testing.expect(contains(blocked_boundaries[7].summary, "force-quiescent-state"));
+    try std.testing.expect(contains(blocked_boundaries[7].summary, "stall-escalation"));
     try std.testing.expect(contains(blocked_boundaries[7].summary, "FQS"));
     try std.testing.expectEqualStrings("poll_cookie_and_sync_waithead_rollover", blocked_boundaries[8].id);
     try std.testing.expect(contains(blocked_boundaries[8].summary, "poll-cookie"));
