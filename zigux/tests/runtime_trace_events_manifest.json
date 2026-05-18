@@ -52,7 +52,7 @@
       "surface": "zigux/tests/runtime_trace_events_survey.zig",
       "role": "survey_gate",
       "owner": "P9-L09",
-      "boundary": "Fail-closes on drift between the survey note, module-slice note, manifest, sequencing note, and surviving sample family."
+      "boundary": "Fail-closes on drift between the survey note, module-slice note, manifest, sequencing note, shared workflow guard, and surviving sample family."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
@@ -65,6 +65,12 @@
       "role": "adjacent_shared_reminder",
       "owner": "P9-L11",
       "boundary": "Stays a shared Phase 9 reminder surface adjacent to this lane rather than becoming family-local survey ownership."
+    },
+    {
+      "surface": ".github/workflows/zigux-bootstrap.yml",
+      "role": "adjacent_shared_workflow_guard",
+      "owner": "P9-L11",
+      "boundary": "Keeps the shared repo-level rerun guard explicit for the surviving trace-events packet without widening this family-local survey lane into shared loader ownership."
     }
   ]
 }
