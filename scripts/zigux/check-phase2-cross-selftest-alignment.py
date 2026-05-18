@@ -12,6 +12,10 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 KBUILD_ROUTES = ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py"
 TOOLCHAIN_PINNING = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py"
 TESTS_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
+SURFACE_PATHS = (
+    ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
+    ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
+)
 
 SCRIPTS_README_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
@@ -26,7 +30,7 @@ TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster",
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
     "keep the pinned `x86_64-linux` bootstrap archive note",
     "historical packet members rather than direct tests-root evidence",
 )
@@ -40,6 +44,8 @@ KBUILD_ROUTE_MARKERS = (
 TOOLCHAIN_PINNING_MARKERS = (
     "\"`python3 scripts/zigux/check-phase2-cross.py --self-test`\",",
     "\"`python3 scripts/zigux/check-phase2-cross.py`\",",
+    "\"`make -C zigux phase2-validate`\",",
+    "\"`make -C zigux phase2`\",",
 )
 
 TESTS_ALIGNMENT_MARKERS = (
@@ -50,7 +56,7 @@ TESTS_ALIGNMENT_MARKERS = (
     "\"`make -C zigux phase2-cross`\",",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 38
+EXPECTED_SELF_TEST_CASE_COUNT = 44
 
 
 def read_text(path: Path) -> str:
@@ -126,6 +132,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "DUPLICATE_TESTS_ALIGNMENT_MARKERS",
         )
     )
+    for path in SURFACE_PATHS:
+        if not resolve_path(root, path).exists():
+            issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
     return issues
 
 
@@ -154,6 +163,8 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, KBUILD_ROUTES), "\n".join(KBUILD_ROUTE_MARKERS) + "\n")
     write_text(resolve_path(root, TOOLCHAIN_PINNING), "\n".join(TOOLCHAIN_PINNING_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_ALIGNMENT), "\n".join(TESTS_ALIGNMENT_MARKERS) + "\n")
+    for path in SURFACE_PATHS:
+        write_text(resolve_path(root, path), "present\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -257,6 +268,13 @@ def run_self_test() -> int:
             else:
                 raise AssertionError(f"missing file did not abort: {path}")
 
+        for path in SURFACE_PATHS:
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            issues = collect_issues(root)
+            assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
+            checks_run += 1
+
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
@@ -265,7 +283,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the current Phase 2 cross-route reminder packet aligned across the live scripts and tests surfaces."
+        description="Keep the current directly readable Phase 2 cross reminder packet and starter surfaces aligned."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
@@ -283,6 +301,7 @@ def main() -> int:
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
         f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
     )
+    print(f"PHASE2_CROSS_ALIGNMENT_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
     return 0
 
 
