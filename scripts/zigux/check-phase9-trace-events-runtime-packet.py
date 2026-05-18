@@ -9,11 +9,16 @@ import tempfile
 
 SELF_PATH = Path(__file__).resolve()
 SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
+SURVEY_NOTE_PATH = "Documentation/zigux/phase9-runtime-trace-events-survey.md"
+MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
+MANIFEST_PATH = "zigux/tests/runtime_trace_events_manifest.json"
+SURVEY_GATE_PATH = "zigux/tests/runtime_trace_events_survey.zig"
 SAMPLE_PATH = "samples/zigux/runtime_trace_events.zig"
 UNREGISTERED_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_unregistered_gate.zig"
 REENTRY_GATE_SAMPLE_PATH = "samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
 EXIT_ROLLBACK_GUARD_SAMPLE_PATH = "samples/zigux/runtime_trace_events_exit_rollback_guard.zig"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 
 def infer_repo_root() -> Path:
@@ -63,6 +68,27 @@ SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejecti
 SAMPLES_README_SUMMARY_STABILITY_MARKER = (
     "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
 )
+SURVEY_NOTE_WITNESS_MARKER = "Current `master` also now keeps one direct family-local `zigux/tests/runtime_*` witness for that same packet:"
+SURVEY_NOTE_SAMPLE_LOCAL_MARKER = "sample-local pilot-module reviewability"
+MODULE_SLICE_ALIGNMENT_MARKER = "The paired family-local survey packet through `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig`"
+MODULE_SLICE_BOUNDARY_MARKER = "broader shared runtime-loader packet"
+MANIFEST_ALIGNMENT_FOCUS_MARKER = "\"alignment_focus\": \"sample-local pilot-module reviewability rather than returned shared runtime-loader parity\""
+MANIFEST_SURVEY_NOTE_MARKER = "\"survey_note_path\": \"Documentation/zigux/phase9-runtime-trace-events-survey.md\""
+MANIFEST_MODULE_SLICE_MARKER = "\"module_slice_path\": \"Documentation/zigux/phase9-runtime-trace-events-module-slice.md\""
+MANIFEST_SURVEY_GATE_MARKER = "\"surface\": \"zigux/tests/runtime_trace_events_survey.zig\""
+MANIFEST_WORKFLOW_MARKER = "\"surface\": ".github/workflows/zigux-bootstrap.yml\""
+SURVEY_GATE_SURVEY_NOTE_MARKER = "\"Documentation/zigux/phase9-runtime-trace-events-survey.md\""
+SURVEY_GATE_MODULE_SLICE_MARKER = "\"Documentation/zigux/phase9-runtime-trace-events-module-slice.md\""
+SURVEY_GATE_MANIFEST_MARKER = "\"zigux/tests/runtime_trace_events_manifest.json\""
+SURVEY_GATE_WORKFLOW_MARKER = "\".github/workflows/zigux-bootstrap.yml\""
+WORKFLOW_BOUNDARY_SELF_TEST_MARKER = "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test"
+WORKFLOW_BOUNDARY_LIVE_MARKER = "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py"
+WORKFLOW_PACKET_SELF_TEST_MARKER = "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test"
+WORKFLOW_PACKET_LIVE_MARKER = "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py"
+WORKFLOW_TRACE_EVENTS_SAMPLE_MARKER = "zig test samples/zigux/runtime_trace_events.zig"
+WORKFLOW_UNREGISTERED_GATE_MARKER = "zig test samples/zigux/runtime_trace_events_unregistered_gate.zig"
+WORKFLOW_EXIT_ROLLBACK_GUARD_MARKER = "zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig"
+WORKFLOW_REENTRY_GATE_MARKER = "zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig"
 
 SAMPLE_REQUIRED_MARKERS = [
     '.name = "runtime_trace_events"',
@@ -81,8 +107,7 @@ SAMPLE_REQUIRED_MARKERS = [
     "try std.testing.expectEqualStrings(before_duplicate.last_register_label orelse return error.ExpectedFunctionPayload, after_duplicate.last_register_label orelse return error.ExpectedFunctionPayload);",
     'test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity" {',
     "try std.testing.expectEqual(ModuleStage.cold, module.stage());",
-    "try std.testing.expectEqual(ModuleStage.cold, module.stage());
-    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
+    "try std.testing.expectEqual(ModuleStage.cold, module.stage());\n    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());",
     "try std.testing.expectEqual(ModuleStage.selftest_complete, module.stage());",
     "try std.testing.expect(selftest.conditional_paths_checked);",
@@ -127,8 +152,7 @@ UNREGISTERED_GATE_REQUIRED_MARKERS = [
     "fn expectSummaryStable(before: RuntimeTraceEventsSummary, after: RuntimeTraceEventsSummary) !void {",
     "try std.testing.expectEqual(ModuleStage.initialized, initialized_before.stage);",
     "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));",
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));
-    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(3));\n    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
     "try expectSummaryStable(initialized_before, initialized_after);",
     "try std.testing.expectEqual(ModuleStage.selftest_complete, selftest_complete_before.stage);",
     "try std.testing.expectEqual(@as(usize, 2), selftest_complete_before.main_iterations);",
@@ -139,8 +163,7 @@ UNREGISTERED_GATE_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(@as(usize, 12), selftest_complete_before.total_events);",
     "try std.testing.expectEqual(@as(i32, 5), selftest_complete_before.last_main_count);",
     "try std.testing.expectEqual(@as(i32, 1), selftest_complete_before.last_fn_count);",
-    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));
-    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
+    "try std.testing.expectError(error.FunctionThreadNotRegistered, module.emitFunctionIteration(7));\n    try std.testing.expectError(error.RegistrationUnderflow, module.unregisterFunctionThread());",
     "try expectSummaryStable(selftest_complete_before, selftest_complete_after);",
     "try std.testing.expectEqualStrings(selftest_complete_before.last_unregister_label orelse return error.ExpectedUnregisterLabel, selftest_complete_after.last_unregister_label orelse return error.ExpectedUnregisterLabel);",
     "try module.exit();",
@@ -290,6 +313,37 @@ FILE_MARKERS = {
         ABSENT_RUNTIME_LOADER_CONTRACT_MARKER,
         ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
     ],
+    SURVEY_NOTE_PATH: [
+        TRACE_EVENTS_SAMPLE_MARKER,
+        UNREGISTERED_GATE_SAMPLE_MARKER,
+        EXIT_ROLLBACK_GUARD_SAMPLE_MARKER,
+        REENTRY_GATE_SAMPLE_MARKER,
+        "`zigux/tests/runtime_trace_events_manifest.json`",
+        "`zigux/tests/runtime_trace_events_survey.zig`",
+        "`Documentation/zigux/phase9-runtime-trace-events-module-slice.md`",
+        SELFTEST_HOOK_MARKER,
+        LIFECYCLE_MARKER,
+        SURVEY_NOTE_WITNESS_MARKER,
+        SURVEY_NOTE_SAMPLE_LOCAL_MARKER,
+        ABSENT_PHASE9_BUILD_MARKER,
+        ABSENT_RUNTIME_LOADER_KERNEL_MARKER,
+        ABSENT_RUNTIME_LOADER_CONTRACT_MARKER,
+        ABSENT_RUNTIME_LOADER_SCAFFOLD_MARKER,
+    ],
+    MODULE_SLICE_PATH: [
+        TRACE_EVENTS_SAMPLE_MARKER,
+        UNREGISTERED_GATE_SAMPLE_MARKER,
+        EXIT_ROLLBACK_GUARD_SAMPLE_MARKER,
+        REENTRY_GATE_SAMPLE_MARKER,
+        "`Documentation/zigux/phase9-runtime-trace-events-survey.md`",
+        "`zigux/tests/runtime_trace_events_manifest.json`",
+        "`zigux/tests/runtime_trace_events_survey.zig`",
+        SELFTEST_HOOK_MARKER,
+        LIFECYCLE_MARKER,
+        MODULE_SLICE_ALIGNMENT_MARKER,
+        MODULE_SLICE_BOUNDARY_MARKER,
+        ABSENT_PHASE9_BUILD_MARKER,
+    ],
     SAMPLES_README_PATH: [
         TRACE_EVENTS_SAMPLE_MARKER,
         UNREGISTERED_GATE_SAMPLE_MARKER,
@@ -316,10 +370,39 @@ FILE_MARKERS = {
         PHASE3_EXPORTS_MARKER,
         PHASE3_EXPORT_SHIM_MARKER,
     ],
+    MANIFEST_PATH: [
+        "\"lane_key\": \"P9-L09\"",
+        "\"phase\": \"Phase 9\"",
+        "\"survey_summary\": {",
+        MANIFEST_ALIGNMENT_FOCUS_MARKER,
+        MANIFEST_SURVEY_NOTE_MARKER,
+        MANIFEST_MODULE_SLICE_MARKER,
+        MANIFEST_SURVEY_GATE_MARKER,
+        MANIFEST_WORKFLOW_MARKER,
+    ],
+    SURVEY_GATE_PATH: [
+        SURVEY_GATE_SURVEY_NOTE_MARKER,
+        SURVEY_GATE_MODULE_SLICE_MARKER,
+        SURVEY_GATE_MANIFEST_MARKER,
+        SURVEY_GATE_WORKFLOW_MARKER,
+        "phase9 trace-events survey packet matches the narrow current-master pilot-module story",
+        ".provides_selftest_hook = true",
+        "initialized, selftest_complete, and exited lifecycle tracking",
+    ],
     SAMPLE_PATH: SAMPLE_REQUIRED_MARKERS,
     UNREGISTERED_GATE_SAMPLE_PATH: UNREGISTERED_GATE_REQUIRED_MARKERS,
     REENTRY_GATE_SAMPLE_PATH: REENTRY_GATE_REQUIRED_MARKERS,
     EXIT_ROLLBACK_GUARD_SAMPLE_PATH: EXIT_ROLLBACK_GUARD_REQUIRED_MARKERS,
+    WORKFLOW_PATH: [
+        WORKFLOW_BOUNDARY_SELF_TEST_MARKER,
+        WORKFLOW_BOUNDARY_LIVE_MARKER,
+        WORKFLOW_PACKET_SELF_TEST_MARKER,
+        WORKFLOW_PACKET_LIVE_MARKER,
+        WORKFLOW_TRACE_EVENTS_SAMPLE_MARKER,
+        WORKFLOW_UNREGISTERED_GATE_MARKER,
+        WORKFLOW_EXIT_ROLLBACK_GUARD_MARKER,
+        WORKFLOW_REENTRY_GATE_MARKER,
+    ],
 }
 
 
@@ -386,11 +469,16 @@ def run_self_test() -> int:
 
         print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SURVEY_NOTE_MARKER_COUNT={len(FILE_MARKERS[SURVEY_NOTE_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_MODULE_SLICE_MARKER_COUNT={len(FILE_MARKERS[MODULE_SLICE_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(FILE_MARKERS[SAMPLES_README_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_MANIFEST_MARKER_COUNT={len(FILE_MARKERS[MANIFEST_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SURVEY_GATE_MARKER_COUNT={len(FILE_MARKERS[SURVEY_GATE_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_REENTRY_GATE_MARKER_COUNT={len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXIT_ROLLBACK_GUARD_MARKER_COUNT={len(FILE_MARKERS[EXIT_ROLLBACK_GUARD_SAMPLE_PATH])}")
+        print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_WORKFLOW_MARKER_COUNT={len(FILE_MARKERS[WORKFLOW_PATH])}")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -416,11 +504,16 @@ def main() -> int:
 
     print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET=pass")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SURVEY_NOTE_MARKER_COUNT={len(FILE_MARKERS[SURVEY_NOTE_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_MODULE_SLICE_MARKER_COUNT={len(FILE_MARKERS[MODULE_SLICE_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLES_README_MARKER_COUNT={len(FILE_MARKERS[SAMPLES_README_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_MANIFEST_MARKER_COUNT={len(FILE_MARKERS[MANIFEST_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SURVEY_GATE_MARKER_COUNT={len(FILE_MARKERS[SURVEY_GATE_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SAMPLE_MARKER_COUNT={len(FILE_MARKERS[SAMPLE_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_UNREGISTERED_GATE_MARKER_COUNT={len(FILE_MARKERS[UNREGISTERED_GATE_SAMPLE_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_REENTRY_GATE_MARKER_COUNT={len(FILE_MARKERS[REENTRY_GATE_SAMPLE_PATH])}")
     print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_EXIT_ROLLBACK_GUARD_MARKER_COUNT={len(FILE_MARKERS[EXIT_ROLLBACK_GUARD_SAMPLE_PATH])}")
+    print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_WORKFLOW_MARKER_COUNT={len(FILE_MARKERS[WORKFLOW_PATH])}")
     return 0
 
 
