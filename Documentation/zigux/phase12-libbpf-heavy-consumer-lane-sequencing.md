@@ -21,13 +21,14 @@ It keeps the helper-first `tools/lib/bpf/zigux_segments/` footing reviewable ins
 
 - Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` snapshot anchor, while treating the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/verify.zig` and `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` as parked note-owned boundaries until they land again on current `master`, and while keeping `tools/lib/bpf/zigux_segments/manifest.json` explicit as the directly readable legacy helper catalog on current `master`.
 - Keep the shared validator-first then smoke-first order fixed unless a new shipped route lands first:
-  1. `make -C zigux phase12-validate`
+  1. reminder-only wrapper vocabulary until it returns: `make -C zigux phase12-validate`
   2. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
-  3. `make -C zigux phase12-smoke`
+  3. shipped wrapper evidence on current `master`: `make -C zigux phase12-smoke`
   4. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
-  5. `make -C zigux phase12`
-- Current repo-reality override: `zigux/Makefile` still does not materialize `phase12-validate`, `phase12-smoke`, or `phase12` on current `master`, so keep those Make-route names here as reminder vocabulary only while the directly readable support bundle stays bounded to `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py`.
-- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order documented only through the reminder route names `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only fallback entrypoint.
+  5. shipped wrapper evidence on current `master`: `make -C zigux phase12-test`
+  6. shipped wrapper evidence on current `master`: `make -C zigux phase12`
+- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`, so keep only `make -C zigux phase12-validate` here as reminder vocabulary and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.
+- If `zig` is unavailable on `PATH`, keep that same validator-first then smoke-first order documented with the reminder-only `make -C zigux phase12-validate` vocabulary ahead of the shipped attached-toolchain reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` instead of inventing a focused libbpf-only fallback entrypoint.
 - Keep the degraded-workflow support bundle explicit beside that same order too:
   - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
   - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
