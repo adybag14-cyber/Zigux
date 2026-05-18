@@ -77,15 +77,17 @@ EXPECTED_ROOT_MODULES = {
     "phase11-hvc-cleanup-tests": "phase11_hvc_cleanup_module",
     "phase11-hvc-console-survey-tests": "phase11_hvc_console_survey_module",
 }
+EXPECTED_FORBIDDEN_MARKERS = [
+    "test_step.dependOn(&run_phase11_hvc_console_survey_tests.step);",
+]
+EXPECTED_SHARED_SPLIT_REPLAYS: list[str] = []
+EXPECTED_SHARED_ADJUNCT_REPLAYS = [
+    "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
+]
 EXPECTED_REPLAY_MARKERS = {
-    (
-        "zigux/tests/phase11_hvc_console_modem_control_split.zig",
-        " try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);",
-    ),
-    (
-        "zigux/tests/phase11_hvc_console_poll_retry_split.zig",
-        " try std.testing.expect(dispatch.invokes_sysrq_handler);",
-    ),
+    ("zigux/tests/phase11_hvc_console_modem_control_split.zig", " try std.testing.expectEqual(@as(c_int, -7), summary.tiocmset_result);"),
+    ("zigux/tests/phase11_hvc_console_poll_retry_split.zig", " try std.testing.expect(dispatch.invokes_sysrq_handler);"),
 }
 
 
@@ -122,13 +124,7 @@ def expect_list(payload: dict[str, object], key: str, expected: list[str]) -> No
         raise CheckError(f"{key} does not match the current-head HVC packet")
 
 
-def expect_mapping(
-    payload: dict[str, object],
-    key: str,
-    expected: dict[str, str],
-    key_field: str,
-    value_field: str,
-) -> None:
+def expect_mapping(payload: dict[str, object], key: str, expected: dict[str, str], key_field: str, value_field: str) -> None:
     value = payload.get(key)
     if not isinstance(value, list):
         raise CheckError(f"expected list for {key}")
@@ -173,7 +169,10 @@ def run_check(root: Path) -> None:
     payload = read_inventory(root)
     expect_list(payload, "build_test_names", EXPECTED_BUILD_TESTS)
     expect_list(payload, "shared_test_depend_steps", EXPECTED_DEPEND_STEPS)
+    expect_list(payload, "forbidden_markers", EXPECTED_FORBIDDEN_MARKERS)
     expect_list(payload, "dedicated_survey_replays", ["zigux/tests/phase11_hvc_console_survey.zig"])
+    expect_list(payload, "shared_split_replays", EXPECTED_SHARED_SPLIT_REPLAYS)
+    expect_list(payload, "shared_adjunct_replays", EXPECTED_SHARED_ADJUNCT_REPLAYS)
     expect_mapping(payload, "module_root_source_files", EXPECTED_MODULES, "module", "path")
     expect_mapping(payload, "test_root_modules", EXPECTED_ROOT_MODULES, "test", "root_module")
     expect_replay_markers(payload)
@@ -185,104 +184,63 @@ def write(path: Path, text: str) -> None:
 
 
 def build_fixture(root: Path) -> None:
-    write(
-        root / SURVEY_PATH,
-        "\n".join(
-            [
-                "# Phase 11 HVC Console Survey",
-                "",
-                "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
-                "current authenticated contents reads in this lane still do not rematerialize",
-                "current-head four-matrix packet rather than the missing starter-depth anchor",
-                "",
-            ]
-        ),
-    )
-    write(
-        root / COMPANION_PATH,
-        "\n".join(
-            [
-                "# Phase 11 HVC Cleanup Alignment Current-Head Companion",
-                "",
-                "`PHASE11_STATUS=current_head_companion_landed`",
-                "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
-                "smaller proof-backed HVC continuity packet reviewable",
-                "",
-            ]
-        ),
-    )
-    write(
-        root / VERIFY_PATH,
-        "\n".join(
-            [
-                "# Phase 11 HVC Verify Helper Boundary",
-                "",
-                "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit",
-                "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
-                "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
-                "",
-            ]
-        ),
-    )
-    write(
-        root / MATRIX_PATH,
-        "\n".join(
-            [
-                "# Phase 11 HVC Console Validation Matrix",
-                "",
-                "`hvc_cleanup()` tty-port release handoff remains explicit in the current HVC packet",
-                "final-close and hangup-driven cleanup handoff assertions inside the shared Phase 11 replay",
-                "surviving proof-backed cleanup packet",
-                "",
-            ]
-        ),
-    )
-    write(
-        root / PROOF_PATH,
-        "\n".join(
-            [
-                'test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explicit" {',
-                'try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`");',
-                'try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");',
-                'test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff markers aligned" {',
-                'try expectContains(matrix_doc, "surviving proof-backed cleanup packet");',
-                "",
-            ]
-        ),
-    )
-    write(
-        root / BUILD_PATH,
-        "\n".join(
-            [
-                '.root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),',
-                '.name = "phase11-hvc-cleanup-packet-proof",',
-                'const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");',
-                "",
-            ]
-        ),
-    )
-    write(
-        root / INVENTORY_PATH,
-        json.dumps(
-            {
-                "build_test_names": EXPECTED_BUILD_TESTS,
-                "shared_test_depend_steps": EXPECTED_DEPEND_STEPS,
-                "module_root_source_files": [
-                    {"module": k, "path": v} for k, v in EXPECTED_MODULES.items()
-                ],
-                "test_root_modules": [
-                    {"test": k, "root_module": v}
-                    for k, v in EXPECTED_ROOT_MODULES.items()
-                ],
-                "dedicated_survey_replays": ["zigux/tests/phase11_hvc_console_survey.zig"],
-                "shared_replay_markers": [
-                    {"path": p, "marker": m} for p, m in sorted(EXPECTED_REPLAY_MARKERS)
-                ],
-            },
-            indent=2,
-        )
-        + "\n",
-    )
+    write(root / SURVEY_PATH, "\n".join([
+        "# Phase 11 HVC Console Survey",
+        "",
+        "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`",
+        "current authenticated contents reads in this lane still do not rematerialize",
+        "current-head four-matrix packet rather than the missing starter-depth anchor",
+        "",
+    ]))
+    write(root / COMPANION_PATH, "\n".join([
+        "# Phase 11 HVC Cleanup Alignment Current-Head Companion",
+        "",
+        "`PHASE11_STATUS=current_head_companion_landed`",
+        "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
+        "smaller proof-backed HVC continuity packet reviewable",
+        "",
+    ]))
+    write(root / VERIFY_PATH, "\n".join([
+        "# Phase 11 HVC Verify Helper Boundary",
+        "",
+        "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit",
+        "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
+        "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
+        "",
+    ]))
+    write(root / MATRIX_PATH, "\n".join([
+        "# Phase 11 HVC Console Validation Matrix",
+        "",
+        "`hvc_cleanup()` tty-port release handoff remains explicit in the current HVC packet",
+        "final-close and hangup-driven cleanup handoff assertions inside the shared Phase 11 replay",
+        "surviving proof-backed cleanup packet",
+        "",
+    ]))
+    write(root / PROOF_PATH, "\n".join([
+        'test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explicit" {',
+        'try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`");',
+        'try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");',
+        'test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff markers aligned" {',
+        'try expectContains(matrix_doc, "surviving proof-backed cleanup packet");',
+        "",
+    ]))
+    write(root / BUILD_PATH, "\n".join([
+        '.root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),',
+        '.name = "phase11-hvc-cleanup-packet-proof",',
+        'const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");',
+        "",
+    ]))
+    write(root / INVENTORY_PATH, json.dumps({
+        "build_test_names": EXPECTED_BUILD_TESTS,
+        "shared_test_depend_steps": EXPECTED_DEPEND_STEPS,
+        "module_root_source_files": [{"module": k, "path": v} for k, v in EXPECTED_MODULES.items()],
+        "test_root_modules": [{"test": k, "root_module": v} for k, v in EXPECTED_ROOT_MODULES.items()],
+        "forbidden_markers": EXPECTED_FORBIDDEN_MARKERS,
+        "dedicated_survey_replays": ["zigux/tests/phase11_hvc_console_survey.zig"],
+        "shared_split_replays": EXPECTED_SHARED_SPLIT_REPLAYS,
+        "shared_adjunct_replays": EXPECTED_SHARED_ADJUNCT_REPLAYS,
+        "shared_replay_markers": [{"path": p, "marker": m} for p, m in sorted(EXPECTED_REPLAY_MARKERS)],
+    }, indent=2) + "\n")
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -304,66 +262,44 @@ def run_self_test() -> int:
 
         missing_survey = tmpdir / "missing_survey"
         shutil.copytree(fixture, missing_survey, dirs_exist_ok=True)
-        write(
-            missing_survey / SURVEY_PATH,
-            read_text(missing_survey / SURVEY_PATH).replace(
-                "current-head four-matrix packet rather than the missing starter-depth anchor",
-                "",
-            ),
-        )
-        expect_failure(
-            missing_survey,
-            "current-head four-matrix packet rather than the missing starter-depth anchor",
-        )
+        write(missing_survey / SURVEY_PATH, read_text(missing_survey / SURVEY_PATH).replace("current-head four-matrix packet rather than the missing starter-depth anchor", ""))
+        expect_failure(missing_survey, "current-head four-matrix packet rather than the missing starter-depth anchor")
 
         missing_companion = tmpdir / "missing_companion"
         shutil.copytree(fixture, missing_companion, dirs_exist_ok=True)
-        write(
-            missing_companion / COMPANION_PATH,
-            read_text(missing_companion / COMPANION_PATH).replace(
-                "smaller proof-backed HVC continuity packet reviewable",
-                "",
-            ),
-        )
-        expect_failure(
-            missing_companion,
-            "smaller proof-backed HVC continuity packet reviewable",
-        )
+        write(missing_companion / COMPANION_PATH, read_text(missing_companion / COMPANION_PATH).replace("smaller proof-backed HVC continuity packet reviewable", ""))
+        expect_failure(missing_companion, "smaller proof-backed HVC continuity packet reviewable")
 
         missing_matrix = tmpdir / "missing_matrix"
         shutil.copytree(fixture, missing_matrix, dirs_exist_ok=True)
-        write(
-            missing_matrix / MATRIX_PATH,
-            read_text(missing_matrix / MATRIX_PATH).replace(
-                "surviving proof-backed cleanup packet",
-                "",
-            ),
-        )
+        write(missing_matrix / MATRIX_PATH, read_text(missing_matrix / MATRIX_PATH).replace("surviving proof-backed cleanup packet", ""))
         expect_failure(missing_matrix, "surviving proof-backed cleanup packet")
 
         missing_proof = tmpdir / "missing_proof"
         shutil.copytree(fixture, missing_proof, dirs_exist_ok=True)
-        write(
-            missing_proof / PROOF_PATH,
-            read_text(missing_proof / PROOF_PATH).replace(
-                'try expectContains(matrix_doc, "surviving proof-backed cleanup packet");',
-                "",
-            ),
-        )
-        expect_failure(
-            missing_proof,
-            'try expectContains(matrix_doc, "surviving proof-backed cleanup packet");',
-        )
+        write(missing_proof / PROOF_PATH, read_text(missing_proof / PROOF_PATH).replace('try expectContains(matrix_doc, "surviving proof-backed cleanup packet");', ""))
+        expect_failure(missing_proof, 'try expectContains(matrix_doc, "surviving proof-backed cleanup packet");')
 
         wrong_inventory = tmpdir / "wrong_inventory"
         shutil.copytree(fixture, wrong_inventory, dirs_exist_ok=True)
         payload = read_inventory(wrong_inventory)
         payload["build_test_names"] = payload["build_test_names"][:-1]
         write(wrong_inventory / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
-        expect_failure(
-            wrong_inventory,
-            "build_test_names does not match the current-head HVC packet",
-        )
+        expect_failure(wrong_inventory, "build_test_names does not match the current-head HVC packet")
+
+        wrong_adjunct = tmpdir / "wrong_adjunct"
+        shutil.copytree(fixture, wrong_adjunct, dirs_exist_ok=True)
+        payload = read_inventory(wrong_adjunct)
+        payload["shared_adjunct_replays"] = []
+        write(wrong_adjunct / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(wrong_adjunct, "shared_adjunct_replays does not match the current-head HVC packet")
+
+        wrong_forbidden = tmpdir / "wrong_forbidden"
+        shutil.copytree(fixture, wrong_forbidden, dirs_exist_ok=True)
+        payload = read_inventory(wrong_forbidden)
+        payload["forbidden_markers"] = []
+        write(wrong_forbidden / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(wrong_forbidden, "forbidden_markers does not match the current-head HVC packet")
 
         missing_file = tmpdir / "missing_file"
         shutil.copytree(fixture, missing_file, dirs_exist_ok=True)
@@ -371,7 +307,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=7")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=9")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
