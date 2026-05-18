@@ -745,6 +745,55 @@ test "list sort reuses non-unit comparator context across repeated reordering" {
     try std.testing.expect(head.prev == &entries[3].node);
 }
 
+test "list sort accepts signed subtractive comparator" {
+    const Entry = struct {
+        key: i32,
+        ordinal: usize,
+        node: ListHead = .{},
+    };
+
+    const cmp = struct {
+        fn less(_: ?*anyopaque, a: *const ListHead, b: *const ListHead) i32 {
+            const lhs: *const Entry = @fieldParentPtr("node", a);
+            const rhs: *const Entry = @fieldParentPtr("node", b);
+            return lhs.key - rhs.key;
+        }
+    }.less;
+
+    var head: ListHead = .{};
+    head.init();
+    var entries = [_]Entry{
+        .{ .key = 4, .ordinal = 0 },
+        .{ .key = -2, .ordinal = 1 },
+        .{ .key = 7, .ordinal = 2 },
+        .{ .key = -2, .ordinal = 3 },
+        .{ .key = 0, .ordinal = 4 },
+        .{ .key = -5, .ordinal = 5 },
+        .{ .key = 7, .ordinal = 6 },
+    };
+    for (&entries) |*entry| listAddTail(&entry.node, &head);
+
+    listSort(null, &head, cmp);
+
+    var keys: [7]i32 = undefined;
+    var ordinals: [7]usize = undefined;
+    var idx: usize = 0;
+    var current = head.next;
+    while (current != &head) : (current = current.?.next) {
+        const entry: *const Entry = @fieldParentPtr("node", current.?);
+        keys[idx] = entry.key;
+        ordinals[idx] = entry.ordinal;
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+        idx += 1;
+    }
+
+    try std.testing.expectEqualSlices(i32, &.{ -5, -2, -2, 0, 4, 7, 7 }, keys[0..idx]);
+    try std.testing.expectEqualSlices(usize, &.{ 5, 1, 3, 4, 0, 2, 6 }, ordinals[0..idx]);
+    try std.testing.expect(head.next == &entries[5].node);
+    try std.testing.expect(head.prev == &entries[6].node);
+}
+
 test "list sort preserves input order when every comparison ties" {
     const Entry = struct {
         key: i32,
