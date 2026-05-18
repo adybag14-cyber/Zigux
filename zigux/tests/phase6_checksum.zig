@@ -155,6 +155,76 @@ test "phase 6 checksum carry helpers preserve one's-complement replacement behav
     try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
 }
 
+test "phase 6 checksum incremental helpers preserve odd-offset carry discipline" {
+    const seed = 0x1357_9bdf;
+    const fragment = 0x2468_ace0;
+
+    try std.testing.expectEqual(fragment, checksum.shift(fragment, 0));
+    try std.testing.expectEqual(std.math.rotr(u32, fragment, 8), checksum.shift(fragment, 1));
+    try std.testing.expectEqual(fragment, checksum.shift(fragment, 2));
+    try std.testing.expectEqual(std.math.rotr(u32, fragment, 8), checksum.shift(fragment, 3));
+
+    const even_added = checksum.blockAdd(seed, fragment, 0);
+    const odd_added = checksum.blockAdd(seed, fragment, 1);
+
+    try std.testing.expectEqual(checksum.add(seed, fragment), even_added);
+    try std.testing.expectEqual(checksum.add(seed, std.math.rotr(u32, fragment, 8)), odd_added);
+    try std.testing.expectEqual(seed, checksum.blockSub(even_added, fragment, 0));
+    try std.testing.expectEqual(seed, checksum.blockSub(odd_added, fragment, 1));
+
+    try std.testing.expectEqual(fragment, checksum.shift(fragment, 256));
+    try std.testing.expectEqual(std.math.rotr(u32, fragment, 8), checksum.shift(fragment, 255));
+    try std.testing.expectEqual(checksum.add(seed, fragment), checksum.blockAdd(seed, fragment, 256));
+    try std.testing.expectEqual(
+        checksum.add(seed, std.math.rotr(u32, fragment, 8)),
+        checksum.blockAdd(seed, fragment, 255),
+    );
+    try std.testing.expectEqual(seed, checksum.blockSub(checksum.blockAdd(seed, fragment, 255), fragment, 255));
+
+    const negate_cases = [_]struct {
+        sum: u32,
+        expected: u32,
+    }{
+        .{ .sum = 0x0000_0000, .expected = 0x0000_0000 },
+        .{ .sum = 0x0000_0001, .expected = 0x0000_0001 },
+        .{ .sum = 0x0001_0000, .expected = 0x0000_0001 },
+        .{ .sum = 0x1234_5678, .expected = 0x0000_0001 },
+        .{ .sum = 0xffff_ffff, .expected = 0x0000_0001 },
+    };
+
+    for (negate_cases) |case| {
+        try std.testing.expectEqual(case.expected, checksum.add(case.sum, checksum.negate(case.sum)));
+    }
+
+    const sums = [_]u32{
+        0,
+        1,
+        0x0001_0000,
+        0x1234_5678,
+        0xffff_ffff,
+    };
+    for (sums) |sum| {
+        try std.testing.expectEqual(checksum.from32to16(sum), checksum.unfold(~checksum.fold(sum)));
+    }
+
+    const add16_cases = [_]struct {
+        sum: u16,
+        addend: u16,
+        expected_add: u16,
+        expected_sub: u16,
+    }{
+        .{ .sum = 0x0000, .addend = 0x0000, .expected_add = 0x0000, .expected_sub = 0xffff },
+        .{ .sum = 0xffff, .addend = 0x0001, .expected_add = 0x0001, .expected_sub = 0xfffe },
+        .{ .sum = 0x7fff, .addend = 0x8000, .expected_add = 0xffff, .expected_sub = 0xfffe },
+        .{ .sum = 0xfffe, .addend = 0x0003, .expected_add = 0x0002, .expected_sub = 0xfffb },
+    };
+
+    for (add16_cases) |case| {
+        try std.testing.expectEqual(case.expected_add, checksum.add16(case.sum, case.addend));
+        try std.testing.expectEqual(case.expected_sub, checksum.sub16(case.sum, case.addend));
+    }
+}
+
 test "phase 6 checksum from32to16 keeps carry folds exact" {
     const sums = [_]u32{
         0,
