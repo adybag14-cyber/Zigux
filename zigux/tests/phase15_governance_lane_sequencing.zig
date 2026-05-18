@@ -58,6 +58,8 @@ test "phase 15 governance-lane sequencing manifest records the new direct replay
 
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_governance_lane_sequencing_manifest.json");
     try expectSliceContains(manifest.direct_packet_paths, "zigux/tests/phase15_governance_lane_sequencing.zig");
+    try expectSliceContains(manifest.direct_packet_paths, "Documentation/zigux/phase15-study-only-anchor-accounting.md");
+    try expectSliceContains(manifest.direct_packet_paths, "Documentation/zigux/phase15-shared-summary-gap.md");
     try expectSliceContains(manifest.still_missing_broader_paths, "scripts/zigux/validate-phase15.py");
     try expectSliceContains(manifest.maintenance_replay_commands, "zig test zigux/tests/phase15_governance_lane_sequencing.zig");
 }
@@ -81,6 +83,8 @@ test "phase 15 governance-lane sequencing note names the direct replay and remai
     try expectContains(sequencing_note, manifest.surveyed_commit);
     try expectContains(sequencing_note, "dedicated governance-lane sequencing manifest plus focused replay are now landed");
     try expectContains(sequencing_note, "`zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig`");
+    try expectContains(sequencing_note, "`Documentation/zigux/phase15-study-only-anchor-accounting.md`");
+    try expectContains(sequencing_note, "`Documentation/zigux/phase15-shared-summary-gap.md`");
     try expectContains(sequencing_note, "python3 scripts/zigux/check-phase15-tests-readme-alignment.py");
     try expectContains(sequencing_note, "zig test zigux/tests/phase15_governance_lane_sequencing.zig");
     try expectContains(sequencing_note, "a missing focused replay, handoff-manifest, dedicated build file, or other absent companion is already landed on current `master`");
