@@ -328,6 +328,23 @@ test "cpumask starter helpers keep empty sentinels stable with a stray address" 
     try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "cpumask starter helpers fail closed on non-zero reserved bytes" {
+    var backing = [_]usize{0};
+    var invalid = cpumask_view.viewFromWords(backing[0..], 8);
+    invalid.reserved = 1;
+    const summary = cpumask_view.summarize(invalid);
+
+    try testing.expect(!cpumask_view.isValid(invalid));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid));
+    try testing.expectEqual(@as(u32, 0), summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+    try testing.expectEqual(@as(u32, 0), summary.reserved);
+}
+
 test "cpumask starter helpers fail closed when nr_cpu_ids drifts from nbits" {
     const invalid = binding.initCpumaskView(0, 4, 0, 3);
     const summary = cpumask_view.summarize(invalid);
