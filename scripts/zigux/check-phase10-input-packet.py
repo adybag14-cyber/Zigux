@@ -41,6 +41,8 @@ SLICE_MARKERS = [
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_survey.zig",
+    "zigux/tests/phase10_virtio_input_manifest.json",
     "queued status completions are reclaimed only in memory",
     "teardown-reset parity explicit across reset",
 ]
