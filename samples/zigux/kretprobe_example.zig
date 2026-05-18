@@ -24,6 +24,11 @@ pub const SampleDescriptor = struct {
     provides_selfcheck: bool,
 };
 
+pub const ReviewContract = struct {
+    focus: []const SampleFocus,
+    non_goals: []const []const u8,
+};
+
 pub const ProbeResult = struct {
     retval: usize,
     duration_ns: i64,
@@ -52,6 +57,22 @@ pub const KretprobeExampleSample = struct {
     pub const default_symbol_name = "kernel_clone";
     pub const default_maxactive: usize = 20;
 
+    pub const sample_review_focus = [_]SampleFocus{
+        .symbol_selection,
+        .entry_timestamp,
+        .private_data_shape,
+        .return_duration,
+        .missed_summary,
+        .ownership_and_lifetime,
+    };
+
+    pub const sample_review_non_goals = [_][]const u8{
+        "register_kretprobe parity",
+        "unregister_kretprobe parity",
+        "pt_regs or regs_return_value parity",
+        "loadable module wiring",
+    };
+
     stage_state: SampleStage = .cold,
     symbol_name: []const u8 = default_symbol_name,
     maxactive: usize = default_maxactive,
@@ -71,6 +92,13 @@ pub const KretprobeExampleSample = struct {
             .anchor = "samples/kprobes/kretprobe_example.c",
             .requires_runtime_substrate = false,
             .provides_selfcheck = true,
+        };
+    }
+
+    pub fn reviewContract() ReviewContract {
+        return .{
+            .focus = sample_review_focus[0..],
+            .non_goals = sample_review_non_goals[0..],
         };
     }
 
@@ -175,14 +203,7 @@ pub const KretprobeExampleSample = struct {
             .duration_ns = result.duration_ns,
             .nmissed = self.nmissed,
             .maxactive = self.maxactive,
-            .checked_focus = &.{
-                .symbol_selection,
-                .entry_timestamp,
-                .private_data_shape,
-                .return_duration,
-                .missed_summary,
-                .ownership_and_lifetime,
-            },
+            .checked_focus = reviewContract().focus,
         };
     }
 
@@ -203,6 +224,7 @@ pub const KretprobeExampleSample = struct {
 };
 
 test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
+    const contract = KretprobeExampleSample.reviewContract();
     var sample = KretprobeExampleSample{};
     try sample.init();
     const replay = try sample.runAnchorReplay();
@@ -217,7 +239,15 @@ test "kretprobe sample replay keeps the anchor reviewable and non-runtime" {
     try std.testing.expectEqual(@as(i64, 75), replay.duration_ns);
     try std.testing.expectEqual(@as(usize, 1), replay.nmissed);
     try std.testing.expectEqual(@as(usize, 20), replay.maxactive);
-    try std.testing.expectEqual(@as(usize, 6), replay.checked_focus.len);
+    try std.testing.expectEqual(@as(usize, contract.focus.len), replay.checked_focus.len);
+    for (contract.focus, replay.checked_focus) |expected, actual| {
+        try std.testing.expectEqual(expected, actual);
+    }
+    try std.testing.expectEqual(@as(usize, 4), contract.non_goals.len);
+    try std.testing.expectEqualStrings("register_kretprobe parity", contract.non_goals[0]);
+    try std.testing.expectEqualStrings("unregister_kretprobe parity", contract.non_goals[1]);
+    try std.testing.expectEqualStrings("pt_regs or regs_return_value parity", contract.non_goals[2]);
+    try std.testing.expectEqualStrings("loadable module wiring", contract.non_goals[3]);
 }
 
 test "kretprobe sample keeps maxactive tuning pre-init and reviewable" {
