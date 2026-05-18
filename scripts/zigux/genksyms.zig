@@ -649,6 +649,24 @@ test "genksyms bridge preserves version side effects before later parse failures
     }
 }
 
+test "genksyms bridge preserves long version side effects before later parse failures" {
+    const args = [_][]const u8{
+        "--version",
+        "--unknown",
+    };
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try testing.expectEqual(@as(usize, 1), failure.version_count);
+            switch (failure.reason) {
+                .invalid_option => |option| try testing.expectEqualStrings("--unknown", option),
+                else => return error.UnexpectedParseFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "genksyms bridge accepts unambiguous abbreviated long options" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
