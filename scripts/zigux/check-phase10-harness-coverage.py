@@ -48,6 +48,7 @@ REVIEW_CHECKLIST_MARKERS = [
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
+    "Documentation/zigux/phase10-closure-evidence.md",
     "make -C zigux phase10-validate",
 ]
 
@@ -260,6 +261,7 @@ def run_self_test() -> int:
         expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "directly re-readable packet manifests in this lane now include `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_virtio_input_manifest.json`", "directly re-readable packet manifests in this lane now include `zigux/tests/phase10_virtio_ring_manifest.json`", "phase10_closure_evidence:directly re-readable packet manifests in this lane now include `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_virtio_input_manifest.json`")
         expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.", "The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md` only.", "phase10_closure_evidence:The current ring lane therefore stays reviewable here through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `drivers/virtio/virtio_ring.zig`, while `zigux/tests/phase10_virtio_ring_survey.zig` still remains a direct-readback gap in this lane.")
         expect_missing_marker(root, "Documentation/zigux/phase10-closure-evidence.md", "The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.", "The shared bootstrap-route guard remains optional.", "phase10_closure_evidence:The shared bootstrap-route guard now stays explicit through `scripts/zigux/check-phase10-bootstrap-route.py` so the closure packet fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`.")
+        expect_missing_marker(root, "Documentation/zigux/review-checklist.md", "Documentation/zigux/phase10-closure-evidence.md", "Documentation/zigux/phase10-closure-evidence-missing.md", "review_checklist:Documentation/zigux/phase10-closure-evidence.md")
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests", "Run the live Phase 10 virtio input and MMIO lab validation tests", "phase10_build:Run the live Phase 10 virtio input, ring, and MMIO lab validation tests")
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-verify-tests"', '"phase10-virtio-ring-drift-tests"', 'phase10_build:"phase10-virtio-ring-verify-tests"')
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-prepare-kick-idempotent-tests"', '"phase10-virtio-ring-drift-tests"', 'phase10_build:"phase10-virtio-ring-prepare-kick-idempotent-tests"')
@@ -276,7 +278,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
         print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=14")
+        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=15")
         return 0
 
 
