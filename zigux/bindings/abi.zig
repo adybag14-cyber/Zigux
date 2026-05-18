@@ -101,13 +101,82 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
 
 pub const NotifierBlock = notifier_abi.NotifierBlock;
 
+pub const boundary_header_size = @sizeOf(BoundaryHeader);
+pub const boundary_header_align = @alignOf(BoundaryHeader);
+pub const boundary_header_size_offset = @offsetOf(BoundaryHeader, "size");
+pub const boundary_header_abi_version_offset = @offsetOf(BoundaryHeader, "abi_version");
+pub const boundary_header_flags_offset = @offsetOf(BoundaryHeader, "flags");
+
+pub const export_status_size = @sizeOf(ExportStatus);
+pub const export_status_align = @alignOf(ExportStatus);
+pub const export_status_code_offset = @offsetOf(ExportStatus, "code");
+pub const export_status_facility_offset = @offsetOf(ExportStatus, "facility");
+pub const export_status_flags_offset = @offsetOf(ExportStatus, "flags");
+
+pub const interop_policy_size = @sizeOf(InteropPolicy);
+pub const interop_policy_align = @alignOf(InteropPolicy);
+pub const interop_policy_panic_mode_offset = @offsetOf(InteropPolicy, "panic_mode");
+pub const interop_policy_allocator_mode_offset = @offsetOf(InteropPolicy, "allocator_mode");
+pub const interop_policy_unsafe_scope_offset = @offsetOf(InteropPolicy, "unsafe_scope");
+pub const interop_policy_reserved_offset = @offsetOf(InteropPolicy, "reserved");
+
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_view_size =
+    @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView);
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_view_align =
+    @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView);
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_view_ack_window_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window");
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_view_delivery_window_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window");
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_view_status_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status");
+
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_size =
+    @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary);
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_align =
+    @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary);
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_applied_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied");
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_skipped_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped");
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_delivered_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered");
+
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_size =
+    @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView);
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_align =
+    @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView);
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_budget_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget");
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_window_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window");
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_flags_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags");
+
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_size =
+    @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary);
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_align =
+    @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary);
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_attempted_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted");
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_applied_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied");
+pub const chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_skipped_offset =
+    @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped");
+
+pub const notifier_block_size = @sizeOf(NotifierBlock);
+pub const notifier_block_align = @alignOf(NotifierBlock);
+pub const notifier_block_notifier_call_offset = @offsetOf(NotifierBlock, "notifier_call");
+pub const notifier_block_next_offset = @offsetOf(NotifierBlock, "next");
+pub const notifier_block_priority_offset = @offsetOf(NotifierBlock, "priority");
+
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     return notifier_abi.chainHasNonincreasingPriority(head);
 }
 
 pub fn defaultHeader(flags: u16) BoundaryHeader {
     return .{
-        .size = @sizeOf(BoundaryHeader),
+        .size = @as(u32, boundary_header_size),
         .abi_version = ABI_VERSION,
         .flags = flags,
     };
@@ -124,18 +193,18 @@ pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {
 }
 
 pub fn headerIsCanonical(header: BoundaryHeader) bool {
-    return header.size == @sizeOf(BoundaryHeader) and
+    return header.size == boundary_header_size and
         headerHasCurrentAbiVersion(header.abi_version);
 }
 
 pub fn headerIsCompatible(header: BoundaryHeader) bool {
-    return header.size >= @sizeOf(BoundaryHeader) and
+    return header.size >= boundary_header_size and
         headerHasCurrentAbiVersion(header.abi_version);
 }
 
 pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
     var canonical = header;
-    canonical.size = @sizeOf(BoundaryHeader);
+    canonical.size = @as(u32, boundary_header_size);
     canonical.abi_version = ABI_VERSION;
     return canonical;
 }
@@ -149,30 +218,144 @@ pub fn defaultInteropPolicy() InteropPolicy {
     };
 }
 
+test "abi binding exports direct layout constants for published structs" {
+    try std.testing.expectEqual(@as(usize, 8), boundary_header_size);
+    try std.testing.expectEqual(@as(usize, 4), boundary_header_align);
+    try std.testing.expectEqual(@as(usize, 0), boundary_header_size_offset);
+    try std.testing.expectEqual(@as(usize, 4), boundary_header_abi_version_offset);
+    try std.testing.expectEqual(@as(usize, 6), boundary_header_flags_offset);
+
+    try std.testing.expectEqual(@as(usize, 8), export_status_size);
+    try std.testing.expectEqual(@as(usize, 4), export_status_align);
+    try std.testing.expectEqual(@as(usize, 0), export_status_code_offset);
+    try std.testing.expectEqual(@as(usize, 4), export_status_facility_offset);
+    try std.testing.expectEqual(@as(usize, 6), export_status_flags_offset);
+
+    try std.testing.expectEqual(@as(usize, 4), interop_policy_size);
+    try std.testing.expectEqual(@as(usize, 1), interop_policy_align);
+    try std.testing.expectEqual(@as(usize, 0), interop_policy_panic_mode_offset);
+    try std.testing.expectEqual(@as(usize, 1), interop_policy_allocator_mode_offset);
+    try std.testing.expectEqual(@as(usize, 2), interop_policy_unsafe_scope_offset);
+    try std.testing.expectEqual(@as(usize, 3), interop_policy_reserved_offset);
+
+    try std.testing.expectEqual(
+        @as(usize, 12),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_size,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_align,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_ack_window_offset,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_delivery_window_offset,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_status_offset,
+    );
+
+    try std.testing.expectEqual(
+        @as(usize, 12),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_size,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_align,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_applied_offset,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_skipped_offset,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_delivered_offset,
+    );
+
+    try std.testing.expectEqual(
+        @as(usize, 12),
+        chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_budget_view_size,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_align,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_budget_offset,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_window_offset,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_flags_offset,
+    );
+
+    try std.testing.expectEqual(
+        @as(usize, 12),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_size,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_align,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 0),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_attempted_offset,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 4),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_applied_offset,
+    );
+    try std.testing.expectEqual(
+        @as(usize, 8),
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_skipped_offset,
+    );
+
+    const raw_notifier_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
+    const expected_notifier_size = std.mem.alignForward(usize, raw_notifier_size, @alignOf(usize));
+
+    try std.testing.expectEqual(expected_notifier_size, notifier_block_size);
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), notifier_block_align);
+    try std.testing.expectEqual(@as(usize, 0), notifier_block_notifier_call_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), notifier_block_next_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), notifier_block_priority_offset);
+}
+
 test "abi binding default header stays canonical" {
     const header = defaultHeader(0x41);
 
-    try std.testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), header.size);
+    try std.testing.expectEqual(@as(u32, @intCast(boundary_header_size)), header.size);
     try std.testing.expectEqual(@as(u16, ABI_VERSION), header.abi_version);
     try std.testing.expectEqual(@as(u16, 0x41), header.flags);
 
-    try std.testing.expectEqual(@as(usize, 8), @sizeOf(BoundaryHeader));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(BoundaryHeader));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(BoundaryHeader, "size"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(BoundaryHeader, "abi_version"));
-    try std.testing.expectEqual(@as(usize, 6), @offsetOf(BoundaryHeader, "flags"));
+    try std.testing.expectEqual(boundary_header_size, @sizeOf(BoundaryHeader));
+    try std.testing.expectEqual(boundary_header_align, @alignOf(BoundaryHeader));
+    try std.testing.expectEqual(boundary_header_size_offset, @offsetOf(BoundaryHeader, "size"));
+    try std.testing.expectEqual(boundary_header_abi_version_offset, @offsetOf(BoundaryHeader, "abi_version"));
+    try std.testing.expectEqual(boundary_header_flags_offset, @offsetOf(BoundaryHeader, "flags"));
 }
 
 test "abi binding boundary header helpers keep compatibility explicit" {
     const default_header = defaultHeader(0x15);
-    const expanded = compatibleHeader(@sizeOf(BoundaryHeader) + 8, 0x15);
+    const expanded = compatibleHeader(@as(u32, @intCast(boundary_header_size + 8)), 0x15);
     const future = BoundaryHeader{
-        .size = @sizeOf(BoundaryHeader) + 16,
+        .size = @as(u32, @intCast(boundary_header_size + 16)),
         .abi_version = ABI_VERSION,
         .flags = 0xA1,
     };
     const stale = BoundaryHeader{
-        .size = @sizeOf(BoundaryHeader),
+        .size = @as(u32, @intCast(boundary_header_size)),
         .abi_version = ABI_VERSION + 1,
         .flags = 0,
     };
@@ -191,7 +374,7 @@ test "abi binding boundary header helpers keep compatibility explicit" {
     try std.testing.expect(!headerIsCanonical(stale));
     try std.testing.expect(!headerIsCompatible(stale));
 
-    try std.testing.expectEqual(@as(u32, @sizeOf(BoundaryHeader)), canonicalized.size);
+    try std.testing.expectEqual(@as(u32, @intCast(boundary_header_size)), canonicalized.size);
     try std.testing.expectEqual(@as(u16, ABI_VERSION), canonicalized.abi_version);
     try std.testing.expectEqual(future.flags, canonicalized.flags);
     try std.testing.expect(headerIsCanonical(canonicalized));
@@ -229,53 +412,113 @@ test "abi binding enums stay aligned with exported constants" {
 }
 
 test "abi binding chrdev structs keep the published layout" {
-    try std.testing.expectEqual(@as(usize, 8), @sizeOf(ExportStatus));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ExportStatus));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ExportStatus, "code"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ExportStatus, "facility"));
-    try std.testing.expectEqual(@as(usize, 6), @offsetOf(ExportStatus, "flags"));
+    try std.testing.expectEqual(export_status_size, @sizeOf(ExportStatus));
+    try std.testing.expectEqual(export_status_align, @alignOf(ExportStatus));
+    try std.testing.expectEqual(export_status_code_offset, @offsetOf(ExportStatus, "code"));
+    try std.testing.expectEqual(export_status_facility_offset, @offsetOf(ExportStatus, "facility"));
+    try std.testing.expectEqual(export_status_flags_offset, @offsetOf(ExportStatus, "flags"));
 
-    try std.testing.expectEqual(@as(usize, 4), @sizeOf(InteropPolicy));
-    try std.testing.expectEqual(@as(usize, 1), @alignOf(InteropPolicy));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(InteropPolicy, "panic_mode"));
-    try std.testing.expectEqual(@as(usize, 1), @offsetOf(InteropPolicy, "allocator_mode"));
-    try std.testing.expectEqual(@as(usize, 2), @offsetOf(InteropPolicy, "unsafe_scope"));
-    try std.testing.expectEqual(@as(usize, 3), @offsetOf(InteropPolicy, "reserved"));
+    try std.testing.expectEqual(interop_policy_size, @sizeOf(InteropPolicy));
+    try std.testing.expectEqual(interop_policy_align, @alignOf(InteropPolicy));
+    try std.testing.expectEqual(interop_policy_panic_mode_offset, @offsetOf(InteropPolicy, "panic_mode"));
+    try std.testing.expectEqual(interop_policy_allocator_mode_offset, @offsetOf(InteropPolicy, "allocator_mode"));
+    try std.testing.expectEqual(interop_policy_unsafe_scope_offset, @offsetOf(InteropPolicy, "unsafe_scope"));
+    try std.testing.expectEqual(interop_policy_reserved_offset, @offsetOf(InteropPolicy, "reserved"));
 
-    try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status"));
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_size,
+        @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_align,
+        @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_ack_window_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window"),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_delivery_window_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window"),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_view_status_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status"),
+    );
 
-    try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered"));
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_size,
+        @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_align,
+        @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_applied_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied"),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_skipped_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped"),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_summary_delivered_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered"),
+    );
 
-    try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags"));
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_size,
+        @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_align,
+        @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_budget_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget"),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_window_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window"),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_view_flags_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags"),
+    );
 
-    try std.testing.expectEqual(@as(usize, 12), @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary));
-    try std.testing.expectEqual(@as(usize, 4), @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted"));
-    try std.testing.expectEqual(@as(usize, 4), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied"));
-    try std.testing.expectEqual(@as(usize, 8), @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"));
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_size,
+        @sizeOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_align,
+        @alignOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_attempted_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted"),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_applied_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied"),
+    );
+    try std.testing.expectEqual(
+        chrdev_notify_ack_window_policy_budget_window_delivery_window_budget_summary_skipped_offset,
+        @offsetOf(ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"),
+    );
 }
 
 test "abi binding notifier block keeps the published layout" {
     const raw_size = (@sizeOf(usize) * 2) + @sizeOf(i32);
     const expected_size = std.mem.alignForward(usize, raw_size, @alignOf(usize));
 
-    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierBlock));
-    try std.testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
-    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierBlock, "notifier_call"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
-    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), notifier_block_align);
+    try std.testing.expectEqual(expected_size, notifier_block_size);
+    try std.testing.expectEqual(@as(usize, 0), notifier_block_notifier_call_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), notifier_block_next_offset);
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), notifier_block_priority_offset);
 }
 
 test "abi binding notifier helper matches the dedicated notifier binding" {
