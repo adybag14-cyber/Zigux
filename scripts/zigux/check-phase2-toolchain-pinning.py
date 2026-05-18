@@ -48,6 +48,8 @@ WORKFLOW_SETUP_MARKERS = (
     'mirror_file=".zig-toolchain/community-mirrors.txt"',
     'if curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
     'if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then',
+    'echo "$extract_root" >> "$GITHUB_PATH"',
+    '"$zig_path" version',
     "echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2",
 )
 
