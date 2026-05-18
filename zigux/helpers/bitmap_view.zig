@@ -153,6 +153,40 @@ test "bitmap tail masking keeps a full bounded bitmap from leaking zero bits" {
     try std.testing.expectEqual(bits_per_word + 11, summary.weight);
 }
 
+test "bitmap exact-word windows keep full-word masks explicit" {
+    var backing = [_]Word{
+        ~@as(Word, 0),
+        (@as(Word, 1) << 5),
+    };
+    const view = viewFromWords(backing[0..], bits_per_word * 2);
+    const summary = summarize(view);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expectEqual(~@as(Word, 0), lastWordMask(bits_per_word * 2));
+    try std.testing.expect(testBit(view, bits_per_word + 5));
+    try std.testing.expect(!testBit(view, bits_per_word + 6));
+    try std.testing.expectEqual(@as(u32, 0), firstSet(view));
+    try std.testing.expectEqual(bits_per_word, firstZero(view));
+    try std.testing.expectEqual(bits_per_word + 1, weight(view));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(bits_per_word, summary.first_zero);
+    try std.testing.expectEqual(bits_per_word + 1, summary.weight);
+}
+
+test "bitmap validity rejects non-empty views without backing storage" {
+    const invalid = binding.initBitmapView(0, 1, 1);
+    const summary = summarize(invalid);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!testBit(invalid, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstSet(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstZero(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap validity rejects malformed word counts and closes helpers" {
     const invalid = binding.initBitmapView(0, bits_per_word + 1, 1);
     const summary = summarize(invalid);
