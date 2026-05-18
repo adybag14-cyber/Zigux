@@ -11,44 +11,52 @@ from pathlib import Path
 DEFAULT_ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) > 2 else Path.cwd()
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
-TESTS_README_REL = Path("zigux/tests/README.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
-LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
+TESTS_README_REL = Path("zigux/tests/README.md")
+WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 
 REQUIRED_FILES = (
     DOCS_ROOT_REL,
     REVIEW_CHECKLIST_REL,
-    TESTS_README_REL,
     SCRIPTS_README_REL,
-    LANE_NOTE_REL,
+    TESTS_README_REL,
+    WORKFLOW_REL,
     BENCH_CHECKER_REL,
 )
 
 REQUIRED_EXACT_LINES = {
     DOCS_ROOT_REL: {
-        "phase1_bench_checker_listed": "- `scripts/zigux/check-phase1-bench.py`",
-        "phase1_historical_warning": "  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1`, so treat those installer-backed, closure-side, validator-first, bench-route, and replay routes as historical packet members that need fresh re-materialization before they are reused here as direct current-master evidence.",
-        "phase1_direct_checks": "  * the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, string-review, direct-owner, and bench guards: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, closure-side, bench-route, and replay surfaces.",
-        "phase1_self_test_split": "  * `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded current reminder checks, while the live checker routes guard the shipped Phase 1 packet without widening it back into the older closure-side or installer-companion stack.",
+        "bench_checker_listed": "- `scripts/zigux/check-phase1-bench.py`",
+        "direct_checks": "  * the current docs-root Phase 1 reminder packet should stay parked on the live owner-map, restored closure-side, string-review, direct-owner, and bench guards: `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` keep the current-master-safe closure packet explicit, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks, while `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same historical-warning wording aligned around the broader missing installer, validator-first, bench-route, and replay surfaces.",
+        "self_test_split": "  * `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded current reminder checks, while the live checker routes guard the shipped Phase 1 packet without widening it back into the older closure-side or installer-companion stack.",
     },
     REVIEW_CHECKLIST_REL: {
-        "phase1_packet_alignment": "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `scripts/zigux/check-phase1-string-review-packet.py`, and `scripts/zigux/check-phase1-direct-owner-markers.py` still agree on the same bounded current-`master` reminder packet: the thirteen-helper owner map, the parked shared-replay-versus-direct-anchor split, the live string-review and direct-owner guards, and the repo-reality warning that older installer-backed, closure-side, validator-first, make-route, bench, and replay paths such as `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` stay framed as historical packet members rather than direct current evidence unless a fresh reread materializes them again, while `scripts/zigux/check-phase1-bench.py` stays explicit as the shipped bench-side checker anchor for the remaining shared reminder wording, without widening Phase 1 beyond the bounded host-side helper packet?",
-        "phase1_self_test_alignment": "  * if the change touches that same Phase 1 reminder packet, does the checklist still say clearly that `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded live reminder checks while `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` guard the shipped current-`master` Phase 1 reminder packet, that the older installer-companion self-test-versus-live route wording stays historical until `scripts/zigux/check-phase1-installer-companion-checks.py` is directly readable again, and that the broader docs-root, checklist, and tests-root bench wording stays aligned with the shipped bench checker instead of treating it as missing current evidence?",
-    },
-    TESTS_README_REL: {
-        "phase1_direct_packet": "  * current direct-readback Phase 1 reminder packet: `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py`",
-        "phase1_historical_warning": "  * repo-reality warning for the broader Phase 1 installer-backed closure-and-replay packet: repeated authenticated contents reads on current `master` now return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`",
-        "phase1_bench_checker_present": "  * current `master` does ship `scripts/zigux/check-phase1-bench.py`, so keep the remaining shared reminder follow-through on the broader docs-root, checklist, and tests-root bench wording instead of treating the checker itself as a missing tests-root route",
-        "phase1_followthrough_alignment": "  * keep current Phase 1 follow-through tied to the live owner-map plus string-review and bench reminder packet instead of reconstructing the broader installer-backed closure-and-replay packet from those older missing installer, closure-side, and replay files and routes alone",
+        "packet_alignment": "  * if the change touches the closed Phase 1 host-tools packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/phase1-closure.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` still agree on the same bounded current-`master` reminder packet: the thirteen-helper owner map, the parked shared-replay-versus-direct-anchor split, the restored closure note and closure validator, the live string-review and direct-owner guards, `zigux/tests/build.zig` and `zigux/tests/phase1_host_tools_smoke.zig` stay explicit as the shipped shared-smoke reminder anchors while `scripts/zigux/check-phase1-bench.py` stays explicit as the shipped bench-side checker anchor for the remaining shared reminder wording, and the repo-reality warning that older installer-backed, validator-first, make-route, bench-route, and replay paths such as `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `zigux/Makefile`, `zig build test --build-file zigux/tests/build.zig`, `zig build bench --build-file zigux/tests/build.zig`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` stay framed as historical packet members rather than direct current evidence unless a fresh reread materializes them again, while the Phase 1 reminder stays bounded to the host-side helper packet instead of reopening broader closure-stack churn?",
+        "self_test_alignment": "  * if the change touches that same Phase 1 reminder packet, does the checklist still say clearly that `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded live reminder checks and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the bounded live shared smoke route while `Documentation/zigux/phase1-closure.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, and `.github/workflows/zigux-bootstrap.yml` keep the shipped current-`master` Phase 1 reminder packet explicit, that the older installer-companion self-test-versus-live route wording stays historical until `scripts/zigux/check-phase1-installer-companion-checks.py` is directly readable again, and that the broader docs-root, checklist, and tests-root bench wording stays aligned with the shipped bench checker instead of treating it as missing current evidence?",
     },
     SCRIPTS_README_REL: {
-        "phase1_bench_checker_present": "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
+        "self_tests": "- `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the shipped bounded Phase 1 reminder checks",
+        "packet_explicit": "- `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner, bench, and closure-validator packet explicit from the scripts root",
+        "bench_checker_present": "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
     },
-    LANE_NOTE_REL: {
-        "shared_reminder_split_note": "- broader shared reminder surfaces now split cleanly: `scripts/zigux/README.md` already records that `scripts/zigux/check-phase1-bench.py` ships on current `master` and that `.github/workflows/zigux-bootstrap.yml` now self-tests it, while `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` still keep the checker inside their historical-gap wording, so the remaining bench-wording follow-through is limited to those three surfaces",
-        "shared_reminder_gap_note": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_GAPS=the shared reminder packet now splits cleanly: scripts/zigux/README.md already records that scripts/zigux/check-phase1-bench.py ships on current master and that bootstrap self-tests it, while Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, and zigux/tests/README.md still keep the checker inside their historical-gap wording, so the remaining bench-wording follow-through is limited to those three surfaces`",
-        "shared_reminder_next_step": "- `PHASE1_DIRECT_OWNER_SHARED_REMINDER_NEXT_STEP=finish the remaining three-surface bench-wording sync across Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, and zigux/tests/README.md while keeping scripts/zigux/README.md on the already-shipped bench-checker wording before reopening helper-local follow-through, unless one of the helper-specific next-safe-step markers below exposes a smaller same-family drift first`",
+    TESTS_README_REL: {
+        "closure_note_present": "    `Documentation/zigux/phase1-closure.md`",
+        "closure_validator_present": "    `scripts/zigux/validate-phase1-closure.py`",
+        "bench_checker_present": "    `scripts/zigux/check-phase1-bench.py`",
+        "shared_smoke_route": "  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
+        "historical_warning": "  * repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, and `zigux/Makefile`",
+    },
+    WORKFLOW_REL: {
+        "bench_self_test_step": "      - name: Self-test current Phase 1 bench checker",
+        "bench_self_test_run": "        run: python3 scripts/zigux/check-phase1-bench.py --self-test",
+        "shared_reminder_self_test_step": "      - name: Self-test current Phase 1 shared reminder checker",
+        "shared_reminder_run_step": "      - name: Check current Phase 1 shared reminder packet",
+    },
+    BENCH_CHECKER_REL: {
+        "self_test_function": "def run_self_test() -> None:",
+        "self_test_pass": '    print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
+        "self_test_case_count": '    print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")',
     },
 }
 
@@ -101,10 +109,7 @@ def sample_text(relative_path: Path) -> str:
 
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
-        if relative_path == BENCH_CHECKER_REL:
-            write_file(root, relative_path, "#!/usr/bin/env python3\nprint('bench checker placeholder')\n")
-        else:
-            write_file(root, relative_path, sample_text(relative_path))
+        write_file(root, relative_path, sample_text(relative_path))
 
 
 def run_self_test() -> int:
@@ -141,7 +146,8 @@ def run_self_test() -> int:
                 print(f"self-test:{name}:expected_failure")
                 return 1
 
-    print("self-test:ok")
+    print("phase1-bench-reminder-packet:self-test=pass")
+    print(f"phase1-bench-reminder-packet:self-test-case-count={len(cases)}")
     return 0
 
 
