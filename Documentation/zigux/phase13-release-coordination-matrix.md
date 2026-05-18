@@ -45,9 +45,8 @@ That is the shipped shared-summary handle for this packet.
 
 ## Repo-Reality Gaps
 
-Keep these paths recorded as repo-reality gaps rather than shipped current-`master` release support:
+Keep the still-missing Phase 13 route family recorded as repo-reality gaps rather than shipped current-`master` release support. `zigux/Makefile` itself is present again on current `master`, but it still does not expose the Phase 13 shared build handle.
 
-- `zigux/Makefile`
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `scripts/zigux/validate-phase13-release.py`
@@ -61,7 +60,7 @@ When shared Phase 13 wording changes:
 
 1. reread this matrix beside the workflow guide and shared-helper sequencing note
 2. rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
-3. keep the Makefile-backed route family recorded as repo-reality gaps
+3. keep the Makefile-backed route family recorded as repo-reality gaps while distinguishing the returned `zigux/Makefile` file from the still-missing Phase 13 routes
 4. leave broader README and tests-root packet refresh for a separate same-lane step
 
 ## Boundaries
