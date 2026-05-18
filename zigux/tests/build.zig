@@ -376,6 +376,65 @@ fn addPhase3LowLevelWrappers(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3ExportUapiLayout(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const uapi_dev_t = b.createModule(.{
+        .root_source_file = b.path("../uapi/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const uapi_version = b.createModule(.{
+        .root_source_file = b.path("../uapi/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const abi_bindings = b.createModule(.{
+        .root_source_file = b.path("../bindings/abi.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const dev_t_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/dev_t.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    dev_t_binding.addImport("uapi_dev_t", uapi_dev_t);
+    const version_binding = b.createModule(.{
+        .root_source_file = b.path("../bindings/version.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    version_binding.addImport("uapi_version", uapi_version);
+    const export_shim = b.createModule(.{
+        .root_source_file = b.path("../kernel/export_shim.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    export_shim.addImport("abi_bindings", abi_bindings);
+    export_shim.addImport("dev_t_binding", dev_t_binding);
+    export_shim.addImport("version_binding", version_binding);
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_export_uapi_layout.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("uapi_dev_t", uapi_dev_t);
+    root_module.addImport("uapi_version", uapi_version);
+    root_module.addImport("dev_t_binding", dev_t_binding);
+    root_module.addImport("version_binding", version_binding);
+    root_module.addImport("export_shim", export_shim);
+
+    const tests = b.addTest(.{
+        .name = "phase3-export-uapi-layout-test",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -460,6 +519,7 @@ pub fn build(b: *std.Build) void {
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
+    const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
     const phase11_gpio_wdt_verify = addPhase11GpioWatchdogVerify(b, target, optimize);
     const phase12_virtio_net_throughput_parity = addPhase12VirtioNetThroughputParity(
@@ -527,13 +587,14 @@ pub fn build(b: *std.Build) void {
 
     const phase3_test_step = b.step(
         "phase3-test",
-        "Run the current shared Phase 3 starter packet bundle from zigux/tests",
+        "Run the current shared Phase 3 starter packet, low-level wrapper, and export/UAPI layout bundle from zigux/tests",
     );
     phase3_test_step.dependOn(&phase3_dev_t_starter_packet.step);
     phase3_test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
     phase3_test_step.dependOn(&phase3_xarray_slot_starter_packet.step);
     phase3_test_step.dependOn(&phase3_policy_starter_packet.step);
     phase3_test_step.dependOn(&phase3_low_level_wrappers.step);
+    phase3_test_step.dependOn(&phase3_export_uapi_layout.step);
 
     const phase3_dump_step = b.step(
         "phase3-dump",
