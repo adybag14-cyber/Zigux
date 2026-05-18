@@ -120,6 +120,32 @@ test "materialized tools/lib/bpf Zigux segments keep direct return helpers expli
     );
 }
 
+test "materialized tools/lib/bpf Zigux segments keep typed direct lookup helpers explicit and stable" {
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    try std.testing.expectEqual(@as(usize, 1), try perf_buffer_poll.resolveReadyBufferAttemptAtIndex(&buffers, 0));
+    try std.testing.expectEqual(@as(usize, 3), try perf_buffer_poll.resolveReadyBufferAttemptAtIndex(&buffers, 1));
+    try std.testing.expectError(error.MissingReadyBuffer, perf_buffer_poll.resolveReadyBufferAttemptAtIndex(&buffers, 2));
+
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+    try std.testing.expectEqual(@as(i32, 21), try perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 2));
+    try std.testing.expectError(error.MissingFd, perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 1));
+    try std.testing.expectError(error.InvalidIndex, perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 4));
+
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+    try std.testing.expectEqual(@as(usize, 8192), try perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 2));
+    try std.testing.expectError(error.MissingWindow, perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 1));
+    try std.testing.expectError(error.InvalidIndex, perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 4));
+}
+
 test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outputs explicit" {
     var buffer: [128]u8 = undefined;
 
