@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed checker for the current Phase 13 devres MMIO validate-route gap."""
+"""Fail-closed checker for the current Phase 13 devres MMIO shared-route gap."""
 
 from __future__ import annotations
 
@@ -11,36 +11,53 @@ from pathlib import Path
 NOTE_PATH = Path("Documentation/zigux/phase13-devres-mmio-validate-route-gap.md")
 README_PATH = Path("scripts/zigux/README.md")
 MAKEFILE_PATH = Path("zigux/Makefile")
+SLICE_PATH = Path("Documentation/zigux/phase13-devres-slice.md")
+DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dma_coherent.zig")
 MMIO_CHECKER_PATH = Path("scripts/zigux/check-phase13-devres-mmio-packet.py")
 
 README_MARKERS = [
-    "`scripts/zigux/check-phase13-devres-mmio-packet.py`",
-    "current `master` still does not materialize the older validator-first helper names `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`",
+    "`zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`",
+    "current `master` still does not materialize `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`",
+    "keep helper-local `libfs`, `devres`, and `landlock` ownership explicit",
 ]
 
 MAKEFILE_REQUIRED_MARKERS = [
-    "phase13-validate:",
-    "scripts/zigux/validate-phase13-release.py",
-    "scripts/zigux/check-phase13-devres-packet-alignment.py",
+    "phase12-smoke:",
+    "phase12-test:",
 ]
 
 MAKEFILE_FORBIDDEN_MARKERS = [
+    "phase13-validate:",
+    "phase13:",
+    "scripts/zigux/validate-phase13-release.py",
+    "scripts/zigux/check-phase13-devres-packet-alignment.py",
     "scripts/zigux/check-phase13-devres-mmio-packet.py",
+]
+
+SLICE_MARKERS = [
+    "`zigux/tests/phase13_devres_dma_coherent.zig` now materializes one direct replay surface",
+    "`Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_manifest.json` remain repo-reality gaps",
+    "The bounded current evidence is the direct DMA-boundary replay plus the planner note",
+]
+
+DMA_REPLAY_MARKERS = [
+    "phase13 devres dma coherent replay anchors the current slice reality",
+    "Documentation/zigux/phase13-devres-slice.md",
+    "repo-reality gaps",
 ]
 
 MMIO_CHECKER_MARKERS = [
     'REQUIRED_FILES = [',
     '"Documentation/zigux/phase13-devres-slice.md",',
-    '"zigux/tests/phase13_devres.zig",',
     "PHASE13_DEVRES_MMIO_PACKET_SELF_TEST=pass",
 ]
 
 NOTE_MARKERS = [
     "`PHASE13_LANE=P13-L02`",
-    "`scripts/zigux/check-phase13-devres-mmio-packet.py` as shipped Phase 13 evidence",
-    "`scripts/zigux/validate-phase13-release.py` and `scripts/zigux/check-phase13-devres-packet-alignment.py` names as repo-reality gaps",
-    "`zigux/Makefile` still routes `phase13-validate` through `scripts/zigux/validate-phase13-release.py` and `scripts/zigux/check-phase13-devres-packet-alignment.py`",
-    "Refresh `zigux/Makefile` so `phase13-validate` points at the shipped devres MMIO packet guard",
+    "`PHASE13_SCOPE=iomap-mmio-safety-route-gap`",
+    "`Documentation/zigux/phase13-devres-slice.md` and `zigux/tests/phase13_devres_dma_coherent.zig` now keep the surviving devres packet narrow on current `master`",
+    "`zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`",
+    "current `master` does not ship a shared Phase 13 rerun hook for the surviving devres MMIO evidence at all",
 ]
 
 
@@ -67,12 +84,16 @@ def forbid_markers(text: str, markers: list[str], label: str) -> None:
 def run(root: Path) -> None:
     readme_text = read_text(root, README_PATH)
     makefile_text = read_text(root, MAKEFILE_PATH)
+    slice_text = read_text(root, SLICE_PATH)
+    dma_replay_text = read_text(root, DMA_REPLAY_PATH)
     mmio_checker_text = read_text(root, MMIO_CHECKER_PATH)
     note_text = read_text(root, NOTE_PATH)
 
     require_markers(readme_text, README_MARKERS, "scripts README")
     require_markers(makefile_text, MAKEFILE_REQUIRED_MARKERS, "Makefile")
     forbid_markers(makefile_text, MAKEFILE_FORBIDDEN_MARKERS, "Makefile")
+    require_markers(slice_text, SLICE_MARKERS, "slice")
+    require_markers(dma_replay_text, DMA_REPLAY_MARKERS, "dma replay")
     require_markers(mmio_checker_text, MMIO_CHECKER_MARKERS, "MMIO checker")
     require_markers(note_text, NOTE_MARKERS, "note")
 
@@ -83,30 +104,23 @@ def write(path: Path, text: str) -> None:
 
 
 def build_fixture(root: Path) -> None:
-    write(
-        root / README_PATH,
-        "\n".join(README_MARKERS)
-        + "\n",
-    )
+    write(root / README_PATH, "\n".join(README_MARKERS) + "\n")
     write(
         root / MAKEFILE_PATH,
         "\n".join(
             [
-                "phase13-validate:",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase13-release.py",
-                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase13-devres-packet-alignment.py",
+                "phase12-smoke:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build smoke --build-file zigux/tests/phase12_build.zig --summary all",
+                "phase12-test:",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all",
             ]
         )
         + "\n",
     )
-    write(
-        root / MMIO_CHECKER_PATH,
-        "\n".join(MMIO_CHECKER_MARKERS) + "\n",
-    )
-    write(
-        root / NOTE_PATH,
-        "\n".join(["# note", *NOTE_MARKERS]) + "\n",
-    )
+    write(root / SLICE_PATH, "\n".join(SLICE_MARKERS) + "\n")
+    write(root / DMA_REPLAY_PATH, "\n".join(DMA_REPLAY_MARKERS) + "\n")
+    write(root / MMIO_CHECKER_PATH, "\n".join(MMIO_CHECKER_MARKERS) + "\n")
+    write(root / NOTE_PATH, "\n".join(["# note", *NOTE_MARKERS]) + "\n")
 
 
 def expect_failure(root: Path, relpath: Path, replacement: str) -> None:
@@ -127,7 +141,7 @@ def self_test() -> None:
     try:
         build_fixture(tmpdir)
         run(tmpdir)
-        expect_failure(tmpdir, README_PATH, "`scripts/zigux/check-phase13-devres-mmio-packet.py`\n")
+        expect_failure(tmpdir, README_PATH, "keep helper-local `libfs`, `devres`, and `landlock` ownership explicit\n")
         expect_failure(
             tmpdir,
             MAKEFILE_PATH,
@@ -139,12 +153,13 @@ def self_test() -> None:
             )
             + "\n",
         )
+        expect_failure(tmpdir, SLICE_PATH, "`zigux/tests/phase13_devres_dma_coherent.zig` now materializes one direct replay surface\n")
         expect_failure(tmpdir, NOTE_PATH, "# missing\n")
     finally:
         shutil.rmtree(tmpdir)
 
     print("PHASE13_DEVRES_MMIO_VALIDATE_ROUTE_GAP_SELF_TEST=pass")
-    print("PHASE13_DEVRES_MMIO_VALIDATE_ROUTE_GAP_SELF_TEST_CASES=4")
+    print("PHASE13_DEVRES_MMIO_VALIDATE_ROUTE_GAP_SELF_TEST_CASES=5")
 
 
 def main() -> int:
