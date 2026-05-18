@@ -282,7 +282,6 @@ def run_self_test() -> int:
         for marker in DISALLOWED_WORKFLOW_LINES:
             build_self_test_root(root)
             workflow_path = path_under(root, WORKFLOW)
-            workflow_path.writeText = None
             workflow_path.write_text(
                 workflow_path.read_text(encoding="utf-8") + marker + "\n",
                 encoding="utf-8",
