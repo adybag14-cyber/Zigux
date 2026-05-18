@@ -61,6 +61,7 @@ REQUIRED_MARKERS = {
         'return "err_ptr";',
         '\\"safe_inline_limit_raw_hex\\"',
         'try writeCase(writer, "inline_limit", inline_limit_raw, true);',
+        'try writeCase(writer, "err_top", err_ptr.fromErrorCode(-1), true);',
         'try writeCase(writer, "err_max", err_ptr.fromErrorCode(-4095), false);',
     ),
     DUMP_BUILD_PATH: (
@@ -75,6 +76,7 @@ REQUIRED_MARKERS = {
         "static uintptr_t err_floor(void) {",
         'return "xa_value";',
         'write_case("inline_limit", inline_limit_raw, 1);',
+        'write_case("err_top", (uintptr_t)(intptr_t)-1, 1);',
         'write_case("err_max", (uintptr_t)(intptr_t)-4095, 0);',
     ),
     EXPECTED_PATH: (
@@ -82,6 +84,8 @@ REQUIRED_MARKERS = {
         '"safe_inline_limit_raw_hex": "0xffffffffffffefff"',
         '"name": "inline_limit"',
         '"decoded_value": 9223372036854773759',
+        '"name": "err_top"',
+        '"decoded_error": -1',
         '"decoded_error": -4095',
     ),
     MANIFEST_PATH: (
@@ -259,12 +263,12 @@ def validate_repo(
     expected = _load_json(repo_root / EXPECTED_PATH)
     try:
         zig_actual = _run_zig_dump(repo_root, zig)
-    except Exception as exc:  # pragma: no cover - surfaced to the caller
+    except Exception as exc:
         issues.append(str(exc))
         return issues
     try:
         c_actual = _run_c_harness(repo_root, cc)
-    except Exception as exc:  # pragma: no cover - surfaced to the caller
+    except Exception as exc:
         issues.append(str(exc))
         return issues
 
