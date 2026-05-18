@@ -102,7 +102,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 24
+EXPECTED_SELF_TEST_CASE_COUNT = 31
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -413,6 +413,27 @@ def run_self_test() -> int:
             checks_run += 1
         else:
             raise AssertionError("non-object manifest did not abort")
+
+        for path in (
+            CLOSURE_DOC,
+            BOOTSTRAP_NOTES,
+            DOCS_ROOT_README,
+            TESTS_README,
+            REVIEW_CHECKLIST,
+            SCRIPTS_README,
+            MANIFEST,
+        ):
+            build_self_test_root(root)
+            resolved = resolve_path(root, path)
+            resolved.unlink()
+            try:
+                collect_issues(root)
+            except SystemExit as exc:
+                assert "required file missing" in str(exc)
+                assert str(resolved) in str(exc)
+                checks_run += 1
+            else:
+                raise AssertionError(f"missing primary file did not abort: {path}")
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_CLOSURE_VALIDATION_SELF_TEST=pass")
