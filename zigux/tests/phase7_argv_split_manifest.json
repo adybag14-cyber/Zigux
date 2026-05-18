@@ -1,14 +1,15 @@
 {
   "lane_key": "P7-L09",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-18T04:39:34Z",
+  "verified_on_utc": "2026-05-18T11:50:54Z",
   "anchor": "lib/argv_split.c",
   "current_master_state": "helper_survey_manifest_anchor",
   "review_surfaces": [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "lib/argv_split.zig",
     "zigux/tests/phase7_argv_split_survey.zig",
-    "zigux/tests/phase7_argv_split_manifest.json"
+    "zigux/tests/phase7_argv_split_manifest.json",
+    "scripts/zigux/check-phase7-argv-split-packet.py"
   ],
   "covered_helpers": [
     "countArgc",
@@ -22,7 +23,6 @@
     "Documentation/zigux/phase7-argv-split-slice.md",
     "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-    "scripts/zigux/check-phase7-argv-split-packet.py",
     "zigux/tests/phase7_build.zig",
     "scripts/zigux/validate-phase7.py"
   ],
@@ -32,5 +32,5 @@
     "blank-input results reuse exported empty storage and argv sentinel views without allocating fresh packet state",
     "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet"
   ],
-  "next_bounded_step": "Keep same-lane follow-through limited to helper-local survey-or-manifest truthfulness until a fresh reread proves the dedicated argv_split test file, fixture vectors, checker, or shared Phase 7 build route returned on current master."
+  "next_bounded_step": "Keep same-lane follow-through limited to helper-local survey-or-manifest truthfulness while the dedicated checker remains returned on current master and the dedicated argv_split test file, fixture vectors, slice note, and shared Phase 7 build or validation routes still read missing."
 }
