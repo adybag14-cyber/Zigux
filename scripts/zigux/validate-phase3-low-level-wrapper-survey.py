@@ -17,6 +17,7 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 WRAPPER_REPLAY_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
 WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 WRAPPER_BUILD_COMMAND = "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
 
 REQUIRED_MARKERS = {
@@ -82,6 +83,10 @@ REQUIRED_MARKERS = {
         'mmio.addImport("unsafe_policy", unsafe_policy);',
         '"phase3-low-level-wrappers-test"',
     ),
+    WORKFLOW_PATH: (
+        'name: Run current Phase 3 low-level wrapper replay',
+        'run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
+    ),
 }
 
 SELF_TEST_CASES = (
@@ -131,6 +136,8 @@ SELF_TEST_CASES = (
     (WRAPPER_BUILD_PATH, 'mmio.addImport("abi_bindings", abi_bindings);'),
     (WRAPPER_BUILD_PATH, 'mmio.addImport("unsafe_policy", unsafe_policy);'),
     (WRAPPER_BUILD_PATH, '"phase3-low-level-wrappers-test"'),
+    (WORKFLOW_PATH, 'name: Run current Phase 3 low-level wrapper replay'),
+    (WORKFLOW_PATH, 'run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig'),
 )
 
 
