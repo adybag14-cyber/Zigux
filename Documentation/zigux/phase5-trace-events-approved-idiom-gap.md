@@ -22,6 +22,7 @@ Keep the approved formatting idiom bounded to the current shared reminder packet
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
+- `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
 That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest that the directly readable proof is the small companion sample plus the shared reminder surfaces rather than the older full non-runtime sample-root packet.
