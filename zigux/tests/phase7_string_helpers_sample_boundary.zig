@@ -64,8 +64,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
     try expectContains(slice_note, "allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched");
     try expectContains(slice_note, "`memcpyAndPad()` and `strreplace()` keep writes inside caller-provided destination and exported prefix boundaries");
-    try expectContains(slice_note, "the broader full-family packet that still leaves `parse_int_array()`, `kstrdup_quotable_file()`, or `devm_kasprintf_strarray()` outside the current `master` helper packet");
-    try expectContains(slice_note, "before deciding whether `parse_int_array()` can join the same helper-local packet without widening into file-path or device-managed semantics.");
+    try expectContains(slice_note, "the broader full-family packet that still leaves `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` outside the current `master` helper packet");
+    try expectContains(slice_note, "The next bounded follow-through should realign the dedicated survey and sample-boundary replays so they treat `parse_int_array()` as landed and keep only `kstrdup_quotable_file()` plus `devm_kasprintf_strarray()` parked as the remaining helper-local non-goals.");
     try expectNotContains(slice_note, "restored starter packet");
     try expectNotContains(slice_note, "missing both `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig`");
 
@@ -136,9 +136,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContains(manifest, "\"bounded sequential string-array allocation with NULL-terminated pointer views\"");
     try expectContains(manifest, "kasprintfStrarray() and kfreeStrarray() keep per-string ownership and teardown explicit and let callers tear down partially or fully consumed results without widening beyond the returned array packet");
     try expectContains(manifest, "kstrdupAndReplace() keeps returned storage caller-owned, rewrites only the duplicated exported prefix, and leaves the source buffer untouched");
-    try expectContains(manifest, "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries");
-    try expectContains(manifest, "the broader parse, file-path, or device-managed follow-ons as landed");
-    try expectContains(manifest, "`parse_int_array()` belongs in the same helper-local packet");
+    try expectContains(manifest, "without overstating the file-path or device-managed follow-ons as landed");
+    try expectContains(manifest, "treats `parse_int_array()` as landed and keeps only `kstrdup_quotable_file()` plus `devm_kasprintf_strarray()` outside the current packet");
     try expectContains(manifest, "\"stringEscapeStrAnyNp\"");
     try expectContains(manifest, "\"stringUpper\"");
     try expectContains(manifest, "\"string_upper\"");
