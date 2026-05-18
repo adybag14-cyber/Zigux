@@ -4,10 +4,10 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_SURVEY_PROVENANCE=connector-current-head-sha-unavailable-in-run`
 - `PHASE3_LAYOUT_ASSERT_PATH=zigux/helpers/layout_assert.zig`
 - `PHASE3_LAYOUT_ASSERT_SCOPE=generic-layout-helper-plus-canonical-abi-byte-and-field-asserts-consumed-by-shared-abi-replays`
-- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=1a5dfe0dc320c74902912cfaa25165dd8fed54b5`
+- `PHASE3_LAYOUT_ASSERT_BLOB_SHA=6a64770f7b801c063ebf72348ca140b44f8e1080`
 - `PHASE3_PANIC_POLICY_PATH=zigux/helpers/panic_policy.zig`
 - `PHASE3_PANIC_POLICY=explicit-modes-plus-escalation-and-byte-decoders`
-- `PHASE3_PANIC_POLICY_BLOB_SHA=5d7c4fd2d0fda0bda266f73dbd30f09a07ab9da0`
+- `PHASE3_PANIC_POLICY_BLOB_SHA=d05afcf0c0ef4e5558f8d8094bedf831c413407c`
 - `PHASE3_ALLOCATOR_POLICY_PATH=zigux/helpers/allocator_policy.zig`
 - `PHASE3_ALLOCATOR_POLICY=explicit-modes-plus-init-flow-owned-state-and-reset-gates`
 - `PHASE3_ALLOCATOR_POLICY_BLOB_SHA=9327abeaba7f1017f98e9557d1479485354b210a`
