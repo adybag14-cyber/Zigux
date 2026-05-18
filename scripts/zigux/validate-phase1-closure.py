@@ -22,6 +22,7 @@ TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
+RBTREE_HELPER_REL = Path("tools/lib/rbtree.zig")
 
 REQUIRED_FILES = (
     PHASE1_CLOSURE_REL,
@@ -34,6 +35,7 @@ REQUIRED_FILES = (
     PHASE1_SMOKE_REL,
     MANIFEST_REL,
     FIND_BIT_HELPER_REL,
+    RBTREE_HELPER_REL,
 )
 
 EXPECTED_HELPERS = [
@@ -103,6 +105,26 @@ EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS = [
     'test "Linux-style aliases mirror the primary find helpers"',
 ]
 
+EXPECTED_RBTREE_HELPER_TEST_ANCHORS = [
+    'test "rbtree inserts and traverses in sorted order"',
+    'test "rbtree erase and replace keep traversal consistent"',
+    'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
+    'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
+    'test "rbtree eraseInit detaches erased node"',
+    'test "rbtree postorder and empty node helpers behave"',
+    'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+    'test "rbtree nextMatch walks the duplicate range in order"',
+    'test "rbtree matchIterator walks the duplicate range in order"',
+    'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+    'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
+    'test "rbtree cached root keeps the leftmost pointer in sync"',
+    'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+    'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+    'test "rbtree eraseCached returns null for a singleton cached tree"',
+    'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+    'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+]
+
 EXPECTED_FIND_BIT_SOURCE_SYMBOLS = [
     "pub fn findFirstAndNotBit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
     "pub fn find_first_andnot_bit(addr1: []const Word, addr2: []const Word, nbits: usize) usize {",
@@ -152,6 +174,93 @@ EXPECTED_FIND_BIT_REVIEW_FIELDS = {
         "findLastBit(), underscore-alias, Linux-style alias, or tail-word skip anchors, "
         "or committed tail-clamped replay drift; do not reopen older saved validator cues "
         "or neighboring helper families."
+    ),
+}
+
+EXPECTED_RBTREE_REVIEW_FIELDS = {
+    "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+    "parity_fixture_keys": [
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "match_iterator_serials",
+        "next_match_terminal_null",
+    ],
+    "cached_leftmost_fixture_keys": [
+        "cached_leftmost_return_serials",
+    ],
+    "shared_replay_summary": (
+        "shared traversal, detached-node, duplicate-search, and iterator replay stay explicit "
+        "through the Phase 1 fixture and replay, while current master also carries the parked "
+        "`cached_leftmost_return_serials` parity-only witness in the committed shared fixture "
+        "beside the direct cached-root packet"
+    ),
+    "traversal_replay_keys": [
+        "empty_root",
+        "insert_order",
+        "reverse_order",
+        "replace_order",
+        "erase_init_order",
+        "postorder_count",
+        "erase_init_node_empty",
+        "cleared_node_empty",
+    ],
+    "duplicate_search_replay_keys": [
+        "find_found_key",
+        "find_missing",
+        "find_first_serial",
+        "next_match_serials",
+        "match_iterator_serials",
+        "next_match_terminal_null",
+    ],
+    "cached_root_direct_review_summary": (
+        "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, "
+        "replacement, detach, and reseed behavior remain owned by direct helper-local anchors, "
+        "while current master already ships and the shared Zig replay already consumes the "
+        "parked `cached_leftmost_return_serials` witness as shared cached-root leftmost-return "
+        "evidence"
+    ),
+    "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
+    "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
+    "duplicate_search_anchors": [
+        'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+        'test "rbtree nextMatch walks the duplicate range in order"',
+        'test "rbtree matchIterator walks the duplicate range in order"',
+    ],
+    "cached_root_followup_anchors": [
+        'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+        'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
+        'test "rbtree cached root keeps the leftmost pointer in sync"',
+        'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+        'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+        'test "rbtree eraseCached returns null for a singleton cached tree"',
+        'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+        'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+    ],
+    "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+    "review_packet_summary": (
+        "shared find, first-match, next-match, and match-iterator duplicate-search parity stays "
+        "explicit through the Phase 1 fixture and replay, and current master already consumes "
+        "`cached_leftmost_return_serials` as shared cached-root leftmost-return evidence, while "
+        "the remaining cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, "
+        "replacement, detach, and reseed review anchors stay explicit at the helper surface for "
+        "any paths the shared replay still does not cover"
+    ),
+    "next_safe_step_note": (
+        "If this helper lane reopens, keep the already-landed shared-replay promotion for "
+        "`cached_leftmost_return_serials` aligned across the committed fixture, shared replay, "
+        "and direct cached-root anchors; until another committed cached-root replay field lands, "
+        "insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, "
+        "and reseed behavior stay owned by direct helper-local anchors."
     ),
 }
 
@@ -316,6 +425,30 @@ def collect_failures(root: Path) -> list[str]:
             )
         )
 
+    rbtree_review = review_anchors.get("tools/lib/rbtree.zig")
+    if not isinstance(rbtree_review, dict):
+        failures.append(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig:expected=dict:actual={type(rbtree_review).__name__}"
+        )
+        return failures
+
+    failures.extend(
+        require_exact_value(
+            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig:helper_test_anchors",
+            rbtree_review.get("helper_test_anchors"),
+            EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+        )
+    )
+
+    for key, expected in EXPECTED_RBTREE_REVIEW_FIELDS.items():
+        failures.extend(
+            require_exact_value(
+                f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig:{key}",
+                rbtree_review.get(key),
+                expected,
+            )
+        )
+
     find_bit_text = load_text(root, FIND_BIT_HELPER_REL)
     for anchor in EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS:
         failures.extend(
@@ -331,6 +464,16 @@ def collect_failures(root: Path) -> list[str]:
                 find_bit_text,
                 f"{FIND_BIT_HELPER_REL.as_posix()}:source_symbol",
                 symbol,
+            )
+        )
+
+    rbtree_text = load_text(root, RBTREE_HELPER_REL)
+    for anchor in EXPECTED_RBTREE_HELPER_TEST_ANCHORS:
+        failures.extend(
+            require_exact_occurrence(
+                rbtree_text,
+                f"{RBTREE_HELPER_REL.as_posix()}:helper_test_anchor",
+                anchor,
             )
         )
 
@@ -387,6 +530,10 @@ def make_fixture_tree(root: Path) -> None:
                         "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
                         **EXPECTED_FIND_BIT_REVIEW_FIELDS,
                     },
+                    "tools/lib/rbtree.zig": {
+                        "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                        **EXPECTED_RBTREE_REVIEW_FIELDS,
+                    },
                 },
             },
             indent=2,
@@ -396,6 +543,10 @@ def make_fixture_tree(root: Path) -> None:
     write_text(
         root / FIND_BIT_HELPER_REL,
         "\n".join(EXPECTED_FIND_BIT_SOURCE_SYMBOLS + EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS) + "\n",
+    )
+    write_text(
+        root / RBTREE_HELPER_REL,
+        "\n".join(EXPECTED_RBTREE_HELPER_TEST_ANCHORS) + "\n",
     )
 
 
@@ -449,6 +600,10 @@ def run_self_test() -> int:
                                 "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
                                 **EXPECTED_FIND_BIT_REVIEW_FIELDS,
                             },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                                **EXPECTED_RBTREE_REVIEW_FIELDS,
+                            },
                         },
                     },
                     indent=2,
@@ -474,6 +629,10 @@ def run_self_test() -> int:
                             "tools/lib/find_bit.zig": {
                                 "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
                                 **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                                **EXPECTED_RBTREE_REVIEW_FIELDS,
                             },
                         },
                     },
@@ -501,6 +660,10 @@ def run_self_test() -> int:
                                 "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
                                 **EXPECTED_FIND_BIT_REVIEW_FIELDS,
                             },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                                **EXPECTED_RBTREE_REVIEW_FIELDS,
+                            },
                         },
                     },
                     indent=2,
@@ -526,6 +689,10 @@ def run_self_test() -> int:
                             "tools/lib/find_bit.zig": {
                                 "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
                                 **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                                **EXPECTED_RBTREE_REVIEW_FIELDS,
                             },
                         },
                     },
@@ -553,6 +720,10 @@ def run_self_test() -> int:
                                 "helper_test_anchors": ["drift"],
                                 **EXPECTED_FIND_BIT_REVIEW_FIELDS,
                             },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                                **EXPECTED_RBTREE_REVIEW_FIELDS,
+                            },
                         },
                     },
                     indent=2,
@@ -578,6 +749,70 @@ def run_self_test() -> int:
                             "tools/lib/find_bit.zig": {
                                 "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
                                 **(EXPECTED_FIND_BIT_REVIEW_FIELDS | {"same_word_start_masks": "drift"}),
+                            },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                                **EXPECTED_RBTREE_REVIEW_FIELDS,
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+            False,
+        ),
+        (
+            "bad_rbtree_helper_anchors",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        "phase": "Phase 1",
+                        "status": "closed",
+                        "helper_count": len(EXPECTED_HELPERS),
+                        "helpers": EXPECTED_HELPERS,
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": ["drift"],
+                                **EXPECTED_RBTREE_REVIEW_FIELDS,
+                            },
+                        },
+                    },
+                    indent=2,
+                )
+                + "\n",
+            ),
+            False,
+        ),
+        (
+            "bad_rbtree_review_field",
+            lambda root: write_text(
+                root / MANIFEST_REL,
+                json.dumps(
+                    {
+                        "phase": "Phase 1",
+                        "status": "closed",
+                        "helper_count": len(EXPECTED_HELPERS),
+                        "helpers": EXPECTED_HELPERS,
+                        "review_anchors": {
+                            "tools/lib/bitmap.zig": {
+                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                            },
+                            "tools/lib/find_bit.zig": {
+                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
+                            },
+                            "tools/lib/rbtree.zig": {
+                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+                                **(EXPECTED_RBTREE_REVIEW_FIELDS | {"low_level_alias_anchor": "drift"}),
                             },
                         },
                     },
@@ -606,6 +841,18 @@ def run_self_test() -> int:
                 replace_once(
                     load_text(root, FIND_BIT_HELPER_REL),
                     EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS[4] + "\n",
+                    "",
+                ),
+            ),
+            False,
+        ),
+        (
+            "missing_rbtree_source_anchor",
+            lambda root: write_text(
+                root / RBTREE_HELPER_REL,
+                replace_once(
+                    load_text(root, RBTREE_HELPER_REL),
+                    EXPECTED_RBTREE_HELPER_TEST_ANCHORS[3] + "\n",
                     "",
                 ),
             ),
