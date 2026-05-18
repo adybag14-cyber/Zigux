@@ -74,7 +74,7 @@ fn readHeaderFromReader(reader: anytype) !HeaderReadResult {
     var header: [ei_nident]u8 = undefined;
     var filled: usize = 0;
     while (filled < header.len) {
-        const count = try reader.read(header[filled..]);
+        const count = reader.read(header[filled..]) catch break;
         if (count == 0) break;
         filled += count;
     }
@@ -140,6 +140,36 @@ const SplitReader = struct {
 
     fn read(self: *@This(), buffer: []u8) !usize {
         self.call_count += 1;
+        if (self.offset >= self.bytes.len or self.read_index >= self.chunk_sizes.len) {
+            return 0;
+        }
+
+        const planned = self.chunk_sizes[self.read_index];
+        self.read_index += 1;
+
+        const remaining = self.bytes.len - self.offset;
+        const count = @min(planned, @min(buffer.len, remaining));
+        @memcpy(buffer[0..count], self.bytes[self.offset .. self.offset + count]);
+        self.offset += count;
+        return count;
+    }
+};
+
+const FailingReader = struct {
+    bytes: []const u8,
+    chunk_sizes: []const usize,
+    fail_on_call: usize,
+    offset: usize = 0,
+    read_index: usize = 0,
+    call_count: usize = 0,
+
+    const ReadError = error{InjectedFailure};
+
+    fn read(self: *@This(), buffer: []u8) ReadError!usize {
+        self.call_count += 1;
+        if (self.call_count == self.fail_on_call) {
+            return error.InjectedFailure;
+        }
         if (self.offset >= self.bytes.len or self.read_index >= self.chunk_sizes.len) {
             return 0;
         }
@@ -254,6 +284,31 @@ test "readHeader preserves truncated byte count across split reads" {
     const header = try readHeaderFromReader(&reader);
     try std.testing.expectEqual(@as(usize, 8), header.len);
     try std.testing.expectEqual(@as(usize, 4), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
+}
+
+test "readHeader treats an immediate read error like truncated input" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{},
+        .chunk_sizes = &[_]usize{},
+        .fail_on_call = 1,
+    };
+
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, 0), header.len);
+    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
+}
+
+test "readHeader keeps partial bytes when a later read fails" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
+        .chunk_sizes = &[_]usize{ 8, 8 },
+        .fail_on_call = 2,
+    };
+
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, 8), header.len);
+    try std.testing.expectEqual(@as(usize, 2), reader.call_count);
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
 }
 
@@ -878,6 +933,42 @@ test "split-read truncated input exits with stderr after final EOF read" {
     const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
     try std.testing.expectEqual(@as(u8, 1), exit_code);
     try std.testing.expectEqual(@as(usize, 4), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
+
+test "split-read immediate read error exits with stderr" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{},
+        .chunk_sizes = &[_]usize{},
+        .fail_on_call = 1,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
+
+test "split-read later read error exits with truncated stderr" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
+        .chunk_sizes = &[_]usize{ 8, 8 },
+        .fail_on_call = 2,
+    };
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqual(@as(usize, 2), reader.call_count);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
 }
