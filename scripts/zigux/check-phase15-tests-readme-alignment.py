@@ -19,6 +19,7 @@ SELF_PATH = Path("scripts/zigux/check-phase15-tests-readme-alignment.py")
 REVIEW_PROCESS_TEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process.zig")
 REVIEW_PROCESS_MANIFEST_PATH = Path("zigux/tests/phase15_architecture_council_review_process_manifest.json")
 READINESS_MANIFEST_PATH = Path("zigux/tests/phase15_readiness_gate_manifest.json")
+MAKEFILE_PATH = Path("zigux/Makefile")
 
 DIRECT_PACKET_PATHS = (
     "Documentation/zigux/freeze-map.md",
@@ -41,7 +42,6 @@ BROADER_GAP_PATHS = (
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
-    "zigux/Makefile",
 )
 
 REQUIRED_MARKERS = (
@@ -51,6 +51,7 @@ REQUIRED_MARKERS = (
     "keep the two roadmap study-only anchors parked",
     "`python3 scripts/zigux/check-phase15-tests-readme-alignment.py --self-test`",
     "`python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test`",
+    "although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than direct tests-root evidence",
 )
 
 
@@ -77,6 +78,9 @@ def collect_failures(root: Path) -> list[str]:
         if not (root / rel).exists():
             failures.append(f"repo:missing_direct_path:{rel}")
 
+    if not (root / MAKEFILE_PATH).exists():
+        failures.append(f"repo:missing_present_path:{MAKEFILE_PATH}")
+
     for rel in BROADER_GAP_PATHS:
         if f"`{rel}`" not in readme:
             failures.append(f"tests_readme:missing_gap_path:`{rel}`")
@@ -97,6 +101,7 @@ Phase 15 review packet
   * `python3 scripts/zigux/check-phase15-tests-readme-alignment.py --self-test` and `python3 scripts/zigux/check-phase15-review-process-handoff.py --self-test` replay the focused tests-root governance checks, while the live checker routes keep the shipped reminder packet honest without rebuilding the missing broader validator-first or build packet
   * repeated authenticated contents reads on current `master` still return missing for:
 {broader}
+  * although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than direct tests-root evidence
   * keep the current Phase 15 tests-root reminder aligned with the directly materialized governance packet, including the dedicated Architecture Council review-process note and the study-only accounting note, instead of implying that the broader validator-first, handoff-manifest, build, lane-owner, or make-wrapper routes are already shipped on current `master`
   * no Architecture Council approval is currently recorded for a freeze-map status change, keep the four freeze-in-C anchors parked, keep the two roadmap study-only anchors parked, and keep any future follow-through narrowed to the smallest reminder-surface repair first
 """
@@ -106,6 +111,7 @@ def _seed(root: Path) -> None:
     _write(root / TESTS_README_PATH, _sample_readme())
     for rel in DIRECT_PACKET_PATHS:
         _write(root / rel, "present\n")
+    _write(root / MAKEFILE_PATH, "present\n")
 
 
 def run_self_test() -> int:
@@ -144,9 +150,9 @@ def run_self_test() -> int:
 
         returned_gap_root = root / "returned_gap"
         _seed(returned_gap_root)
-        _write(returned_gap_root / "zigux/Makefile", "present\n")
+        (returned_gap_root / MAKEFILE_PATH).unlink()
         failures = collect_failures(returned_gap_root)
-        expected = ["repo:gap_path_returned:zigux/Makefile"]
+        expected = ["repo:missing_present_path:zigux/Makefile"]
         if failures != expected:
             raise AssertionError(f"unexpected returned-gap failure: {failures}")
 
