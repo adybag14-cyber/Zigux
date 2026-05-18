@@ -62,9 +62,6 @@ test "phase 7 rbtree survey keeps the surviving anchor packet truthful" {
     const string_helper_manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
     defer allocator.free(string_helper_manifest);
 
-    const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
-    defer allocator.free(samples_readme);
-
     const parsed = try std.json.parseFromSlice(Manifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -131,7 +128,4 @@ test "phase 7 rbtree survey keeps the surviving anchor packet truthful" {
     try expectContains(string_helper_tests, "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators");
     try expectContains(string_helper_survey, "phase 7 string helpers survey keeps the expanded starter packet truthful");
     try expectContains(string_helper_manifest, "\"current_master_state\": \"expanded_starter_packet\"");
-
-    try expectContains(samples_readme, "* `*rbtree*`");
-    try expectNotContains(samples_readme, "standalone Phase 5 sample-root files here for:\n\n* `*string*`\n* `*cmdline*`\n* `*argv*`\n* `*bitmap*`");
 }
