@@ -318,6 +318,25 @@ pub fn resolveReadyBufferAttemptLookup(
     };
 }
 
+pub fn resolveReadyBufferAttemptIndexReturn(
+    buffers: []const BufferObservation,
+    attempt_index: usize,
+) i32 {
+    return resolveReadyBufferAttemptLookupReturn(
+        summarizeReadyBufferAttemptLookup(buffers, attempt_index),
+    );
+}
+
+pub fn resolveReadyBufferAttemptLookupReturn(
+    summary: ReadyBufferAttemptLookupSummary,
+) i32 {
+    return switch (summary.disposition) {
+        .found_ready_index => std.math.cast(i32, summary.ready_index.?) orelse
+            -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW)),
+        .missing_ready_index => -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    };
+}
+
 pub fn summarizeReadyBuffers(buffers: []const BufferObservation) ReadyBufferSummary {
     const cursor = advanceReadyBufferCursor(buffers, 0);
     var ready_count: usize = 0;
@@ -730,6 +749,58 @@ test "phase8 perf-buffer poll exposes typed ready-buffer attempt lookup summarie
     try std.testing.expectEqual(@as(?usize, null), missing.ready_index);
     try std.testing.expectEqual(@as(usize, 2), missing.ready_count);
     try std.testing.expectError(error.MissingReadyBuffer, resolveReadyBufferAttemptLookup(missing));
+}
+
+test "phase8 perf-buffer poll keeps ready-buffer attempt lookup returns errno-shaped" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+
+    try std.testing.expectEqual(
+        @as(i32, 1),
+        resolveReadyBufferAttemptLookupReturn(summarizeReadyBufferAttemptLookup(&buffers, 0)),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 3),
+        resolveReadyBufferAttemptLookupReturn(summarizeReadyBufferAttemptLookup(&buffers, 1)),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveReadyBufferAttemptLookupReturn(summarizeReadyBufferAttemptLookup(&buffers, 2)),
+    );
+}
+
+test "phase8 perf-buffer poll resolves ready-buffer attempt returns without manual summary plumbing" {
+    const buffers = [_]BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+
+    try std.testing.expectEqual(@as(i32, 1), resolveReadyBufferAttemptIndexReturn(&buffers, 0));
+    try std.testing.expectEqual(@as(i32, 3), resolveReadyBufferAttemptIndexReturn(&buffers, 1));
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveReadyBufferAttemptIndexReturn(&buffers, 2),
+    );
+}
+
+test "phase8 perf-buffer poll fails closed when a hand-built ready-buffer lookup index exceeds i32" {
+    const impossible = ReadyBufferAttemptLookupSummary{
+        .requested_attempt_index = 0,
+        .ready_index = @as(usize, std.math.maxInt(i32)) + 1,
+        .ready_count = 1,
+        .disposition = .found_ready_index,
+    };
+
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.OVERFLOW)),
+        resolveReadyBufferAttemptLookupReturn(impossible),
+    );
 }
 
 test "phase8 perf-buffer poll keeps ready-count return semantics and process totals separate" {
