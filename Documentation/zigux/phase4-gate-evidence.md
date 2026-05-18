@@ -1,6 +1,6 @@
 # Phase 4 Gate Evidence
 
-This note records the current connector-readback checkpoint for the shipped Phase 4 rollback-ownership and lab-matrix packet. The status block below now matches the dedicated gate-evidence checker and the shared validator on current `master`, while the local-only perf and parked survey packets remain intentionally separate.
+This note records the last fully pinned broader Phase 4 rollback-ownership and lab-matrix packet. Keep the narrower reversible-delivery handoff as the direct-readback source when authenticated contents reads for the broader packet still flap, while the local-only perf and parked survey packets remain intentionally separate.
 ## Status
   * `PHASE4_EVIDENCE_DATE=2026-05-16`
   * `PHASE4_EVIDENCE_MODE=github_connector_readback`
@@ -38,6 +38,5 @@ This note records the current connector-readback checkpoint for the shipped Phas
   * `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`
   * `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`
 ## Exact Readback Evidence
-  * `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and the dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` checker now agree on the currently shipped Phase 4 rollback-readiness packet surfaces that the validator and shared build still own on `master`, including the dedicated local-only perf-baseline survey files plus the matching direct `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and Linux-style `make -C zigux phase4-perf-baseline-survey` replay routes.
-  * Current connector readback of `zigux/tests/bitmap_diff.zig` against the Linux anchor in `lib/test_bitmap.c` keeps the shipped bitmap rollback gate reviewable at the copy-behavior level too: the gate now records the exact 23-bit single-word replay family, the exact word-aligned first-word tail clearing family, the exact two-word second-word tail clearing family, the full-width 109-bit source replay pair, and the 109-bit partial-word padded-tail replay pair, so the Phase 4 note now says explicitly that the current shipped bitmap packet still mirrors both the single-word and multi-word `test_copy` anchors on `master`.
-  * `scripts/zigux/check-phase4-gate-evidence.py` remains the dedicated exact-readback checker for this narrower rollback-ownership packet.
+  * Public current-`master` fallback rereads of `Documentation/zigux/artifact-diff.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and the dedicated `scripts/zigux/check-phase4-workflow-route-counts.py` checker keep the broader Phase 4 rollback-readiness packet reviewable even while authenticated contents reads can still flap for some of those companions, including the dedicated local-only perf-baseline survey files plus the matching direct `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig` and Linux-style `make -C zigux phase4-perf-baseline-survey` replay routes.
+  * Use `Documentation/zigux/phase4-reversible-delivery-evidence.md` as the narrower direct-readback handoff while `scripts/zigux/check-phase4-gate-evidence.py` continues to guard this broader rollback-ownership note.
