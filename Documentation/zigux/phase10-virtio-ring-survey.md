@@ -5,7 +5,7 @@ This document tracks the bounded Phase 10 survey lane around `drivers/virtio/vir
 ## Status
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-ring-survey`
-- lane: `P10-L10`
+- lane: `P10-L05`
 - surveyed commit: `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
 - roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`
 - scope: keep the ring manifest, this survey note, the packet-local slice note, and one bounded truthfulness or validation follow-through aligned with the current queue-local ring packet on `master`
