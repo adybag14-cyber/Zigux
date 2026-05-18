@@ -57,6 +57,42 @@ fn expectExactDecodeBuffer(case: fixtures.DecodeCase) !void {
     }
 }
 
+fn bytesVariantPinned(input: []const u8, padding: bool, variant: base64.Variant) !usize {
+    return switch (variant) {
+        .std => base64.bytesStd(input, padding),
+        .urlsafe => base64.bytesUrlsafe(input, padding),
+        .imap => base64.bytesImap(input, padding),
+    };
+}
+
+fn decodeVariantPinned(dst: []u8, input: []const u8, padding: bool, variant: base64.Variant) !usize {
+    return switch (variant) {
+        .std => base64.decodeStd(dst, input, padding),
+        .urlsafe => base64.decodeUrlsafe(dst, input, padding),
+        .imap => base64.decodeImap(dst, input, padding),
+    };
+}
+
+fn expectConvenienceVariantForeignAlphabetRejection(
+    accepted: []const u8,
+    expected: []const u8,
+    padding: bool,
+    variant: base64.Variant,
+    rejected: []const []const u8,
+) !void {
+    var buf: [8]u8 = undefined;
+    const exact_len = try bytesVariantPinned(accepted, padding, variant);
+    try std.testing.expectEqual(expected.len, exact_len);
+    const written = try decodeVariantPinned(buf[0..], accepted, padding, variant);
+    try std.testing.expectEqual(expected.len, written);
+    try std.testing.expectEqualSlices(u8, expected, buf[0..written]);
+
+    for (rejected) |input| {
+        try std.testing.expectError(base64.DecodeError.InvalidInput, bytesVariantPinned(input, padding, variant));
+        try std.testing.expectError(base64.DecodeError.InvalidInput, decodeVariantPinned(buf[0..], input, padding, variant));
+    }
+}
+
 fn fixtureVariant(name: []const u8) base64.Variant {
     if (std.mem.eql(u8, name, "std")) {
         return .std;
@@ -105,6 +141,95 @@ test "phase 6 base64 variant decode parity matches the kernel mappings" {
     for (fixtures.variant_decode_cases) |case| {
         try expectFixtureDecode(case);
     }
+}
+
+test "phase 6 base64 convenience wrappers reject foreign variant tails" {
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "+w",
+        &fixtures.variant_one_byte_sample,
+        false,
+        .std,
+        &[_][]const u8{"-w"},
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "+w==",
+        &fixtures.variant_one_byte_sample,
+        true,
+        .std,
+        &[_][]const u8{"-w=="},
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "//A",
+        &fixtures.variant_two_byte_sample,
+        false,
+        .std,
+        &[_][]const u8{ "__A", ",,A" },
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "//A=",
+        &fixtures.variant_two_byte_sample,
+        true,
+        .std,
+        &[_][]const u8{ "__A=", ",,A=" },
+    );
+
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "-w",
+        &fixtures.variant_one_byte_sample,
+        false,
+        .urlsafe,
+        &[_][]const u8{"+w"},
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "-w==",
+        &fixtures.variant_one_byte_sample,
+        true,
+        .urlsafe,
+        &[_][]const u8{"+w=="},
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "__A",
+        &fixtures.variant_two_byte_sample,
+        false,
+        .urlsafe,
+        &[_][]const u8{ "//A", ",,A" },
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "__A=",
+        &fixtures.variant_two_byte_sample,
+        true,
+        .urlsafe,
+        &[_][]const u8{ "//A=", ",,A=" },
+    );
+
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "+w",
+        &fixtures.variant_one_byte_sample,
+        false,
+        .imap,
+        &[_][]const u8{"-w"},
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        "+w==",
+        &fixtures.variant_one_byte_sample,
+        true,
+        .imap,
+        &[_][]const u8{"-w=="},
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        ",,A",
+        &fixtures.variant_two_byte_sample,
+        false,
+        .imap,
+        &[_][]const u8{ "//A", "__A" },
+    );
+    try expectConvenienceVariantForeignAlphabetRejection(
+        ",,A=",
+        &fixtures.variant_two_byte_sample,
+        true,
+        .imap,
+        &[_][]const u8{ "//A=", "__A=" },
+    );
 }
 
 test "phase 6 base64 exact-fit buffers work across fixture vectors" {
