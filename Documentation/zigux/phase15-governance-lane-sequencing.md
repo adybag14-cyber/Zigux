@@ -21,6 +21,7 @@ That means the repo needs one compact sequencing note that says:
 - which Architecture Council packet owns freeze-map status review
 - which neighboring packet owns blocked-posture accounting
 - which neighboring packet owns the stay-in-C policy vocabulary
+- which neighboring packet owns the study-only anchor inventory outside blocked status-change rows
 - which reminder surfaces may describe those packets together
 - which remaining missing validator-first, handoff-manifest, focused replay, lane-owner, or build companions must remain named as gaps instead of being implied as shipped evidence
 
@@ -34,7 +35,9 @@ The current bounded Phase 15 governance packet is split this way:
 - `Documentation/zigux/phase15-parity-scorecard.md` owns blocked-posture accounting and the per-anchor scorecard fields that stay aligned with the freeze-map packet
 - `Documentation/zigux/phase15-architecture-council-review-process.md` owns the Architecture Council request fields, stay-in-C closeout rule, and reopen-evidence rule
 - `Documentation/zigux/phase15-indefinite-c-policy.md` owns the stay-in-C policy vocabulary for anchors that remain in C indefinitely
+- `Documentation/zigux/phase15-study-only-anchor-accounting.md` owns the explicit two-anchor study-only inventory that stays outside the freeze-in-C scorecard and blocked status-change rows
 - `Documentation/zigux/phase15-readiness-gate-survey.md` and `Documentation/zigux/phase15-handoff-next-steps-survey.md` are landed neighboring reminder notes that may summarize the packet, but they do not own freeze-map status decisions
+- `Documentation/zigux/phase15-shared-summary-gap.md` owns the broad reminder-surface drift tracking that keeps shared docs, scripts, and tests wording honest without treating broader validator-first or build routes as shipped evidence
 - `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` are shared reminder surfaces that may summarize the parked packet, but they do not own freeze-map status decisions themselves
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json` and `zigux/tests/phase15_governance_lane_sequencing.zig` keep this sequencing note's direct machine-readable inventory and focused replay explicit without widening into a broader validator-first or build route
 
@@ -46,7 +49,7 @@ Keep the Phase 15 governance lanes sequenced in this order when fresh review wor
 2. refresh the parity scorecard only if a blocker posture, owner, approver set, or evidence path changed
 3. refresh the Architecture Council review-process packet only if the request-field inventory, stay-in-C closeout rule, or reopen-evidence rule changed
 4. refresh the indefinite-C policy packet only if the stay-in-C vocabulary or reopen-trigger catalog changed
-5. refresh readiness, handoff, and other shared reminder surfaces only after the owning packet already says the same thing
+5. refresh readiness, handoff, study-only-accounting, shared-summary, and other reminder surfaces only after the owning packet already says the same thing
 
 This ordering keeps the Architecture Council source-of-truth files ahead of broad reminder prose.
 
@@ -91,7 +94,7 @@ They do mean any shared reminder surface must keep those companions framed as mi
   - a Phase 15 owner packet changes its lane boundary or reminder ownership
   - a previously missing validator-first, handoff-manifest, focused replay, lane-owner, or build companion lands on current `master`
   - a shared reminder surface starts claiming Phase 15 approval or current evidence that the owning packet does not support
-- if this lane reopens, reread `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, and `zigux/tests/phase15_governance_lane_sequencing.zig` together before widening any shared reminder text
+- if this lane reopens, reread `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, and `zigux/tests/phase15_governance_lane_sequencing.zig` together before widening any shared reminder text
 
 ## Non-goals
 
