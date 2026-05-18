@@ -91,6 +91,18 @@ pub const PrpBufferShapeSummary = struct {
     prp_list_capacity: u16,
 };
 
+pub const PrpMetadataPlanSummary = struct {
+    anchor: []const u8,
+    total_transfer_bytes: u32,
+    first_page_offset: u32,
+    uses_prp_list: bool,
+    prp_list_entries: u16,
+    prp_list_capacity: u16,
+    prp_list_descriptor_bytes: u32,
+    metadata_host_dma_bytes: u32,
+    metadata_host_dma_pages: u16,
+};
+
 pub const RecoverySummary = struct {
     anchor: []const u8,
     state: RecoveryState,
@@ -393,6 +405,32 @@ pub const NvmePciQueueLab = struct {
         };
     }
 
+    pub fn planPrpMetadataBudget(
+        self: *const Self,
+        total_transfer_bytes: u32,
+        first_page_offset: u32,
+    ) !PrpMetadataPlanSummary {
+        const shape = try self.planPrpBufferShape(total_transfer_bytes, first_page_offset);
+        const prp_list_descriptor_bytes = try checkedMulWideU32(
+            @as(u32, shape.prp_list_entries),
+            @as(u32, @sizeOf(u64)),
+        );
+        const metadata_host_dma_bytes = if (shape.uses_prp_list) self.page_size else 0;
+        const metadata_host_dma_pages = try checkedDivCeilU16(metadata_host_dma_bytes, self.page_size);
+
+        return .{
+            .anchor = shape.anchor,
+            .total_transfer_bytes = total_transfer_bytes,
+            .first_page_offset = first_page_offset,
+            .uses_prp_list = shape.uses_prp_list,
+            .prp_list_entries = shape.prp_list_entries,
+            .prp_list_capacity = shape.prp_list_capacity,
+            .prp_list_descriptor_bytes = prp_list_descriptor_bytes,
+            .metadata_host_dma_bytes = metadata_host_dma_bytes,
+            .metadata_host_dma_pages = metadata_host_dma_pages,
+        };
+    }
+
     pub fn beginReset(self: *Self) RecoverySummary {
         self.last_reset_io_queue_count = self.planned_io_queues;
         self.last_reset_io_host_dma_pages = self.planned_io_host_dma_pages;
@@ -658,6 +696,37 @@ pub const NvmePciQueueLab = struct {
         return std.math.add(usize, lhs, rhs) catch error.QueueCountOverflow;
     }
 };
+
+test "nvme pci PRP metadata budget stays empty when inline PRP pointers cover the transfer" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+
+    const summary = try lab.planPrpMetadataBudget(4096 * 2 - 128, 128);
+    try std.testing.expectEqualStrings("drivers/nvme/host/pci.c", summary.anchor);
+    try std.testing.expectEqual(@as(u32, 4096 * 2 - 128), summary.total_transfer_bytes);
+    try std.testing.expectEqual(@as(u32, 128), summary.first_page_offset);
+    try std.testing.expect(!summary.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 0), summary.prp_list_entries);
+    try std.testing.expectEqual(@as(u16, 512), summary.prp_list_capacity);
+    try std.testing.expectEqual(@as(u32, 0), summary.prp_list_descriptor_bytes);
+    try std.testing.expectEqual(@as(u32, 0), summary.metadata_host_dma_bytes);
+    try std.testing.expectEqual(@as(u16, 0), summary.metadata_host_dma_pages);
+}
+
+test "nvme pci PRP metadata budget reserves one metadata page once a PRP list is needed" {
+    var lab = try NvmePciQueueLab.init(4096, 8);
+
+    const summary = try lab.planPrpMetadataBudget(4096 * 5, 0);
+    try std.testing.expect(summary.uses_prp_list);
+    try std.testing.expectEqual(@as(u16, 3), summary.prp_list_entries);
+    try std.testing.expectEqual(@as(u16, 512), summary.prp_list_capacity);
+    try std.testing.expectEqual(@as(u32, 24), summary.prp_list_descriptor_bytes);
+    try std.testing.expectEqual(@as(u32, 4096), summary.metadata_host_dma_bytes);
+    try std.testing.expectEqual(@as(u16, 1), summary.metadata_host_dma_pages);
+
+    const shape = try lab.planPrpBufferShape(4096 * 5, 0);
+    try std.testing.expect(shape.uses_prp_list);
+    try std.testing.expectEqual(shape.prp_list_entries, summary.prp_list_entries);
+}
 
 test "nvme pci recovery reservation replay marks stale PRP metadata as descriptor rebuild debt" {
     var lab = try NvmePciQueueLab.init(4096, 8);
