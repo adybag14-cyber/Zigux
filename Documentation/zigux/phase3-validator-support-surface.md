@@ -49,6 +49,7 @@ Current `master` now carries one bounded `dev_t` starter packet with paired `dev
 - `Documentation/zigux/phase3-policy-slice.md`
 - `include/zigux/abi.h`
 - `zigux/bindings/abi.zig`
+- `zigux/bindings/notifier_abi.zig`
 - `zigux/helpers/panic_policy.zig`
 - `zigux/helpers/allocator_policy.zig`
 - `zigux/helpers/unsafe_policy.zig`
