@@ -8,8 +8,8 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 - `PHASE15_LANE_KEY=P15-L11`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-17`
-- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
+- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-18 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
 
 ## Why this note exists
 
@@ -21,7 +21,7 @@ The older handoff target that treated the docs root as the next automatic Phase 
 
 The handoff continuity packet itself is also narrower than an earlier handoff-local manifest or Zig-guard framing. Direct current-`master` reads still do not materialize `zigux/tests/phase15_handoff_next_steps_manifest.json` or `zigux/tests/phase15_handoff_next_steps.zig`, so this note should stay the handoff-specific source of truth until those dedicated companions actually land.
 
-That made future-target prep stale. Reviewers had to reconcile this note against the newer landed Phase 15 policy packet by hand.
+This refresh closes that dated-readback drift. Reviewers can now read this note against the current 2026-05-18 governance packet instead of reconciling it against an older handoff note by hand.
 
 ## Current handed-off packet on current master
 
@@ -58,7 +58,7 @@ That made future-target prep stale. Reviewers had to reconcile this note against
 1. reread `Documentation/zigux/review-checklist.md` together with `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, and the current directly materialized governance packet whenever the shared Architecture Council prompts drift
 2. reread `zigux/tests/README.md` together with `scripts/zigux/check-phase15-tests-readme-alignment.py`, `Documentation/zigux/phase15-shared-summary-gap.md`, and the current directly materialized governance packet whenever the tests-root reminder drifts, rather than treating a dedicated Phase 15 review section as still-unlanded by default
 3. refresh the broad docs-root reminder surface `Documentation/zigux/README.md` only if fresh repo inspection actually materializes dedicated Phase 15 wording there or another shared-summary drift forces it back into scope
-4. keep the landed `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `Documentation/zigux/phase15-indefinite-c-policy.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion
+4. keep the landed `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-governance-lane-sequencing.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_readiness_gate_manifest.json`, and `Documentation/zigux/phase15-indefinite-c-policy.md` companions aligned with the shared-summary gap note before any freeze-map status change discussion
 5. if future work touches `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, keep it study-only unless a smaller-than-boundary seam is explicitly recorded in the governance packet
 
 ## Handoff rules
