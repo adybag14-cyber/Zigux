@@ -34,6 +34,7 @@ REQUIRED_MARKERS = {
         "zigux/bindings/abi.zig",
         "zigux/bindings/notifier_abi.zig",
         "zigux/kernel/export_shim.zig",
+        "scripts/zigux/check-phase3-abi.py",
         "scripts/zigux/validate-phase3.py",
     ),
     ABI_HEADER: (
@@ -161,6 +162,25 @@ REQUIRED_MARKERS = {
     ),
 }
 
+SELF_TEST_CASES = (
+    (
+        ABI_SLICE_NOTE,
+        "scripts/zigux/check-phase3-abi.py",
+    ),
+    (
+        BINDING_ABI,
+        "pub const NotifierResult = notifier_abi.NotifierResult;",
+    ),
+    (
+        BINDING_ABI,
+        "pub const ABI_VERSION: u16 = 1;",
+    ),
+    (
+        EXPORT_SHIM,
+        "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
+    ),
+)
+
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+ZIGUX_([A-Z0-9_]+)\b", re.MULTILINE)
 BINDING_CONST_RE = re.compile(r"^\s*pub const\s+([A-Z0-9_]+)\s*:", re.MULTILINE)
 
@@ -235,42 +255,19 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
-        _write(
-            root / BINDING_ABI,
-            "\n".join(
-                marker
-                for marker in REQUIRED_MARKERS[BINDING_ABI]
-                if marker != "pub const ABI_VERSION: u16 = 1;"
-            )
-            + "\n",
-        )
-        issues = validate_repo(root)
-        expected = (
-            "missing ABI binding constant for header define: "
-            "ZIGUX_ABI_VERSION -> ABI_VERSION"
-        )
-        if expected not in issues:
-            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
-            print("expected missing ABI binding constant was not reported")
-            return 1
-
-        for rel_path, markers in REQUIRED_MARKERS.items():
-            _write(root / rel_path, "\n".join(markers) + "\n")
-
-        marker = "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {"
-        _write(
-            root / EXPORT_SHIM,
-            _read(root / EXPORT_SHIM).replace(marker, "", 1),
-        )
-        issues = validate_repo(root)
-        expected = f"missing {EXPORT_SHIM.as_posix()} marker: {marker}"
-        if expected not in issues:
-            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
-            print("expected missing export shim marker was not reported")
-            return 1
+        for rel_path, marker in SELF_TEST_CASES:
+            for populate_path, markers in REQUIRED_MARKERS.items():
+                _write(root / populate_path, "\n".join(markers) + "\n")
+            _write(root / rel_path, _read(root / rel_path).replace(marker, "", 1))
+            issues = validate_repo(root)
+            expected = f"missing {rel_path.as_posix()} marker: {marker}"
+            if expected not in issues:
+                print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+                print(f"expected missing marker was not reported: {expected}")
+                return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print("PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT=3")
+    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 1}")
     return 0
 
 
