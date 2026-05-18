@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import shutil
+import stat
 import subprocess
 import tempfile
 
@@ -83,6 +84,13 @@ def compile_run_zig(root: Path, tmp_dir: Path, zig_tool: Path, inputs: Path, act
     actual.write_text(result.stdout, encoding="utf-8", newline="\n")
 
 
+def write_fake_executable(path: Path) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8", newline="\n")
+    path.chmod(path.stat().st_mode | stat.S_IXUSR)
+    return path
+
+
 def expect_system_exit_contains(callback, needle: str) -> None:
     try:
         callback()
@@ -116,6 +124,58 @@ def run_self_test() -> int:
     if fixture_paths(derived_root) != expected_paths:
         raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
 
+    with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_tools_") as tool_tmp_dir_str:
+        tool_tmp_dir = Path(tool_tmp_dir_str)
+        tool_bin = tool_tmp_dir / "bin"
+        tool_bin.mkdir()
+        fake_cc = write_fake_executable(tool_bin / "cc")
+        fake_zig = write_fake_executable(tool_bin / "zig")
+        fake_fallback = write_fake_executable(
+            tool_tmp_dir / ".toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "zig"
+        )
+
+        saved_path = os.environ.get("PATH")
+        saved_cc = os.environ.get("CC")
+        saved_zig = os.environ.get("ZIG")
+        try:
+            os.environ["PATH"] = str(tool_bin)
+            os.environ.pop("CC", None)
+            os.environ.pop("ZIG", None)
+            if Path(find_compiler(None)).resolve() != fake_cc.resolve():
+                raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+            if Path(find_zig(None, tool_tmp_dir / "repo")).resolve() != fake_zig.resolve():
+                raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+
+            os.environ["CC"] = "/tmp/from-env-cc"
+            os.environ["ZIG"] = "/tmp/from-env-zig"
+            if find_compiler(None) != "/tmp/from-env-cc":
+                raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+            if find_zig(None, tool_tmp_dir / "repo") != "/tmp/from-env-zig":
+                raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+
+            os.environ.pop("CC", None)
+            os.environ.pop("ZIG", None)
+            os.environ["PATH"] = ""
+            if find_compiler("/tmp/from-explicit-cc") != "/tmp/from-explicit-cc":
+                raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+            if find_zig("/tmp/from-explicit-zig", tool_tmp_dir / "repo") != "/tmp/from-explicit-zig":
+                raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+            if Path(find_zig(None, tool_tmp_dir / "repo")).resolve() != fake_fallback.resolve():
+                raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+        finally:
+            if saved_path is None:
+                os.environ.pop("PATH", None)
+            else:
+                os.environ["PATH"] = saved_path
+            if saved_cc is None:
+                os.environ.pop("CC", None)
+            else:
+                os.environ["CC"] = saved_cc
+            if saved_zig is None:
+                os.environ.pop("ZIG", None)
+            else:
+                os.environ["ZIG"] = saved_zig
+
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         left = tmp_dir / "left.json"
@@ -128,7 +188,7 @@ def run_self_test() -> int:
         expect_system_exit_contains(lambda: compare_json("selftest-mismatch", left, mismatch), "selftest-mismatch mismatch")
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=6")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
