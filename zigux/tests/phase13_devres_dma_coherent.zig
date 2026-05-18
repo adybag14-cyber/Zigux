@@ -58,3 +58,32 @@ test "phase13 devres dma coherent replay keeps the planner note helper-first" {
     try requireContains(note, "sg_table");
     try requireContains(note, "sg_*");
 }
+
+test "phase13 devres dma coherent replay anchors the survey-side scatterlist boundary" {
+    const survey = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-survey.md");
+    defer std.testing.allocator.free(survey);
+
+    try requireContains(survey, "helper-first scatterlist helper and replay");
+    try requireContains(survey, "`lib/devres_scatterlist.zig` now provides a helper-first scatterlist lifetime planner");
+    try requireContains(survey, "`zigux/tests/phase13_devres_scatterlist.zig` replays that scatterlist helper surface directly");
+    try requireContains(survey, "blocked `phase13-devres-live-scatterlist-ownership`");
+    try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");
+    try requireContains(survey, "blocked `phase13-devres-generic-dma-map-family`");
+}
+
+test "phase13 devres dma coherent replay keeps scatterlist helper evidence helper-first" {
+    const helper = try readRepoFile(std.testing.allocator, "lib/devres_scatterlist.zig");
+    defer std.testing.allocator.free(helper);
+    const replay = try readRepoFile(std.testing.allocator, "zigux/tests/phase13_devres_scatterlist.zig");
+    defer std.testing.allocator.free(replay);
+
+    try requireContains(helper, ".provides_scatterlist_lifetime_planning = true");
+    try requireContains(helper, ".touches_live_dma = false");
+    try requireContains(helper, ".touches_live_scatterlist = false");
+    try requireContains(helper, "pub fn planManagedScatterlistMap");
+    try requireContains(helper, "pub fn planManagedScatterlistUnmap");
+
+    try requireContains(replay, "phase13 devres descriptor records helper-first scatterlist planning");
+    try requireContains(replay, "phase13 devres rejects scatterlist planning when the release record cannot be allocated");
+    try requireContains(replay, "phase13 devres scatterlist release matching stays exact across original and mapped counts");
+}
