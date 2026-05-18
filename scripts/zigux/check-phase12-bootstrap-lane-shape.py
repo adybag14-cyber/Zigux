@@ -39,6 +39,10 @@ WORKFLOW_STEP_NAMES = [
     "Setup pinned Zig toolchain",
     "Compile current scripts",
     "Check current pinned Zig archive packet",
+    "Self-test current Phase 12 bootstrap docs sanity checker",
+    "Check current Phase 12 docs-root sanity markers",
+    "Self-test current Phase 12 bootstrap lane checker",
+    "Check current Phase 12 bootstrap lane shape",
     "Self-test current kconfig bridge checker",
     "Check current kconfig bridge packet",
     "Run current Phase 2 confdata bridge unit tests",
@@ -58,15 +62,11 @@ WORKFLOW_STEP_NAMES = [
     "Check current Phase 11 matrix-gap survey packet",
     "Self-test current Phase 12 build-only surface checker",
     "Check current Phase 12 build-only surface",
-    "Self-test current Phase 12 bootstrap docs sanity checker",
-    "Check current Phase 12 docs-root sanity markers",
     "Self-test current Phase 12 release-readiness packet checker",
     "Validate Phase 12 degraded-workflow bundle",
     "Check current Phase 12 release-readiness packet",
     "Run focused Phase 12 smoke shard",
     "Run Phase 12 complex driver tests",
-    "Self-test current Phase 12 bootstrap lane checker",
-    "Check current Phase 12 bootstrap lane shape",
     "Validate Phase 8 tooling gates",
     "Run focused Phase 8 libbpf segment survey tests",
 ]
@@ -243,6 +243,14 @@ jobs:
           python3 -m py_compile "${scripts[@]}"
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
+      - name: Self-test current Phase 12 bootstrap docs sanity checker
+        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test
+      - name: Check current Phase 12 docs-root sanity markers
+        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py
+      - name: Self-test current Phase 12 bootstrap lane checker
+        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test
+      - name: Check current Phase 12 bootstrap lane shape
+        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
       - name: Self-test current kconfig bridge checker
         run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
       - name: Check current kconfig bridge packet
@@ -281,10 +289,6 @@ jobs:
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
       - name: Check current Phase 12 build-only surface
         run: python3 scripts/zigux/check-build-only-phase12-surface.py
-      - name: Self-test current Phase 12 bootstrap docs sanity checker
-        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test
-      - name: Check current Phase 12 docs-root sanity markers
-        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py
       - name: Self-test current Phase 12 release-readiness packet checker
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
       - name: Validate Phase 12 degraded-workflow bundle
@@ -295,10 +299,6 @@ jobs:
         run: make -C zigux phase12-smoke
       - name: Run Phase 12 complex driver tests
         run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
-      - name: Self-test current Phase 12 bootstrap lane checker
-        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test
-      - name: Check current Phase 12 bootstrap lane shape
-        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
       - name: Validate Phase 8 tooling gates
         run: make -C zigux phase8-validate
       - name: Run focused Phase 8 libbpf segment survey tests
