@@ -29,9 +29,12 @@
   "missing_files": [
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-genksyms-bridge.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
     "scripts/zigux/install-zig.py"
   ],
   "master_present_branch_missing_files": [
+    "scripts/zigux/check-phase2-cross.py",
+    "zigux/tests/fixtures/phase2_cross_targets.json",
     "scripts/zigux/install-zig.py"
   ],
   "workflow_surface": ".github/workflows/zigux-bootstrap.yml"
