@@ -9,9 +9,9 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_MODE=github_connector_readback`
   * `PHASE4_REVERSIBLE_DELIVERY_EXACT_READBACK_REF=master`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_NOTE_BLOB_SHA=89cef146d53c5c87c88b26ee329fd35cf5d470c4`
-  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=071afa18dedba21a705e4dab23009bab6f8d04b0`
-  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=4d692a01713bc727471f1e0b97e1ff889206acc4`
-  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=c83fe5eddafc1ae586d2543363db332bd5b30097`
+  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=f606df279b262b7edff3c5b9738514f6d1bc2c4e`
+  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=4aa3453c4ecb69ce430bb6db34c3988a7f169a56`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=5ffded7a633734295867b62d951c87e81613606d`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=44955f39e37b9389b3b97e7d710c25b1841aedf3`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=2e7b03fa41b7fe705ce73158b55249c729caa2fd`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=57ecc3199ca4608828771456f8b6c417c4ab9f1c`
@@ -53,7 +53,7 @@ The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CAS
 
 The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.
 
-The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for this note, the review checklist, the tests-root reminder, the recovered gate-evidence and validation-matrix notes, and the dedicated local-only perf checker plus companion packet, and historical provenance for the still-missing checker, validator, build, and bitmap replay companions.
+The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for the review checklist, the tests-root reminder, the recovered gate-evidence and validation-matrix notes, and the dedicated local-only perf checker plus companion packet, and historical provenance for this note's self-reference together with the still-missing checker, validator, build, and bitmap replay companions.
 
 Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.
 
