@@ -31,6 +31,33 @@ Key entrypoints
     `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
     `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
   * current shared Phase 2 kconfig route: `make -C zigux phase2-kconfig`
+  * Phase 2 review packet:
+    `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
+    `Documentation/zigux/review-checklist.md`
+    `scripts/zigux/README.md`
+    `scripts/zigux/check-zig-toolchain.py`
+    `scripts/zigux/check-phase2-kbuild-routes.py`
+    `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
+    `scripts/zigux/check-phase2-tests-readme-alignment.py`
+    `scripts/zigux/check-phase2-cross-selftest-alignment.py`
+    `scripts/zigux/check-phase2-toolchain-pinning.py`
+    `scripts/zigux/check-phase2-toolchain-pin-scope.py`
+    `scripts/zigux/check-phase2-docs-shared-reminder.py`
+    `scripts/zigux/check-phase2-required-make-routes.py`
+    `python3 scripts/zigux/check-zig-toolchain.py --self-test`
+    `scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
+    `scripts/zigux/kconfig/conf_bridge.zig`
+    `scripts/zigux/kconfig/confdata_bridge.zig`
+    `zigux/tests/fixtures/phase2_tool_manifest.json`
+    `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
+    `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
+    `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
+    `make -C zigux phase2-kconfig`
+    `zigux/tests/fixtures/kconfig_bridge/cases.json`
+  * the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster
+  * keep the pinned `x86_64-linux` bootstrap archive note and repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet
+  * repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep those older validator-first, installer, and direct cross-route names framed as historical packet members rather than direct tests-root evidence
+  * keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text
   * roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`
   * current direct-readback Phase 4 rollback packet:
     `Documentation/zigux/phase4-reversible-delivery-evidence.md`
