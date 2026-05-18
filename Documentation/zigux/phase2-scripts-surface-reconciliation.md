@@ -1,8 +1,8 @@
 # Phase 2 Scripts Surface Reconciliation
 
-This note records the current Phase 2 scripts-root packet that is directly readable on `master`.
+This note records the current Phase 2 scripts-root reconciliation gap that remains visible on `master`.
 
-## Present scripts-root packet
+## Directly readable scripts-root anchors
 
 - `scripts/zigux/README.md`
 - `scripts/zigux/check-zig-toolchain.py`
@@ -18,6 +18,7 @@ This note records the current Phase 2 scripts-root packet that is directly reada
 - `scripts/zigux/kconfig/confdata_bridge.zig`
 - `Documentation/zigux/phase2-closure.md`
 - `scripts/zigux/validate-phase2.py`
+- `scripts/zigux/validate-phase2-closure.py`
 - `zigux/Makefile`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
@@ -27,21 +28,21 @@ This note records the current Phase 2 scripts-root packet that is directly reada
 
 Treat those as the current directly readable Phase 2 scripts-root anchors on `master`.
 
-## Current repo-reality gaps
+## Remaining repo-reality gaps
 
-- `scripts/zigux/validate-phase2-closure.py`
 - `scripts/zigux/install-zig.py`
 - `scripts/zigux/check-phase2-cross.py`
 - `zigux/tests/fixtures/phase2_cross_targets.json`
 
-Treat those paths as active repo-reality gaps on current `master`, not as shipped scripts-root evidence.
+Treat those paths as the remaining repo-reality gaps on current `master`, not as shipped Phase 2 scripts-root evidence.
 
-## Shared reminder contract
+## Current reminder drift
 
-- `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/check-phase2-tests-readme-alignment.py` should keep the same narrowed packet visible from the docs root, checklist, tests root, and scripts root instead of rebuilding the older validator-first or installer-backed tranche.
-- Keep the scripts-root reminder aligned with the live toolchain checker, the surviving kbuild and alignment guards, the kconfig bridge helper packet, the shipped closure-side validator entrypoint, and the required-make-route plus `zigux/Makefile` pair instead of reintroducing the missing closure-validator, installer, or direct cross-route packet as if it had already returned on `master`.
-- Treat the adjacent bootstrap-note, shared-gap, and tests-root follow-up surfaces as separate same-lane review paths until they land, rather than folding those larger reminder packets back into this scripts-root sidecar.
+- `scripts/zigux/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, and `zigux/tests/fixtures/phase2_tool_manifest.json` still classify `scripts/zigux/validate-phase2-closure.py` as a missing validator-first companion even though current `master` now directly serves that file.
+- `Documentation/zigux/phase2-closure.md` and `zigux/Makefile` already use `scripts/zigux/validate-phase2-closure.py` as a live closure-side validator entrypoint through `python3 scripts/zigux/validate-phase2-closure.py --self-test`, `python3 scripts/zigux/validate-phase2-closure.py`, and `make -C zigux phase2-validate`.
+- Keep this scripts-surface sidecar focused on that reopened reminder drift until the scripts-root, bootstrap-note, and manifest-root surfaces catch up to the restored closure validator.
+- Do not treat the remaining installer or direct cross-route companions as returned until current `master` materializes them.
 
 ## Lane 25 boundary
 
-Lane 25 should use this note and its checker to keep the scripts-root Phase 2 reminder bounded to current-master truth while the remaining shared reminder surfaces land on their separate review paths.
+Lane 25 should use this note and its checker to keep the restored closure validator visible as current scripts-root evidence while the remaining reminder surfaces close the narrower truthfulness gap on their own review paths.
