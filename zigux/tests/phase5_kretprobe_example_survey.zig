@@ -141,3 +141,39 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[0], "register_kretprobe parity"));
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
 }
+
+test "phase 5 kretprobe note stays aligned with the manifest packet" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_kretprobe_example_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    const note = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/phase5-kretprobe-sample-survey.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(note);
+
+    try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_STATUS=restored-direct-sample-packet`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_LANE_KEY=P5-L18`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_SLICE=kretprobe-sample-reviewability-packet`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.surveyed_commit) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, manifest.sample_path) != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/phase5_build.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "current public-tree-backed companion evidence") != null);
+    try std.testing.expect(std.mem.indexOf(u8, note, "runtime_kretprobe") != null);
+}
