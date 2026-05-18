@@ -15,7 +15,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 
 Phase 15 is a governance tranche. The work here is about freeze-map discipline, review boundaries, and honest Architecture Council handoff, not a hidden deep-core delivery push.
 
-Current `master` already carries the freeze map, the freeze-map governance note, the governance-lane sequencing note, the handoff note, the shared-summary gap note, the review checklist, the dedicated review-process manifest, the dedicated governance-lane sequencing manifest plus focused replay, the readiness manifest, the shipped docs-root, scripts-root, and tests-root alignment checks, and the focused readiness-packet checker. At the same time, direct reads still return missing for the broader validator-first and shared-build companions that older reminder wording can accidentally imply are already present.
+Current `master` already carries the freeze map, the freeze-map governance note, the parity scorecard, the Architecture Council review-process note, the indefinite-C policy note, the governance-lane sequencing note, the handoff note, the shared-summary gap note, the review checklist, the dedicated review-process manifest plus focused replay, the dedicated governance-lane sequencing manifest plus focused replay, the dedicated indefinite-C policy manifest plus focused replay, the dedicated parity-scorecard replay, the readiness manifest, the shipped docs-root, scripts-root, and tests-root alignment checks, and the focused readiness-packet checker. At the same time, direct reads still return missing for the broader validator-first and shared-build companions that older reminder wording can accidentally imply are already present.
 
 This survey keeps those two truths together:
 
@@ -26,6 +26,9 @@ This survey keeps those two truths together:
 
 - `Documentation/zigux/freeze-map.md`
 - `Documentation/zigux/phase15-freeze-map-governance.md`
+- `Documentation/zigux/phase15-parity-scorecard.md`
+- `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-governance-lane-sequencing.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
@@ -38,8 +41,12 @@ This survey keeps those two truths together:
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
 - `zigux/tests/phase15_governance_lane_sequencing.zig`
+- `zigux/tests/phase15_parity_scorecard.zig`
+- `zigux/tests/phase15_indefinite_c_policy.json`
+- `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
 These directly readable paths are enough to support maintenance-mode truthfulness work on docs-root, scripts-root, and tests-root reminder surfaces, governance notes, and the focused readiness packet checker.
@@ -70,7 +77,7 @@ Although `zigux/Makefile` is present on current `master`, it still does not mate
 - treat the current packet as ready for maintenance-mode truthfulness refreshes only
 - do not treat the missing validator, manifest, build, or wrapper companions as landed evidence until direct current-tree reads recover them
 - if a shared reminder surface drifts, repair the smallest truthful surface first instead of widening into a freeze-map status change claim
-- if one of the missing companions lands, reread the freeze-map governance note, governance-lane sequencing note, handoff note, shared-summary gap note, the focused readiness-packet checker, and both manifests together before broadening the readiness claim
+- if one of the missing companions lands, reread the freeze-map governance note, parity scorecard, Architecture Council review-process note, indefinite-C policy note, governance-lane sequencing note, handoff note, shared-summary gap note, the focused readiness-packet checker, and the direct manifests plus focused replays together before broadening the readiness claim
 
 ## Non-goals
 
