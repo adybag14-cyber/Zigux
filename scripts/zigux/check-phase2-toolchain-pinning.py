@@ -37,6 +37,15 @@ SURFACE_PATHS = (
     TOOL_MANIFEST_PATH,
 )
 
+WORKFLOW_SETUP_MARKERS = (
+    "- name: Setup pinned Zig toolchain",
+    'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
+    'mirror_file=".zig-toolchain/community-mirrors.txt"',
+    'if curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+    'if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then',
+    "echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2",
+)
+
 WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
@@ -132,11 +141,11 @@ EXPECTED_TOOL_MANIFEST = {
             "Documentation/zigux/phase2-closure.md",
             "Documentation/zigux/review-checklist.md",
             "scripts/zigux/README.md",
-            "zigux/tests/README.md"
+            "zigux/tests/README.md",
         ],
         "closure_notes": [
             "Documentation/zigux/phase2-closure.md",
-            "Documentation/zigux/phase2-toolchain-bootstrap-notes.md"
+            "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
         ],
         "checkers": [
             "scripts/zigux/check-zig-toolchain.py",
@@ -147,14 +156,14 @@ EXPECTED_TOOL_MANIFEST = {
             "scripts/zigux/check-phase2-toolchain-pinning.py",
             "scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "scripts/zigux/check-phase2-required-make-routes.py",
-            "scripts/zigux/check-phase2-docs-shared-reminder.py"
+            "scripts/zigux/check-phase2-docs-shared-reminder.py",
         ],
         "bridge_helpers": [
             "scripts/zigux/kconfig/conf_bridge.zig",
-            "scripts/zigux/kconfig/confdata_bridge.zig"
+            "scripts/zigux/kconfig/confdata_bridge.zig",
         ],
         "policy": [
-            "scripts/zigux/zig-toolchain-policy.json"
+            "scripts/zigux/zig-toolchain-policy.json",
         ],
         "make_wrappers": [
             "zigux/Makefile",
@@ -166,30 +175,31 @@ EXPECTED_TOOL_MANIFEST = {
             "make -C zigux phase2"
         ],
         "artifact_support": [
-            "zigux/tests/fixtures/phase2_artifact_tools_manifest.json"
+            "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
         ],
         "fixture_roster": [
             "zigux/tests/fixtures/kconfig_bridge/cases.json",
             "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
-            "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json"
-        ]
+            "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+        ],
     },
     "repo_reality_gaps": [
         "scripts/zigux/validate-phase2-closure.py",
         "scripts/zigux/install-zig.py",
         "scripts/zigux/check-phase2-cross.py",
-        "zigux/tests/fixtures/phase2_cross_targets.json"
+        "zigux/tests/fixtures/phase2_cross_targets.json",
     ],
     "notes": [
         "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
         "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
-        "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished."
-    ]
+        "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished.",
+    ],
 }
 
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
+    + len(WORKFLOW_SETUP_MARKERS)
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
     + len(README_PRESENT_MARKERS)
@@ -314,6 +324,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     readme_text = read_text(resolve_path(root, SCRIPTS_README))
     bootstrap_notes_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
 
+    issues.extend(collect_missing_markers(workflow_text, WORKFLOW_SETUP_MARKERS, "MISSING_WORKFLOW_SETUP_MARKERS"))
+
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
         if count == 0:
@@ -358,7 +370,7 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
+    write_text(resolve_path(root, WORKFLOW), "\n".join((*WORKFLOW_SETUP_MARKERS, *WORKFLOW_LINES)) + "\n")
     readme_lines = [
         "# scripts/zigux",
         "",
@@ -430,6 +442,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
+
+        for marker in WORKFLOW_SETUP_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_WORKFLOW_SETUP_MARKERS", marker) in issues
+            checks_run += 1
 
         for marker in WORKFLOW_LINES:
             build_self_test_root(root)
@@ -624,6 +644,7 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_TOOLCHAIN_PINNING=pass")
+    print(f"PHASE2_TOOLCHAIN_PINNING_WORKFLOW_SETUP_MARKER_COUNT={len(WORKFLOW_SETUP_MARKERS)}")
     print(f"PHASE2_TOOLCHAIN_PINNING_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
     print(f"PHASE2_TOOLCHAIN_PINNING_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
     print("PHASE2_TOOLCHAIN_PINNING_MANIFEST_CHECKER_COUNT=" + str(len(EXPECTED_TOOL_MANIFEST["present_surfaces"]["checkers"])))
