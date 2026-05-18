@@ -73,6 +73,7 @@ WORKFLOW_STEP_NAMES = [
     "Validate Phase 12 degraded-workflow bundle",
     "Check current Phase 12 release-readiness packet",
     "Run focused Phase 12 smoke shard",
+    "Run current Phase 12 throughput-parity anchor",
     "Run Phase 12 complex driver tests",
     "Validate Phase 8 tooling gates",
     "Run focused Phase 8 libbpf segment survey tests",
@@ -128,6 +129,7 @@ WORKFLOW_COMMAND_MARKERS = [
     "make -C zigux phase12-validate",
     "python3 scripts/zigux/check-phase12-release-readiness-packet.py",
     "make -C zigux phase12-smoke",
+    "zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
     "zig build test --build-file zigux/tests/phase12_build.zig --summary all",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py",
@@ -142,6 +144,7 @@ WORKFLOW_EXACT_LINES = [
     "        run: make -C zigux phase2-toolchain",
     "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
     "        run: make -C zigux phase12-validate",
+    "        run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
     "        run: make -C zigux phase8-validate",
     "        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
 ]
@@ -339,6 +342,8 @@ jobs:
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
       - name: Run focused Phase 12 smoke shard
         run: make -C zigux phase12-smoke
+      - name: Run current Phase 12 throughput-parity anchor
+        run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig
       - name: Run Phase 12 complex driver tests
         run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
       - name: Validate Phase 8 tooling gates
@@ -462,6 +467,21 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
+                "        run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig\n",
+                "        run: echo skip-throughput-anchor\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_exact_line:run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig:expected=1:actual=0",
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
                 "  push:\n    branches: [ master ]\n  pull_request:\n",
                 "  push:\n    branches: [ master ]\n    paths:\n      - '.github/workflows/zigux-bootstrap.yml'\n  pull_request:\n",
                 1,
@@ -533,7 +553,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=10")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=11")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -545,9 +565,10 @@ def main() -> int:
             "Validate the current Phase 12 bootstrap workflow lane so the "
             "workflow keeps the shipped exact-head push trigger, current Zig "
             "toolchain self-test and policy packet, pinned Zig archive "
-            "verification, the current Phase 2 toolchain make route, newer "
-            "Phase 2 and Phase 3 viability steps, the dedicated docs-sanity "
-            "guards, and the current Phase 8 tail intact."
+            "verification, the current Phase 2 toolchain make route, the "
+            "current Phase 12 throughput-parity anchor, newer Phase 2 and "
+            "Phase 3 viability steps, the dedicated docs-sanity guards, and "
+            "the current Phase 8 tail intact."
         )
     )
     parser.add_argument(
