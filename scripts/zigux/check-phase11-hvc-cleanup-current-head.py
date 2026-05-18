@@ -38,6 +38,7 @@ EXACT_CURRENT_CHECKS = [
     "python3 scripts/zigux/check-phase11-build-inventory.py",
     "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
     "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
 ]
 
 SURVEY_MARKERS = (
