@@ -53,10 +53,21 @@ pub fn crc32(s: []const u8) u32 {
     return partialCrc32(s, 0xffff_ffff) ^ 0xffff_ffff;
 }
 
+fn truncateAtFirstNul(text: []const u8) []const u8 {
+    if (std.mem.indexOfScalar(u8, text, 0)) |nul_index| {
+        return text[0..nul_index];
+    }
+    return text;
+}
+
 fn trimTrailingCarriageReturn(text: []const u8) []const u8 {
     var end = text.len;
     while (end > 0 and text[end - 1] == '\r') end -= 1;
     return text[0..end];
+}
+
+fn normalizeCHarnessChunk(text: []const u8) []const u8 {
+    return trimTrailingCarriageReturn(truncateAtFirstNul(text));
 }
 
 fn nextCHarnessLineChunk(input: []const u8, cursor: *usize) ?[]const u8 {
@@ -68,11 +79,11 @@ fn nextCHarnessLineChunk(input: []const u8, cursor: *usize) ?[]const u8 {
 
     if (std.mem.indexOfScalar(u8, scan, '\n')) |newline_index| {
         cursor.* += newline_index + 1;
-        return trimTrailingCarriageReturn(scan[0..newline_index]);
+        return normalizeCHarnessChunk(scan[0..newline_index]);
     }
 
     cursor.* += scan_len;
-    return trimTrailingCarriageReturn(scan);
+    return normalizeCHarnessChunk(scan);
 }
 
 fn writeJsonEscaped(writer: anytype, text: []const u8) !void {
@@ -301,6 +312,46 @@ test "runGenksymsCrc trims repeated carriage returns before hashing" {
     var capture = try Capture.init(std.testing.allocator);
     defer capture.deinit();
     try runGenksymsCrc("int\r\r\n", &capture);
+    try std.testing.expectEqualStrings(
+        "{\"cases\":[{\"input\":\"int\",\"crc_hex\":\"0x1451dab1\"}]}\n",
+        capture.list.items,
+    );
+}
+
+test "runGenksymsCrc truncates embedded NUL before trimming carriage return" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 128),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+    try runGenksymsCrc("int\r\x00ignored\n", &capture);
     try std.testing.expectEqualStrings(
         "{\"cases\":[{\"input\":\"int\",\"crc_hex\":\"0x1451dab1\"}]}\n",
         capture.list.items,
