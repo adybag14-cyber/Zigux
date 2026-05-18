@@ -102,7 +102,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 31
+EXPECTED_SELF_TEST_CASE_COUNT = 35
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -278,9 +278,9 @@ def manifest_json(
     shared_validator: str = "scripts/zigux/validate-phase2.py",
     tool_manifest_checker: str = "scripts/zigux/check-phase2-tool-manifest-packets.py",
     makefile: str = "zigux/Makefile",
-    present_files: list[str] | None = None,
-    missing_files: list[str] | None = None,
-    master_present_branch_missing_files: list[str] | None = None,
+    present_files: list[str] | object | None = None,
+    missing_files: list[str] | object | None = None,
+    master_present_branch_missing_files: list[str] | object | None = None,
     workflow_surface: str = ".github/workflows/zigux-bootstrap.yml",
 ) -> str:
     payload = {
@@ -367,6 +367,21 @@ def run_self_test() -> int:
             checks_run += 1
 
         build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(present_files="not-a-list"))
+        assert ("INVALID_MANIFEST_FIELD", "present_files") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(missing_files=["scripts/zigux/check-phase2-cross.py", 7]))
+        assert ("INVALID_MANIFEST_FIELD", "missing_files") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=["scripts/zigux/install-zig.py", 7]))
+        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(present_files=EXPECTED_PRESENT_FILES[:-1]))
         assert ("INVALID_MANIFEST_FIELD", "present_files") in collect_issues(root)
         checks_run += 1
@@ -389,6 +404,18 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_placeholder(root, EXPECTED_MISSING_FILES[0])
         assert ("MISSING_FILE_PRESENT_IN_TREE", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_placeholder(root, EXPECTED_MISSING_FILES[-1])
+        write_text(
+            root,
+            MANIFEST,
+            manifest_json(master_present_branch_missing_files=[EXPECTED_MISSING_FILES[-1]]),
+        )
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
+        assert ("MASTER_BRANCH_MISSING_FILE_PRESENT_IN_TREE", EXPECTED_MISSING_FILES[-1]) in issues
         checks_run += 1
 
         build_self_test_root(root)
