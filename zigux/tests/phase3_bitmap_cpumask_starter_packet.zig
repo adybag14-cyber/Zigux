@@ -74,6 +74,22 @@ test "bitmap starter helpers keep a full bounded bitmap from leaking tail zeros"
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.weight);
 }
 
+test "bitmap starter helpers ignore out-of-range tail bits when no bounded bits are set" {
+    var backing = [_]usize{
+        0,
+        @as(usize, 1) << (11 + 3),
+    };
+    const view = bitmap_view.viewFromWords(backing[0..], bitmap_view.bits_per_word + 11);
+    const summary = bitmap_view.summarize(view);
+
+    try testing.expect(bitmap_view.isValid(view));
+    try testing.expect(!bitmap_view.testBit(view, bitmap_view.bits_per_word + 10));
+    try testing.expect(!bitmap_view.testBit(view, bitmap_view.bits_per_word + 11));
+    try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
 test "bitmap starter helpers keep exact-word windows explicit" {
     var backing = [_]usize{
         ~@as(usize, 0),
@@ -175,6 +191,22 @@ test "cpumask starter helpers keep a full bounded mask from leaking tail zeros" 
     try testing.expectEqual(@as(u32, 0), summary.first_set);
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.first_zero);
     try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.weight);
+}
+
+test "cpumask starter helpers ignore out-of-range tail bits when no bounded cpus are set" {
+    var backing = [_]usize{
+        0,
+        @as(usize, 1) << (11 + 3),
+    };
+    const view = cpumask_view.viewFromWords(backing[0..], bitmap_view.bits_per_word + 11);
+    const summary = cpumask_view.summarize(view);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expect(!cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 10));
+    try testing.expect(!cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 11));
+    try testing.expectEqual(bitmap_view.bits_per_word + 11, summary.first_set);
+    try testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
 test "cpumask starter helpers keep exact-word windows explicit" {
