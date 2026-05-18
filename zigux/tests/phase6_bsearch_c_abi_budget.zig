@@ -105,7 +105,7 @@ test "phase 6 bsearch raw c abi budgets stay logarithmic for deterministic ascen
 
 test "phase 6 bsearch raw c abi equal-range budgets stay logarithmic for duplicate spans in both sort orders" {
     const ascending_duplicates = fixtures.representative_duplicate_values;
-    const descending_duplicates = [_]u32{ 45, 42, 39, 21, 21, 21, 12, 9, 6, 3 };
+    const descending_duplicates = fixtures.representative_descending_duplicate_values;
 
     const ascending_budget = try expectRangeBudget(ascending_duplicates[0..], 21, .{ .lower = 4, .upper = 7 }, compareCountedOpaqueInt);
     try std.testing.expect(ascending_budget <= (2 * maxBinarySearchComparisons(ascending_duplicates.len)));
