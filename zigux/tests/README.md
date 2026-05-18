@@ -78,6 +78,7 @@ Phase 2 review packet
   * `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
   * `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
   * `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
+  * `make -C zigux phase2-kconfig`
   * `zigux/tests/fixtures/kconfig_bridge/cases.json`
   * the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note and validator entrypoint, the shipped `zigux/Makefile` wrappers, and their fixture roster; keep this tests-root summary aligned to that narrower packet instead of rebuilding the older validator-first and direct cross-route stack from missing current-`master` paths
   * keep the pinned `x86_64-linux` bootstrap archive note and repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet beside the live toolchain checker instead of widening back into missing validator-first or make-wrapper proof text
