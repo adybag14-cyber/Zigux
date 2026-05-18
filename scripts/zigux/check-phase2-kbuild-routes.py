@@ -18,7 +18,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
-    ROOT / "scripts" / "check-phase2-required-make-routes.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
