@@ -54,6 +54,16 @@
       "decoded_value": null
     },
     {
+      "name": "err_top",
+      "kind": "err_ptr",
+      "raw_hex": "0xffffffffffffffff",
+      "raw_decimal": "18446744073709551615",
+      "is_err": true,
+      "is_value": false,
+      "decoded_error": -1,
+      "decoded_value": null
+    },
+    {
       "name": "err_enomem",
       "kind": "err_ptr",
       "raw_hex": "0xfffffffffffffff4",
