@@ -779,7 +779,7 @@ def run_self_test() -> int:
             "CONFDATA_CASE_ORDER_ACTUAL",
             "sample,escaped_control_sequences,escaped_strings,trailing_escaped_backslash,sample_crlf,explicit_n_tristate,final_trailing_carriage_return,final_unterminated_unset_comment,uppercase_tristate,non_config_lines,empty_config_symbol_names,malformed_unset_comment_tokens,last_state_transitions,duplicate_malformed_quoted_assignment",
         ) in issues
-        assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues)
+        assert ("CONFDATA_CASE_ORDER_EXPECTED", ",".join(REQUIRED_CONFDATA_CASES)) in issues
         checks_run += 1
 
         build_self_test_root(root)
