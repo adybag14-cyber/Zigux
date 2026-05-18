@@ -21,6 +21,11 @@ pub const PrevLinkBreak = struct {
     actual_pprev: usize,
 };
 
+pub const CycleWitness = struct {
+    slow_index: usize,
+    fast_index: usize,
+};
+
 pub const Iterator = struct {
     current: ?*const HListNode = null,
 
@@ -46,11 +51,27 @@ pub const HListView = struct {
         return nodeFromRaw(self.head.first);
     }
 
+    fn lastUnchecked(self: HListView) ?*const HListNode {
+        var tail: ?*const HListNode = null;
+        var it = self.iterator();
+        while (it.next()) |node| {
+            tail = node;
+        }
+        return tail;
+    }
+
+    pub fn last(self: HListView) ?*const HListNode {
+        if (self.hasCycle()) return null;
+        return self.lastUnchecked();
+    }
+
     pub fn iterator(self: HListView) Iterator {
         return .{ .current = self.first() };
     }
 
     pub fn len(self: HListView) usize {
+        if (self.hasCycle()) return 0;
+
         var count: usize = 0;
         var it = self.iterator();
         while (it.next()) |_| {
@@ -90,13 +111,40 @@ pub const HListView = struct {
         return null;
     }
 
-    pub fn tailNextIsNull(self: HListView) bool {
-        var tail: ?*const HListNode = null;
-        var it = self.iterator();
-        while (it.next()) |node| {
-            tail = node;
+    pub fn firstCycleWitness(self: HListView) ?CycleWitness {
+        var slow = self.first();
+        var fast = self.first();
+        var slow_index: usize = 0;
+        var fast_index: usize = 0;
+
+        while (fast) |fast_node| {
+            fast = nodeFromRaw(fast_node.next);
+            fast_index += 1;
+            const fast_mid = fast orelse return null;
+
+            fast = nodeFromRaw(fast_mid.next);
+            fast_index += 1;
+            slow = if (slow) |slow_node| nodeFromRaw(slow_node.next) else null;
+            slow_index += 1;
+
+            if (slow != null and slow == fast) {
+                return .{
+                    .slow_index = slow_index,
+                    .fast_index = fast_index,
+                };
+            }
         }
-        return if (tail) |node| node.next == 0 else true;
+
+        return null;
+    }
+
+    pub fn hasCycle(self: HListView) bool {
+        return self.firstCycleWitness() != null;
+    }
+
+    pub fn tailNextIsNull(self: HListView) bool {
+        if (self.hasCycle()) return false;
+        return if (self.lastUnchecked()) |node| node.next == 0 else true;
     }
 };
 
@@ -107,13 +155,16 @@ test "hlist view treats an empty head as empty" {
     try std.testing.expect(view.isEmpty());
     try std.testing.expectEqual(@as(usize, 0), view.len());
     try std.testing.expectEqual(@as(?*const HListNode, null), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, null), view.last());
     try std.testing.expect(view.firstPprevMatchesHead());
     try std.testing.expect(view.hasConsistentPrevLinks());
     try std.testing.expect(view.firstBrokenPrevLink() == null);
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
     try std.testing.expect(view.tailNextIsNull());
 }
 
-test "hlist view walks a bounded chain in order" {
+test "hlist view walks a singly linked hlist chain in order" {
     var head = HListHead{ .first = 0 };
     var first = HListNode{ .next = 0, .pprev = 0 };
     var second = HListNode{ .next = 0, .pprev = 0 };
@@ -128,14 +179,17 @@ test "hlist view walks a bounded chain in order" {
     try std.testing.expect(!view.isEmpty());
     try std.testing.expectEqual(@as(usize, 2), view.len());
     try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &second), view.last());
     try std.testing.expect(view.firstPprevMatchesHead());
-    try std.testing.expect(view.hasConsistentPrevLinks());
-    try std.testing.expect(view.tailNextIsNull());
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
 
     var it = view.iterator();
     try std.testing.expectEqual(@as(?*const HListNode, &first), it.next());
     try std.testing.expectEqual(@as(?*const HListNode, &second), it.next());
     try std.testing.expectEqual(@as(?*const HListNode, null), it.next());
+    try std.testing.expect(view.hasConsistentPrevLinks());
+    try std.testing.expect(view.tailNextIsNull());
 }
 
 test "hlist view reports the first broken prev-link witness" {
@@ -149,9 +203,121 @@ test "hlist view reports the first broken prev-link witness" {
     second.next = 0;
     second.pprev = @intFromPtr(&head.first);
 
-    const breakage = HListView.init(&head).firstBrokenPrevLink().?;
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 2), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &second), view.last());
+    try std.testing.expect(view.firstPprevMatchesHead());
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+
+    const breakage = view.firstBrokenPrevLink().?;
     try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
-    try std.testing.expect(!HListView.init(&head).hasConsistentPrevLinks());
+    try std.testing.expect(view.tailNextIsNull());
+}
+
+test "hlist view last returns the tail across a longer chain" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+    var third = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&head.first);
+    second.next = @intFromPtr(&third);
+    second.pprev = @intFromPtr(&first.next);
+    third.next = 0;
+    third.pprev = @intFromPtr(&second.next);
+
+    const view = HListView.init(&head);
+    try std.testing.expectEqual(@as(usize, 3), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &third), view.last());
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
+    try std.testing.expect(view.hasConsistentPrevLinks());
+    try std.testing.expect(view.tailNextIsNull());
+}
+
+test "hlist view reports a cycle witness and fails tail checks closed" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&head.first);
+    second.next = @intFromPtr(&first);
+    second.pprev = @intFromPtr(&first.next);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, null), view.last());
+    try std.testing.expect(view.firstPprevMatchesHead());
+    try std.testing.expect(!view.tailNextIsNull());
+    try std.testing.expect(view.hasCycle());
+
+    const witness = view.firstCycleWitness().?;
+    try std.testing.expectEqual(@as(usize, 2), witness.slow_index);
+    try std.testing.expectEqual(@as(usize, 4), witness.fast_index);
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 2), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&second.next)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+}
+
+test "hlist view handles a one-node hlist without losing tail access" {
+    var head = HListHead{ .first = 0 };
+    var node = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&node);
+    node.next = 0;
+    node.pprev = @intFromPtr(&head.first);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 1), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.last());
+    try std.testing.expect(view.firstPprevMatchesHead());
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
+    try std.testing.expect(view.hasConsistentPrevLinks());
+    try std.testing.expect(view.tailNextIsNull());
+}
+
+test "hlist view fails closed for a self-looped first node" {
+    var head = HListHead{ .first = 0 };
+    var node = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&node);
+    node.next = @intFromPtr(&node);
+    node.pprev = @intFromPtr(&head.first);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, null), view.last());
+    try std.testing.expect(view.firstPprevMatchesHead());
+    try std.testing.expect(!view.tailNextIsNull());
+    try std.testing.expect(view.hasCycle());
+
+    const witness = view.firstCycleWitness().?;
+    try std.testing.expectEqual(@as(usize, 1), witness.slow_index);
+    try std.testing.expectEqual(@as(usize, 2), witness.fast_index);
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&node.next)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
+    try std.testing.expect(!view.hasConsistentPrevLinks());
 }
