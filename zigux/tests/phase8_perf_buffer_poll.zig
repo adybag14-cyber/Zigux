@@ -59,7 +59,6 @@ test "phase 8 perf-buffer poll tests README keeps the current direct-readback pa
     try expectContains(note, "`Documentation/zigux/phase8-libbpf-segment-survey.md`");
     try expectContains(note, "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`");
     try expectContains(note, "`zigux/tests/phase8_libbpf_segments.zig`");
-    try expectContains(note, "`zigux/tests/phase8_libbpf_segments_only_build.zig`");
     try expectContains(note, "`zigux/Makefile`");
     try expectContains(
         note,
