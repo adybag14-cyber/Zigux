@@ -7,14 +7,18 @@ import argparse
 import tempfile
 from pathlib import Path
 
-README_PATH = Path("scripts/zigux/README.md")
+SEQUENCING_NOTE_PATH = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
 STRING_HELPERS_SLICE_PATH = Path("Documentation/zigux/phase7-string-helpers-slice.md")
 
 DIRECT_PACKET = [
-    "scripts/zigux/README.md",
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-string-helpers-slice.md",
-    "lib/string_helpers.zig",
+    "scripts/zigux/README.md",
+    "zigux/tests/README.md",
     "samples/zigux/README.md",
+    "scripts/zigux/check-phase7-build-wiring.py",
+    "scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
+    "lib/string_helpers.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_manifest.json",
@@ -23,18 +27,15 @@ DIRECT_PACKET = [
 ]
 
 PARKED_SHARED_CONTROL_PATHS = [
-    "Documentation/zigux/phase7-argv-split-slice.md",
-    "Documentation/zigux/phase7-rbtree-slice.md",
     "scripts/zigux/check-phase7-make-wrapper.py",
     "scripts/zigux/validate-phase7.py",
     "zigux/tests/phase7_build.zig",
 ]
 
-README_REQUIRED_SNIPPETS = [
-    "Phase 7 flow - the current scripts-root Phase 7 reminder is intentionally narrow:",
-    "helper-local string evidence now lives directly in `Documentation/zigux/phase7-string-helpers-slice.md`, `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, and `zigux/tests/phase7_string_helpers_sample_boundary.zig`, while the surviving broader shared-helper anchor is the directly readable `zigux/tests/phase7_rbtree_survey.zig`",
-    "authenticated contents reads on current `master` now return missing for the older shared-control wrapper packet members `scripts/zigux/validate-phase7.py`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `zigux/tests/phase7_build.zig`, `Documentation/zigux/phase7-argv-split-slice.md`, and `Documentation/zigux/phase7-rbtree-slice.md`",
-    "leave broader shared-control validator or make-wrapper follow-up parked until those missing wrapper files rematerialize on current `master`",
+SEQUENCING_REQUIRED_SNIPPETS = [
+    "- shared control-surface packet, lane `P7-Y05`:",
+    "- the shared control packet is also only partly recoverable in this slot. `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` remain directly readable, but fresh authenticated contents reads still returned missing for `scripts/zigux/validate-phase7.py` and `zigux/tests/phase7_build.zig`, so `P7-Y05` should treat the shared wrapper stack as parked reminder vocabulary until those files rematerialize.",
+    "- If the drift is the shared tests-root or scripts-root Phase 7 tranche summary, route it to `P7-Y05` and keep the change inside `zigux/tests/README.md` or `scripts/zigux/README.md` only.",
 ]
 
 STRING_HELPERS_SLICE_REQUIRED_SNIPPETS = [
@@ -44,7 +45,13 @@ STRING_HELPERS_SLICE_REQUIRED_SNIPPETS = [
     "unless a fresh same-family reread proves those broader shared-control reminders are directly readable again on current `master`.",
 ]
 
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = (
+    len(SEQUENCING_REQUIRED_SNIPPETS)
+    + len(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
+    + len(PARKED_SHARED_CONTROL_PATHS)
+    + len(DIRECT_PACKET[2:])
+    + 2
+)
 
 
 class ValidationError(RuntimeError):
@@ -84,7 +91,7 @@ def require_repo_reality(repo_root: Path) -> None:
 
 
 def validate(repo_root: Path) -> None:
-    require_snippets(repo_root / README_PATH, README_REQUIRED_SNIPPETS)
+    require_snippets(repo_root / SEQUENCING_NOTE_PATH, SEQUENCING_REQUIRED_SNIPPETS)
     require_snippets(repo_root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
     require_repo_reality(repo_root)
 
@@ -95,24 +102,29 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_repo(root: Path) -> None:
-    write(root / README_PATH, "\n".join(README_REQUIRED_SNIPPETS) + "\n")
+    write(root / SEQUENCING_NOTE_PATH, "\n".join(SEQUENCING_REQUIRED_SNIPPETS) + "\n")
     write(root / STRING_HELPERS_SLICE_PATH, "\n".join(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS) + "\n")
     for rel in DIRECT_PACKET[2:]:
         write(root / Path(rel), "# direct phase7 shared-control packet file\n")
+
+
+def expect_validation_error(root: Path, expected_fragment: str) -> None:
+    try:
+        validate(root)
+    except ValidationError as exc:
+        if expected_fragment not in str(exc):
+            raise AssertionError(
+                f"expected {expected_fragment!r} in validation error, got {str(exc)!r}"
+            ) from exc
+    else:
+        raise AssertionError("expected validation failure")
 
 
 def expect_failure(root: Path, path: Path, snippet: str) -> None:
     original = read_text(path)
     write(path, original.replace(snippet + "\n", "", 1))
     try:
-        validate(root)
-    except ValidationError as exc:
-        if snippet not in str(exc):
-            raise AssertionError(
-                f"expected {snippet!r} in validation error, got {str(exc)!r}"
-            ) from exc
-    else:
-        raise AssertionError("expected validation failure")
+        expect_validation_error(root, snippet)
     finally:
         write(path, original)
 
@@ -124,49 +136,41 @@ def run_self_test() -> None:
         validate(root)
 
         cases_run = 0
-        for path, snippet in [
-            (root / README_PATH, README_REQUIRED_SNIPPETS[0]),
-            (root / README_PATH, README_REQUIRED_SNIPPETS[2]),
-            (root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS[0]),
-            (root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS[2]),
-        ]:
-            expect_failure(root, path, snippet)
+        for path, snippets in (
+            (root / SEQUENCING_NOTE_PATH, SEQUENCING_REQUIRED_SNIPPETS),
+            (root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS),
+        ):
+            for snippet in snippets:
+                expect_failure(root, path, snippet)
+                cases_run += 1
+
+        for rel in PARKED_SHARED_CONTROL_PATHS:
+            parked_path = root / Path(rel)
+            write(parked_path, "# stale shared-control path returned\n")
+            try:
+                expect_validation_error(root, rel)
+            finally:
+                parked_path.unlink()
             cases_run += 1
 
-        write(root / Path(PARKED_SHARED_CONTROL_PATHS[0]), "# stale shared-control path returned\n")
-        try:
-            validate(root)
-        except ValidationError:
+        for rel in DIRECT_PACKET[2:]:
+            direct_path = root / Path(rel)
+            direct_path.unlink()
+            try:
+                expect_validation_error(root, rel)
+            finally:
+                write(direct_path, "# direct phase7 shared-control packet file\n")
             cases_run += 1
-        else:
-            raise AssertionError("expected rematerialized parked path to fail")
-        (root / Path(PARKED_SHARED_CONTROL_PATHS[0])).unlink()
-
-        (root / Path(DIRECT_PACKET[-1])).unlink()
-        try:
-            validate(root)
-        except ValidationError:
-            cases_run += 1
-        else:
-            raise AssertionError("expected missing direct packet file to fail")
 
         scaffold_repo(root)
-        (root / README_PATH).unlink()
-        try:
-            validate(root)
-        except ValidationError:
-            cases_run += 1
-        else:
-            raise AssertionError("expected missing README to fail")
+        (root / SEQUENCING_NOTE_PATH).unlink()
+        expect_validation_error(root, str(SEQUENCING_NOTE_PATH))
+        cases_run += 1
 
         scaffold_repo(root)
         (root / STRING_HELPERS_SLICE_PATH).unlink()
-        try:
-            validate(root)
-        except ValidationError:
-            cases_run += 1
-        else:
-            raise AssertionError("expected missing string-helpers slice to fail")
+        expect_validation_error(root, str(STRING_HELPERS_SLICE_PATH))
+        cases_run += 1
 
         if cases_run != SELF_TEST_CASE_COUNT:
             raise AssertionError(
