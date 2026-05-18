@@ -10,6 +10,7 @@ from pathlib import Path
 
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
+ABI_CHECKER_PATH = Path("scripts/zigux/check-phase3-abi.py")
 
 REQUIRED_SOURCE_MARKERS = {
     ABI_HEADER_PATH: (
@@ -27,6 +28,15 @@ REQUIRED_SOURCE_MARKERS = {
         "pub const BoundaryHeader = extern struct {",
         "pub const InteropPolicy = extern struct {",
         "pub const NotifierBlock = notifier_abi.NotifierBlock;",
+    ),
+    ABI_CHECKER_PATH: (
+        'ABI_SLICE_NOTE = Path("Documentation/zigux/phase3-abi-slice.md")',
+        'ABI_HEADER = Path("include/zigux/abi.h")',
+        'LINUX_ZIGUX_HEADER = Path("include/linux/zigux.h")',
+        'BINDING_ABI = Path("zigux/bindings/abi.zig")',
+        'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")',
+        "def validate_repo(repo_root: Path) -> list[str]:",
+        'print("PHASE3_ABI_CHECK_SELF_TEST=pass")',
     ),
 }
 
@@ -164,6 +174,19 @@ pub const ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary = e
 pub const NotifierBlock = notifier_abi.NotifierBlock;
 """
 
+SELF_TEST_CHECKER = """\
+ABI_SLICE_NOTE = Path("Documentation/zigux/phase3-abi-slice.md")
+ABI_HEADER = Path("include/zigux/abi.h")
+LINUX_ZIGUX_HEADER = Path("include/linux/zigux.h")
+BINDING_ABI = Path("zigux/bindings/abi.zig")
+EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
+
+def validate_repo(repo_root: Path) -> list[str]:
+    return []
+
+print("PHASE3_ABI_CHECK_SELF_TEST=pass")
+"""
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -236,14 +259,18 @@ def _validate_layout_structs(header_text: str, bindings_text: str) -> list[str]:
 
         zig_fields = zig_structs.get(zig_name)
         if zig_fields is None:
-            issues.append(f"missing ABI binding extern struct for layout comparison: {zig_name}")
+            issues.append(
+                f"missing ABI binding extern struct for layout comparison: {zig_name}"
+            )
             continue
 
         expected_zig_fields: list[tuple[str, str]] = []
         for field_name, c_type in c_fields:
             zig_type = C_TO_ZIG_TYPE_MAP.get(c_type)
             if zig_type is None:
-                issues.append(f"unsupported C field type in ABI header layout comparison: {c_name}.{field_name} uses {c_type}")
+                issues.append(
+                    f"unsupported C field type in ABI header layout comparison: {c_name}.{field_name} uses {c_type}"
+                )
                 expected_zig_fields = []
                 break
             expected_zig_fields.append((field_name, zig_type))
@@ -294,20 +321,35 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_validator_") as tmp_dir:
         root = Path(tmp_dir)
 
-        _write(
-            root / ABI_HEADER_PATH,
-            SELF_TEST_HEADER,
-        )
-        _write(
-            root / ABI_BINDINGS_PATH,
-            SELF_TEST_BINDINGS,
-        )
+        _write(root / ABI_HEADER_PATH, SELF_TEST_HEADER)
+        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
+        _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
 
         issues = validate_repo(root)
         if issues:
             print("PHASE3_VALIDATION_SELF_TEST=fail")
             print("\n".join(issues))
             return 1
+
+        _write(
+            root / ABI_CHECKER_PATH,
+            SELF_TEST_CHECKER.replace(
+                'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")\n',
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing scripts/zigux/check-phase3-abi.py marker: "
+            'EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")'
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing ABI checker marker was not reported")
+            return 1
+
+        _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
 
         _write(
             root / ABI_BINDINGS_PATH,
@@ -327,6 +369,8 @@ def run_self_test() -> int:
             print("expected missing ABI binding constant was not reported")
             return 1
 
+        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
+
         _write(
             root / ABI_BINDINGS_PATH,
             SELF_TEST_BINDINGS.replace(
@@ -336,13 +380,16 @@ def run_self_test() -> int:
             ),
         )
         issues = validate_repo(root)
-        if not any("layout mismatch for zigux_export_status vs ExportStatus" in issue for issue in issues):
+        if not any(
+            "layout mismatch for zigux_export_status vs ExportStatus" in issue
+            for issue in issues
+        ):
             print("PHASE3_VALIDATION_SELF_TEST=fail")
             print("expected ABI layout mismatch was not reported")
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=3")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
@@ -354,7 +401,7 @@ def main() -> int:
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains include/zigux/ and zigux/bindings/",
+        help="repository root that contains include/zigux/, zigux/bindings/, and scripts/zigux/",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -369,7 +416,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_VALIDATION=pass")
-    print("PHASE3_SCOPE=shared-abi-binding-constants-and-layout")
+    print("PHASE3_SCOPE=shared-abi-binding-layout-and-checker-surface")
     return 0
 
 
