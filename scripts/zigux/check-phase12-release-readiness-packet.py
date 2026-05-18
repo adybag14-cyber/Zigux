@@ -193,6 +193,7 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
         missing_file_cases = [
+            FREEZE_MAP_PATH,
             RELEASE_READINESS_SURVEY_PATH,
             RELEASE_SEQUENCING_PATH,
             RELEASE_CLOSURE_CHECKLIST_PATH,
