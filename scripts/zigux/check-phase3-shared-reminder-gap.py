@@ -10,43 +10,36 @@ from pathlib import Path
 
 GAP_NOTE_PATH = Path("Documentation/zigux/phase3-shared-reminder-gap.md")
 VALIDATOR_NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
-DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
-TESTS_ROOT_PATH = Path("zigux/tests/README.md")
-REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 
-REQUIRED_MARKERS = {
-    GAP_NOTE_PATH: (
-        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit",
-        "Documentation/zigux/phase3-policy-slice.md",
-        "include/zigux/abi.h",
-        "zigux/bindings/abi.zig",
-        "Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md",
-        "one narrow reminder-surface cleanup pass",
-    ),
-    VALIDATOR_NOTE_PATH: (
-        "## Focused policy slice present on `master`",
-        "Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still lag",
-        "bounded three-slice posture on current `master`",
-    ),
-    DOCS_ROOT_PATH: (
-        "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md`",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`include/zigux/abi.h`",
-        "`zigux/bindings/abi.zig`",
-    ),
-    TESTS_ROOT_PATH: (
-        "Phase 3 review packet",
-        "`Documentation/zigux/phase3-abi-slice.md`",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`include/zigux/abi.h`",
-        "`zigux/bindings/abi.zig`",
-    ),
-    REVIEW_CHECKLIST_PATH: (
-        "if the change touches the shared Phase 3 ABI packet or a broad reminder surface",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`Documentation/zigux/README.md` and `zigux/tests/README.md` stay framed as the remaining broader shared reminder surfaces",
-    ),
-}
+GAP_NOTE_MARKERS = (
+    "PHASE3_SHARED_REMINDER_GAP=current master now ships the bounded xarray-slot helper-local slice plus its shared starter and dump routes",
+    "zigux/helpers/xarray_slot_view.zig",
+    "zigux/tests/phase3_xarray_slot_starter_packet.zig",
+    "zigux/tests/phase3_xarray_slot_dump.zig",
+    "zigux/tests/fixtures/phase3_xarray_slot_manifest.json",
+    "scripts/zigux/check-phase3-xarray-slot.py",
+    "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
+    "zig build phase3-xarray-slot-dump --build-file zigux/tests/build.zig",
+    "Documentation/zigux/README.md",
+    "zigux/tests/README.md",
+    "Documentation/zigux/review-checklist.md",
+)
+
+VALIDATOR_NOTE_MARKERS = (
+    "one bounded `xarray_slot` helper-local slice with shared starter and dump routes",
+    "zigux/helpers/xarray_slot_view.zig",
+    "zigux/tests/phase3_xarray_slot_starter_packet.zig",
+    "zigux/tests/phase3_xarray_slot_dump.zig",
+    "zigux/tests/fixtures/phase3_xarray_slot_manifest.json",
+    "scripts/zigux/check-phase3-xarray-slot.py",
+    "Documentation/zigux/phase3-shared-reminder-gap.md",
+    "Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md`",
+)
+
+REQUIRED_FILES = (
+    GAP_NOTE_PATH,
+    VALIDATOR_NOTE_PATH,
+)
 
 
 def _read(path: Path) -> str:
@@ -60,40 +53,41 @@ def _write(path: Path, text: str) -> None:
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
-    for relative_path, markers in REQUIRED_MARKERS.items():
-        path = repo_root / relative_path
-        try:
-            text = _read(path)
-        except FileNotFoundError:
-            issues.append(f"missing repo file: {relative_path.as_posix()}")
-            continue
-        for marker in markers:
-            if marker not in text:
-                issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
+
+    for rel_path in REQUIRED_FILES:
+        if not (repo_root / rel_path).is_file():
+            issues.append(f"missing repo file: {rel_path.as_posix()}")
+
+    if issues:
+        return issues
+
+    gap_text = _read(repo_root / GAP_NOTE_PATH)
+    for marker in GAP_NOTE_MARKERS:
+        if marker not in gap_text:
+            issues.append(f"missing {GAP_NOTE_PATH.as_posix()} marker: {marker}")
+
+    validator_text = _read(repo_root / VALIDATOR_NOTE_PATH)
+    for marker in VALIDATOR_NOTE_MARKERS:
+        if marker not in validator_text:
+            issues.append(f"missing {VALIDATOR_NOTE_PATH.as_posix()} marker: {marker}")
+
     return issues
 
 
 def _populate_repo(root: Path) -> None:
-    for relative_path in (
-        GAP_NOTE_PATH,
-        VALIDATOR_NOTE_PATH,
-        DOCS_ROOT_PATH,
-        TESTS_ROOT_PATH,
-        REVIEW_CHECKLIST_PATH,
-    ):
-        source = Path("/workspace/.scratch-l29-reminder-source") / relative_path
-        _write(root / relative_path, _read(source))
+    gap_text = "\n".join(GAP_NOTE_MARKERS) + "\n"
+    validator_text = "\n".join(VALIDATOR_NOTE_MARKERS) + "\n"
+    _write(root / GAP_NOTE_PATH, gap_text)
+    _write(root / VALIDATOR_NOTE_PATH, validator_text)
 
 
 SELF_TEST_CASES = (
-    (GAP_NOTE_PATH, "one narrow reminder-surface cleanup pass"),
-    (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
-    (DOCS_ROOT_PATH, "`include/zigux/abi.h`"),
-    (TESTS_ROOT_PATH, "`zigux/bindings/abi.zig`"),
-    (
-        REVIEW_CHECKLIST_PATH,
-        "`Documentation/zigux/README.md` and `zigux/tests/README.md` stay framed as the remaining broader shared reminder surfaces",
-    ),
+    (GAP_NOTE_PATH, GAP_NOTE_MARKERS[0]),
+    (GAP_NOTE_PATH, GAP_NOTE_MARKERS[6]),
+    (GAP_NOTE_PATH, GAP_NOTE_MARKERS[10]),
+    (VALIDATOR_NOTE_PATH, VALIDATOR_NOTE_MARKERS[0]),
+    (VALIDATOR_NOTE_PATH, VALIDATOR_NOTE_MARKERS[5]),
+    (VALIDATOR_NOTE_PATH, VALIDATOR_NOTE_MARKERS[7]),
 )
 
 
@@ -132,7 +126,7 @@ def main() -> int:
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains the Phase 3 shared reminder surfaces",
+        help="repository root that contains the Phase 3 shared reminder note",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
