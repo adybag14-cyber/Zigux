@@ -56,6 +56,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
@@ -184,6 +185,7 @@ def run_self_test() -> int:
                 collect_issues(root)
             except SystemExit as exc:
                 assert "required file missing" in str(exc)
+                assert str(resolve_path(root, rel_path)) in str(exc)
                 checks_run += 1
             else:
                 raise AssertionError(f"missing file did not abort: {rel_path}")
