@@ -42,8 +42,6 @@ The current base64 helper surface exercised by this slice covers:
 - variant-pinned `bytesStd`, `bytesUrlsafe`, and `bytesImap`
 - variant-pinned `encodeStd`, `encodeUrlsafe`, and `encodeImap`
 - variant-pinned `decodeStd`, `decodeUrlsafe`, and `decodeImap`
-- exact-span ownership companions `encodeSlice`, `encodeAlloc`, `decodeSlice`, and `decodeAlloc`
-- standard-pinned exact-span ownership companions `encodeStdSlice`, `encodeStdAlloc`, `decodeStdSlice`, and `decodeStdAlloc`
 - `Variant.std`
 - `Variant.urlsafe`
 - `Variant.imap`
@@ -58,7 +56,6 @@ The current tests check:
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
 - helper-local convenience parity between the generic and variant-pinned size, encode, and decode entrypoints
-- exact-span slice and allocator ownership paths for the generic and standard-pinned helper entrypoints
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
