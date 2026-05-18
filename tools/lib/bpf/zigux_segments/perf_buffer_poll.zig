@@ -616,6 +616,13 @@ pub fn summarizeBufferFdLookup(
     };
 }
 
+pub fn resolveBufferFdAtIndex(
+    buffer_fds: []const ?i32,
+    buffer_index: usize,
+) BufferFdLookupError!i32 {
+    return resolveBufferFd(summarizeBufferFdLookup(buffer_fds, buffer_index));
+}
+
 pub fn resolveBufferFd(summary: BufferFdLookupSummary) BufferFdLookupError!i32 {
     return switch (summary.disposition) {
         .found_fd => summary.fd.?,
@@ -656,6 +663,13 @@ pub fn summarizeBufferWindowLookup(
         .mapped_size = null,
         .disposition = .missing_window,
     };
+}
+
+pub fn resolveBufferWindowMappedSizeAtIndex(
+    buffer_windows: []const ?BufferWindowObservation,
+    buffer_index: usize,
+) BufferWindowLookupError!usize {
+    return resolveBufferWindowMappedSize(summarizeBufferWindowLookup(buffer_windows, buffer_index));
 }
 
 pub fn resolveBufferWindowMappedSize(summary: BufferWindowLookupSummary) BufferWindowLookupError!usize {
@@ -940,6 +954,14 @@ test "phase8 perf-buffer poll exposes typed fd resolution beside errno-shaped fd
     );
 }
 
+test "phase8 perf-buffer poll resolves typed fd lookups without manual summary plumbing" {
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+
+    try std.testing.expectEqual(@as(i32, 21), try resolveBufferFdAtIndex(&buffer_fds, 2));
+    try std.testing.expectError(error.MissingFd, resolveBufferFdAtIndex(&buffer_fds, 1));
+    try std.testing.expectError(error.InvalidIndex, resolveBufferFdAtIndex(&buffer_fds, 4));
+}
+
 test "phase8 perf-buffer poll exposes typed mapped-size resolution beside errno-shaped window returns" {
     const buffer_windows = [_]?BufferWindowObservation{
         .{ .mapped_size = 4096 },
@@ -964,6 +986,18 @@ test "phase8 perf-buffer poll exposes typed mapped-size resolution beside errno-
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         resolveBufferWindowLookupReturn(invalid),
     );
+}
+
+test "phase8 perf-buffer poll resolves typed mapped-size lookups without manual summary plumbing" {
+    const buffer_windows = [_]?BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+
+    try std.testing.expectEqual(@as(usize, 8192), try resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 2));
+    try std.testing.expectError(error.MissingWindow, resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 1));
+    try std.testing.expectError(error.InvalidIndex, resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 4));
 }
 
 test "phase8 perf-buffer poll rejects impossible post-wait buffer states" {
