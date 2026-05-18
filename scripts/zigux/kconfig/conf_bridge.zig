@@ -582,6 +582,21 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
 }
 
+test "conf bridge emits allyesconfig sentinel without explicit override" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allyesconfig,
+        .kconfig = "Kconfig",
+        .config = "yes/.config",
+        .arch = "arm64",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allyesconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
+}
+
 test "conf bridge emits allmodconfig sentinel without explicit override" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
@@ -723,7 +738,7 @@ test "conf bridge escapes quoted and backslashed defconfig request fields in jso
     try runConfBridge(&capture, .{
         .mode = .defconfig,
         .kconfig = "Kconfig \\\"quoted\\\"\\path",
-        .config = "out/\\\"quoted\\.config",
+        .config = "out/\\\"quoted\\\\.config",
         .arch = "arm64\\\\\\\"lab",
         .mode_arg = "arch/arm64/configs/zigux\\\"debug\\defconfig",
     });
