@@ -26,7 +26,6 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 
 - `Documentation/zigux/phase6-helper-parity-catalog.md`
 - `Documentation/zigux/phase6-perf-gate-survey.md`
-- `Documentation/zigux/phase6-checksum-slice.md`
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
 - `zigux/tests/phase6_helper_parity_manifest.json`
@@ -74,7 +73,7 @@ Treat those paths as last-known Phase 6 packet members that require fresh reread
 - committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
 - direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
-- current review posture: the roadmap-backed checksum packet remains intentionally bounded, but current direct evidence now includes `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders; the slice note and direct C parity members still need fresh direct reads before they are presented as current shipped evidence
+- current review posture: direct helper-local evidence is readable again through `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `Documentation/zigux/phase6-checksum-slice.md`, this shared catalog, the machine-readable manifest, the restored shared build foothold, and the directly readable scripts-root plus tests-root reminders, while the direct C parity companions still need fresh direct reads before they are presented as current shipped evidence
 
 ### hexdump
 
