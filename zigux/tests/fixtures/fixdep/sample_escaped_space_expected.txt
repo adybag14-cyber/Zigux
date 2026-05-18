@@ -1,9 +1,10 @@
 savedcmd_sample_escaped_space.o := clang -c zigux/tests/fixtures/fixdep/sample_escaped_space_source.c -o sample_escaped_space.o
 
-source_sample_escaped_space.o := zigux/tests/fixtures/fixdep/sample_escaped_space_source.rmeta
+source_sample_escaped_space.o := zigux/tests/fixtures/fixdep/sample_escaped_space_source.c
 
 deps_sample_escaped_space.o := \
- zigux/tests/fixtures/fixdep/dep\ name.rmeta \
+  zigux/tests/fixtures/fixdep/escaped\ space-config.h \
+    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \
 
 sample_escaped_space.o: $(deps_sample_escaped_space.o)
 
