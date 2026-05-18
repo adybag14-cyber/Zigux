@@ -24,6 +24,22 @@ PROOF_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_proof.zig")
 BUILD_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_build.zig")
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 
+REQUIRED_PROOF_ROUTE = {
+    "proof_build_file": "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "proof_replay_command": "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    "proof_step_name": "test",
+    "proof_step_description": "Run the focused Phase 11 HVC cleanup packet proof",
+    "proof_test_artifact_name": "phase11-hvc-cleanup-packet-proof",
+    "proof_root_source_file": "phase11_hvc_cleanup_packet_proof.zig",
+}
+
+EXACT_CURRENT_CHECKS = [
+    "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase11-build-inventory.py",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+]
+
 SURVEY_MARKERS = (
     "`PHASE11_HVC_CONSOLE_SURVEY_STATUS=simple_driver_current_head_gap_reopened`",
     "current authenticated contents reads in this lane still do not rematerialize",
@@ -136,6 +152,13 @@ def expect_list(payload: dict[str, object], key: str, expected: list[str]) -> No
         raise CheckError(f"{key} does not match the current-head HVC packet")
 
 
+def expect_exact_string(payload: dict[str, object], key: str, expected: str) -> str:
+    value = payload.get(key)
+    if value != expected:
+        raise CheckError(f"{key} does not match the current-head HVC packet")
+    return value
+
+
 def expect_mapping(
     payload: dict[str, object],
     key: str,
@@ -176,6 +199,46 @@ def expect_replay_markers(payload: dict[str, object]) -> None:
         raise CheckError("shared_replay_markers does not match the current-head HVC packet")
 
 
+def build_route_markers_from_inventory(payload: dict[str, object]) -> tuple[str, str, str]:
+    proof_build_file = expect_exact_string(
+        payload,
+        "proof_build_file",
+        REQUIRED_PROOF_ROUTE["proof_build_file"],
+    )
+    proof_replay_command = expect_exact_string(
+        payload,
+        "proof_replay_command",
+        REQUIRED_PROOF_ROUTE["proof_replay_command"],
+    )
+    proof_step_name = expect_exact_string(
+        payload,
+        "proof_step_name",
+        REQUIRED_PROOF_ROUTE["proof_step_name"],
+    )
+    proof_step_description = expect_exact_string(
+        payload,
+        "proof_step_description",
+        REQUIRED_PROOF_ROUTE["proof_step_description"],
+    )
+    proof_test_artifact_name = expect_exact_string(
+        payload,
+        "proof_test_artifact_name",
+        REQUIRED_PROOF_ROUTE["proof_test_artifact_name"],
+    )
+    proof_root_source_file = expect_exact_string(
+        payload,
+        "proof_root_source_file",
+        REQUIRED_PROOF_ROUTE["proof_root_source_file"],
+    )
+    if proof_replay_command != f"zig build test --build-file {proof_build_file}":
+        raise CheckError("proof_replay_command does not match proof_build_file")
+    return (
+        f'.root_source_file = b.path("{proof_root_source_file}"),',
+        f'.name = "{proof_test_artifact_name}"',
+        f'const test_step = b.step("{proof_step_name}", "{proof_step_description}");',
+    )
+
+
 def run_check(root: Path) -> None:
     require_markers(root, SURVEY_PATH, "survey", SURVEY_MARKERS)
     require_markers(root, COMPANION_PATH, "companion", COMPANION_MARKERS)
@@ -188,6 +251,12 @@ def run_check(root: Path) -> None:
     require_markers(root, BUILD_PATH, "build", BUILD_MARKERS)
 
     payload = read_inventory(root)
+    build_text = read_text(root / BUILD_PATH)
+    for marker in build_route_markers_from_inventory(payload):
+        if marker not in build_text:
+            raise CheckError(f"missing build marker: {marker}")
+
+    expect_list(payload, "exact_current_checks", EXACT_CURRENT_CHECKS)
     expect_list(payload, "build_test_names", EXPECTED_BUILD_TESTS)
     expect_list(payload, "shared_test_depend_steps", EXPECTED_DEPEND_STEPS)
     expect_list(payload, "forbidden_markers", EXPECTED_FORBIDDEN_MARKERS)
@@ -274,6 +343,8 @@ def build_fixture(root: Path) -> None:
         "",
     ]))
     write(root / INVENTORY_PATH, json.dumps({
+        **REQUIRED_PROOF_ROUTE,
+        "exact_current_checks": EXACT_CURRENT_CHECKS,
         "build_test_names": EXPECTED_BUILD_TESTS,
         "shared_test_depend_steps": EXPECTED_DEPEND_STEPS,
         "module_root_source_files": [{"module": k, "path": v} for k, v in EXPECTED_MODULES.items()],
@@ -416,6 +487,20 @@ def run_self_test() -> int:
         )
         expect_failure(missing_proof, 'try expectContains(matrix_doc, "surviving proof-backed cleanup packet");')
 
+        wrong_proof_command = tmpdir / "wrong_proof_command"
+        shutil.copytree(fixture, wrong_proof_command, dirs_exist_ok=True)
+        payload = read_inventory(wrong_proof_command)
+        payload["proof_replay_command"] = "zig build test --build-file zigux/tests/phase11_build.zig"
+        write(wrong_proof_command / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(wrong_proof_command, "proof_replay_command does not match the current-head HVC packet")
+
+        wrong_exact_checks = tmpdir / "wrong_exact_checks"
+        shutil.copytree(fixture, wrong_exact_checks, dirs_exist_ok=True)
+        payload = read_inventory(wrong_exact_checks)
+        payload["exact_current_checks"] = payload["exact_current_checks"][:-1]
+        write(wrong_exact_checks / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(wrong_exact_checks, "exact_current_checks does not match the current-head HVC packet")
+
         wrong_inventory = tmpdir / "wrong_inventory"
         shutil.copytree(fixture, wrong_inventory, dirs_exist_ok=True)
         payload = read_inventory(wrong_inventory)
@@ -443,7 +528,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=14")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=16")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
