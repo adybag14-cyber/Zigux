@@ -76,13 +76,13 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
-    "scripts/zigux/check-phase2-toolchain-pin-scope.py"
-  ]
+    "scripts/zigux/check-phase2-toolchain-pin-scope.py",
+]
 
 EXPECTED_MISSING_FILES = [
     "scripts/zigux/check-phase2-cross.py",
     "scripts/zigux/check-genksyms-bridge.py",
-    "scripts/zigux/install-zig.py"
+    "scripts/zigux/install-zig.py",
 ]
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
@@ -102,7 +102,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -110,6 +110,10 @@ def resolve_path(root: Path, path: Path) -> Path:
         return root / path.relative_to(ROOT)
     except ValueError:
         return root / path
+
+
+def resolve_manifest_relpath(root: Path, relpath: str) -> Path:
+    return root / Path(relpath)
 
 
 def read_text(root: Path, path: Path) -> str:
@@ -133,6 +137,18 @@ def read_manifest(root: Path) -> dict[str, object]:
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
+
+
+def read_manifest_string_list(
+    manifest: dict[str, object],
+    field: str,
+    issues: list[tuple[str, str]],
+) -> list[str]:
+    value = manifest.get(field)
+    if not isinstance(value, list) or any(not isinstance(item, str) for item in value):
+        issues.append(("INVALID_MANIFEST_FIELD", field))
+        return []
+    return value
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -171,6 +187,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
 
+    present_files = read_manifest_string_list(manifest, "present_files", issues)
+    missing_files = read_manifest_string_list(manifest, "missing_files", issues)
+    master_present_branch_missing_files = read_manifest_string_list(
+        manifest,
+        "master_present_branch_missing_files",
+        issues,
+    )
+
     if manifest.get("packet") != "phase2_tool_manifest":
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
     if manifest.get("phase") != "phase2":
@@ -189,14 +213,30 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_MANIFEST_FIELD", "tool_manifest_checker"))
     if manifest.get("makefile") != "zigux/Makefile":
         issues.append(("INVALID_MANIFEST_FIELD", "makefile"))
-    if manifest.get("present_files") != EXPECTED_PRESENT_FILES:
+    if present_files != EXPECTED_PRESENT_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "present_files"))
-    if manifest.get("missing_files") != EXPECTED_MISSING_FILES:
+    if missing_files != EXPECTED_MISSING_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "missing_files"))
-    if manifest.get("master_present_branch_missing_files") != EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES:
+    if master_present_branch_missing_files != EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES:
         issues.append(("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files"))
     if manifest.get("workflow_surface") != ".github/workflows/zigux-bootstrap.yml":
         issues.append(("INVALID_MANIFEST_FIELD", "workflow_surface"))
+
+    present_set = set(present_files)
+    missing_set = set(missing_files)
+    overlap = sorted(present_set & missing_set)
+    for relpath in overlap:
+        issues.append(("MANIFEST_PATH_LIST_OVERLAP", relpath))
+
+    for relpath in present_files:
+        if not resolve_manifest_relpath(root, relpath).exists():
+            issues.append(("PRESENT_FILE_MISSING_FROM_TREE", relpath))
+    for relpath in missing_files:
+        if resolve_manifest_relpath(root, relpath).exists():
+            issues.append(("MISSING_FILE_PRESENT_IN_TREE", relpath))
+    for relpath in master_present_branch_missing_files:
+        if resolve_manifest_relpath(root, relpath).exists():
+            issues.append(("MASTER_BRANCH_MISSING_FILE_PRESENT_IN_TREE", relpath))
 
     return issues
 
@@ -219,6 +259,12 @@ def write_text(root: Path, path: Path, content: str) -> None:
     resolved = resolve_path(root, path)
     resolved.parent.mkdir(parents=True, exist_ok=True)
     resolved.write_text(content, encoding="utf-8")
+
+
+def write_placeholder(root: Path, relpath: str) -> None:
+    path = resolve_manifest_relpath(root, relpath)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("present\n", encoding="utf-8")
 
 
 def manifest_json(
@@ -266,6 +312,12 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, REVIEW_CHECKLIST, "\n".join(EXPECTED_REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(root, SCRIPTS_README, "\n".join(EXPECTED_SCRIPTS_README_MARKERS) + "\n")
     write_text(root, MANIFEST, manifest_json())
+    for relpath in EXPECTED_PRESENT_FILES:
+        if relpath == MANIFEST.relative_to(ROOT).as_posix():
+            continue
+        if resolve_manifest_relpath(root, relpath).exists():
+            continue
+        write_placeholder(root, relpath)
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -328,8 +380,26 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        write_text(root, MANIFEST, json.dumps({**json.loads(manifest_json()), "workflow_surface": "wrong"}, indent=2) + "\n")
-        assert ("INVALID_MANIFEST_FIELD", "workflow_surface") in collect_issues(root)
+        resolve_manifest_relpath(root, EXPECTED_PRESENT_FILES[-1]).unlink()
+        assert ("PRESENT_FILE_MISSING_FROM_TREE", EXPECTED_PRESENT_FILES[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_placeholder(root, EXPECTED_MISSING_FILES[0])
+        assert ("MISSING_FILE_PRESENT_IN_TREE", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(
+            root,
+            MANIFEST,
+            manifest_json(
+                present_files=[*EXPECTED_PRESENT_FILES, EXPECTED_MISSING_FILES[0]],
+            ),
+        )
+        issues = collect_issues(root)
+        assert ("INVALID_MANIFEST_FIELD", "present_files") in issues
+        assert ("MANIFEST_PATH_LIST_OVERLAP", EXPECTED_MISSING_FILES[0]) in issues
         checks_run += 1
 
         build_self_test_root(root)
