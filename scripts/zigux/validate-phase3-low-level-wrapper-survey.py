@@ -18,6 +18,7 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 WRAPPER_REPLAY_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
 WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
+SHARED_TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 WRAPPER_BUILD_COMMAND = "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
 
@@ -97,6 +98,16 @@ REQUIRED_MARKERS = {
         'mmio.addImport("unsafe_policy", unsafe_policy);',
         '"phase3-low-level-wrappers-test"',
     ),
+    SHARED_TESTS_BUILD_PATH: (
+        "fn addPhase3LowLevelWrappers(",
+        '.root_source_file = b.path("../helpers/atomic.zig"),',
+        '.root_source_file = b.path("../helpers/barrier.zig"),',
+        '.root_source_file = b.path("../helpers/mmio.zig"),',
+        '"phase3-low-level-wrappers"',
+        '"phase3-test"',
+        "phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);",
+        "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);",
+    ),
     WORKFLOW_PATH: (
         'name: Self-test current Phase 3 low-level wrapper survey validator',
         'run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test',
@@ -164,6 +175,11 @@ SELF_TEST_CASES = (
     (WRAPPER_BUILD_PATH, 'mmio.addImport("abi_bindings", abi_bindings);'),
     (WRAPPER_BUILD_PATH, 'mmio.addImport("unsafe_policy", unsafe_policy);'),
     (WRAPPER_BUILD_PATH, '"phase3-low-level-wrappers-test"'),
+    (SHARED_TESTS_BUILD_PATH, "fn addPhase3LowLevelWrappers("),
+    (SHARED_TESTS_BUILD_PATH, '"phase3-low-level-wrappers"'),
+    (SHARED_TESTS_BUILD_PATH, '"phase3-test"'),
+    (SHARED_TESTS_BUILD_PATH, "phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);"),
+    (SHARED_TESTS_BUILD_PATH, "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);"),
     (WORKFLOW_PATH, 'name: Self-test current Phase 3 low-level wrapper survey validator'),
     (WORKFLOW_PATH, 'run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test'),
     (WORKFLOW_PATH, 'name: Check current Phase 3 low-level wrapper survey packet'),
