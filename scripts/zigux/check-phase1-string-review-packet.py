@@ -36,6 +36,18 @@ COUNTED_SEARCH_REVIEW_RULE_LINE = (
     "instead of treating it as an unowned follow-up beside `strnchr()`."
 )
 
+EXPECTED_STRING_SOURCE_SYMBOLS = [
+    "pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {",
+    "pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {",
+    "pub fn sysfsMatchString(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn matchString(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn match_string(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {",
+    "pub fn strnchrNul(buf: []const u8, count: usize, needle: u8) usize {",
+    "pub fn strnchrnul(buf: []const u8, count: usize, needle: u8) usize {",
+]
+
 EXPECTED_STRING_PACKET = {
     "helper_test_anchors": [
         'test "strtobool accepts common Linux forms"',
@@ -331,6 +343,11 @@ def collect_failures(root: Path) -> list[str]:
             require_exact_string(string_packet.get(field), field, EXPECTED_STRING_PACKET[field])
         )
 
+    for symbol in EXPECTED_STRING_SOURCE_SYMBOLS:
+        failures.extend(
+            require_exact_occurrence(helper_text, f"string_source:{symbol}", symbol)
+        )
+
     for anchor in EXPECTED_STRING_PACKET["helper_test_anchors"]:
         failures.extend(
             require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor)
@@ -346,7 +363,11 @@ def write_file(root: Path, relative_path: Path, text: str) -> None:
 
 
 def build_sample_repo(root: Path) -> None:
-    write_file(root, STRING_HELPER_REL, "\n".join(EXPECTED_STRING_PACKET["helper_test_anchors"]) + "\n")
+    write_file(
+        root,
+        STRING_HELPER_REL,
+        "\n".join(EXPECTED_STRING_SOURCE_SYMBOLS + EXPECTED_STRING_PACKET["helper_test_anchors"]) + "\n",
+    )
     write_file(
         root,
         LANE_NOTE_REL,
@@ -387,6 +408,8 @@ def run_self_test() -> int:
         ("counted_search_rule_duplicated", "counted_search_rule", "duplicate"),
         ("next_safe_step_removed", "next_safe_step", "remove"),
         ("next_safe_step_duplicated", "next_safe_step", "duplicate"),
+        ("source_symbol_removed", "source_symbol", "remove"),
+        ("source_symbol_duplicated", "source_symbol", "duplicate"),
         ("helper_anchor_removed", "helper_anchor", "remove"),
         ("helper_anchor_duplicated", "helper_anchor", "duplicate"),
     ]
@@ -431,6 +454,15 @@ def run_self_test() -> int:
                         text = text.replace(marker, "", 1)
                     else:
                         text = text.replace(marker, marker + "\n" + marker, 1)
+                    path.write_text(text, encoding="utf-8")
+                elif target == "source_symbol":
+                    path = root / STRING_HELPER_REL
+                    marker = EXPECTED_STRING_SOURCE_SYMBOLS[0]
+                    text = path.read_text(encoding="utf-8")
+                    if kind == "remove":
+                        text = text.replace(marker + "\n", "", 1)
+                    else:
+                        text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
                     path.write_text(text, encoding="utf-8")
                 else:
                     path = root / STRING_HELPER_REL
