@@ -347,13 +347,16 @@ test "cpumask starter helpers keep empty sentinels stable with a stray address" 
 }
 
 test "cpumask starter helpers fail closed on non-zero reserved bytes" {
-    var backing = [_]usize{0};
+    var backing = [_]usize{@as(usize, 1) << 3};
     var invalid = cpumask_view.viewFromWords(backing[0..], 8);
     invalid.reserved = 1;
+    const projected = binding.asBitmap(invalid);
     const summary = cpumask_view.summarize(invalid);
 
+    try testing.expect(bitmap_view.isValid(projected));
+    try testing.expect(bitmap_view.testBit(projected, 3));
     try testing.expect(!cpumask_view.isValid(invalid));
-    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 3));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
     try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid));
@@ -382,11 +385,16 @@ test "cpumask starter summaries keep reserved bytes zero for valid and invalid v
 }
 
 test "cpumask starter helpers fail closed when nr_cpu_ids drifts from nbits" {
-    const invalid = binding.initCpumaskView(0, 4, 0, 3);
+    var backing = [_]usize{@as(usize, 1) << 5};
+    var invalid = cpumask_view.viewFromWords(backing[0..], 8);
+    invalid.nr_cpu_ids = 7;
+    const projected = binding.asBitmap(invalid);
     const summary = cpumask_view.summarize(invalid);
 
+    try testing.expect(bitmap_view.isValid(projected));
+    try testing.expect(bitmap_view.testBit(projected, 5));
     try testing.expect(!cpumask_view.isValid(invalid));
-    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 5));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
     try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid));
