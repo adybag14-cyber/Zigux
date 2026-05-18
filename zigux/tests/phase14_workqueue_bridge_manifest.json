@@ -25,8 +25,7 @@
     "current_lane_posture": "blocked_maintenance",
     "replay_before_trusting": [
       "zig test zigux/tests/phase14_workqueue_reviewability.zig",
-      "zig build test --build-file zigux/tests/phase14_build.zig --summary all",
-      "make -C zigux phase14"
+      "zig build test --build-file zigux/tests/phase14_build.zig --summary all"
     ],
     "reopen_conditions": [
       "the bridge, dedicated workqueue test, survey, slice note, manifest, or reviewability test drifts on surveyed commit, blocked gap, blocked-maintenance posture, or blocked live-execution wording",
