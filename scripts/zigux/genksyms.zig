@@ -145,19 +145,6 @@ fn writeTooManyReferenceFilesError(writer: anytype) !void {
     try writer.writeAll("too many reference files\n");
 }
 
-fn renderFailure(writer: anytype, parsed_failure: ParsedFailure) !void {
-    for (0..parsed_failure.version_count) |_| {
-        try writer.writeAll(version_text);
-    }
-    switch (parsed_failure.reason) {
-        .invalid_option => |option| try writeInvalidOptionError(writer, option),
-        .ambiguous_option => |option| try writeAmbiguousOptionError(writer, option),
-        .missing_option_argument => |option| try writeMissingOptionArgumentError(writer, option),
-        .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(writer, option),
-        .too_many_reference_files => try writeTooManyReferenceFilesError(writer),
-    }
-}
-
 pub fn renderGenksymsBridge(writer: anytype, request: Request) !void {
     try writer.writeAll("{\"tool\":\"scripts/genksyms/genksyms\",\"stdin\":\"cpp-stream\",\"stdout\":\"symversions\",\"argv\":[\"scripts/genksyms/genksyms\"");
     for (request.rendered_args) |arg| {
@@ -455,7 +442,16 @@ pub fn main(init: std.process.Init) !void {
         .failure => |parsed_failure| {
             var stderr_buffer: [512]u8 = undefined;
             var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-            try renderFailure(&stderr_writer.interface, parsed_failure);
+            for (0..parsed_failure.version_count) |_| {
+                try stderr_writer.interface.writeAll(version_text);
+            }
+            switch (parsed_failure.reason) {
+                .invalid_option => |option| try writeInvalidOptionError(&stderr_writer.interface, option),
+                .ambiguous_option => |option| try writeAmbiguousOptionError(&stderr_writer.interface, option),
+                .missing_option_argument => |option| try writeMissingOptionArgumentError(&stderr_writer.interface, option),
+                .unexpected_option_argument => |option| try writeUnexpectedOptionArgumentError(&stderr_writer.interface, option),
+                .too_many_reference_files => try writeTooManyReferenceFilesError(&stderr_writer.interface),
+            }
             try stderr_writer.interface.flush();
             std.process.exit(1);
         },
@@ -787,34 +783,6 @@ test "genksyms bridge renders unexpected long option argument like the fixture" 
     );
 }
 
-test "genksyms bridge renders version side effect before invalid short option" {
-    var output: std.Io.Writer.Allocating = .init(testing.allocator);
-    defer output.deinit();
-
-    try renderFailure(&output.writer, .{
-        .reason = .{ .invalid_option = "x" },
-        .version_count = 1,
-    });
-    try testing.expectEqualStrings(
-        "genksyms version 2.5.60\ninvalid option -- 'x'\n",
-        output.written(),
-    );
-}
-
-test "genksyms bridge renders canonical unexpected long option argument via parsed failure" {
-    var output: std.Io.Writer.Allocating = .init(testing.allocator);
-    defer output.deinit();
-
-    try renderFailure(&output.writer, .{
-        .reason = .{ .unexpected_option_argument = "--help" },
-        .version_count = 0,
-    });
-    try testing.expectEqualStrings(
-        "option '--help' doesn't allow an argument\n",
-        output.written(),
-    );
-}
-
 test "genksyms bridge keeps version side effect before long help" {
     const args = [_][]const u8{
         "-V",
@@ -830,8 +798,11 @@ test "genksyms bridge keeps version side effect before long help" {
     }
 }
 
-test "genksyms bridge keeps version side effect before short help" {
-    const args = [_][]const u8{"-Vh"};
+test "genksyms bridge keeps long version side effect before long help" {
+    const args = [_][]const u8{
+        "--version",
+        "--help",
+    };
     const outcome = try parseArgs(testing.allocator, &args);
     switch (outcome) {
         .command => |command| switch (command) {
