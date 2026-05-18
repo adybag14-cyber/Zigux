@@ -82,7 +82,7 @@ Phase 3 notes
 - `zigux/helpers/allocator_policy.zig`
 - `zigux/helpers/unsafe_policy.zig`
 - `zigux/tests/phase3_dev_t_starter_packet.zig`
-- `zigux/tests/phase3_dev_t_starter_PACKET_build.zig`
+- `zigux/tests/phase3_dev_t_starter_packet_build.zig`
 - `zigux/tests/phase3_dev_t_starter_packet_manifest.json`
 - `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
 - `zigux/tests/phase3_errptr_xarray_starter_packet_build.zig`
