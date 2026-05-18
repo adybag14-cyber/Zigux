@@ -15,7 +15,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 Phase 7 is where Zigux starts moving from earlier standalone helper ports into reusable in-kernel runtime helper families.
 
-The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, bounded quotable-cmdline, bounded parse-int-array, and bounded case-conversion helpers reviewable while the broader file-path and device-managed follow-ons stay deliberately out of scope.
+The current `string_helpers` state on `master` now carries an expanded starter packet that keeps the lowest-risk first-NUL, whitespace-sensitive, bounded size-formatting, bounded copy-and-pad, bounded duplicate-and-replace, bounded string-array ownership, bounded unescape, bounded string-escape, bounded quotable file-path duplication, bounded quotable-cmdline, bounded parse-int-array, and bounded case-conversion helpers reviewable while the broader device-managed follow-ons stay deliberately out of scope.
 
 This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Current `master` still ships no `samples/zigux/*string*` Phase 5 reference sample, so the dedicated boundary replay should keep that separation explicit while the expanded starter packet advances through helper-local review surfaces only.
 
@@ -65,6 +65,7 @@ The expanded starter packet on current `master` covers:
 - `kfreeStrarray()` and `kfree_strarray()`
 - `kstrdupAndReplace()` and `kstrdup_and_replace()`
 - `kstrdupQuotable()` and `kstrdup_quotable()`
+- `kstrdupQuotableFile()` and `kstrdup_quotable_file()`
 - `kstrdupQuotableCmdline()` and `kstrdup_quotable_cmdline()`
 - `parseIntArray()` and `parse_int_array()`
 - `stringUpper()` and `string_upper()`
@@ -84,6 +85,7 @@ The current starter replay keeps these proofs explicit:
 - bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown
 - allocator-backed duplicate-and-replace behavior that rewrites only the exported C-string prefix and leaves the source buffer untouched
 - quoted-log-safe duplication that hex-escapes special logging hazards and double quotes while still stopping at the exported C-string prefix
+- quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path
 - quoted cmdline duplication that collapses trailing NULs, replaces inter-argument NULs with spaces, and then reuses the quotable escape path inside caller-owned output
 - bounded parse-int-array decoding for comma-separated lists, positive ranges, first-NUL and explicit-count limits, trailing-invalid-token stop behavior, and clean allocation-failure replay
 - uppercase and lowercase copying that stops at the exported C-string boundary and truncates to caller-owned destination storage
@@ -100,6 +102,7 @@ The current starter replay also keeps these ownership-focused boundaries explici
 - `kasprintfStrarray()` and `kfreeStrarray()` keep per-string allocations, reject overflow before sizing the NULL-terminated pointer view, preserve the shared zero-length sentinel, and keep teardown ownership explicit for caller-held results
 - `kstrdupAndReplace()` returns caller-owned duplicated storage, applies replacements only inside the duplicated exported prefix, and leaves the source slice unchanged
 - `kstrdupQuotable()` returns caller-owned duplicated storage, hex-escapes special logging hazards, and still stops at the exported C-string prefix
+- `kstrdupQuotableFile()` keeps returned storage caller-owned, uses an explicit `<unknown>` fallback for missing file inputs, and otherwise reuses quotable escaping for already-materialized path strings
 - `kstrdupQuotableCmdline()` keeps returned storage caller-owned, collapses trailing and inter-argument NUL separators inside duplicated command-line storage, and only then applies quotable escaping
 - `parseIntArray()` and `parse_int_array()` keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set
 - `stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary
@@ -111,10 +114,10 @@ This expanded starter slice does not yet claim:
 
 - the older parked missing-helper gap
 - the broader shared-control packet that earlier runs described through validator, Makefile, workflow, or shared-build-route reminders
-- the broader full-family packet that still leaves `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` outside the current `master` helper packet
+- the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet
 - a new `samples/zigux/` string-helper reference sample
 
 ## Next Bounded Step
 
-Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `kstrdup_quotable_file()` and `devm_kasprintf_strarray()` follow-ons, and reopen only when one of those helper-local non-goals lands or the no-sample boundary drifts on current `master`.
+Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on, and reopen only when that helper-local non-goal lands or the no-sample boundary drifts on current `master`.
 Route any shared validator, Makefile, workflow, tests-root, or docs-root drift to the separate Phase 7 shared-control lanes only after a fresh same-family reread proves those broader reminders are directly readable again on current `master`.
