@@ -7,7 +7,6 @@ This note records the current helper-evidence survey for the bounded Phase 6 lea
 - shared scripts-root reminder: `scripts/zigux/README.md`
 - shared tests-root reminder: `zigux/tests/README.md`
 - shared docs-root reminder: `Documentation/zigux/README.md`
-- shared review-checklist reminder: `Documentation/zigux/review-checklist.md`
 - directly readable shared build foothold: `zigux/tests/phase6_build.zig`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`
 - roadmap-backed helper anchors:
@@ -35,7 +34,7 @@ Fresh direct GitHub contents reads on current `master` now return missing for se
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
 - `scripts/zigux/check-phase6-hexdump-packet.py`
 
-Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. Keep this catalog aligned with that direct-readback limit instead of overstating shared-note or helper-local reviewability from older route names alone. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, and the restored shared build foothold `zigux/tests/phase6_build.zig`.
+Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. Keep this catalog aligned with that direct-readback limit instead of overstating shared-note or helper-local reviewability from older route names alone. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `Documentation/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase6-shared-surface.py`, `scripts/zigux/check-phase6-present-entrypoints.py`, and the restored shared build foothold `zigux/tests/phase6_build.zig`.
 
 ## Current helper-evidence rows
 
