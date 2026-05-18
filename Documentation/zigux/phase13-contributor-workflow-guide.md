@@ -66,13 +66,14 @@ Keep helper-local ownership explicit instead of flattening the packet into a sin
 - `Documentation/zigux/phase13-devres-scatterlist-slice.md`
 - `scripts/zigux/check-phase13-devres-dma-boundary.py`
 - `scripts/zigux/check-phase13-devres-mmio-packet.py`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`
 - `lib/devres_scatterlist.zig`
 - `zigux/tests/phase13_devres_scatterlist.zig`
 - `zigux/tests/phase13_devres_scatterlist_build.zig`
 
-Keep `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` recorded as repo-reality gaps until they rematerialize on current `master`.
+Keep `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` recorded as repo-reality gaps until they rematerialize on current `master`.
 
 ### `landlock/ruleset`
 
@@ -114,7 +115,7 @@ Before landing a broad Phase 13 reminder change, check that:
 - the release-coordination matrix and shared-helper sequencing note still describe the same active helper packet
 - the stable shared-summary guard remains `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
-- the shipped `devres` packet still runs through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay recorded as repo-reality gaps rather than shipped current-`master` evidence
+- the shipped `devres` packet still runs through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay recorded as repo-reality gaps rather than shipped current-`master` evidence
 - adjacent notifier evidence stays adjacent rather than becoming a fifth helper family
 - the returned notifier survey, `zigux/bindings/notifier_abi.zig`, and the `list_view` and `hlist_view` helpers stay explicit as adjacent evidence without being promoted into the shared helper handle
 - `zigux/helpers/notifier_chain_view.zig` stays recorded as a repo-reality gap, while `zigux/Makefile` stays distinguished from the still-missing `make -C zigux phase13-validate` and `make -C zigux phase13` route names instead of promoting that partial build surface into shipped current-`master` Phase 13 evidence
