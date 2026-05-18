@@ -1,0 +1,149 @@
+{
+  "lane_key": "P10-L11",
+  "phase": "Phase 10",
+  "surveyed_commit": "b53ec2bd507d0b3283486e76acc273b184ad5bf8",
+  "anchor": "drivers/virtio/virtio_mmio.c",
+  "roadmap_destinations": [
+    "drivers/virtio/*.zig",
+    "zigux/kernel/",
+    "zigux/helpers/"
+  ],
+  "freeze_map": "Documentation/zigux/freeze-map.md",
+  "freeze_boundary_status": "aligned",
+  "freeze_status_change_claimed": false,
+  "risky_transport_posture": "blocked_on_risky_transport",
+  "allowed_evidence_kinds": [
+    "driver_local_lab_slices",
+    "survey_manifests",
+    "shared_validation_gates"
+  ],
+  "forbidden_transport_claims": [
+    "queue_setup_reset_paths",
+    "queue_reset_execution",
+    "irq_parity",
+    "dma_paths",
+    "probe_remove_lifecycle",
+    "freeze_restore_lifecycle"
+  ],
+  "architecture_council_reopen_required": true,
+  "architecture_council_reopen_attached": false,
+  "survey_summary": {
+    "preexisting_phase10_test_files": 3,
+    "preexisting_phase10_build_present": true,
+    "preexisting_virtio_core_zig_present": true,
+    "preexisting_virtio_ring_zig_present": true,
+    "preexisting_virtio_input_zig_present": true,
+    "preexisting_virtio_mmio_zig_present": true,
+    "preexisting_virtio_mmio_test_present": true,
+    "preexisting_virtio_mmio_survey_present": true,
+    "preexisting_virtio_mmio_verify_present": true,
+    "preexisting_mmio_companion_present": true
+  },
+  "gaps": [
+    {
+      "id": "phase10-build-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_build.zig",
+      "why_now": "The shared Phase 10 build step remains the narrowest honest place to keep the landed MMIO helper, verify replay, and survey replay reviewable together."
+    },
+    {
+      "id": "phase10-virtio-core-lab-starter",
+      "status": "starter_landed",
+      "kind": "lab_driver_starter",
+      "zigux_destination": "drivers/virtio/virtio.zig",
+      "why_now": "The existing virtio core lab slice already keeps shared status and queue bookkeeping explicit, so the MMIO lane can stay focused on transport-local wrappers and validation."
+    },
+    {
+      "id": "phase10-virtio-mmio-lab-helper",
+      "status": "starter_landed",
+      "kind": "mmio_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "Current master already carries the in-memory VirtioMmioLab helper surface for bounded transport identity, queue readiness, feature negotiation, and config-write planning."
+    },
+    {
+      "id": "phase10-mmio-transport-identity-helper",
+      "status": "starter_landed",
+      "kind": "mmio_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The helper exposes a transport identity summary that keeps magic, version, device, and vendor checks reviewable without claiming live transport execution."
+    },
+    {
+      "id": "phase10-mmio-probe-preflight-helper",
+      "status": "starter_landed",
+      "kind": "mmio_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The probe-preflight summary keeps queue-window, interrupt-ack, and legacy guest-page-size readiness explicit below probe handoff."
+    },
+    {
+      "id": "phase10-mmio-selected-queue-readiness-helper",
+      "status": "starter_landed",
+      "kind": "mmio_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The selected-queue readiness summary keeps queue-size programming and queue-ready gating reviewable entirely in memory."
+    },
+    {
+      "id": "phase10-mmio-feature-negotiation-summary-helper",
+      "status": "starter_landed",
+      "kind": "mmio_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The feature-negotiation summary keeps shared, device-only, and driver-only bits explicit without claiming live negotiation against hardware."
+    },
+    {
+      "id": "phase10-mmio-config-write-disposition-helper",
+      "status": "starter_landed",
+      "kind": "mmio_wrapper",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "The config-write disposition summary records byte-level staged deltas while keeping the MMIO config window unchanged."
+    },
+    {
+      "id": "phase10-mmio-verify-replay",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/virtio/virtio_mmio_verify.zig",
+      "why_now": "The wrapper-facing verify replay keeps probe, queue-readiness, feature-negotiation drift, and config-byte-count checks explicit beside the helper."
+    },
+    {
+      "id": "phase10-virtio-mmio-lab-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_mmio.zig",
+      "why_now": "The dedicated MMIO replay keeps probe gating, queue readiness, feature negotiation, and config-write disposition reviewable as VM-friendly lab validation."
+    },
+    {
+      "id": "phase10-virtio-mmio-survey-gate",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "zigux/tests/phase10_virtio_mmio_survey.zig",
+      "why_now": "The dedicated survey replay rereads the MMIO survey note beside the shared build gate without widening into transport-backed lifecycle claims."
+    },
+    {
+      "id": "phase10-virtio-mmio-survey-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-survey.md",
+      "why_now": "The survey note keeps the landed MMIO helper packet explicit and bounded to wrapper-first lab evidence."
+    },
+    {
+      "id": "phase10-virtio-mmio-config-write-disposition-note",
+      "status": "starter_landed",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
+      "why_now": "The companion note keeps the byte-level config-write disposition rung explicit beside the broader MMIO survey."
+    },
+    {
+      "id": "phase10-virtio-mmio-slice-note",
+      "status": "repo_reality_gap",
+      "kind": "documentation",
+      "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-slice.md",
+      "why_now": "Current direct contents reads still do not materialize the narrower MMIO slice companion, so the lane should keep that specific note framed as a repo-reality gap."
+    },
+    {
+      "id": "phase10-mmio-lifecycle-and-irq-paths",
+      "status": "blocked_on_risky_transport",
+      "kind": "roadmap_gap",
+      "zigux_destination": "drivers/virtio/virtio_mmio.zig",
+      "why_now": "Transport-backed queue setup, IRQ delivery, DMA handoff, and probe/remove or freeze/restore lifecycle behavior remain intentionally blocked behind the Phase 10 risky-transport boundary."
+    }
+  ]
+}
