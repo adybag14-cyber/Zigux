@@ -81,6 +81,11 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_after.last_main_relative_location_message);
     try std.testing.expectEqual(@as(?[]const u8, null), initialized_after.last_format_template);
 
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+
+    const initialized_after_reinit = module.summary();
+    try std.testing.expect(std.meta.eql(initialized_after, initialized_after_reinit));
+
     _ = try module.runSelftest();
 
     const selftest_before = module.summary();
@@ -170,6 +175,11 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings("Hello __rel_loc", selftest_after.last_main_relative_location_message orelse return error.ExpectedMainPayload);
     try std.testing.expectEqualStrings("iter=%d", selftest_after.last_format_template orelse return error.ExpectedMainPayload);
 
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+
+    const selftest_after_reinit = module.summary();
+    try std.testing.expect(std.meta.eql(selftest_after, selftest_after_reinit));
+
     const before_exit = module.summary();
     try std.testing.expectEqual(ModuleStage.selftest_complete, before_exit.stage);
     try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);
@@ -243,6 +253,12 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectEqualStrings(before_exit.last_format_template orelse return error.ExpectedMainPayload, after_exit.last_format_template orelse return error.ExpectedMainPayload);
     const exited_before_rejected_main = module.summary();
     try std.testing.expectEqual(ModuleStage.exited, exited_before_rejected_main.stage);
+
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.init());
+
+    const exited_after_rejected_init = module.summary();
+    try std.testing.expect(std.meta.eql(exited_before_rejected_main, exited_after_rejected_init));
+
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(13));
     const exited_after_rejected_main = module.summary();
     try std.testing.expect(std.meta.eql(exited_before_rejected_main, exited_after_rejected_main));
