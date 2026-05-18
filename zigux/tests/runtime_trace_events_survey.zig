@@ -272,6 +272,13 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sample_file, "test \"trace-events sample preserves initialized summary across direct exit without selftest\" {");
     try expectContains(sample_file, "try std.testing.expectEqual(ModuleStage.initialized, before_exit.stage);");
     try expectContains(sample_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);");
+    try expectContains(sample_file, "try module.exit();");
+    try expectContains(sample_file, "const after_exit = module.summary();");
+    try expectContains(sample_file, "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);");
+    try expectContains(sample_file, "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);");
+    try expectContains(sample_file, "try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);");
+    try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
+    try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(9));");
     try expectContains(sample_file, "test \"trace-events sample keeps failed-exit rollback explicit after selftest-ready replay\" {");
     try expectContains(sample_file, "test \"trace-events sample keeps rejected re-selftest rollback explicit\" {");
     try expectContains(sample_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, before_rejected_selftest.stage);");
