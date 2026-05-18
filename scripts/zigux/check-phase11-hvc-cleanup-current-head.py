@@ -18,6 +18,7 @@ COMPANION_PATH = Path("Documentation/zigux/phase11-hvc-cleanup-alignment-current
 VERIFY_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundary.md")
 MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
 EXPORT_PROOF_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_proof.zig")
+EXPORT_BUILD_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_build.zig")
 HV_OPS_PROOF_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_proof.zig")
 HV_OPS_BUILD_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_build.zig")
 PROOF_PATH = Path("zigux/tests/phase11_hvc_cleanup_packet_proof.zig")
@@ -69,6 +70,11 @@ EXPORT_PROOF_MARKERS = (
     'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
     'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
     'try expectContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");',
+)
+EXPORT_BUILD_MARKERS = (
+    '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),',
+    '.name = "phase11-hvc-export-surface-layout-proof",',
+    'const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");',
 )
 HV_OPS_PROOF_MARKERS = (
     'test "phase11 hvc hv_ops layout proof keeps callback table explicit" {',
@@ -250,6 +256,7 @@ def run_check(root: Path) -> None:
     require_markers(root, VERIFY_PATH, "verify", VERIFY_MARKERS)
     require_markers(root, MATRIX_PATH, "matrix", MATRIX_MARKERS)
     require_markers(root, EXPORT_PROOF_PATH, "export proof", EXPORT_PROOF_MARKERS)
+    require_markers(root, EXPORT_BUILD_PATH, "export build", EXPORT_BUILD_MARKERS)
     require_markers(root, HV_OPS_PROOF_PATH, "hv_ops proof", HV_OPS_PROOF_MARKERS)
     require_markers(root, HV_OPS_BUILD_PATH, "hv_ops build", HV_OPS_BUILD_MARKERS)
     require_markers(root, PROOF_PATH, "proof", PROOF_MARKERS)
@@ -342,6 +349,17 @@ def build_fixture(root: Path) -> None:
                 'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
                 'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
                 'try expectContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");',
+                "",
+            ]
+        ),
+    )
+    write(
+        root / EXPORT_BUILD_PATH,
+        "\n".join(
+            [
+                '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),',
+                '.name = "phase11-hvc-export-surface-layout-proof",',
+                'const test_step = b.step("test", "Run the focused Phase 11 HVC exported-helper ABI proof");',
                 "",
             ]
         ),
@@ -479,6 +497,22 @@ def run_self_test() -> int:
         )
         expect_failure(missing_matrix, "do not treat the deeper verify helper")
 
+        missing_export_build_marker = tmpdir / "missing_export_build_marker"
+        shutil.copytree(fixture, missing_export_build_marker, dirs_exist_ok=True)
+        write(
+            missing_export_build_marker / EXPORT_BUILD_PATH,
+            read_text(missing_export_build_marker / EXPORT_BUILD_PATH).replace(
+                '.name = "phase11-hvc-export-surface-layout-proof",',
+                "",
+            ),
+        )
+        expect_failure(missing_export_build_marker, 'phase11-hvc-export-surface-layout-proof')
+
+        missing_export_build_file = tmpdir / "missing_export_build_file"
+        shutil.copytree(fixture, missing_export_build_file, dirs_exist_ok=True)
+        (missing_export_build_file / EXPORT_BUILD_PATH).unlink()
+        expect_failure(missing_export_build_file, str(EXPORT_BUILD_PATH))
+
         wrong_exact_checks = tmpdir / "wrong_exact_checks"
         shutil.copytree(fixture, wrong_exact_checks, dirs_exist_ok=True)
         payload = read_inventory(wrong_exact_checks)
@@ -506,7 +540,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=8")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
