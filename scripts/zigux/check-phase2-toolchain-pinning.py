@@ -37,12 +37,15 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
+    "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
 )
 
 README_PRESENT_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -63,6 +66,8 @@ README_WARNING_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2`",
     "historical packet members",
 )
@@ -74,6 +79,7 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`scripts/zigux/check-phase2-kbuild-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -93,6 +99,8 @@ BOOTSTRAP_WARNING_MARKERS = (
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2`",
     "Treat the absent validator-first, cross-route, installer, and Linux-style make replay names as historical packet members",
 )
@@ -158,7 +166,7 @@ EXPECTED_TOOL_MANIFEST = {
     ],
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 94
+EXPECTED_SELF_TEST_CASE_COUNT = 104
 
 
 def read_text(path: Path) -> str:
