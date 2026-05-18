@@ -155,6 +155,12 @@ pub fn build(b: *std.Build) void {
     });
     phase10_virtio_ring_delayed_callback_budget_module.addImport("virtio_ring", virtio_ring_module);
 
+    const phase10_virtio_mmio_survey_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_mmio_survey.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
     const phase10_virtio_input_tests = b.addTest(.{ .name = "phase10-virtio-input-tests", .root_module = phase10_virtio_input_module });
     const run_phase10_virtio_input_tests = b.addRunArtifact(phase10_virtio_input_tests);
 
@@ -198,6 +204,8 @@ pub fn build(b: *std.Build) void {
     const run_phase10_virtio_mmio_tests = b.addRunArtifact(phase10_virtio_mmio_tests);
     const phase10_virtio_mmio_verify_tests = b.addTest(.{ .name = "phase10-virtio-mmio-verify-tests", .root_module = virtio_mmio_verify_module });
     const run_phase10_virtio_mmio_verify_tests = b.addRunArtifact(phase10_virtio_mmio_verify_tests);
+    const phase10_virtio_mmio_survey_tests = b.addTest(.{ .name = "phase10-virtio-mmio-survey-tests", .root_module = phase10_virtio_mmio_survey_module });
+    const run_phase10_virtio_mmio_survey_tests = b.addRunArtifact(phase10_virtio_mmio_survey_tests);
 
     const test_step = b.step("test", "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests");
     test_step.dependOn(&run_phase10_virtio_input_tests.step);
@@ -215,4 +223,5 @@ pub fn build(b: *std.Build) void {
     test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_tests.step);
     test_step.dependOn(&run_phase10_virtio_mmio_verify_tests.step);
+    test_step.dependOn(&run_phase10_virtio_mmio_survey_tests.step);
 }
