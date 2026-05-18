@@ -15,6 +15,8 @@ VALIDATOR_PATH = Path("scripts/zigux/validate-phase15.py")
 HANDOFF_MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
 BUILD_ZIG_PATH = Path("zigux/tests/phase15_build.zig")
 INDEFINITE_C_LANE_OWNER_ALIGNMENT_PATH = Path("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig")
+GOVERNANCE_LANE_MANIFEST_PATH = Path("zigux/tests/phase15_governance_lane_sequencing_manifest.json")
+GOVERNANCE_LANE_REPLAY_PATH = Path("zigux/tests/phase15_governance_lane_sequencing.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
 REQUIRED_NOTE_MARKERS = (
@@ -74,6 +76,14 @@ def collect_failures(root: Path) -> list[str]:
         failures.append("readiness manifest docs-checker bool disagrees with repo reality")
     if repo_evidence["phase15_tests_readme_checker_present"] != (root / TESTS_CHECKER_PATH).exists():
         failures.append("readiness manifest tests-readme-checker bool disagrees with repo reality")
+    if repo_evidence["phase15_governance_lane_manifest_present"] != (
+        root / GOVERNANCE_LANE_MANIFEST_PATH
+    ).exists():
+        failures.append("readiness manifest governance-lane-manifest bool disagrees with repo reality")
+    if repo_evidence["phase15_governance_lane_replay_present"] != (
+        root / GOVERNANCE_LANE_REPLAY_PATH
+    ).exists():
+        failures.append("readiness manifest governance-lane-replay bool disagrees with repo reality")
     if repo_evidence["phase15_validator_script_present"] != (root / VALIDATOR_PATH).exists():
         failures.append("readiness manifest validator-script bool disagrees with repo reality")
     if repo_evidence["phase15_handoff_manifest_present"] != (root / HANDOFF_MANIFEST_PATH).exists():
@@ -131,6 +141,8 @@ Current directly readable packet:
 - `scripts/zigux/check-phase15-readiness-gate-packet.py`
 - `zigux/tests/README.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing_manifest.json`
+- `zigux/tests/phase15_governance_lane_sequencing.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
 Blocked broader paths:
@@ -169,6 +181,8 @@ def _sample_manifest() -> str:
                 "scripts/zigux/check-phase15-readiness-gate-packet.py",
                 "zigux/tests/README.md",
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+                "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+                "zigux/tests/phase15_governance_lane_sequencing.zig",
                 "zigux/tests/phase15_readiness_gate_manifest.json"
             ],
             "still_missing_broader_paths": [
@@ -182,6 +196,8 @@ def _sample_manifest() -> str:
                 "phase15_validator_script_present": false,
                 "phase15_docs_readme_checker_present": true,
                 "phase15_tests_readme_checker_present": true,
+                "phase15_governance_lane_manifest_present": true,
+                "phase15_governance_lane_replay_present": true,
                 "phase15_handoff_manifest_present": false,
                 "phase15_build_zig_present": false,
                 "phase15_indefinite_c_lane_owner_alignment_present": false,
@@ -221,6 +237,8 @@ def _seed_repo(root: Path) -> None:
         "scripts/zigux/check-phase15-readiness-gate-packet.py",
         "zigux/tests/README.md",
         "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+        "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+        "zigux/tests/phase15_governance_lane_sequencing.zig",
         "zigux/Makefile",
     ):
         _write(root / rel, "present\n")
@@ -291,6 +309,30 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected tests-checker failure: {failures}")
+
+        governance_manifest_root = root / "governance_manifest"
+        _seed_repo(governance_manifest_root)
+        manifest = json.loads((governance_manifest_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+        manifest["repo_evidence"]["phase15_governance_lane_manifest_present"] = False
+        _write(governance_manifest_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        failures = collect_failures(governance_manifest_root)
+        expected = [
+            "readiness manifest governance-lane-manifest bool disagrees with repo reality"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected governance-manifest failure: {failures}")
+
+        governance_replay_root = root / "governance_replay"
+        _seed_repo(governance_replay_root)
+        manifest = json.loads((governance_replay_root / MANIFEST_PATH).read_text(encoding="utf-8"))
+        manifest["repo_evidence"]["phase15_governance_lane_replay_present"] = False
+        _write(governance_replay_root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        failures = collect_failures(governance_replay_root)
+        expected = [
+            "readiness manifest governance-lane-replay bool disagrees with repo reality"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected governance-replay failure: {failures}")
 
         makefile_root = root / "makefile"
         _seed_repo(makefile_root)
