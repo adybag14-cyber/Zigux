@@ -46,7 +46,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "pinned `x86_64-linux` bootstrap archive note",
     "repo-local `.zig-toolchain` fallback reused",
     "historical packet members rather than direct tests-root evidence",
-    "keep the fixture-backed cross-target, tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
+    "keep the fixture-backed tool-manifest, artifact-tools, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
 FORBIDDEN_TESTS_README_MARKERS = (
     "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
