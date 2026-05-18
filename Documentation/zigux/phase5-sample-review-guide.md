@@ -26,7 +26,21 @@ Treat those four anchors as the approved Phase 5 destination set unless the road
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-17 confirmed that current `master` still keeps the shared non-runtime trace-events reminder packet in the narrower formatting-companion posture already reflected by the sample-root and tests-root reminder surfaces, while the older direct sample-local companions still need fresh reread proof before they can be treated as returned current-`master` evidence:
+Fresh repo-first inspection on 2026-05-18 confirmed that current `master` now directly serves the core bytestream sample packet again through these paths:
+
+* `samples/zigux/bytestream_fifo.zig`
+* `zigux/tests/phase5_bytestream_fifo.zig`
+* `zigux/tests/phase5_bytestream_fifo_survey.zig`
+
+That same reread also confirmed that several bytestream companion surfaces still need to stay in the conservative bucket for now:
+
+* `Documentation/zigux/phase5-kfifo-sample-survey.md`
+* `zigux/tests/phase5_bytestream_fifo_manifest.json`
+* `zigux/tests/phase5_build.zig`
+
+Keep the direct bytestream proof and the still-missing companion surfaces split explicitly instead of flattening them back into one all-missing or all-restored packet.
+
+The same 2026-05-18 repo-first inspection also confirmed that current `master` still keeps the shared non-runtime trace-events reminder packet in the narrower formatting-companion posture already reflected by the sample-root and tests-root reminder surfaces, while the older direct sample-local companions still need fresh reread proof before they can be treated as returned current-`master` evidence:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`
@@ -59,6 +73,16 @@ For the shared tracing and probe lane, ground reviewer guidance in the restored 
 * `zigux/tests/README.md`
 
 Keep those shared surfaces honest about the restored direct kretprobe packet, the narrower trace-events formatting companion packet, and the current split between repo-reality gaps and current public-tree-backed companion evidence instead of treating the trace-events anchor as a restored direct packet or turning any companion route into direct authenticated proof.
+
+## Bytestream posture
+
+For `kfifo`, follow the restored direct packet through `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`.
+
+Keep the current split explicit too:
+
+* `Documentation/zigux/phase5-kfifo-sample-survey.md`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_build.zig` remain current public-tree-backed companion evidence or repo-reality gaps until a fresh reread proves direct authenticated proof again
+* same-lane follow-through should repair one reminder surface at a time instead of reclassifying the whole bytestream packet from memory or older wording alone
+* the lane still stays non-runtime and should not widen into procfs, user-copy, locking, runtime loader, or module-registration claims
 
 ## Tracing and probe posture
 
@@ -105,8 +129,9 @@ Do not describe that formatting cue as a fifth Phase 5 sample, a standalone form
 
 ## Review posture
 
-Because current `master` keeps the restored direct kretprobe packet, the shared trace-events side in the narrower formatting-companion posture, and the `kobject` anchor in the public-tree-backed-companion-plus-authenticated-gap bucket, same-lane follow-through should stay inside these bounded categories:
+Because current `master` keeps the restored direct bytestream packet, the restored direct kretprobe packet, the shared trace-events side in the narrower formatting-companion posture, and the `kobject` anchor in the public-tree-backed-companion-plus-authenticated-gap bucket, same-lane follow-through should stay inside these bounded categories:
 
+* one bytestream reminder-surface truthfulness repair at a time
 * one trace-events reminder-surface truthfulness repair at a time
 * one trace-events approved-idiom-gap repair at a time
 * one trace-events sample-root, tests-root, approved-idiom-gap, or shared-build reminder alignment repair at a time
@@ -114,6 +139,7 @@ Because current `master` keeps the restored direct kretprobe packet, the shared 
 
 Avoid:
 
+* treating the restored bytestream direct packet as permission to promote still-missing survey-note, manifest, or shared-build companions into direct authenticated proof
 * treating the narrower trace-events reminder packet as a restored direct sample packet when current sample-root and tests-root rereads still keep the direct sample-local companions in the gap bucket
 * treating `zigux/tests/phase5_build.zig` as direct authenticated proof while the current lane still only has bounded public-tree-backed confirmation for that shared build route
 * treating the `kobject` anchor as a returned direct sample packet while current authenticated rereads still keep its older sample-root and tests-root packet members out of direct-proof status
