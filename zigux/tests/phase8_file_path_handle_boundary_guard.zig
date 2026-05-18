@@ -22,10 +22,10 @@ test "phase 8 file-path-handle boundary guard keeps landed helper slices distinc
 
     const bridge_window = try segmentWindow(manifest_json, "\"slug\": \"file-path-and-handle-bridge\"");
     try expectContains(bridge_window, "\"status\": \"deferred_high_risk\"");
-    try expectContains(bridge_window, "procfs reads");
-    try expectContains(bridge_window, "bpffs opens");
+    try expectContains(bridge_window, "\"kind\": \"resource_boundary\"");
+    try expectContains(bridge_window, "real bpffs path opens");
     try expectContains(bridge_window, "token creation");
-    try expectContains(bridge_window, "bpf_obj_get() reopen flow");
+    try expectContains(bridge_window, "pinned-object reopen flows");
     try expectContains(bridge_window, "fd ownership");
 
     try expectContains(bridge_test_source, "planTokenPreparation");
