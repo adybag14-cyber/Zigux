@@ -16,6 +16,7 @@ pub fn viewFromWords(backing: []const Word, nr_cpu_ids: u32) binding.CpumaskView
 
 pub fn isValid(view: binding.CpumaskView) bool {
     if (view.nr_cpu_ids != view.nbits) return false;
+    if (view.reserved != 0) return false;
     return bitmap.isValid(binding.asBitmap(view));
 }
 
@@ -228,6 +229,23 @@ test "cpumask empty sentinels stay stable even with a stray non-zero address" {
     try std.testing.expectEqual(@as(u32, 0), summary.first_set);
     try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
     try std.testing.expectEqual(@as(u32, 0), summary.weight);
+}
+
+test "cpumask validity rejects non-zero reserved bytes and closes helpers" {
+    var backing = [_]Word{0};
+    var invalid = viewFromWords(backing[0..], 8);
+    invalid.reserved = 1;
+    const summary = summarize(invalid);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(!cpuIsSet(invalid, 0));
+    try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), firstAbsentCpu(invalid));
+    try std.testing.expectEqual(@as(u32, 0), weight(invalid));
+    try std.testing.expectEqual(@as(u32, 0), summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), summary.weight);
+    try std.testing.expectEqual(@as(u32, 0), summary.reserved);
 }
 
 test "cpumask summaries keep reserved bytes zero for valid and invalid views" {
