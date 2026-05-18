@@ -99,7 +99,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 31
+EXPECTED_SELF_TEST_CASE_COUNT = 41
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -312,17 +312,22 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for path, marker, code in (
-            (CLOSURE_DOC, CLOSURE_DOC_MARKERS[0], "MISSING_CLOSURE_DOC_MARKERS"),
-            (BOOTSTRAP_NOTES, BOOTSTRAP_NOTES_MARKERS[0], "MISSING_BOOTSTRAP_NOTES_MARKERS"),
-            (PHASE2_VALIDATOR, PHASE2_VALIDATOR_MARKERS[0], "MISSING_PHASE2_VALIDATOR_MARKERS"),
-            (PHASE2_CLOSURE_VALIDATOR, PHASE2_CLOSURE_VALIDATOR_MARKERS[0], "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS"),
+        for path, markers, code in (
+            (CLOSURE_DOC, CLOSURE_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"),
+            (BOOTSTRAP_NOTES, BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"),
+            (PHASE2_VALIDATOR, PHASE2_VALIDATOR_MARKERS, "MISSING_PHASE2_VALIDATOR_MARKERS"),
+            (
+                PHASE2_CLOSURE_VALIDATOR,
+                PHASE2_CLOSURE_VALIDATOR_MARKERS,
+                "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS",
+            ),
         ):
-            build_self_test_root(root)
-            resolved = resolve_path(root, path)
-            resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert (code, marker) in collect_issues(root)
-            checks_run += 1
+            for marker in markers:
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                assert (code, marker) in collect_issues(root)
+                checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(packet="wrong"))
