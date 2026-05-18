@@ -194,14 +194,23 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
                 existing.value = try allocator.dupe(u8, "n");
             } else {
                 const owned_name = try allocator.dupe(u8, name);
-                errdefer allocator.free(owned_name);
+                var ownership_transferred = false;
+                errdefer if (!ownership_transferred) allocator.free(owned_name);
                 const owned_value = try allocator.dupe(u8, "n");
-                errdefer allocator.free(owned_value);
+                errdefer if (!ownership_transferred) allocator.free(owned_value);
+
                 try entries.append(allocator, .{
                     .name = owned_name,
                     .kind = .unset,
                     .value = owned_value,
                 });
+                ownership_transferred = true;
+                errdefer if (ownership_transferred) {
+                    const removed = entries.pop().?;
+                    allocator.free(removed.name);
+                    allocator.free(removed.value);
+                };
+
                 try entry_indexes.put(owned_name, entries.items.len - 1);
             }
             unset_count += 1;
@@ -241,14 +250,23 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
             existing.kind = kind;
             existing.value = cooked_value;
         } else {
+            var ownership_transferred = false;
+            errdefer if (!ownership_transferred) allocator.free(cooked_value);
             const owned_name = try allocator.dupe(u8, name);
-            errdefer allocator.free(owned_name);
-            errdefer allocator.free(cooked_value);
+            errdefer if (!ownership_transferred) allocator.free(owned_name);
+
             try entries.append(allocator, .{
                 .name = owned_name,
                 .kind = kind,
                 .value = cooked_value,
             });
+            ownership_transferred = true;
+            errdefer if (ownership_transferred) {
+                const removed = entries.pop().?;
+                allocator.free(removed.name);
+                allocator.free(removed.value);
+            };
+
             try entry_indexes.put(owned_name, entries.items.len - 1);
         }
         set_count += 1;
@@ -932,4 +950,22 @@ test "confdata bridge keeps only the last state across unset and set transitions
     try std.testing.expectEqualStrings("CONFIG_KEEP", duplicate_unset.entries[1].name);
     try std.testing.expectEqual(EntryKind.value, duplicate_unset.entries[1].kind);
     try std.testing.expectEqualStrings("7", duplicate_unset.entries[1].value);
+}
+
+fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
+    var summary = try parseConfig(allocator,
+        \\CONFIG_ALPHA=y
+        \\# CONFIG_DEBUG is not set
+        \\CONFIG_BETA="zigux"
+        \\
+    );
+    defer deinitSummary(allocator, &summary);
+}
+
+test "confdata bridge releases appended entry ownership on index-allocation failure" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        parseConfigAllocationFailureHarness,
+        .{},
+    );
 }
