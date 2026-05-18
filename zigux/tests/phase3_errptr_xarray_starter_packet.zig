@@ -13,6 +13,15 @@ test "err_ptr encodes the Linux error band as a tagged pointer-sized value" {
     try testing.expect(err_ptr.isOkValue(err_ptr.err_floor - 1));
 }
 
+test "top err_ptr encoding stays in the error band even with the xa_value tag bit set" {
+    const raw = err_ptr.fromErrorCode(-1);
+
+    try testing.expect((raw & xa_value.value_tag_mask) == xa_value.value_tag_mask);
+    try testing.expect(err_ptr.isErrValue(raw));
+    try testing.expectEqual(@as(isize, -1), err_ptr.toErrorCode(raw));
+    try testing.expect(!xa_value.isValue(raw));
+}
+
 test "xa_value round-trips a bounded inline value without entering the err_ptr band" {
     const raw = try xa_value.makeValue(29);
 
