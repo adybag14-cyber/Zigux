@@ -47,8 +47,8 @@ test "gpio_wdt registerDevice summary reports running always-on state" {
 
 test "gpio_wdt teardown summary shows toggle disable path" {
     var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("toggle", 9, false);
-    try driver.start();
-    const summary = driver.summarizeTeardown(false);
+    _ = try driver.start();
+    const summary = try driver.summarizeTeardown(false);
 
     try std.testing.expect(summary.running_before_teardown);
     try std.testing.expect(!summary.teardown_skipped_without_running);
@@ -65,8 +65,8 @@ test "gpio_wdt teardown summary shows toggle disable path" {
 
 test "gpio_wdt teardown summary keeps level line output when stopping level hardware" {
     var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("level", 5, false);
-    try driver.start();
-    const summary = driver.summarizeTeardown(false);
+    _ = try driver.start();
+    const summary = try driver.summarizeTeardown(false);
 
     try std.testing.expect(summary.running_before_teardown);
     try std.testing.expect(!summary.teardown_skipped_without_running);
@@ -82,10 +82,27 @@ test "gpio_wdt teardown summary keeps level line output when stopping level hard
     try std.testing.expect(summary.disable_count == 1);
 }
 
+test "gpio_wdt teardown summary keeps idle teardown explicit when nothing is running" {
+    var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("level", 4, false);
+    const summary = try driver.summarizeTeardown(false);
+
+    try std.testing.expect(!summary.running_before_teardown);
+    try std.testing.expect(summary.teardown_skipped_without_running);
+    try std.testing.expect(!summary.stop_allowed_by_watchdog_core);
+    try std.testing.expect(!summary.driver_stop_invoked);
+    try std.testing.expect(!summary.disable_requested);
+    try std.testing.expect(!summary.disable_performs_eternal_ping);
+    try std.testing.expect(!summary.disable_keeps_level_line_output);
+    try std.testing.expect(!summary.stop_keeps_running_for_always_running);
+    try std.testing.expect(!summary.final_running);
+    try std.testing.expect(!summary.final_line_is_output);
+    try std.testing.expect(summary.disable_count == 0);
+}
+
 test "gpio_wdt teardown summary keeps always-running watchdog alive" {
     var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("level", 12, true);
-    try driver.start();
-    const summary = driver.summarizeTeardown(false);
+    _ = try driver.start();
+    const summary = try driver.summarizeTeardown(false);
 
     try std.testing.expect(summary.running_before_teardown);
     try std.testing.expect(!summary.teardown_skipped_without_running);
