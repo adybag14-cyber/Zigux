@@ -13,12 +13,16 @@ DEFAULT_ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_FILES = (
     "Documentation/zigux/README.md",
     "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
+    "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-string-review-packet.py",
     "scripts/zigux/validate-phase1-closure.py",
     "zigux/tests/README.md",
     "zigux/tests/build.zig",
+    "zigux/tests/fixtures/phase1_helper_manifest.json",
     "zigux/tests/phase1_host_tools_smoke.zig",
     ".github/workflows/zigux-bootstrap.yml",
 )
@@ -33,6 +37,10 @@ MARKERS = {
         "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
         "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
+    "Documentation/zigux/phase1-host-helper-lane-sequencing.md": (
+        "`PHASE1_DIRECT_ANCHOR_FOLLOWUP_HELPERS=tools/lib/bitmap.zig,tools/lib/find_bit.zig,tools/lib/rbtree.zig,tools/lib/string.zig`",
+        "`PHASE1_DIRECT_OWNER_SHARED_REMINDER_ACTIVE_PACKET=Documentation/zigux/README.md,Documentation/zigux/phase1-closure.md,Documentation/zigux/review-checklist.md,zigux/tests/README.md,scripts/zigux/README.md,scripts/zigux/validate-phase1-closure.py,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py`",
+    ),
     "Documentation/zigux/review-checklist.md": (
         "`zigux/tests/build.zig` and `zigux/tests/phase1_host_tools_smoke.zig` stay explicit as the shipped shared-smoke reminder anchors while `scripts/zigux/check-phase1-bench.py` stays explicit as the shipped bench-side checker anchor for the remaining shared reminder wording",
         "`python3 scripts/zigux/check-phase1-bench.py --self-test` replay the bounded live reminder checks and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the bounded live shared smoke route",
@@ -45,6 +53,15 @@ MARKERS = {
         "RBTREE_REQUIRED_EXACT_CHECKSUMS = {",
         "def run_self_test() -> None:",
     ),
+    "scripts/zigux/check-phase1-direct-owner-markers.py": (
+        "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
+        'print("phase1-direct-owner-markers:ok")',
+    ),
+    "scripts/zigux/check-phase1-string-review-packet.py": (
+        "STRING_REVIEW_RULE_LINE = (",
+        "COUNTED_SEARCH_REVIEW_RULE_LINE = (",
+        'print("phase1-string-review-packet:ok")',
+    ),
     "scripts/zigux/validate-phase1-closure.py": (
         "PHASE1_CLOSURE_VALIDATION=pass",
         "PHASE1_CLOSURE_SELF_TEST=pass",
@@ -56,6 +73,11 @@ MARKERS = {
     "zigux/tests/build.zig": (
         'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
         '.name = "phase1-host-tools-smoke",',
+    ),
+    "zigux/tests/fixtures/phase1_helper_manifest.json": (
+        '"lane_sequencing": {',
+        '"direct_anchor_followup_helpers": [',
+        '"rule_summary": "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master."',
     ),
     "zigux/tests/phase1_host_tools_smoke.zig": (
         'const argv_split = @import("argv_split");',
@@ -178,8 +200,32 @@ def run_self_test() -> int:
             lambda root: (root / "Documentation/zigux/phase1-closure.md").unlink(),
         ),
         (
+            "missing_lane_note_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
+                MARKERS["Documentation/zigux/phase1-host-helper-lane-sequencing.md"][0],
+            ),
+        ),
+        (
             "missing_closure_validator_file",
             lambda root: (root / "scripts/zigux/validate-phase1-closure.py").unlink(),
+        ),
+        (
+            "missing_string_review_checker",
+            lambda root: (root / "scripts/zigux/check-phase1-string-review-packet.py").unlink(),
+        ),
+        (
+            "missing_direct_owner_checker",
+            lambda root: (root / "scripts/zigux/check-phase1-direct-owner-markers.py").unlink(),
+        ),
+        (
+            "missing_manifest_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "zigux/tests/fixtures/phase1_helper_manifest.json",
+                MARKERS["zigux/tests/fixtures/phase1_helper_manifest.json"][2],
+            ),
         ),
         (
             "missing_closure_marker",
