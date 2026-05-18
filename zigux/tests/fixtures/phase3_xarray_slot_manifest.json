@@ -27,9 +27,7 @@
     "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"
   ],
   "repo_reality_gaps": [
-    "Documentation/zigux/phase3-xarray-slot-slice.md",
-    "Documentation/zigux/phase3-validator-support-surface.md",
-    "scripts/zigux/validate-phase3.py"
+    "Documentation/zigux/phase3-xarray-slot-slice.md"
   ],
-  "next_safe_step": "layer the docs-root xarray-slot slice note onto current master now that the shared tests-root hook is landed"
+  "next_safe_step": "land the shared tests-root phase3-xarray-slot dump and aggregate routes on current master, then layer the dedicated docs-root xarray-slot slice note without reopening the helper-local or checker packet"
 }
