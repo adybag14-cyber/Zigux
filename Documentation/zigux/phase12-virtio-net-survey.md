@@ -27,13 +27,15 @@ That remains high-value because `virtio_net.c` spans probe-time negotiation, que
 - current `master` still carries the earlier Phase 10 virtio groundwork in `drivers/virtio/virtio.zig`, `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_input.zig`, and `zigux/tests/phase10_build.zig`
 - current `master` now carries `drivers/net/virtio_net.zig`
 - current `master` now also carries `drivers/net/virtio_net_transmit_recycle.zig`
+- current `master` now also carries `drivers/net/virtio_net_queue_resume.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig`
+- current `master` now carries `zigux/tests/phase12_virtio_net_queue_resume.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net_survey.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net_manifest.json`
 - current `master` now carries `zigux/tests/phase12_build.zig`
-- the shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard and transmit-recycle replay reachable beside the direct starter packet
+- the shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable beside the direct starter packet
 
 Those checks mean the current lane is no longer a reland placeholder. The published packet now keeps a bounded Zig starter, direct test packet, dedicated syntax lab, dedicated survey gate, manifest, and shared Phase 12 build route on `master`, while still stopping below any live runtime DMA or transport-backed data-path claim.
 
@@ -42,16 +44,17 @@ Those checks mean the current lane is no longer a reland placeholder. The publis
 The current bounded packet keeps the following reviewable without claiming runtime execution:
 
 - `drivers/net/virtio_net.zig` keeps probe fallback, `summarizeQueueTopology()`, mergeable receive-buffer planning, `summarizeReceiveRefill()`, `controlQueueRecoveryPlan()`, `planControlQueuePayloadShape()`, `freezeForReset()`, `recoveryQueuePlan()`, and `restoreAfterReset()` explicit
+- `drivers/net/virtio_net_queue_resume.zig` keeps the bounded queue-resume handoff reviewable so restore-time queue clamping and probe-snapshot refresh requirements stay visible without claiming runtime queue execution
 - `drivers/net/virtio_net_transmit_recycle.zig` keeps `summarizeTransmitRecycle()` reviewable so transmit completion reuse, wake-threshold behavior, and stopped-versus-running queue disposition stay visible without claiming interrupt-backed completion handling
-- current `master` now carries `zigux/tests/phase12_virtio_net_transmit_recycle.zig` and current `master` now carries `zigux/tests/phase12_virtio_net_syntax_lab.zig`, so the direct starter packet, transmit recycle helper, and syntax-lab coverage all remain fail-closed on published head
+- current `master` now carries `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, and `zigux/tests/phase12_virtio_net_syntax_lab.zig`, so the direct starter packet, queue-resume helper, transmit recycle helper, and syntax-lab coverage all remain fail-closed on published head
 
 ## Truthful boundary
 
 The truthful current boundary is still intentionally narrow:
 
 - the bounded starter and its directly coupled tests are present on `master`
-- the starter now includes the transmit-recycle follow-up beside queue-topology, refill-order, control-queue recovery, control-queue payload shaping, and queue-reset recovery reviewability
-- the shared Phase 12 build route includes the dedicated `virtio_net` syntax-lab smoke shard and transmit-recycle replay
+- the starter now includes the queue-resume and transmit-recycle follow-ups beside queue-topology, refill-order, control-queue recovery, control-queue payload shaping, and queue-reset recovery reviewability
+- the shared Phase 12 build route includes the dedicated `virtio_net` syntax-lab smoke shard plus the direct queue-resume and transmit-recycle replays
 - the packet still does not claim live DMA-safe receive ownership, page-pool wiring, refill execution, transport-backed submit flow, interrupt-backed completion handling, or full `net_device` lifecycle parity
 - throughput and recovery parity remain roadmap requirements that need later bounded follow-ups before any broader complex-driver claim becomes honest
 
