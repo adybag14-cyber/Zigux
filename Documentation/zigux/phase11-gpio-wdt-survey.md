@@ -10,6 +10,8 @@ The live repo state is now:
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md` now records the bounded teardown-facing meaning of the stop-policy split, the drvdata ownership checkpoint, and the registration handoff without claiming live reboot or remove execution
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` now records the bounded validation posture for the landed starter and the still-deferred kernel-facing follow-up
 
+Against the Phase 11 roadmap, this packet now covers the bounded simple-driver starter, the first hardware validation matrix, and the first teardown-facing parity note. The remaining same-lane roadmap gap is still failure-mode parity and any later GPIO-backed validation beyond the current stop-policy split, timeout-property checkpoint, drvdata ownership checkpoint, and registration handoff bookkeeping.
+
 This remains intentionally small. The lane still does not claim platform-driver registration, live GPIO descriptor lookup, watchdog core registration, reboot hooks, module parameters beyond summary bookkeeping, live GPIO execution, or hardware-backed validation beyond the bounded matrix evidence already recorded for the current starter.
 
-The next honest bounded step inside the same lane is to pick one tiny hardware-validation checkpoint that stays immediately adjacent to the new teardown note, descriptor, timeout-property, and drvdata ownership boundaries, while still avoiding live GPIO and platform glue until the handoff bookkeeping is no longer the blocker.
+The next honest bounded step inside the same lane is to pick one tiny failure-mode or hardware-validation checkpoint that stays immediately adjacent to the new teardown note, descriptor, timeout-property, and drvdata ownership boundaries, while still avoiding live GPIO and platform glue until the handoff bookkeeping is no longer the blocker.
