@@ -19,6 +19,7 @@ This note records the release-facing boundary posture for the shared Phase 14 sm
   - `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`
   - `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`
   - `Documentation/zigux/phase14-skbuff-bridge-survey.md`
+  - `Documentation/zigux/README.md`
   - `Documentation/zigux/freeze-map.md`
   - `Documentation/zigux/review-checklist.md`
   - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
@@ -37,6 +38,7 @@ This note records the release-facing boundary posture for the shared Phase 14 sm
   - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `net/core/skbuff_bridge.zig`
 - current Makefile posture: `zigux/Makefile` is readable again on current `master`, but its live body exposes only the Phase 2 toolchain and kbuild routes together with the bounded `phase3-validate`, `phase3`, `phase10-validate`, `phase10-test`, and `phase10` routes and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
+- current reminder-surface alignment: `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the recovered study-only packet explicit and frame the older `phase14-*` route names as packet-local or repo-reality-gap vocabulary rather than current Makefile-backed proof
 - current release boundary posture: keep the recovered study-only documentation packet explicit, keep the blob-readable validator visible as mixed-source evidence, and keep the broader executable and wrapper-backed replay layer framed as packet-local or repo-reality-gap vocabulary until a fresh reread proves it returned on current `master`
 - bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors that can still receive boundary-map or concurrency-audit follow-through, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors whose status can only move through the Phase 15 governance packet
 - `PHASE14_SHARED_SMOKE_GATE_COUNT=1`
@@ -44,9 +46,11 @@ This note records the release-facing boundary posture for the shared Phase 14 sm
 
 ## Release-Facing Findings
 
-The release-facing packet is no longer an all-missing story. Fresh current-`master` rereads now recover the shared smoke survey, the cross-anchor traceability note, the shared-smoke gap note, the productization note, the attached-toolchain guidance note, the skbuff survey, the freeze map, the review checklist, the tests-root reminder, and the scripts-root reminder directly enough to keep the Phase 14 posture reviewable.
+The release-facing packet is no longer an all-missing story. Fresh current-`master` rereads now recover the docs-root summary, the shared smoke survey, the cross-anchor traceability note, the release-boundary survey, the productization note, the shared-smoke gap note, the attached-toolchain guidance note, the skbuff survey, the freeze map, the review checklist, the tests-root reminder, and the scripts-root reminder directly enough to keep the Phase 14 posture reviewable.
 
 That broader recovered packet changes the honest same-lane conclusion. `scripts/zigux/validate-phase14.py` is recoverable again through pinned blob readback and now carries a real shared-smoke validator surface instead of a placeholder-only body. At the same time, `zigux/Makefile` is readable again through the contents path, but the returned file body no longer publishes the older `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` routes.
+
+The docs-root, scripts-root, and tests-root reminders are already aligned on that split. This release-facing note should therefore keep pace with those shared reminder surfaces instead of repeating any older wrapper-backed proof story.
 
 That means the older wrapper-backed replay wording in this note can no longer stand as current proof. The release-facing reminder should keep those route names only as packet-local rerun vocabulary or historical gap wording until the same readback mode proves the wrappers and executable packet returned together.
 
@@ -54,7 +58,7 @@ That means the older wrapper-backed replay wording in this note can no longer st
 
 Keep the current release-facing reminder packet bounded to:
 
-- the recovered study-only documentation layer through `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
+- the recovered study-only documentation layer through `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/README.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
 - the mixed-source validator reminder through pinned blob readback for `scripts/zigux/validate-phase14.py`
 - the readable current `zigux/Makefile` body as a non-owner surface that currently proves only the shipped Phase 2, Phase 3, and Phase 10 routes listed above
 - the executable-layer gap list named in the status block, which remains unrecovered through this lane's exact contents readback
@@ -89,6 +93,8 @@ This note does not claim:
 
 ## Next bounded step
 
-Keep the release-facing Phase 14 reminder packet aligned with the recovered study-only documentation layer, the blob-readable validator body, the readable-but-non-owner current `zigux/Makefile` surface, and the still-missing executable layer.
+Keep the release-facing Phase 14 reminder packet aligned with the recovered study-only documentation layer, the blob-readable validator body, the readable-but-non-owner current `zigux/Makefile` surface, the already-aligned docs-root, scripts-root, and tests-root reminders, and the still-missing executable layer.
+
+If a future same-lane reread finds another broader shared reminder surface still undercounting `Documentation/zigux/README.md` or overstating the current `phase14-*` Makefile routes, tighten that smallest shared note before revisiting any validator-local handoff.
 
 If a future same-lane reread restores `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, or the `phase14-*` Makefile routes on current `master`, re-evaluate this note against `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, and `zigux/tests/README.md` before restoring any stronger replay wording.
