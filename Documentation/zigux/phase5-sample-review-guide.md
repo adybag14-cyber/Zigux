@@ -132,6 +132,29 @@ Use the shared docs to preserve these bounded cues until a fresh reread restores
 * the lane still stays non-runtime and should not widen into sysfs creation, `kernel_kobj` integration, uevents, or module-registration claims
 * same-lane follow-through should repair one shared reminder surface at a time instead of recreating missing sample-local ownership checklists from historical wording alone
 
+### `kobject_example`
+
+When shared contributor guidance needs the current kobject packet, keep these public-tree-backed companions explicit:
+
+* `Documentation/zigux/phase5-kobject-sample-survey.md`
+* `zigux/tests/phase5_kobject_example.zig`
+* `zigux/tests/phase5_kobject_example_manifest.json`
+* `zigux/tests/phase5_kobject_example_survey.zig`
+
+Keep the approved Phase 5 in-memory ownership-and-lifetime idiom reviewable from the shared guide too:
+
+* the initialized-but-not-registered zero-active-attributes boundary stays explicit through `runPreRegistrationBoundaryReplay()` instead of dissolving into broader lifecycle prose
+* `ownershipSummary()` plus sample-owned `runOwnershipReplay()` keep the cold, initialized, registered, and exited snapshots plus the active-attribute-count progression visible from contributor-facing guidance
+* the unnamed attribute-group shape, shared `baz` or `bar` dispatch, and the registered replay packet stay reviewable without reopening runtime-substrate claims
+* keep the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit alongside the registered teardown, post-`exit()` rejection, and anchor-replay rejection packet
+
+Keep the non-goal boundary equally explicit here:
+
+* sysfs file creation parity
+* `kernel_kobj` integration
+* uevents
+* loadable module registration
+
 ## Approved idiom gap
 
 Current `master` still ships no standalone `samples/zigux/*printf*` or `*vsprintf*` Phase 5 reference sample, and it still ships no standalone broad `*format*` Phase 5 reference sample outside the bounded trace-events cues carried by `samples/zigux/trace_events_string_formatting_sample.zig` and the shared reminder packet.
