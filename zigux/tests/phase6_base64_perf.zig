@@ -8,6 +8,62 @@ const Codec = struct {
     decoder: *const std.base64.Base64Decoder,
 };
 
+fn perfPayloadFingerprint(bytes: []const u8) u64 {
+    var acc: u64 = 0xcbf2_9ce4_8422_2325;
+    for (bytes, 0..) |byte, idx| {
+        acc ^= @as(u64, byte) +% (@as(u64, @intCast(idx)) << 8);
+        acc *%= 0x0000_0100_0000_01b3;
+    }
+    return acc;
+}
+
+fn validatePerfMatrix() !void {
+    const expected = [_]struct {
+        label: []const u8,
+        variant_name: []const u8,
+        padding: bool,
+        iterations: usize,
+        max_encode_slowdown_pct: u64,
+        max_decode_slowdown_pct: u64,
+    }{
+        .{ .label = "STD_PAD", .variant_name = "std", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "STD_NO_PAD", .variant_name = "std", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "IMAP_PAD", .variant_name = "imap", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+        .{ .label = "IMAP_NO_PAD", .variant_name = "imap", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
+    };
+
+    const expected_payload_fingerprint: u64 = 0xcfb1_4153_5702_a392;
+
+    try std.testing.expectEqual(expected.len, fixtures.perf_cases.len);
+    try std.testing.expectEqual(fixtures.perf_payload.len, fixtures.perf_payload_buf_size);
+    try std.testing.expectEqual(expected_payload_fingerprint, perfPayloadFingerprint(fixtures.perf_payload));
+
+    for (expected, 0..) |want, idx| {
+        const actual = fixtures.perf_cases[idx];
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqualStrings(fixtures.perf_payload, actual.payload);
+        try std.testing.expectEqualStrings(want.variant_name, actual.variant_name);
+        try std.testing.expectEqual(want.padding, actual.padding);
+        try std.testing.expectEqual(want.iterations, actual.iterations);
+        try std.testing.expectEqual(want.max_encode_slowdown_pct, actual.max_encode_slowdown_pct);
+        try std.testing.expectEqual(want.max_decode_slowdown_pct, actual.max_decode_slowdown_pct);
+    }
+
+    for (fixtures.perf_cases, 0..) |case, idx| {
+        try std.testing.expect(case.iterations > 0);
+        try std.testing.expect(case.max_encode_slowdown_pct > 0);
+        try std.testing.expect(case.max_decode_slowdown_pct > 0);
+        try std.testing.expect(
+            std.mem.eql(u8, case.variant_name, "std") or std.mem.eql(u8, case.variant_name, "urlsafe") or std.mem.eql(u8, case.variant_name, "imap"),
+        );
+        for (fixtures.perf_cases[idx + 1 ..]) |other| {
+            try std.testing.expect(!std.mem.eql(u8, case.label, other.label));
+        }
+    }
+}
+
 fn resolveCodec(case: fixtures.PerfCase) Codec {
     if (std.mem.eql(u8, case.variant_name, "std")) {
         return .{
@@ -21,6 +77,16 @@ fn resolveCodec(case: fixtures.PerfCase) Codec {
             .helper_variant = .urlsafe,
             .encoder = if (case.padding) &std.base64.url_safe.Encoder else &std.base64.url_safe_no_pad.Encoder,
             .decoder = if (case.padding) &std.base64.url_safe.Decoder else &std.base64.url_safe_no_pad.Decoder,
+        };
+    }
+    // The committed IMAP perf payload intentionally avoids the '/' glyph, so the standard
+    // encoder and decoder remain a byte-for-byte baseline while the helper still exercises
+    // its dedicated IMAP alphabet path.
+    if (std.mem.eql(u8, case.variant_name, "imap")) {
+        return .{
+            .helper_variant = .imap,
+            .encoder = if (case.padding) &std.base64.standard.Encoder else &std.base64.standard_no_pad.Encoder,
+            .decoder = if (case.padding) &std.base64.standard.Decoder else &std.base64.standard_no_pad.Decoder,
         };
     }
     unreachable;
@@ -115,6 +181,8 @@ fn monotonicNs() u64 {
 }
 
 pub fn main() !void {
+    try validatePerfMatrix();
+
     for (fixtures.perf_cases) |case| {
         const codec = resolveCodec(case);
         const encode_slowdown = try encodeSlowdownPct(case, codec);
