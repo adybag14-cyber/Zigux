@@ -31,6 +31,10 @@ SURVEY_NOTE_MARKERS = [
     "transport identity readback",
     "zigux/tests/phase10_build.zig",
     "zig test zigux/tests/phase10_virtio_mmio_survey.zig",
+    "Documentation/zigux/freeze-map.md",
+    "this survey stays inside `drivers/virtio/*.zig` and shared validation surfaces.",
+    "this survey does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain study-only anchors.",
+    "this survey also does not claim ownership of the freeze-in-C anchors `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`.",
 ]
 
 COMPANION_MARKERS = [
@@ -48,7 +52,22 @@ COMPANION_MARKERS = [
 
 MANIFEST_MARKERS = [
     '"lane_key": "P10-L11"',
+    '"freeze_map": "Documentation/zigux/freeze-map.md"',
+    '"freeze_boundary_status": "aligned"',
+    '"freeze_status_change_claimed": false',
     '"risky_transport_posture": "blocked_on_risky_transport"',
+    '"allowed_evidence_kinds": [',
+    '"driver_local_lab_slices"',
+    '"survey_manifests"',
+    '"shared_validation_gates"',
+    '"forbidden_transport_claims": [',
+    '"queue_setup_reset_paths"',
+    '"irq_parity"',
+    '"dma_paths"',
+    '"probe_remove_lifecycle"',
+    '"freeze_restore_lifecycle"',
+    '"architecture_council_reopen_required": true',
+    '"architecture_council_reopen_attached": false',
     '"id": "phase10-virtio-mmio-lab-gate"',
     '"zigux_destination": "zigux/tests/phase10_virtio_mmio.zig"',
     '"id": "phase10-virtio-mmio-survey-gate"',
@@ -246,6 +265,20 @@ def run_self_test() -> int:
 
         expect_missing_marker(
             root,
+            "Documentation/zigux/phase10-virtio-mmio-survey.md",
+            "Documentation/zigux/freeze-map.md",
+            "Documentation/zigux/freeze-map-missing.md",
+            "survey_note:Documentation/zigux/freeze-map.md",
+        )
+        expect_missing_marker(
+            root,
+            "Documentation/zigux/phase10-virtio-mmio-survey.md",
+            "this survey does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain study-only anchors.",
+            "this survey now reopens `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`.",
+            "survey_note:this survey does not reopen `kernel/workqueue.c` or `kernel/trace/ring_buffer.c`, which remain study-only anchors.",
+        )
+        expect_missing_marker(
+            root,
             "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
             "`zigux/tests/phase10_virtio_mmio_manifest.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and blocked slice note explicit beside the helper-local packet",
             "`zigux/tests/phase10_virtio_mmio_manifest_missing.json` now rematerializes as the bounded MMIO manifest companion, keeping the lab gate, survey gate, config-write companion, and blocked slice note explicit beside the helper-local packet",
@@ -257,6 +290,20 @@ def run_self_test() -> int:
             "repeated authenticated contents reads still return missing only for `Documentation/zigux/phase10-virtio-mmio-slice.md`, so keep just that adjacent MMIO packet member framed as a repo-reality gap until a fresh reread proves it materializes again",
             "repeated authenticated contents reads still return missing for `Documentation/zigux/phase10-virtio-mmio-slice.md` and `zigux/tests/phase10_virtio_mmio_manifest.json`",
             "companion_note:repeated authenticated contents reads still return missing only for `Documentation/zigux/phase10-virtio-mmio-slice.md`, so keep just that adjacent MMIO packet member framed as a repo-reality gap until a fresh reread proves it materializes again",
+        )
+        expect_missing_marker(
+            root,
+            "zigux/tests/phase10_virtio_mmio_manifest.json",
+            '"freeze_boundary_status": "aligned"',
+            '"freeze_boundary_status": "missing"',
+            'manifest:"freeze_boundary_status": "aligned"',
+        )
+        expect_missing_marker(
+            root,
+            "zigux/tests/phase10_virtio_mmio_manifest.json",
+            '"architecture_council_reopen_required": true',
+            '"architecture_council_reopen_required": false',
+            'manifest:"architecture_council_reopen_required": true',
         )
         expect_missing_marker(
             root,
@@ -303,7 +350,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "zigux/tests/phase10_virtio_mmio_manifest.json")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
