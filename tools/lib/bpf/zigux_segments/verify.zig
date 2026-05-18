@@ -1,6 +1,8 @@
 const std = @import("std");
 
+const file_path_handle_bridge = @import("file_path_handle_bridge.zig");
 const logging = @import("logging.zig");
+const online_cpu_routing = @import("online_cpu_routing.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const pin_path = @import("pin_path.zig");
 const type_names = @import("type_names.zig");
@@ -10,7 +12,9 @@ fn expectHasDecl(comptime Module: type, comptime decl_name: []const u8) !void {
 }
 
 test "materialized tools/lib/bpf Zigux segments compile together and keep their focused tests live" {
+    std.testing.refAllDecls(file_path_handle_bridge);
     std.testing.refAllDecls(logging);
+    std.testing.refAllDecls(online_cpu_routing);
     std.testing.refAllDecls(perf_buffer_poll);
     std.testing.refAllDecls(pin_path);
     std.testing.refAllDecls(type_names);
@@ -55,6 +59,24 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(type_names, "formatLibbpfBpfMapType");
     try expectHasDecl(type_names, "formatLibbpfBpfLinkType");
     try expectHasDecl(type_names, "formatLibbpfBpfProgType");
+}
+
+test "materialized tools/lib/bpf bridge and routing helpers keep their landed entrypoints explicit" {
+    try expectHasDecl(file_path_handle_bridge, "buildProcFdinfoPath");
+    try expectHasDecl(file_path_handle_bridge, "parseFdinfoLine");
+    try expectHasDecl(file_path_handle_bridge, "applyFdinfoMapInfoLine");
+    try expectHasDecl(file_path_handle_bridge, "parseFdinfoMapInfo");
+    try expectHasDecl(file_path_handle_bridge, "summarizeFdinfoMapInfo");
+    try expectHasDecl(file_path_handle_bridge, "mapReuseObservationFromFdinfo");
+    try expectHasDecl(file_path_handle_bridge, "resolveReusedMapName");
+    try expectHasDecl(file_path_handle_bridge, "normalizeObservedReuseMapFlags");
+    try expectHasDecl(file_path_handle_bridge, "summarizeMapReuseCompatibility");
+    try expectHasDecl(file_path_handle_bridge, "isMapReuseCompatible");
+    try expectHasDecl(file_path_handle_bridge, "resolveReusePinnedMapAttempt");
+    try expectHasDecl(file_path_handle_bridge, "planTokenPreparation");
+    try expectHasDecl(online_cpu_routing, "advanceOnlineCpuCursor");
+    try expectHasDecl(online_cpu_routing, "summarizeNextOnlineCpuRoute");
+    try expectHasDecl(online_cpu_routing, "summarizeOnlineCpuRouting");
 }
 
 test "materialized tools/lib/bpf Zigux segments keep stable type-name formatter outputs explicit" {
