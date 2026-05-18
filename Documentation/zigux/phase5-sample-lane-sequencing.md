@@ -48,6 +48,7 @@ Current `samples/zigux/README.md` says the sample root directly exposes:
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `samples/zigux/runtime_trace_events.zig`
 - `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+- `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
 So the current direct sample-root evidence for the roadmap-backed non-runtime Phase 5 lane is the kretprobe port plus the bounded trace-events formatting companion.
 Treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root proof for its approved anchor.
