@@ -478,6 +478,64 @@ test "phase10 virtio mmio legacy probe preflight requires guest-page-size progra
     try std.testing.expect(summary.ready_for_probe_handoff);
 }
 
+test "phase10 virtio mmio probe preflight blocks unsupported identity and missing ownership fields" {
+    var device = try VirtioMmioLab.init(83, &[_]u16{ 8, 16 });
+
+    device.magic_value = 0;
+    var summary = device.probePreflightSummary();
+    try std.testing.expect(!summary.consumes_identity_snapshot);
+    try std.testing.expect(summary.version_supported);
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    device.magic_value = mmio_magic_value;
+    device.version = 99;
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.consumes_identity_snapshot);
+    try std.testing.expect(!summary.version_supported);
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    device.version = mmio_version_modern;
+    device.device_id = 0;
+    summary = device.probePreflightSummary();
+    try std.testing.expect(!summary.device_present);
+    try std.testing.expect(summary.vendor_id_present);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    device.device_id = 83;
+    device.vendor_id = 0;
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.device_present);
+    try std.testing.expect(!summary.vendor_id_present);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+}
+
+test "phase10 virtio mmio probe preflight keeps queue-window and interrupt-ack blockers explicit" {
+    var device = try VirtioMmioLab.init(84, &[_]u16{8});
+
+    device.queue_count = 0;
+    var summary = device.probePreflightSummary();
+    try std.testing.expect(!summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    device.queue_count = 1;
+    device.interrupt_ack_mask = 0;
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(!summary.interrupt_ack_ready);
+    try std.testing.expect(!summary.ready_for_probe_handoff);
+
+    device.interrupt_ack_mask = 0x3;
+    summary = device.probePreflightSummary();
+    try std.testing.expect(summary.bounded_queue_register_window_ready);
+    try std.testing.expect(summary.interrupt_ack_ready);
+    try std.testing.expect(summary.ready_for_probe_handoff);
+}
+
 test "phase10 virtio mmio interrupt-ack disposition keeps bounded queue and config bits explicit" {
     var device = try VirtioMmioLab.init(77, &[_]u16{ 8, 16 });
     device.stageInterruptStatus(0b111);
