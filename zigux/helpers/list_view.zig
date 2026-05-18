@@ -237,6 +237,29 @@ test "list view walks a circular list_head chain in order" {
     try std.testing.expect(view.hasConsistentBacklinks());
 }
 
+test "list view handles a one-node circular list without losing tail access" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var node = ListHead{ .next = 0, .prev = 0 };
+
+    head.next = @intFromPtr(&node);
+    head.prev = @intFromPtr(&node);
+    node.next = @intFromPtr(&head);
+    node.prev = @intFromPtr(&head);
+
+    const view = ListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 1), view.len());
+    try std.testing.expectEqual(@as(?*const ListHead, &node), view.first());
+    try std.testing.expectEqual(@as(?*const ListHead, &node), view.last());
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
+    try std.testing.expect(view.hasConsistentBacklinks());
+
+    var it = view.iterator();
+    try std.testing.expectEqual(@as(?*const ListHead, &node), it.next());
+    try std.testing.expectEqual(@as(?*const ListHead, null), it.next());
+}
+
 test "list view reports the first broken backlink witness" {
     var head = ListHead{ .next = 0, .prev = 0 };
     var first = ListHead{ .next = 0, .prev = 0 };
@@ -256,6 +279,33 @@ test "list view reports the first broken backlink witness" {
     const breakage = view.firstBrokenBacklink().?;
     try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), breakage.expected_prev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
+    try std.testing.expect(!view.hasConsistentBacklinks());
+}
+
+test "list view fails closed for a self-looped first node" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    var node = ListHead{ .next = 0, .prev = 0 };
+
+    head.next = @intFromPtr(&node);
+    head.prev = @intFromPtr(&node);
+    node.next = @intFromPtr(&node);
+    node.prev = @intFromPtr(&head);
+
+    const view = ListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expectEqual(@as(?*const ListHead, &node), view.first());
+    try std.testing.expectEqual(@as(?*const ListHead, null), view.last());
+    try std.testing.expect(view.hasCycle());
+
+    const witness = view.firstCycleWitness().?;
+    try std.testing.expectEqual(@as(usize, 1), witness.slow_index);
+    try std.testing.expectEqual(@as(usize, 2), witness.fast_index);
+
+    const breakage = view.firstBrokenBacklink().?;
+    try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&node)), breakage.expected_prev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
     try std.testing.expect(!view.hasConsistentBacklinks());
 }
