@@ -27,6 +27,7 @@ REQUIRED_FILES = (
     Path("zigux/tests/phase8_exec_cmd.zig"),
     Path("zigux/tests/phase8_file_path_handle_bridge.zig"),
     Path("zigux/tests/phase8_libbpf_segments.zig"),
+    Path("zigux/tests/phase8_perf_buffer_poll.zig"),
 )
 
 ROUTE_FILES = (
@@ -64,8 +65,10 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "tools/lib/subcmd/exec-cmd.zig",
         "tools/lib/bpf/zigux_segments/verify.zig",
         "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_libbpf_segments.zig",
+        "zigux/tests/phase8_perf_buffer_poll.zig",
     ),
     Path("Documentation/zigux/phase8-libbpf-segment-survey.md"): (
         "make -C zigux phase8-libbpf-segments-test",
@@ -87,18 +90,25 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "## Phase 8",
         "scripts/zigux/validate-phase8.py",
         "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+        "zigux/tests/phase8_perf_buffer_poll.zig",
         "make -C zigux phase8-file-path-handle-bridge-test",
+        "make -C zigux phase8-perf-buffer-poll-test",
         "make -C zigux phase8-validate",
     ),
     Path("zigux/tests/README.md"): (
         "scripts/zigux/validate-phase8.py",
+        "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
         "`zigux/tests/phase8_file_path_handle_bridge.zig`",
         "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll.zig`",
+        "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
         "make -C zigux phase8-validate",
         "make -C zigux phase8-exec-cmd-test",
         "make -C zigux phase8-file-path-handle-bridge-test",
+        "make -C zigux phase8-perf-buffer-poll-test",
     ),
     Path("zigux/tests/phase8_exec_cmd.zig"): (
         "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit",
@@ -106,6 +116,12 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "make -C zigux phase8-exec-cmd-test",
         "make -C zigux phase8-validate",
         "kernel/workqueue.c",
+    ),
+    Path("zigux/tests/phase8_perf_buffer_poll.zig"): (
+        "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+        "zigux/tests/README.md",
+        "scripts/zigux/README.md",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
     ),
 }
 
@@ -136,7 +152,10 @@ def _find_exec_cmd_note(root: Path) -> str | None:
 def _collect_missing_markers(root: Path) -> list[str]:
     missing_markers: list[str] = []
     for relative_path, markers in FILE_MARKERS.items():
-        text = _read(root / relative_path)
+        path = root / relative_path
+        if not path.exists():
+            continue
+        text = _read(path)
         for marker in markers:
             if marker not in text:
                 missing_markers.append(f"{relative_path}:{marker}")
@@ -219,8 +238,10 @@ def _passing_fixture(root: Path) -> None:
                 "tools/lib/subcmd/exec-cmd.zig",
                 "tools/lib/bpf/zigux_segments/verify.zig",
                 "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
                 "zigux/tests/phase8_file_path_handle_bridge.zig",
                 "zigux/tests/phase8_libbpf_segments.zig",
+                "zigux/tests/phase8_perf_buffer_poll.zig",
             )
         ),
     )
@@ -261,9 +282,12 @@ def _passing_fixture(root: Path) -> None:
                 "## Phase 8",
                 "scripts/zigux/validate-phase8.py",
                 "Documentation/zigux/phase8-file-path-handle-bridge-slice.md",
+                "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
                 "zigux/tests/phase8_file_path_handle_bridge.zig",
                 "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
+                "zigux/tests/phase8_perf_buffer_poll.zig",
                 "make -C zigux phase8-file-path-handle-bridge-test",
+                "make -C zigux phase8-perf-buffer-poll-test",
                 "make -C zigux phase8-validate",
             )
         ),
@@ -273,11 +297,15 @@ def _passing_fixture(root: Path) -> None:
         "\n".join(
             (
                 "scripts/zigux/validate-phase8.py",
+                "`scripts/zigux/check-phase8-perf-buffer-poll-gate.py`",
                 "`zigux/tests/phase8_file_path_handle_bridge.zig`",
                 "`zigux/tests/phase8_file_path_handle_bridge_only_build.zig`",
+                "`zigux/tests/phase8_perf_buffer_poll.zig`",
+                "`zigux/tests/phase8_perf_buffer_poll_only_build.zig`",
                 "make -C zigux phase8-validate",
                 "make -C zigux phase8-exec-cmd-test",
                 "make -C zigux phase8-file-path-handle-bridge-test",
+                "make -C zigux phase8-perf-buffer-poll-test",
             )
         ),
     )
@@ -301,6 +329,17 @@ def _passing_fixture(root: Path) -> None:
         root / "zigux/tests/phase8_libbpf_segments.zig",
         "phase8 libbpf segment reminder surface",
     )
+    _write(
+        root / "zigux/tests/phase8_perf_buffer_poll.zig",
+        "\n".join(
+            (
+                "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+                "zigux/tests/README.md",
+                "scripts/zigux/README.md",
+                "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+            )
+        ),
+    )
     _write(root / "zigux/tests/phase8_exec_cmd_only_build.zig", "exec cmd build shard")
     _write(
         root / "zigux/tests/phase8_file_path_handle_bridge_only_build.zig",
@@ -312,7 +351,7 @@ def _passing_fixture(root: Path) -> None:
 
 
 def _self_test_case_count() -> int:
-    return 9
+    return 13
 
 
 def run_self_test() -> int:
@@ -415,6 +454,64 @@ def run_self_test() -> int:
         )
         if expected_tests_bridge_marker not in missing_tests_bridge_marker.missing_markers:
             raise AssertionError("expected missing tests-root bridge route marker to be reported")
+        tests_readme.write_text(original_tests_readme, encoding="utf-8")
+
+        perf_poll_test = root / "zigux/tests/phase8_perf_buffer_poll.zig"
+        perf_poll_test.unlink()
+        missing_perf_poll_test = validate_root(root)
+        if "zigux/tests/phase8_perf_buffer_poll.zig" not in missing_perf_poll_test.missing_files:
+            raise AssertionError("expected missing perf-buffer-poll replay file to be reported")
+        _write(
+            perf_poll_test,
+            "\n".join(
+                (
+                    "scripts/zigux/check-phase8-perf-buffer-poll-gate.py",
+                    "zigux/tests/README.md",
+                    "scripts/zigux/README.md",
+                    "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+                )
+            ),
+        )
+
+        scripts_readme.write_text(
+            original_scripts_readme.replace("scripts/zigux/check-phase8-perf-buffer-poll-gate.py\n", "", 1),
+            encoding="utf-8",
+        )
+        missing_perf_poll_scripts_marker = validate_root(root)
+        expected_perf_poll_scripts_marker = (
+            "scripts/zigux/README.md:scripts/zigux/check-phase8-perf-buffer-poll-gate.py"
+        )
+        if expected_perf_poll_scripts_marker not in missing_perf_poll_scripts_marker.missing_markers:
+            raise AssertionError("expected missing scripts-root perf-buffer-poll marker to be reported")
+        scripts_readme.write_text(original_scripts_readme, encoding="utf-8")
+
+        tests_readme.write_text(
+            original_tests_readme.replace("`zigux/tests/phase8_perf_buffer_poll.zig`\n", "", 1),
+            encoding="utf-8",
+        )
+        missing_perf_poll_tests_marker = validate_root(root)
+        expected_perf_poll_tests_marker = (
+            "zigux/tests/README.md:`zigux/tests/phase8_perf_buffer_poll.zig`"
+        )
+        if expected_perf_poll_tests_marker not in missing_perf_poll_tests_marker.missing_markers:
+            raise AssertionError("expected missing tests-root perf-buffer-poll marker to be reported")
+        tests_readme.write_text(original_tests_readme, encoding="utf-8")
+
+        original_perf_poll_test = _read(perf_poll_test)
+        perf_poll_test.write_text(
+            original_perf_poll_test.replace(
+                "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        missing_perf_poll_replay_marker = validate_root(root)
+        expected_perf_poll_replay_marker = (
+            "zigux/tests/phase8_perf_buffer_poll.zig:tools/lib/bpf/zigux_segments/perf_buffer_poll.zig"
+        )
+        if expected_perf_poll_replay_marker not in missing_perf_poll_replay_marker.missing_markers:
+            raise AssertionError("expected missing perf-buffer-poll replay marker to be reported")
 
     print("PHASE8_VALIDATE_SELF_TEST=pass")
     print(f"PHASE8_VALIDATE_SELF_TEST_CASE_COUNT={_self_test_case_count()}")
