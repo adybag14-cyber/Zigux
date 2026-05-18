@@ -111,7 +111,7 @@ Before landing a broad Phase 13 reminder change, check that:
 - the stable shared-summary guard remains `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
 - adjacent notifier evidence stays adjacent rather than becoming a fifth helper family
-- the returned notifier survey plus `list_view` and `hlist_view` helpers stay explicit as adjacent evidence without being promoted into the shared helper handle
+- the returned notifier survey, `zigux/bindings/notifier_abi.zig`, and the `list_view` and `hlist_view` helpers stay explicit as adjacent evidence without being promoted into the shared helper handle
 - `zigux/helpers/notifier_chain_view.zig` stays recorded as a repo-reality gap, while `zigux/Makefile` stays distinguished from the still-missing `make -C zigux phase13-validate` and `make -C zigux phase13` route names instead of promoting that partial build surface into shipped current-`master` Phase 13 evidence
 
 ## Non-Goals
