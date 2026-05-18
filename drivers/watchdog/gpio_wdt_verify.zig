@@ -45,6 +45,46 @@ test "gpio_wdt registerDevice summary reports running always-on state" {
     try std.testing.expect(!summary.blocked_on_reboot_glue);
 }
 
+test "gpio_wdt failure summary keeps descriptor-first registration blockers explicit" {
+    var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("toggle", 42, false);
+    const summary = driver.registerDeviceFailureSummary(false);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
+    try std.testing.expect(summary.requested_line == 42);
+    try std.testing.expect(!summary.always_running);
+    try std.testing.expect(!summary.nowayout);
+    try std.testing.expect(summary.register_device_requested);
+    try std.testing.expect(summary.remains_summary_only);
+    try std.testing.expect(summary.primary_failure_mode == .descriptor_preflight_pending);
+    try std.testing.expect(summary.failure_mode_count == 3);
+    try std.testing.expect(summary.descriptor_preflight_pending);
+    try std.testing.expect(summary.platform_registration_pending);
+    try std.testing.expect(summary.reboot_glue_pending);
+    try std.testing.expect(!summary.preserves_registration_running_state);
+    try std.testing.expect(!summary.preserves_registration_line_state);
+    try std.testing.expect(!summary.preserves_registration_line_is_output);
+}
+
+test "gpio_wdt failure summary preserves always-running registration state while blockers remain" {
+    var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("level", 17, true);
+    const summary = driver.registerDeviceFailureSummary(true);
+
+    try std.testing.expectEqualStrings("drivers/watchdog/gpio_wdt.c", summary.anchor);
+    try std.testing.expect(summary.requested_line == 17);
+    try std.testing.expect(summary.always_running);
+    try std.testing.expect(summary.nowayout);
+    try std.testing.expect(summary.register_device_requested);
+    try std.testing.expect(summary.remains_summary_only);
+    try std.testing.expect(summary.primary_failure_mode == .descriptor_preflight_pending);
+    try std.testing.expect(summary.failure_mode_count == 3);
+    try std.testing.expect(summary.descriptor_preflight_pending);
+    try std.testing.expect(summary.platform_registration_pending);
+    try std.testing.expect(summary.reboot_glue_pending);
+    try std.testing.expect(summary.preserves_registration_running_state);
+    try std.testing.expect(summary.preserves_registration_line_state);
+    try std.testing.expect(summary.preserves_registration_line_is_output);
+}
+
 test "gpio_wdt teardown summary shows toggle disable path" {
     var driver = try gpio_wdt.GpioWatchdogLab.initFromPropertyString("toggle", 9, false);
     _ = try driver.start();
