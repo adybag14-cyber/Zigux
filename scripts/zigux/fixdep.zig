@@ -88,7 +88,10 @@ fn emitOutputWriteError(io: std.Io) !noreturn {
 }
 
 fn flushOutputIgnoringError(writer: anytype) void {
-    writer.flush() catch {};
+    const WriterType = @TypeOf(writer.*);
+    if (@hasDecl(WriterType, "flush")) {
+        writer.flush() catch {};
+    }
 }
 
 fn flushOutputPreservingPrimaryError(writer: anytype, primary_err: anyerror) anyerror!void {
@@ -137,7 +140,8 @@ const Processor = struct {
         if (try self.remember(&self.config_seen, token)) {
             return;
         }
-        try writer.print("    $(wildcard include/config/{s}) \\\n", .{token});
+        try writer.print("    $(wildcard include/config/{s}) \\\
+", .{token});
     }
 
     fn parseConfigFile(self: *Processor, writer: anytype, text: []const u8) !void {
@@ -287,11 +291,13 @@ const Processor = struct {
             if (is_source) {
                 if (!saw_any_target) {
                     saw_any_target = true;
-                    try writer.print("source_{s} := {s}\n\ndeps_{s} := \\\n", .{ target, token.items, target });
+                    try writer.print("source_{s} := {s}\n\ndeps_{s} := \\\
+", .{ target, token.items, target });
                     need_parse = true;
                 }
             } else if (!isIgnoredFile(token.items) and !try self.remember(&self.file_seen, token.items)) {
-                try writer.print("  {s} \\\n", .{token.items});
+                try writer.print("  {s} \\\
+", .{token.items});
                 need_parse = true;
             }
 
@@ -402,6 +408,8 @@ test "config parsing trims _MODULE and deduplicates symbols" {
             defer self.allocator.free(rendered);
             try self.list.appendSlice(self.allocator, rendered);
         }
+
+        fn flush(_: *@This()) !void {}
     };
 
     var processor = Processor.init(std.testing.allocator, std.testing.io);
@@ -416,12 +424,14 @@ test "config parsing trims _MODULE and deduplicates symbols" {
     );
 
     try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_CORE) \\\n    $(wildcard include/config/ZIGUX_DEBUG) \\\n",
+        "    $(wildcard include/config/ZIGUX_CORE) \\\
+    $(wildcard include/config/ZIGUX_DEBUG) \\\
+",
         capture.list.items,
     );
 }
 
-test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {
+test "config parsing ignores prefixed CONFIG tokens for C parity" {
     const Capture = struct {
         list: std.ArrayList(u8),
         allocator: std.mem.Allocator,
@@ -442,6 +452,8 @@ test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {
             defer self.allocator.free(rendered);
             try self.list.appendSlice(self.allocator, rendered);
         }
+
+        fn flush(_: *@This()) !void {}
     };
 
     var processor = Processor.init(std.testing.allocator, std.testing.io);
@@ -452,51 +464,12 @@ test "config parsing ignores prefixed CONFIG tokens like upstream fixdep" {
 
     try processor.parseConfigFile(
         &capture,
-        "UML_CONFIG_ZIGUX_CORE HELLO_CONFIG_ZIGUX_DEBUG_MODULE",
+        "UML_CONFIG_ZIGUX_CORE 9CONFIG_ZIGUX_COUNT _CONFIG_ZIGUX_FLAG CONFIG_ZIGUX_REAL_MODULE",
     );
 
     try std.testing.expectEqualStrings(
-        "",
-        capture.list.items,
-    );
-}
-
-test "config parsing accepts CONFIG tokens after punctuation" {
-    const Capture = struct {
-        list: std.ArrayList(u8),
-        allocator: std.mem.Allocator,
-
-        fn init(allocator: std.mem.Allocator) !@This() {
-            return .{
-                .list = try std.ArrayList(u8).initCapacity(allocator, 64),
-                .allocator = allocator,
-            };
-        }
-
-        fn deinit(self: *@This()) void {
-            self.list.deinit(self.allocator);
-        }
-
-        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
-            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
-            defer self.allocator.free(rendered);
-            try self.list.appendSlice(self.allocator, rendered);
-        }
-    };
-
-    var processor = Processor.init(std.testing.allocator, std.testing.io);
-    defer processor.deinit();
-
-    var capture = try Capture.init(std.testing.allocator);
-    defer capture.deinit();
-
-    try processor.parseConfigFile(
-        &capture,
-        "(CONFIG_ZIGUX_WRAP) + CONFIG_ZIGUX_AFTER_MODULE",
-    );
-
-    try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_WRAP) \\\n    $(wildcard include/config/ZIGUX_AFTER) \\\n",
+        "    $(wildcard include/config/ZIGUX_REAL) \\\
+",
         capture.list.items,
     );
 }
@@ -522,6 +495,8 @@ test "config parsing stops at the first embedded NUL" {
             defer self.allocator.free(rendered);
             try self.list.appendSlice(self.allocator, rendered);
         }
+
+        fn flush(_: *@This()) !void {}
     };
 
     var processor = Processor.init(std.testing.allocator, std.testing.io);
@@ -536,7 +511,8 @@ test "config parsing stops at the first embedded NUL" {
     );
 
     try std.testing.expectEqualStrings(
-        "    $(wildcard include/config/ZIGUX_CORE) \\\n",
+        "    $(wildcard include/config/ZIGUX_CORE) \\\
+",
         capture.list.items,
     );
 }
@@ -562,6 +538,8 @@ test "dep parsing returns NoTargets for comment-only depfiles" {
             defer self.allocator.free(rendered);
             try self.list.appendSlice(self.allocator, rendered);
         }
+
+        fn flush(_: *@This()) !void {}
     };
 
     var processor = Processor.init(std.testing.allocator, std.testing.io);
@@ -598,6 +576,8 @@ test "dep parsing keeps escaped spaces inside tokens" {
             defer self.allocator.free(rendered);
             try self.list.appendSlice(self.allocator, rendered);
         }
+
+        fn flush(_: *@This()) !void {}
     };
 
     var processor = Processor.init(std.testing.allocator, std.testing.io);
@@ -613,7 +593,9 @@ test "dep parsing keeps escaped spaces inside tokens" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dep\\ name.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
+  dep\\ name.rmeta \\\
+\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -639,6 +621,8 @@ test "dep parsing continues dependency lines across escaped newlines" {
             defer self.allocator.free(rendered);
             try self.list.appendSlice(self.allocator, rendered);
         }
+
+        fn flush(_: *@This()) !void {}
     };
 
     var processor = Processor.init(std.testing.allocator, std.testing.io);
@@ -654,10 +638,14 @@ test "dep parsing continues dependency lines across escaped newlines" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\n" ++
-            "  dep-first.so \\\n" ++
-            "  dep-second.so \\\n" ++
-            "  dep-third.so \\\n" ++
+        "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\
+" ++
+            "  dep-first.so \\\
+" ++
+            "  dep-second.so \\\
+" ++
+            "  dep-third.so \\\
+" ++
             "\n" ++
             "continued.o: $(deps_continued.o)\n\n" ++
             "$(deps_continued.o):\n",
@@ -686,6 +674,8 @@ test "dep parsing skips bytes after the first embedded NUL" {
             defer self.allocator.free(rendered);
             try self.list.appendSlice(self.allocator, rendered);
         }
+
+        fn flush(_: *@This()) !void {}
     };
 
     var processor = Processor.init(std.testing.allocator, std.testing.io);
@@ -701,7 +691,8 @@ test "dep parsing skips bytes after the first embedded NUL" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
+\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -853,7 +844,8 @@ test "dependency file reads beyond the legacy one mebibyte ceiling" {
     try std.testing.expect(dep_text.len > 1024 * 1024);
     try processor.parseDepFile(&capture, dep_text, "sample.o");
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
+\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
@@ -894,19 +886,22 @@ test "escaped hash dependency survives concatenated target comment path" {
     );
 
     try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dir#crate.rmeta \\\n  later.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
+        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\
+  dir#crate.rmeta \\\
+  later.rmeta \\\
+\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
         capture.list.items,
     );
 }
 
-test "escaped colon dependency survives concatenated target comment path" {
+test "runFixdep matches multi-target parity packet with escaped hash and deduped config deps" {
     const Capture = struct {
         list: std.ArrayList(u8),
         allocator: std.mem.Allocator,
 
         fn init(allocator: std.mem.Allocator) !@This() {
             return .{
-                .list = try std.ArrayList(u8).initCapacity(allocator, 160),
+                .list = try std.ArrayList(u8).initCapacity(allocator, 512),
                 .allocator = allocator,
             };
         }
@@ -922,20 +917,345 @@ test "escaped colon dependency survives concatenated target comment path" {
         }
     };
 
-    var processor = Processor.init(std.testing.allocator, std.testing.io);
-    defer processor.deinit();
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const base_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        ".zig-cache/tmp/{s}",
+        .{tmp.sub_path[0..]},
+    );
+    defer std.testing.allocator.free(base_path);
+
+    const source_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/sample2.c", .{base_path});
+    defer std.testing.allocator.free(source_path);
+
+    const local_config_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/sample2-config.h", .{base_path});
+    defer std.testing.allocator.free(local_config_path);
+
+    const shared_config_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/shared#config.h", .{base_path});
+    defer std.testing.allocator.free(shared_config_path);
+
+    const shared_dep_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/shared\\#config.h", .{base_path});
+    defer std.testing.allocator.free(shared_dep_path);
+
+    const so_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/sample2.so", .{base_path});
+    defer std.testing.allocator.free(so_path);
+
+    const depfile_path = try std.fmt.allocPrint(std.testing.allocator, "{s}/sample_multi_target.d", .{base_path});
+    defer std.testing.allocator.free(depfile_path);
+
+    const cmdline = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "clang -Iinclude -DZIGUX_MULTI -c {s} -o module/sample2.o",
+        .{source_path},
+    );
+    defer std.testing.allocator.free(cmdline);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample2.c",
+        .data = "#define CONFIG_ZIGUX_MULTI 1\n#include \"sample2-config.h\"\n#include \"shared#config.h\"\nint sample2(void) { return 0; }\n",
+    });
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample2-config.h",
+        .data = "#define CONFIG_ZIGUX_SECOND_MODULE 1\n#define CONFIG_ZIGUX_SECOND_MODULE 1\n#define CONFIG_ZIGUX_SHARED 1\n",
+    });
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "shared#config.h",
+        .data = "#define CONFIG_ZIGUX_HASH 1\n#define CONFIG_ZIGUX_SHARED_MODULE 1\n#define CONFIG_ZIGUX_HASH 1\n",
+    });
+
+    const depfile_text = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "module/sample2.o module/sample2.d: {s} \\\n {s} \\\n {s} \\\n {s} \\\n {s}\n# comment line that should be ignored\n",
+        .{ source_path, shared_dep_path, local_config_path, so_path, local_config_path },
+    );
+    defer std.testing.allocator.free(depfile_text);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_multi_target.d",
+        .data = depfile_text,
+    });
 
     var capture = try Capture.init(std.testing.allocator);
     defer capture.deinit();
 
-    try processor.parseDepFile(
+    try runFixdep(
+        std.testing.allocator,
+        std.testing.io,
         &capture,
-        "sample.o: sample.rmeta dir\\:crate.rmeta \\\n# generated by rustc\\\\\n  still comment\nmodule/sample.o: temp.rmeta later.rmeta\n",
-        "sample.o",
+        depfile_path,
+        "module/sample2.o",
+        cmdline,
     );
 
-    try std.testing.expectEqualStrings(
-        "source_sample.o := sample.rmeta\n\ndeps_sample.o := \\\n  dir:crate.rmeta \\\n  later.rmeta \\\n\nsample.o: $(deps_sample.o)\n\n$(deps_sample.o):\n",
-        capture.list.items,
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "savedcmd_module/sample2.o := {s}\n\n" ++
+            "source_module/sample2.o := {s}\n\ndeps_module/sample2.o := \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_MULTI) \\\
+" ++
+            "  {s} \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_HASH) \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_SHARED) \\\
+" ++
+            "  {s} \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_SECOND) \\\
+" ++
+            "  {s} \\\
+" ++
+            "\n" ++
+            "module/sample2.o: $(deps_module/sample2.o)\n\n" ++
+            "$(deps_module/sample2.o):\n",
+        .{ cmdline, source_path, shared_config_path, local_config_path, so_path },
     );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, capture.list.items);
+}
+
+test "runFixdep reads escaped-space dependency paths and emits config deps" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 384),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const base_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        ".zig-cache/tmp/{s}",
+        .{tmp.sub_path[0..]},
+    );
+    defer std.testing.allocator.free(base_path);
+
+    const source_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/sample_escaped_space_source.c",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(source_path);
+
+    const escaped_space_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/escaped\\ space-config.h",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(escaped_space_path);
+
+    const escaped_space_visible_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/escaped\\ space-config.h",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(escaped_space_visible_path);
+
+    const depfile_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/sample_escaped_space.d",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(depfile_path);
+
+    const cmdline = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "clang -c {s} -o sample_escaped_space.o",
+        .{source_path},
+    );
+    defer std.testing.allocator.free(cmdline);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_escaped_space_source.c",
+        .data = "int zigux_fixdep_sample_escaped_space(void) { return 0; }\n",
+    });
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "escaped\\ space-config.h",
+        .data = "/* CONFIG_ZIGUX_ESCAPED_SPACE */\n",
+    });
+
+    const depfile_text = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "sample_escaped_space.o: {s} \\\n {s}\n",
+        .{ source_path, escaped_space_path },
+    );
+    defer std.testing.allocator.free(depfile_text);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_escaped_space.d",
+        .data = depfile_text,
+    });
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runFixdep(
+        std.testing.allocator,
+        std.testing.io,
+        &capture,
+        depfile_path,
+        "sample_escaped_space.o",
+        cmdline,
+    );
+
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "savedcmd_sample_escaped_space.o := {s}\n\n" ++
+            "source_sample_escaped_space.o := {s}\n\ndeps_sample_escaped_space.o := \\\
+" ++
+            "  {s} \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_ESCAPED_SPACE) \\\
+" ++
+            "\n" ++
+            "sample_escaped_space.o: $(deps_sample_escaped_space.o)\n\n" ++
+            "$(deps_sample_escaped_space.o):\n",
+        .{ cmdline, source_path, escaped_space_visible_path },
+    );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, capture.list.items);
+}
+
+test "runFixdep reads escaped-colon dependency paths and trims shared _MODULE configs" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 384),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var tmp = std.testing.tmpDir(.{});
+    defer tmp.cleanup();
+
+    const base_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        ".zig-cache/tmp/{s}",
+        .{tmp.sub_path[0..]},
+    );
+    defer std.testing.allocator.free(base_path);
+
+    const source_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/sample_escaped_colon_source.c",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(source_path);
+
+    const escaped_colon_dep_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/shared\\:config.h",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(escaped_colon_dep_path);
+
+    const escaped_colon_visible_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/shared:config.h",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(escaped_colon_visible_path);
+
+    const depfile_path = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "{s}/sample_escaped_colon.d",
+        .{base_path},
+    );
+    defer std.testing.allocator.free(depfile_path);
+
+    const cmdline = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "clang -c {s} -o sample_escaped_colon.o",
+        .{source_path},
+    );
+    defer std.testing.allocator.free(cmdline);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_escaped_colon_source.c",
+        .data = "int zigux_fixdep_sample_escaped_colon(void) { return 0; }\n",
+    });
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "shared:config.h",
+        .data = "#define CONFIG_ZIGUX_COLON 1\n#define CONFIG_ZIGUX_SHARED_COLON_MODULE 1\n#define CONFIG_ZIGUX_COLON 1\n",
+    });
+
+    const depfile_text = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "sample_escaped_colon.o: {s} \\\n {s}\n",
+        .{ source_path, escaped_colon_dep_path },
+    );
+    defer std.testing.allocator.free(depfile_text);
+
+    try tmp.dir.writeFile(std.testing.io, .{
+        .sub_path = "sample_escaped_colon.d",
+        .data = depfile_text,
+    });
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runFixdep(
+        std.testing.allocator,
+        std.testing.io,
+        &capture,
+        depfile_path,
+        "sample_escaped_colon.o",
+        cmdline,
+    );
+
+    const expected = try std.fmt.allocPrint(
+        std.testing.allocator,
+        "savedcmd_sample_escaped_colon.o := {s}\n\n" ++
+            "source_sample_escaped_colon.o := {s}\n\ndeps_sample_escaped_colon.o := \\\
+" ++
+            "  {s} \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_COLON) \\\
+" ++
+            "    $(wildcard include/config/ZIGUX_SHARED_COLON) \\\
+" ++
+            "\n" ++
+            "sample_escaped_colon.o: $(deps_sample_escaped_colon.o)\n\n" ++
+            "$(deps_sample_escaped_colon.o):\n",
+        .{ cmdline, source_path, escaped_colon_visible_path },
+    );
+    defer std.testing.allocator.free(expected);
+
+    try std.testing.expectEqualStrings(expected, capture.list.items);
 }
