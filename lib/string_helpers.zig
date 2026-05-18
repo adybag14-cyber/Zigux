@@ -748,6 +748,12 @@ fn runKstrdupAndReplaceWithFailingAllocator(
     allocator.free(duplicated);
 }
 
+fn runKstrdupQuotableWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]const u8) !void {
+    if (try kstrdupQuotable(allocator, src)) |quoted| {
+        allocator.free(quoted);
+    }
+}
+
 fn runKstrdupQuotableCmdlineWithFailingAllocator(allocator: std.mem.Allocator, src: ?[]const u8) !void {
     if (try kstrdupQuotableCmdline(allocator, src)) |quoted| {
         allocator.free(quoted);
@@ -851,6 +857,32 @@ test "kstrdupAndReplace reports allocation failure cleanly" {
         std.testing.allocator,
         runKstrdupAndReplaceWithFailingAllocator,
         .{ "phase7/helper", '/', '_' },
+    );
+}
+
+test "kstrdupQuotable hex-escapes special log hazards without widening past the exported prefix" {
+    try std.testing.expect((try kstrdupQuotable(std.testing.allocator, null)) == null);
+
+    const source = [_]u8{ 'a', '\n', '"', '\\', '\x1b', 0, 'x' };
+    const quoted = (try kstrdupQuotable(std.testing.allocator, &source)).?;
+    defer std.testing.allocator.free(quoted);
+    try std.testing.expectEqualStrings("a\\x0A\\x22\\x5C\\x1B", quoted);
+
+    const alias = (try kstrdup_quotable(std.testing.allocator, "tab\tquote\"")).?;
+    defer std.testing.allocator.free(alias);
+    try std.testing.expectEqualStrings("tab\\x09quote\\x22", alias);
+
+    const nul_prefixed = [_]u8{ 'p', 'a', 't', 'h', 0, '"', '\\' };
+    const bounded = (try kstrdupQuotable(std.testing.allocator, &nul_prefixed)).?;
+    defer std.testing.allocator.free(bounded);
+    try std.testing.expectEqualStrings("path", bounded);
+}
+
+test "kstrdupQuotable reports allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runKstrdupQuotableWithFailingAllocator,
+        .{ "phase7\nquote\"", },
     );
 }
 
