@@ -91,6 +91,12 @@ MARKERS = {
         '"status": "repo_reality_gap"',
         '"id": "phase10-virtqueue-shape-helper"',
         '"id": "phase10-ring-lab-driver-bridge"',
+        '"freeze_status_change_claimed": false',
+        '"risky_transport_posture": "blocked_on_risky_transport"',
+        '"allowed_evidence_kinds": [',
+        '"forbidden_transport_claims": [',
+        '"architecture_council_reopen_required": true',
+        '"architecture_council_reopen_attached": false',
     ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
         'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
@@ -296,6 +302,30 @@ def run_self_test() -> int:
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_manifest.json",
             '"id": "phase10-ring-lab-driver-bridge"',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"freeze_status_change_claimed": false',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"risky_transport_posture": "blocked_on_risky_transport"',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"allowed_evidence_kinds": [',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"forbidden_transport_claims": [',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"architecture_council_reopen_required": true',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"architecture_council_reopen_attached": false',
         )
         expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
