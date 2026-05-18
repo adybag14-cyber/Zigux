@@ -64,6 +64,17 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
 )
 
+# Keep the bootstrap validator steps anchored inside the live Lane 03 packet
+# instead of drifting later into unrelated Phase 2 or Phase 3 workflow sections.
+WORKFLOW_ORDER_MARKERS = (
+    "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
+    "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
+    "run: python3 scripts/zigux/validate-bootstrap.py",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+)
+
 README_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
@@ -107,7 +118,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + (len(REQUIRED_PATHS) - 1)
-    + 11
+    + 13
 )
 
 
@@ -161,6 +172,44 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
+
+
+def swap_exact_lines(text: str, first: str, second: str) -> str:
+    lines = text.splitlines()
+    first_index = None
+    second_index = None
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == first and first_index is None:
+            first_index = index
+        if stripped == second and second_index is None:
+            second_index = index
+    if first_index is None or second_index is None:
+        raise AssertionError(f"unable to swap workflow lines: {first!r}, {second!r}")
+    lines[first_index], lines[second_index] = lines[second_index], lines[first_index]
+    return "\n".join(lines) + "\n"
+
+
+def collect_workflow_order_issues(workflow_text: str) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    positions: list[tuple[str, int]] = []
+    workflow_lines = [line.strip() for line in workflow_text.splitlines()]
+    for marker in WORKFLOW_ORDER_MARKERS:
+        count = count_exact_lines(workflow_text, marker)
+        if count == 1:
+            positions.append((marker, workflow_lines.index(marker)))
+    for (previous_marker, previous_index), (current_marker, current_index) in zip(
+        positions,
+        positions[1:],
+    ):
+        if previous_index >= current_index:
+            issues.append(
+                (
+                    "OUT_OF_ORDER_WORKFLOW_MARKER",
+                    f"{previous_marker} -> {current_marker}",
+                )
+            )
+    return issues
 
 
 def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
@@ -244,6 +293,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             elif count != 1:
                 issues.append(("DUPLICATE_WORKFLOW_MARKER", f"{marker}:count={count}"))
 
+        issues.extend(collect_workflow_order_issues(workflow_text))
+
     if SCRIPTS_README in existing_paths:
         readme_text = read_text(root, SCRIPTS_README)
         for marker in README_MARKERS:
@@ -279,7 +330,15 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root,
         WORKFLOW,
-        "\n".join(("name: zigux-bootstrap", *WORKFLOW_SUBSTRING_MARKERS, *WORKFLOW_LINE_MARKERS)) + "\n",
+        "\n".join(
+            (
+                "name: zigux-bootstrap",
+                *WORKFLOW_SUBSTRING_MARKERS,
+                *WORKFLOW_LINE_MARKERS,
+                'run: python3 scripts/zigux/check-kconfig-bridge.py --self-test',
+            )
+        )
+        + "\n",
     )
     write_text(root, SCRIPTS_README, "# scripts/zigux\n\n" + "\n".join(f"- {marker}" for marker in README_MARKERS) + "\n")
     write_text(
@@ -365,6 +424,38 @@ def run_self_test() -> int:
             )
             assert ("DUPLICATE_WORKFLOW_MARKER", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: python3 scripts/zigux/validate-bootstrap.py",
+                'run: python3 scripts/zigux/check-kconfig-bridge.py --self-test',
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: python3 scripts/zigux/validate-bootstrap.py -> run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+                "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing -> run: python3 scripts/zigux/validate-bootstrap.py --self-test",
+        ) in collect_issues(root)
+        checks_run += 1
 
         for marker in README_MARKERS:
             build_self_test_root(root)
