@@ -26,6 +26,7 @@ EXPECTED_CASES = {
         "expected": "invalid_class_trailing_expected.json",
     },
     "not_elf": {"input": "not_elf.hex", "expected": "not_elf_expected.json"},
+    "not_elf_trailing": {"input": "not_elf_trailing.hex", "expected": "not_elf_trailing_expected.json"},
     "truncated": {"input": "truncated.hex", "expected": "truncated_expected.json"},
 }
 EXPECTED_CASE_ORDER = list(EXPECTED_CASES)
@@ -48,12 +49,14 @@ EXPECTED_FIXTURE_FILES = frozenset(
         "invalid_class_trailing_expected.json",
         "not_elf.hex",
         "not_elf_expected.json",
+        "not_elf_trailing.hex",
+        "not_elf_trailing_expected.json",
         "truncated.hex",
         "truncated_expected.json",
     }
 )
 EXPECTED_RESULT_KEYS = frozenset({"stdout", "stderr", "exit_code"})
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 10
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
 #include <stdio.h>
