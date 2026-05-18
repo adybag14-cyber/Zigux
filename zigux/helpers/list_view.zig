@@ -49,7 +49,8 @@ pub const ListView = struct {
     }
 
     pub fn isEmpty(self: ListView) bool {
-        return self.head.next == @intFromPtr(self.head);
+        const self_ptr = @intFromPtr(self.head);
+        return self.head.next == self_ptr and self.head.prev == self_ptr;
     }
 
     pub fn first(self: ListView) ?*const ListHead {
@@ -134,6 +135,21 @@ test "list view treats a sentinel-only list as empty" {
     try std.testing.expectEqual(@as(?*const ListHead, null), view.last());
     try std.testing.expect(view.hasConsistentBacklinks());
     try std.testing.expect(view.firstBrokenBacklink() == null);
+}
+
+test "list view does not treat a broken sentinel backlink as empty" {
+    var head = ListHead{ .next = 0, .prev = 0 };
+    head.next = @intFromPtr(&head);
+    head.prev = 0;
+
+    const view = ListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+
+    const breakage = view.firstBrokenBacklink().?;
+    try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.expected_prev);
+    try std.testing.expectEqual(@as(usize, 0), breakage.actual_prev);
+    try std.testing.expect(!view.hasConsistentBacklinks());
 }
 
 test "list view walks a circular list_head chain in order" {
