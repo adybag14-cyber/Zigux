@@ -13,6 +13,7 @@ pub const ModuleDescriptor = struct {
     provides_add_rule_planning: bool,
     provides_ruleset_fd_install_planning: bool,
     provides_ruleset_fd_stub_planning: bool,
+    provides_ruleset_release_planning: bool,
     validates_handled_access: bool,
     validates_attr_size: bool,
     validates_flags: bool,
@@ -140,6 +141,18 @@ pub const RulesetFdStubPlan = struct {
     mutates_ruleset_state: bool,
 };
 
+pub const RulesetReleaseRequest = struct {
+    file_present: bool = true,
+    ruleset_present: bool = true,
+};
+
+pub const RulesetReleasePlan = struct {
+    anchor: []const u8,
+    reads_file_private_data: bool,
+    invokes_landlock_put_ruleset: bool,
+    returns_zero: bool,
+};
+
 pub const SyscallsHelperLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -150,6 +163,7 @@ pub const SyscallsHelperLab = struct {
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_install_planning = true,
             .provides_ruleset_fd_stub_planning = true,
+            .provides_ruleset_release_planning = true,
             .validates_handled_access = true,
             .validates_attr_size = true,
             .validates_flags = true,
@@ -333,6 +347,22 @@ pub const SyscallsHelperLab = struct {
             },
         };
     }
+
+    pub fn planFopRulesetRelease(request: RulesetReleaseRequest) !RulesetReleasePlan {
+        if (!request.file_present) {
+            return error.MissingFile;
+        }
+        if (!request.ruleset_present) {
+            return error.MissingRuleset;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .reads_file_private_data = true,
+            .invokes_landlock_put_ruleset = true,
+            .returns_zero = true,
+        };
+    }
 };
 
 test "landlock syscalls descriptor stays within create and add-rule planning boundaries" {
@@ -345,6 +375,7 @@ test "landlock syscalls descriptor stays within create and add-rule planning bou
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_install_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_stub_planning);
+    try std.testing.expect(descriptor.provides_ruleset_release_planning);
     try std.testing.expect(descriptor.validates_handled_access);
     try std.testing.expect(descriptor.validates_attr_size);
     try std.testing.expect(descriptor.validates_flags);
@@ -562,6 +593,24 @@ test "landlock syscalls ruleset fd install rejects missing rulesets fops labels 
     }));
     try std.testing.expectError(error.UnsupportedAnonInodeFlags, SyscallsHelperLab.planInstallRulesetFd(.{
         .flags = O_RDWR,
+    }));
+}
+
+test "landlock syscalls ruleset release keeps private-data handoff and zero return explicit" {
+    const plan = try SyscallsHelperLab.planFopRulesetRelease(.{});
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expect(plan.reads_file_private_data);
+    try std.testing.expect(plan.invokes_landlock_put_ruleset);
+    try std.testing.expect(plan.returns_zero);
+}
+
+test "landlock syscalls ruleset release rejects missing file or ruleset state" {
+    try std.testing.expectError(error.MissingFile, SyscallsHelperLab.planFopRulesetRelease(.{
+        .file_present = false,
+    }));
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planFopRulesetRelease(.{
+        .ruleset_present = false,
     }));
 }
 
