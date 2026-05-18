@@ -30,29 +30,36 @@ fn expectContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) != null);
 }
 
-test "phase11 hvc cleanup packet proof keeps cleanup replay markers explicit" {
-    const cleanup_replay = try readRepoFileAlloc(
+test "phase11 hvc cleanup packet proof keeps current-head cleanup packet explicit" {
+    const survey_doc = try readRepoFileAlloc(
         std.testing.allocator,
-        "zigux/tests/phase11_hvc_console.zig",
-        64 * 1024,
+        "Documentation/zigux/phase11-hvc-console-survey.md",
+        32 * 1024,
     );
-    defer std.testing.allocator.free(cleanup_replay);
+    defer std.testing.allocator.free(survey_doc);
 
     const cleanup_companion = try readRepoFileAlloc(
         std.testing.allocator,
-        "zigux/tests/phase11_hvc_cleanup.zig",
-        32 * 1024,
+        "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
+        16 * 1024,
     );
     defer std.testing.allocator.free(cleanup_companion);
 
-    try expectContains(cleanup_replay, "test \"phase11 hvc console keeps hvc_cleanup tty-port release boundaries reviewable\" {");
-    try expectContains(cleanup_replay, "try std.testing.expect(final_cleanup.tty_port_put_requested);");
-    try expectContains(cleanup_replay, "try std.testing.expect(hangup_cleanup.close_skipped);");
-    try expectContains(cleanup_replay, "try std.testing.expect(hangup_cleanup.drops_tty_port_reference);");
-    try expectContains(cleanup_companion, "phase11 hvc cleanup");
+    const verify_boundary = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
+        16 * 1024,
+    );
+    defer std.testing.allocator.free(verify_boundary);
+
+    try expectContains(survey_doc, "`scripts/zigux/check-phase11-hvc-cleanup-current-head.py`");
+    try expectContains(survey_doc, "current authenticated contents reads in this lane still do not rematerialize");
+    try expectContains(cleanup_companion, "smaller proof-backed HVC continuity packet reviewable");
+    try expectContains(cleanup_companion, "`scripts/zigux/check-phase11-hvc-survey-packet.py`");
+    try expectContains(verify_boundary, "`drivers/tty/hvc/hvc_console_verify.zig` keeps the tty-already-absent remove handoff explicit");
 }
 
-test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the landed cleanup handoff" {
+test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff markers aligned" {
     const matrix_doc = try readRepoFileAlloc(
         std.testing.allocator,
         "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
@@ -60,16 +67,16 @@ test "phase11 hvc cleanup packet proof keeps teardown notes aligned with the lan
     );
     defer std.testing.allocator.free(matrix_doc);
 
-    const teardown_note = try readRepoFileAlloc(
+    const verify_boundary = try readRepoFileAlloc(
         std.testing.allocator,
-        "Documentation/zigux/phase11-hvc-console-teardown-note.md",
-        32 * 1024,
+        "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
+        16 * 1024,
     );
-    defer std.testing.allocator.free(teardown_note);
+    defer std.testing.allocator.free(verify_boundary);
 
     try expectContains(matrix_doc, "`hvc_cleanup()` tty-port release handoff");
     try expectContains(matrix_doc, "final-close and hangup-driven cleanup handoff assertions inside the shared Phase 11 replay");
-    try expectContains(teardown_note, "final-close and hangup-driven cleanup handoff boundaries are now pinned separately from the broader remove packet");
-    try expectContains(teardown_note, "close-skipped requests");
-    try expectContains(teardown_note, "deferred final release explicit");
+    try expectContains(matrix_doc, "surviving proof-backed cleanup packet");
+    try expectContains(verify_boundary, "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary");
+    try expectContains(verify_boundary, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.");
 }
