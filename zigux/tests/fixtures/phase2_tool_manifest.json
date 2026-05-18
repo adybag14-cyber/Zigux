@@ -31,6 +31,8 @@
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/install-zig.py"
   ],
-  "master_present_branch_missing_files": [],
+  "master_present_branch_missing_files": [
+    "scripts/zigux/install-zig.py"
+  ],
   "workflow_surface": ".github/workflows/zigux-bootstrap.yml"
 }
