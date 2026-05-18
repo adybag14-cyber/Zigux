@@ -1,6 +1,7 @@
 #ifndef _ZIGUX_ABI_H
 #define _ZIGUX_ABI_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define ZIGUX_ABI_VERSION 1U
@@ -44,6 +45,13 @@ struct zigux_export_status {
     uint16_t flags;
 };
 
+typedef struct zigux_notifier_chain_priority_increase {
+    size_t previous_index;
+    size_t current_index;
+    int32_t previous_priority;
+    int32_t current_priority;
+} zigux_notifier_chain_priority_increase;
+
 struct zigux_interop_policy {
     uint8_t panic_mode;
     uint8_t allocator_mode;
@@ -57,7 +65,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view 
     uint32_t status;
 };
 
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_WINDOW_delivery_window_summary {
     uint32_t applied;
     uint32_t skipped;
     uint32_t delivered;
@@ -102,6 +110,36 @@ static inline int zigux_notifier_chain_has_nonincreasing_priority(
     return 1;
 }
 
+static inline int zigux_notifier_first_chain_priority_increase(
+    const struct zigux_notifier_block *head,
+    zigux_notifier_chain_priority_increase *out)
+{
+    size_t previous_index = 0;
+    int32_t previous_priority;
+
+    if (!head || head->next == (uintptr_t)0 || !out)
+        return 0;
+
+    previous_priority = head->priority;
+    while (head->next != (uintptr_t)0) {
+        const struct zigux_notifier_block *node =
+            (const struct zigux_notifier_block *)(uintptr_t)head->next;
+        const size_t current_index = previous_index + 1;
+        if (node->priority > previous_priority) {
+            out->previous_index = previous_index;
+            out->current_index = current_index;
+            out->previous_priority = previous_priority;
+            out->current_priority = node->priority;
+            return 1;
+        }
+        previous_index = current_index;
+        previous_priority = node->priority;
+        head = node;
+    }
+
+    return 0;
+}
+
 static inline zigux_boundary_header zigux_default_header(uint16_t flags)
 {
     zigux_boundary_header header = {
@@ -110,6 +148,11 @@ static inline zigux_boundary_header zigux_default_header(uint16_t flags)
         .flags = flags,
     };
     return header;
+}
+
+static inline int zigux_export_status_ok(struct zigux_export_status status)
+{
+    return (status.flags & (uint16_t)ZIGUX_STATUS_FLAG_ERROR) == 0;
 }
 
 #endif
