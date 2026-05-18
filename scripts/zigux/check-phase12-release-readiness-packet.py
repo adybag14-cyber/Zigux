@@ -89,7 +89,7 @@ REQUIRED_MARKERS = {
         "`PHASE12_STATUS=active`",
         "readiness-note support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
-        "Current `master` now also ships the degraded-workflow `make -C zigux phase12-validate` route together with `scripts/zigux/validate-phase12.py` and `scripts/zigux/check-phase12-release-readiness-packet.py`, but there is still no focused libbpf-only replay or cross-build replay on current `master`, so this sequencing note must keep that validator-first support packet ahead of the smoke-first direct replay order instead of treating it as broader driver delivery evidence by itself.",
+        "Current `master` now keeps the degraded-workflow validator-side support packet explicit through `scripts/zigux/validate-phase12.py` and `scripts/zigux/check-phase12-release-readiness-packet.py`, while `make -C zigux phase12-validate` remains stale reminder vocabulary until same-lane work rematerializes the wrapper; there is still no focused libbpf-only replay or cross-build replay on current `master`, so this sequencing note must keep that validator-first support packet ahead of the smoke-first direct replay order instead of treating it as broader driver delivery evidence by itself.",
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
