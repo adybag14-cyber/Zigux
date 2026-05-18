@@ -68,6 +68,7 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
     "run: python3 scripts/zigux/validate-bootstrap.py",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -77,9 +78,9 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
 )
 
-# Keep the bootstrap validator and required toolchain make step anchored inside
-# the live Lane 03 packet instead of drifting later into unrelated Phase 2 or
-# Phase 3 workflow sections.
+# Keep the bootstrap validator and adjacent boundary markers anchored to the
+# actual Lane 03 packet order instead of drifting into the later Phase 2
+# checker tranche.
 WORKFLOW_ORDER_MARKERS = (
     "- name: Setup pinned Zig toolchain",
     "- name: Compile current scripts",
@@ -88,6 +89,7 @@ WORKFLOW_ORDER_MARKERS = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
     "run: python3 scripts/zigux/validate-bootstrap.py",
+    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -95,7 +97,6 @@ WORKFLOW_ORDER_MARKERS = (
     "run: make -C zigux phase2-toolchain",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
-    "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
 )
 
 README_MARKERS = (
@@ -374,7 +375,6 @@ def build_self_test_root(root: Path) -> None:
                 "name: zigux-bootstrap",
                 *WORKFLOW_SUBSTRING_MARKERS,
                 *WORKFLOW_LINE_MARKERS,
-                'run: python3 scripts/zigux/check-kconfig-bridge.py --self-test',
             )
         )
         + "\n",
@@ -470,13 +470,13 @@ def run_self_test() -> int:
             swap_exact_lines(
                 workflow_path.read_text(encoding="utf-8"),
                 "run: python3 scripts/zigux/validate-bootstrap.py",
-                'run: python3 scripts/zigux/check-kconfig-bridge.py --self-test',
+                "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
             ),
             encoding="utf-8",
         )
         assert (
             "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/validate-bootstrap.py -> run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
+            "run: python3 scripts/zigux/validate-bootstrap.py -> run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
         ) in collect_issues(root)
         checks_run += 1
 
