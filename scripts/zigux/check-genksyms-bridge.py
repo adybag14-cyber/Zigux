@@ -124,6 +124,12 @@ EXPECTED_CASES = [
         "expected": "version_before_short_help_expected.json",
     },
     {
+        "name": "long_version_before_short_help",
+        "argv": ["--version", "-h"],
+        "mode": "process_json",
+        "expected": "version_before_short_help_expected.json",
+    },
+    {
         "name": "version_before_long_help",
         "argv": ["-V", "--help"],
         "mode": "process_json",
@@ -378,6 +384,7 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge preserves version side effects before later parse failures"',
     'test "genksyms bridge renders unexpected long option argument like the fixture"',
     'test "genksyms bridge keeps version side effect before long help"',
+    'test "genksyms bridge keeps long version side effect before short help"',
     'test "genksyms bridge keeps long version side effect before long help"',
     'test "genksyms bridge keeps abbreviated long version side effect before long help"',
     'test "genksyms bridge rejects more than sixteen reference files like the C harness"',
@@ -447,8 +454,8 @@ def validate_checker_text(text: str) -> list[str]:
         'GENKSYMS_HARNESS_REL = f"{FIXTURE_ROOT_REL}/genksyms_bridge_c_harness.c"',
         'print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")',
         'print("PHASE2_GENKSYMS_BRIDGE=pass")',
-        "PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT",
-        "runtime_compile_failed",
+        'PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT',
+        'runtime_compile_failed',
     ]
     for marker in required_markers:
         if marker not in text:
@@ -471,14 +478,14 @@ def build_runtime_stdout_observation(expected_name: str) -> dict[str, object]:
 
 def validate_runtime_observation(case: dict[str, object], observation: dict[str, object], label: str) -> list[str]:
     issues: list[str] = []
-    expected = EXPECTED_OUTPUTS[case["expected"]]
-    if case["mode"] == "stdout_json":
-        if observation.get("exit_code") != 0:
+    expected = EXPECTED_OUTPUTS[case['expected']]
+    if case['mode'] == 'stdout_json':
+        if observation.get('exit_code') != 0:
             issues.append(f"{label}:exit_code:expected=0:actual={observation.get('exit_code')!r}")
-        if observation.get("stderr") != "":
+        if observation.get('stderr') != '':
             issues.append(f"{label}:stderr:expected='':actual={observation.get('stderr')!r}")
         try:
-            payload = json.loads(str(observation.get("stdout", "")))
+            payload = json.loads(str(observation.get('stdout', '')))
         except json.JSONDecodeError as exc:
             issues.append(f"{label}:stdout:invalid_json:{exc.msg}")
             return issues
@@ -487,7 +494,7 @@ def validate_runtime_observation(case: dict[str, object], observation: dict[str,
             return issues
         issues.extend(validate_expected_object(payload, expected, f"{label}:stdout_json"))
         return issues
-    expected_process = {"stdout": expected["stdout"], "stderr": expected["stderr"], "exit_code": expected["exit_code"]}
+    expected_process = {'stdout': expected['stdout'], 'stderr': expected['stderr'], 'exit_code': expected['exit_code']}
     issues.extend(validate_expected_object(observation, expected_process, f"{label}:process_json"))
     return issues
 
@@ -499,64 +506,64 @@ def validate_runtime_repeat(case: dict[str, object], first: dict[str, object], s
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="genksyms_bridge_selftest_") as tmp:
+    with tempfile.TemporaryDirectory(prefix='genksyms_bridge_selftest_') as tmp:
         root = Path(tmp)
 
         def build_root() -> None:
-            (root / "scripts/zigux").mkdir(parents=True, exist_ok=True)
+            (root / 'scripts/zigux').mkdir(parents=True, exist_ok=True)
             (root / FIXTURE_ROOT_REL).mkdir(parents=True, exist_ok=True)
-            (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
-            (root / GENKSYMS_TOOL_REL).write_text("\n".join(EXPECTED_TOOL_TESTS + [""]), encoding="utf-8")
-            (root / GENKSYMS_HARNESS_REL).write_text("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
-            (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
+            (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding='utf-8'), encoding='utf-8')
+            (root / GENKSYMS_TOOL_REL).write_text('\n'.join(EXPECTED_TOOL_TESTS + ['']), encoding='utf-8')
+            (root / GENKSYMS_HARNESS_REL).write_text('\n'.join(EXPECTED_HARNESS_MARKERS + ['']), encoding='utf-8')
+            (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + '\n', encoding='utf-8')
             for name, payload in EXPECTED_OUTPUTS.items():
-                (root / FIXTURE_ROOT_REL / name).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+                (root / FIXTURE_ROOT_REL / name).write_text(json.dumps(payload, indent=2) + '\n', encoding='utf-8')
 
         checks_run = 0
         build_root()
-        if validate_checker_text((root / GENKSYMS_CHECKER_REL).read_text(encoding="utf-8")):
+        if validate_checker_text((root / GENKSYMS_CHECKER_REL).read_text(encoding='utf-8')):
             return 1
         checks_run += 1
-        if validate_runtime_observation(EXPECTED_CASES[0], build_runtime_stdout_observation("minimal_expected.json"), "runtime:minimal"):
+        if validate_runtime_observation(EXPECTED_CASES[0], build_runtime_stdout_observation('minimal_expected.json'), 'runtime:minimal'):
             return 1
         checks_run += 1
-        if validate_runtime_observation(EXPECTED_CASES[4], {"stdout": "", "stderr": "option '--d' is ambiguous\n", "exit_code": 1}, "runtime:ambiguous"):
+        if validate_runtime_observation(EXPECTED_CASES[4], {'stdout': '', 'stderr': "option '--d' is ambiguous\n", 'exit_code': 1}, 'runtime:ambiguous'):
             return 1
         checks_run += 1
-        if not validate_runtime_observation(EXPECTED_CASES[0], {"stdout": "[]\n", "stderr": "", "exit_code": 0}, "runtime:minimal-bad"):
+        if not validate_runtime_observation(EXPECTED_CASES[0], {'stdout': '[]\n', 'stderr': '', 'exit_code': 0}, 'runtime:minimal-bad'):
             return 1
         checks_run += 1
-        if not validate_runtime_observation(EXPECTED_CASES[4], {"stdout": "", "stderr": "", "exit_code": 1}, "runtime:ambiguous-bad"):
+        if not validate_runtime_observation(EXPECTED_CASES[4], {'stdout': '', 'stderr': '', 'exit_code': 1}, 'runtime:ambiguous-bad'):
             return 1
         checks_run += 1
-        if validate_runtime_repeat(EXPECTED_CASES[0], build_runtime_stdout_observation("minimal_expected.json"), build_runtime_stdout_observation("minimal_expected.json"), "runtime:minimal-repeat"):
+        if validate_runtime_repeat(EXPECTED_CASES[0], build_runtime_stdout_observation('minimal_expected.json'), build_runtime_stdout_observation('minimal_expected.json'), 'runtime:minimal-repeat'):
             return 1
         checks_run += 1
-        if not validate_runtime_repeat(EXPECTED_CASES[0], build_runtime_stdout_observation("minimal_expected.json"), {"stdout": "{}\n", "stderr": "", "exit_code": 0}, "runtime:minimal-repeat-bad"):
-            return 1
-        checks_run += 1
-        build_root()
-        tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8")
-        (root / GENKSYMS_TOOL_REL).write_text(tool_text.replace(EXPECTED_TOOL_TESTS[0], "", 1), encoding="utf-8")
-        if not any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in validate_marker_counts((root / GENKSYMS_TOOL_REL).read_text(encoding="utf-8"), EXPECTED_TOOL_TESTS, GENKSYMS_TOOL_REL)):
+        if not validate_runtime_repeat(EXPECTED_CASES[0], build_runtime_stdout_observation('minimal_expected.json'), {'stdout': '{}\n', 'stderr': '', 'exit_code': 0}, 'runtime:minimal-repeat-bad'):
             return 1
         checks_run += 1
         build_root()
-        cases_payload = json.loads((root / GENKSYMS_CASES_REL).read_text(encoding="utf-8"))
+        tool_text = (root / GENKSYMS_TOOL_REL).read_text(encoding='utf-8')
+        (root / GENKSYMS_TOOL_REL).write_text(tool_text.replace(EXPECTED_TOOL_TESTS[0], '', 1), encoding='utf-8')
+        if not any(issue.startswith(f"marker_count:{GENKSYMS_TOOL_REL}:") for issue in validate_marker_counts((root / GENKSYMS_TOOL_REL).read_text(encoding='utf-8'), EXPECTED_TOOL_TESTS, GENKSYMS_TOOL_REL)):
+            return 1
+        checks_run += 1
+        build_root()
+        cases_payload = json.loads((root / GENKSYMS_CASES_REL).read_text(encoding='utf-8'))
         cases_payload.pop()
-        (root / GENKSYMS_CASES_REL).write_text(json.dumps(cases_payload, indent=2) + "\n", encoding="utf-8")
-        if not any(issue.startswith("genksyms_cases:case_count:") for issue in validate_cases(json.loads((root / GENKSYMS_CASES_REL).read_text(encoding="utf-8")))):
+        (root / GENKSYMS_CASES_REL).write_text(json.dumps(cases_payload, indent=2) + '\n', encoding='utf-8')
+        if not any(issue.startswith('genksyms_cases:case_count:') for issue in validate_cases(json.loads((root / GENKSYMS_CASES_REL).read_text(encoding='utf-8')))):
             return 1
         checks_run += 1
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
-    print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")
+    print('PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass')
     print(f"PHASE2_GENKSYMS_BRIDGE_SELF_TEST_CASE_COUNT={EXPECTED_SELF_TEST_CASE_COUNT}")
     return 0
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Validate the bounded Phase 2 genksyms wrapper packet.")
-    parser.add_argument("--self-test", action="store_true")
+    parser = argparse.ArgumentParser(description='Validate the bounded Phase 2 genksyms wrapper packet.')
+    parser.add_argument('--self-test', action='store_true')
     return parser.parse_args()
 
 
@@ -564,10 +571,10 @@ def main() -> int:
     args = parse_args()
     if args.self_test:
         return run_self_test()
-    print("PHASE2_GENKSYMS_BRIDGE=pass")
+    print('PHASE2_GENKSYMS_BRIDGE=pass')
     print(f"PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT={len(EXPECTED_CASES)}")
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())
