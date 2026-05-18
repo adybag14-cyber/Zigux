@@ -7,12 +7,25 @@ import argparse
 import tempfile
 from pathlib import Path
 
+DOCS_README_PATH = Path("Documentation/zigux/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 TESTS_README_PATH = Path("zigux/tests/README.md")
 HELPER_EVIDENCE_CATALOG_PATH = Path(
     "Documentation/zigux/phase6-helper-evidence-catalog.md"
 )
 HELPER_EVIDENCE_MANIFEST_PATH = Path("zigux/tests/phase6_helper_evidence_manifest.json")
+
+REQUIRED_DOCS_SNIPPETS = [
+    "Phase 6 notes",
+    "- `Documentation/zigux/phase6-helper-evidence-catalog.md`",
+    "- `zigux/tests/phase6_helper_evidence_manifest.json`",
+    "- `scripts/zigux/check-phase6-shared-surface.py`",
+    "- `scripts/zigux/check-phase6-present-entrypoints.py`",
+    "now keep the current Phase 6 docs-root reminder packet explicit from the documentation root so current helper parity and perf follow-through stays bounded to the directly readable shared evidence packet without widening into new helper semantics.",
+    "  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` docs-root evidence.",
+    "  * keep the docs-root Phase 6 summary aligned with `Documentation/zigux/phase6-helper-evidence-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, and `scripts/zigux/check-phase6-present-entrypoints.py`, so the shared helper packet keeps the bounded base64, bsearch, checksum, and hexdump evidence rows truthful without widening into missing helper-local parity or perf surfaces.",
+    "  * keep the roadmap-backed leaf-helper anchors explicit here too: `lib/base64.c`, `lib/bsearch.c`, `lib/checksum.c`, and `lib/hexdump.c` stay the Phase 6 scope, and follow-through should remain limited to reminder-surface truthfulness, helper-local parity, or perf-gate drift inside that bounded packet rather than runtime-core or freeze-map targets.",
+]
 
 REQUIRED_SCRIPTS_SNIPPETS = [
     "## Phase 6",
@@ -61,7 +74,7 @@ REQUIRED_MANIFEST_SNIPPETS = [
     '"make -C zigux phase6-hexdump-perf"',
 ]
 
-SELF_TEST_CASE_COUNT = 26
+SELF_TEST_CASE_COUNT = 35
 
 
 class ValidationError(RuntimeError):
@@ -85,6 +98,7 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
 
 
 def validate(repo_root: Path) -> None:
+    require_snippets(repo_root / DOCS_README_PATH, REQUIRED_DOCS_SNIPPETS)
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / TESTS_README_PATH, REQUIRED_TESTS_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
@@ -97,6 +111,7 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_repo(root: Path) -> None:
+    write(root / DOCS_README_PATH, "\n".join(REQUIRED_DOCS_SNIPPETS) + "\n")
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_SNIPPETS) + "\n")
     write(root / TESTS_README_PATH, "\n".join(REQUIRED_TESTS_SNIPPETS) + "\n")
     write(
@@ -134,6 +149,39 @@ def run_self_test() -> None:
 
         cases_run = 0
         for path, snippet in [
+            (root / DOCS_README_PATH, "Phase 6 notes"),
+            (
+                root / DOCS_README_PATH,
+                "- `Documentation/zigux/phase6-helper-evidence-catalog.md`",
+            ),
+            (
+                root / DOCS_README_PATH,
+                "- `zigux/tests/phase6_helper_evidence_manifest.json`",
+            ),
+            (
+                root / DOCS_README_PATH,
+                "- `scripts/zigux/check-phase6-shared-surface.py`",
+            ),
+            (
+                root / DOCS_README_PATH,
+                "- `scripts/zigux/check-phase6-present-entrypoints.py`",
+            ),
+            (
+                root / DOCS_README_PATH,
+                "now keep the current Phase 6 docs-root reminder packet explicit from the documentation root so current helper parity and perf follow-through stays bounded to the directly readable shared evidence packet without widening into new helper semantics.",
+            ),
+            (
+                root / DOCS_README_PATH,
+                "  * repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md`, `Documentation/zigux/phase6-perf-gate-survey.md`, and `zigux/tests/phase6_helper_parity_manifest.json`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` docs-root evidence.",
+            ),
+            (
+                root / DOCS_README_PATH,
+                "  * keep the docs-root Phase 6 summary aligned with `Documentation/zigux/phase6-helper-evidence-catalog.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `scripts/zigux/check-phase6-shared-surface.py`, and `scripts/zigux/check-phase6-present-entrypoints.py`, so the shared helper packet keeps the bounded base64, bsearch, checksum, and hexdump evidence rows truthful without widening into missing helper-local parity or perf surfaces.",
+            ),
+            (
+                root / DOCS_README_PATH,
+                "  * keep the roadmap-backed leaf-helper anchors explicit here too: `lib/base64.c`, `lib/bsearch.c`, `lib/checksum.c`, and `lib/hexdump.c` stay the Phase 6 scope, and follow-through should remain limited to reminder-surface truthfulness, helper-local parity, or perf-gate drift inside that bounded packet rather than runtime-core or freeze-map targets.",
+            ),
             (root / SCRIPTS_README_PATH, "## Phase 6"),
             (
                 root / SCRIPTS_README_PATH,
