@@ -19,6 +19,18 @@ fn abiBindingsModule(
     return abi_bindings;
 }
 
+fn addModuleTest(
+    b: *std.Build,
+    name: []const u8,
+    root_module: *std.Build.Module,
+) *std.Build.Step.Run {
+    const tests = b.addTest(.{
+        .name = name,
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addHelperTest(
     b: *std.Build,
     name: []const u8,
@@ -31,11 +43,23 @@ fn addHelperTest(
         .target = target,
         .optimize = optimize,
     });
-    const tests = b.addTest(.{
-        .name = name,
-        .root_module = root_module,
+    return addModuleTest(b, name, root_module);
+}
+
+fn addAbiHelperModule(
+    b: *std.Build,
+    root_source_file: []const u8,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+    abi_bindings: *std.Build.Module,
+) *std.Build.Module {
+    const root_module = b.createModule(.{
+        .root_source_file = b.path(root_source_file),
+        .target = target,
+        .optimize = optimize,
     });
-    return b.addRunArtifact(tests);
+    root_module.addImport("abi_bindings", abi_bindings);
+    return root_module;
 }
 
 fn addAbiHelperTest(
@@ -46,18 +70,11 @@ fn addAbiHelperTest(
     optimize: std.builtin.OptimizeMode,
     abi_bindings: *std.Build.Module,
 ) *std.Build.Step.Run {
-    const root_module = b.createModule(.{
-        .root_source_file = b.path(root_source_file),
-        .target = target,
-        .optimize = optimize,
-    });
-    root_module.addImport("abi_bindings", abi_bindings);
-
-    const tests = b.addTest(.{
-        .name = name,
-        .root_module = root_module,
-    });
-    return b.addRunArtifact(tests);
+    return addModuleTest(
+        b,
+        name,
+        addAbiHelperModule(b, root_source_file, target, optimize, abi_bindings),
+    );
 }
 
 pub fn build(b: *std.Build) void {
@@ -90,6 +107,18 @@ pub fn build(b: *std.Build) void {
         optimize,
         abi_bindings,
     );
+    const unsafe_policy_module = addAbiHelperModule(
+        b,
+        "unsafe_policy.zig",
+        target,
+        optimize,
+        abi_bindings,
+    );
+    const unsafe_policy = addModuleTest(
+        b,
+        "helper-unsafe-policy",
+        unsafe_policy_module,
+    );
     const atomic = addHelperTest(
         b,
         "helper-atomic",
@@ -104,6 +133,18 @@ pub fn build(b: *std.Build) void {
         target,
         optimize,
     );
+    const mmio_module = b.createModule(.{
+        .root_source_file = b.path("mmio.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    mmio_module.addImport("abi_bindings", abi_bindings);
+    mmio_module.addImport("unsafe_policy", unsafe_policy_module);
+    const mmio = addModuleTest(
+        b,
+        "helper-mmio",
+        mmio_module,
+    );
 
     const policy_helpers = b.step(
         "test-policy-helpers",
@@ -111,6 +152,7 @@ pub fn build(b: *std.Build) void {
     );
     policy_helpers.dependOn(&panic_policy.step);
     policy_helpers.dependOn(&allocator_policy.step);
+    policy_helpers.dependOn(&unsafe_policy.step);
 
     const low_level_helpers = b.step(
         "test-low-level-helpers",
@@ -118,6 +160,7 @@ pub fn build(b: *std.Build) void {
     );
     low_level_helpers.dependOn(&atomic.step);
     low_level_helpers.dependOn(&barrier.step);
+    low_level_helpers.dependOn(&mmio.step);
 
     const layout_step = b.step(
         "test-layout-assert",
@@ -132,7 +175,9 @@ pub fn build(b: *std.Build) void {
     all.dependOn(&layout_assert.step);
     all.dependOn(&panic_policy.step);
     all.dependOn(&allocator_policy.step);
+    all.dependOn(&unsafe_policy.step);
     all.dependOn(&atomic.step);
     all.dependOn(&barrier.step);
+    all.dependOn(&mmio.step);
     b.default_step = all;
 }
