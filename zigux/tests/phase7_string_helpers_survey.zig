@@ -8,6 +8,22 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    if (needle.len == 0) return 0;
+
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+    return count;
+}
+
+fn expectContainsCount(haystack: []const u8, needle: []const u8, expected: usize) !void {
+    try std.testing.expectEqual(expected, countOccurrences(haystack, needle));
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
@@ -46,7 +62,9 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path");
     try expectContains(slice_note, "quoted cmdline duplication that collapses trailing NULs, replaces inter-argument NULs with spaces, and then reuses the quotable escape path inside caller-owned output");
     try expectContains(slice_note, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet");
+    try expectContainsCount(slice_note, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet", 1);
     try expectContains(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
+    try expectContainsCount(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
     try expectNotContains(slice_note, "same-packet truthfulness repairs");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_manifest.json");
@@ -101,6 +119,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test");
     try expectContains(manifest, "shared no-sample boundary and helper-local reviewability");
     try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
+    try expectContainsCount(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
     try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`");
     try expectNotContains(manifest, "validator-backed reviewability");
     try expectNotContains(manifest, "missing_review_surfaces");
