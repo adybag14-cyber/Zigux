@@ -62,6 +62,10 @@ LANE_SEQUENCING_REENTRY_GATE_MARKER = "surviving registration-reentry runtime co
 LANE_SEQUENCING_REENTRY_DETAIL_MARKER = "balanced registration re-entry replay in `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` across both the initialized and selftest_complete stages"
 LANE_SEQUENCING_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
 LANE_SEQUENCING_FREEZE_BOUNDARY_MARKER = "keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness"
+LANE_SEQUENCING_HISTORICAL_SURVEY_TRIO_MARKER = "the older wider-family reminder-survey trio `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_loader_gap_survey.zig`"
+LANE_SEQUENCING_HISTORICAL_VOCABULARY_MARKER = "may still preserve blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and depmod-publication vocabulary"
+LANE_SEQUENCING_NOT_OWNER_EVIDENCE_MARKER = "they no longer count as current shared-owner evidence for this narrow packet unless a fresh repo reread proves the broader loader family returned"
+LANE_SEQUENCING_STALE_OVERCLAIM_BLOCKER_MARKER = "Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work."
 
 TESTS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 TESTS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
@@ -150,6 +154,10 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     LANE_SEQUENCING_REENTRY_DETAIL_MARKER,
     LANE_SEQUENCING_BACKLOG_MARKER,
     LANE_SEQUENCING_FREEZE_BOUNDARY_MARKER,
+    LANE_SEQUENCING_HISTORICAL_SURVEY_TRIO_MARKER,
+    LANE_SEQUENCING_HISTORICAL_VOCABULARY_MARKER,
+    LANE_SEQUENCING_NOT_OWNER_EVIDENCE_MARKER,
+    LANE_SEQUENCING_STALE_OVERCLAIM_BLOCKER_MARKER,
 ]
 
 TESTS_README_REQUIRED_MARKERS = [
@@ -321,6 +329,8 @@ def build_lane_sequencing_fixture_text() -> str:
 - {LANE_SEQUENCING_REENTRY_GATE_MARKER}
 - surviving companion boundaries inside the same narrow packet: the {LANE_SEQUENCING_REENTRY_DETAIL_MARKER}
 - {LANE_SEQUENCING_FREEZE_BOUNDARY_MARKER}
+- {LANE_SEQUENCING_HISTORICAL_SURVEY_TRIO_MARKER} {LANE_SEQUENCING_HISTORICAL_VOCABULARY_MARKER}, and {LANE_SEQUENCING_NOT_OWNER_EVIDENCE_MARKER}
+- {LANE_SEQUENCING_STALE_OVERCLAIM_BLOCKER_MARKER}
 
 Current `master` {LANE_SEQUENCING_BACKLOG_MARKER} that earlier reminder surfaces described.
 """
@@ -445,7 +455,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, fail-closed companion, balanced registration re-entry companion, backlog posture, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, fail-closed companion, balanced registration re-entry companion, backlog posture, the older runtime-loader survey trio's historical-only status, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
     )
     parser.add_argument(
         "--repo-root",
