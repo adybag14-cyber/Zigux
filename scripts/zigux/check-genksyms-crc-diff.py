@@ -83,13 +83,52 @@ def compile_run_zig(root: Path, tmp_dir: Path, zig_tool: Path, inputs: Path, act
     actual.write_text(result.stdout, encoding="utf-8", newline="\n")
 
 
+def expect_system_exit_contains(callback, needle: str) -> None:
+    try:
+        callback()
+    except SystemExit as exc:
+        if needle not in str(exc):
+            raise SystemExit(f"GENKSYMS_CRC_SELF_TEST=fail: expected {needle!r} in {exc!s}")
+        return
+    raise SystemExit(f"GENKSYMS_CRC_SELF_TEST=fail: expected SystemExit containing {needle!r}")
+
+
 def run_self_test() -> int:
     sample_a = canonicalize_json('{"cases":[{"crc_hex":"0x1451dab1","input":"int"}]}')
     sample_b = canonicalize_json('{\n  "cases": [ { "input": "int", "crc_hex": "0x1451dab1" } ]\n}')
     if sample_a != sample_b:
         raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+
+    derived_root = repo_root_from(Path("/tmp/zigux/scripts/zigux/check-genksyms-crc-diff.py"), None)
+    if derived_root != Path("/tmp/zigux").resolve():
+        raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+
+    explicit_root = repo_root_from(Path("/tmp/ignored/scripts/zigux/check-genksyms-crc-diff.py"), "/tmp/explicit-root")
+    if explicit_root != Path("/tmp/explicit-root").resolve():
+        raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+
+    expected_paths = (
+        derived_root / "scripts" / "zigux" / "genksyms_crc.zig",
+        derived_root / "zigux" / "tests" / "fixtures" / "genksyms_crc" / "genksyms_crc_c_harness.c",
+        derived_root / "zigux" / "tests" / "fixtures" / "genksyms_crc" / "inputs.txt",
+        derived_root / "zigux" / "tests" / "fixtures" / "genksyms_crc" / "expected.json",
+    )
+    if fixture_paths(derived_root) != expected_paths:
+        raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+
+    with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_") as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        left = tmp_dir / "left.json"
+        equivalent = tmp_dir / "equivalent.json"
+        mismatch = tmp_dir / "mismatch.json"
+        left.write_text('{"cases":[{"crc_hex":"0x1451dab1","input":"int"}]}\n', encoding="utf-8")
+        equivalent.write_text('{\n  "cases": [ { "input": "int", "crc_hex": "0x1451dab1" } ]\n}\n', encoding="utf-8")
+        mismatch.write_text('{"cases":[{"crc_hex":"0x8cdc1683","input":"x"}]}\n', encoding="utf-8")
+        compare_json("selftest-equal", left, equivalent)
+        expect_system_exit_contains(lambda: compare_json("selftest-mismatch", left, mismatch), "selftest-mismatch mismatch")
+
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=2")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=6")
     return 0
 
 
