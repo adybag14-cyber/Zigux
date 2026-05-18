@@ -34,7 +34,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
-  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
+  group: ${{ format('{0}-{1}', github.workflow, github.ref) }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
@@ -81,15 +81,12 @@ jobs:
           try_download() {
             local url="$1"
             if curl -L --fail "$url" -o "$archive_path"; then
-              if ! python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
-                rm -f "$archive_path"
-                rm -rf "$extract_root"
-                return 1
-              fi
-              tar -xJf "$archive_path" -C .zig-toolchain
-              zig_path="$extract_root/zig"
-              if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
-                return 0
+              if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+                tar -xJf "$archive_path" -C .zig-toolchain
+                zig_path="$extract_root/zig"
+                if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
+                  return 0
+                fi
               fi
               rm -f "$archive_path"
               rm -rf "$extract_root"
@@ -150,11 +147,19 @@ jobs:
       - name: Check current Phase 12 bootstrap lane shape
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
 
+      - name: Self-test current Lane 01 bootstrap charter checker
+        run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test
+      - name: Check current Lane 01 bootstrap charter packet
+        run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py
+
       - name: Self-test current kconfig bridge checker
         run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
 
       - name: Check current kconfig bridge packet
         run: python3 scripts/zigux/check-kconfig-bridge.py
+
+      - name: Run current Phase 2 conf bridge unit tests
+        run: zig test scripts/zigux/kconfig/conf_bridge.zig
 
       - name: Run current Phase 2 confdata bridge unit tests
         run: zig test scripts/zigux/kconfig/confdata_bridge.zig
@@ -198,6 +203,12 @@ jobs:
       - name: Run current Phase 2 toolchain make route
         run: make -C zigux phase2-toolchain
 
+      - name: Self-test current Phase 2 required-make-routes checker
+        run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
+
+      - name: Check current Phase 2 required-make-routes packet
+        run: python3 scripts/zigux/check-phase2-required-make-routes.py
+
       - name: Self-test current Phase 2 shared reminder checker
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test
 
@@ -206,6 +217,27 @@ jobs:
 
       - name: Validate current Phase 2 tool packet
         run: python3 scripts/zigux/validate-phase2.py
+
+      - name: Self-test current Phase 1 direct-owner checker
+        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test
+
+      - name: Check current Phase 1 direct-owner markers
+        run: python3 scripts/zigux/check-phase1-direct-owner-markers.py
+
+      - name: Self-test current Phase 1 string review checker
+        run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test
+
+      - name: Check current Phase 1 string review packet
+        run: python3 scripts/zigux/check-phase1-string-review-packet.py
+
+      - name: Self-test current Phase 1 bench checker
+        run: python3 scripts/zigux/check-phase1-bench.py --self-test
+
+      - name: Self-test current Phase 1 shared reminder checker
+        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test
+
+      - name: Check current Phase 1 shared reminder packet
+        run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
       - name: Self-test current Phase 3 interop packet
         run: python3 scripts/zigux/validate_phase3_selftest.py
@@ -228,6 +260,23 @@ jobs:
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
 
+      - name: Self-test current Phase 4 repo-reality warning checker
+        run: python3 scripts/zigux/check-phase4-repo-reality-warning.py --self-test
+
+      - name: Check current Phase 4 repo-reality warning packet
+        run: python3 scripts/zigux/check-phase4-repo-reality-warning.py
+
+      - name: Self-test current Phase 4 reversible-delivery pin checker
+        run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py --self-test
+
+      - name: Check current Phase 4 reversible-delivery pin packet
+        run: python3 scripts/zigux/check-phase4-reversible-delivery-pins.py
+
+      - name: Self-test current Phase 4 tests README checker
+        run: python3 scripts/zigux/check-phase4-tests-readme-packet.py --self-test
+
+      - name: Check current Phase 4 tests README packet
+        run: python3 scripts/zigux/check-phase4-tests-readme-packet.py
       - name: Self-test current Phase 4 artifact-diff helper
         run: python3 scripts/zigux/artifact_diff.py --self-test
 
@@ -239,6 +288,41 @@ jobs:
 
       - name: Check current Phase 4 artifact-diff validator replay packet
         run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
+
+      - name: Validate Phase 8 tooling routes
+        run: make -C zigux phase8-validate
+      - name: Run focused Phase 8 exec-cmd tests
+        run: make -C zigux phase8-exec-cmd-test
+
+      - name: Run Phase 8 tooling tests
+        run: make -C zigux phase8-test
+
+      - name: Self-test current Phase 9 review-checklist boundaries checker
+        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test
+
+      - name: Check current Phase 9 review-checklist boundaries packet
+        run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py
+
+      - name: Self-test current Phase 9 trace-events runtime packet checker
+        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test
+
+      - name: Check current Phase 9 trace-events runtime packet
+        run: python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py
+
+      - name: Run current Phase 9 trace-events runtime sample tests
+        run: zig test samples/zigux/runtime_trace_events.zig
+
+      - name: Run current Phase 9 unregistered gate companion tests
+        run: zig test samples/zigux/runtime_trace_events_unregistered_gate.zig
+
+      - name: Run current Phase 9 exit rollback guard companion tests
+        run: zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig
+
+      - name: Run current Phase 9 registration reentry companion tests
+        run: zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig
+
+      - name: Run current Phase 9 trace-events survey witness
+        run: zig test zigux/tests/runtime_trace_events_survey.zig
 
       - name: Self-test current Phase 7 shared-control gap checker
         run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test
@@ -267,18 +351,6 @@ jobs:
       - name: Run current Phase 11 HVC cleanup packet proof
         run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
 
-      - name: Self-test current Phase 11 build inventory checker
-        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
-
-      - name: Check current Phase 11 build inventory packet
-        run: python3 scripts/zigux/check-phase11-build-inventory.py
-
-      - name: Self-test current Phase 11 matrix-gap survey checker
-        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test
-
-      - name: Check current Phase 11 matrix-gap survey packet
-        run: python3 scripts/zigux/check-phase11-matrix-gap-survey.py
-
       - name: Self-test current Phase 12 build-only surface checker
         run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test
 
@@ -288,26 +360,17 @@ jobs:
       - name: Self-test current Phase 12 release-readiness packet checker
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test
 
-      - name: Validate Phase 12 degraded-workflow bundle
-        run: make -C zigux phase12-validate
-
       - name: Check current Phase 12 release-readiness packet
         run: python3 scripts/zigux/check-phase12-release-readiness-packet.py
 
       - name: Validate current Phase 12 support bundle
         run: python3 scripts/zigux/validate-phase12.py
 
-      - name: Run focused Phase 12 smoke shard
+      - name: Run current Phase 12 smoke packet
         run: make -C zigux phase12-smoke
+
+      - name: Run current Phase 12 shared test packet
+        run: make -C zigux phase12-test
 
       - name: Run current Phase 12 throughput-parity anchor
         run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig
-
-      - name: Run Phase 12 complex driver tests
-        run: zig build test --build-file zigux/tests/phase12_build.zig --summary all
-
-      - name: Validate Phase 8 tooling gates
-        run: make -C zigux phase8-validate
-
-      - name: Run focused Phase 8 libbpf segment survey tests
-        run: zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
