@@ -87,6 +87,9 @@ REQUIRED_MARKERS = {
         '"phase3-low-level-wrappers-test"',
     ),
     WORKFLOW_PATH: (
+        'name: Self-test current Phase 3 low-level wrapper survey validator',
+        'run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test',
+        'name: Check current Phase 3 low-level wrapper survey packet',
         'name: Run current Phase 3 low-level wrapper replay',
         'run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig',
     ),
@@ -142,6 +145,9 @@ SELF_TEST_CASES = (
     (WRAPPER_BUILD_PATH, 'mmio.addImport("abi_bindings", abi_bindings);'),
     (WRAPPER_BUILD_PATH, 'mmio.addImport("unsafe_policy", unsafe_policy);'),
     (WRAPPER_BUILD_PATH, '"phase3-low-level-wrappers-test"'),
+    (WORKFLOW_PATH, 'name: Self-test current Phase 3 low-level wrapper survey validator'),
+    (WORKFLOW_PATH, 'run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test'),
+    (WORKFLOW_PATH, 'name: Check current Phase 3 low-level wrapper survey packet'),
     (WORKFLOW_PATH, 'name: Run current Phase 3 low-level wrapper replay'),
     (WORKFLOW_PATH, 'run: zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig'),
 )
