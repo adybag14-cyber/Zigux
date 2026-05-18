@@ -25,6 +25,7 @@ MODULE_SLICE_PATH = "Documentation/zigux/phase9-runtime-trace-events-module-slic
 TESTS_README_PATH = "zigux/tests/README.md"
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SAMPLES_README_PATH = "samples/zigux/README.md"
+MAKEFILE_PATH = "zigux/Makefile"
 
 PHASE9_SHARED_PACKET_MARKER = "if the change touches the shared Phase 9 runtime-pilot packet"
 PHASE9_SCRIPTS_PACKET_MARKER = "Phase 9 flow - the current shared runtime-pilot packet is narrow and review-first"
@@ -107,6 +108,7 @@ SCRIPTS_README_PACKET_SELF_TEST_MARKER = "`python3 scripts/zigux/check-phase9-tr
 SCRIPTS_README_BOUNDARY_LIVE_MARKER = "`python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`"
 SCRIPTS_README_PACKET_LIVE_MARKER = "`python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py`"
 SCRIPTS_README_FREEZE_BOUNDARY_MARKER = "keep the freeze-map boundary explicit too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues"
+SCRIPTS_README_MAKEFILE_BOUNDARY_MARKER = "keep `zigux/Makefile` explicit only as a readable non-owner surface whose live body still lacks dedicated `phase9-*` runtime-pilot routes"
 
 SAMPLES_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 SAMPLES_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
@@ -129,6 +131,12 @@ MODULE_SLICE_PHASE_BOUNDARY_HEADING = "Keep earlier-phase references in their ow
 MODULE_SLICE_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited sample-local lifecycle tracking"
 MODULE_SLICE_PHASE2_BOUNDARY_MARKER = "remain Phase 2 references"
 MODULE_SLICE_PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references."
+
+MAKEFILE_FORBIDDEN_ROUTE_FIXTURES = [
+    "phase9-test",
+    "phase9-runtime-trace-events-sample-tests",
+    "phase9",
+]
 
 CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
@@ -235,6 +243,7 @@ SCRIPTS_README_REQUIRED_MARKERS = [
     SCRIPTS_README_FAIL_CLOSED_MARKER,
     SCRIPTS_README_REENTRY_COMPANION_MARKER,
     SCRIPTS_README_BACKLOG_MARKER,
+    SCRIPTS_README_MAKEFILE_BOUNDARY_MARKER,
     SCRIPTS_README_FREEZE_BOUNDARY_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
@@ -275,6 +284,17 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def find_makefile_phase9_routes(text: str) -> list[str]:
+    routes: list[str] = []
+    for raw_line in text.splitlines():
+        stripped = raw_line.strip()
+        if not stripped or stripped.startswith("#") or stripped.startswith(".PHONY:"):
+            continue
+        if stripped.startswith("phase9") and ":" in stripped:
+            routes.append(stripped.split(":", 1)[0])
+    return routes
+
+
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
     docs_readme_path = root / DOCS_README_PATH
@@ -284,6 +304,7 @@ def validate(root: Path) -> list[str]:
     tests_readme_path = root / TESTS_README_PATH
     scripts_readme_path = root / SCRIPTS_README_PATH
     samples_readme_path = root / SAMPLES_README_PATH
+    makefile_path = root / MAKEFILE_PATH
     if not docs_readme_path.exists():
         failures.append(f"missing_file:{DOCS_README_PATH}")
     if not checklist_path.exists():
@@ -298,6 +319,8 @@ def validate(root: Path) -> list[str]:
         failures.append(f"missing_file:{SCRIPTS_README_PATH}")
     if not samples_readme_path.exists():
         failures.append(f"missing_file:{SAMPLES_README_PATH}")
+    if not makefile_path.exists():
+        failures.append(f"missing_file:{MAKEFILE_PATH}")
     if failures:
         return failures
 
@@ -335,6 +358,10 @@ def validate(root: Path) -> list[str]:
     for marker in SAMPLES_README_REQUIRED_MARKERS:
         if marker not in samples_readme:
             failures.append(f"missing_marker:{SAMPLES_README_PATH}:{marker}")
+
+    makefile = read_text(root, MAKEFILE_PATH)
+    for route in find_makefile_phase9_routes(makefile):
+        failures.append(f"unexpected_phase9_route:{MAKEFILE_PATH}:{route}")
 
     return failures
 
@@ -404,6 +431,7 @@ def build_scripts_readme_fixture_text() -> str:
 - {SCRIPTS_README_BOUNDARY_SELF_TEST_MARKER}, {SCRIPTS_README_PACKET_SELF_TEST_MARKER}, {SCRIPTS_README_BOUNDARY_LIVE_MARKER}, and {SCRIPTS_README_PACKET_LIVE_MARKER} replay the shipped bounded Phase 9 reminder checks
 - {SCRIPTS_README_TRACE_EVENTS_SAMPLE_MARKER} remains the surviving direct runtime-module sample and still exposes {SCRIPTS_README_SELFTEST_HOOK_MARKER} together with {SCRIPTS_README_LIFECYCLE_MARKER}, while {SCRIPTS_README_UNREGISTERED_GATE_MARKER} keeps the same narrow packet's {SCRIPTS_README_FAIL_CLOSED_MARKER} and {SCRIPTS_README_REENTRY_GATE_MARKER} {SCRIPTS_README_REENTRY_COMPANION_MARKER}
 - {SCRIPTS_README_BACKLOG_MARKER}, the shared `zigux/tests/runtime_*` replay family, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, or the older `samples/zigux/runtime_*_loader.zig` scaffolds, so treat those loader, build, kernel, workflow, and sample paths as absent backlog evidence until a fresh reread proves they returned
+- {SCRIPTS_README_MAKEFILE_BOUNDARY_MARKER}, and keep `.github/workflows/zigux-bootstrap.yml` framed only as a shared repo-level workflow surface rather than dedicated Phase 9 evidence
 - {SCRIPTS_README_FREEZE_BOUNDARY_MARKER}
 - keep the older non-owner boundaries explicit here too: {PHASE2_CONF_BRIDGE_MARKER} and {PHASE2_CONFDATA_BRIDGE_MARKER} {PHASE2_BOUNDARY_MARKER}, while {PHASE3_EXPORTS_MARKER} and {PHASE3_EXPORT_SHIM_MARKER} {PHASE3_BOUNDARY_MARKER}
 """
@@ -426,6 +454,24 @@ Treat {SAMPLES_README_UNREGISTERED_GATE_MARKER} as the same narrow runtime packe
 """
 
 
+def build_makefile_fixture_text() -> str:
+    return """PYTHON ?= python3
+ZIG ?= zig
+ZIGUX_ROOT := ..
+
+.PHONY: phase8-test phase10-test phase12-test
+
+phase8-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
+
+phase10-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase10_build.zig --summary all
+
+phase12-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase12_build.zig --summary all
+"""
+
+
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
@@ -440,6 +486,7 @@ def seed_fixture_tree(base: Path) -> None:
     write_text(base / TESTS_README_PATH, build_tests_readme_fixture_text())
     write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text())
     write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
+    write_text(base / MAKEFILE_PATH, build_makefile_fixture_text())
 
 
 def run_self_test() -> int:
@@ -485,6 +532,11 @@ def run_self_test() -> int:
             write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text().replace(marker, ""))
             expect_failure(base, f"missing_marker:{SAMPLES_README_PATH}:{marker}")
 
+        for route in MAKEFILE_FORBIDDEN_ROUTE_FIXTURES:
+            seed_fixture_tree(base)
+            write_text(base / MAKEFILE_PATH, build_makefile_fixture_text() + f"\n{route}:\n\t@true\n")
+            expect_failure(base, f"unexpected_phase9_route:{MAKEFILE_PATH}:{route}")
+
         for rel_path in [
             DOCS_README_PATH,
             REVIEW_CHECKLIST_PATH,
@@ -493,6 +545,7 @@ def run_self_test() -> int:
             TESTS_README_PATH,
             SCRIPTS_README_PATH,
             SAMPLES_README_PATH,
+            MAKEFILE_PATH,
         ]:
             seed_fixture_tree(base)
             (base / rel_path).unlink()
@@ -508,12 +561,13 @@ def run_self_test() -> int:
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT={len(MAKEFILE_FORBIDDEN_ROUTE_FIXTURES)}")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, and samples-root reminder all keep the surviving trace-events runtime packet, fail-closed companion, balanced registration re-entry companion, backlog posture, the older runtime-loader survey trio's historical-only status, and older Phase 2 versus Phase 3 non-owner boundaries explicit."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, backlog posture, older runtime-loader survey trio's historical-only status, older Phase 2 versus Phase 3 non-owner boundaries, and the no-Phase-9-make-route policy explicit."
     )
     parser.add_argument(
         "--repo-root",
@@ -544,6 +598,7 @@ def main() -> int:
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_TESTS_README_MARKER_COUNT={len(TESTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
     print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES_FORBIDDEN_MAKEFILE_ROUTE_COUNT={len(MAKEFILE_FORBIDDEN_ROUTE_FIXTURES)}")
     print("PHASE9_REVIEW_CHECKLIST_PHASE_BOUNDARIES=pass")
     return 0
 
