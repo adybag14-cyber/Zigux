@@ -176,6 +176,31 @@ def run_self_test() -> int:
             else:
                 os.environ["ZIG"] = saved_zig
 
+    with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_missing_tools_") as missing_tool_tmp_dir_str:
+        missing_tool_tmp_dir = Path(missing_tool_tmp_dir_str)
+        saved_path = os.environ.get("PATH")
+        saved_cc = os.environ.get("CC")
+        saved_zig = os.environ.get("ZIG")
+        try:
+            os.environ["PATH"] = ""
+            os.environ.pop("CC", None)
+            os.environ.pop("ZIG", None)
+            expect_system_exit_contains(lambda: find_compiler(None), "C compiler not found")
+            expect_system_exit_contains(lambda: find_zig(None, missing_tool_tmp_dir / "repo"), "zig not found")
+        finally:
+            if saved_path is None:
+                os.environ.pop("PATH", None)
+            else:
+                os.environ["PATH"] = saved_path
+            if saved_cc is None:
+                os.environ.pop("CC", None)
+            else:
+                os.environ["CC"] = saved_cc
+            if saved_zig is None:
+                os.environ.pop("ZIG", None)
+            else:
+                os.environ["ZIG"] = saved_zig
+
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         left = tmp_dir / "left.json"
@@ -188,7 +213,7 @@ def run_self_test() -> int:
         expect_system_exit_contains(lambda: compare_json("selftest-mismatch", left, mismatch), "selftest-mismatch mismatch")
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=11")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
