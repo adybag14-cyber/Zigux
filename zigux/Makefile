@@ -72,6 +72,12 @@ phase8-validate:
 phase8-exec-cmd-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_exec_cmd_only_build.zig --summary all
 
+phase8-help-kallsyms-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_help_kallsyms_only_build.zig --summary all
+
+phase8-kallsyms-test:
+	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_kallsyms_only_build.zig --summary all
+
 phase8-libbpf-segments-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all
 
