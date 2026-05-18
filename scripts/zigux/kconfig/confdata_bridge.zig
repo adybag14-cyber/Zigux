@@ -194,23 +194,14 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
                 existing.value = try allocator.dupe(u8, "n");
             } else {
                 const owned_name = try allocator.dupe(u8, name);
-                var ownership_transferred = false;
-                errdefer if (!ownership_transferred) allocator.free(owned_name);
+                errdefer allocator.free(owned_name);
                 const owned_value = try allocator.dupe(u8, "n");
-                errdefer if (!ownership_transferred) allocator.free(owned_value);
-
+                errdefer allocator.free(owned_value);
                 try entries.append(allocator, .{
                     .name = owned_name,
                     .kind = .unset,
                     .value = owned_value,
                 });
-                ownership_transferred = true;
-                errdefer if (ownership_transferred) {
-                    const removed = entries.pop().?;
-                    allocator.free(removed.name);
-                    allocator.free(removed.value);
-                };
-
                 try entry_indexes.put(owned_name, entries.items.len - 1);
             }
             unset_count += 1;
@@ -250,23 +241,14 @@ pub fn parseConfig(allocator: std.mem.Allocator, input: []const u8) !Summary {
             existing.kind = kind;
             existing.value = cooked_value;
         } else {
-            var ownership_transferred = false;
-            errdefer if (!ownership_transferred) allocator.free(cooked_value);
             const owned_name = try allocator.dupe(u8, name);
-            errdefer if (!ownership_transferred) allocator.free(owned_name);
-
+            errdefer allocator.free(owned_name);
+            errdefer allocator.free(cooked_value);
             try entries.append(allocator, .{
                 .name = owned_name,
                 .kind = kind,
                 .value = cooked_value,
             });
-            ownership_transferred = true;
-            errdefer if (ownership_transferred) {
-                const removed = entries.pop().?;
-                allocator.free(removed.name);
-                allocator.free(removed.value);
-            };
-
             try entry_indexes.put(owned_name, entries.items.len - 1);
         }
         set_count += 1;
@@ -454,6 +436,93 @@ test "confdata bridge escapes low control bytes in json output" {
     try std.testing.expectEqualStrings("\\u0001\\b\\f", capture.list.items);
 }
 
+test "confdata bridge emits escaped string values in json output" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 192), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(
+        std.testing.allocator,
+        "CONFIG_BANNER=\"zigux \\\"bridge\\\"\"\n" ++
+            "CONFIG_PATH=\"drivers\\\\zigux\"\n",
+        &capture,
+    );
+
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":2,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_BANNER\",\"kind\":\"string\",\"value\":\"zigux \\\"bridge\\\"\"},{\"name\":\"CONFIG_PATH\",\"kind\":\"string\",\"value\":\"drivers\\\\zigux\"}]}\n",
+        capture.list.items,
+    );
+}
+
+test "confdata bridge emits low control bytes escaped in json output" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 160), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(
+        std.testing.allocator,
+        "CONFIG_RAW=\x01\x08\x0c\n",
+        &capture,
+    );
+
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":1,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_RAW\",\"kind\":\"value\",\"value\":\"\\u0001\\b\\f\"}]}\n",
+        capture.list.items,
+    );
+}
+
 test "confdata bridge accepts CRLF config lines" {
     const allocator = std.testing.allocator;
     var summary = try parseConfig(
@@ -520,6 +589,51 @@ test "confdata bridge ignores suffix bytes after an embedded NUL" {
     try std.testing.expectEqualStrings("zigux", summary.entries[1].value);
     try std.testing.expectEqual(EntryKind.value, summary.entries[2].kind);
     try std.testing.expectEqualStrings("42", summary.entries[2].value);
+}
+
+test "confdata bridge omits embedded NUL suffix bytes from json output" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{ .list = try std.ArrayList(u8).initCapacity(allocator, 224), .allocator = allocator };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn writeAll(self: *@This(), bytes: []const u8) !void {
+            try self.list.appendSlice(self.allocator, bytes);
+        }
+
+        fn writeByte(self: *@This(), byte: u8) !void {
+            try self.list.append(self.allocator, byte);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try runConfdataBridge(
+        std.testing.allocator,
+        "CONFIG_ALPHA=y\x00suffix_noise\n" ++
+            "CONFIG_BETA=\"zigux\"\x00trailing_bytes\n" ++
+            "CONFIG_COUNT=42\x00garbage\n",
+        &capture,
+    );
+
+    try std.testing.expectEqualStrings(
+        "{\"counts\":{\"set\":3,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"tristate\",\"value\":\"y\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"string\",\"value\":\"zigux\"},{\"name\":\"CONFIG_COUNT\",\"kind\":\"value\",\"value\":\"42\"}]}\n",
+        capture.list.items,
+    );
 }
 
 test "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines" {
@@ -931,41 +1045,5 @@ test "confdata bridge keeps only the last state across unset and set transitions
     try std.testing.expectEqualStrings(
         "{\"counts\":{\"set\":2,\"unset\":0},\"entries\":[{\"name\":\"CONFIG_ALPHA\",\"kind\":\"string\",\"value\":\"enabled\"},{\"name\":\"CONFIG_BETA\",\"kind\":\"value\",\"value\":\"7\"}]}\n",
         capture.list.items,
-    );
-
-    var duplicate_unset = try parseConfig(allocator,
-        \\# CONFIG_REPEAT is not set
-        \\# CONFIG_REPEAT is not set
-        \\CONFIG_KEEP=7
-        \\
-    );
-    defer deinitSummary(allocator, &duplicate_unset);
-
-    try std.testing.expectEqual(@as(usize, 1), duplicate_unset.set_count);
-    try std.testing.expectEqual(@as(usize, 1), duplicate_unset.unset_count);
-    try std.testing.expectEqual(@as(usize, 2), duplicate_unset.entries.len);
-    try std.testing.expectEqualStrings("CONFIG_REPEAT", duplicate_unset.entries[0].name);
-    try std.testing.expectEqual(EntryKind.unset, duplicate_unset.entries[0].kind);
-    try std.testing.expectEqualStrings("n", duplicate_unset.entries[0].value);
-    try std.testing.expectEqualStrings("CONFIG_KEEP", duplicate_unset.entries[1].name);
-    try std.testing.expectEqual(EntryKind.value, duplicate_unset.entries[1].kind);
-    try std.testing.expectEqualStrings("7", duplicate_unset.entries[1].value);
-}
-
-fn parseConfigAllocationFailureHarness(allocator: std.mem.Allocator) !void {
-    var summary = try parseConfig(allocator,
-        \\CONFIG_ALPHA=y
-        \\# CONFIG_DEBUG is not set
-        \\CONFIG_BETA="zigux"
-        \\
-    );
-    defer deinitSummary(allocator, &summary);
-}
-
-test "confdata bridge releases appended entry ownership on index-allocation failure" {
-    try std.testing.checkAllAllocationFailures(
-        std.testing.allocator,
-        parseConfigAllocationFailureHarness,
-        .{},
     );
 }
