@@ -168,6 +168,7 @@ def _expected_blockers_payload() -> dict[str, object]:
             "direct_anchor_followup_helpers": list(
                 EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS
             ),
+            "rule_summary": EXPECTED_LANE_RULE_SUMMARY,
             "anti_overlap_rule": EXPECTED_ANTI_OVERLAP_RULE,
         },
         "replay": {
@@ -442,6 +443,8 @@ def collect_issues(root: Path) -> list[str]:
                 )
                 if direct_helpers != list(EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS):
                     issues.append("blockers_lane_direct_helpers")
+                if lane_sequencing.get("rule_summary") != EXPECTED_LANE_RULE_SUMMARY:
+                    issues.append("blockers_lane_rule_summary")
                 if lane_sequencing.get("anti_overlap_rule") != EXPECTED_ANTI_OVERLAP_RULE:
                     issues.append("blockers_lane_anti_overlap_rule")
 
@@ -829,6 +832,22 @@ def run_self_test() -> int:
             (
                 "blockers_lane_split_drift",
                 run_check(manifest_lane_split_drift_root) != 0,
+            )
+        )
+
+        blockers_lane_rule_summary_drift_root = build_case_root(
+            tmp_root / "blockers_lane_rule_summary_drift"
+        )
+        payload = json.loads(make_blockers_json())
+        payload["lane_sequencing"]["rule_summary"] = "Phase 1 helper follow-up can reopen anywhere after reread."
+        write_file(
+            blockers_lane_rule_summary_drift_root / BLOCKERS_REL,
+            json.dumps(payload, indent=2) + "\n",
+        )
+        cases.append(
+            (
+                "blockers_lane_rule_summary_drift",
+                run_check(blockers_lane_rule_summary_drift_root) != 0,
             )
         )
 
