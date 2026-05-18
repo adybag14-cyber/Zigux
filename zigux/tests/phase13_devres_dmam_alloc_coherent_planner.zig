@@ -21,6 +21,20 @@ test "phase13 devres descriptor records helper-first dmam_alloc_coherent plannin
     try std.testing.expect(!descriptor.touches_live_scatterlist);
 }
 
+test "phase13 devres exposes shared release-record lifetime planning" {
+    const retained = devres.DevresHelperLab.planManagedReleaseRecordLifetime(true);
+    try std.testing.expect(retained.added_to_devres);
+    try std.testing.expect(retained.release_record_retained);
+    try std.testing.expect(!retained.release_record_freed);
+    try std.testing.expect(retained.should_release_on_detach);
+
+    const freed = devres.DevresHelperLab.planManagedReleaseRecordLifetime(false);
+    try std.testing.expect(!freed.added_to_devres);
+    try std.testing.expect(!freed.release_record_retained);
+    try std.testing.expect(freed.release_record_freed);
+    try std.testing.expect(!freed.should_release_on_detach);
+}
+
 test "phase13 devres retains detach-time cleanup ownership when planned coherent allocation succeeds" {
     const plan = try devres.DevresHelperLab.planManagedDmamAllocCoherent(.{
         .requested_size = 4096,
@@ -70,6 +84,7 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "\"status\": \"starter_landed\"");
     try requireContains(manifest, "lib/devres.zig");
     try requireContains(manifest, "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig");
+    try requireContains(manifest, "planManagedReleaseRecordLifetime");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-dmam-alloc-side-effects\"");
     try requireContains(manifest, "\"status\": \"blocked_on_dma_state\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
@@ -81,6 +96,7 @@ test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma
     defer std.testing.allocator.free(note);
 
     try requireContains(note, "lands one pure `dmam_alloc_coherent()` planning surface in `lib/devres.zig`");
+    try requireContains(note, "routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)`");
     try requireContains(note, "accepts already-decided allocation inputs");
     try requireContains(note, "retains detach-time cleanup ownership on success");
     try requireContains(note, "failed allocation frees the release record");
@@ -117,6 +133,7 @@ test "phase13 devres survey records the landed dmam planner and keeps the blocke
     defer std.testing.allocator.free(survey);
 
     try requireContains(survey, "`lib/devres.zig` now ships a pure `dmam_alloc_coherent()` planning surface");
+    try requireContains(survey, "`planManagedReleaseRecordLifetime(...)`");
     try requireContains(survey, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` replays that helper directly");
     try requireContains(survey, "current `master` does not ship `zigux/tests/phase13_devres.zig`");
     try requireContains(survey, "blocked `phase13-devres-live-dmam-alloc-side-effects`");
