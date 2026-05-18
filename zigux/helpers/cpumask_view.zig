@@ -80,7 +80,7 @@ test "cpumask helpers keep an all-clear bounded window distinct from the empty s
 
 test "cpumask helpers track cross-word cpu windows without leaking tail bits" {
     var backing = [_]Word{
-        (@as(Word, 1) << 5) | (@as(Word, 1) << 63),
+        (@as(Word, 1) << 5) | (@as(Word, 1) << (bitmap.bits_per_word - 1)),
         (@as(Word, 1) << 1) | (@as(Word, 1) << 6) | (@as(Word, 1) << 10),
     };
     const view = viewFromWords(backing[0..], bitmap.bits_per_word + 11);
@@ -88,6 +88,7 @@ test "cpumask helpers track cross-word cpu windows without leaking tail bits" {
 
     try std.testing.expect(isValid(view));
     try std.testing.expect(cpuIsSet(view, 5));
+    try std.testing.expect(cpuIsSet(view, bitmap.bits_per_word - 1));
     try std.testing.expect(cpuIsSet(view, bitmap.bits_per_word + 10));
     try std.testing.expect(!cpuIsSet(view, bitmap.bits_per_word + 11));
     try std.testing.expectEqual(@as(u32, 5), firstCpu(view));
