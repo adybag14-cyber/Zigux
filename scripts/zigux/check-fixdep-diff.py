@@ -431,6 +431,14 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample:missing_expected_output",
     )
 
+    mismatched_target_cases = copy_valid_cases(valid_cases)
+    find_case(mismatched_target_cases, "sample")["target"] = "sample-wrong.o"
+    expect_failure(
+        "mismatched_target_field",
+        lambda: validate_cases(mismatched_target_cases),
+        f"{CASES_PATH}:sample:target='sample-wrong.o',expected='sample.o'",
+    )
+
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_output_fixture_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         for fixture_path in FIXTURE_DIR.iterdir():
@@ -448,7 +456,6 @@ def run_self_test() -> int:
             )
         finally:
             FIXTURE_DIR = original_fixture_dir
-
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_stderr_fixture_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         for fixture_path in FIXTURE_DIR.iterdir():
@@ -548,7 +555,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 18}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 19}")
     return 0
 
 
