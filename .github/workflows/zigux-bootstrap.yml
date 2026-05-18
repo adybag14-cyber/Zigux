@@ -265,6 +265,15 @@ jobs:
       - name: Check current Phase 4 artifact-diff validator replay packet
         run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
 
+      - name: Validate Phase 8 tooling routes
+        run: make -C zigux phase8-validate
+
+      - name: Run focused Phase 8 exec-cmd tests
+        run: make -C zigux phase8-exec-cmd-test
+
+      - name: Run Phase 8 tooling tests
+        run: make -C zigux phase8-test
+
       - name: Self-test current Phase 9 review-checklist boundaries checker
         run: python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test
 
