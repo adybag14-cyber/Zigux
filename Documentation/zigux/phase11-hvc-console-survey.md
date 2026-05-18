@@ -3,14 +3,14 @@
 This note keeps the bounded Phase 11 `hvc_console` packet truthful on current `master`.
 It stays inside the simple-driver lane and records the archived starter,
 its supporting helper history, the surviving current-head continuity anchors, the
-reconfirmed starter-depth packet, and what still remains execution-facing
+survey-recorded starter-depth packet, and what still remains execution-facing
 follow-through.
 The original archival landing happened on `P11-L13`, while the currently coupled
 continuity remains parked under `P11-L16`.
 
 ## Status
 
-- `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_readback_confirmed`
+- `PHASE11_HVC_CONSOLE_SURVEY_STATUS=starter_packet_anchor_readback_missing`
 - archival landing lane: `P11-L13`
 - current coupled packet continuity: `P11-L16`
 - archival landing checkpoint: `ee124761ef3ef5fcc6bb9cd8b7fe8d1fce326839`
@@ -24,19 +24,11 @@ continuity remains parked under `P11-L16`.
   `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
   `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and
   `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
-- public current-head readback in this lane also reconfirmed
-  `drivers/tty/hvc/hvc_console.zig`, `drivers/tty/hvc/hvc_console_verify.zig`,
-  `drivers/tty/hvc/hvc_console_sysrq.zig`, `zigux/tests/phase11_hvc_console.zig`,
-  `zigux/tests/phase11_hvc_cleanup.zig`,
-  `zigux/tests/phase11_hvc_console_survey.zig`,
-  `zigux/tests/phase11_hvc_console_manifest.json`,
-  `zigux/tests/phase11_hvc_console_modem_control_split.zig`,
-  `zigux/tests/phase11_hvc_console_poll_retry_split.zig`,
-  `Documentation/zigux/phase11-hvc-console-slice.md`,
-  `Documentation/zigux/phase11-hvc-console-teardown-note.md`, and
-  `Documentation/zigux/phase11-hvc-console-validation-matrix.md` as the bounded
-  starter-depth packet that closes the Phase 11 simple-driver roadmap gap
-  without claiming live tty or hypervisor execution
+- current direct contents reads in this lane still do not rematerialize
+  `drivers/tty/hvc/hvc_console.zig` or
+  `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader
+  starter-depth packet framed as survey-recorded same-lane archival vocabulary
+  until a future reread proves those anchor paths returned again
 - current authenticated contents reads in this lane still do not rematerialize
   `scripts/zigux/check-phase11-hvc-survey-packet.py`, so keep that dedicated
   survey-checker path framed as a same-lane repo-reality gap until a future
@@ -65,11 +57,11 @@ Keep those current-head anchors explicit while the lane stays below live tty
 registration, notifier callback execution, khvcd execution, live sysrq dispatch,
 and host-backed teardown parity.
 
-## Current-Head Starter Packet
+## Survey-Recorded Starter Packet
 
-The direct HVC packet is again current-head readback evidence in this lane, so
-keep the bounded starter, helper, replay, split, teardown, validation, and
-survey paths below tied directly to the roadmap-facing simple-driver packet:
+The survey still records the bounded HVC starter, helper, replay, split,
+teardown, validation, and survey paths below as the roadmap-facing
+starter-depth packet for this lane:
 
 - `drivers/tty/hvc/hvc_console.zig`
 - `drivers/tty/hvc/hvc_console_verify.zig`
@@ -84,8 +76,11 @@ survey paths below tied directly to the roadmap-facing simple-driver packet:
 - `Documentation/zigux/phase11-hvc-console-teardown-note.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 
-Keep the dedicated survey gate file explicit beside the recovered starter
-packet, but current `master` no longer rematerializes a separate
+Keep that packet visible as bounded survey-recorded archival vocabulary rather
+than direct current-head readback evidence until a future reread rematerializes
+its missing anchor paths again.
+
+Current `master` also does not rematerialize a separate
 `make -C zigux phase11-hvc-survey` route through `zigux/Makefile` or
 `.github/workflows/zigux-bootstrap.yml`; likewise treat
 `scripts/zigux/check-phase11-hvc-survey-packet.py` as a same-lane repo-reality
@@ -114,14 +109,15 @@ proof of live tty or hypervisor execution.
 
 This note records that the HVC simple-driver lane still has honest current-head
 continuity through the survey note, cleanup-alignment companion,
-verify-helper-boundary note, shared build inventory, the surviving HVC proof
-shards, and the directly readable starter-depth packet above.
+verify-helper-boundary note, shared build inventory, and the surviving HVC
+proof shards above.
 
 It does not claim tty-driver registration, notifier callback execution, khvcd
 polling execution, live sysrq dispatch, host-backed cleanup, or
 hardware-validated teardown parity.
 
-The roadmap destination family and the bounded simple-driver support packet are
-now directly readable on current `master`, so the remaining same-lane work is
-execution-facing follow-through rather than a missing simple-driver starter or a
-missing survey-backed validation packet.
+The survey still preserves the roadmap-facing starter-depth packet as archival
+continuity vocabulary, but the remaining same-lane work stays focused on
+truthfulness and later execution-facing follow-through rather than on claiming
+that the older direct-readback starter packet is fully back on current
+`master`.
