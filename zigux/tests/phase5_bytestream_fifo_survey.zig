@@ -223,7 +223,7 @@ test "phase 5 bytestream fifo survey packet keeps split-readback guidance explic
         "StorageBacking.embedded_fixed_buffer",
         "visibleSpanSummary()",
         "usesWrappedStorageWindow()",
-        "passed all six in-file checks",
+        "eight in-file `test` blocks on current `master`",
         "authenticated connector readback for those broader packet files still fails in this environment",
     };
     for (required_mentions) |needle| {
@@ -231,9 +231,9 @@ test "phase 5 bytestream fifo survey packet keeps split-readback guidance explic
     }
 
     try std.testing.expect(std.mem.indexOf(u8, survey_note, lane_key_marker) != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "/workspace/agent_files") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|Phase 5") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "samples/kfifo/bytestream-example.c|PHASE5_LANE_KEY=P5-L01|PHASE5_SURVEYED_COMMIT=") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_STATUS=parked") == null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE5_SLICE=kfifo-reference-sample-starter") == null);
 }
@@ -268,9 +268,9 @@ test "phase 5 bytestream fifo survey note records the current exact replay snaps
     defer std.testing.allocator.free(survey_note);
 
     const required_markers = [_][]const u8{
-        "## Exact checks verified on 2026-05-14",
+        "## Exact checks verified on 2026-05-15",
         "zig test samples/zigux/bytestream_fifo.zig",
-        "passed all six in-file checks",
+        "eight in-file `test` blocks on current `master`",
         "reviewContract().focus",
         "previewInto() reports `copied = 8`, `total_visible = 32`, and `truncated = true`",
         "fill range remains `20` through `42`",
@@ -278,11 +278,13 @@ test "phase 5 bytestream fifo survey note records the current exact replay snaps
         "draining `\"hello\"` into a three-byte buffer leaves `\"lo\"` queued",
         "first_window_len = 31`, `second_window_len = 1`, and `usesWrappedStorageWindow() = true`",
         "cold`, `initialized`, `replay_complete`, and `exited` stages",
+        "recorded `5/5` sample self-checks at that time",
+        "passed `5/5` build steps and `8/8` tests",
     };
     for (required_markers) |needle| {
         try std.testing.expect(std.mem.indexOf(u8, survey_note, needle) != null);
     }
 
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed `5/5` sample self-checks") == null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed `5/5` build steps and `8/8` tests") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "passed all six in-file checks") == null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "## Exact checks verified on 2026-05-14") == null);
 }
