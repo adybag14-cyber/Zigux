@@ -10,6 +10,19 @@ Purpose
 
 Key entrypoints
   * `zigux/tests/build.zig`
+  * current direct-readback Phase 1 reminder packet:
+    `Documentation/zigux/phase1-closure.md`
+    `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
+    `Documentation/zigux/review-checklist.md`
+    `scripts/zigux/README.md`
+    `scripts/zigux/validate-phase1-closure.py`
+    `scripts/zigux/check-phase1-string-review-packet.py`
+    `scripts/zigux/check-phase1-direct-owner-markers.py`
+    `scripts/zigux/check-phase1-bench.py`
+    `zigux/tests/fixtures/phase1_helper_manifest.json`
+  * current shared Phase 1 smoke route: `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
+  * repo-reality warning for the broader historical Phase 1 validator-first, bench, and replay stack: authenticated contents reads on current `master` still return missing for `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, and `zigux/Makefile`
+  * keep the Phase 1 tests-root reminder truthful: the thirteen helper ports remain closed through the committed manifest, the nine shared-replay parked helpers reopen only for packet or fixture drift, and only `tools/lib/bitmap.zig`, `tools/lib/find_bit.zig`, `tools/lib/rbtree.zig`, and `tools/lib/string.zig` still keep bounded direct-anchor follow-up markers on current `master`
   * roadmap-backed Phase 4 differential-gate destinations still missing on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`
   * current direct-readback Phase 4 rollback packet:
     `Documentation/zigux/phase4-reversible-delivery-evidence.md`
