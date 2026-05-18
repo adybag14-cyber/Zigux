@@ -63,6 +63,10 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
         manifest.direct_packet_paths[16],
     );
     try std.testing.expectEqualStrings(
+        "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
+        manifest.direct_packet_paths[20],
+    );
+    try std.testing.expectEqualStrings(
         "zigux/tests/phase15_readiness_gate_manifest.json",
         manifest.direct_packet_paths[25],
     );
@@ -91,6 +95,10 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
         manifest.phase15_validate_checkers[0],
     );
     try std.testing.expectEqualStrings(
+        "scripts/zigux/check-phase15-tests-readme-alignment.py",
+        manifest.phase15_validate_checkers[2],
+    );
+    try std.testing.expectEqualStrings(
         "scripts/zigux/check-phase15-shared-summary-gap.py",
         manifest.phase15_validate_checkers[4],
     );
@@ -110,17 +118,19 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-review-process-handoff.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-shared-summary-gap.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-readiness-gate-packet.py`");
+    try expectContains(readiness_note, "`zigux/tests/phase15_governance_lane_sequencing_manifest.json`");
+    try expectContains(readiness_note, "`zigux/tests/phase15_governance_lane_sequencing.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_readiness_gate_manifest.json`");
     try expectContains(readiness_note, "`scripts/zigux/validate-phase15.py`");
     try expectContains(readiness_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
     try expectContains(readiness_note, "`zigux/tests/phase15_build.zig`");
     try expectContains(readiness_note, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
+    try expectContains(readiness_note, "The dedicated readiness manifest exact-pins those missing broader companions");
     try expectContains(readiness_note, "`zigux/Makefile`");
     try expectContains(readiness_note, "`make -C zigux phase15-validate` remains blocked route vocabulary");
     try expectContains(readiness_note, "`make -C zigux phase15-test` remains blocked route vocabulary");
     try expectContains(readiness_note, "`make -C zigux phase15` remains blocked route vocabulary");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded for a freeze-map status change");
     try expectContains(readiness_note, "ready for maintenance-mode truthfulness refreshes only");
-    try expectContains(readiness_note, "The dedicated readiness manifest exact-pins those missing broader companions");
-    try expectContains(readiness_note, "the focused readiness packet checker");
+    try expectContains(readiness_note, "focused readiness packet checker");
 }
