@@ -13,13 +13,14 @@ NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
+LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
 EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 12
-EXPECTED_PIN_SELF_TEST_CASES = 7
+EXPECTED_PIN_SELF_TEST_CASES = 8
 
 STATUS_MARKERS = (
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=7` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=12` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8` here",
 )
 
 DIRECT_MARKERS = (
@@ -63,9 +64,9 @@ WARNING_MARKERS = (
     "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md` and `Documentation/zigux/phase4-validation-matrix.md` on current `master`",
     "The broader Phase 4 checker, validator, build, and bitmap replay companions are still repo-reality gaps in this run",
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff",
-    'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
+    "REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = \"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES\"",
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 12",
-    "EXPECTED_PIN_SELF_TEST_CASES = 7",
+    "EXPECTED_PIN_SELF_TEST_CASES = 8",
     "The shared reminder surfaces in `Documentation/zigux/README.md`, `zigux/tests/README.md`, `scripts/zigux/README.md`, and `Documentation/zigux/review-checklist.md` still need a same-family follow-up.",
 )
 
@@ -185,7 +186,7 @@ def main() -> int:
 
             warning_path.write_text(
                 warning_path.read_text(encoding="utf-8").replace(
-                    "EXPECTED_PIN_SELF_TEST_CASES = 7",
+                    "EXPECTED_PIN_SELF_TEST_CASES = 8",
                     "EXPECTED_PIN_SELF_TEST_CASES = 6",
                 ),
                 encoding="utf-8",
@@ -228,7 +229,8 @@ def main() -> int:
                 raise AssertionError("expected repo-warning perf-checker marker drift to fail")
 
         print("PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST=pass")
-        print(f"PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES={cases}")
+        print(f"{PIN_SELF_TEST_COUNT_LABEL}={cases}")
+        print(f"{LEGACY_PIN_SELF_TEST_CASES_LABEL}={cases}")
         return 0
     try:
         check(args.root.resolve())
