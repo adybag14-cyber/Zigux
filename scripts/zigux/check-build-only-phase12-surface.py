@@ -28,6 +28,9 @@ RELEASE_CLOSURE_CHECKLIST_PATH = (
 RELEASE_COORDINATION_MATRIX_PATH = (
     "Documentation/zigux/phase12-release-coordination-matrix.md"
 )
+PHASE12_COMPLEX_DRIVER_LANE_PATH = (
+    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+)
 RAW_GITHUB_COVERAGE_SURVEY_PATH = (
     "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 )
@@ -86,6 +89,7 @@ REQUIRED_FILES = [
     RELEASE_SEQUENCING_PATH,
     RELEASE_CLOSURE_CHECKLIST_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
+    PHASE12_COMPLEX_DRIVER_LANE_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     VALIDATOR_PATH,
@@ -137,6 +141,12 @@ REQUIRED_MARKERS = {
     RELEASE_COORDINATION_MATRIX_PATH: [
         "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
         "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.",
+    ],
+    PHASE12_COMPLEX_DRIVER_LANE_PATH: [
+        "current `zigux/Makefile` now ships `phase12-smoke`, `phase12-test`, and `phase12` again, while `phase12-validate` is still absent, so only `make -C zigux phase12-validate` stays reminder vocabulary while `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
+        "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, while only `make -C zigux phase12-validate` stays documented as shared reminder text until that wrapper returns on current `master`.",
+        "keep those two `virtio_net` follow-ups framed as bounded transmit-disposition and queue-resume reviewability inside the shared packet rather than as live DMA-safe receive ownership, queue restart parity, transport-backed queue flow, or completion-path parity",
+        "keep those `virtio_scsi` files framed as one directly readable bounded driver-local packet, but leave exact survey-packet lane-key and verified-on realignment to the packet-local survey follow-through in `P12-L09` rather than reopening broader shared PMO wording or driver-local code from this anti-overlap note alone",
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
@@ -211,6 +221,7 @@ def fixture_text(rel_path: str) -> str:
         RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
         RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
         RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
+        PHASE12_COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex-Driver Lane Sequencing",
         RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
     }
     if rel_path in REQUIRED_MARKERS:
@@ -261,6 +272,7 @@ def run_self_test() -> int:
         missing_file_cases = [
             RELEASE_READINESS_SURVEY_PATH,
             RELEASE_COORDINATION_MATRIX_PATH,
+            PHASE12_COMPLEX_DRIVER_LANE_PATH,
             RELEASE_READINESS_CHECKER_PATH,
             VALIDATOR_PATH,
             MAKEFILE_PATH,
@@ -280,6 +292,7 @@ def run_self_test() -> int:
             (RELEASE_READINESS_SURVEY_PATH, REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][1]),
             (RELEASE_SEQUENCING_PATH, REQUIRED_MARKERS[RELEASE_SEQUENCING_PATH][0]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][0]),
+            (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][2]),
             (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][1]),
             (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][2]),
             (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][2]),
