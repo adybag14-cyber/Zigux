@@ -15,6 +15,7 @@ ROOT = (
 
 CURRENT_RING_PACKET_FILES = [
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+    "Documentation/zigux/phase10-virtio-ring-slice.md",
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_build.zig",
@@ -31,6 +32,11 @@ MARKERS = {
         "while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing.",
         "Keep the queue-local ring helper ladder, the wrapper-facing verify replay, and the focused replays framed as direct current-head evidence",
         "the remaining direct ring gap is the dedicated survey replay",
+    ],
+    "Documentation/zigux/phase10-virtio-ring-slice.md": [
+        "Fresh direct readback on current `master` now materializes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still do not materialize through direct contents readback.",
+        "The shared ring packet therefore keeps the restored helper, the wrapper-facing verify replay, and the focused replays as current direct evidence",
+        "while the dedicated survey gate remains the only direct ring packet gap in this slice.",
     ],
     "drivers/virtio/virtio_ring.zig": [
         "pub fn defineQueue(",
@@ -183,6 +189,18 @@ def run_self_test() -> int:
             "the remaining direct ring gap is the dedicated survey replay",
         )
         expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-slice.md",
+            "Fresh direct readback on current `master` now materializes `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, and `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still do not materialize through direct contents readback.",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-slice.md",
+            "The shared ring packet therefore keeps the restored helper, the wrapper-facing verify replay, and the focused replays as current direct evidence",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-slice.md",
+            "while the dedicated survey gate remains the only direct ring packet gap in this slice.",
+        )
+        expect_missing_marker(
             "drivers/virtio/virtio_ring.zig",
             "pub fn prepareKick(self: *Self, queue_index: u16) !QueueNotificationSummary {",
         )
@@ -251,6 +269,7 @@ def run_self_test() -> int:
             "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
         )
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md")
+        expect_missing_file("Documentation/zigux/phase10-virtio-ring-slice.md")
         expect_missing_file("drivers/virtio/virtio_ring.zig")
         expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
