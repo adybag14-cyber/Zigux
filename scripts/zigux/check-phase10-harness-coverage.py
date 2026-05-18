@@ -25,6 +25,8 @@ FILES = [
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_build.zig",
+    "zigux/Makefile",
+    "scripts/zigux/check-phase10-bootstrap-route.py",
     "scripts/zigux/check-phase10-shared-freeze-boundary.py",
     "scripts/zigux/README.md",
 ]
@@ -137,6 +139,28 @@ SHARED_FREEZE_BOUNDARY_MARKERS = [
     '"net/core/skbuff.c"',
 ]
 
+MAKEFILE_MARKERS = [
+    ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3 phase10-validate phase10-test phase10",
+    "phase10-validate:",
+    "$(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py",
+    "$(PYTHON) scripts/zigux/check-phase10-ring-packet.py",
+    "$(PYTHON) scripts/zigux/check-phase10-input-packet.py",
+    "$(PYTHON) scripts/zigux/check-phase10-mmio-packet.py",
+    "$(PYTHON) scripts/zigux/check-phase10-harness-coverage.py",
+    "$(PYTHON) scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+    "phase10-test:",
+    "zig build test --build-file zigux/tests/phase10_build.zig --summary all",
+    "phase10: phase10-validate phase10-test",
+]
+
+BOOTSTRAP_ROUTE_MARKERS = [
+    'VALIDATE_STEP = "Validate Phase 10 checker-backed review packet"',
+    'VALIDATE_CMD = "make -C zigux phase10-validate"',
+    'TEST_STEP = "Run Phase 10 helper tests"',
+    'TEST_CMD = "make -C zigux phase10-test"',
+    'NOTE_SCRIPT_MARKER = "`scripts/zigux/check-phase10-bootstrap-route.py`"',
+]
+
 CLOSURE_EVIDENCE_MARKERS = [
     "`PHASE10_RISKY_TRANSPORT_POSTURE=blocked_on_risky_transport`",
     "shared packet direct-readback inventory is mixed on current `master`, and the directly re-readable set is narrower than the full shared reminder packet:",
@@ -198,8 +222,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     lane_sequencing = read_text(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md")
     module_slice = read_text(root, "Documentation/zigux/phase10-virtio-input-module-slice.md")
     build = read_text(root, "zigux/tests/phase10_build.zig")
+    makefile = read_text(root, "zigux/Makefile")
     registration_helper = read_text(root, "drivers/virtio/virtio_input_registration_preflight.zig")
     verify = read_text(root, "drivers/virtio/virtio_input_verify.zig")
+    bootstrap_route = read_text(root, "scripts/zigux/check-phase10-bootstrap-route.py")
     shared_freeze_boundary = read_text(root, "scripts/zigux/check-phase10-shared-freeze-boundary.py")
     scripts_readme = read_text(root, "scripts/zigux/README.md")
 
@@ -211,8 +237,10 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
     check_absent_markers(missing_markers, "phase10_lane_sequencing", lane_sequencing, LANE_SEQUENCING_FORBIDDEN_MARKERS)
     check_markers(missing_markers, "phase10_input_module_slice", module_slice, MODULE_SLICE_MARKERS)
     check_markers(missing_markers, "phase10_build", build, BUILD_MARKERS)
+    check_markers(missing_markers, "phase10_makefile", makefile, MAKEFILE_MARKERS)
     check_markers(missing_markers, "virtio_input_registration_preflight", registration_helper, REGISTRATION_HELPER_MARKERS)
     check_markers(missing_markers, "virtio_input_verify", verify, VERIFY_MARKERS)
+    check_markers(missing_markers, "phase10_bootstrap_route", bootstrap_route, BOOTSTRAP_ROUTE_MARKERS)
     check_markers(missing_markers, "phase10_shared_freeze_boundary", shared_freeze_boundary, SHARED_FREEZE_BOUNDARY_MARKERS)
     check_markers(missing_markers, "scripts_readme", scripts_readme, SCRIPTS_README_MARKERS)
     check_absent_markers(missing_markers, "scripts_readme", scripts_readme, SCRIPTS_README_FORBIDDEN_MARKERS)
@@ -232,6 +260,8 @@ def write_fixture(root: Path) -> None:
         "drivers/virtio/virtio_input_verify.zig": "\n".join(VERIFY_MARKERS) + "\n",
         "zigux/tests/phase10_virtio_input_survey.zig": "phase10 survey gate placeholder\n",
         "zigux/tests/phase10_build.zig": "\n".join(BUILD_MARKERS) + "\n",
+        "zigux/Makefile": "\n".join(MAKEFILE_MARKERS) + "\n",
+        "scripts/zigux/check-phase10-bootstrap-route.py": "\n".join(BOOTSTRAP_ROUTE_MARKERS) + "\n",
         "scripts/zigux/check-phase10-shared-freeze-boundary.py": "\n".join(SHARED_FREEZE_BOUNDARY_MARKERS) + "\n",
         "scripts/zigux/README.md": "\n".join(SCRIPTS_README_MARKERS) + "\n",
     }
@@ -298,6 +328,8 @@ def run_self_test() -> int:
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-ring-delayed-callback-budget-tests"', '"phase10-virtio-ring-delayed-callback-budget-drift-tests"', 'phase10_build:"phase10-virtio-ring-delayed-callback-budget-tests"')
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", "phase10_virtio_mmio_survey_module", "phase10_virtio_mmio_survey_drift_module", "phase10_build:phase10_virtio_mmio_survey_module")
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", '"phase10-virtio-mmio-survey-tests"', '"phase10-virtio-mmio-survey-drift-tests"', 'phase10_build:"phase10-virtio-mmio-survey-tests"')
+        expect_missing_marker(root, "zigux/Makefile", "$(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py", "$(PYTHON) scripts/zigux/check-phase10-bootstrap-route-missing.py", "phase10_makefile:$(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py")
+        expect_missing_marker(root, "scripts/zigux/check-phase10-bootstrap-route.py", 'VALIDATE_CMD = "make -C zigux phase10-validate"', 'VALIDATE_CMD = "make -C zigux phase10-validate-missing"', 'phase10_bootstrap_route:VALIDATE_CMD = "make -C zigux phase10-validate"')
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-input-module-slice.md", "zigux/tests/phase10_virtio_input_survey.zig", "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig", "phase10_input_module_slice:zigux/tests/phase10_virtio_input_survey.zig")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-input-module-slice.md", "queued status completions reclaimable in memory", "queued status completions drain directly to the transport", "phase10_input_module_slice:queued status completions reclaimable in memory")
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md", "`zigux/tests/phase10_virtio_mmio.zig` is back as a directly re-readable helper-local replay anchor", "`zigux/tests/phase10_virtio_mmio.zig` remains a gap", "phase10_lane_sequencing:`zigux/tests/phase10_virtio_mmio.zig` is back as a directly re-readable helper-local replay anchor")
@@ -315,7 +347,7 @@ def run_self_test() -> int:
         write_fixture(root)
 
         print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=28")
+        print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=30")
         return 0
 
 
@@ -346,7 +378,7 @@ def main() -> int:
 
     print("PHASE10_HARNESS_COVERAGE=pass")
     print(f"PHASE10_HARNESS_COVERAGE_REQUIRED_FILE_COUNT={len(FILES)}")
-    print("PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT=" f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(LANE_SEQUENCING_MARKERS) + len(CLOSURE_EVIDENCE_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(SHARED_FREEZE_BOUNDARY_MARKERS) + len(SCRIPTS_README_MARKERS)}")
+    print("PHASE10_HARNESS_COVERAGE_REQUIRED_MARKER_COUNT=" f"{len(DOCS_ROOT_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(COMPANION_MARKERS) + len(LANE_SEQUENCING_MARKERS) + len(CLOSURE_EVIDENCE_MARKERS) + len(MODULE_SLICE_MARKERS) + len(BUILD_MARKERS) + len(MAKEFILE_MARKERS) + len(REGISTRATION_HELPER_MARKERS) + len(VERIFY_MARKERS) + len(BOOTSTRAP_ROUTE_MARKERS) + len(SHARED_FREEZE_BOUNDARY_MARKERS) + len(SCRIPTS_README_MARKERS)}")
     print("PHASE10_HARNESS_COVERAGE_FORBIDDEN_MARKER_COUNT=" f"{len(LANE_SEQUENCING_FORBIDDEN_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS)}")
     return 0
 
