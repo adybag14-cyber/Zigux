@@ -55,6 +55,10 @@ test "materialized tools/lib/bpf Zigux segments keep their landed bounded entryp
     try expectHasDecl(pin_path, "buildValidatedMapPinPath");
     try expectHasDecl(pin_path, "buildSanitizedMapPinPath");
     try expectHasDecl(pin_path, "buildValidatedSanitizedMapPinPath");
+    try expectHasDecl(pin_path, "buildProgramPinPath");
+    try expectHasDecl(pin_path, "buildValidatedProgramPinPath");
+    try expectHasDecl(pin_path, "buildSanitizedProgramPinPath");
+    try expectHasDecl(pin_path, "buildValidatedSanitizedProgramPinPath");
     try expectHasDecl(type_names, "libbpfBpfAttachTypeStr");
     try expectHasDecl(type_names, "libbpfBpfMapTypeStr");
     try expectHasDecl(type_names, "libbpfBpfLinkTypeStr");
@@ -106,6 +110,7 @@ test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outp
     var default_buffer: [96]u8 = undefined;
     var validated_buffer: [96]u8 = undefined;
     var sanitized_buffer: [96]u8 = undefined;
+    var program_buffer: [96]u8 = undefined;
 
     try std.testing.expectEqualStrings(
         "/sys/fs/bpf/metrics.map",
@@ -119,9 +124,21 @@ test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outp
         "/tmp/bpf.v1/metrics_map",
         try pin_path.buildValidatedSanitizedMapPinPath(sanitized_buffer[0..], "/tmp/bpf.v1", "metrics.map"),
     );
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/xdp_dispatch",
+        try pin_path.buildProgramPinPath(program_buffer[0..], null, "xdp_dispatch"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/xdp_dispatch_v1",
+        try pin_path.buildValidatedSanitizedProgramPinPath(program_buffer[0..], "/tmp/bpf.v1", "xdp_dispatch.v1"),
+    );
     try std.testing.expectError(
         error.InvalidName,
         pin_path.buildValidatedSanitizedMapPinPath(sanitized_buffer[0..], null, "metrics/map"),
+    );
+    try std.testing.expectError(
+        error.InvalidName,
+        pin_path.buildValidatedProgramPinPath(program_buffer[0..], null, "xdp/dispatch"),
     );
     try std.testing.expectError(
         error.InvalidRootPath,
