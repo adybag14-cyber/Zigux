@@ -1,0 +1,13 @@
+{
+  "phase": "Phase 2",
+  "status": "closed",
+  "target_count": 3,
+  "targets": [
+    "x86_64-linux-musl",
+    "aarch64-linux-musl",
+    "riscv64-linux-musl"
+  ],
+  "zig_test_files": [
+    "scripts/zigux/fixdep.zig"
+  ]
+}
