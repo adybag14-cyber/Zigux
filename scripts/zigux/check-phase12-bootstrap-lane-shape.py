@@ -53,9 +53,13 @@ WORKFLOW_STEP_NAMES = [
     "Check current Phase 3 interop packet",
     "Self-test current Phase 3 low-level wrapper survey validator",
     "Check current Phase 3 low-level wrapper survey packet",
-    "Run current Phase 3 low-level wrapper replay",
-    "Run current Phase 3 shared tests-root packet",
-    "Run current Phase 1 shared tests-root smoke",
+     "Run current Phase 3 low-level wrapper replay",
+     "Run current Phase 3 shared tests-root packet",
+     "Run current Phase 1 shared tests-root smoke",
+    "Self-test current Phase 4 artifact-diff helper",
+    "Self-test current Phase 4 artifact-diff determinism checker",
+    "Self-test current Phase 4 artifact-diff validator replay checker",
+    "Check current Phase 4 artifact-diff validator replay packet",
     "Self-test current Phase 11 build inventory checker",
     "Check current Phase 11 build inventory packet",
     "Self-test current Phase 11 matrix-gap survey checker",
@@ -99,6 +103,10 @@ WORKFLOW_COMMAND_MARKERS = [
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "zig build phase3-test --build-file zigux/tests/build.zig",
+    "python3 scripts/zigux/artifact_diff.py --self-test",
+    "python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
     "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
     "python3 scripts/zigux/check-phase11-build-inventory.py",
     "python3 scripts/zigux/check-phase11-matrix-gap-survey.py --self-test",
@@ -277,6 +285,14 @@ jobs:
         run: zig build phase3-test --build-file zigux/tests/build.zig
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
+      - name: Self-test current Phase 4 artifact-diff helper
+        run: python3 scripts/zigux/artifact_diff.py --self-test
+      - name: Self-test current Phase 4 artifact-diff determinism checker
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+      - name: Self-test current Phase 4 artifact-diff validator replay checker
+        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
+      - name: Check current Phase 4 artifact-diff validator replay packet
+        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
       - name: Self-test current Phase 11 build inventory checker
         run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
       - name: Check current Phase 11 build inventory packet
@@ -429,6 +445,19 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
+                "- name: Self-test current Phase 4 artifact-diff helper\n"
+                "        run: python3 scripts/zigux/artifact_diff.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Self-test current Phase 4 artifact-diff helper")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
                 "  push:\n    branches: [ master ]\n  pull_request:\n",
                 "  push:\n    branches: [ master ]\n    paths:\n      - '.github/workflows/zigux-bootstrap.yml'\n  pull_request:\n",
                 1,
@@ -500,7 +529,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=10")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=11")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
