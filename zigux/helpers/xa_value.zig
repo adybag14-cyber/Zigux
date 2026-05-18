@@ -50,3 +50,21 @@ test "err_ptr encodings with the low tag bit set never classify as xa_values" {
     try std.testing.expect(err_ptr.isErrValue(raw));
     try std.testing.expect(!isValue(raw));
 }
+
+test "xa_value cutoff stays ordered as inline value, pointer gap, then err_ptr" {
+    const inline_raw = try makeValue(safe_inline_limit);
+    const pointer_gap_raw = err_ptr.err_floor - 1;
+    const err_raw = err_ptr.err_floor;
+
+    try std.testing.expectEqual(err_ptr.err_floor - 2, inline_raw);
+    try std.testing.expect(isValue(inline_raw));
+    try std.testing.expectEqual(safe_inline_limit, toValue(inline_raw));
+
+    try std.testing.expect(!isValue(pointer_gap_raw));
+    try std.testing.expect(err_ptr.isOkValue(pointer_gap_raw));
+    try std.testing.expect((pointer_gap_raw & value_tag_mask) == 0);
+
+    try std.testing.expect(!isValue(err_raw));
+    try std.testing.expect(err_ptr.isErrValue(err_raw));
+    try std.testing.expect((err_raw & value_tag_mask) == value_tag_mask);
+}
