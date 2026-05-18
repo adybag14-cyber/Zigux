@@ -97,12 +97,42 @@ jobs:
           mkdir -p .zig-toolchain
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
           extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
-          rm -f "$archive_path"
+          mirror_file=".zig-toolchain/community-mirrors.txt"
+          rm -f "$archive_path" "$mirror_file"
           rm -rf "$extract_root"
-          curl -L --fail "$ZIGUX_ZIG_URL" -o "$archive_path"
-          tar -xJf "$archive_path" -C .zig-toolchain
+          try_download() {
+            local url="$1"
+            if curl -L --fail "$url" -o "$archive_path"; then
+              tar -xJf "$archive_path" -C .zig-toolchain
+              zig_path="$extract_root/zig"
+              if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
+                return 0
+              fi
+              rm -f "$archive_path"
+              rm -rf "$extract_root"
+            fi
+            return 1
+          }
+          download_success=0
+          if curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
+            while IFS= read -r mirror_url; do
+              [ -n "$mirror_url" ] || continue
+              if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then
+                download_success=1
+                break
+              fi
+            done < "$mirror_file"
+          fi
+          if [ "$download_success" -ne 1 ]; then
+            if try_download "$ZIGUX_ZIG_URL"; then
+              download_success=1
+            fi
+          fi
+          if [ "$download_success" -ne 1 ]; then
+            echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2
+            exit 1
+          fi
           zig_path="$extract_root/zig"
-          python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"
           echo "$extract_root" >> "$GITHUB_PATH"
           "$zig_path" version
 
