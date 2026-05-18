@@ -36,6 +36,7 @@ REQUIRED_NOTE_MARKERS = (
     'Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, but those two shared validation surfaces should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.',
     'Current `master` does still ship the adjacent low-level-wrapper packet through `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig`, and it separately ships the adjacent export/UAPI layout replay pair through `zigux/tests/phase3_export_uapi_layout.zig` and `zigux/tests/phase3_export_uapi_layout_build.zig`, but those separate wrapper and replay surfaces should not be used here to imply that the broader validator-support or export/UAPI survey packet has returned.',
     '`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root shared reminder packet while keeping scripts-root inventory follow-through separate.',
+    '`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.',
     "records the separately landed low-level-wrapper packet without promoting it into broader validator support",
     "records the shared docs-root and tests-root reminders as aligned while keeping scripts-root follow-through separate",
 )
@@ -53,6 +54,7 @@ SELF_TEST_NOTE_MARKERS = (
     'It does not currently ship the broader export/UAPI survey, catalog, or shared Phase 3 replay packet that older reminder surfaces still name, even though the shared `scripts/zigux/validate-phase3.py` validator entrypoint and `scripts/zigux/check-phase3-abi.py` shared ABI checker are directly readable on current `master`.',
     'Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, but those two shared validation surfaces should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.',
     '`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root shared reminder packet while keeping scripts-root inventory follow-through separate.',
+    '`scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.',
 )
 
 SELF_TEST_GAP_MARKERS = (
