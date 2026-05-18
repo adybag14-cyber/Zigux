@@ -407,6 +407,14 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
     )
 
+    missing_expected_output_cases = copy_valid_cases(valid_cases)
+    find_case(missing_expected_output_cases, "sample").pop("expected", None)
+    expect_failure(
+        "missing_expected_output_field",
+        lambda: validate_cases(missing_expected_output_cases),
+        f"{CASES_PATH}:sample:missing_expected_output",
+    )
+
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_output_fixture_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         for fixture_path in FIXTURE_DIR.iterdir():
@@ -493,7 +501,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 12}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 13}")
     return 0
 
 
