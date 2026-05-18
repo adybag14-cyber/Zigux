@@ -21,8 +21,9 @@ Repo-reality warning for the broader Phase 7 rbtree packet:
 - `zigux/tests/phase7_build.zig`
 
 Keep the current Phase 7 reminder surface tied to the direct rbtree survey anchor plus the directly readable string-helpers helper-local packet:
-- `string_helpers` stays the only directly readable helper implementation packet in this lane today
+- `string_helpers` stays the only directly readable full helper-local Phase 7 packet in this lane today
 - `cmdline` stays reviewable through the parked Phase 1 helper packet
-- do not present `argv_split` or the broader `rbtree` helper-local slice, checker, manifest, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`
+- `lib/argv_split.zig` is directly readable again on current `master`, but the dedicated Phase 7 `argv_split` slice, survey, manifest, and shared build-route packet still need a fresh same-lane reread or republish before they can count as a full helper-local review surface
+- do not present the broader `argv_split` review packet or the broader `rbtree` helper-local slice, checker, manifest, fixture, or shared build-route files as directly readable again until a fresh same-lane reread or republish materializes them on current `master`
 
 Do not widen this note into broader validator, checker, manifest, fixture, or make-wrapper claims without a fresh same-lane reread of those sibling review surfaces.
