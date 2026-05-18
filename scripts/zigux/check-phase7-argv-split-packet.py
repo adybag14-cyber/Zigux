@@ -12,8 +12,10 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else SELF_PATH.parent
 
 REQUIRED_FILES = [
     "scripts/zigux/check-phase7-argv-split-packet.py",
-    ".github/workflows/zigux-bootstrap.yml",
-    "tools/lib/argv_split.zig",
+    "lib/argv_split.zig",
+    "zigux/tests/phase7_argv_split_manifest.json",
+    "zigux/tests/phase7_argv_split_survey.zig",
+    "samples/zigux/README.md",
 ]
 
 REQUIRED_MARKERS = {
@@ -21,23 +23,35 @@ REQUIRED_MARKERS = {
         "--self-test",
         "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass",
     ],
-    ".github/workflows/zigux-bootstrap.yml": [
-        "'scripts/zigux/**'",
-        "find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort",
-        'python3 -m py_compile "${scripts[@]}"',
+    "lib/argv_split.zig": [
+        "pub const ArgvSplitResult = struct {",
+        "pub fn argvSplitWithArgc(",
+        "pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {",
+        "pub fn cArgv(self: *const ArgvSplitResult) [*:null]const ?[*:0]const u8 {",
+        'test "argvSplit duplicates the input before tokenizing" {',
+        'test "argvSplit reuses the exported empty storage view for blank input without allocating" {',
+        'test "argvFree mirrors argv_free release ownership and stays safe after teardown" {',
     ],
-    "tools/lib/argv_split.zig": [
-        "pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {",
-        "allocator.dupe(u8, text[idx..end]);",
-        "pub fn argvFree(result: *ArgvSplitResult) void {",
-        "pub const argv_split = argvSplit;",
-        "pub const argv_free = argvFree;",
-        'test "argvSplit matches the phase 1 committed fixture shape" {',
-        'test "argvSplit collapses repeated whitespace and blank inputs to zero arguments" {',
+    "zigux/tests/phase7_argv_split_manifest.json": [
+        '"anchor": "lib/argv_split.c"',
+        '"current_master_state": "helper_survey_manifest_anchor"',
+        '"covered_helpers": [',
+        '"ArgvSplitResult.cArgv"',
+        "helper-local survey-or-manifest truthfulness",
+    ],
+    "zigux/tests/phase7_argv_split_survey.zig": [
+        'test "phase 7 argv split survey keeps the helper-local anchor truthful" {',
+        'try std.testing.expectEqualStrings("P7-L09", manifest.lane_key);',
+        'try expectContains(helper, "pub const ArgvSplitResult = struct {");',
+        'try expectContains(helper, "test \\\"argvSplit duplicates the input before tokenizing\\\""',
+    ],
+    "samples/zigux/README.md": [
+        "Current `master` still ships no standalone Phase 5 sample-root files here for:",
+        "* `*argv*`",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 6
 
 
 def read_text(path: Path) -> str:
@@ -71,14 +85,8 @@ def write(path: Path, content: str) -> None:
 
 
 def write_fixture_root(tmp_root: Path) -> None:
-    fixture_text = {
-        "scripts/zigux/check-phase7-argv-split-packet.py": "\n".join(REQUIRED_MARKERS["scripts/zigux/check-phase7-argv-split-packet.py"]) + "\n",
-        ".github/workflows/zigux-bootstrap.yml": "\n".join(REQUIRED_MARKERS[".github/workflows/zigux-bootstrap.yml"]) + "\n",
-        "tools/lib/argv_split.zig": "\n".join(REQUIRED_MARKERS["tools/lib/argv_split.zig"]) + "\n",
-    }
-
     for rel in REQUIRED_FILES:
-        write(tmp_root / rel, fixture_text[rel])
+        write(tmp_root / rel, "\n".join(REQUIRED_MARKERS[rel]) + "\n")
 
 
 def expect_missing_file(case: str, tmp_root: Path, rel: str) -> None:
@@ -108,61 +116,41 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-        workflow_path = tmp_root / ".github" / "workflows" / "zigux-bootstrap.yml"
-        workflow_path.unlink()
+        helper_path = tmp_root / "lib" / "argv_split.zig"
+        helper_path.unlink()
+        expect_missing_file("missing_argv_split_helper", tmp_root, "lib/argv_split.zig")
+        write_fixture_root(tmp_root)
+
+        manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
+        manifest_path.unlink()
         expect_missing_file(
-            "missing_bootstrap_workflow",
+            "missing_argv_split_manifest",
             tmp_root,
-            ".github/workflows/zigux-bootstrap.yml",
+            "zigux/tests/phase7_argv_split_manifest.json",
         )
         write_fixture_root(tmp_root)
 
-        helper_path = tmp_root / "tools" / "lib" / "argv_split.zig"
-        helper_path.unlink()
+        survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
+        survey_path.unlink()
         expect_missing_file(
-            "missing_argv_split_helper",
+            "missing_argv_split_survey",
             tmp_root,
-            "tools/lib/argv_split.zig",
+            "zigux/tests/phase7_argv_split_survey.zig",
         )
+        write_fixture_root(tmp_root)
+
+        samples_path = tmp_root / "samples" / "zigux" / "README.md"
+        samples_path.unlink()
+        expect_missing_file("missing_samples_readme", tmp_root, "samples/zigux/README.md")
         write_fixture_root(tmp_root)
 
         helper_text = read_text(helper_path)
-        helper_path.write_text(helper_text.replace("pub const argv_free = argvFree;\n", "", 1), encoding="utf-8")
+        marker = 'test "argvFree mirrors argv_free release ownership and stays safe after teardown" {'
+        helper_path.write_text(helper_text.replace(marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_argv_free_alias",
+            "missing_release_ownership_marker",
             tmp_root,
-            "tools/lib/argv_split.zig: pub const argv_free = argvFree;",
-        )
-        helper_path.write_text(helper_text, encoding="utf-8")
-
-        helper_path.write_text(helper_text.replace("allocator.dupe(u8, text[idx..end]);\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_token_copy_marker",
-            tmp_root,
-            "tools/lib/argv_split.zig: allocator.dupe(u8, text[idx..end]);",
-        )
-        helper_path.write_text(helper_text, encoding="utf-8")
-
-        workflow_text = read_text(workflow_path)
-        workflow_path.write_text(
-            workflow_text.replace("find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort\n", "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_workflow_script_compile_scan",
-            tmp_root,
-            ".github/workflows/zigux-bootstrap.yml: find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort",
-        )
-        workflow_path.write_text(workflow_text, encoding="utf-8")
-
-        workflow_path.write_text(
-            workflow_text.replace('python3 -m py_compile "${scripts[@]}"\n', "", 1),
-            encoding="utf-8",
-        )
-        expect_missing_marker(
-            "missing_workflow_py_compile",
-            tmp_root,
-            '.github/workflows/zigux-bootstrap.yml: python3 -m py_compile "${scripts[@]}"',
+            f"lib/argv_split.zig: {marker}",
         )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
@@ -210,7 +198,10 @@ def main() -> int:
 
     print("PHASE7_ARGV_SPLIT_PACKET=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE7_ARGV_SPLIT_PACKET_REQUIRED_MARKER_COUNT={sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print(
+        "PHASE7_ARGV_SPLIT_PACKET_REQUIRED_MARKER_COUNT="
+        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
+    )
     return 0
 
 
