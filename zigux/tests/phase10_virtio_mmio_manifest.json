@@ -133,10 +133,10 @@
     },
     {
       "id": "phase10-virtio-mmio-slice-note",
-      "status": "repo_reality_gap",
+      "status": "starter_landed",
       "kind": "documentation",
       "zigux_destination": "Documentation/zigux/phase10-virtio-mmio-slice.md",
-      "why_now": "Current direct contents reads still do not materialize the narrower MMIO slice companion, so the lane should keep that specific note framed as a repo-reality gap."
+      "why_now": "The slice companion now materializes on current master and keeps the helper-local MMIO packet reviewable beside the survey note, config-write companion, manifest, and checker."
     },
     {
       "id": "phase10-mmio-lifecycle-and-irq-paths",
