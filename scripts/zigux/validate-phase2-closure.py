@@ -63,7 +63,7 @@ EXPECTED_PRESENT_FILES = [
     "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-kconfig-bridge.py",
-    "scripts/zigux/check-zig-toolchain.py"
+    "scripts/zigux/check-zig-toolchain.py",
 ]
 
 EXPECTED_MISSING_FILES = [
@@ -84,7 +84,7 @@ EXPECTED_SCRIPTS_README_MARKERS = (
     "`validate-phase2-closure.py`",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -280,16 +280,20 @@ def run_self_test() -> int:
         checks_run += 1
 
         for field in (
+            "phase",
+            "status",
             "toolchain_bootstrap_doc",
             "closure_validator",
             "closure_doc",
             "shared_validator",
+            "tool_manifest_checker",
             "makefile",
+            "master_present_branch_missing_files",
             "workflow_surface",
         ):
             build_self_test_root(root)
             bad = json.loads(manifest_json())
-            bad[field] = "wrong"
+            bad[field] = ["wrong"] if field == "master_present_branch_missing_files" else "wrong"
             write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
             assert ("INVALID_MANIFEST_FIELD", field) in collect_issues(root)
             checks_run += 1
