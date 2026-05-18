@@ -31,6 +31,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
     "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
     "zigux/tests/fixtures/phase2_tool_manifest.json",
+    "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     MAKEFILE,
 )
 
