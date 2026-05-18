@@ -1,11 +1,27 @@
 const std = @import("std");
 const virtio_ring = @import("virtio_ring");
 
+pub const QueueShapeSummary = virtio_ring.QueueShapeSummary;
+pub const QueueNotificationSummary = virtio_ring.QueueNotificationSummary;
 pub const NotificationDataSummary = virtio_ring.NotificationDataSummary;
 pub const UsedBufferPollSummary = virtio_ring.UsedBufferPollSummary;
 pub const DelayedCallbackSummary = virtio_ring.DelayedCallbackSummary;
 pub const BrokenQueueSummary = virtio_ring.BrokenQueueSummary;
 pub const QueueResetReadinessSummary = virtio_ring.QueueResetReadinessSummary;
+
+pub fn summarizeQueueShape(
+    ring: *const virtio_ring.VirtioRingLab,
+    queue_index: u16,
+) !QueueShapeSummary {
+    return ring.queueShapeSummary(queue_index);
+}
+
+pub fn summarizePrepareKick(
+    ring: *virtio_ring.VirtioRingLab,
+    queue_index: u16,
+) !QueueNotificationSummary {
+    return ring.prepareKick(queue_index);
+}
 
 pub fn summarizeNotificationData(
     ring: *const virtio_ring.VirtioRingLab,
@@ -56,6 +72,62 @@ pub fn delayedCallbackBudgetExhausted(summary: DelayedCallbackSummary) bool {
 
 pub fn notificationDataUsesWrapBit(summary: NotificationDataSummary) bool {
     return (summary.encoded_next & virtio_ring.packed_notification_wrap_bit) != 0;
+}
+
+test "phase10 virtio ring verify keeps queue-shape wrapper explicit across split and packed queues" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(0, 8, .split, true, false);
+    try ring.defineQueue(1, 16, .packed_ring, false, true);
+
+    var summary = try summarizeQueueShape(&ring, 0);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 0), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 8), summary.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.split, summary.layout);
+    try std.testing.expect(summary.uses_event_idx);
+    try std.testing.expect(!summary.uses_indirect_descriptors);
+
+    summary = try summarizeQueueShape(&ring, 1);
+    try std.testing.expectEqual(@as(u16, 1), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 16), summary.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, summary.layout);
+    try std.testing.expect(!summary.uses_event_idx);
+    try std.testing.expect(summary.uses_indirect_descriptors);
+
+    try std.testing.expectError(error.QueueNotDefined, summarizeQueueShape(&ring, 2));
+}
+
+test "phase10 virtio ring verify keeps prepare-kick wrapper idempotent and queue-local" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(7, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(7);
+    try ring.publishDescriptorChain(7);
+
+    var summary = try summarizePrepareKick(&ring, 7);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 7), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 2), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
+    try std.testing.expect(summary.needs_kick);
+
+    summary = try summarizePrepareKick(&ring, 7);
+    try std.testing.expectEqual(@as(u16, 2), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 2), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
+    try std.testing.expect(!summary.needs_kick);
+
+    try ring.publishDescriptorChain(7);
+    summary = try summarizePrepareKick(&ring, 7);
+    try std.testing.expectEqual(@as(u16, 3), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 3), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 2), summary.notification_count);
+    try std.testing.expect(summary.needs_kick);
 }
 
 test "phase10 virtio ring verify keeps notification-data next-avail state reviewable across split packed and reset replay" {
