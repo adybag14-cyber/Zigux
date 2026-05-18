@@ -14,11 +14,13 @@ ROOT = (
 )
 
 CURRENT_RING_PACKET_FILES = [
+    "Documentation/zigux/phase10-virtio-ring-survey.md",
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
     "Documentation/zigux/phase10-virtio-ring-slice.md",
     "drivers/virtio/virtio_ring.zig",
     "drivers/virtio/virtio_ring_verify.zig",
     "zigux/tests/phase10_build.zig",
+    "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
     "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
@@ -26,6 +28,13 @@ CURRENT_RING_PACKET_FILES = [
 ]
 
 MARKERS = {
+    "Documentation/zigux/phase10-virtio-ring-survey.md": [
+        "`Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`",
+        "`zigux/tests/phase10_virtio_ring_manifest.json`",
+        "`phase10-virtio-ring-survey-gate`",
+        "`phase10-virtqueue-shape-helper`",
+        "the ring lane still stays below transport-backed work: the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
+    ],
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
         "drivers/virtio/virtio_ring_verify.zig",
         "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
@@ -74,6 +83,13 @@ MARKERS = {
         "test_step.dependOn(&run_phase10_virtio_ring_broken_queue_queue_discipline_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);",
         "Run the live Phase 10 virtio input, ring, and MMIO lab validation tests",
+    ],
+    "zigux/tests/phase10_virtio_ring_manifest.json": [
+        '"lane_key": "P10-L10"',
+        '"id": "phase10-virtio-ring-survey-gate"',
+        '"status": "repo_reality_gap"',
+        '"id": "phase10-virtqueue-shape-helper"',
+        '"id": "phase10-ring-lab-driver-bridge"',
     ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
         'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
@@ -177,6 +193,18 @@ def run_self_test() -> int:
             case_count += 1
 
         expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-survey.md",
+            "`Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-survey.md",
+            "`phase10-virtio-ring-survey-gate`",
+        )
+        expect_missing_marker(
+            "Documentation/zigux/phase10-virtio-ring-survey.md",
+            "the ring lane still stays below transport-backed work: the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
+        )
+        expect_missing_marker(
             "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
             "drivers/virtio/virtio_ring_verify.zig",
         )
@@ -245,6 +273,14 @@ def run_self_test() -> int:
             "test_step.dependOn(&run_phase10_virtio_ring_delayed_callback_budget_tests.step);",
         )
         expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"id": "phase10-virtio-ring-survey-gate"',
+        )
+        expect_missing_marker(
+            "zigux/tests/phase10_virtio_ring_manifest.json",
+            '"id": "phase10-virtqueue-shape-helper"',
+        )
+        expect_missing_marker(
             "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
             'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
         )
@@ -268,11 +304,13 @@ def run_self_test() -> int:
             "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
             "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
         )
+        expect_missing_file("Documentation/zigux/phase10-virtio-ring-survey.md")
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md")
         expect_missing_file("Documentation/zigux/phase10-virtio-ring-slice.md")
         expect_missing_file("drivers/virtio/virtio_ring.zig")
         expect_missing_file("drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file("zigux/tests/phase10_build.zig")
+        expect_missing_file("zigux/tests/phase10_virtio_ring_manifest.json")
         expect_missing_file("zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig")
         expect_missing_file("zigux/tests/phase10_virtio_ring_reset_reuse.zig")
         expect_missing_file("zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig")
