@@ -26,8 +26,7 @@
     "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all"
   ],
   "repo_reality_gaps": [
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
-    "zigux/tests/phase3_export_uapi_layout.zig"
+    "scripts/zigux/validate-phase3-export-uapi-survey.py"
   ],
   "next_safe_step": "keep the live starter packet honest with bounded manifest-backed checker and compile replay work before widening the broader Phase 3 ABI substrate"
 }
