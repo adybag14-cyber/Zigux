@@ -10,12 +10,17 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_create_ruleset_planning: bool,
     provides_abi_version_query_planning: bool,
+    provides_add_rule_planning: bool,
     provides_ruleset_fd_install_planning: bool,
     provides_ruleset_fd_stub_planning: bool,
     validates_handled_access: bool,
     validates_attr_size: bool,
     validates_flags: bool,
+    validates_add_rule_layers: bool,
+    validates_add_rule_tree_walk: bool,
     delegates_ruleset_creation_planning: bool,
+    delegates_rule_tree_search_planning: bool,
+    delegates_rule_insertion_planning: bool,
     touches_live_fd_installation: bool,
     touches_live_cred_replacement: bool,
 };
@@ -65,6 +70,43 @@ pub const CreateRulesetSyscallPlan = struct {
     create_ruleset_plan: CreateRulesetPlan,
 };
 
+pub const AddRuleInput = struct {
+    key_type: landlock_ruleset.KeyType = .inode,
+    root_present: bool = false,
+    search_key_data: u64 = 0,
+    walker_keys: []const u64 = &.{},
+    current_num_rules: u32 = 0,
+    existing_rule: ?landlock_ruleset.RulePlan = null,
+    incoming_layers: []const landlock_ruleset.Layer = &.{},
+};
+
+pub const AddRulePlan = struct {
+    anchor: []const u8,
+    validates_ruleset_fd: bool,
+    validates_incoming_layers: bool,
+    validates_tree_walk: bool,
+    performs_copy_from_user: bool,
+    delegates_rule_tree_search_planning: bool,
+    delegates_rule_insertion_planning: bool,
+    search_plan: landlock_ruleset.RuleTreeSearchPlan,
+    branch_plan: landlock_ruleset.InsertRuleBranchPlan,
+};
+
+pub const AddRuleSyscallRequest = struct {
+    initialized: bool = true,
+    attr_present: bool = true,
+    ruleset_fd_present: bool = true,
+    input: AddRuleInput = .{},
+};
+
+pub const AddRuleSyscallPlan = struct {
+    anchor: []const u8,
+    checks_initialization_gate: bool,
+    checks_attr_presence_before_copy_from_user: bool,
+    reuses_add_rule_validation: bool,
+    add_rule_plan: AddRulePlan,
+};
+
 pub const RulesetFdInstallRequest = struct {
     label: []const u8 = "[landlock-ruleset]",
     flags: u32 = O_RDWR | O_CLOEXEC,
@@ -103,12 +145,17 @@ pub const SyscallsHelperLab = struct {
             .anchor = "security/landlock/syscalls.c",
             .provides_create_ruleset_planning = true,
             .provides_abi_version_query_planning = true,
+            .provides_add_rule_planning = true,
             .provides_ruleset_fd_install_planning = true,
             .provides_ruleset_fd_stub_planning = true,
             .validates_handled_access = true,
             .validates_attr_size = true,
             .validates_flags = true,
+            .validates_add_rule_layers = true,
+            .validates_add_rule_tree_walk = true,
             .delegates_ruleset_creation_planning = true,
+            .delegates_rule_tree_search_planning = true,
+            .delegates_rule_insertion_planning = true,
             .touches_live_fd_installation = false,
             .touches_live_cred_replacement = false,
         };
@@ -186,6 +233,57 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
+    pub fn planAddRule(input: AddRuleInput, ruleset_fd_present: bool) !AddRulePlan {
+        if (!ruleset_fd_present) {
+            return error.MissingRulesetFd;
+        }
+        if (input.incoming_layers.len == 0) {
+            return error.MissingLayers;
+        }
+
+        const search_plan = try landlock_ruleset.RulesetHelperLab.planRuleTreeSearch(
+            input.key_type,
+            input.root_present,
+            input.search_key_data,
+            input.walker_keys,
+            input.current_num_rules,
+        );
+        const branch_plan = try landlock_ruleset.RulesetHelperLab.planInsertRuleBranch(
+            search_plan,
+            input.existing_rule,
+            input.incoming_layers,
+        );
+
+        return .{
+            .anchor = descriptor().anchor,
+            .validates_ruleset_fd = true,
+            .validates_incoming_layers = true,
+            .validates_tree_walk = true,
+            .performs_copy_from_user = true,
+            .delegates_rule_tree_search_planning = true,
+            .delegates_rule_insertion_planning = true,
+            .search_plan = search_plan,
+            .branch_plan = branch_plan,
+        };
+    }
+
+    pub fn planLandlockAddRule(request: AddRuleSyscallRequest) !AddRuleSyscallPlan {
+        if (!request.initialized) {
+            return error.BootDisabled;
+        }
+        if (!request.attr_present) {
+            return error.BadUserPointer;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .checks_initialization_gate = true,
+            .checks_attr_presence_before_copy_from_user = true,
+            .reuses_add_rule_validation = true,
+            .add_rule_plan = try planAddRule(request.input, request.ruleset_fd_present),
+        };
+    }
+
     pub fn planInstallRulesetFd(request: RulesetFdInstallRequest) !RulesetFdInstallPlan {
         if (!request.ruleset_present) {
             return error.MissingRuleset;
@@ -231,19 +329,24 @@ pub const SyscallsHelperLab = struct {
     }
 };
 
-test "landlock syscalls descriptor stays within create-ruleset planning boundaries" {
+test "landlock syscalls descriptor stays within create and add-rule planning boundaries" {
     const descriptor = SyscallsHelperLab.descriptor();
 
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_create_ruleset_planning);
     try std.testing.expect(descriptor.provides_abi_version_query_planning);
+    try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_install_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_stub_planning);
     try std.testing.expect(descriptor.validates_handled_access);
     try std.testing.expect(descriptor.validates_attr_size);
     try std.testing.expect(descriptor.validates_flags);
+    try std.testing.expect(descriptor.validates_add_rule_layers);
+    try std.testing.expect(descriptor.validates_add_rule_tree_walk);
     try std.testing.expect(descriptor.delegates_ruleset_creation_planning);
+    try std.testing.expect(descriptor.delegates_rule_tree_search_planning);
+    try std.testing.expect(descriptor.delegates_rule_insertion_planning);
     try std.testing.expect(!descriptor.touches_live_fd_installation);
     try std.testing.expect(!descriptor.touches_live_cred_replacement);
 }
@@ -339,6 +442,90 @@ test "landlock syscalls top-level wrapper rejects disabled boot before planning"
         .initialized = false,
         .input = .{
             .attr = .{ .handled_access_fs = 0x4 },
+        },
+    }));
+}
+
+test "landlock syscalls add-rule plans fresh inode insertion through ruleset search and link helpers" {
+    const plan = try SyscallsHelperLab.planAddRule(.{
+        .search_key_data = 64,
+        .incoming_layers = &.{.{ .level = 0, .access = 0x2 }},
+    }, true);
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expect(plan.validates_ruleset_fd);
+    try std.testing.expect(plan.validates_incoming_layers);
+    try std.testing.expect(plan.validates_tree_walk);
+    try std.testing.expect(plan.performs_copy_from_user);
+    try std.testing.expect(plan.delegates_rule_tree_search_planning);
+    try std.testing.expect(plan.delegates_rule_insertion_planning);
+    try std.testing.expectEqual(landlock_ruleset.TreeRoot.inode, plan.search_plan.root);
+    try std.testing.expectEqual(@as(?landlock_ruleset.InsertionSite, .root), plan.search_plan.insertion_site);
+    try std.testing.expect(!plan.search_plan.matched_existing_rule);
+    try std.testing.expectEqual(landlock_ruleset.InsertRuleBranchMode.insert_with_link, plan.branch_plan.mode);
+    try std.testing.expect(plan.branch_plan.link_plan != null);
+    try std.testing.expect(plan.branch_plan.replacement_plan == null);
+    try std.testing.expectEqual(@as(u32, 1), plan.branch_plan.resulting_num_rules);
+}
+
+test "landlock syscalls add-rule plans matched-rule replacement for layered merges" {
+    const existing = landlock_ruleset.RulePlan{
+        .num_layers = 2,
+        .layers = [_]landlock_ruleset.Layer{
+            .{ .level = 1, .access = 0x1 },
+            .{ .level = 3, .access = 0x4 },
+        } ++ ([_]landlock_ruleset.Layer{.{ .level = 0, .access = 0 }} ** (landlock_ruleset.max_num_layers - 2)),
+    };
+
+    const plan = try SyscallsHelperLab.planAddRule(.{
+        .root_present = true,
+        .search_key_data = 99,
+        .walker_keys = &.{ 10, 99, 120 },
+        .current_num_rules = 6,
+        .existing_rule = existing,
+        .incoming_layers = &.{.{ .level = 5, .access = 0x10 }},
+    }, true);
+
+    try std.testing.expect(plan.search_plan.matched_existing_rule);
+    try std.testing.expectEqual(landlock_ruleset.InsertRuleBranchMode.replace_existing_rule, plan.branch_plan.mode);
+    try std.testing.expect(plan.branch_plan.link_plan == null);
+    try std.testing.expect(plan.branch_plan.replacement_plan != null);
+    try std.testing.expectEqual(@as(usize, 3), plan.branch_plan.resulting_rule.num_layers);
+    try std.testing.expectEqual(@as(u32, 6), plan.branch_plan.resulting_num_rules);
+}
+
+test "landlock syscalls add-rule rejects missing ruleset fds before branch planning" {
+    try std.testing.expectError(error.MissingRulesetFd, SyscallsHelperLab.planAddRule(.{
+        .incoming_layers = &.{.{ .level = 0, .access = 0x1 }},
+    }, false));
+}
+
+test "landlock syscalls add-rule top-level wrapper keeps copy-from-user and boot gates explicit" {
+    const wrapper = try SyscallsHelperLab.planLandlockAddRule(.{
+        .input = .{
+            .search_key_data = 41,
+            .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
+        },
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
+    try std.testing.expect(wrapper.checks_initialization_gate);
+    try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(wrapper.reuses_add_rule_validation);
+    try std.testing.expect(wrapper.add_rule_plan.performs_copy_from_user);
+}
+
+test "landlock syscalls add-rule top-level wrapper rejects disabled boot and missing attr" {
+    try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockAddRule(.{
+        .initialized = false,
+        .input = .{
+            .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
+        },
+    }));
+    try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockAddRule(.{
+        .attr_present = false,
+        .input = .{
+            .incoming_layers = &.{.{ .level = 0, .access = 0x8 }},
         },
     }));
 }
