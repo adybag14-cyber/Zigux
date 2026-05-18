@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-close the current Phase 3 shared reminder gap note."""
+"""Fail-close the current Phase 3 shared reminder surfaces."""
 
 from __future__ import annotations
 
@@ -16,36 +16,75 @@ REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 
 REQUIRED_MARKERS = {
     GAP_NOTE_PATH: (
-        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the bounded dev_t starter packet plus the focused err_ptr/xarray and policy slices explicit",
-        "Documentation/zigux/phase3-policy-slice.md",
-        "include/zigux/abi.h",
-        "zigux/bindings/abi.zig",
-        "Documentation/zigux/README.md, zigux/tests/README.md, and Documentation/zigux/review-checklist.md",
-        "one narrow reminder-surface cleanup pass",
+        "focused err_ptr/xarray, xarray slot, and policy slices explicit",
+        "Documentation/zigux/phase3-xarray-slot-slice.md",
+        "Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, and zigux/tests/README.md now all state that bounded four-slice posture directly",
+        "There is no active shared-reminder sentence cleanup left in this packet today.",
     ),
     VALIDATOR_NOTE_PATH: (
-        "## Focused policy slice present on `master`",
-        "Documentation/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/review-checklist.md` still lag",
-        "bounded three-slice posture on current `master`",
+        "## Focused xarray-slot slice present on `master`",
+        "Documentation/zigux/phase3-xarray-slot-slice.md",
+        "`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now all reflect that bounded four-slice posture",
     ),
     DOCS_ROOT_PATH: (
-        "Phase 3 notes - `Documentation/zigux/phase3-abi-slice.md`",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`include/zigux/abi.h`",
-        "`zigux/bindings/abi.zig`",
+        "`Documentation/zigux/phase3-xarray-slot-slice.md`",
+        "`zigux/helpers/xarray_slot_view.zig`",
+        "`scripts/zigux/check-phase3-xarray-slot.py`",
+        "one focused helper-local `xarray slot` slice",
     ),
     TESTS_ROOT_PATH: (
-        "Phase 3 review packet",
-        "`Documentation/zigux/phase3-abi-slice.md`",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`include/zigux/abi.h`",
-        "`zigux/bindings/abi.zig`",
+        "`Documentation/zigux/phase3-xarray-slot-slice.md`",
+        "`zigux/helpers/xarray_slot_view.zig`",
+        "`scripts/zigux/check-phase3-xarray-slot.py`",
+        "the focused helper-local `xarray slot` slice",
     ),
     REVIEW_CHECKLIST_PATH: (
-        "if the change touches the shared Phase 3 ABI packet or a broad reminder surface",
-        "`Documentation/zigux/phase3-errptr-xarray-slice.md`",
-        "`Documentation/zigux/README.md` and `zigux/tests/README.md` stay framed as the remaining broader shared reminder surfaces",
+        "shared Phase 3 reminder packet",
+        "`Documentation/zigux/phase3-xarray-slot-slice.md`",
+        "`Documentation/zigux/phase3-validator-support-surface.md`",
+        "bounded four-slice posture",
     ),
+}
+
+SELF_TEST_TEXT = {
+    GAP_NOTE_PATH: """
+# Phase 3 Shared Reminder Gap
+focused err_ptr/xarray, xarray slot, and policy slices explicit
+Documentation/zigux/phase3-xarray-slot-slice.md
+Documentation/zigux/README.md, Documentation/zigux/review-checklist.md, and zigux/tests/README.md now all state that bounded four-slice posture directly
+There is no active shared-reminder sentence cleanup left in this packet today.
+""".strip()
+    + "\n",
+    VALIDATOR_NOTE_PATH: """
+# Phase 3 Validator Support Surface
+## Focused xarray-slot slice present on `master`
+Documentation/zigux/phase3-xarray-slot-slice.md
+`Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` now all reflect that bounded four-slice posture
+""".strip()
+    + "\n",
+    DOCS_ROOT_PATH: """
+# Zigux Documentation
+Phase 3 notes
+- `Documentation/zigux/phase3-xarray-slot-slice.md`
+- `zigux/helpers/xarray_slot_view.zig`
+- `scripts/zigux/check-phase3-xarray-slot.py`
+now keep the current Phase 3 reminder surface anchored to one bounded `dev_t` starter packet, one focused helper-local `err_ptr` / `xarray` slice, one focused helper-local `xarray slot` slice, and one focused helper-local policy slice.
+""".strip()
+    + "\n",
+    TESTS_ROOT_PATH: """
+# zigux/tests
+Phase 3 review packet
+  * `Documentation/zigux/phase3-xarray-slot-slice.md`
+  * `zigux/helpers/xarray_slot_view.zig`
+  * `scripts/zigux/check-phase3-xarray-slot.py`
+  * keep the current shared Phase 3 reminder anchored to the bounded `dev_t` starter packet, the helper-local `err_ptr` / `xarray` slice, the focused helper-local `xarray slot` slice, and the focused policy slice.
+""".strip()
+    + "\n",
+    REVIEW_CHECKLIST_PATH: """
+# Zigux Review Checklist
+  * if the change touches the shared Phase 3 reminder packet, do `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `zigux/tests/README.md` still agree with `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-xarray-slot-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and `Documentation/zigux/phase3-validator-support-surface.md` on the bounded four-slice posture?
+""".strip()
+    + "\n",
 }
 
 
@@ -74,26 +113,16 @@ def validate_repo(repo_root: Path) -> list[str]:
 
 
 def _populate_repo(root: Path) -> None:
-    for relative_path in (
-        GAP_NOTE_PATH,
-        VALIDATOR_NOTE_PATH,
-        DOCS_ROOT_PATH,
-        TESTS_ROOT_PATH,
-        REVIEW_CHECKLIST_PATH,
-    ):
-        source = Path("/workspace/.scratch-l29-reminder-source") / relative_path
-        _write(root / relative_path, _read(source))
+    for relative_path, text in SELF_TEST_TEXT.items():
+        _write(root / relative_path, text)
 
 
 SELF_TEST_CASES = (
-    (GAP_NOTE_PATH, "one narrow reminder-surface cleanup pass"),
-    (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
-    (DOCS_ROOT_PATH, "`include/zigux/abi.h`"),
-    (TESTS_ROOT_PATH, "`zigux/bindings/abi.zig`"),
-    (
-        REVIEW_CHECKLIST_PATH,
-        "`Documentation/zigux/README.md` and `zigux/tests/README.md` stay framed as the remaining broader shared reminder surfaces",
-    ),
+    (GAP_NOTE_PATH, "There is no active shared-reminder sentence cleanup left in this packet today."),
+    (VALIDATOR_NOTE_PATH, "## Focused xarray-slot slice present on `master`"),
+    (DOCS_ROOT_PATH, "`scripts/zigux/check-phase3-xarray-slot.py`"),
+    (TESTS_ROOT_PATH, "`zigux/helpers/xarray_slot_view.zig`"),
+    (REVIEW_CHECKLIST_PATH, "bounded four-slice posture"),
 )
 
 
@@ -126,7 +155,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current Phase 3 shared reminder gap note."
+        description="Validate the current Phase 3 shared reminder surfaces."
     )
     parser.add_argument(
         "--repo-root",
@@ -147,8 +176,8 @@ def main() -> int:
             print(issue)
         return 1
 
-    print(f"validated {args.repo_root / GAP_NOTE_PATH}")
-    print(f"validated {args.repo_root / VALIDATOR_NOTE_PATH}")
+    for relative_path in REQUIRED_MARKERS:
+        print(f"validated {args.repo_root / relative_path}")
     return 0
 
 
