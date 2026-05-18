@@ -72,15 +72,15 @@ SURVEY_NOTE_WITNESS_MARKER = "Current `master` also now keeps one direct family-
 SURVEY_NOTE_SAMPLE_LOCAL_MARKER = "sample-local pilot-module reviewability"
 MODULE_SLICE_ALIGNMENT_MARKER = "The paired family-local survey packet through `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig`"
 MODULE_SLICE_BOUNDARY_MARKER = "broader shared runtime-loader packet"
-MANIFEST_ALIGNMENT_FOCUS_MARKER = "\"alignment_focus\": \"sample-local pilot-module reviewability rather than returned shared runtime-loader parity\""
-MANIFEST_SURVEY_NOTE_MARKER = "\"survey_note_path\": \"Documentation/zigux/phase9-runtime-trace-events-survey.md\""
-MANIFEST_MODULE_SLICE_MARKER = "\"module_slice_path\": \"Documentation/zigux/phase9-runtime-trace-events-module-slice.md\""
-MANIFEST_SURVEY_GATE_MARKER = "\"surface\": \"zigux/tests/runtime_trace_events_survey.zig\""
-MANIFEST_WORKFLOW_MARKER = "\"surface\": ".github/workflows/zigux-bootstrap.yml\""
-SURVEY_GATE_SURVEY_NOTE_MARKER = "\"Documentation/zigux/phase9-runtime-trace-events-survey.md\""
-SURVEY_GATE_MODULE_SLICE_MARKER = "\"Documentation/zigux/phase9-runtime-trace-events-module-slice.md\""
-SURVEY_GATE_MANIFEST_MARKER = "\"zigux/tests/runtime_trace_events_manifest.json\""
-SURVEY_GATE_WORKFLOW_MARKER = "\".github/workflows/zigux-bootstrap.yml\""
+MANIFEST_ALIGNMENT_FOCUS_MARKER = '"alignment_focus": "sample-local pilot-module reviewability rather than returned shared runtime-loader parity"'
+MANIFEST_SURVEY_NOTE_MARKER = '"survey_note_path": "Documentation/zigux/phase9-runtime-trace-events-survey.md"'
+MANIFEST_MODULE_SLICE_MARKER = '"module_slice_path": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md"'
+MANIFEST_SURVEY_GATE_MARKER = '"surface": "zigux/tests/runtime_trace_events_survey.zig"'
+MANIFEST_WORKFLOW_MARKER = '"surface": ".github/workflows/zigux-bootstrap.yml"'
+SURVEY_GATE_SURVEY_NOTE_MARKER = '"Documentation/zigux/phase9-runtime-trace-events-survey.md"'
+SURVEY_GATE_MODULE_SLICE_MARKER = '"Documentation/zigux/phase9-runtime-trace-events-module-slice.md"'
+SURVEY_GATE_MANIFEST_MARKER = '"zigux/tests/runtime_trace_events_manifest.json"'
+SURVEY_GATE_WORKFLOW_MARKER = '".github/workflows/zigux-bootstrap.yml"'
 WORKFLOW_BOUNDARY_SELF_TEST_MARKER = "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test"
 WORKFLOW_BOUNDARY_LIVE_MARKER = "python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py"
 WORKFLOW_PACKET_SELF_TEST_MARKER = "python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test"
@@ -371,9 +371,9 @@ FILE_MARKERS = {
         PHASE3_EXPORT_SHIM_MARKER,
     ],
     MANIFEST_PATH: [
-        "\"lane_key\": \"P9-L09\"",
-        "\"phase\": \"Phase 9\"",
-        "\"survey_summary\": {",
+        '"lane_key": "P9-L09"',
+        '"phase": "Phase 9"',
+        '"survey_summary": {',
         MANIFEST_ALIGNMENT_FOCUS_MARKER,
         MANIFEST_SURVEY_NOTE_MARKER,
         MANIFEST_MODULE_SLICE_MARKER,
