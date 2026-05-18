@@ -89,14 +89,16 @@ Current `master` does still ship the adjacent low-level-wrapper packet through `
 
 ## Shared reminder follow-up
 
-`Documentation/zigux/review-checklist.md` stays aligned with that bounded three-slice posture, but `Documentation/zigux/README.md` and `zigux/tests/README.md` still need the shared-summary refresh recorded in `Documentation/zigux/phase3-shared-reminder-gap.md` before they can be treated as aligned current-master reminder surfaces.
+`Documentation/zigux/README.md` now reflects that bounded three-slice posture together with the returned notifier binding companion and adjacent export/UAPI layout replay, and should stay aligned with `Documentation/zigux/phase3-abi-slice.md`, `Documentation/zigux/phase3-errptr-xarray-slice.md`, `Documentation/zigux/phase3-policy-slice.md`, and this note.
 
-`Documentation/zigux/phase3-shared-reminder-gap.md` still records that the shared docs-root and tests-root export/UAPI reminder drift is open on current `master`.
+`zigux/tests/README.md` still undercounts that returned shared ABI surface and should be refreshed separately before the shared reminder can be treated as fully closed on current `master`.
+
+`Documentation/zigux/phase3-shared-reminder-gap.md` now records that remaining tests-root drift and keeps scripts-root inventory follow-through separate.
 
 `scripts/zigux/README.md` remains a separate scripts-root reminder surface and should be handled through its own inventory-truthfulness follow-up instead of through this validator-support note.
 
-Keep any remaining follow-up focused on the shared docs-root and tests-root reminder refresh first, then separate scripts-root inventory drift only if that broader surface changes again. This note should not be used to imply that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
+Keep any remaining follow-up focused on the tests-root reminder surface or separate scripts-root inventory drift if that broader surface changes again. This note should not be used to imply that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
 
 ## Scope
 
-This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, the helper-local fixture-backed parity packet, the focused policy slice, and the adjacent export/UAPI layout replay pair explicit; marks representative broader validator and export-boundary survey routes as current gaps; records the separately landed low-level-wrapper packet without promoting it into broader validator support; records the still-open docs-root and tests-root reminder drift; and keeps scripts-root follow-through separate. This note does not claim that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
+This note is limited to the current validator-support posture for Phase 3. It keeps the directly readable starter packet, the machine-readable manifests, the direct compile replay, the starter export shim companion, the helper-local fixture-backed parity packet, the focused policy slice, and the adjacent export/UAPI layout replay pair explicit; marks representative broader validator and export-boundary survey routes as current gaps; records the separately landed low-level-wrapper packet without promoting it into broader validator support; records the docs-root reminder as aligned while keeping the tests-root reminder drift explicit; and keeps scripts-root follow-through separate. This note does not claim that the broader Phase 3 ABI substrate, export/UAPI survey packet, catalog wiring, IDR/IDA family, or shared replay routes have returned.
