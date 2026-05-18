@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 from pathlib import Path
 import shutil
@@ -344,6 +346,37 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
     return ("pass", parsed)
 
 
+def emit_expectations_failure(kind: str, payload: object) -> int:
+    print("PHASE1_BENCH_CHECK=fail")
+    if kind == "expectations_missing":
+        assert isinstance(payload, Path)
+        print("PHASE1_BENCH_CHECK_REASON=expectations_missing")
+        print(f"PHASE1_BENCH_EXPECTATIONS={payload}")
+        return 1
+    if kind == "expectations_json_error":
+        path, exc = payload
+        assert isinstance(path, Path)
+        assert isinstance(exc, json.JSONDecodeError)
+        print("PHASE1_BENCH_CHECK_REASON=expectations_json_error")
+        print(f"PHASE1_BENCH_EXPECTATIONS={path}")
+        print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
+        print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
+        print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
+        return 1
+
+    print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+    print(payload)
+    return 1
+
+
+def capture_expectations_failure_output(kind: str, payload: object) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        exit_code = emit_expectations_failure(kind, payload)
+    assert exit_code == 1
+    return buffer.getvalue().splitlines()
+
+
 def run_self_test() -> None:
     case_count = 0
     expectations = {
@@ -392,7 +425,7 @@ def run_self_test() -> None:
     "PHASE1_BENCH_LIST_SORT_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
-    "PHASE1_BENCH_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
   ],
@@ -406,7 +439,7 @@ def run_self_test() -> None:
     "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
     "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
     "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-    "PHASE1_BENCH_FIND_ADD_CHECKSUM": 10,
+    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
     "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12
   }
@@ -571,6 +604,14 @@ def run_self_test() -> None:
     assert payload == missing_expectations_path
     case_count += 1
 
+    missing_output = capture_expectations_failure_output(kind, payload)
+    assert missing_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=expectations_missing",
+        f"PHASE1_BENCH_EXPECTATIONS={missing_expectations_path}",
+    ]
+    case_count += 1
+
     with tempfile.TemporaryDirectory(prefix="phase1-bench-self-test-json-") as tmpdir:
         invalid_expectations_path = Path(tmpdir) / "phase1-bench-expectations.json"
         invalid_expectations_path.write_text("{", encoding="utf-8")
@@ -581,7 +622,18 @@ def run_self_test() -> None:
         assert isinstance(exc, json.JSONDecodeError)
         assert exc.lineno == 1
         assert exc.colno == 2
-    case_count += 1
+        case_count += 1
+
+        malformed_output = capture_expectations_failure_output(kind, payload)
+        assert malformed_output == [
+            "PHASE1_BENCH_CHECK=fail",
+            "PHASE1_BENCH_CHECK_REASON=expectations_json_error",
+            f"PHASE1_BENCH_EXPECTATIONS={invalid_expectations_path}",
+            "EXPECTATIONS_JSON_ERROR=Expecting property name enclosed in double quotes",
+            "EXPECTATIONS_JSON_LINE=1",
+            "EXPECTATIONS_JSON_COLUMN=2",
+        ]
+        case_count += 1
 
     status_mismatch_output = ok_output.replace(
         "PHASE1_BENCH=pass",
@@ -971,27 +1023,8 @@ def main() -> int:
         return 0
 
     kind, payload = load_runtime_expectations(EXPECTATIONS)
-    if kind == "expectations_missing":
-        print("PHASE1_BENCH_CHECK=fail")
-        print("PHASE1_BENCH_CHECK_REASON=expectations_missing")
-        print(f"PHASE1_BENCH_EXPECTATIONS={payload}")
-        return 1
-    if kind == "expectations_json_error":
-        path, exc = payload
-        assert isinstance(path, Path)
-        assert isinstance(exc, json.JSONDecodeError)
-        print("PHASE1_BENCH_CHECK=fail")
-        print("PHASE1_BENCH_CHECK_REASON=expectations_json_error")
-        print(f"PHASE1_BENCH_EXPECTATIONS={path}")
-        print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
-        print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
-        print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
-        return 1
     if kind != "pass":
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
-        print(payload)
-        return 1
+        return emit_expectations_failure(kind, payload)
 
     expectations = payload
     assert isinstance(expectations, dict)
