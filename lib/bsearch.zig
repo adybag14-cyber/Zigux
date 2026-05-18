@@ -266,6 +266,14 @@ fn compareDescendingInt(key: *const i32, item: *const i32) i32 {
     return compareInt(item, key);
 }
 
+fn compareCInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
+    return @as(CComparatorResult, compareInt(key, item));
+}
+
+fn compareCDescendingInt(key: *const i32, item: *const i32) callconv(.c) CComparatorResult {
+    return @as(CComparatorResult, compareDescendingInt(key, item));
+}
+
 fn compareCOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) CComparatorResult {
     const typed_key: *const i32 = @ptrCast(@alignCast(key));
     const typed_item: *const i32 = @ptrCast(@alignCast(item));
@@ -282,6 +290,23 @@ fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     const typed_key: *const i32 = @ptrCast(@alignCast(key));
     const typed_item: *const i32 = @ptrCast(@alignCast(item));
     return compareInt(typed_key, typed_item);
+}
+
+fn expectTypedCAbiRange(items: []const i32, key: i32, expected: IndexRange, compare: CComparator(i32, i32)) !void {
+    const lower = lowerBoundIndex(i32, i32, &key, items, compare);
+    const upper = upperBoundIndex(i32, i32, &key, items, compare);
+    const range = equalRangeIndex(i32, i32, &key, items, compare);
+    const view = equalRange(i32, i32, &key, items, compare);
+
+    try std.testing.expectEqual(expected.lower, lower);
+    try std.testing.expectEqual(expected.upper, upper);
+    try std.testing.expectEqual(expected, range);
+    try std.testing.expectEqual(expected.len(), view.len);
+
+    if (!expected.isEmpty()) {
+        try std.testing.expectEqual(key, view[0]);
+        try std.testing.expectEqual(key, view[expected.len() - 1]);
+    }
 }
 
 fn expectRawCAbiRange(items: []const i32, key: i32, expected: IndexRange, compare: CRawComparator) !void {
@@ -319,6 +344,35 @@ test "typed and raw searches support duplicate spans and descending C ABI pointe
     const found = bsearch(&key, @ptrCast(descending[0..].ptr), descending.len, @sizeOf(i32), compareCOpaqueDescendingInt) orelse return error.TestUnexpectedResult;
     const typed_found: *const i32 = @ptrCast(@alignCast(found));
     try std.testing.expectEqual(@as(i32, 4), typed_found.*);
+}
+
+test "typed c abi comparator pointers keep duplicate spans and insertion points aligned" {
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const descending = [_]i32{ 16, 9, 4, 4, 4, 1 };
+
+    const typed_cases = [_]struct {
+        items: []const i32,
+        key: i32,
+        expected: IndexRange,
+        compare: CComparator(i32, i32),
+    }{
+        .{ .items = ascending[0..], .key = 4, .expected = .{ .lower = 1, .upper = 4 }, .compare = compareCInt },
+        .{ .items = ascending[0..], .key = 3, .expected = .{ .lower = 1, .upper = 1 }, .compare = compareCInt },
+        .{ .items = descending[0..], .key = 4, .expected = .{ .lower = 2, .upper = 5 }, .compare = compareCDescendingInt },
+        .{ .items = descending[0..], .key = 5, .expected = .{ .lower = 2, .upper = 2 }, .compare = compareCDescendingInt },
+    };
+
+    for (typed_cases) |case| {
+        const found = search(i32, i32, &case.key, case.items, case.compare);
+        if (case.expected.isEmpty()) {
+            try std.testing.expectEqual(@as(?*const i32, null), found);
+        } else {
+            const typed_found = found orelse return error.TestUnexpectedResult;
+            try std.testing.expectEqual(case.key, typed_found.*);
+        }
+
+        try expectTypedCAbiRange(case.items, case.key, case.expected, case.compare);
+    }
 }
 
 test "raw c abi bounds keep duplicate spans and insertion points aligned" {
