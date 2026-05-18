@@ -12,6 +12,7 @@
     "current_phase13_build_present": false,
     "current_ruleset_zig_present": true,
     "current_phase13_landlock_ruleset_slice_present": true,
+    "current_phase13_landlock_ruleset_ownership_present": true,
     "current_phase13_landlock_ruleset_test_present": true,
     "current_landlock_ruleset_packet_checker_present": true,
     "current_phase13_landlock_ruleset_manifest_present": true
@@ -39,6 +40,13 @@
       "why_now": "A helper-local slice note now keeps the current planning-only ruleset packet explicit beside the ownership note, survey note, direct replay, manifest, and dedicated checker without pretending the older shared build route has returned."
     },
     {
+      "id": "phase13-landlock-ruleset-ownership-note",
+      "status": "starter_landed",
+      "kind": "review_surface",
+      "zigux_destination": "Documentation/zigux/phase13-landlock-ruleset-ownership.md",
+      "why_now": "A dedicated ownership note keeps the planning-only ruleset packet honest about helper-versus-live tree ownership, the still-blocked actual rb_replace_node() mutation boundary, and the hierarchy-lifetime work that remains outside this lane."
+    },
+    {
       "id": "phase13-landlock-ruleset-direct-test-gate",
       "status": "starter_landed",
       "kind": "validation",
@@ -50,7 +58,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "scripts/zigux/check-phase13-landlock-ruleset-packet.py",
-      "why_now": "The current packet checker keeps the shared Phase 13 contributor and ownership surfaces fail-closed around the ruleset lane while the slice note, direct replay, and manifest record the helper-local ruleset boundary."
+      "why_now": "The current packet checker keeps the shared Phase 13 contributor and ownership surfaces fail-closed around the ruleset lane while the slice note, ownership note, direct replay, and manifest record the helper-local ruleset boundary."
     },
     {
       "id": "phase13-landlock-live-tree-state",
