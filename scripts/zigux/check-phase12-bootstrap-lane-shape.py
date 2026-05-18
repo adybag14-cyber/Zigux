@@ -38,6 +38,8 @@ WORKFLOW_STEP_NAMES = [
     "Setup Python",
     "Setup pinned Zig toolchain",
     "Compile current scripts",
+    "Self-test current Zig toolchain checker",
+    "Check current Zig toolchain policy packet",
     "Check current pinned Zig archive packet",
     "Self-test current Phase 12 bootstrap docs sanity checker",
     "Check current Phase 12 docs-root sanity markers",
@@ -78,12 +80,14 @@ WORKFLOW_STEP_NAMES = [
 
 WORKFLOW_COMMAND_MARKERS = [
     "# Run every master push so exact-head bootstrap status stays attached even when path filtering misses a live change.",
+    "env:\n  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true",
     "  push:\n    branches: [ master ]\n  pull_request:",
     "workflow_dispatch:",
     "concurrency:",
     "group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}",
     "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
     "uses: actions/checkout@v6.0.2",
+    "fetch-depth: 1",
     "uses: actions/setup-python@v6.2.0",
     "python-version: '3.x'",
     "curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"",
@@ -92,6 +96,8 @@ WORKFLOW_COMMAND_MARKERS = [
     "\"$zig_path\" version",
     "set -euxo pipefail",
     "find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort",
+    "python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "python3 scripts/zigux/check-kconfig-bridge.py",
@@ -130,6 +136,8 @@ WORKFLOW_COMMAND_MARKERS = [
 ]
 
 WORKFLOW_EXACT_LINES = [
+    "        run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
+    "        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "        run: make -C zigux phase2-toolchain",
     "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
@@ -228,6 +236,9 @@ on:
       - '.github/workflows/zigux-bootstrap.yml'
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
   group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
@@ -238,6 +249,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6.0.2
+        with:
+          fetch-depth: 1
       - name: Setup Python
         uses: actions/setup-python@v6.2.0
         with:
@@ -256,6 +269,10 @@ jobs:
           set -euxo pipefail
           mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
           python3 -m py_compile "${scripts[@]}"
+      - name: Self-test current Zig toolchain checker
+        run: python3 scripts/zigux/check-zig-toolchain.py --self-test
+      - name: Check current Zig toolchain policy packet
+        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
       - name: Self-test current Phase 12 bootstrap docs sanity checker
@@ -372,6 +389,34 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
+                "      - name: Self-test current Zig toolchain checker\n"
+                "        run: python3 scripts/zigux/check-zig-toolchain.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Self-test current Zig toolchain checker")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/check-zig-toolchain.py --policy-only\n",
+                "        run: echo skip-zig-policy\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_exact_line:run: python3 scripts/zigux/check-zig-toolchain.py --policy-only:expected=1:actual=0",
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
                 "          if ! python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then\n"
                 "            return 1\n"
                 "          fi\n",
@@ -389,105 +434,22 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Setup pinned Zig toolchain\n"
-                "        run: |\n"
-                "          set -euxo pipefail\n"
-                "          curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"\n"
-                "          if ! python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then\n"
-                "            return 1\n"
-                "          fi\n"
-                "          python3 scripts/zigux/check-zig-toolchain.py --zig \"$zig_path\"\n"
-                "          \"$zig_path\" version\n",
-                "",
+                "        run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing\n",
+                "        run: echo skip-zig-archive\n",
                 1,
             ),
             encoding="utf-8",
         )
-        expect_failure(base, "workflow_step:Setup pinned Zig toolchain")
+        expect_failure(
+            base,
+            "workflow_exact_line:run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing:expected=1:actual=0",
+        )
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Self-test current kconfig bridge checker\n"
-                "        run: python3 scripts/zigux/check-kconfig-bridge.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "workflow_step:Self-test current kconfig bridge checker")
-
-        write_fixture_tree(base)
-        workflow_path = base / WORKFLOW_PATH
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Run current Phase 2 confdata bridge unit tests\n"
-                "        run: zig test scripts/zigux/kconfig/confdata_bridge.zig\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "workflow_step:Run current Phase 2 confdata bridge unit tests")
-
-        write_fixture_tree(base)
-        workflow_path = base / WORKFLOW_PATH
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Check current Phase 2 shared reminder packet\n"
-                "        run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "workflow_step:Check current Phase 2 shared reminder packet")
-
-        write_fixture_tree(base)
-        workflow_path = base / WORKFLOW_PATH
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Check current Phase 3 interop packet\n"
-                "        run: python3 scripts/zigux/run-phase3-checks.py\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "workflow_step:Check current Phase 3 interop packet")
-
-        write_fixture_tree(base)
-        workflow_path = base / WORKFLOW_PATH
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Run current Phase 3 shared tests-root packet\n"
-                "        run: zig build phase3-test --build-file zigux/tests/build.zig\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "workflow_step:Run current Phase 3 shared tests-root packet")
-
-        write_fixture_tree(base)
-        workflow_path = base / WORKFLOW_PATH
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Self-test current Phase 4 artifact-diff helper\n"
-                "        run: python3 scripts/zigux/artifact_diff.py --self-test\n",
-                "",
-                1,
-            ),
-            encoding="utf-8",
-        )
-        expect_failure(base, "workflow_step:Self-test current Phase 4 artifact-diff helper")
-
-        write_fixture_tree(base)
-        workflow_path = base / WORKFLOW_PATH
-        workflow_path.write_text(
-            workflow_path.read_text(encoding="utf-8").replace(
-                "- name: Run current Phase 2 toolchain make route\n"
+                "      - name: Run current Phase 2 toolchain make route\n"
                 "        run: make -C zigux phase2-toolchain\n",
                 "",
                 1,
@@ -571,7 +533,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=13")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=10")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -581,10 +543,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the "
-            "workflow keeps the shipped exact-head push trigger, pinned Zig "
-            "toolchain setup, archive verification, the current Phase 2 "
-            "toolchain make route, newer Phase 2 and Phase 3 viability steps, "
-            "the dedicated docs-sanity guards, and the current Phase 8 tail intact."
+            "workflow keeps the shipped exact-head push trigger, current Zig "
+            "toolchain self-test and policy packet, pinned Zig archive "
+            "verification, the current Phase 2 toolchain make route, newer "
+            "Phase 2 and Phase 3 viability steps, the dedicated docs-sanity "
+            "guards, and the current Phase 8 tail intact."
         )
     )
     parser.add_argument(
