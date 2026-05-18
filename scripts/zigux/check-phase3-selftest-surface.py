@@ -148,7 +148,6 @@ SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-phase3-selftest-surface.py",
     "scripts/zigux/check-phase3-readme-tooling-inventory.py",
     "scripts/zigux/check-phase3-shared-tests-routes.py",
-    "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
     "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
     "scripts/zigux/validate_phase3_selftest.py",
@@ -353,11 +352,6 @@ def run_self_test() -> int:
         (
             SCRIPTS_README_PATH,
             "scripts/zigux/check-phase3-shared-tests-routes.py",
-            "scripts README",
-        ),
-        (
-            SCRIPTS_README_PATH,
-            "scripts/zigux/check-phase3-xarray-slot-starter-packet.py",
             "scripts README",
         ),
         (
