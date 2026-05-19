@@ -197,6 +197,43 @@ def run_self_test() -> int:
         if failures:
             raise AssertionError(f"baseline fixture should pass: {failures}")
 
+        missing_surveyed_commit_root = root / "missing_surveyed_commit"
+        _write(
+            missing_surveyed_commit_root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace("`current-master-readback-2026-05-19`", "`current-master-readback-YYYY-MM-DD`", 1),
+        )
+        _write(missing_surveyed_commit_root / MANIFEST_PATH, _sample_manifest())
+        manifest = _read_manifest(missing_surveyed_commit_root / MANIFEST_PATH)
+        for repo_path in manifest["present_paths"]:
+            if repo_path == MANIFEST_PATH.as_posix():
+                continue
+            _write(missing_surveyed_commit_root / repo_path, "# fixture\n")
+        failures = collect_failures(missing_surveyed_commit_root)
+        expected = [
+            "handoff note is missing the manifest surveyed_commit marker"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-surveyed-commit failure: {failures}")
+
+        missing_checker_path_root = root / "missing_checker_path"
+        _write(
+            missing_checker_path_root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace("- `scripts/zigux/check-phase15-handoff-note-alignment.py`, ", "", 1),
+        )
+        _write(missing_checker_path_root / MANIFEST_PATH, _sample_manifest())
+        manifest = _read_manifest(missing_checker_path_root / MANIFEST_PATH)
+        for repo_path in manifest["present_paths"]:
+            if repo_path == MANIFEST_PATH.as_posix():
+                continue
+            _write(missing_checker_path_root / repo_path, "# fixture\n")
+        failures = collect_failures(missing_checker_path_root)
+        expected = [
+            "handoff note is missing the focused handoff-note checker path",
+            "handoff note is missing present-path marker: `scripts/zigux/check-phase15-handoff-note-alignment.py`",
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-checker-path failure: {failures}")
+
         missing_present_root = root / "missing_present"
         _write(missing_present_root / HANDOFF_NOTE_PATH, _sample_handoff_note())
         _write(missing_present_root / MANIFEST_PATH, _sample_manifest())
