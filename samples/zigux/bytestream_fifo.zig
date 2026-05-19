@@ -616,6 +616,12 @@ test "bytestream fifo sample keeps preview and wrapped-span boundaries reviewabl
     try std.testing.expect(!preview_occupancy.full);
     try std.testing.expect(!preview_occupancy.wrapped);
     try std.testing.expect(!preview_occupancy.wrapped_window);
+    const preview_writable = sample.writableSpanSummary();
+    try std.testing.expectEqual(@as(usize, 17), preview_writable.tail_index);
+    try std.testing.expectEqual(@as(usize, 22), preview_writable.writable_count);
+    try std.testing.expectEqual(@as(usize, 15), preview_writable.first_window_len);
+    try std.testing.expectEqual(@as(usize, 7), preview_writable.second_window_len);
+    try std.testing.expect(preview_writable.wraps);
 
     const wrapped = try sample.runWrappedPreviewReplay();
     try std.testing.expectEqualSlices(u8, "hell", wrapped.drained_prefix[0..]);
@@ -639,6 +645,12 @@ test "bytestream fifo sample keeps preview and wrapped-span boundaries reviewabl
     try std.testing.expect(wrapped_occupancy.full);
     try std.testing.expect(wrapped_occupancy.wrapped);
     try std.testing.expect(wrapped_occupancy.wrapped_window);
+    const wrapped_writable = sample.writableSpanSummary();
+    try std.testing.expectEqual(@as(usize, 4), wrapped_writable.tail_index);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_writable.writable_count);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_writable.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_writable.second_window_len);
+    try std.testing.expect(!wrapped_writable.wraps);
     try std.testing.expect(sample.usesWrappedStorageWindow());
 }
 
@@ -693,6 +705,12 @@ test "bytestream fifo sample keeps helper, capacity, and lifecycle boundaries re
     try std.testing.expect(!partial_drain_occupancy.full);
     try std.testing.expect(partial_drain_occupancy.wrapped);
     try std.testing.expect(partial_drain_occupancy.wrapped_window);
+    const partial_drain_writable = sample.writableSpanSummary();
+    try std.testing.expectEqual(@as(usize, 1), partial_drain_writable.tail_index);
+    try std.testing.expectEqual(@as(usize, 8), partial_drain_writable.writable_count);
+    try std.testing.expectEqual(@as(usize, 8), partial_drain_writable.first_window_len);
+    try std.testing.expectEqual(@as(usize, 0), partial_drain_writable.second_window_len);
+    try std.testing.expect(!partial_drain_writable.wraps);
 
     sample.reset();
     try std.testing.expectEqual(@as(usize, 5), sample.enqueueSlice("hello"));
