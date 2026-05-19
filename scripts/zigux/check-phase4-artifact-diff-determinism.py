@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the current directly readable Phase 4 artifact-diff packet against repo drift."""
+"""Guard the current directly readable Phase 4 artifact-diff packet against drift."""
 
 from __future__ import annotations
 
@@ -47,13 +47,18 @@ EXPECTED_SELF_TEST_CASES = (
     "helper_catalog_drift",
     "contract_checker_missing",
     "broader_companion_return",
+    "repo_warning_drift",
 )
 
 SURVEY_MARKERS = (
     "PHASE4_ARTIFACT_DIFF_TOOLING_STATUS=helper_and_contract_checker_direct_readback_restored_but_broader_note_and_validator_packet_still_partial_on_current_master",
     "current direct-readback helper-and-contract packet:",
     "authenticated contents reads on current `master` still return missing for these broader artifact-diff companions:",
-    "The helper itself and its directly readable contract checker are current-head evidence again on current `master` through `scripts/zigux/artifact_diff.py` and `scripts/zigux/check-artifact-diff-contract.py`.",
+    "`scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_SELF_TEST_CASE_COUNT=20`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_BASE_CASE_COUNT=25`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_REPEAT_CASE_COUNT=5`",
+    "`PHASE4_ARTIFACT_DIFF_CURRENT_CONTRACT_CASE_COUNT=30`",
 )
 
 NOTE_MARKERS = (
@@ -68,6 +73,11 @@ REVIEW_CHECKLIST_MARKERS = (
     "`scripts/zigux/check-phase4-reversible-delivery-pins.py`",
     "keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, and bitmap-diff companions",
     "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
+)
+
+REPO_WARNING_MARKERS = (
+    "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`",
+    "\"scripts/zigux/validate-phase4.py\"",
 )
 
 HELPER_EXPECTED_MODE_CHOICES = ("text", "json", "bytes")
@@ -184,6 +194,7 @@ def check(root: Path) -> None:
     survey = read(root, SURVEY)
     note = read(root, PHASE4_NOTE)
     review_checklist = read(root, REVIEW_CHECKLIST)
+    repo_warning = read(root, REPO_WARNING)
     helper_text = read(root, DIRECT_HELPER)
 
     require_markers(survey, SURVEY_MARKERS, SURVEY.as_posix())
@@ -191,6 +202,7 @@ def check(root: Path) -> None:
     require_paths_listed(survey, MISSING_BROADER_COMPANIONS, SURVEY.as_posix())
     require_markers(note, NOTE_MARKERS, PHASE4_NOTE.as_posix())
     require_markers(review_checklist, REVIEW_CHECKLIST_MARKERS, REVIEW_CHECKLIST.as_posix())
+    require_markers(repo_warning, REPO_WARNING_MARKERS, REPO_WARNING.as_posix())
     require_current_helper_contract(helper_text)
     require_current_repo_reality(root)
 
@@ -227,7 +239,7 @@ def fixture_root(root: Path) -> None:
     )
     write(root / PHASE4_NOTE, "\n".join(NOTE_MARKERS) + "\n")
     write(root / REVIEW_CHECKLIST, "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
-    write(root / REPO_WARNING, "# repo warning placeholder\n")
+    write(root / REPO_WARNING, "\n".join(REPO_WARNING_MARKERS) + "\n")
     write(root / PINS_CHECKER, "# pins checker placeholder\n")
     write(root / VALIDATOR_REPLAYS, "# validator replay placeholder\n")
     write(root / CONTRACT_CHECKER, "# contract checker placeholder\n")
@@ -287,6 +299,10 @@ def self_test() -> None:
         fixture_root(root)
         write(root / Path("Documentation/zigux/artifact-diff.md"), "# returned broader note\n")
         covered.append(expect_failure(root, "broader_companion_return"))
+
+        fixture_root(root)
+        write(root / REPO_WARNING, read(root, REPO_WARNING).replace("\"scripts/zigux/validate-phase4.py\"", "\"scripts/zigux/not-the-right-file.py\"", 1))
+        covered.append(expect_failure(root, "repo_warning_drift"))
 
     if tuple(covered) != EXPECTED_SELF_TEST_CASES:
         raise AssertionError(
