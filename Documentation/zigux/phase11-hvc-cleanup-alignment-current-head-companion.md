@@ -8,7 +8,7 @@ This note records the bounded current-head readback for the Phase 11 HVC cleanup
 - `PHASE11_FAMILY=hvc-console-cleanup-alignment`
 - `PHASE11_SURFACE=checker-truthfulness-readback`
 - `PHASE11_PROVENANCE_MODE=dated_master_readback`
-- surveyed against current `master` readback on `2026-05-18`
+- surveyed against current `master` readback on `2026-05-19`
 - scope: keep the current HVC cleanup-alignment reminder truthful without widening into notifier callback execution, khvcd execution, tty registration, sysrq execution, watchdog-core glue, or host-backed teardown
 - role: current-head truthfulness companion for the bounded Phase 11 HVC continuity packet while the older starter-depth packet stays visible only as survey-recorded archival vocabulary unless fresh readback proves it returned
 
@@ -37,7 +37,7 @@ Current `master` keeps the bounded HVC continuity packet reviewable through thes
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 
-The returned HVC validation matrix and build-inventory checker stay explicit inside that smaller current-head packet, and the exported-surface proof still includes both its proof source and its build file, so this companion should name them directly instead of leaving the matrix, the build-inventory checker, or the proof/build pair implicit while the starter-depth packet remains survey-recorded archival vocabulary.
+The returned HVC validation matrix and build-inventory checker stay explicit inside that smaller current-head packet, and the exported-surface, `hv_ops`, and cleanup proof packets each still include both their proof source and their build file, so this companion should name those proof/build pairs directly instead of leaving the matrix, the build-inventory checker, or one of the surviving proof routes implicit while the starter-depth packet remains survey-recorded archival vocabulary.
 
 Current direct contents reads in this lane now keep the returned direct HVC starter explicit through `drivers/tty/hvc/hvc_console.zig`, but they still do not rematerialize `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader direct HVC starter-depth packet framed as survey-recorded same-lane archival vocabulary until a future reread proves those deeper anchor paths returned again.
 
@@ -47,7 +47,7 @@ Current authenticated contents reads in this lane also do not rematerialize `scr
 
 Current `master` keeps the returned direct HVC starter plus the smaller proof-backed HVC continuity packet reviewable while the broader starter-depth packet stays survey-recorded archival vocabulary and the dedicated survey-checker path remains absent from direct readback.
 
-This companion therefore exists to keep that bounded current-head packet explicit so nearby shared reminders do not understate the returned starter anchor, omit the returned HVC validation matrix, omit the returned build-inventory checker, omit the returned exported-surface build companion, or promote the absent survey checker as live evidence.
+This companion therefore exists to keep that bounded current-head packet explicit so nearby shared reminders do not understate the returned starter anchor, omit the returned HVC validation matrix, omit the returned build-inventory checker, omit the returned exported-surface, `hv_ops`, or cleanup proof/build pairs, or promote the absent survey checker as live evidence.
 
 ## Safe Reading
 
