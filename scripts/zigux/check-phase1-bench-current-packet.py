@@ -59,8 +59,12 @@ MARKERS = {
         '"""Guard the Lane 16 bench checker\'s fail-closed failure packets."""',
         "def extract_assert_block(text: str, first_line: str) -> list[str]:",
         "FORBIDDEN_EXPECTATION_FAILURE_FRAGMENTS = (",
+        '"EXPECTATIONS_PATH=",',
         "FORBIDDEN_BENCH_FAILURE_BLOCK_FRAGMENTS = (",
+        '"PHASE1_BENCH_CHECK=pass",',
+        '"PHASE1_BENCH_EXPECTATION_COUNT=",',
         'assert command_failure_output == [',
+        'assert command_missing_output == [',
         "print(\"PHASE1_BENCH_FAILURE_PACKET=pass\")",
         "print(\"PHASE1_BENCH_FAILURE_PACKET_SELF_TEST=pass\")",
     ),
@@ -68,6 +72,14 @@ MARKERS = {
         '"""Guard the Lane 16 bench checker\'s clean success packet."""',
         'def capture_success_packet_output(expectations: dict[str, object]) -> list[str]:',
         "FORBIDDEN_FRAGMENTS = (",
+        "FORBIDDEN_SUCCESS_BLOCK_FRAGMENTS = (",
+        "'PHASE1_BENCH_CHECK_REASON=',",
+        "'PHASE1_BENCH_EXPECTATIONS=',",
+        "'BENCH_COMMAND_EXIT=',",
+        "'BENCH_COMMAND_MISSING=',",
+        "'EXPECTATIONS_JSON_ERROR=',",
+        "'EXPECTATIONS_JSON_LINE=',",
+        "'EXPECTATIONS_JSON_COLUMN=',",
         'success_output = capture_success_packet_output(expectations)',
         'assert success_output == [',
         "print('PHASE1_BENCH_SUCCESS_PACKET=pass')",
@@ -121,7 +133,7 @@ def collect_issues(root: Path) -> list[str]:
                 if count != 1:
                     issues.append(f"{relative_path}:marker_count:{marker}:expected=1:actual={count}")
 
-        for fragment in FORBIDDEN_FRAGMENTS.get(relative_path, ()):
+        for fragment in FORBIDDEN_FRAGMENTS.get(relative_path, ()): 
             count = text.count(fragment)
             if count != 0:
                 issues.append(f"{relative_path}:forbidden:{fragment}:actual={count}")
