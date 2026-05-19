@@ -434,6 +434,46 @@ test "argvSplit treats a leading NUL as blank input" {
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
 }
 
+test "blank-at-prefix inputs reuse the same exported empty views" {
+    var buffer = [_]u8{};
+    var fba = std.heap.FixedBufferAllocator.init(&buffer);
+
+    var blank = try argvSplitWithArgc(fba.allocator(), "", null);
+    var whitespace = try argvSplitWithArgc(fba.allocator(), " \t\n", null);
+    var whitespace_before_nul = try argvSplitWithArgc(fba.allocator(), " \t\n\x00ignored tail", null);
+    var leading_nul = try argvSplitWithArgc(fba.allocator(), "\x00ignored tail", null);
+    defer leading_nul.deinit(fba.allocator());
+    defer whitespace_before_nul.deinit(fba.allocator());
+    defer whitespace.deinit(fba.allocator());
+    defer blank.deinit(fba.allocator());
+
+    const blank_c_argv = blank.cArgv();
+
+    try std.testing.expectEqual(@as(usize, 0), countArgc(""));
+    try std.testing.expectEqual(@as(usize, 0), countArgc(" \t\n"));
+    try std.testing.expectEqual(@as(usize, 0), countArgc(" \t\n\x00ignored tail"));
+    try std.testing.expectEqual(@as(usize, 0), countArgc("\x00ignored tail"));
+    try std.testing.expectEqual(@as(usize, 0), blank.storage.len);
+    try std.testing.expectEqual(@as(usize, 0), whitespace.storage.len);
+    try std.testing.expectEqual(@as(usize, 0), whitespace_before_nul.storage.len);
+    try std.testing.expectEqual(@as(usize, 0), leading_nul.storage.len);
+    try std.testing.expectEqual(empty_storage_view.ptr, blank.storage.ptr);
+    try std.testing.expectEqual(blank.storage.ptr, whitespace.storage.ptr);
+    try std.testing.expectEqual(blank.storage.ptr, whitespace_before_nul.storage.ptr);
+    try std.testing.expectEqual(blank.storage.ptr, leading_nul.storage.ptr);
+    try std.testing.expectEqual(blank.argv.ptr, whitespace.argv.ptr);
+    try std.testing.expectEqual(blank.argv.ptr, whitespace_before_nul.argv.ptr);
+    try std.testing.expectEqual(blank.argv.ptr, leading_nul.argv.ptr);
+    try std.testing.expectEqual(empty_argv_null_terminated.ptr, blank.argv_null_terminated.ptr);
+    try std.testing.expectEqual(blank.argv_null_terminated.ptr, whitespace.argv_null_terminated.ptr);
+    try std.testing.expectEqual(blank.argv_null_terminated.ptr, whitespace_before_nul.argv_null_terminated.ptr);
+    try std.testing.expectEqual(blank.argv_null_terminated.ptr, leading_nul.argv_null_terminated.ptr);
+    try std.testing.expectEqual(blank_c_argv, whitespace.cArgv());
+    try std.testing.expectEqual(blank_c_argv, whitespace_before_nul.cArgv());
+    try std.testing.expectEqual(blank_c_argv, leading_nul.cArgv());
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), leading_nul.cArgv()[0]);
+}
+
 test "blank-input deinit on one caller keeps the shared sentinel views usable for another" {
     var buffer = [_]u8{};
     var fba = std.heap.FixedBufferAllocator.init(&buffer);
