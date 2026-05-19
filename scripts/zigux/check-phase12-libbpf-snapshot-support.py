@@ -30,19 +30,24 @@ TESTS_README_PATH = "zigux/tests/README.md"
 EXPECTED_SNAPSHOT = {
     "lane_key": "P12-L16",
     "phase": "Phase 12",
-    "surveyed_commit": "c0ae127363e3d4e5feeb36efb665a12ece3392c7",
-    "tracked_file_count": 5,
+    "surveyed_commit": "e6a4246ac3d9f4d19b91554067e821075f543448",
+    "tracked_file_count": 4,
     "tracked_paths": [
-        "tools/lib/bpf/zigux_segments/type_names.zig",
-        "tools/lib/bpf/zigux_segments/cpu_mask.zig",
-        "tools/lib/bpf/zigux_segments/logging.zig",
-        "tools/lib/bpf/zigux_segments/pin_path.zig",
-        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
+        "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+        "Documentation/zigux/phase12-release-coordination-matrix.md",
+    ],
+    "supporting_notes": [
+        "Documentation/zigux/phase12-libbpf-segment-survey.md",
+        "Documentation/zigux/phase12-libbpf-verify-shard-note.md",
+        "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md",
+        "Documentation/zigux/phase12-release-coordination-matrix.md",
     ],
 }
 
 RELEASE_READINESS_MARKERS = [
-    "`zigux/tests/fixtures/phase12_libbpf_snapshot.json` is the public anchor",
+    "`zigux/tests/fixtures/phase12_libbpf_snapshot.json` remains the public anchor",
     "parked libbpf reviewability packet",
     "the direct `phase12_libbpf_*` replay files and `tools/lib/bpf/zigux_segments/verify.zig` remain note-owned or snapshot-backed boundaries",
 ]
@@ -73,14 +78,26 @@ def validate_snapshot(root: Path) -> list[str]:
     snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
     failures: list[str] = []
 
-    for key in ["lane_key", "phase", "surveyed_commit", "tracked_file_count", "tracked_paths"]:
+    for key in [
+        "lane_key",
+        "phase",
+        "surveyed_commit",
+        "tracked_file_count",
+        "tracked_paths",
+        "supporting_notes",
+    ]:
         if key not in snapshot:
             failures.append(f"snapshot:missing_key:{key}")
 
     if failures:
         return failures
 
-    for key in ["lane_key", "phase", "surveyed_commit", "tracked_file_count"]:
+    for key in [
+        "lane_key",
+        "phase",
+        "surveyed_commit",
+        "tracked_file_count",
+    ]:
         if snapshot[key] != EXPECTED_SNAPSHOT[key]:
             failures.append(
                 f"snapshot:{key}:expected={EXPECTED_SNAPSHOT[key]!r}:actual={snapshot[key]!r}"
@@ -89,6 +106,10 @@ def validate_snapshot(root: Path) -> list[str]:
     tracked_paths = snapshot["tracked_paths"]
     if tracked_paths != EXPECTED_SNAPSHOT["tracked_paths"]:
         failures.append("snapshot:tracked_paths:exact_match_required")
+
+    supporting_notes = snapshot["supporting_notes"]
+    if supporting_notes != EXPECTED_SNAPSHOT["supporting_notes"]:
+        failures.append("snapshot:supporting_notes:exact_match_required")
 
     if len(tracked_paths) != snapshot["tracked_file_count"]:
         failures.append(
@@ -99,9 +120,16 @@ def validate_snapshot(root: Path) -> list[str]:
     if len(set(tracked_paths)) != len(tracked_paths):
         failures.append("snapshot:tracked_paths:duplicate_entries")
 
+    if len(set(supporting_notes)) != len(supporting_notes):
+        failures.append("snapshot:supporting_notes:duplicate_entries")
+
     for path in tracked_paths:
-        if not path.startswith("tools/lib/bpf/zigux_segments/"):
+        if not path.startswith("Documentation/zigux/phase12-"):
             failures.append(f"snapshot:tracked_path_prefix:{path}")
+
+    for path in supporting_notes:
+        if not path.startswith("Documentation/zigux/phase12-"):
+            failures.append(f"snapshot:supporting_note_prefix:{path}")
 
     return failures
 
@@ -202,9 +230,16 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         snapshot_path = base / SNAPSHOT_PATH
         snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
-        snapshot["tracked_paths"][-1] = "tools/lib/bpf/zigux_segments/missing.zig"
+        snapshot["tracked_paths"][-1] = "Documentation/zigux/phase12-libbpf-heavy-consumer-missing.md"
         snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
         expect_failure(base, "snapshot:tracked_paths:exact_match_required")
+
+        write_fixture_tree(base)
+        snapshot_path = base / SNAPSHOT_PATH
+        snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+        snapshot["supporting_notes"][-1] = "Documentation/zigux/phase12-libbpf-heavy-consumer-missing.md"
+        snapshot_path.write_text(json.dumps(snapshot, indent=2) + "\n", encoding="utf-8")
+        expect_failure(base, "snapshot:supporting_notes:exact_match_required")
 
         write_fixture_tree(base)
         readiness_path = base / RELEASE_READINESS_PATH
@@ -235,7 +270,7 @@ def run_self_test() -> int:
         expect_failure(base, f"build_only_checker:{BUILD_ONLY_CHECKER_MARKERS[0]}")
 
         print("PHASE12_LIBBPF_SNAPSHOT_SUPPORT_SELF_TEST=pass")
-        print("PHASE12_LIBBPF_SNAPSHOT_SUPPORT_SELF_TEST_CASE_COUNT=6")
+        print("PHASE12_LIBBPF_SNAPSHOT_SUPPORT_SELF_TEST_CASE_COUNT=7")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -244,8 +279,8 @@ def run_self_test() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Validate the surviving Phase 12 libbpf deterministic-snapshot support packet "
-            "around the committed snapshot anchor and the reminder surfaces that still "
+            "Validate the surviving Phase 12 libbpf snapshot support packet around "
+            "the committed snapshot anchor and the reminder surfaces that still "
             "frame it as a parked boundary rather than a direct replay route."
         )
     )
