@@ -183,7 +183,7 @@ fn expectEvidenceArchiveTruthfulness(manifest: Manifest) !void {
 
         try expectContains(archive_doc, "`PHASE=Phase 15`");
         try expectContains(archive_doc, "`LANE_KEY=P15-L03`");
-        try expectContains(archive_doc, "`SURVEYED_COMMIT=current-master-readback-2026-05-18`");
+        try expectContains(archive_doc, "`SURVEYED_COMMIT=current-master-readback-2026-05-19`");
         try expectContains(archive_doc, "`REVIEW_STATUS=blocked_review`");
         try expectContains(archive_doc, "current Architecture Council status-change approval: `not_recorded`");
         try expectContains(archive_doc, anchor.path);
@@ -220,7 +220,7 @@ test "phase 15 parity scorecard manifest keeps the blocked posture explicit" {
     try std.testing.expectEqualStrings("P15-L03", manifest.lane_key);
     try std.testing.expectEqualStrings("parity-scorecard-baseline", manifest.slice);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.provenance_mode);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-18", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-19", manifest.surveyed_commit);
     try std.testing.expect(!manifest.posture.architecture_council_status_change_approval_recorded);
     try std.testing.expectEqualStrings("blocked_posture_accounting_not_port_readiness", manifest.posture.scorecard_role);
     try std.testing.expectEqual(@as(usize, 4), manifest.metrics.active_freeze_in_c_anchor_count);
@@ -321,7 +321,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectContains(scorecard_doc, "P15-L03");
     try expectContains(scorecard_doc, "parity-scorecard-baseline");
     try expectContains(scorecard_doc, "blocked_posture_accounting_not_port_readiness");
-    try expectContains(scorecard_doc, "current-master-readback-2026-05-18");
+    try expectContains(scorecard_doc, "current-master-readback-2026-05-19");
     try expectMetricLine(scorecard_doc, "active freeze-in-C anchor count", parsed.value.metrics.active_freeze_in_c_anchor_count);
     try expectMetricLine(scorecard_doc, "blocked status-change anchor count", parsed.value.metrics.blocked_status_change_anchor_count);
     try expectMetricLine(scorecard_doc, "anchors blocked entirely within Phase 15 governance evidence", parsed.value.metrics.phase15_governance_only_blocker_anchor_count);
