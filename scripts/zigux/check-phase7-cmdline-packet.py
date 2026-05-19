@@ -41,9 +41,13 @@ REQUIRED_MARKERS = {
     ],
     "lib/cmdline.zig": [
         "pub fn parseOptionStr",
+        "pub const parse_option_str = parseOptionStr;",
         "pub fn getOption",
+        "pub const get_option = getOption;",
         "pub fn getOptions",
+        "pub const get_options = getOptions;",
         "pub fn nextArg",
+        "pub const next_arg = nextArg;",
         "pub fn memparse",
     ],
     "zigux/tests/phase7_cmdline.zig": [
@@ -70,7 +74,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 9
+SELF_TEST_CASE_COUNT = 10
 
 
 def read_text(path: Path) -> str:
@@ -179,6 +183,19 @@ def run_self_test() -> None:
             "missing_helper_nextarg_marker",
             tmp_root,
             f"lib/cmdline.zig: {helper_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_alias_marker = "pub const next_arg = nextArg;"
+        helper_path.write_text(
+            helper_text.replace(helper_alias_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_helper_nextarg_alias_marker",
+            tmp_root,
+            f"lib/cmdline.zig: {helper_alias_marker}",
         )
         write_fixture_root(tmp_root)
 
