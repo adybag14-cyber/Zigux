@@ -18,6 +18,7 @@ DOC_PATHS = (
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
     Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
+    Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md"),
 )
 
 HEADER_PATHS = (
@@ -62,6 +63,7 @@ VALIDATOR_PATHS = (
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
+    Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
 )
 
@@ -87,6 +89,8 @@ COMMANDS = (
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "python3 scripts/zigux/validate-phase3.py",
+    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
@@ -163,6 +167,7 @@ def run_self_test() -> int:
             "helpers": len(HELPER_PATHS),
             "validators": len(VALIDATOR_PATHS),
             "tests": len(TEST_PATHS),
+            "commands": len(COMMANDS),
         }
         for key, count in expected_counts.items():
             if len(catalog[key]) != count:
@@ -170,13 +175,13 @@ def run_self_test() -> int:
                 print(f"unexpected {key} count: {len(catalog[key])} != {count}")
                 return 1
 
-        missing_probe = root / TEST_PATHS[-1]
+        missing_probe = root / VALIDATOR_PATHS[-2]
         missing_probe.unlink()
         issues = validate_repo(root)
-        expected = f"missing repo file: {TEST_PATHS[-1].as_posix()}"
+        expected = f"missing repo file: {VALIDATOR_PATHS[-2].as_posix()}"
         if expected not in issues:
             print("PHASE3_CATALOG_SELF_TEST=fail")
-            print("expected missing test route was not reported")
+            print("expected missing export/UAPI validator route was not reported")
             return 1
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
