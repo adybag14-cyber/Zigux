@@ -158,8 +158,8 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "the directly readable `zigux/Makefile` blob",
-        "`.github/workflows/zigux-bootstrap.yml` at blob `0e9c47cec2a1a49d713ca0874033cb51e8981f71`",
-        "`scripts/zigux/README.md` at blob `1ef37e89b7ecc3cbf44fa79745650b31882e5581`",
+        "`.github/workflows/zigux-bootstrap.yml` at blob `e07b69eaf4070b83f943e1ad41cf1a47bdc532fa`",
+        "`scripts/zigux/README.md` at blob `aaa6a09db5aea5ec07085dfb255c6a4051929021`",
         "now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` again while still omitting `phase12-validate`",
         "keep the same reminder-only validator route plus shipped wrapper reruns explicit as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
     ],
