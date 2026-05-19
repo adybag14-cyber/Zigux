@@ -30,12 +30,13 @@ Current `master` keeps the bounded HVC continuity packet reviewable through thes
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 
-The returned HVC validation matrix stays explicit inside that smaller current-head packet, so this companion should name it directly instead of leaving the matrix implicit while the starter-depth packet remains survey-recorded archival vocabulary.
+The returned HVC validation matrix stays explicit inside that smaller current-head packet, and the exported-surface proof still includes both its proof source and its build file, so this companion should name them directly instead of leaving the matrix or the proof/build pair implicit while the starter-depth packet remains survey-recorded archival vocabulary.
 
 Current direct contents reads in this lane now keep the returned direct HVC starter explicit through `drivers/tty/hvc/hvc_console.zig`, but they still do not rematerialize `zigux/tests/phase11_hvc_console_manifest.json`, so keep the broader direct HVC starter-depth packet framed as survey-recorded same-lane archival vocabulary until a future reread proves those deeper anchor paths returned again.
 
@@ -45,11 +46,11 @@ Current authenticated contents reads in this lane also do not rematerialize `scr
 
 Current `master` keeps the returned direct HVC starter plus the smaller proof-backed HVC continuity packet reviewable while the broader starter-depth packet stays survey-recorded archival vocabulary and the dedicated survey-checker path remains absent from direct readback.
 
-This companion therefore exists to keep that bounded current-head packet explicit so nearby shared reminders do not understate the returned starter anchor, omit the returned HVC validation matrix, or promote the absent survey checker as live evidence.
+This companion therefore exists to keep that bounded current-head packet explicit so nearby shared reminders do not understate the returned starter anchor, omit the returned HVC validation matrix, omit the returned exported-surface build companion, or promote the absent survey checker as live evidence.
 
 ## Safe Reading
 
-Use the returned `drivers/tty/hvc/hvc_console.zig` starter, the current HVC survey note, this companion, the verify-helper-boundary note, the returned HVC validation matrix, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, the shared build inventory anchor, and the surviving HVC proof shards as the truthful readback for this lane on current `master`.
+Use the returned `drivers/tty/hvc/hvc_console.zig` starter, the current HVC survey note, this companion, the verify-helper-boundary note, the returned HVC validation matrix, `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, the shared build inventory anchor, and the surviving HVC proof/build adjuncts as the truthful readback for this lane on current `master`.
 
 Keep the older starter-depth packet visible only as survey-recorded archival vocabulary until a future reread rematerializes its missing anchor paths.
 
