@@ -105,6 +105,12 @@ WORKFLOW_EXACT_LINES = [
     "        run: make -C zigux phase12-test",
 ]
 
+WORKFLOW_REQUIRED_PULL_REQUEST_PATHS = [
+    "      - 'Documentation/zigux/**'",
+    "      - 'scripts/zigux/**'",
+    "      - '.github/workflows/zigux-bootstrap.yml'",
+]
+
 WORKFLOW_FORBIDDEN_MARKERS = [
     "  push:\n    branches: [ master ]\n    paths:",
     "python3 - <<'PY2'",
@@ -152,6 +158,19 @@ def validate_workflow(workflow_text: str) -> list[str]:
                 f"workflow_exact_line:{line.strip()}:expected=1:actual={actual}"
             )
 
+    pull_request_marker = "  pull_request:\n    paths:\n"
+    pull_request_start = workflow_text.find(pull_request_marker)
+    workflow_dispatch_start = workflow_text.find("\n  workflow_dispatch:\n")
+    if pull_request_start == -1 or workflow_dispatch_start == -1:
+        failures.append("workflow_pull_request_paths:block")
+    else:
+        pull_request_block = workflow_text[
+            pull_request_start : workflow_dispatch_start + 1
+        ]
+        for marker in WORKFLOW_REQUIRED_PULL_REQUEST_PATHS:
+            if marker not in pull_request_block:
+                failures.append(f"workflow_pull_request_path:{marker}")
+
     return failures
 
 
@@ -191,6 +210,8 @@ on:
     branches: [ master ]
   pull_request:
     paths:
+      - 'Documentation/zigux/**'
+      - 'scripts/zigux/**'
       - '.github/workflows/zigux-bootstrap.yml'
   workflow_dispatch:
 
@@ -216,8 +237,8 @@ jobs:
       - name: Setup pinned Zig toolchain
         run: |
           set -euxo pipefail
-          curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"
-          python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"
+          curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"
+          python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"
       - name: Compile current scripts
         run: |
           set -euxo pipefail
@@ -312,7 +333,7 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
-                "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"\n",
+                'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"\n',
                 "",
                 1,
             ),
@@ -391,6 +412,18 @@ def run_self_test() -> int:
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "      - 'Documentation/zigux/**'\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_pull_request_path:      - 'Documentation/zigux/**'")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
         workflow_text = workflow_path.read_text(encoding="utf-8")
         docs_block = (
             "      - name: Self-test current Phase 12 bootstrap docs sanity checker\n"
@@ -436,7 +469,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=10")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=11")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
