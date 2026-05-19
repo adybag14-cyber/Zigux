@@ -19,7 +19,11 @@
 
 Phase 4 in `ZAR_TO_ZIGUX_PRODUCT_ROADMAP (1).md` still calls for host-side artifact-diff checks under `scripts/zigux/` so future Zigux ports stay measurable and reversible.
 
-Current `master` now offers direct current-head readback for both the helper and its contract checker. The directly readable Phase 4 packet therefore keeps the artifact-diff contract reviewable through a narrower split handoff:
+Current `master` now offers direct current-head readback for both the helper and its contract checker.
+
+The helper itself and its directly readable contract checker are current-head evidence again on current `master` through `scripts/zigux/artifact_diff.py` and `scripts/zigux/check-artifact-diff-contract.py`.
+
+The directly readable Phase 4 packet therefore keeps the artifact-diff contract reviewable through a narrower split handoff:
   * `scripts/zigux/artifact_diff.py` is directly readable again on current `master`, so the bounded helper-side `text`, `json`, and `bytes` comparison entrypoints, the legacy `sha256 -> bytes` mode alias, and the shipped `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=20` packet are current-head evidence rather than historical provenance.
   * `scripts/zigux/check-artifact-diff-contract.py` is also directly readable again on current `master`, so the broader contract catalog has current-head proof again even though the older note companion and validator entrypoint still do not.
   * `.github/workflows/zigux-bootstrap.yml` keeps the directly readable artifact-diff packet reviewable through separate named steps for `python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`, `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`, and `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py` rather than routing the current artifact-diff packet only through one shared `make -C zigux phase4-validate` step.
