@@ -85,8 +85,7 @@
       "current_review_posture": "direct-readback-limited",
       "still_missing_direct_companions": [
         "Documentation/zigux/phase6-hexdump-slice.md",
-        "Documentation/zigux/phase6-hexdump-perf-refresh.md",
-        "scripts/zigux/check-phase6-hexdump-packet.py"
+        "Documentation/zigux/phase6-hexdump-perf-refresh.md"
       ]
     }
   ],
