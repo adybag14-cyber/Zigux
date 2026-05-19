@@ -65,3 +65,30 @@ test "Linux-style hweight aliases mirror the primary helper surface" {
     );
     try std.testing.expectEqual(hweightLong(0xf0f0), hweight_long(0xf0f0));
 }
+
+test "hweight helpers stay additive for disjoint masks" {
+    const low8: u32 = 0b0001_0101;
+    const high8: u32 = 0b1010_0000;
+    try std.testing.expectEqual(swHweight8(low8) + swHweight8(high8), swHweight8(low8 | high8));
+    try std.testing.expectEqual(__sw_hweight8(low8) + __sw_hweight8(high8), __sw_hweight8(low8 | high8));
+
+    const low16: u32 = 0x0155;
+    const high16: u32 = 0xa800;
+    try std.testing.expectEqual(swHweight16(low16) + swHweight16(high16), swHweight16(low16 | high16));
+    try std.testing.expectEqual(__sw_hweight16(low16) + __sw_hweight16(high16), __sw_hweight16(low16 | high16));
+
+    const low32: u32 = 0x0001_5555;
+    const high32: u32 = 0xa800_0000;
+    try std.testing.expectEqual(swHweight32(low32) + swHweight32(high32), swHweight32(low32 | high32));
+    try std.testing.expectEqual(__sw_hweight32(low32) + __sw_hweight32(high32), __sw_hweight32(low32 | high32));
+
+    const low64: u64 = 0x0000_0000_0001_5555;
+    const high64: u64 = 0xa800_0000_0000_0000;
+    try std.testing.expectEqual(swHweight64(low64) + swHweight64(high64), swHweight64(low64 | high64));
+    try std.testing.expectEqual(__sw_hweight64(low64) + __sw_hweight64(high64), __sw_hweight64(low64 | high64));
+
+    const low_long: usize = 0x1555;
+    const high_long: usize = if (@sizeOf(usize) == 4) 0xa800_0000 else 0xa800_0000_0000_0000;
+    try std.testing.expectEqual(hweightLong(low_long) + hweightLong(high_long), hweightLong(low_long | high_long));
+    try std.testing.expectEqual(hweight_long(low_long) + hweight_long(high_long), hweight_long(low_long | high_long));
+}
