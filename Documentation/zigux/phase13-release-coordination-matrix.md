@@ -61,15 +61,14 @@ When shared Phase 13 wording changes:
 1. reread this matrix beside the workflow guide and shared-helper sequencing note
 2. rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 3. keep the Makefile-backed route family recorded as repo-reality gaps while distinguishing the returned `zigux/Makefile` file from the still-missing Phase 13 routes
-4. leave broader README and tests-root packet refresh for a separate same-lane step
+4. leave broader README or tests-root packet refresh for a separate same-lane step when a fresh reread proves a new reminder-surface drift
 
 ## Next Coordinated Step
 
-The next same-lane PMO follow-through is a docs-root truthfulness repair, not a helper-local or checker-expansion step.
+The last docs-root `devres` wording repair is now landed, so keep the broader shared Phase 13 packet parked unless a fresh reread opens another reminder-surface drift.
 
-- repair `Documentation/zigux/README.md` so the Phase 13 summary stops treating `Documentation/zigux/phase13-devres-survey.md` and `lib/devres.zig` as repo-reality gaps
-- keep `Documentation/zigux/phase13-release-notes-survey.md` and `Documentation/zigux/phase13-roadmap-traceability.md` as the reread authorities for the narrower current-`master` `devres` packet while that docs-root repair remains open
-- keep the missing Phase 13 route family, the direct Landlock syscall companions, and the adjacent notifier follow-through parked as separate same-lane or helper-local work
+- keep `Documentation/zigux/README.md`, `Documentation/zigux/phase13-release-notes-survey.md`, and `Documentation/zigux/phase13-roadmap-traceability.md` aligned around the narrower current-`master` `devres` packet now that the docs root no longer treats `Documentation/zigux/phase13-devres-survey.md` and `lib/devres.zig` as repo-reality gaps
+- keep the missing Phase 13 route family, the direct Landlock syscall companions, and the adjacent notifier follow-through parked as separate same-lane or helper-local work until a fresh reread proves one of those broader reminder surfaces drifted
 
 ## Boundaries
 
