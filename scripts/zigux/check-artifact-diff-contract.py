@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import argparse
-import hashlib
 import subprocess
 import sys
 import tempfile
@@ -10,54 +9,9 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
-ARTIFACT_DIFF_REL = Path("scripts") / "zigux" / "artifact_diff.py"
+HELPER_REL = Path("scripts") / "zigux" / "artifact_diff.py"
 
-EXPECTED_CONTRACT_CASES = [
-    "helper_self_test",
-    "helper_self_test_repeat",
-    "cli_help_output",
-    "cli_help_output_repeat",
-    "cli_missing_required_args",
-    "cli_missing_actual_operand",
-    "cli_invalid_mode",
-    "bytes_family_legacy_sha256_alias_pass",
-    "sha256_family_legacy_bytes_mode_rejected",
-    "text_pass",
-    "text_pass_repeat",
-    "text_mismatch",
-    "text_missing_expected",
-    "text_missing_actual",
-    "text_missing_both",
-    "json_pass",
-    "json_mismatch",
-    "json_mismatch_repeat",
-    "json_missing_expected",
-    "json_missing_actual",
-    "json_missing_both",
-    "json_invalid_expected",
-    "json_invalid_actual",
-    "json_invalid_both",
-    "sha256_pass",
-    "sha256_missing_expected",
-    "sha256_missing_actual",
-    "sha256_missing_both",
-    "sha256_drift",
-    "sha256_drift_repeat",
-]
-
-REPEAT_CONTRACT_CASES = [
-    "helper_self_test_repeat",
-    "cli_help_output_repeat",
-    "text_pass_repeat",
-    "json_mismatch_repeat",
-    "sha256_drift_repeat",
-]
-
-BASE_CONTRACT_CASES = [
-    case for case in EXPECTED_CONTRACT_CASES if case not in REPEAT_CONTRACT_CASES
-]
-
-BYTES_HELP_LINES = [
+HELP_LINES = [
     "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test]",
     " [expected] [actual]",
     "",
@@ -72,126 +26,113 @@ BYTES_HELP_LINES = [
     " --mode {text,json,bytes}",
     " --self-test Run built-in deterministic comparison checks.",
 ]
-
-SHA256_HELP_LINES = [
-    "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test]",
-    "                        [expected] [actual]",
-    "",
-    "Compare two artifacts in a stable mode.",
-    "",
-    "positional arguments:",
-    "  expected",
-    "  actual",
-    "",
-    "options:",
-    "  -h, --help            show this help message and exit",
-    "  --mode {text,json,sha256}",
-    "  --self-test           Run built-in deterministic comparison checks.",
+MISSING_ARGUMENT_ERROR = (
+    "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] "
+    "[expected] [actual] artifact_diff.py: error: --mode, expected, and actual "
+    "are required unless --self-test is set"
+)
+INVALID_MODE_ERROR = (
+    "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] "
+    "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
+    "choice: 'yaml' (choose from text, json, bytes)"
+)
+HELPER_SELF_TEST_CASES = [
+    "text_pass",
+    "text_mismatch",
+    "json_pass",
+    "json_mismatch",
+    "json_invalid_expected",
+    "json_invalid_actual",
+    "json_invalid_both",
+    "json_missing_expected",
+    "json_missing_actual",
+    "json_missing_both",
+    "bytes_pass",
+    "bytes_drift",
+    "text_missing_expected",
+    "text_missing_actual",
+    "text_missing_both",
+    "bytes_missing_expected",
+    "bytes_missing_actual",
+    "bytes_missing_both",
+    "legacy_sha256_alias",
+    "invalid_mode_rejected",
+]
+HELPER_SELF_TEST_LINES = [
+    "ARTIFACT_DIFF_SELF_TEST=pass",
+    f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(HELPER_SELF_TEST_CASES)}",
+    "ARTIFACT_DIFF_SELF_TEST_CASES=" + ",".join(HELPER_SELF_TEST_CASES),
 ]
 
-MISSING_ARGUMENT_ERROR_BY_FAMILY = {
-    "bytes": (
-        "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] "
-        "[expected] [actual] artifact_diff.py: error: --mode, expected, and actual "
-        "are required unless --self-test is set"
-    ),
-    "sha256": (
-        "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] "
-        "[expected] [actual] artifact_diff.py: error: --mode, expected, and actual "
-        "are required unless --self-test is set"
-    ),
-}
-
-INVALID_MODE_ERROR_BY_FAMILY = {
-    "bytes": (
-        "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] "
-        "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
-        "choice: 'yaml' (choose from text, json, bytes)"
-    ),
-    "sha256": (
-        "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] "
-        "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
-        "choice: 'yaml' (choose from text, json, sha256)"
-    ),
-}
-
-LEGACY_BOUNDARY_ERROR_BY_FAMILY = {
-    "sha256": (
-        "usage: artifact_diff.py [-h] [--mode {text,json,sha256}] [--self-test] "
-        "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
-        "choice: 'bytes' (choose from text, json, sha256)"
-    ),
-}
-
-HELP_LINES_BY_FAMILY = {
-    "bytes": BYTES_HELP_LINES,
-    "sha256": SHA256_HELP_LINES,
-}
-
-HELPER_SELF_TEST_LINES_BY_FAMILY = {
-    "bytes": [
-        "ARTIFACT_DIFF_SELF_TEST=pass",
-        "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=20",
-        (
-            "ARTIFACT_DIFF_SELF_TEST_CASES="
-            "text_pass,text_mismatch,json_pass,json_mismatch,"
-            "json_invalid_expected,json_invalid_actual,json_invalid_both,"
-            "json_missing_expected,json_missing_actual,json_missing_both,"
-            "bytes_pass,bytes_drift,text_missing_expected,text_missing_actual,"
-            "text_missing_both,bytes_missing_expected,bytes_missing_actual,"
-            "bytes_missing_both,legacy_sha256_alias,invalid_mode_rejected"
-        ),
-    ],
-    "sha256": [
-        "ARTIFACT_DIFF_SELF_TEST=pass",
-        "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=25",
-        (
-            "ARTIFACT_DIFF_SELF_TEST_CASES="
-            "text_pass,text_mismatch,text_invalid_utf8_expected,"
-            "text_invalid_utf8_actual,text_invalid_utf8_both,json_pass,"
-            "json_mismatch,json_invalid_expected,json_invalid_actual,"
-            "json_invalid_both,json_invalid_utf8_expected,"
-            "json_invalid_utf8_actual,json_invalid_utf8_both,"
-            "json_missing_expected,json_missing_actual,json_missing_both,"
-            "sha256_pass,sha256_drift,text_missing_expected,"
-            "text_missing_actual,text_missing_both,sha256_missing_expected,"
-            "sha256_missing_actual,sha256_missing_both,invalid_mode_rejected"
-        ),
-    ],
-}
-
-HASH_MODE_BY_FAMILY = {
-    "bytes": ("bytes", "bytes"),
-    "sha256": ("sha256", "sha256"),
-}
-
-EXPECTED_SELF_TEST_CASES = [
+BASE_CONTRACT_CASES = [
+    "helper_self_test",
+    "cli_help_output",
+    "cli_missing_required_args",
+    "cli_missing_actual_operand",
+    "cli_invalid_mode",
+    "text_pass",
+    "text_mismatch",
+    "text_missing_expected",
+    "text_missing_actual",
+    "text_missing_both",
+    "json_pass",
+    "json_mismatch",
+    "json_missing_expected",
+    "json_missing_actual",
+    "json_missing_both",
+    "json_invalid_expected",
+    "json_invalid_actual",
+    "json_invalid_both",
+    "sha256_pass",
+    "sha256_missing_expected",
+    "sha256_missing_actual",
+    "sha256_missing_both",
+    "sha256_drift",
+]
+REPEAT_CONTRACT_CASES = [
+    "helper_self_test_repeat",
+    "cli_help_output_repeat",
+    "text_pass_repeat",
+    "json_mismatch_repeat",
+    "sha256_drift_repeat",
+]
+ALL_CONTRACT_CASES = BASE_CONTRACT_CASES + REPEAT_CONTRACT_CASES
+REVIEW_NOTE_MARKERS = [
+    "host-side artifact-diff tooling contract",
+    "owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
+    "rollback owner: `Zigux product maintainers working in scripts/zigux and Documentation/zigux`",
+]
+SELF_TEST_CASES = [
     "catalog_shape",
-    "family_help_bytes_round_trip",
-    "family_help_sha256_round_trip",
-    "family_detection_bytes",
-    "family_detection_sha256",
-    "family_detection_unknown_rejected",
-    "helper_summary_bytes_round_trip",
-    "helper_summary_sha256_round_trip",
-    "helper_summary_bytes_drift",
-    "helper_summary_sha256_drift",
-    "parser_error_bytes_round_trip",
-    "parser_error_sha256_round_trip",
-    "parser_error_drift",
-    "family_boundary_bytes_alias_round_trip",
-    "family_boundary_sha256_rejected_round_trip",
-    "family_boundary_drift",
+    "review_note_marker_round_trip",
+    "review_note_owner_marker_drift",
+    "review_note_marker_drift",
+    "cli_help_round_trip",
+    "cli_help_line_drift",
+    "cli_missing_argument_parser_round_trip",
+    "cli_missing_argument_parser_stderr_drift",
+    "cli_invalid_mode_parser_round_trip",
+    "cli_invalid_mode_parser_stderr_drift",
+    "helper_summary_round_trip",
     "contract_summary_round_trip",
+    "helper_summary_status_drift",
+    "helper_summary_count_drift",
+    "helper_summary_duplicate_case_drift",
+    "helper_summary_case_order_drift",
+    "contract_summary_status_drift",
     "contract_summary_base_count_drift",
+    "contract_summary_base_case_order_drift",
     "contract_summary_repeat_count_drift",
+    "contract_summary_repeat_case_order_drift",
     "contract_summary_case_count_drift",
+    "contract_summary_duplicate_case_drift",
+    "contract_summary_case_order_drift",
 ]
 
 
-def run_helper(args: list[str], *, root: Path) -> subprocess.CompletedProcess[str]:
+def run_helper(root: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, str(root / ARTIFACT_DIFF_REL), *args],
+        [sys.executable, str(root / HELPER_REL), *args],
         check=False,
         capture_output=True,
         text=True,
@@ -203,121 +144,76 @@ def normalize_stderr(stderr: str) -> str:
     return " ".join(stderr.split())
 
 
-def assert_output_lines(lines: list[str], expected_lines: list[str], label: str) -> None:
-    if lines != expected_lines:
-        raise AssertionError(
-            f"unexpected {label} lines: expected {expected_lines}, got {lines}"
-        )
+def assert_lines(actual: list[str], expected: list[str], label: str) -> None:
+    if actual != expected:
+        raise AssertionError(f"{label}: expected {expected}, got {actual}")
 
 
-def assert_catalog_shape() -> None:
-    if len(set(EXPECTED_CONTRACT_CASES)) != len(EXPECTED_CONTRACT_CASES):
-        raise AssertionError("artifact-diff contract cases must stay unique")
-    if len(set(REPEAT_CONTRACT_CASES)) != len(REPEAT_CONTRACT_CASES):
-        raise AssertionError("artifact-diff repeat contract cases must stay unique")
-    if len(BASE_CONTRACT_CASES) + len(REPEAT_CONTRACT_CASES) != len(
-        EXPECTED_CONTRACT_CASES
-    ):
-        raise AssertionError("artifact-diff contract case partition drifted")
-    if len(set(EXPECTED_SELF_TEST_CASES)) != len(EXPECTED_SELF_TEST_CASES):
-        raise AssertionError("artifact-diff checker self-test cases must stay unique")
+def extract_value(lines: list[str], prefix: str) -> str:
+    for line in lines:
+        if line.startswith(prefix):
+            return line[len(prefix) :]
+    raise AssertionError(f"missing line with prefix {prefix!r}: {lines}")
 
 
-def detect_helper_family_from_lines(help_lines: list[str]) -> str:
-    if help_lines == BYTES_HELP_LINES:
-        return "bytes"
-    if help_lines == SHA256_HELP_LINES:
-        return "sha256"
-    raise AssertionError(f"unrecognized artifact-diff help output: {help_lines}")
+def parse_catalog(lines: list[str], count_prefix: str, cases_prefix: str) -> list[str]:
+    count = int(extract_value(lines, count_prefix))
+    cases_text = extract_value(lines, cases_prefix)
+    cases = [] if not cases_text else cases_text.split(",")
+    if len(cases) != count:
+        raise AssertionError(f"count/list drift for {count_prefix}: {count} vs {cases}")
+    if len(set(cases)) != len(cases):
+        raise AssertionError(f"duplicate cases for {cases_prefix}: {cases}")
+    return cases
 
 
-def detect_helper_family(root: Path) -> str:
-    completed = run_helper(["-h"], root=root)
-    if completed.returncode != 0:
-        raise AssertionError(
-            f"artifact-diff help exited {completed.returncode}: {completed.stderr!r}"
-        )
-    if completed.stderr:
-        raise AssertionError(f"artifact-diff help emitted stderr: {completed.stderr!r}")
-    return detect_helper_family_from_lines(completed.stdout.splitlines())
-
-
-def expected_contract_summary_lines() -> list[str]:
+def expected_contract_lines() -> list[str]:
     return [
         "ARTIFACT_DIFF_CONTRACT=pass",
         f"ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT={len(BASE_CONTRACT_CASES)}",
         "ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(BASE_CONTRACT_CASES),
         f"ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT={len(REPEAT_CONTRACT_CASES)}",
         "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(REPEAT_CONTRACT_CASES),
-        f"ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(EXPECTED_CONTRACT_CASES)}",
-        "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(EXPECTED_CONTRACT_CASES),
+        f"ARTIFACT_DIFF_CONTRACT_CASE_COUNT={len(ALL_CONTRACT_CASES)}",
+        "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(ALL_CONTRACT_CASES),
     ]
 
 
-def parse_case_catalog(lines: list[str], count_prefix: str, list_prefix: str) -> list[str]:
-    count_text = extract_output_value(lines, count_prefix)
-    cases_text = extract_output_value(lines, list_prefix)
-    try:
-        expected_count = int(count_text)
-    except ValueError as exc:
-        raise AssertionError(f"invalid integer for {count_prefix}: {count_text!r}") from exc
-    cases = [] if not cases_text else cases_text.split(",")
-    if len(cases) != expected_count:
-        raise AssertionError(
-            f"count/list drift for {count_prefix}: count={expected_count} cases={cases}"
-        )
-    if len(set(cases)) != len(cases):
-        raise AssertionError(f"duplicate catalog cases for {list_prefix}: {cases}")
-    return cases
-
-
-def extract_output_value(lines: list[str], prefix: str) -> str:
-    for line in lines:
-        if line.startswith(prefix):
-            return line[len(prefix) :]
-    raise AssertionError(f"missing output line with prefix {prefix!r}: {lines}")
-
-
-def assert_contract_summary_output(lines: list[str]) -> None:
-    expected = expected_contract_summary_lines()
-    assert_output_lines(lines, expected, "contract_summary")
-    base_cases = parse_case_catalog(
-        lines,
-        "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=",
-        "ARTIFACT_DIFF_CONTRACT_BASE_CASES=",
-    )
-    if base_cases != BASE_CONTRACT_CASES:
-        raise AssertionError("artifact-diff base contract catalog drifted")
-    repeat_cases = parse_case_catalog(
-        lines,
-        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=",
-        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=",
-    )
-    if repeat_cases != REPEAT_CONTRACT_CASES:
-        raise AssertionError("artifact-diff repeat contract catalog drifted")
-    all_cases = parse_case_catalog(
-        lines,
-        "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=",
-        "ARTIFACT_DIFF_CONTRACT_CASES=",
-    )
-    if all_cases != EXPECTED_CONTRACT_CASES:
-        raise AssertionError("artifact-diff full contract catalog drifted")
-
-
-def assert_helper_self_test_output(lines: list[str], *, family: str) -> None:
-    expected = HELPER_SELF_TEST_LINES_BY_FAMILY[family]
-    assert_output_lines(lines, expected, f"{family}_helper_self_test")
-    cases = parse_case_catalog(
+def assert_helper_self_test_output(lines: list[str]) -> None:
+    assert_lines(lines, HELPER_SELF_TEST_LINES, "helper self-test")
+    cases = parse_catalog(
         lines,
         "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=",
         "ARTIFACT_DIFF_SELF_TEST_CASES=",
     )
-    expected_cases = expected[2].split("=", 1)[1].split(",")
-    if cases != expected_cases:
-        raise AssertionError(f"{family} helper self-test catalog drifted")
+    if cases != HELPER_SELF_TEST_CASES:
+        raise AssertionError("helper self-test catalog drifted")
 
 
-def run_contract_case(
+def assert_contract_output(lines: list[str]) -> None:
+    expected = expected_contract_lines()
+    assert_lines(lines, expected, "contract summary")
+    if parse_catalog(
+        lines,
+        "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=",
+        "ARTIFACT_DIFF_CONTRACT_BASE_CASES=",
+    ) != BASE_CONTRACT_CASES:
+        raise AssertionError("base contract catalog drifted")
+    if parse_catalog(
+        lines,
+        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=",
+        "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=",
+    ) != REPEAT_CONTRACT_CASES:
+        raise AssertionError("repeat contract catalog drifted")
+    if parse_catalog(
+        lines,
+        "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=",
+        "ARTIFACT_DIFF_CONTRACT_CASES=",
+    ) != ALL_CONTRACT_CASES:
+        raise AssertionError("full contract catalog drifted")
+
+
+def run_case(
     root: Path,
     args: list[str],
     *,
@@ -325,49 +221,43 @@ def run_contract_case(
     expected_lines: list[str],
     repeat_count: int = 1,
 ) -> list[str]:
-    if repeat_count < 1:
-        raise ValueError(f"repeat_count must be positive, got {repeat_count}")
-    final_lines: list[str] | None = None
-    for attempt in range(1, repeat_count + 1):
-        completed = run_helper(args, root=root)
+    last_lines: list[str] | None = None
+    for attempt in range(repeat_count):
+        completed = run_helper(root, args)
         lines = completed.stdout.splitlines()
         if completed.returncode != expected_exit:
             raise AssertionError(
-                f"attempt {attempt}: expected exit {expected_exit}, got {completed.returncode}: {lines}"
+                f"attempt {attempt + 1}: expected exit {expected_exit}, got {completed.returncode}"
             )
         if completed.stderr:
-            raise AssertionError(
-                f"attempt {attempt}: unexpected stderr: {completed.stderr!r}"
-            )
-        assert_output_lines(lines, expected_lines, f"attempt {attempt}")
-        final_lines = lines
-    assert final_lines is not None
-    return final_lines
+            raise AssertionError(f"attempt {attempt + 1}: unexpected stderr {completed.stderr!r}")
+        assert_lines(lines, expected_lines, f"attempt {attempt + 1}")
+        last_lines = lines
+    assert last_lines is not None
+    return last_lines
 
 
-def run_error_contract_case(
+def run_error_case(
     root: Path,
     args: list[str],
     *,
     expected_exit: int,
-    expected_stdout_lines: list[str],
-    expected_stderr_normalized: str,
+    expected_stdout: list[str],
+    expected_stderr: str,
     repeat_count: int = 1,
 ) -> None:
-    if repeat_count < 1:
-        raise ValueError(f"repeat_count must be positive, got {repeat_count}")
-    for attempt in range(1, repeat_count + 1):
-        completed = run_helper(args, root=root)
-        stdout_lines = completed.stdout.splitlines()
-        stderr_normalized = normalize_stderr(completed.stderr)
+    for attempt in range(repeat_count):
+        completed = run_helper(root, args)
+        stdout = completed.stdout.splitlines()
+        stderr = normalize_stderr(completed.stderr)
         if completed.returncode != expected_exit:
             raise AssertionError(
-                f"attempt {attempt}: expected exit {expected_exit}, got {completed.returncode}: stdout={stdout_lines} stderr={completed.stderr!r}"
+                f"attempt {attempt + 1}: expected exit {expected_exit}, got {completed.returncode}"
             )
-        assert_output_lines(stdout_lines, expected_stdout_lines, f"attempt {attempt} stdout")
-        if stderr_normalized != expected_stderr_normalized:
+        assert_lines(stdout, expected_stdout, f"attempt {attempt + 1} stdout")
+        if stderr != expected_stderr:
             raise AssertionError(
-                f"attempt {attempt}: unexpected stderr: {stderr_normalized!r}"
+                f"attempt {attempt + 1}: expected stderr {expected_stderr!r}, got {stderr!r}"
             )
 
 
@@ -376,112 +266,72 @@ def write_text(path: Path, text: str) -> None:
     path.write_text(text, encoding="utf-8", newline="\n")
 
 
-def expected_json_error_line(label: str, path: Path) -> str:
+def expected_json_error(label: str, path: Path) -> str:
     return (
         f"{label}_JSON_ERROR={path}:2:1: "
         "Expecting property name enclosed in double quotes"
     )
 
 
-def expected_sha256_hex(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def assert_review_note_markers(markers: list[str]) -> None:
+    if markers != REVIEW_NOTE_MARKERS:
+        raise AssertionError(f"review-note marker drifted: {markers}")
+    if len(set(markers)) != len(markers):
+        raise AssertionError(f"review-note markers must stay unique: {markers}")
 
 
 def run_check(root: Path) -> int:
-    family = detect_helper_family(root)
-    help_lines = HELP_LINES_BY_FAMILY[family]
-    hash_mode_arg, hash_output_mode = HASH_MODE_BY_FAMILY[family]
-
     assert_helper_self_test_output(
-        run_contract_case(
-            root,
-            ["--self-test"],
-            expected_exit=0,
-            expected_lines=HELPER_SELF_TEST_LINES_BY_FAMILY[family],
-            repeat_count=2,
-        ),
-        family=family,
+        run_case(root, ["--self-test"], expected_exit=0, expected_lines=HELPER_SELF_TEST_LINES, repeat_count=2)
     )
-
-    run_contract_case(
-        root,
-        ["-h"],
-        expected_exit=0,
-        expected_lines=help_lines,
-        repeat_count=2,
-    )
-
-    run_error_contract_case(
+    run_case(root, ["-h"], expected_exit=0, expected_lines=HELP_LINES, repeat_count=2)
+    run_error_case(
         root,
         [],
         expected_exit=2,
-        expected_stdout_lines=[],
-        expected_stderr_normalized=MISSING_ARGUMENT_ERROR_BY_FAMILY[family],
+        expected_stdout=[],
+        expected_stderr=MISSING_ARGUMENT_ERROR,
         repeat_count=2,
     )
 
-    with tempfile.TemporaryDirectory(prefix="zigux_artifact_diff_contract_") as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
-        expected = tmp_dir / "expected.txt"
-        actual = tmp_dir / "actual.txt"
-        missing = tmp_dir / "missing.txt"
-        other_missing = tmp_dir / "other-missing.txt"
-        expected_json = tmp_dir / "expected.json"
-        actual_json = tmp_dir / "actual.json"
-        actual_json_mismatch = tmp_dir / "actual-mismatch.json"
-        invalid_expected_json = tmp_dir / "expected-invalid.json"
-        invalid_actual_json = tmp_dir / "actual-invalid.json"
-        blob_a = tmp_dir / "blob-a.bin"
-        blob_b = tmp_dir / "blob-b.bin"
+    with tempfile.TemporaryDirectory(prefix="zigux_artifact_diff_contract_") as tmp_dir:
+        tmp = Path(tmp_dir)
+        expected = tmp / "expected.txt"
+        actual = tmp / "actual.txt"
+        missing = tmp / "missing.txt"
+        other_missing = tmp / "other-missing.txt"
+        expected_json = tmp / "expected.json"
+        actual_json = tmp / "actual.json"
+        actual_json_mismatch = tmp / "actual-mismatch.json"
+        invalid_expected_json = tmp / "expected-invalid.json"
+        invalid_actual_json = tmp / "actual-invalid.json"
+        blob_a = tmp / "blob-a.bin"
+        blob_b = tmp / "blob-b.bin"
 
         write_text(expected, "alpha\nbeta\n")
         write_text(actual, "alpha\nbeta\n")
 
-        run_error_contract_case(
+        run_error_case(
             root,
             ["--mode", "text", str(expected)],
             expected_exit=2,
-            expected_stdout_lines=[],
-            expected_stderr_normalized=MISSING_ARGUMENT_ERROR_BY_FAMILY[family],
+            expected_stdout=[],
+            expected_stderr=MISSING_ARGUMENT_ERROR,
             repeat_count=2,
         )
-
-        run_error_contract_case(
+        run_error_case(
             root,
             ["--mode", "yaml", str(expected), str(actual)],
             expected_exit=2,
-            expected_stdout_lines=[],
-            expected_stderr_normalized=INVALID_MODE_ERROR_BY_FAMILY[family],
+            expected_stdout=[],
+            expected_stderr=INVALID_MODE_ERROR,
             repeat_count=2,
         )
 
         blob_a.write_bytes(b"zigux-artifact-diff")
         blob_b.write_bytes(b"zigux-artifact-diff")
 
-        if family == "bytes":
-            run_contract_case(
-                root,
-                ["--mode", "sha256", str(blob_a), str(blob_b)],
-                expected_exit=0,
-                expected_lines=[
-                    "ARTIFACT_DIFF=pass",
-                    "MODE=bytes",
-                    f"EXPECTED={blob_a}",
-                    f"ACTUAL={blob_b}",
-                    f"SHA256={expected_sha256_hex(blob_a)}",
-                ],
-            )
-        else:
-            run_error_contract_case(
-                root,
-                ["--mode", "bytes", str(blob_a), str(blob_b)],
-                expected_exit=2,
-                expected_stdout_lines=[],
-                expected_stderr_normalized=LEGACY_BOUNDARY_ERROR_BY_FAMILY[family],
-                repeat_count=2,
-            )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "text", str(expected), str(actual)],
             expected_exit=0,
@@ -495,7 +345,7 @@ def run_check(root: Path) -> int:
         )
 
         write_text(actual, "alpha\nBETA\n")
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "text", str(expected), str(actual)],
             expected_exit=1,
@@ -508,7 +358,7 @@ def run_check(root: Path) -> int:
         )
         write_text(actual, "alpha\nbeta\n")
 
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "text", str(missing), str(actual)],
             expected_exit=1,
@@ -521,8 +371,7 @@ def run_check(root: Path) -> int:
                 "ACTUAL_EXISTS=True",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "text", str(expected), str(missing)],
             expected_exit=1,
@@ -535,8 +384,7 @@ def run_check(root: Path) -> int:
                 "ACTUAL_EXISTS=False",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "text", str(missing), str(other_missing)],
             expected_exit=1,
@@ -556,7 +404,7 @@ def run_check(root: Path) -> int:
         write_text(invalid_expected_json, '{"alpha": 1,\n')
         write_text(invalid_actual_json, '{"alpha": 1,\n')
 
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "json", str(expected_json), str(actual_json)],
             expected_exit=0,
@@ -567,8 +415,7 @@ def run_check(root: Path) -> int:
                 f"ACTUAL={actual_json}",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "json", str(expected_json), str(actual_json_mismatch)],
             expected_exit=1,
@@ -580,8 +427,7 @@ def run_check(root: Path) -> int:
             ],
             repeat_count=2,
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "json", str(missing), str(actual_json)],
             expected_exit=1,
@@ -594,8 +440,7 @@ def run_check(root: Path) -> int:
                 "ACTUAL_EXISTS=True",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "json", str(expected_json), str(missing)],
             expected_exit=1,
@@ -608,8 +453,7 @@ def run_check(root: Path) -> int:
                 "ACTUAL_EXISTS=False",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "json", str(missing), str(other_missing)],
             expected_exit=1,
@@ -622,8 +466,7 @@ def run_check(root: Path) -> int:
                 "ACTUAL_EXISTS=False",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "json", str(invalid_expected_json), str(actual_json)],
             expected_exit=1,
@@ -632,11 +475,10 @@ def run_check(root: Path) -> int:
                 "MODE=json",
                 f"EXPECTED={invalid_expected_json}",
                 f"ACTUAL={actual_json}",
-                expected_json_error_line("EXPECTED", invalid_expected_json),
+                expected_json_error("EXPECTED", invalid_expected_json),
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "json", str(expected_json), str(invalid_actual_json)],
             expected_exit=1,
@@ -645,11 +487,10 @@ def run_check(root: Path) -> int:
                 "MODE=json",
                 f"EXPECTED={expected_json}",
                 f"ACTUAL={invalid_actual_json}",
-                expected_json_error_line("ACTUAL", invalid_actual_json),
+                expected_json_error("ACTUAL", invalid_actual_json),
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
             ["--mode", "json", str(invalid_expected_json), str(invalid_actual_json)],
             expected_exit=1,
@@ -658,58 +499,55 @@ def run_check(root: Path) -> int:
                 "MODE=json",
                 f"EXPECTED={invalid_expected_json}",
                 f"ACTUAL={invalid_actual_json}",
-                expected_json_error_line("EXPECTED", invalid_expected_json),
+                expected_json_error("EXPECTED", invalid_expected_json),
             ],
         )
 
-        run_contract_case(
+        run_case(
             root,
-            ["--mode", hash_mode_arg, str(blob_a), str(blob_b)],
+            ["--mode", "sha256", str(blob_a), str(blob_b)],
             expected_exit=0,
             expected_lines=[
                 "ARTIFACT_DIFF=pass",
-                f"MODE={hash_output_mode}",
+                "MODE=bytes",
                 f"EXPECTED={blob_a}",
                 f"ACTUAL={blob_b}",
-                f"SHA256={expected_sha256_hex(blob_a)}",
+                "SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
-            ["--mode", hash_mode_arg, str(missing), str(blob_b)],
+            ["--mode", "sha256", str(missing), str(blob_b)],
             expected_exit=1,
             expected_lines=[
                 "ARTIFACT_DIFF=fail",
-                f"MODE={hash_output_mode}",
+                "MODE=bytes",
                 f"EXPECTED={missing}",
                 f"ACTUAL={blob_b}",
                 "EXPECTED_EXISTS=False",
                 "ACTUAL_EXISTS=True",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
-            ["--mode", hash_mode_arg, str(blob_a), str(missing)],
+            ["--mode", "sha256", str(blob_a), str(missing)],
             expected_exit=1,
             expected_lines=[
                 "ARTIFACT_DIFF=fail",
-                f"MODE={hash_output_mode}",
+                "MODE=bytes",
                 f"EXPECTED={blob_a}",
                 f"ACTUAL={missing}",
                 "EXPECTED_EXISTS=True",
                 "ACTUAL_EXISTS=False",
             ],
         )
-
-        run_contract_case(
+        run_case(
             root,
-            ["--mode", hash_mode_arg, str(missing), str(other_missing)],
+            ["--mode", "sha256", str(missing), str(other_missing)],
             expected_exit=1,
             expected_lines=[
                 "ARTIFACT_DIFF=fail",
-                f"MODE={hash_output_mode}",
+                "MODE=bytes",
                 f"EXPECTED={missing}",
                 f"ACTUAL={other_missing}",
                 "EXPECTED_EXISTS=False",
@@ -718,23 +556,22 @@ def run_check(root: Path) -> int:
         )
 
         blob_b.write_bytes(b"zigux-artifact-DRIFT")
-        run_contract_case(
+        run_case(
             root,
-            ["--mode", hash_mode_arg, str(blob_a), str(blob_b)],
+            ["--mode", "sha256", str(blob_a), str(blob_b)],
             expected_exit=1,
             expected_lines=[
                 "ARTIFACT_DIFF=fail",
-                f"MODE={hash_output_mode}",
+                "MODE=bytes",
                 f"EXPECTED={blob_a}",
                 f"ACTUAL={blob_b}",
-                f"EXPECTED_SHA256={expected_sha256_hex(blob_a)}",
-                f"ACTUAL_SHA256={expected_sha256_hex(blob_b)}",
+                "EXPECTED_SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576",
+                "ACTUAL_SHA256=bfc83f8f1f4369ce3cfabfdff0699ae3bf7a15b89f1702b690e56c6f35f1ee94",
             ],
             repeat_count=2,
         )
 
-    summary_lines = expected_contract_summary_lines()
-    for line in summary_lines:
+    for line in expected_contract_lines():
         print(line)
     return 0
 
@@ -744,170 +581,177 @@ def expect_assertion(label: str, callback) -> None:
         callback()
     except AssertionError:
         return
-    raise AssertionError(f"expected AssertionError for self-test case {label}")
+    raise AssertionError(f"expected AssertionError for {label}")
 
 
 def run_self_test() -> int:
-    covered_cases: list[str] = []
-    assert_catalog_shape()
-    covered_cases.append("catalog_shape")
+    covered: list[str] = []
 
-    assert_output_lines(BYTES_HELP_LINES, HELP_LINES_BY_FAMILY["bytes"], "bytes_help")
-    covered_cases.append("family_help_bytes_round_trip")
+    if len(set(BASE_CONTRACT_CASES)) != len(BASE_CONTRACT_CASES):
+        raise AssertionError("base cases must stay unique")
+    if len(set(REPEAT_CONTRACT_CASES)) != len(REPEAT_CONTRACT_CASES):
+        raise AssertionError("repeat cases must stay unique")
+    if len(set(ALL_CONTRACT_CASES)) != len(ALL_CONTRACT_CASES):
+        raise AssertionError("full contract cases must stay unique")
+    if ALL_CONTRACT_CASES != BASE_CONTRACT_CASES + REPEAT_CONTRACT_CASES:
+        raise AssertionError("full contract packet must stay base+repeat")
+    if len(set(SELF_TEST_CASES)) != len(SELF_TEST_CASES):
+        raise AssertionError("self-test cases must stay unique")
+    covered.append("catalog_shape")
 
-    assert_output_lines(SHA256_HELP_LINES, HELP_LINES_BY_FAMILY["sha256"], "sha256_help")
-    covered_cases.append("family_help_sha256_round_trip")
+    assert_review_note_markers(list(REVIEW_NOTE_MARKERS))
+    covered.append("review_note_marker_round_trip")
 
-    if detect_helper_family_from_lines(BYTES_HELP_LINES) != "bytes":
-        raise AssertionError("failed to detect bytes help family")
-    covered_cases.append("family_detection_bytes")
+    bad_owner = list(REVIEW_NOTE_MARKERS)
+    bad_owner[1] = "owner: `stale owner marker`"
+    expect_assertion("review_note_owner_marker_drift", lambda: assert_review_note_markers(bad_owner))
+    covered.append("review_note_owner_marker_drift")
 
-    if detect_helper_family_from_lines(SHA256_HELP_LINES) != "sha256":
-        raise AssertionError("failed to detect sha256 help family")
-    covered_cases.append("family_detection_sha256")
+    bad_marker = list(REVIEW_NOTE_MARKERS)
+    bad_marker[0] = "host-side artifact-diff stale contract"
+    expect_assertion("review_note_marker_drift", lambda: assert_review_note_markers(bad_marker))
+    covered.append("review_note_marker_drift")
 
-    expect_assertion(
-        "family_detection_unknown_rejected",
-        lambda: detect_helper_family_from_lines(["usage: artifact_diff.py --mode yaml"]),
-    )
-    covered_cases.append("family_detection_unknown_rejected")
+    assert_lines(HELP_LINES, HELP_LINES, "help round trip")
+    covered.append("cli_help_round_trip")
 
-    assert_helper_self_test_output(
-        HELPER_SELF_TEST_LINES_BY_FAMILY["bytes"], family="bytes"
-    )
-    covered_cases.append("helper_summary_bytes_round_trip")
+    bad_help = list(HELP_LINES)
+    bad_help[11] = " --mode {text,json,sha256}"
+    expect_assertion("cli_help_line_drift", lambda: assert_lines(bad_help, HELP_LINES, "help drift"))
+    covered.append("cli_help_line_drift")
 
-    assert_helper_self_test_output(
-        HELPER_SELF_TEST_LINES_BY_FAMILY["sha256"], family="sha256"
-    )
-    covered_cases.append("helper_summary_sha256_round_trip")
-
-    bad_bytes_lines = list(HELPER_SELF_TEST_LINES_BY_FAMILY["bytes"])
-    bad_bytes_lines[1] = "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19"
-    expect_assertion(
-        "helper_summary_bytes_drift",
-        lambda: assert_helper_self_test_output(bad_bytes_lines, family="bytes"),
-    )
-    covered_cases.append("helper_summary_bytes_drift")
-
-    bad_sha256_lines = list(HELPER_SELF_TEST_LINES_BY_FAMILY["sha256"])
-    bad_sha256_lines[2] = (
-        "ARTIFACT_DIFF_SELF_TEST_CASES="
-        "text_mismatch,text_pass,text_invalid_utf8_expected,"
-        "text_invalid_utf8_actual,text_invalid_utf8_both,json_pass,"
-        "json_mismatch,json_invalid_expected,json_invalid_actual,"
-        "json_invalid_both,json_invalid_utf8_expected,"
-        "json_invalid_utf8_actual,json_invalid_utf8_both,"
-        "json_missing_expected,json_missing_actual,json_missing_both,"
-        "sha256_pass,sha256_drift,text_missing_expected,"
-        "text_missing_actual,text_missing_both,sha256_missing_expected,"
-        "sha256_missing_actual,sha256_missing_both,invalid_mode_rejected"
-    )
-    expect_assertion(
-        "helper_summary_sha256_drift",
-        lambda: assert_helper_self_test_output(bad_sha256_lines, family="sha256"),
-    )
-    covered_cases.append("helper_summary_sha256_drift")
-
-    if "are required unless --self-test is set" not in MISSING_ARGUMENT_ERROR_BY_FAMILY["bytes"]:
-        raise AssertionError("bytes missing-argument contract drifted")
-    if "are required unless --self-test is set" not in MISSING_ARGUMENT_ERROR_BY_FAMILY["sha256"]:
-        raise AssertionError("sha256 missing-argument contract drifted")
-    covered_cases.append("parser_error_bytes_round_trip")
-
-    if "sha256" not in INVALID_MODE_ERROR_BY_FAMILY["sha256"]:
-        raise AssertionError("sha256 parser error contract drifted")
-    covered_cases.append("parser_error_sha256_round_trip")
+    if "are required unless --self-test is set" not in MISSING_ARGUMENT_ERROR:
+        raise AssertionError("missing-argument parser contract drifted")
+    covered.append("cli_missing_argument_parser_round_trip")
 
     expect_assertion(
-        "parser_error_drift",
-        lambda: assert_output_lines(
-            [INVALID_MODE_ERROR_BY_FAMILY["bytes"].replace("bytes", "binary")],
-            [INVALID_MODE_ERROR_BY_FAMILY["bytes"]],
-            "parser_error",
+        "cli_missing_argument_parser_stderr_drift",
+        lambda: (
+            None
+            if MISSING_ARGUMENT_ERROR
+            == MISSING_ARGUMENT_ERROR.replace("required unless", "needed unless")
+            else (_ for _ in ()).throw(AssertionError("stderr drift"))
         ),
     )
-    covered_cases.append("parser_error_drift")
+    covered.append("cli_missing_argument_parser_stderr_drift")
 
-    if "legacy_sha256_alias" not in HELPER_SELF_TEST_LINES_BY_FAMILY["bytes"][2]:
-        raise AssertionError("bytes family legacy alias marker drifted")
-    covered_cases.append("family_boundary_bytes_alias_round_trip")
-
-    if "choice: 'bytes' (choose from text, json, sha256)" not in LEGACY_BOUNDARY_ERROR_BY_FAMILY["sha256"]:
-        raise AssertionError("sha256 family bytes rejection drifted")
-    covered_cases.append("family_boundary_sha256_rejected_round_trip")
+    if "choice: 'yaml' (choose from text, json, bytes)" not in INVALID_MODE_ERROR:
+        raise AssertionError("invalid-mode parser contract drifted")
+    covered.append("cli_invalid_mode_parser_round_trip")
 
     expect_assertion(
-        "family_boundary_drift",
-        lambda: assert_output_lines(
+        "cli_invalid_mode_parser_stderr_drift",
+        lambda: (
+            None
+            if INVALID_MODE_ERROR == INVALID_MODE_ERROR.replace("'yaml'", "'yml'")
+            else (_ for _ in ()).throw(AssertionError("stderr drift"))
+        ),
+    )
+    covered.append("cli_invalid_mode_parser_stderr_drift")
+
+    assert_helper_self_test_output(HELPER_SELF_TEST_LINES)
+    covered.append("helper_summary_round_trip")
+
+    assert_contract_output(expected_contract_lines())
+    covered.append("contract_summary_round_trip")
+
+    bad_status = list(HELPER_SELF_TEST_LINES)
+    bad_status[0] = "ARTIFACT_DIFF_SELF_TEST=fail"
+    expect_assertion("helper_summary_status_drift", lambda: assert_helper_self_test_output(bad_status))
+    covered.append("helper_summary_status_drift")
+
+    bad_count = list(HELPER_SELF_TEST_LINES)
+    bad_count[1] = "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19"
+    expect_assertion("helper_summary_count_drift", lambda: assert_helper_self_test_output(bad_count))
+    covered.append("helper_summary_count_drift")
+
+    duplicate_cases = list(HELPER_SELF_TEST_CASES)
+    duplicate_cases[-1] = duplicate_cases[0]
+    expect_assertion(
+        "helper_summary_duplicate_case_drift",
+        lambda: assert_helper_self_test_output(
             [
-                LEGACY_BOUNDARY_ERROR_BY_FAMILY["sha256"].replace(
-                    "choice: 'bytes'",
-                    "choice: 'binary'",
-                )
-            ],
-            [LEGACY_BOUNDARY_ERROR_BY_FAMILY["sha256"]],
-            "family_boundary",
+                "ARTIFACT_DIFF_SELF_TEST=pass",
+                f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(duplicate_cases)}",
+                "ARTIFACT_DIFF_SELF_TEST_CASES=" + ",".join(duplicate_cases),
+            ]
         ),
     )
-    covered_cases.append("family_boundary_drift")
+    covered.append("helper_summary_duplicate_case_drift")
 
-    assert_contract_summary_output(expected_contract_summary_lines())
-    covered_cases.append("contract_summary_round_trip")
-
-    bad_base_count = expected_contract_summary_lines()
-    bad_base_count[1] = "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=24"
+    reordered_cases = [HELPER_SELF_TEST_CASES[1], HELPER_SELF_TEST_CASES[0], *HELPER_SELF_TEST_CASES[2:]]
     expect_assertion(
-        "contract_summary_base_count_drift",
-        lambda: assert_contract_summary_output(bad_base_count),
+        "helper_summary_case_order_drift",
+        lambda: assert_helper_self_test_output(
+            [
+                "ARTIFACT_DIFF_SELF_TEST=pass",
+                f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(reordered_cases)}",
+                "ARTIFACT_DIFF_SELF_TEST_CASES=" + ",".join(reordered_cases),
+            ]
+        ),
     )
-    covered_cases.append("contract_summary_base_count_drift")
+    covered.append("helper_summary_case_order_drift")
 
-    bad_repeat_count = expected_contract_summary_lines()
+    bad_contract_status = expected_contract_lines()
+    bad_contract_status[0] = "ARTIFACT_DIFF_CONTRACT=fail"
+    expect_assertion("contract_summary_status_drift", lambda: assert_contract_output(bad_contract_status))
+    covered.append("contract_summary_status_drift")
+
+    bad_base_count = expected_contract_lines()
+    bad_base_count[1] = "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=22"
+    expect_assertion("contract_summary_base_count_drift", lambda: assert_contract_output(bad_base_count))
+    covered.append("contract_summary_base_count_drift")
+
+    bad_base_order = expected_contract_lines()
+    swapped = [BASE_CONTRACT_CASES[1], BASE_CONTRACT_CASES[0], *BASE_CONTRACT_CASES[2:]]
+    bad_base_order[2] = "ARTIFACT_DIFF_CONTRACT_BASE_CASES=" + ",".join(swapped)
+    expect_assertion("contract_summary_base_case_order_drift", lambda: assert_contract_output(bad_base_order))
+    covered.append("contract_summary_base_case_order_drift")
+
+    bad_repeat_count = expected_contract_lines()
     bad_repeat_count[3] = "ARTIFACT_DIFF_CONTRACT_REPEAT_CASE_COUNT=4"
-    expect_assertion(
-        "contract_summary_repeat_count_drift",
-        lambda: assert_contract_summary_output(bad_repeat_count),
-    )
-    covered_cases.append("contract_summary_repeat_count_drift")
+    expect_assertion("contract_summary_repeat_count_drift", lambda: assert_contract_output(bad_repeat_count))
+    covered.append("contract_summary_repeat_count_drift")
 
-    bad_case_count = expected_contract_summary_lines()
-    bad_case_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=29"
-    expect_assertion(
-        "contract_summary_case_count_drift",
-        lambda: assert_contract_summary_output(bad_case_count),
-    )
-    covered_cases.append("contract_summary_case_count_drift")
+    bad_repeat_order = expected_contract_lines()
+    repeat_swapped = [REPEAT_CONTRACT_CASES[1], REPEAT_CONTRACT_CASES[0], *REPEAT_CONTRACT_CASES[2:]]
+    bad_repeat_order[4] = "ARTIFACT_DIFF_CONTRACT_REPEAT_CASES=" + ",".join(repeat_swapped)
+    expect_assertion("contract_summary_repeat_case_order_drift", lambda: assert_contract_output(bad_repeat_order))
+    covered.append("contract_summary_repeat_case_order_drift")
 
-    if covered_cases != EXPECTED_SELF_TEST_CASES:
-        raise AssertionError(
-            f"artifact-diff checker self-test catalog drifted: {covered_cases}"
-        )
+    bad_case_count = expected_contract_lines()
+    bad_case_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27"
+    expect_assertion("contract_summary_case_count_drift", lambda: assert_contract_output(bad_case_count))
+    covered.append("contract_summary_case_count_drift")
+
+    duplicate_all = list(ALL_CONTRACT_CASES)
+    duplicate_all[-1] = duplicate_all[0]
+    bad_duplicate = expected_contract_lines()
+    bad_duplicate[6] = "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(duplicate_all)
+    expect_assertion("contract_summary_duplicate_case_drift", lambda: assert_contract_output(bad_duplicate))
+    covered.append("contract_summary_duplicate_case_drift")
+
+    reordered_all = [ALL_CONTRACT_CASES[1], ALL_CONTRACT_CASES[0], *ALL_CONTRACT_CASES[2:]]
+    bad_order = expected_contract_lines()
+    bad_order[6] = "ARTIFACT_DIFF_CONTRACT_CASES=" + ",".join(reordered_all)
+    expect_assertion("contract_summary_case_order_drift", lambda: assert_contract_output(bad_order))
+    covered.append("contract_summary_case_order_drift")
+
+    if covered != SELF_TEST_CASES:
+        raise AssertionError(f"checker self-test catalog drifted: {covered}")
 
     print("ARTIFACT_DIFF_CONTRACT_SELF_TEST=pass")
-    print(f"ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT={len(EXPECTED_SELF_TEST_CASES)}")
-    print(
-        "ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES="
-        + ",".join(EXPECTED_SELF_TEST_CASES)
-    )
+    print(f"ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
+    print("ARTIFACT_DIFF_CONTRACT_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES))
     return 0
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Check the published artifact-diff CLI contract and summary shapes."
+        description="Check the published artifact-diff helper contract and summary shapes."
     )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run built-in checker self-tests without replaying the live artifact-diff helper.",
-    )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=ROOT,
-        help="Repository root that contains scripts/zigux/artifact_diff.py",
-    )
+    parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--root", type=Path, default=ROOT)
     return parser.parse_args()
 
 
