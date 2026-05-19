@@ -243,3 +243,68 @@ test "lane10 helper ports keep current helper-local safety contracts" {
     defer zalloc.zfreeBytes(allocator, &dirty_bytes);
     try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, dirty_bytes.?);
 }
+
+test "lane10 helper ports keep exact-fit and fresh-rezero contracts" {
+    const allocator = std.testing.allocator;
+
+    var success_buffer: [8]u8 = undefined;
+    const success_rendered = str_error_r.strErrorR(0, &success_buffer);
+    try std.testing.expectEqualStrings("Success", success_rendered);
+    try std.testing.expectEqual(@as(u8, 0), success_buffer[success_rendered.len]);
+    try std.testing.expectEqual(@intFromPtr(&success_buffer[0]), @intFromPtr(success_rendered.ptr));
+
+    var generated_exact: [48]u8 = undefined;
+    const generated_rendered = str_error_r.strErrorR(4096, &generated_exact);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 48)=22", generated_rendered);
+    try std.testing.expectEqual(@as(u8, 0), generated_exact[generated_rendered.len]);
+    try std.testing.expectEqual(@intFromPtr(&generated_exact[0]), @intFromPtr(generated_rendered.ptr));
+
+    slab.kmalloc_nr_allocated = 0;
+    const first_array = slab.kmallocArray(4, 1, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    @memset(first_array, 0xaa);
+    slab.kfree(first_array);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    const second_array = slab.kmallocArray(4, 1, slab.GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, second_array);
+
+    slab.kfree(second_array);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    const first_bytes = slab.kmallocBytes(4, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    @memset(first_bytes, 0xaa);
+    slab.kfree(first_bytes);
+    try std.testing.expectEqual(@as(isize, 0), slab.kmalloc_nr_allocated);
+
+    const second_bytes = slab.kmallocBytes(4, slab.GFP_KERNEL | slab.__GFP_ZERO) orelse return error.TestUnexpectedResult;
+    defer slab.kfree(second_bytes);
+    try std.testing.expectEqual(@as(isize, 1), slab.kmalloc_nr_allocated);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, second_bytes);
+
+    const Payload = struct {
+        active: bool,
+        maybe_ptr: ?*const u8,
+        nested: struct {
+            maybe_count: ?usize,
+        },
+    };
+
+    var sentinel: u8 = 0xaa;
+    var payload: ?*Payload = try zalloc.zallocValue(allocator, Payload);
+    try std.testing.expect(payload != null);
+    payload.?.active = true;
+    payload.?.maybe_ptr = &sentinel;
+    payload.?.nested.maybe_count = 9;
+    zalloc.zfreeValue(allocator, Payload, &payload);
+    try std.testing.expect(payload == null);
+
+    payload = try zalloc.zallocValue(allocator, Payload);
+    defer zalloc.zfreeValue(allocator, Payload, &payload);
+    try std.testing.expect(payload != null);
+    try std.testing.expect(!payload.?.active);
+    try std.testing.expect(payload.?.maybe_ptr == null);
+    try std.testing.expect(payload.?.nested.maybe_count == null);
+}
