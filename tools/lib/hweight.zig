@@ -57,6 +57,14 @@ fn expectDisjointAdditivityU64(counter: fn (u64) u64, left: u64, right: u64) !vo
     try std.testing.expectEqual(counter(left) + counter(right), counter(left | right));
 }
 
+fn expectUnionIntersectionIdentityU32(counter: fn (u32) u32, left: u32, right: u32) !void {
+    try std.testing.expectEqual(counter(left | right) + counter(left & right), counter(left) + counter(right));
+}
+
+fn expectUnionIntersectionIdentityU64(counter: fn (u64) u64, left: u64, right: u64) !void {
+    try std.testing.expectEqual(counter(left | right) + counter(left & right), counter(left) + counter(right));
+}
+
 test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@as(u32, 4), swHweight8(0b1111_0000));
     try std.testing.expectEqual(@as(u32, 8), swHweight16(0b1111_0000_1111_0000));
@@ -131,5 +139,80 @@ test "software hweight helpers stay additive across disjoint masks" {
         try std.testing.expectEqual(@as(usize, 0), pair[0] & pair[1]);
         try std.testing.expectEqual(hweightLong(pair[0]) + hweightLong(pair[1]), hweightLong(pair[0] | pair[1]));
         try std.testing.expectEqual(hweight_long(pair[0]) + hweight_long(pair[1]), hweight_long(pair[0] | pair[1]));
+    }
+}
+
+test "software hweight helpers preserve union-intersection counts for overlaps" {
+    const pairs8 = [_][2]u32{
+        .{ 0xf3, 0x3f },
+        .{ 0xc7, 0x7c },
+        .{ 0xaa, 0xe3 },
+    };
+    for (pairs8) |pair| {
+        try expectUnionIntersectionIdentityU32(swHweight8, pair[0], pair[1]);
+        try std.testing.expectEqual(
+            __sw_hweight8(pair[0] | pair[1]) + __sw_hweight8(pair[0] & pair[1]),
+            __sw_hweight8(pair[0]) + __sw_hweight8(pair[1]),
+        );
+    }
+
+    const pairs16 = [_][2]u32{
+        .{ 0xf0f3, 0x3ff0 },
+        .{ 0xc3c3, 0x33fc },
+        .{ 0xaa55, 0xe31c },
+    };
+    for (pairs16) |pair| {
+        try expectUnionIntersectionIdentityU32(swHweight16, pair[0], pair[1]);
+        try std.testing.expectEqual(
+            __sw_hweight16(pair[0] | pair[1]) + __sw_hweight16(pair[0] & pair[1]),
+            __sw_hweight16(pair[0]) + __sw_hweight16(pair[1]),
+        );
+    }
+
+    const pairs32 = [_][2]u32{
+        .{ 0xf0f0_00f3, 0x3fff_f000 },
+        .{ 0xc3c3_c3c3, 0x33fc_fc33 },
+        .{ 0xaa55_aa55, 0xe31c_71c7 },
+    };
+    for (pairs32) |pair| {
+        try expectUnionIntersectionIdentityU32(swHweight32, pair[0], pair[1]);
+        try std.testing.expectEqual(
+            __sw_hweight32(pair[0] | pair[1]) + __sw_hweight32(pair[0] & pair[1]),
+            __sw_hweight32(pair[0]) + __sw_hweight32(pair[1]),
+        );
+    }
+
+    const pairs64 = [_][2]u64{
+        .{ 0xf0f0_00f3_3cff_c003, 0x3fff_f000_f0c3_c33c },
+        .{ 0xc3c3_c3c3_0f0f_f0f0, 0x33fc_fc33_f0f0_0f0f },
+        .{ 0xaa55_aa55_55aa_55aa, 0xe31c_71c7_1c63_c638 },
+    };
+    for (pairs64) |pair| {
+        try expectUnionIntersectionIdentityU64(swHweight64, pair[0], pair[1]);
+        try std.testing.expectEqual(
+            __sw_hweight64(pair[0] | pair[1]) + __sw_hweight64(pair[0] & pair[1]),
+            __sw_hweight64(pair[0]) + __sw_hweight64(pair[1]),
+        );
+    }
+
+    const native_pairs = if (@sizeOf(usize) == 4)
+        [_][2]usize{
+            .{ 0xf0f0_00f3, 0x3fff_f000 },
+            .{ 0xc3c3_c3c3, 0x33fc_fc33 },
+        }
+    else
+        [_][2]usize{
+            .{ 0xf0f0_00f3_3cff_c003, 0x3fff_f000_f0c3_c33c },
+            .{ 0xc3c3_c3c3_0f0f_f0f0, 0x33fc_fc33_f0f0_0f0f },
+        };
+    for (native_pairs) |pair| {
+        try std.testing.expectEqual(
+            hweightLong(pair[0] | pair[1]) + hweightLong(pair[0] & pair[1]),
+            hweightLong(pair[0]) + hweightLong(pair[1]),
+        );
+        try std.testing.expectEqual(
+            hweight_long(pair[0] | pair[1]) + hweight_long(pair[0] & pair[1]),
+            hweight_long(pair[0]) + hweight_long(pair[1]),
+        );
     }
 }
