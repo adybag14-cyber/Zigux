@@ -9,7 +9,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
-- role: keep the Architecture Council governance packet honest about what is ready for reminder-surface maintenance and what still remains blocked because the broader validator, build, and lane-owner companions are missing on current `master`
+- role: keep the Architecture Council governance packet honest about what is ready for reminder-surface maintenance and what still remains blocked because the broader validator, build, workflow, and lane-owner companions are missing on current `master`
 
 ## Why this note exists
 
@@ -20,7 +20,7 @@ Current `master` already carries the freeze map, the freeze-map governance note,
 This survey keeps those two truths together:
 
 - the governance packet is materially landed and reviewable
-- the missing validator, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready
+- the missing validator, build, workflow, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready
 
 ## Current directly readable readiness packet
 
@@ -73,13 +73,14 @@ Although `zigux/Makefile` is present on current `master`, it still does not mate
 - `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
 - `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path
 - `make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path
+- `.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route, so shared CI coverage for the broader Phase 15 replay packet remains absent rather than directly readable current-master evidence
 - no Architecture Council approval is currently recorded for a freeze-map status change
 - no direct deep-core Zig bridge or port-readiness decision is implied by the current readiness posture
 
 ## Readiness rules
 
 - treat the current packet as ready for maintenance-mode truthfulness refreshes only
-- do not treat the missing validator, build, or wrapper companions as landed evidence until direct current-tree reads recover them
+- do not treat the missing validator, build, workflow, or wrapper companions as landed evidence until direct current-tree reads recover them
 - if a shared reminder surface drifts, repair the smallest truthful surface first instead of widening into a freeze-map status change claim
 - if one of the missing companions lands, reread the freeze-map governance note, parity scorecard, parity-scorecard survey, Architecture Council review-process note, Architecture Council decision-record template, indefinite-C policy note, governance-lane sequencing note, handoff note, shared-summary gap note, the focused readiness-packet checker, and the direct manifests plus focused replays together before broadening the readiness claim
 
@@ -89,7 +90,7 @@ This survey does not claim:
 
 - an Architecture Council approval workflow implementation
 - a freeze-map status change for any deep-core anchor
-- a ready-to-run shared Phase 15 validator or build route on current `master`
+- a ready-to-run shared Phase 15 validator, workflow, or build route on current `master`
 
 ## Next bounded step
 
