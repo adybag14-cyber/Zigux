@@ -16,11 +16,15 @@ REQUIRED_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
+    "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "scripts/zigux/check-phase11-build-inventory.py",
     "scripts/zigux/check-phase11-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-validation-matrix-gap-survey.py",
     "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
+    "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase11_build_inventory.json",
 )
@@ -42,6 +46,14 @@ CHECKS = (
     CheckSpec(
         "phase11-hvc-cleanup-current-head",
         "scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    ),
+    CheckSpec(
+        "phase11-dw-wdt-teardown-packet",
+        "scripts/zigux/check-phase11-dw-wdt-teardown-packet.py",
+    ),
+    CheckSpec(
+        "phase11-dw-wdt-verify-alignment",
+        "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
     ),
 )
 
@@ -154,10 +166,10 @@ def run_self_test() -> int:
                 + ",".join(baseline_issues)
             )
 
-        missing = root / REQUIRED_PATHS[0]
+        missing = root / "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md"
         missing.unlink()
         issues = collect_issues(root)
-        expected_missing = f"missing_required_path:{REQUIRED_PATHS[0]}"
+        expected_missing = "missing_required_path:Documentation/zigux/phase11-gpio-wdt-validation-matrix.md"
         if expected_missing not in issues:
             raise SystemExit(
                 "phase11-validate-self-test:missing_required_path_not_detected:"
@@ -175,8 +187,19 @@ def run_self_test() -> int:
                 + ",".join(issues or ["none"])
             )
 
+        build_sample_repo(root)
+        failing_dw_script = root / "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py"
+        build_stub_script(failing_dw_script, exit_code=1)
+        issues = collect_issues(root)
+        expected_dw_failure = "live_failed:phase11-dw-wdt-verify-alignment:exit=1"
+        if expected_dw_failure not in issues:
+            raise SystemExit(
+                "phase11-validate-self-test:dw_subcommand_failure_not_detected:"
+                + ",".join(issues or ["none"])
+            )
+
     print("PHASE11_VALIDATE_SELF_TEST=pass")
-    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=3")
+    print("PHASE11_VALIDATE_SELF_TEST_CASE_COUNT=4")
     return 0
 
 
