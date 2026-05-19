@@ -30,6 +30,7 @@
     "planManagedDmamAllocCoherent",
     "planManagedReleaseRecordLifetime",
     "planManagedDmamFreeCoherent",
+    "provides_dmam_free_coherent_planning",
     "planReleaseCall",
     "detach-time cleanup ownership on success",
     "failed allocation frees the release record",
