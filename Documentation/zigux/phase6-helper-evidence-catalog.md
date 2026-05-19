@@ -42,7 +42,7 @@ Treat the remaining paths above as last-known Phase 6 packet members that requir
 
 The docs-root README still lacks a dedicated Phase 6 helper-evidence stanza on surveyed head `9ca34d1`, so keep `Documentation/zigux/README.md` in follow-through vocabulary rather than the current direct-readback packet until a later shared-note lane restores that docs-root reminder explicitly.
 
-The broader shared perf survey is publicly readable again but still sits outside the direct authenticated shared packet in this runtime, so the remaining shared perf-note risk stays note-local rather than helper-local: the directly readable helper-evidence packet already materializes `zigux/Makefile` with the current `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-bsearch-perf`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-perf-matrix-test`, `phase6-hexdump-test`, and `phase6-hexdump-perf` wrapper targets, it keeps the narrower helper-parity companion `zigux/tests/phase6_helper_parity_manifest.json`, and it keeps the bounded measurement posture reconstructible from the directly readable helper-local replays plus wrapper routes above without presenting `Documentation/zigux/phase6-perf-gate-survey.md` as returned authenticated current-head evidence.
+The broader shared perf survey is publicly readable again but still sits outside the direct authenticated shared packet in this runtime, so the remaining shared perf-note risk stays note-local rather than helper-local: the directly readable helper-evidence packet already materializes `zigux/Makefile` with the current `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-bsearch-perf`, `phase6-checksum-test`, `phase6-checksum-perf-matrix-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-perf-matrix-test`, `phase6-hexdump-test`, and `phase6-hexdump-perf` wrapper targets, it keeps the narrower helper-parity companion `zigux/tests/phase6_helper_parity_manifest.json`, and it keeps the bounded measurement posture reconstructible from the directly readable helper-local replays plus wrapper routes above without presenting `Documentation/zigux/phase6-perf-gate-survey.md` as returned authenticated current-head evidence.
 
 ## Current helper-evidence rows
 
@@ -99,7 +99,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 
 - `base64` keeps a dedicated helper-local slowdown replay in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` still centralizes six fixture-owned encode and decode cases across standard, URL-safe, and IMAP variants.
 - `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`, and `zigux/tests/fixtures/phase6_bsearch_vectors.zig` still centralizes the representative `len15`, `len64`, and `len1024` perf cases together with deterministic seeded hit and miss queries that keep average and worst-case comparator work inside the current binary-search budget.
-- `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed `64B` and `1501B` threshold matrix still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`.
+- `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed `64B` and `1501B` threshold matrix still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`, and the shared replay packet now exposes that matrix preflight through `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig` and `make -C zigux phase6-checksum-perf-matrix-test`.
 - `hexdump` keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`, with the current fixture matrix in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still covering four formatting cases from `16B-plain-g1` through `16B-ascii-g8`.
 - the remaining roadmap-aligned measurement gap has narrowed to exact authenticated readback for the broader shared notes rather than helper-local replay coverage: `Documentation/zigux/phase6-perf-gate-survey.md` is publicly readable again for fallback inspection, while exact authenticated blob-pin refresh for that broader perf note remains pending.
 
@@ -115,6 +115,8 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `make -C zigux phase6-bsearch-perf`
 - `zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-test`
+- `zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig`
+- `make -C zigux phase6-checksum-perf-matrix-test`
 - `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`
 - `make -C zigux phase6-checksum-perf`
 - `python3 scripts/zigux/check-phase6-hexdump-packet.py`
