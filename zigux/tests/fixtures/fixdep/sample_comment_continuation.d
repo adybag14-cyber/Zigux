@@ -8,4 +8,5 @@ sample_comment_continuation.o: zigux/tests/fixtures/fixdep/sample_comment_contin
  zigux/tests/fixtures/fixdep/shared\:config.h \
  include/generated/autoconf.h \
  zigux/tests/fixtures/fixdep/sample2.so \
+ zigux/tests/fixtures/fixdep/sample.rlib \
  zigux/tests/fixtures/fixdep/sample_comment_continuation_dep.so
