@@ -165,6 +165,18 @@ pub fn fetchOr(
     return @atomicRmw(T, ptr, .Or, operand, order);
 }
 
+pub fn fetchAnd(
+    comptime T: type,
+    ptr: *T,
+    operand: T,
+    comptime order: Ordering,
+) RmwError!T {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
+    }
+    return @atomicRmw(T, ptr, .And, operand, order);
+}
+
 test "phase3 atomic helper keeps compare-exchange ordering rules explicit" {
     try std.testing.expect(compareExchangeFailureOrderAllowed(.monotonic, .monotonic));
     try std.testing.expect(compareExchangeFailureOrderAllowed(.release, .monotonic));
@@ -321,4 +333,17 @@ test "phase3 atomic helper keeps fetch-or bit publication explicit" {
 
     try std.testing.expectError(error.InvalidRmwOrdering, fetchOr(u16, &value, 0x0001, .unordered));
     try std.testing.expectEqual(@as(u16, 0x811C), value);
+}
+
+test "phase3 atomic helper keeps fetch-and bit clearing explicit" {
+    var value: u16 = 0xFF3C;
+
+    try std.testing.expectEqual(@as(u16, 0xFF3C), try fetchAnd(u16, &value, 0x0F3F, .acquire));
+    try std.testing.expectEqual(@as(u16, 0x0F3C), value);
+
+    try std.testing.expectEqual(@as(u16, 0x0F3C), try fetchAnd(u16, &value, 0x00FF, .seq_cst));
+    try std.testing.expectEqual(@as(u16, 0x003C), value);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, fetchAnd(u16, &value, 0x000F, .unordered));
+    try std.testing.expectEqual(@as(u16, 0x003C), value);
 }
