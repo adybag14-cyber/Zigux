@@ -140,6 +140,10 @@ MARKERS = {
 
 FORBIDDEN_FRAGMENTS = (
     "`scripts/zigux/check-phase1-parity.py`, `scripts/zigux/check-phase1-bench.py`",
+    "python3 scripts/zigux/check-phase1-parity.py --self-test",
+    "python3 scripts/zigux/check-phase1-parity.py",
+    "python3 scripts/zigux/validate-phase1.py --self-test",
+    "python3 scripts/zigux/validate-phase1.py",
 )
 
 
@@ -261,14 +265,17 @@ def run_self_test() -> int:
         for marker in markers:
             cases.append(make_marker_case(relative_path, marker, "remove"))
             cases.append(make_marker_case(relative_path, marker, "duplicate"))
-    cases.append(
+    cases.extend(
         (
-            "forbidden_fragment",
-            lambda root: write_text(
-                root,
-                "Documentation/zigux/README.md",
-                read_text(root, "Documentation/zigux/README.md") + FORBIDDEN_FRAGMENTS[0] + "\n",
-            ),
+            (
+                f"forbidden_fragment_{index}",
+                lambda root, fragment=fragment: write_text(
+                    root,
+                    "Documentation/zigux/README.md",
+                    read_text(root, "Documentation/zigux/README.md") + fragment + "\n",
+                ),
+            )
+            for index, fragment in enumerate(FORBIDDEN_FRAGMENTS, start=1)
         )
     )
 
