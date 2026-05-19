@@ -18,6 +18,8 @@ That means the dedicated survey has to keep directly readable helper evidence, p
 ## Current helper-plus-build packet
 Exact authenticated contents readback on 2026-05-19 still keeps `Documentation/zigux/phase8-libbpf-segment-survey.md`, `tools/lib/bpf/zigux_segments/verify.zig`, `tools/lib/bpf/zigux_segments/cpu_mask.zig`, `tools/lib/bpf/zigux_segments/logging.zig`, `tools/lib/bpf/zigux_segments/pin_path.zig`, `tools/lib/bpf/zigux_segments/type_names.zig`, `tools/lib/bpf/zigux_segments/perf_buffer_poll.zig`, and `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` directly readable.
 
+The directly readable stable-output helper set therefore remains the verifier plus `cpu_mask.zig`, `logging.zig`, `pin_path.zig`, `type_names.zig`, `perf_buffer_poll.zig`, and `online_cpu_routing.zig`. Shared reminder surfaces may still name the bridge helper and focused build shards, but this survey should keep those bridge-facing paths separate from the exact authenticated helper set until the same readback mode serves them directly again.
+
 `Documentation/zigux/README.md` now names the live `Documentation/zigux/phase8-file-path-handle-bridge-slice.md` note in the broad Phase 8 docs summary, public Phase 8 readback still serves `Documentation/zigux/phase8-bpf-type-names-slice.md`, and `scripts/zigux/README.md` keeps the broader Phase 8 libbpf helper packet visible through the shared sequencing, bridge-boundary, bridge-slice, checker, and build-surface reminders.
 
 `zigux/tests/phase8_build.zig` still wires the current libbpf helper-first shard packet.
@@ -35,9 +37,9 @@ Authenticated contents reads from this environment still flap for `tools/lib/bpf
 ## Current bounded gap
 The current helper-plus-build survey packet is now truthful about the directly readable stable-output helper set, the helper-local routing evidence, the timing-adjacent poll note, and the landed bridge-plus-build reminder packet.
 
-The remaining repo-reality gap in this note is still authenticated exact-read flakiness around `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and some focused build companions, not a missing stable-output verifier sentence inside the already-readable helper packet.
+The remaining repo-reality gap in this note is still authenticated exact-read flakiness around `tools/lib/bpf/zigux_segments/manifest.json`, `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`, and some focused build companions. The already-readable helper packet is now stable-output backed through `tools/lib/bpf/zigux_segments/verify.zig`, so this survey should describe the bridge-facing paths as shared reminder or public-tree-backed evidence rather than as part of the direct authenticated helper set.
 
-Current repo-facing reminder surfaces already keep the bridge helper, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.
+Current repo-facing reminder surfaces already keep the bridge helper vocabulary, the focused bridge build shard, the focused libbpf-segment shard, and the shared Phase 8 build replay explicit on `master`, while that same checker packet already keeps the landed `tools/lib/bpf/zigux_segments/online_cpu_routing.zig` helper-local evidence explicit.
 
 The timing-adjacent poll boundary is already explicit through `Documentation/zigux/phase8-perf-buffer-poll-slice.md`, `Documentation/zigux/phase8-userspace-kernel-bridge-boundary-survey.md`, `scripts/zigux/check-phase8-perf-buffer-poll-gate.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, and `make -C zigux phase8-perf-buffer-poll-test`; those reminder surfaces keep the packet honest about no standalone timer or clockevent helper behavior and about no broader timeout-sensitive routing behavior.
 
