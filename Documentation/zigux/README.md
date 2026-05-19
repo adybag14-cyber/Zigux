@@ -65,6 +65,21 @@ keep the bounded Phase 2 docs-root packet explicit through the returned closure-
   * the current docs-root Phase 2 reminder packet should stay parked on `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, and `zigux/Makefile`, with `zigux/tests/README.md`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/phase2_cross_targets.json`, and the current kconfig bridge manifests keeping the same packet aligned across docs-root, scripts-root, and tests-root surfaces.
   * `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master` again, so keep the installer and direct cross-route packet explicit beside the shipped toolchain, kconfig, and make-wrapper surfaces instead of leaving them in historical-gap wording.
   * `python3 scripts/zigux/validate-phase2.py`, `python3 scripts/zigux/validate-phase2-closure.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2` replay the bounded current Phase 2 closure-side and make-wrapper packet without widening it back into older missing-route assumptions.
+Phase 5 notes
+- `Documentation/zigux/phase5-sample-review-guide.md`
+- `Documentation/zigux/phase5-sample-lane-sequencing.md`
+- `Documentation/zigux/phase5-kfifo-sample-survey.md`
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+- `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
+- `Documentation/zigux/review-checklist.md`
+- `samples/zigux/README.md`
+- `scripts/zigux/check-phase5-review-guide-surface.py`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+keep the current four-anchor non-runtime sample packet explicit from the docs root instead of letting the shared contributor reminder drift away from the live sample-root, scripts-root, guide, sequencing, checklist, and tests-root packet.
+  * current `master` still directly exposes the restored bytestream packet through `samples/zigux/bytestream_fifo.zig` and the restored kretprobe packet through `samples/zigux/kretprobe_example.zig`, while `samples/zigux/trace_events_string_formatting_sample.zig` stays only the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
+  * keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.
+  * keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof, and keep the `kobject` anchor in roadmap-backed shared-reminder or repo-reality-gap wording until a fresh reread restores its older sample-root and tests-root packet as direct authenticated proof.
 Phase 9 notes
 - Phase 9 notes - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `Documentation/zigux/review-checklist.md`
