@@ -7,6 +7,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 GUIDE_PATH = Path("Documentation/zigux/phase5-sample-review-guide.md")
+DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 
 DIRECT_PACKET_PATHS = (
     "Documentation/zigux/phase5-kfifo-sample-survey.md",
@@ -60,6 +61,13 @@ REQUIRED_TEXT = (
     "Respect the freeze map too.",
 )
 
+DOCS_ROOT_REQUIRED_TEXT = (
+    "keep the current four-anchor non-runtime sample packet explicit from the docs root instead of letting the shared contributor reminder drift away from the live sample-root, scripts-root, guide, sequencing, checklist, and tests-root packet.",
+    "while `samples/zigux/trace_events_string_formatting_sample.zig` stays only the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.",
+    "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.",
+    "keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof, and keep the `kobject` anchor in roadmap-backed shared-reminder or repo-reality-gap wording until a fresh reread restores its older sample-root and tests-root packet as direct authenticated proof.",
+)
+
 BYTESTREAM_CONTRACT_MARKERS = (
     "`bounded_fifo_order`",
     "`wraparound_requeue`",
@@ -106,11 +114,16 @@ def _write(path: Path, text: str) -> None:
 
 def collect_failures(root: Path) -> list[str]:
     guide = _read(root / GUIDE_PATH)
+    docs_root = _read(root / DOCS_ROOT_PATH)
     failures: list[str] = []
 
     for marker in REQUIRED_TEXT:
         if marker not in guide:
             failures.append(f"guide:missing_text:{marker}")
+
+    for marker in DOCS_ROOT_REQUIRED_TEXT:
+        if marker not in docs_root:
+            failures.append(f"docs_root:missing_text:{marker}")
 
     for marker in BYTESTREAM_CONTRACT_MARKERS:
         if marker not in guide:
@@ -226,8 +239,30 @@ Respect the freeze map too.
 """
 
 
+def _sample_docs_root() -> str:
+    return """# Zigux Documentation
+Phase 5 notes
+- `Documentation/zigux/phase5-sample-review-guide.md`
+- `Documentation/zigux/phase5-sample-lane-sequencing.md`
+- `Documentation/zigux/phase5-kfifo-sample-survey.md`
+- `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+- `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
+- `Documentation/zigux/review-checklist.md`
+- `samples/zigux/README.md`
+- `scripts/zigux/check-phase5-review-guide-surface.py`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+keep the current four-anchor non-runtime sample packet explicit from the docs root instead of letting the shared contributor reminder drift away from the live sample-root, scripts-root, guide, sequencing, checklist, and tests-root packet.
+  * current `master` still directly exposes the restored bytestream packet through `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`, and it still directly exposes the restored kretprobe packet through `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`, while `samples/zigux/trace_events_string_formatting_sample.zig` stays only the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
+  * keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.
+  * keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.
+  * keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof, and keep the `kobject` anchor in roadmap-backed shared-reminder or repo-reality-gap wording until a fresh reread restores its older sample-root and tests-root packet as direct authenticated proof.
+"""
+
+
 def _seed(root: Path) -> None:
     _write(root / GUIDE_PATH, _sample_guide())
+    _write(root / DOCS_ROOT_PATH, _sample_docs_root())
     for rel in DIRECT_PACKET_PATHS:
         _write(root / rel, "present\n")
     for rel in PUBLIC_TREE_PACKET_PATHS:
@@ -236,7 +271,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 8
+    expected_case_count = 10
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -314,6 +349,18 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected forbidden-text failure: {failures}")
         checks_run += 1
 
+        missing_docs_root_marker_root = root / "missing_docs_root_marker"
+        _seed(missing_docs_root_marker_root)
+        _write(
+            missing_docs_root_marker_root / DOCS_ROOT_PATH,
+            _sample_docs_root().replace(DOCS_ROOT_REQUIRED_TEXT[2], "", 1),
+        )
+        failures = collect_failures(missing_docs_root_marker_root)
+        expected = [f"docs_root:missing_text:{DOCS_ROOT_REQUIRED_TEXT[2]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-docs-root-marker failure: {failures}")
+        checks_run += 1
+
         missing_guide_root = root / "missing_guide"
         _seed(missing_guide_root)
         (missing_guide_root / GUIDE_PATH).unlink()
@@ -324,6 +371,30 @@ def run_self_test() -> int:
                 raise AssertionError(f"unexpected missing-guide abort: {exc}") from exc
         else:
             raise AssertionError("missing guide did not abort")
+        checks_run += 1
+
+        missing_docs_root_file = root / "missing_docs_root_file"
+        _seed(missing_docs_root_file)
+        (missing_docs_root_file / DOCS_ROOT_PATH).unlink()
+        try:
+            collect_failures(missing_docs_root_file)
+        except SystemExit as exc:
+            if "required file missing" not in str(exc):
+                raise AssertionError(f"unexpected missing-docs-root abort: {exc}") from exc
+        else:
+            raise AssertionError("missing docs root did not abort")
+        checks_run += 1
+
+        missing_docs_root_boundary_root = root / "missing_docs_root_boundary"
+        _seed(missing_docs_root_boundary_root)
+        _write(
+            missing_docs_root_boundary_root / DOCS_ROOT_PATH,
+            _sample_docs_root().replace(DOCS_ROOT_REQUIRED_TEXT[3], "", 1),
+        )
+        failures = collect_failures(missing_docs_root_boundary_root)
+        expected = [f"docs_root:missing_text:{DOCS_ROOT_REQUIRED_TEXT[3]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-docs-root-boundary failure: {failures}")
         checks_run += 1
 
     if checks_run != expected_case_count:
@@ -351,6 +422,7 @@ def main() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DIRECT_PACKET_COUNT={len(DIRECT_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_PACKET_COUNT={len(PUBLIC_TREE_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_BYTESTREAM_CONTRACT_COUNT={len(BYTESTREAM_CONTRACT_MARKERS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_DOCS_ROOT_REQUIRED_TEXT_COUNT={len(DOCS_ROOT_REQUIRED_TEXT)}")
     return 0
 
 
