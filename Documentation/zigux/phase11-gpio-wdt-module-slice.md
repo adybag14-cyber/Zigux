@@ -7,6 +7,7 @@ The `gpio_wdt_lab` starter remains intentionally review-first while still exposi
 - `platformDriverIdentitySummary()` keeps the Linux anchor and bounded starter identity explicit.
 - `watchdogMetadataSummary()` keeps the watchdog metadata packet visible before later live registration work.
 - `descriptorRequestSummary()` keeps the `devm_gpiod_get()` flag choice reviewable without claiming live descriptor acquisition.
+- `timeoutPropertyCheckpointSummary()` keeps the timeout-property ordering reviewable before later live execution claims.
 - `platformDrvdataCheckpointSummary()` keeps the early `platform_set_drvdata()` ordering explicit before later GPIO and watchdog bookkeeping.
 - `nowayoutPolicySummary()` keeps the watchdog-core stop-policy split explicit before later reboot or teardown follow-through.
 - `probeSummary()` keeps the probe-time bookkeeping visible without claiming live platform registration.
@@ -15,7 +16,7 @@ The `gpio_wdt_lab` starter remains intentionally review-first while still exposi
 - `registerDeviceCallSummary()` keeps the first bounded `devm_watchdog_register_device()` request surface visible without claiming live watchdog-core registration.
 - `registerDeviceFailureSummary()` keeps the bounded register-device failure cues explicit without promoting them into live watchdog-core behavior.
 - `summarizeTeardown()` keeps the host-free teardown summary visible without claiming reboot-backed shutdown execution.
-The same review packet also keeps teardown and failure-mode parity explicit in bounded form while leaving the timeout-property checkpoint, the `watchdog_set_drvdata()` checkpoint, the reboot-glue checkpoint, live GPIO, remove-hook, reboot-backed teardown execution, and hardware-backed validation work blocked for later same-family follow-through.
+The same review packet also keeps teardown and failure-mode parity explicit in bounded form while leaving the `watchdog_set_drvdata()` checkpoint, the reboot-glue checkpoint, live GPIO, remove-hook, reboot-backed teardown execution, and hardware-backed validation work blocked for later same-family follow-through.
 ## Boundaries
 
 This module slice does not claim live GPIO descriptor acquisition, a code-backed `watchdog_set_drvdata()` checkpoint, live `watchdog_set_drvdata()` execution, live `devm_watchdog_register_device()` execution, a code-backed reboot-glue checkpoint around `watchdog_stop_on_reboot()`, platform-driver registration, live reboot-hook registration, or hardware-backed validation yet.
