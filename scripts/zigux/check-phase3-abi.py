@@ -233,9 +233,8 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
-        '"zigux/tests/phase3_abi_dump.zig"',
-        '"zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c"',
-        '"zigux/tests/fixtures/phase3_abi/expected.json"',
+        '"scripts/zigux/check-phase3-catalog-selftest.py"',
+        '"Documentation/zigux/phase3-linux-zigux-header-governance.md"',
         '"next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work"',
     ),
 }
@@ -290,9 +289,8 @@ REQUIRED_REPLAY_ROUTES = (
 )
 
 REQUIRED_REPO_REALITY_GAPS = (
-    "zigux/tests/phase3_abi_dump.zig",
-    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
-    "zigux/tests/fixtures/phase3_abi/expected.json",
+    "scripts/zigux/check-phase3-catalog-selftest.py",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
 )
 
 SAMPLE_MANIFEST = {
