@@ -161,9 +161,9 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "the directly readable `zigux/Makefile` blob",
-        "`scripts/zigux/check-phase12-release-readiness-packet.py` at blob `eef5c17189b4172566c8463ecaac07279632d94f`",
-        "`.github/workflows/zigux-bootstrap.yml` at blob `76019df486d2582d3197a15cd00e7a050edcc766`",
-        "`scripts/zigux/README.md` at blob `35a83a31fde3435fc3b9c6563e70982d8f760cc2`",
+        "`scripts/zigux/check-phase12-release-readiness-packet.py` at blob `6dc8df18c5fb7de4887b6a4d8a3bc6fd46647e76`",
+        "`.github/workflows/zigux-bootstrap.yml` at blob `b6eb42a392a27fe1c0bbbf1a39c35104882b4796`",
+        "`scripts/zigux/README.md` at blob `e736c3f0446e7e90ee6edadd881672090167f09b`",
         "`zigux/Makefile` at blob `93aebf412639ccc1122a74b87201f57f6e7bfc99`",
         "now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` again while still omitting `phase12-validate`",
         "keep the same reminder-only validator route plus shipped wrapper reruns explicit as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
