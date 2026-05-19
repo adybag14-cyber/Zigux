@@ -21,13 +21,13 @@
     "zigux/tests/phase15_architecture_council_review_process_build.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-shared-summary-gap.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py"
   ],
   "still_missing_paths": [
-    "zigux/tests/phase15_handoff_next_steps.zig",
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
@@ -36,9 +36,8 @@
     "PHASE15_STATUS=handoff_next_steps_survey_landed",
     "PHASE15_LANE_KEY=P15-L08",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
-    "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` is directly materialized on current `master`",
-    "no dedicated handoff-specific Zig replay is directly materialized on current `master`",
-    "treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` as the handoff-specific source of truth until that replay lands",
+    "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
+    "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.",
     "an Architecture Council approval workflow implementation",
     "a direct port-readiness decision for any Phase 15 anchor"
   ],
