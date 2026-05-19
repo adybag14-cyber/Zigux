@@ -26,6 +26,7 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
     "zigux/tests/phase15_handoff_next_steps.zig",
+    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
@@ -34,7 +35,6 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
 STILL_MISSING_VALIDATOR_FIRST_PATHS = (
     "scripts/zigux/validate-phase15.py",
     "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
 )
 
 REQUIRED_NOTE_MARKERS = (
@@ -54,7 +54,7 @@ REQUIRED_NOTE_MARKERS = (
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
     "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
     "`zigux/tests/phase15_readiness_gate_manifest.json`",
-    "broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
+    "broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes",
 )
 
 STALE_TEXT_MARKERS = (
