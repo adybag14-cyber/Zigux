@@ -372,6 +372,12 @@ jobs:
       - name: Check current Phase 7 shared-control gap packet
         run: python3 scripts/zigux/check-phase7-shared-control-gap.py
 
+      - name: Self-test current Phase 7 make-wrapper selftest alignment checker
+        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test
+
+      - name: Check current Phase 7 make-wrapper selftest alignment packet
+        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py
+
       - name: Self-test current Phase 10 bootstrap route checker
         run: python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test
 
