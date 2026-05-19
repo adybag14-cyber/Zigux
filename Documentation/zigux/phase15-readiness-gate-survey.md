@@ -8,7 +8,7 @@ This note records the current bounded readiness posture for the landed Phase 15 
 - `PHASE15_LANE_KEY=arch-council`
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
 - role: keep the Architecture Council governance packet honest about what is ready for reminder-surface maintenance and what still remains blocked because the broader validator, dedicated handoff replay, build, and lane-owner companions are missing on current `master`
 
 ## Why this note exists
