@@ -13,6 +13,7 @@ const RepoEvidence = struct {
     phase15_makefile_present: bool,
     phase15_validate_target_present: bool,
     phase15_test_target_present: bool,
+    phase15_aggregate_target_present: bool,
     shared_ci_phase15_present: bool,
     phase15_replay_green_on_current_master: bool,
 };
@@ -91,6 +92,7 @@ test "phase 15 readiness manifest preserves the maintenance-only packet truth" {
     try std.testing.expect(manifest.repo_evidence.phase15_makefile_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_validate_target_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_test_target_present);
+    try std.testing.expect(!manifest.repo_evidence.phase15_aggregate_target_present);
     try std.testing.expect(!manifest.repo_evidence.shared_ci_phase15_present);
     try std.testing.expect(!manifest.repo_evidence.phase15_replay_green_on_current_master);
     try std.testing.expectEqual(@as(usize, 5), manifest.phase15_validate_checkers.len);
