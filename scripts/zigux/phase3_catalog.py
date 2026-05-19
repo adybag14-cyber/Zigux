@@ -13,7 +13,10 @@ PHASE3_CATALOG_SCOPE = "abi-runtime"
 
 DOC_PATHS = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
+    Path("Documentation/zigux/phase3-errptr-xarray-slice.md"),
     Path("Documentation/zigux/phase3-policy-slice.md"),
+    Path("Documentation/zigux/phase3-validator-support-surface.md"),
+    Path("Documentation/zigux/phase3-boundary-lane-sequencing.md"),
     Path("Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md"),
 )
 
@@ -47,8 +50,17 @@ HELPER_PATHS = (
 )
 
 VALIDATOR_PATHS = (
+    Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
+    Path("scripts/zigux/check-phase3-selftest-surface.py"),
+    Path("scripts/zigux/check-phase3-shared-tests-routes.py"),
+    Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
+    Path("scripts/zigux/validate_phase3_selftest.py"),
+    Path("scripts/zigux/run-phase3-checks.py"),
     Path("scripts/zigux/validate-phase3.py"),
     Path("scripts/zigux/check-phase3-abi.py"),
+    Path("scripts/zigux/phase3_catalog.py"),
+    Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
+    Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
 )
@@ -56,21 +68,28 @@ VALIDATOR_PATHS = (
 TEST_PATHS = (
     Path("zigux/tests/build.zig"),
     Path("zigux/tests/phase3_dev_t_starter_packet.zig"),
+    Path("zigux/tests/phase3_dev_t_starter_packet_build.zig"),
     Path("zigux/tests/phase3_errptr_xarray_starter_packet.zig"),
+    Path("zigux/tests/phase3_errptr_xarray_starter_packet_build.zig"),
     Path("zigux/tests/phase3_xarray_slot_starter_packet.zig"),
     Path("zigux/tests/phase3_policy_starter_packet.zig"),
+    Path("zigux/tests/phase3_policy_starter_packet_build.zig"),
     Path("zigux/tests/phase3_low_level_wrappers.zig"),
+    Path("zigux/tests/phase3_low_level_wrappers_build.zig"),
     Path("zigux/tests/phase3_export_uapi_layout.zig"),
+    Path("zigux/tests/phase3_export_uapi_layout_build.zig"),
     Path("zigux/tests/phase3_abi_dump_current.zig"),
 )
 
 COMMANDS = (
+    "python3 scripts/zigux/check-phase3-readme-tooling-inventory.py --self-test",
+    "python3 scripts/zigux/check-phase3-selftest-surface.py --self-test",
+    "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
+    "python3 scripts/zigux/validate_phase3_selftest.py",
     "python3 scripts/zigux/validate-phase3.py",
-    "python3 scripts/zigux/check-phase3-abi.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
-    "zig build phase3-test --build-file zigux/tests/build.zig",
-    "zig build phase3-dump --build-file zigux/tests/build.zig",
-    "zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig",
+    "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
+    "zig build phase3-low-level-wrappers --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
