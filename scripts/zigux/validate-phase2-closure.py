@@ -114,7 +114,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 87
+EXPECTED_SELF_TEST_CASE_COUNT = 89
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -130,6 +130,8 @@ def read_text(root: Path, path: Path) -> str:
         return resolved.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {resolved}") from exc
+    except OSError as exc:
+        raise SystemExit(f"required file unreadable: {resolved}") from exc
 
 
 def read_manifest(root: Path) -> dict[str, object]:
@@ -138,6 +140,8 @@ def read_manifest(root: Path) -> dict[str, object]:
         raw = resolved.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {resolved}") from exc
+    except OSError as exc:
+        raise SystemExit(f"manifest is unreadable: {resolved}") from exc
     try:
         payload = json.loads(raw)
     except json.JSONDecodeError as exc:
@@ -736,8 +740,22 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
+        resolve_path(root, CLOSURE_DOC).unlink()
+        resolve_path(root, CLOSURE_DOC).mkdir(parents=True)
+        assert_system_exit_contains(lambda: collect_issues(root), "required file unreadable:")
+        resolve_path(root, CLOSURE_DOC).rmdir()
+        checks_run += 1
+
+        build_self_test_root(root)
         resolve_path(root, MANIFEST).unlink()
         assert_system_exit_contains(lambda: collect_issues(root), "required file missing:")
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, MANIFEST).unlink()
+        resolve_path(root, MANIFEST).mkdir(parents=True)
+        assert_system_exit_contains(lambda: collect_issues(root), "manifest is unreadable:")
+        resolve_path(root, MANIFEST).rmdir()
         checks_run += 1
 
         build_self_test_root(root)
