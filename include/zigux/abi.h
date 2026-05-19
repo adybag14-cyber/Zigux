@@ -270,6 +270,23 @@ static inline struct zigux_interop_policy zigux_default_interop_policy(void)
     return policy;
 }
 
+static inline struct zigux_export_status zigux_make_status(
+    int32_t code,
+    uint16_t facility)
+{
+    struct zigux_export_status status = {
+        .code = code,
+        .facility = facility,
+        .flags = (uint16_t)(code < 0 ? ZIGUX_STATUS_FLAG_ERROR : 0U),
+    };
+    return status;
+}
+
+static inline struct zigux_export_status zigux_ok_status(uint16_t facility)
+{
+    return zigux_make_status(0, facility);
+}
+
 static inline int zigux_export_status_ok(struct zigux_export_status status)
 {
     return (status.flags & (uint16_t)ZIGUX_STATUS_FLAG_ERROR) == 0;
