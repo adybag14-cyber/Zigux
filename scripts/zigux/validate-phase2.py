@@ -19,14 +19,16 @@ FIXDEP = ROOT / "scripts" / "zigux" / "fixdep.zig"
 CONF_BRIDGE = ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig"
 PHASE2_CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
-CHECKERS = (
-    ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-kconfig-readme-alignment.py",
-    ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest-packets.py",
+EXPECTED_CHECKER_RELATIVE_PATHS = (
+    "scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "scripts/zigux/check-phase2-cross.py",
+    "scripts/zigux/check-phase2-cross-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
+    "scripts/zigux/check-phase2-kconfig-readme-alignment.py",
+    "scripts/zigux/check-phase2-tool-manifest-packets.py",
 )
+
+CHECKERS = tuple(ROOT / rel_path for rel_path in EXPECTED_CHECKER_RELATIVE_PATHS)
 
 EXPECTED_PRESENT_FILE_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
@@ -75,7 +77,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 32
+EXPECTED_SELF_TEST_CASE_COUNT = 34
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -112,12 +114,36 @@ def collect_marker_count_issues(
     return []
 
 
+def collect_duplicate_checker_issues() -> list[tuple[str, str]]:
+    counts: dict[str, int] = {}
+    for rel_path in EXPECTED_CHECKER_RELATIVE_PATHS:
+        counts[rel_path] = 0
+    for checker in CHECKERS:
+        rel_path = checker.relative_to(ROOT).as_posix()
+        counts[rel_path] = counts.get(rel_path, 0) + 1
+
+    issues: list[tuple[str, str]] = []
+    for rel_path in EXPECTED_CHECKER_RELATIVE_PATHS:
+        count = counts.get(rel_path, 0)
+        if count == 0:
+            issues.append(("MISSING_CHECKER_ENTRY", rel_path))
+        elif count != 1:
+            issues.append(("DUPLICATE_CHECKER_ENTRY", f"{rel_path}:count={count}"))
+
+    for rel_path, count in sorted(counts.items()):
+        if rel_path not in EXPECTED_CHECKER_RELATIVE_PATHS:
+            issues.append(("UNEXPECTED_CHECKER_ENTRY", f"{rel_path}:count={count}"))
+    return issues
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     scripts_readme_text = read_text(root, SCRIPTS_README)
     tests_readme_text = read_text(root, TESTS_README)
     review_checklist_text = read_text(root, REVIEW_CHECKLIST)
     makefile_text = read_text(root, MAKEFILE)
+
+    issues.extend(collect_duplicate_checker_issues())
 
     for marker in EXPECTED_MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -245,6 +271,28 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
+
+        original_checkers = globals()["CHECKERS"]
+        try:
+            globals()["CHECKERS"] = original_checkers[:-1] + (original_checkers[0],)
+            issues = collect_issues(root)
+            assert (
+                "MISSING_CHECKER_ENTRY",
+                EXPECTED_CHECKER_RELATIVE_PATHS[-1],
+            ) in issues
+            assert (
+                "DUPLICATE_CHECKER_ENTRY",
+                f"{EXPECTED_CHECKER_RELATIVE_PATHS[0]}:count=2",
+            ) in issues
+            checks_run += 1
+
+            globals()["CHECKERS"] = original_checkers + (ROOT / "scripts/zigux/unexpected.py",)
+            issues = collect_issues(root)
+            assert ("UNEXPECTED_CHECKER_ENTRY", "scripts/zigux/unexpected.py:count=1") in issues
+            assert ("MISSING_CHECKER", "scripts/zigux/unexpected.py") in issues
+            checks_run += 1
+        finally:
+            globals()["CHECKERS"] = original_checkers
 
         build_self_test_root(root)
         path = resolve_path(root, MAKEFILE)
