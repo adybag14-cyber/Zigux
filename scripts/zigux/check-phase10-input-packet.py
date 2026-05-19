@@ -155,6 +155,18 @@ REGISTRATION_HELPER_MARKERS = [
     "pub const RegistrationBlocker = virtio_input.RegistrationBlocker;",
     "pub fn summarize(device: *const virtio_input.VirtioInputLab) RegistrationPreflightSummary {",
     "pub fn blockerTag(blocker: RegistrationBlocker) []const u8 {",
+    "pub fn queuePlanReady(summary: RegistrationPreflightSummary) bool {",
+    "return summary.queue_plan_ready;",
+    "pub fn capabilitySetupReady(summary: RegistrationPreflightSummary) bool {",
+    "return summary.capability_setup_ready;",
+    "pub fn multitouchSlotsReady(summary: RegistrationPreflightSummary) bool {",
+    "return summary.multitouch_slots_ready;",
+    "pub fn waitingOnCapabilitySetup(summary: RegistrationPreflightSummary) bool {",
+    "return summary.blocker == .capability_setup_incomplete;",
+    "pub fn waitingOnMultitouchSlots(summary: RegistrationPreflightSummary) bool {",
+    "return summary.blocker == .multitouch_slots_unplanned;",
+    "pub fn readyForRegistration(summary: RegistrationPreflightSummary) bool {",
+    "return summary.ready_for_registration;",
 ]
 
 STATUS_DRAIN_HELPER_MARKERS = [
@@ -596,6 +608,12 @@ def run_self_test() -> int:
                 '"phase10-virtio-input-verify-drift"',
                 'phase10_build:"phase10-virtio-input-verify-tests"',
             ),
+            (
+                "drivers/virtio/virtio_input_registration_preflight.zig",
+                "pub fn readyForRegistration(summary: RegistrationPreflightSummary) bool {",
+                "pub fn readyForRegistrationDrift(summary: RegistrationPreflightSummary) bool {",
+                "registration_helper:pub fn readyForRegistration(summary: RegistrationPreflightSummary) bool {",
+            ),
         ]
         for rel_path, old, new, expected in text_cases:
             expect_missing_marker(root, rel_path, old, new, expected)
@@ -653,7 +671,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "zigux/tests/phase10_virtio_input_survey.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
