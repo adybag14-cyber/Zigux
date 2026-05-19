@@ -71,8 +71,40 @@ fn validatePerfMatrix() !void {
     if (!saw_64b or !saw_1501b) return error.ChecksumPerfMatrixMismatch;
 }
 
+fn validateFastPathMatrix() !void {
+    const expected = [_]struct {
+        label: []const u8,
+        len: usize,
+        iterations: usize,
+        max_slowdown_pct: u64,
+        fingerprint: u64,
+    }{
+        .{ .label = "IPV4_20B", .len = 20, .iterations = 600_000, .max_slowdown_pct = 100, .fingerprint = 0x0682_5249_d059_7d1a },
+        .{ .label = "IPV4_24B", .len = 24, .iterations = 500_000, .max_slowdown_pct = 100, .fingerprint = 0x5eb5_c436_a23c_5f85 },
+    };
+
+    if (fixtures.fast_path_cases.len != expected.len) return error.ChecksumPerfMatrixMismatch;
+
+    for (expected, 0..) |want, idx| {
+        const actual = fixtures.fast_path_cases[idx];
+        if (!std.mem.eql(u8, want.label, actual.label)) return error.ChecksumPerfMatrixMismatch;
+        if (want.len != actual.header.len) return error.ChecksumPerfMatrixMismatch;
+        if (want.iterations != actual.iterations) return error.ChecksumPerfMatrixMismatch;
+        if (want.max_slowdown_pct != actual.max_slowdown_pct) return error.ChecksumPerfMatrixMismatch;
+        if (want.fingerprint != perfPayloadFingerprint(actual.header)) return error.ChecksumPerfMatrixMismatch;
+        if (actual.header.len < 20 or (actual.header.len & 3) != 0) return error.ChecksumPerfMatrixMismatch;
+        if ((actual.header[0] >> 4) != 4) return error.ChecksumPerfMatrixMismatch;
+        if (@as(usize, (actual.header[0] & 0x0f) * 4) != actual.header.len) return error.ChecksumPerfMatrixMismatch;
+
+        for (fixtures.fast_path_cases[idx + 1 ..]) |other| {
+            if (std.mem.eql(u8, actual.label, other.label)) return error.ChecksumPerfMatrixMismatch;
+        }
+    }
+}
+
 test "phase 6 checksum perf matrix preflight stays aligned with the documented packet" {
     try validatePerfMatrix();
+    try validateFastPathMatrix();
 }
 
 fn referenceInternetChecksum(bytes: []const u8) u16 {
@@ -99,12 +131,25 @@ fn monotonicNs() !u64 {
     return (@as(u64, @intCast(timespec.sec)) * std.time.ns_per_s) + @as(u64, @intCast(timespec.nsec));
 }
 
-fn runHelperBench(bytes: []const u8, iterations: usize) !BenchResult {
+fn runComputeBench(bytes: []const u8, iterations: usize) !BenchResult {
     var checksum_accumulator: u64 = 0;
     const start_ns = try monotonicNs();
     var idx: usize = 0;
     while (idx < iterations) : (idx += 1) {
         checksum_accumulator +%= checksum.compute(bytes);
+    }
+    return .{
+        .elapsed_ns = (try monotonicNs()) - start_ns,
+        .checksum_accumulator = checksum_accumulator,
+    };
+}
+
+fn runIpFastCsumBench(header: []const u8, iterations: usize) !BenchResult {
+    var checksum_accumulator: u64 = 0;
+    const start_ns = try monotonicNs();
+    var idx: usize = 0;
+    while (idx < iterations) : (idx += 1) {
+        checksum_accumulator +%= checksum.ipFastCsum(header);
     }
     return .{
         .elapsed_ns = (try monotonicNs()) - start_ns,
@@ -138,6 +183,7 @@ fn medianNs(samples: []u64) u64 {
 
 pub fn main() !void {
     try validatePerfMatrix();
+    try validateFastPathMatrix();
     var failed = false;
 
     std.debug.print("PHASE6_CHECKSUM_PERF_CASE_COUNT={d}\n", .{fixtures.perf_cases.len});
@@ -154,7 +200,7 @@ pub fn main() !void {
         var helper_checksum_accumulator: u64 = 0;
 
         for (0..bench_sample_count) |sample_index| {
-            const helper_result = try runHelperBench(case.bytes, case.iterations);
+            const helper_result = try runComputeBench(case.bytes, case.iterations);
             const reference_result = try runReferenceBench(case.bytes, case.iterations);
 
             helper_elapsed_samples[sample_index] = helper_result.elapsed_ns;
@@ -183,6 +229,52 @@ pub fn main() !void {
             std.debug.print("PHASE6_CHECKSUM_PERF_{s}=fail\n", .{case.label});
         } else {
             std.debug.print("PHASE6_CHECKSUM_PERF_{s}=pass\n", .{case.label});
+        }
+    }
+
+    std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_CASE_COUNT={d}\n", .{fixtures.fast_path_cases.len});
+
+    for (fixtures.fast_path_cases) |case| {
+        const fast_path_expected = checksum.ipFastCsum(case.header);
+        const compute_expected = checksum.compute(case.header);
+        if (fast_path_expected != compute_expected) {
+            return error.ChecksumPerfBaselineMismatch;
+        }
+
+        var fast_path_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var compute_elapsed_samples: [bench_sample_count]u64 = undefined;
+        var fast_path_checksum_accumulator: u64 = 0;
+
+        for (0..bench_sample_count) |sample_index| {
+            const fast_path_result = try runIpFastCsumBench(case.header, case.iterations);
+            const compute_result = try runComputeBench(case.header, case.iterations);
+
+            fast_path_elapsed_samples[sample_index] = fast_path_result.elapsed_ns;
+            compute_elapsed_samples[sample_index] = compute_result.elapsed_ns;
+
+            if (fast_path_result.checksum_accumulator != compute_result.checksum_accumulator) {
+                return error.ChecksumPerfChecksumMismatch;
+            }
+
+            fast_path_checksum_accumulator = fast_path_result.checksum_accumulator;
+        }
+
+        const fast_path_median_ns = medianNs(fast_path_elapsed_samples[0..]);
+        const compute_median_ns = medianNs(compute_elapsed_samples[0..]);
+        const slowdown_pct = slowdownPct(fast_path_median_ns, compute_median_ns);
+
+        std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}_ITERATIONS={d}\n", .{ case.label, case.iterations });
+        std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}_HELPER_NS={d}\n", .{ case.label, fast_path_median_ns });
+        std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}_COMPUTE_NS={d}\n", .{ case.label, compute_median_ns });
+        std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}_SLOWDOWN_PCT={d}\n", .{ case.label, slowdown_pct });
+        std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}_THRESHOLD_PCT={d}\n", .{ case.label, case.max_slowdown_pct });
+        std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}_CHECKSUM={d}\n", .{ case.label, fast_path_checksum_accumulator });
+
+        if (slowdown_pct > case.max_slowdown_pct) {
+            failed = true;
+            std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}=fail\n", .{case.label});
+        } else {
+            std.debug.print("PHASE6_CHECKSUM_IP_FAST_CSUM_{s}=pass\n", .{case.label});
         }
     }
 
