@@ -30,7 +30,7 @@ Current `master` now offers direct current-head readback for the helper itself t
   * `scripts/zigux/check-phase4-artifact-diff-validator-replays.py` is also directly readable and still fails closed with an explicit missing-target error while `scripts/zigux/validate-phase4.py` remains absent, so the last-known validator replay markers stay reviewable without pretending that the historical validator packet has already returned on current `master`.
 ## Current Exact Helper Checks
 
-Current exact helper-side checks verified from the live `scripts/zigux/artifact_diff.py` body and replayed locally from that fetched source in this run are:
+Current exact helper-side checks verified from the live `scripts/zigux/artifact_diff.py` body in this run are:
   * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=20`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,bytes_pass,bytes_drift,text_missing_expected,text_missing_actual,text_missing_both,bytes_missing_expected,bytes_missing_actual,bytes_missing_both,legacy_sha256_alias,invalid_mode_rejected`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_MODES=text,json,bytes`
@@ -40,13 +40,13 @@ Current exact helper-side checks verified from the live `scripts/zigux/artifact_
   * `PHASE4_ARTIFACT_DIFF_CURRENT_BYTES_FAIL_DETAIL=EXPECTED_SHA256=<digest>,ACTUAL_SHA256=<digest>`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_ERROR_LINES=EXPECTED_JSON_ERROR_or_ACTUAL_JSON_ERROR_or_EXPECTED_EXISTS_AND_ACTUAL_EXISTS`
 
-The bounded current replay evidence for those exact checks was:
-  * `python3 scripts/zigux/artifact_diff.py --self-test` returns `ARTIFACT_DIFF_SELF_TEST=pass`, `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=20`, and the exact `ARTIFACT_DIFF_SELF_TEST_CASES=` catalog for the current helper packet
-  * `python3 scripts/zigux/artifact_diff.py --mode json <expected> <actual>` prints `ARTIFACT_DIFF=pass`, `MODE=json`, `EXPECTED=<path>`, and `ACTUAL=<path>` when canonical decoded JSON matches even if formatting differs
-  * `python3 scripts/zigux/artifact_diff.py --mode text <expected> <actual>` prints `ARTIFACT_DIFF=fail`, `MODE=text`, `EXPECTED=<path>`, and `ACTUAL=<path>` when UTF-8 text differs, with no extra mismatch detail lines beyond that status-and-path packet
-  * `python3 scripts/zigux/artifact_diff.py --mode bytes <expected> <actual>` prints `ARTIFACT_DIFF=fail`, `MODE=bytes`, `EXPECTED=<path>`, `ACTUAL=<path>`, `EXPECTED_SHA256=<digest>`, and `ACTUAL_SHA256=<digest>` when the digests differ
-  * `python3 scripts/zigux/artifact_diff.py --mode sha256 <expected> <actual>` keeps working as a legacy alias and still prints `MODE=bytes` after normalization before the same digest-detail lines
-  * `python3 scripts/zigux/artifact_diff.py --mode json <expected> <invalid-actual>` prints `ARTIFACT_DIFF=fail`, `MODE=json`, `EXPECTED=<path>`, `ACTUAL=<path>`, and the exact invalid-JSON location line while returning the normal failure exit status
+The bounded current helper output contract visible in that body is:
+  * `python3 scripts/zigux/artifact_diff.py --self-test` should return `ARTIFACT_DIFF_SELF_TEST=pass`, `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=20`, and the exact `ARTIFACT_DIFF_SELF_TEST_CASES=` catalog for the current helper packet
+  * `python3 scripts/zigux/artifact_diff.py --mode json <expected> <actual>` should print `ARTIFACT_DIFF=pass`, `MODE=json`, `EXPECTED=<path>`, and `ACTUAL=<path>` when canonical decoded JSON matches even if formatting differs
+  * `python3 scripts/zigux/artifact_diff.py --mode text <expected> <actual>` should print `ARTIFACT_DIFF=fail`, `MODE=text`, `EXPECTED=<path>`, and `ACTUAL=<path>` when UTF-8 text differs, with no extra mismatch detail lines beyond that status-and-path packet
+  * `python3 scripts/zigux/artifact_diff.py --mode bytes <expected> <actual>` should print `ARTIFACT_DIFF=fail`, `MODE=bytes`, `EXPECTED=<path>`, `ACTUAL=<path>`, `EXPECTED_SHA256=<digest>`, and `ACTUAL_SHA256=<digest>` when the digests differ
+  * `python3 scripts/zigux/artifact_diff.py --mode sha256 <expected> <actual>` should keep working as a legacy alias and still print `MODE=bytes` after normalization before the same digest-detail lines
+  * `python3 scripts/zigux/artifact_diff.py --mode json <expected> <invalid-actual>` should print `ARTIFACT_DIFF=fail`, `MODE=json`, `EXPECTED=<path>`, `ACTUAL=<path>`, and the exact invalid-JSON location line while returning the normal failure exit status
 ## Historical Catalog Provenance
 
 The last directly readable broader contract packet recorded these counts and catalogs:
