@@ -57,6 +57,35 @@ test "second rejected inline value skips the first in-band neighbor and lands on
     try testing.expectEqual(xa_value.value_tag_mask, aliased_raw & xa_value.value_tag_mask);
 }
 
+test "cutoff sequence keeps xa_value, gap, and first two err_ptr raws in distinct lanes" {
+    const highest_xa_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
+    const gap_raw = err_ptr.err_floor - 1;
+    const first_err_raw = err_ptr.err_floor;
+    const second_err_raw = first_err_raw + 1;
+
+    try testing.expectEqual(highest_xa_raw + 1, gap_raw);
+    try testing.expectEqual(gap_raw + 1, first_err_raw);
+    try testing.expectEqual(first_err_raw + 1, second_err_raw);
+
+    try testing.expect(xa_value.isValue(highest_xa_raw));
+    try testing.expect(!xa_value.isValue(gap_raw));
+    try testing.expect(!xa_value.isValue(first_err_raw));
+    try testing.expect(!xa_value.isValue(second_err_raw));
+
+    try testing.expect(!err_ptr.isErrValue(highest_xa_raw));
+    try testing.expect(!err_ptr.isErrValue(gap_raw));
+    try testing.expect(err_ptr.isErrValue(first_err_raw));
+    try testing.expect(err_ptr.isErrValue(second_err_raw));
+
+    try testing.expectEqual(xa_value.value_tag_mask, highest_xa_raw & xa_value.value_tag_mask);
+    try testing.expectEqual(@as(usize, 0), gap_raw & xa_value.value_tag_mask);
+    try testing.expectEqual(xa_value.value_tag_mask, first_err_raw & xa_value.value_tag_mask);
+    try testing.expectEqual(@as(usize, 0), second_err_raw & xa_value.value_tag_mask);
+
+    try testing.expectEqual(@as(isize, -4095), err_ptr.toErrorCode(first_err_raw));
+    try testing.expectEqual(@as(isize, -4094), err_ptr.toErrorCode(second_err_raw));
+}
+
 test "gap before err_ptr floor stays pointer-like and never decodes as xa_value" {
     const raw = err_ptr.err_floor - 1;
 
