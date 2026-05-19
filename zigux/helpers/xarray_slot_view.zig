@@ -477,6 +477,101 @@ test "decoded cutoff entries keep payload accessors stable after reconstruction"
     }
 }
 
+test "contiguous low and high boundary windows rebuild without lane drift" {
+    const low_window = [_]struct {
+        raw: usize,
+        kind: SlotKind,
+        value: ?usize,
+        error_code: ?isize,
+        pointer: ?usize,
+    }{
+        .{ .raw = 0, .kind = .null, .value = null, .error_code = null, .pointer = null },
+        .{ .raw = 1, .kind = .value, .value = 0, .error_code = null, .pointer = null },
+        .{ .raw = 2, .kind = .pointer, .value = null, .error_code = null, .pointer = 2 },
+        .{ .raw = 3, .kind = .value, .value = 1, .error_code = null, .pointer = null },
+        .{ .raw = 4, .kind = .pointer, .value = null, .error_code = null, .pointer = 4 },
+        .{ .raw = 5, .kind = .value, .value = 2, .error_code = null, .pointer = null },
+    };
+    const high_window = [_]struct {
+        raw: usize,
+        kind: SlotKind,
+        value: ?usize,
+        error_code: ?isize,
+        pointer: ?usize,
+    }{
+        .{
+            .raw = err_ptr.err_floor - 2,
+            .kind = .value,
+            .value = xa_value.safe_inline_limit,
+            .error_code = null,
+            .pointer = null,
+        },
+        .{
+            .raw = err_ptr.err_floor - 1,
+            .kind = .pointer,
+            .value = null,
+            .error_code = null,
+            .pointer = err_ptr.err_floor - 1,
+        },
+        .{ .raw = err_ptr.err_floor, .kind = .err, .value = null, .error_code = -4095, .pointer = null },
+        .{ .raw = err_ptr.err_floor + 1, .kind = .err, .value = null, .error_code = -4094, .pointer = null },
+    };
+
+    for (low_window, 0..) |case, index| {
+        const decoded = fromRaw(case.raw);
+        const rebuilt = switch (decoded.kind()) {
+            .null => nullSlot(),
+            .value => try fromValue(decoded.value().?),
+            .err => fromErrorCode(decoded.errorCode().?),
+            .pointer => fromPointer(decoded.pointerValue().?),
+        };
+        const redecode = fromRaw(rebuilt.rawValue());
+
+        try std.testing.expectEqual(case.kind, decoded.kind());
+        try std.testing.expectEqual(case.value, decoded.value());
+        try std.testing.expectEqual(case.error_code, decoded.errorCode());
+        try std.testing.expectEqual(case.pointer, decoded.pointerValue());
+        try std.testing.expectEqual(case.raw, rebuilt.rawValue());
+        try std.testing.expectEqual(case.raw, redecode.rawValue());
+        try std.testing.expectEqual(case.kind, redecode.kind());
+        try std.testing.expectEqual(case.value, redecode.value());
+        try std.testing.expectEqual(case.error_code, redecode.errorCode());
+        try std.testing.expectEqual(case.pointer, redecode.pointerValue());
+        try std.testing.expectEqual(isTaggedInternalEntry(case.raw), isTaggedInternalEntry(redecode.rawValue()));
+
+        if (index > 0) {
+            try std.testing.expectEqual(low_window[index - 1].raw + 1, case.raw);
+        }
+    }
+
+    for (high_window, 0..) |case, index| {
+        const decoded = fromRaw(case.raw);
+        const rebuilt = switch (decoded.kind()) {
+            .null => nullSlot(),
+            .value => try fromValue(decoded.value().?),
+            .err => fromErrorCode(decoded.errorCode().?),
+            .pointer => fromPointer(decoded.pointerValue().?),
+        };
+        const redecode = fromRaw(rebuilt.rawValue());
+
+        try std.testing.expectEqual(case.kind, decoded.kind());
+        try std.testing.expectEqual(case.value, decoded.value());
+        try std.testing.expectEqual(case.error_code, decoded.errorCode());
+        try std.testing.expectEqual(case.pointer, decoded.pointerValue());
+        try std.testing.expectEqual(case.raw, rebuilt.rawValue());
+        try std.testing.expectEqual(case.raw, redecode.rawValue());
+        try std.testing.expectEqual(case.kind, redecode.kind());
+        try std.testing.expectEqual(case.value, redecode.value());
+        try std.testing.expectEqual(case.error_code, redecode.errorCode());
+        try std.testing.expectEqual(case.pointer, redecode.pointerValue());
+        try std.testing.expectEqual(isTaggedInternalEntry(case.raw), isTaggedInternalEntry(redecode.rawValue()));
+
+        if (index > 0) {
+            try std.testing.expectEqual(high_window[index - 1].raw + 1, case.raw);
+        }
+    }
+}
+
 test "err band stays contiguous after the pointer-like cutoff gap" {
     const gap_raw = err_ptr.err_floor - 1;
     const first_err_raw = err_ptr.err_floor;
