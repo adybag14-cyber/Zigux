@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the current bootstrap validation and toolchain packet."""
+"""Guard the current Lane 03 bootstrap validation and toolchain packet."""
 
 from __future__ import annotations
 
@@ -14,6 +14,9 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 SCRIPTS_README = "scripts/zigux/README.md"
 TOOLCHAIN_CHECKER = "scripts/zigux/check-zig-toolchain.py"
+FIXDEP_GATE_CHECKER = "scripts/zigux/check-phase2-fixdep-gate.py"
+FIXDEP_DIFF_CHECKER = "scripts/zigux/check-fixdep-diff.py"
+FIXDEP_ZIG = "scripts/zigux/fixdep.zig"
 PINNING_CHECKER = "scripts/zigux/check-phase2-toolchain-pinning.py"
 PIN_SCOPE_CHECKER = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 REQUIRED_MAKE_ROUTES_CHECKER = "scripts/zigux/check-phase2-required-make-routes.py"
@@ -47,6 +50,9 @@ class DuplicateTrackingDict(dict[str, object]):
 REQUIRED_PATHS = (
     SCRIPTS_README,
     TOOLCHAIN_CHECKER,
+    FIXDEP_GATE_CHECKER,
+    FIXDEP_DIFF_CHECKER,
+    FIXDEP_ZIG,
     PINNING_CHECKER,
     PIN_SCOPE_CHECKER,
     REQUIRED_MAKE_ROUTES_CHECKER,
@@ -63,16 +69,17 @@ WORKFLOW_SUBSTRING_MARKERS = (
     '"$zig_path" version',
 )
 
-# Keep the setup block fail-closed on the verification sequence inside the shell
-# step, not just on whether the marker strings still exist somewhere.
-WORKFLOW_SUBSTRING_ORDER_MARKERS = WORKFLOW_SUBSTRING_MARKERS
-
 WORKFLOW_LINE_MARKERS = (
     "- name: Setup pinned Zig toolchain",
     "- name: Compile current scripts",
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "run: python3 scripts/zigux/check-fixdep-diff.py",
+    "run: zig test scripts/zigux/fixdep.zig",
     "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
     "run: python3 scripts/zigux/validate-bootstrap.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
@@ -95,10 +102,6 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
 )
-
-# Keep the bootstrap validator and the now-live Phase 2 bridge tranche anchored
-# to the active Lane 03 packet order before the later toolchain pinning checks.
-WORKFLOW_ORDER_MARKERS = WORKFLOW_LINE_MARKERS
 
 README_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
@@ -133,18 +136,6 @@ EXPECTED_POLICY = {
     "required_make_routes": ["phase2-toolchain", "phase2-validate"],
     "channel_minimum_lockstep": True,
 }
-
-EXPECTED_SELF_TEST_CASE_COUNT = (
-    1
-    + len(WORKFLOW_SUBSTRING_MARKERS)
-    + len(WORKFLOW_SUBSTRING_MARKERS)
-    + len(WORKFLOW_LINE_MARKERS)
-    + len(WORKFLOW_LINE_MARKERS)
-    + len(README_MARKERS)
-    + len(TOOLCHAIN_CHECKER_MARKERS)
-    + (len(REQUIRED_PATHS) - 1)
-    + 29
-)
 
 
 def path_under(root: Path, rel: str) -> Path:
@@ -215,46 +206,33 @@ def swap_exact_lines(text: str, first: str, second: str) -> str:
     return "\n".join(lines) + "\n"
 
 
-def collect_workflow_order_issues(workflow_text: str) -> list[tuple[str, str]]:
+def collect_order_issues(
+    workflow_text: str,
+    markers: tuple[str, ...],
+    *,
+    issue_code: str,
+    use_substring_positions: bool,
+) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     positions: list[tuple[str, int]] = []
-    workflow_lines = [line.strip() for line in workflow_text.splitlines()]
-    for marker in WORKFLOW_ORDER_MARKERS:
-        count = count_exact_lines(workflow_text, marker)
-        if count == 1:
-            positions.append((marker, workflow_lines.index(marker)))
+    if use_substring_positions:
+        for marker in markers:
+            count = workflow_text.count(marker)
+            if count == 1:
+                positions.append((marker, workflow_text.index(marker)))
+    else:
+        workflow_lines = [line.strip() for line in workflow_text.splitlines()]
+        for marker in markers:
+            count = count_exact_lines(workflow_text, marker)
+            if count == 1:
+                positions.append((marker, workflow_lines.index(marker)))
+
     for (previous_marker, previous_index), (current_marker, current_index) in zip(
         positions,
         positions[1:],
     ):
         if previous_index >= current_index:
-            issues.append(
-                (
-                    "OUT_OF_ORDER_WORKFLOW_MARKER",
-                    f"{previous_marker} -> {current_marker}",
-                )
-            )
-    return issues
-
-
-def collect_workflow_substring_order_issues(workflow_text: str) -> list[tuple[str, str]]:
-    issues: list[tuple[str, str]] = []
-    positions: list[tuple[str, int]] = []
-    for marker in WORKFLOW_SUBSTRING_ORDER_MARKERS:
-        count = workflow_text.count(marker)
-        if count == 1:
-            positions.append((marker, workflow_text.index(marker)))
-    for (previous_marker, previous_index), (current_marker, current_index) in zip(
-        positions,
-        positions[1:],
-    ):
-        if previous_index >= current_index:
-            issues.append(
-                (
-                    "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
-                    f"{previous_marker} -> {current_marker}",
-                )
-            )
+            issues.append((issue_code, f"{previous_marker} -> {current_marker}"))
     return issues
 
 
@@ -317,7 +295,10 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
         unexpected_upgrade_policy_keys = sorted(set(upgrade_policy) - UPGRADE_POLICY_KEYS)
         if unexpected_upgrade_policy_keys:
             issues.append(
-                ("INVALID_POLICY", f"unexpected_upgrade_policy_keys={unexpected_upgrade_policy_keys!r}")
+                (
+                    "INVALID_POLICY",
+                    f"unexpected_upgrade_policy_keys={unexpected_upgrade_policy_keys!r}",
+                )
             )
         if upgrade_policy.get("channel_minimum_lockstep") is not EXPECTED_POLICY["channel_minimum_lockstep"]:
             issues.append(("INVALID_POLICY", "channel_minimum_lockstep"))
@@ -347,8 +328,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 issues.append(("MISSING_WORKFLOW_MARKER", marker))
             elif count != 1:
                 issues.append(("DUPLICATE_WORKFLOW_MARKER", f"{marker}:count={count}"))
-
-        issues.extend(collect_workflow_substring_order_issues(workflow_text))
+        issues.extend(
+            collect_order_issues(
+                workflow_text,
+                WORKFLOW_SUBSTRING_MARKERS,
+                issue_code="OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
+                use_substring_positions=True,
+            )
+        )
 
         for marker in WORKFLOW_LINE_MARKERS:
             count = count_exact_lines(workflow_text, marker)
@@ -356,8 +343,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 issues.append(("MISSING_WORKFLOW_MARKER", marker))
             elif count != 1:
                 issues.append(("DUPLICATE_WORKFLOW_MARKER", f"{marker}:count={count}"))
-
-        issues.extend(collect_workflow_order_issues(workflow_text))
+        issues.extend(
+            collect_order_issues(
+                workflow_text,
+                WORKFLOW_LINE_MARKERS,
+                issue_code="OUT_OF_ORDER_WORKFLOW_MARKER",
+                use_substring_positions=False,
+            )
+        )
 
     if SCRIPTS_README in existing_paths:
         readme_text = read_text(root, SCRIPTS_README)
@@ -373,6 +366,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     if TOOLCHAIN_POLICY in existing_paths:
         issues.extend(collect_policy_issues(root))
+
     return issues
 
 
@@ -394,28 +388,22 @@ def build_self_test_root(root: Path) -> None:
     write_text(
         root,
         WORKFLOW,
-        "\n".join(
-            (
-                "name: zigux-bootstrap",
-                *WORKFLOW_SUBSTRING_MARKERS,
-                *WORKFLOW_LINE_MARKERS,
-            )
-        )
-        + "\n",
+        "\n".join(("name: zigux-bootstrap", *WORKFLOW_SUBSTRING_MARKERS, *WORKFLOW_LINE_MARKERS)) + "\n",
     )
     write_text(root, SCRIPTS_README, "# scripts/zigux\n\n" + "\n".join(f"- {marker}" for marker in README_MARKERS) + "\n")
     write_text(
         root,
         TOOLCHAIN_CHECKER,
-        "\n".join(
-            (
-                "#!/usr/bin/env python3",
-                *TOOLCHAIN_CHECKER_MARKERS,
-            )
-        )
-        + "\n",
+        "\n".join(("#!/usr/bin/env python3", *TOOLCHAIN_CHECKER_MARKERS)) + "\n",
     )
-    for rel in (PINNING_CHECKER, PIN_SCOPE_CHECKER, REQUIRED_MAKE_ROUTES_CHECKER):
+    for rel in (
+        FIXDEP_GATE_CHECKER,
+        FIXDEP_DIFF_CHECKER,
+        FIXDEP_ZIG,
+        PINNING_CHECKER,
+        PIN_SCOPE_CHECKER,
+        REQUIRED_MAKE_ROUTES_CHECKER,
+    ):
         write_text(root, rel, "# present\n")
     write_text(
         root,
@@ -488,245 +476,45 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_MARKER", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
-                'tar -xJf "$archive_path" -C .zig-toolchain',
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
-            'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET" -> tar -xJf "$archive_path" -C .zig-toolchain',
-        ) in collect_issues(root)
-        checks_run += 1
+        for previous_marker, current_marker in zip(
+            WORKFLOW_SUBSTRING_MARKERS,
+            WORKFLOW_SUBSTRING_MARKERS[1:],
+        ):
+            build_self_test_root(root)
+            workflow_path = path_under(root, WORKFLOW)
+            workflow_path.write_text(
+                swap_exact_lines(
+                    workflow_path.read_text(encoding="utf-8"),
+                    previous_marker,
+                    current_marker,
+                ),
+                encoding="utf-8",
+            )
+            assert (
+                "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
+                f"{previous_marker} -> {current_marker}",
+            ) in collect_issues(root)
+            checks_run += 1
 
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
-                'echo "$extract_root" >> "$GITHUB_PATH"',
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
-            'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path" -> echo "$extract_root" >> "$GITHUB_PATH"',
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                'echo "$extract_root" >> "$GITHUB_PATH"',
-                '"$zig_path" version',
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_SUBSTRING_MARKER",
-            'echo "$extract_root" >> "$GITHUB_PATH" -> "$zig_path" version',
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: python3 scripts/zigux/validate-bootstrap.py",
-                "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/validate-bootstrap.py -> run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
-                "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing -> run: python3 scripts/zigux/validate-bootstrap.py --self-test",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
-                "run: python3 scripts/zigux/check-kconfig-bridge.py",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test -> run: python3 scripts/zigux/check-kconfig-bridge.py",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: python3 scripts/zigux/check-kconfig-bridge.py",
-                "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/check-kconfig-bridge.py -> run: zig test scripts/zigux/kconfig/conf_bridge.zig",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
-                "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: zig test scripts/zigux/kconfig/conf_bridge.zig -> run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
-                "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: zig test scripts/zigux/kconfig/confdata_bridge.zig -> run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
-                "run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py -> run: python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
-                "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py -> run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
-                "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py -> run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "run: make -C zigux phase2-toolchain",
-                "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: make -C zigux phase2-toolchain -> run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "- name: Compile current scripts",
-                "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "- name: Compile current scripts -> run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        workflow_path = path_under(root, WORKFLOW)
-        workflow_path.write_text(
-            swap_exact_lines(
-                workflow_path.read_text(encoding="utf-8"),
-                "- name: Setup pinned Zig toolchain",
-                "- name: Compile current scripts",
-            ),
-            encoding="utf-8",
-        )
-        assert (
-            "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "- name: Setup pinned Zig toolchain -> - name: Compile current scripts",
-        ) in collect_issues(root)
-        checks_run += 1
+        for previous_marker, current_marker in zip(
+            WORKFLOW_LINE_MARKERS,
+            WORKFLOW_LINE_MARKERS[1:],
+        ):
+            build_self_test_root(root)
+            workflow_path = path_under(root, WORKFLOW)
+            workflow_path.write_text(
+                swap_exact_lines(
+                    workflow_path.read_text(encoding="utf-8"),
+                    previous_marker,
+                    current_marker,
+                ),
+                encoding="utf-8",
+            )
+            assert (
+                "OUT_OF_ORDER_WORKFLOW_MARKER",
+                f"{previous_marker} -> {current_marker}",
+            ) in collect_issues(root)
+            checks_run += 1
 
         for marker in README_MARKERS:
             build_self_test_root(root)
@@ -756,80 +544,44 @@ def run_self_test() -> int:
             assert ("MISSING_REQUIRED_PATH", rel) in collect_issues(root)
             checks_run += 1
 
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["phase"] = "Phase 1"
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "phase='Phase 1'") in collect_issues(root)
-        checks_run += 1
+        policy_mutations = [
+            ("phase='Phase 1'", lambda payload: payload.__setitem__("phase", "Phase 1")),
+            ("channel", lambda payload: payload.__setitem__("channel", "")),
+            (
+                "channel_minimum_version_mismatch",
+                lambda payload: payload.__setitem__("minimum_version", "0.16.0"),
+            ),
+            (
+                "required_make_routes",
+                lambda payload: payload["upgrade_policy"].__setitem__("required_make_routes", ["phase2-toolchain"]),
+            ),
+            (
+                "archive_target_scope",
+                lambda payload: payload["upgrade_policy"].__setitem__("archive_target_scope", ["aarch64-linux"]),
+            ),
+            (
+                "channel_minimum_lockstep",
+                lambda payload: payload["upgrade_policy"].__setitem__("channel_minimum_lockstep", False),
+            ),
+            (
+                "archive_sha256[x86_64-linux]",
+                lambda payload: payload.__setitem__("archive_sha256", {"x86_64-linux": "g" * 64}),
+            ),
+            (
+                "archive_sha256_keys=['aarch64-linux']",
+                lambda payload: payload.__setitem__("archive_sha256", {"aarch64-linux": "3" * 64}),
+            ),
+            ("upgrade_policy", lambda payload: payload.__setitem__("upgrade_policy", "invalid")),
+        ]
 
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["channel"] = ""
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "channel") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["minimum_version"] = "0.16.0"
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "channel_minimum_version_mismatch") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["upgrade_policy"]["required_make_routes"] = ["phase2-toolchain"]
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "required_make_routes") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["upgrade_policy"]["archive_target_scope"] = ["aarch64-linux"]
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "archive_target_scope") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["upgrade_policy"]["channel_minimum_lockstep"] = False
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "channel_minimum_lockstep") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["archive_sha256"] = {"x86_64-linux": "g" * 64}
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "archive_sha256[x86_64-linux]") in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["archive_sha256"] = {"aarch64-linux": "3" * 64}
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert (
-            "INVALID_POLICY",
-            "archive_sha256_keys=['aarch64-linux']",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy = json.loads(policy_path.read_text(encoding="utf-8"))
-        policy["upgrade_policy"] = "invalid"
-        policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
-        assert ("INVALID_POLICY", "upgrade_policy") in collect_issues(root)
-        checks_run += 1
+        for expected_issue, mutate in policy_mutations:
+            build_self_test_root(root)
+            policy_path = path_under(root, TOOLCHAIN_POLICY)
+            policy = json.loads(policy_path.read_text(encoding="utf-8"))
+            mutate(policy)
+            policy_path.write_text(json.dumps(policy, indent=2) + "\n", encoding="utf-8")
+            assert ("INVALID_POLICY", expected_issue) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         policy_path = path_under(root, TOOLCHAIN_POLICY)
@@ -837,52 +589,57 @@ def run_self_test() -> int:
         assert any(code == "INVALID_POLICY_JSON" for code, _ in collect_issues(root))
         checks_run += 1
 
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy_path.write_text(
-            '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
-            + ("3" * 64)
-            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
-            encoding="utf-8",
-        )
-        assert ("INVALID_POLICY", "duplicate_policy_keys=['phase']") in collect_issues(root)
-        checks_run += 1
+        duplicate_payloads = [
+            (
+                '{"phase":"Phase 2","phase":"Phase 3","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+                + ("3" * 64)
+                + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+                ("INVALID_POLICY", "duplicate_policy_keys=['phase']"),
+            ),
+            (
+                '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+                + ("3" * 64)
+                + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+                ("INVALID_POLICY", "duplicate_upgrade_policy_keys=['channel_minimum_lockstep']"),
+            ),
+            (
+                '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
+                + ("3" * 64)
+                + '","x86_64-linux":"'
+                + ("4" * 64)
+                + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
+                ("INVALID_POLICY", "duplicate_archive_sha256_keys=['x86_64-linux']"),
+            ),
+        ]
 
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy_path.write_text(
-            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
-            + ("3" * 64)
-            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"channel_minimum_lockstep":false,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
-            encoding="utf-8",
-        )
-        assert (
-            "INVALID_POLICY",
-            "duplicate_upgrade_policy_keys=['channel_minimum_lockstep']",
-        ) in collect_issues(root)
-        checks_run += 1
-
-        build_self_test_root(root)
-        policy_path = path_under(root, TOOLCHAIN_POLICY)
-        policy_path.write_text(
-            '{"phase":"Phase 2","channel":"0.17.0-dev.87+9b177a7d2","minimum_version":"0.17.0-dev.87+9b177a7d2","archive_sha256":{"x86_64-linux":"'
-            + ("3" * 64)
-            + '","x86_64-linux":"'
-            + ("4" * 64)
-            + '"},"upgrade_policy":{"channel_minimum_lockstep":true,"archive_target_scope":["x86_64-linux"],"required_make_routes":["phase2-toolchain","phase2-validate"]}}\n',
-            encoding="utf-8",
-        )
-        assert (
-            "INVALID_POLICY",
-            "duplicate_archive_sha256_keys=['x86_64-linux']",
-        ) in collect_issues(root)
-        checks_run += 1
+        for payload_text, expected_issue in duplicate_payloads:
+            build_self_test_root(root)
+            policy_path = path_under(root, TOOLCHAIN_POLICY)
+            policy_path.write_text(payload_text, encoding="utf-8")
+            assert expected_issue in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         assert path_under(root, SELF_PATH).exists()
         checks_run += 1
 
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT, (checks_run, EXPECTED_SELF_TEST_CASE_COUNT)
+    expected_self_test_case_count = (
+        1
+        + len(WORKFLOW_SUBSTRING_MARKERS)
+        + len(WORKFLOW_SUBSTRING_MARKERS)
+        + len(WORKFLOW_LINE_MARKERS)
+        + len(WORKFLOW_LINE_MARKERS)
+        + (len(WORKFLOW_SUBSTRING_MARKERS) - 1)
+        + (len(WORKFLOW_LINE_MARKERS) - 1)
+        + len(README_MARKERS)
+        + len(TOOLCHAIN_CHECKER_MARKERS)
+        + (len(REQUIRED_PATHS) - 1)
+        + 9
+        + 1
+        + 3
+        + 1
+    )
+    assert checks_run == expected_self_test_case_count, (checks_run, expected_self_test_case_count)
     print("BOOTSTRAP_VALIDATION_SELF_TEST=pass")
     print(f"BOOTSTRAP_VALIDATION_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
