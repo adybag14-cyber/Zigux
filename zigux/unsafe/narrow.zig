@@ -413,3 +413,71 @@ test "phase3 narrow unsafe scope bytes stay explicit" {
     try std.testing.expectError(error.UnsafeScopeDenied, pointerAtInteropPolicyBytes(u32, bridge_addr, 0, 2, 1));
     try std.testing.expectError(error.UnsafeScopeDenied, pointerAtByte(u32, bridge_addr, 0, 0));
 }
+
+test "phase3 narrow raw-pointer bridge rejects undersized and overflowing windows" {
+    var bridge_values = [_]u32{ 11, 22, 33 };
+    const bridge_addr = @intFromPtr(&bridge_values[0]);
+    const last_u32_addr = std.math.maxInt(usize) - @sizeOf(u32);
+    const overflowing_addr = std.math.maxInt(usize) - (@sizeOf(u32) - 2);
+    const overflowing_slice_addr = std.math.maxInt(usize) - 1;
+
+    try std.testing.expectError(
+        error.ByteLengthTooSmall,
+        pointerAtByte(u32, bridge_addr, @sizeOf(u16), 2),
+    );
+    try std.testing.expectError(
+        error.ByteLengthTooSmall,
+        pointerAtInteropPolicyBytes(u32, bridge_addr, @sizeOf(u16), 2, 0),
+    );
+
+    const edge_const_ptr = try constPointerAtByte(u32, last_u32_addr, 2);
+    try std.testing.expectEqual(last_u32_addr, @intFromPtr(edge_const_ptr));
+
+    try std.testing.expectError(
+        error.AddressOverflow,
+        constPointerAtByte(u32, overflowing_addr, 2),
+    );
+    try std.testing.expectError(
+        error.AddressOverflow,
+        pointerAtByte(u32, overflowing_addr, @sizeOf(u32), 2),
+    );
+    try std.testing.expectError(
+        error.AddressOverflow,
+        pointerAtInteropPolicyBytes(u32, overflowing_addr, @sizeOf(u32), 2, 0),
+    );
+    try std.testing.expectError(
+        error.AddressOverflow,
+        writeValueAtByte(u32, overflowing_addr, 99, 2),
+    );
+    try std.testing.expectError(
+        error.AddressOverflow,
+        sliceAtByte(u32, overflowing_slice_addr, 1, 2),
+    );
+    try std.testing.expectError(
+        error.AddressOverflow,
+        constSliceAtByte(u32, overflowing_slice_addr, 1, 2),
+    );
+}
+
+test "phase3 narrow raw-pointer bridge rejects overflowing element counts" {
+    var bridge_values = [_]u16{ 1, 2 };
+    const bridge_addr = @intFromPtr(&bridge_values[0]);
+    const overflowing_len = (std.math.maxInt(usize) / @sizeOf(u16)) + 1;
+
+    try std.testing.expectError(
+        error.LengthOverflow,
+        sliceAtByte(u16, bridge_addr, overflowing_len, 2),
+    );
+    try std.testing.expectError(
+        error.LengthOverflow,
+        constSliceAtByte(u16, bridge_addr, overflowing_len, 2),
+    );
+    try std.testing.expectError(
+        error.LengthOverflow,
+        sliceAtInteropPolicyBytes(u16, bridge_addr, overflowing_len, 2, 0),
+    );
+    try std.testing.expectError(
+        error.LengthOverflow,
+        constSliceAtInteropPolicyBytes(u16, bridge_addr, overflowing_len, 2, 0),
+    );
+}
