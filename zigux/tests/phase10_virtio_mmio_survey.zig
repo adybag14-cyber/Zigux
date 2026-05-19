@@ -9,7 +9,7 @@ fn readRepoRelative(allocator: std.mem.Allocator, relative_path: []const u8) ![]
     return try std.Io.Dir.cwd().readFileAlloc(io, relative_path, allocator, .limited(64 * 1024));
 }
 
-test "phase10 virtio mmio survey note keeps the dedicated survey gate explicit beside the helper-local packet" {
+test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {
     const allocator = std.testing.allocator;
 
     const survey_note = try readRepoRelative(
@@ -24,13 +24,18 @@ test "phase10 virtio mmio survey note keeps the dedicated survey gate explicit b
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_mmio_verify.zig");
+    try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio.zig");
     try expectContains(survey_note, "interrupt-ack disposition review");
     try expectContains(survey_note, "config-write disposition reporting");
     try expectContains(survey_note, "feature-negotiation deltas");
+    try expectContains(survey_note, "dedicated MMIO lab replay");
+    try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");
+    try expectContains(build_file, "\"phase10-virtio-mmio-tests\"");
     try expectContains(build_file, "phase10_virtio_mmio_survey_module");
     try expectContains(build_file, "\"phase10-virtio-mmio-survey-tests\"");
+    try expectContains(build_file, "run_phase10_virtio_mmio_tests.step");
     try expectContains(build_file, "run_phase10_virtio_mmio_survey_tests.step");
 }
 
