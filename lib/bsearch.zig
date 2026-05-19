@@ -340,6 +340,31 @@ fn compareOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     return compareInt(typed_key, typed_item);
 }
 
+const CountedIntKey = struct {
+    target: i32,
+    comparisons: *usize,
+};
+
+fn compareCountedInt(key: *const CountedIntKey, item: *const i32) i32 {
+    key.comparisons.* += 1;
+    return switch (std.math.order(key.target, item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
+fn compareCountedOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const CountedIntKey = @ptrCast(@alignCast(key));
+    const typed_item: *const i32 = @ptrCast(@alignCast(item));
+    typed_key.comparisons.* += 1;
+    return switch (std.math.order(typed_key.target, typed_item.*)) {
+        .lt => -1,
+        .eq => 0,
+        .gt => 1,
+    };
+}
+
 fn expectTypedCAbiRange(items: []const i32, key: i32, expected: IndexRange, compare: CComparator(i32, i32)) !void {
     const lower = lowerBoundIndex(i32, i32, &key, items, compare);
     const upper = upperBoundIndex(i32, i32, &key, items, compare);
@@ -544,4 +569,50 @@ test "mutable equal-range wrappers expose whole duplicate spans for typed and ra
     raw_words[0] = 7;
     raw_words[raw_words.len - 1] = 8;
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 4, 8, 9, 16 }, raw_duplicates[0..]);
+}
+
+test "empty and missing equal-range wrappers preserve insertion-site slices without comparator churn" {
+    const empty = [_]i32{};
+
+    var typed_comparisons: usize = 0;
+    const empty_typed_key = CountedIntKey{ .target = 4, .comparisons = &typed_comparisons };
+    try std.testing.expectEqual(@as(?usize, null), searchIndex(CountedIntKey, i32, &empty_typed_key, empty[0..], compareCountedInt));
+    try std.testing.expectEqual(@as(?*const i32, null), search(CountedIntKey, i32, &empty_typed_key, empty[0..], compareCountedInt));
+    try std.testing.expectEqual(@as(?*const i32, null), lowerBound(CountedIntKey, i32, &empty_typed_key, empty[0..], compareCountedInt));
+    try std.testing.expectEqual(@as(?*const i32, null), upperBound(CountedIntKey, i32, &empty_typed_key, empty[0..], compareCountedInt));
+    try std.testing.expectEqual(@as(usize, 0), typed_comparisons);
+
+    const empty_typed_range = equalRangeIndex(CountedIntKey, i32, &empty_typed_key, empty[0..], compareCountedInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, empty_typed_range);
+    const empty_typed_view = equalRange(CountedIntKey, i32, &empty_typed_key, empty[0..], compareCountedInt);
+    try std.testing.expectEqual(@as(usize, 0), empty_typed_view.len);
+    try std.testing.expectEqual(@as(usize, 0), typed_comparisons);
+
+    var raw_comparisons: usize = 0;
+    const empty_raw_key = CountedIntKey{ .target = 4, .comparisons = &raw_comparisons };
+    const empty_base: [*]const u8 = @ptrCast(empty[0..].ptr);
+    try std.testing.expectEqual(@as(?usize, null), bsearchIndex(&empty_raw_key, empty_base, empty.len, @sizeOf(i32), compareCountedOpaqueInt));
+    try std.testing.expectEqual(@as(?*const anyopaque, null), bsearch(&empty_raw_key, empty_base, empty.len, @sizeOf(i32), compareCountedOpaqueInt));
+    try std.testing.expectEqual(@as(?*const anyopaque, null), bsearchLowerBound(&empty_raw_key, empty_base, empty.len, @sizeOf(i32), compareCountedOpaqueInt));
+    try std.testing.expectEqual(@as(?*const anyopaque, null), bsearchUpperBound(&empty_raw_key, empty_base, empty.len, @sizeOf(i32), compareCountedOpaqueInt));
+    try std.testing.expectEqual(@as(usize, 0), raw_comparisons);
+
+    const empty_raw_range = bsearchEqualRangeIndex(&empty_raw_key, empty_base, empty.len, @sizeOf(i32), compareCountedOpaqueInt);
+    try std.testing.expectEqual(IndexRange{ .lower = 0, .upper = 0 }, empty_raw_range);
+    const empty_raw_bytes = bsearchEqualRange(&empty_raw_key, empty_base, empty.len, @sizeOf(i32), compareCountedOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 0), empty_raw_bytes.len);
+    try std.testing.expectEqual(@as(usize, 0), raw_comparisons);
+
+    const ascending = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const missing_key = @as(i32, 3);
+    const typed_missing = equalRange(i32, i32, &missing_key, ascending[0..], compareInt);
+    try std.testing.expectEqual(@as(usize, 0), typed_missing.len);
+    try std.testing.expectEqual(@intFromPtr(&ascending[1]), @intFromPtr(typed_missing.ptr));
+
+    const missing_raw = bsearchEqualRange(&missing_key, @ptrCast(ascending[0..].ptr), ascending.len, @sizeOf(i32), compareOpaqueInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_raw.len);
+    try std.testing.expectEqual(
+        @intFromPtr(@as([*]const u8, @ptrCast(ascending[0..].ptr)) + @sizeOf(i32)),
+        @intFromPtr(missing_raw.ptr),
+    );
 }
