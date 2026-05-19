@@ -224,7 +224,6 @@ REQUIRED_MARKERS = {
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
-        '"scripts/zigux/check-phase3-catalog-selftest.py"',
         '"next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work"',
     ),
 }
@@ -282,9 +281,7 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-dump --build-file zigux/tests/build.zig",
 )
 
-REQUIRED_REPO_REALITY_GAPS = (
-    "scripts/zigux/check-phase3-catalog-selftest.py",
-)
+REQUIRED_REPO_REALITY_GAPS: tuple[str, ...] = ()
 
 SAMPLE_MANIFEST = {
     "phase": "Phase 3",
@@ -520,7 +517,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 4}")
+    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 3}")
     return 0
 
 
