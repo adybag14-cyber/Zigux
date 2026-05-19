@@ -9,7 +9,7 @@ This note records the bounded Phase 15 Architecture Council sequencing packet fo
 - `PHASE15_SLICE=architecture-council-governance-lane-boundaries`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
-- current repo reality: the core Phase 15 governance notes are landed, the dedicated review-process manifest is landed, the dedicated governance-lane sequencing manifest plus focused replay are landed, the dedicated handoff manifest plus focused handoff-specific replay plus focused handoff-note checker are landed, and the shared reminder surfaces already point at this sequencing note, but the broader validator-first, dedicated-build, and lane-owner companions still remain repo-reality gaps on current `master`
+- current repo reality: the core Phase 15 governance notes are landed, the dedicated review-process manifest is landed, the dedicated governance-lane sequencing manifest plus focused replay are landed, the dedicated handoff manifest plus focused handoff-specific replay plus focused handoff-note checker are landed, the focused indefinite-C lane-owner companion is landed, and the shared reminder surfaces already point at this sequencing note, but the broader validator-first and dedicated-build companions still remain repo-reality gaps on current `master`
 - scope: keep one reviewable record of which Phase 15 governance lane owns which reminder surface, which shared checks may speak for the parked governance packet, and which adjacent gaps must stay explicit instead of being silently treated as landed
 
 ## Purpose
@@ -23,7 +23,7 @@ That means the repo needs one compact sequencing note that says:
 - which neighboring packet owns the stay-in-C policy vocabulary
 - which neighboring packet owns the study-only anchor inventory outside blocked status-change rows
 - which reminder surfaces may describe those packets together
-- which remaining missing validator-first, dedicated-build, or lane-owner companions must remain named as gaps instead of being implied as shipped evidence
+- which remaining missing validator-first or dedicated-build companions must remain named as gaps instead of being implied as shipped evidence
 
 This note exists so the docs root and scripts-side alignment checks can name a real sequencing companion instead of pointing at a stale governance snapshot.
 
@@ -74,7 +74,6 @@ Current `master` still returns missing for several broader Phase 15 companions t
 
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
 Those gaps do not erase the landed governance packet.
 
@@ -93,7 +92,7 @@ They do mean any shared reminder surface must keep those companions framed as mi
   - `zig test zigux/tests/phase15_governance_lane_sequencing.zig`
 - reopen only when one of these packet-local conditions becomes true:
   - a Phase 15 owner packet changes its lane boundary or reminder ownership
-  - a previously missing validator-first, dedicated-build, or lane-owner companion lands on current `master`
+  - a previously missing validator-first or dedicated-build companion lands on current `master`
   - a shared reminder surface starts claiming Phase 15 approval or current evidence that the owning packet does not support
 - if this lane reopens, reread `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `Documentation/zigux/phase15-readiness-gate-survey.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/phase15-shared-summary-gap.md`, `Documentation/zigux/phase15-handoff-next-steps-survey.md`, `zigux/tests/phase15_governance_lane_sequencing_manifest.json`, `zigux/tests/phase15_governance_lane_sequencing.zig`, `zigux/tests/phase15_handoff_next_steps_manifest.json`, `zigux/tests/phase15_handoff_next_steps.zig`, and `scripts/zigux/check-phase15-handoff-note-alignment.py` together before widening any shared reminder text
 
@@ -103,7 +102,7 @@ This note does not claim:
 
 - an Architecture Council approval for any freeze-map status change
 - a new deep-core Zig bridge, wrapper, or dual implementation
-- that the missing broader replay, validator-first, lane-owner, or build companions are already present on current `master`
+- that the missing broader replay, validator-first, or build companions are already present on current `master`
 
 ## Next bounded step
 
