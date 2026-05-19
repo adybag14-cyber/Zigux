@@ -26,6 +26,12 @@ pub const OnlineCpuRouteAttemptSummary = struct {
     disposition: OnlineCpuRouteAttemptDisposition,
 };
 
+pub const OnlineCpuRouteBufferFdError = error{
+    NoMoreOnlineCpu,
+    MissingBufferSlot,
+    MissingBufferFd,
+};
+
 pub const OnlineCpuRoutingDisposition = enum {
     complete,
     requested_subset,
@@ -126,6 +132,58 @@ pub fn summarizeNextOnlineCpuRoute(
             .disposition = .missing_buffer_fd,
         },
     };
+}
+
+pub fn resolveNextOnlineCpuRouteBufferFd(
+    summary: OnlineCpuRouteAttemptSummary,
+) OnlineCpuRouteBufferFdError!i32 {
+    return switch (summary.disposition) {
+        .routed_cpu => summary.buffer_fd.?,
+        .no_more_online_cpu => error.NoMoreOnlineCpu,
+        .missing_buffer_slot => error.MissingBufferSlot,
+        .missing_buffer_fd => error.MissingBufferFd,
+    };
+}
+
+pub fn resolveNextOnlineCpuRouteBufferFdAtIndex(
+    online_cpu_mask: []const bool,
+    start_index: usize,
+    buffer_fds: []const ?i32,
+    routed_cpu_count: usize,
+) OnlineCpuRouteBufferFdError!i32 {
+    return resolveNextOnlineCpuRouteBufferFd(
+        summarizeNextOnlineCpuRoute(
+            online_cpu_mask,
+            start_index,
+            buffer_fds,
+            routed_cpu_count,
+        ),
+    );
+}
+
+pub fn resolveNextOnlineCpuRouteBufferFdReturn(summary: OnlineCpuRouteAttemptSummary) i32 {
+    return switch (summary.disposition) {
+        .routed_cpu => summary.buffer_fd.?,
+        .no_more_online_cpu => -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        .missing_buffer_slot => -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        .missing_buffer_fd => -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+    };
+}
+
+pub fn resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+    online_cpu_mask: []const bool,
+    start_index: usize,
+    buffer_fds: []const ?i32,
+    routed_cpu_count: usize,
+) i32 {
+    return resolveNextOnlineCpuRouteBufferFdReturn(
+        summarizeNextOnlineCpuRoute(
+            online_cpu_mask,
+            start_index,
+            buffer_fds,
+            routed_cpu_count,
+        ),
+    );
 }
 
 pub fn summarizeOnlineCpuRouting(
@@ -313,6 +371,170 @@ test "summarizeNextOnlineCpuRoute keeps exhausted online CPU scans compact and n
     try std.testing.expectEqual(@as(usize, 1), exhausted.buffer_index);
     try std.testing.expectEqual(@as(?i32, null), exhausted.buffer_fd);
     try std.testing.expectEqual(@as(usize, 2), exhausted.next_scan_index);
+}
+
+test "resolveNextOnlineCpuRouteBufferFd keeps typed route-fd wrappers aligned" {
+    const found = summarizeNextOnlineCpuRoute(
+        &.{ false, true, false, true },
+        0,
+        &.{ 11, 17 },
+        0,
+    );
+    try std.testing.expectEqual(@as(i32, 11), try resolveNextOnlineCpuRouteBufferFd(found));
+
+    const missing_slot = summarizeNextOnlineCpuRoute(
+        &.{ true, false, true },
+        2,
+        &.{11},
+        1,
+    );
+    try std.testing.expectError(
+        error.MissingBufferSlot,
+        resolveNextOnlineCpuRouteBufferFd(missing_slot),
+    );
+
+    const missing_fd = summarizeNextOnlineCpuRoute(
+        &.{ true, false, true },
+        2,
+        &.{ 11, null, 29 },
+        1,
+    );
+    try std.testing.expectError(
+        error.MissingBufferFd,
+        resolveNextOnlineCpuRouteBufferFd(missing_fd),
+    );
+
+    const exhausted = summarizeNextOnlineCpuRoute(
+        &.{ false, true },
+        2,
+        &.{11},
+        1,
+    );
+    try std.testing.expectError(
+        error.NoMoreOnlineCpu,
+        resolveNextOnlineCpuRouteBufferFd(exhausted),
+    );
+}
+
+test "resolveNextOnlineCpuRouteBufferFdReturn keeps errno-shaped route-fd wrappers aligned" {
+    const found = summarizeNextOnlineCpuRoute(
+        &.{ false, true, false, true },
+        0,
+        &.{ 11, 17 },
+        0,
+    );
+    try std.testing.expectEqual(@as(i32, 11), resolveNextOnlineCpuRouteBufferFdReturn(found));
+
+    const missing_slot = summarizeNextOnlineCpuRoute(
+        &.{ true, false, true },
+        2,
+        &.{11},
+        1,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveNextOnlineCpuRouteBufferFdReturn(missing_slot),
+    );
+
+    const missing_fd = summarizeNextOnlineCpuRoute(
+        &.{ true, false, true },
+        2,
+        &.{ 11, null, 29 },
+        1,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveNextOnlineCpuRouteBufferFdReturn(missing_fd),
+    );
+
+    const exhausted = summarizeNextOnlineCpuRoute(
+        &.{ false, true },
+        2,
+        &.{11},
+        1,
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveNextOnlineCpuRouteBufferFdReturn(exhausted),
+    );
+}
+
+test "resolveNextOnlineCpuRouteBufferFdAtIndex keeps direct route-fd wrappers aligned" {
+    try std.testing.expectEqual(
+        @as(i32, 11),
+        try resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &.{ false, true, false, true },
+            0,
+            &.{ 11, 17 },
+            0,
+        ),
+    );
+    try std.testing.expectError(
+        error.MissingBufferSlot,
+        resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &.{ true, false, true },
+            2,
+            &.{11},
+            1,
+        ),
+    );
+    try std.testing.expectError(
+        error.MissingBufferFd,
+        resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &.{ true, false, true },
+            2,
+            &.{ 11, null, 29 },
+            1,
+        ),
+    );
+    try std.testing.expectError(
+        error.NoMoreOnlineCpu,
+        resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &.{ false, true },
+            2,
+            &.{11},
+            1,
+        ),
+    );
+}
+
+test "resolveNextOnlineCpuRouteBufferFdReturnAtIndex keeps direct errno-shaped route-fd wrappers aligned" {
+    try std.testing.expectEqual(
+        @as(i32, 11),
+        resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &.{ false, true, false, true },
+            0,
+            &.{ 11, 17 },
+            0,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &.{ true, false, true },
+            2,
+            &.{11},
+            1,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &.{ true, false, true },
+            2,
+            &.{ 11, null, 29 },
+            1,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &.{ false, true },
+            2,
+            &.{11},
+            1,
+        ),
+    );
 }
 
 test "summarizeOnlineCpuRouting auto-selects all online CPUs when request count is zero" {
