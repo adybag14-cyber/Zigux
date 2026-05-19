@@ -25,6 +25,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-string-helpers-slice.md": [
         "`PHASE7_STATUS=starter_landed`",
         "`scripts/zigux/check-phase7-string-helpers-packet.py`",
+        "quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path",
+        "`stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary",
         "quoted cmdline duplication that collapses trailing NULs",
         "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
     ],
@@ -36,17 +38,23 @@ REQUIRED_MARKERS = {
     "lib/string_helpers.zig": [
         "pub fn kstrdupQuotable(",
         "pub fn kstrdupQuotableFile(",
+        "pub fn kstrdup_quotable_file(",
         "pub fn kstrdupQuotableCmdline(",
         "pub fn parseIntArray(",
+        "pub fn stringUpper(",
+        "pub fn string_lower(",
     ],
     "zigux/tests/phase7_string_helpers.zig": [
         'test "phase 7 string helpers starter quotes special log-hazard bytes without widening beyond the exported c-string prefix" {',
         'test "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit" {',
         'test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {',
         'test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {',
+        'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {',
     ],
     "zigux/tests/phase7_string_helpers_manifest.json": [
         '"scripts/zigux/check-phase7-string-helpers-packet.py"',
+        "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings",
+        "bounded uppercase and lowercase copies through the exported C-string boundary",
         "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters",
         "dedicated helper-local checker-backed packet reviewability",
         "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on",
@@ -75,7 +83,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 28
 
 
 def read_text(path: Path) -> str:
@@ -142,16 +150,51 @@ def run_self_test() -> None:
         expect_missing_marker("missing_slice_checker_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}")
         write_fixture_root(tmp_root)
 
+        slice_marker = "quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path"
+        slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_slice_file_helper_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}")
+        write_fixture_root(tmp_root)
+
+        slice_marker = "`stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary"
+        slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_slice_case_copy_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}")
+        write_fixture_root(tmp_root)
+
         helper_path = tmp_root / "lib" / "string_helpers.zig"
         helper_marker = "pub fn kstrdupQuotableCmdline("
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_helper_cmdline_marker", tmp_root, f"lib/string_helpers.zig: {helper_marker}")
         write_fixture_root(tmp_root)
 
+        helper_marker = "pub fn kstrdup_quotable_file("
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_file_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn stringUpper("
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_upper_marker", tmp_root, f"lib/string_helpers.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
+        helper_marker = "pub fn string_lower("
+        helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_helper_lower_alias_marker", tmp_root, f"lib/string_helpers.zig: {helper_marker}")
+        write_fixture_root(tmp_root)
+
         tests_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers.zig"
         tests_marker = 'test "phase 7 string helpers starter quotes cmdlines after collapsing trailing NULs and replacing inter-argument separators" {'
         tests_path.write_text(read_text(tests_path).replace(tests_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_tests_cmdline_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_marker = 'test "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_file_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_marker}")
+        write_fixture_root(tmp_root)
+
+        tests_marker = 'test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {'
+        tests_path.write_text(read_text(tests_path).replace(tests_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_tests_case_copy_replay", tmp_root, f"zigux/tests/phase7_string_helpers.zig: {tests_marker}")
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_manifest.json"
@@ -163,6 +206,16 @@ def run_self_test() -> None:
         manifest_marker = "dedicated helper-local checker-backed packet reviewability"
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_manifest_checker_focus", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
+        write_fixture_root(tmp_root)
+
+        manifest_marker = "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings"
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_manifest_file_focus", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
+        write_fixture_root(tmp_root)
+
+        manifest_marker = "bounded uppercase and lowercase copies through the exported C-string boundary"
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_manifest_case_focus", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
         write_fixture_root(tmp_root)
 
         survey_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_survey.zig"
