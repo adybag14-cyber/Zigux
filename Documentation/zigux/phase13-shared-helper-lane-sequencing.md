@@ -30,10 +30,16 @@ Keep these shared reminder surfaces aligned when broad Phase 13 wording changes:
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 
 shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+
+tests-root alignment companion: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 
 do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13` as shipped evidence
 
@@ -41,7 +47,7 @@ do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zig
 
 1. Prefer one helper lane at a time instead of batching `libfs`, `devres`, `landlock`, and notifier evidence into one mixed change.
 2. Treat adjacent notifier evidence as release-surface support, not as an extra shared replay step.
-3. Use the shared-summary guard before widening contributor wording across the packet.
+3. Use the shared-summary guard and the tests-root alignment companion before widening contributor wording across the packet.
 4. Keep the Makefile-backed route family recorded as repo-reality gaps until current `master` rematerializes the shared build handle.
 5. Leave broader docs-root, scripts-root, and tests-root refresh for a separate same-lane follow-up.
 
