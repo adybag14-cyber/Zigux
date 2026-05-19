@@ -246,6 +246,23 @@ test "phase 8 exec-cmd focused replay accepts the last deferred execl handoff be
     try std.testing.expectEqual(@as(?[]const u8, null), collected[exec_cmd.max_execl_slots - 2]);
 }
 
+test "phase 8 exec-cmd focused replay rejects the C helper's MAX_ARGS null-slot overflow shape" {
+    var argv_tail: [31]?[]const u8 = undefined;
+    for (argv_tail[0..30]) |*slot| {
+        slot.* = "x";
+    }
+    argv_tail[30] = null;
+
+    try std.testing.expectError(
+        error.TooManyArguments,
+        exec_cmd.collectExeclArgs(
+            std.testing.allocator,
+            "record",
+            &argv_tail,
+        ),
+    );
+}
+
 test "phase 8 exec-cmd focused replay keeps pure deferred handoff builders explicit" {
     const config = exec_cmd.Config{
         .exec_name = "perf",
