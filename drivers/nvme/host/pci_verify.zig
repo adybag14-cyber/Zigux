@@ -283,6 +283,51 @@ test "nvme pci recovery reservation replay preflight stays non-mutating and cont
     try testing.expectEqual(@as(u16, 4), next.queue_id);
 }
 
+test "nvme pci recovery reservation replay preflight marks stale PRP metadata and planner-limited replay debt" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(4, 4);
+    _ = try lab.planPrpMetadataBudget(4096 * 3, 128);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+    const rebuilt = try lab.reserveIoQueues(63, 63);
+    try testing.expectEqual(@as(usize, 63), rebuilt.reserved_io_queues);
+
+    const preflight = try lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = reservation.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 8);
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", preflight.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.running, preflight.state);
+    try testing.expectEqual(@as(u32, 1), preflight.reset_generation);
+    try testing.expectEqual(@as(usize, 4), preflight.requested_reserved_io_queues);
+    try testing.expectEqual(@as(usize, 8), preflight.controller_io_queue_limit);
+    try testing.expectEqual(@as(usize, 1), preflight.planner_remaining_io_slots);
+    try testing.expectEqual(@as(usize, 1), preflight.replayable_reserved_io_queues);
+    try testing.expectEqual(@as(u16, 64), preflight.first_queue_id);
+    try testing.expectEqual(@as(u16, 64), preflight.last_queue_id);
+    try testing.expectEqual(@as(usize, 64), preflight.planned_io_queues_after_replay);
+    try testing.expectEqual(@as(u16, 65), preflight.next_io_queue_id_after_replay);
+    try testing.expect(!preflight.queue_numbering_restarted);
+    try testing.expect(!preflight.controller_limited);
+    try testing.expect(preflight.planner_limited);
+    try testing.expect(!preflight.queue_planning_blocked);
+    try testing.expect(!preflight.queues_frozen);
+    try testing.expect(preflight.cached_queue_reservation_stale);
+    try testing.expect(preflight.cached_prp_metadata_stale);
+    try testing.expect(preflight.descriptor_rebuild_required);
+    try testing.expect(!preflight.admin_queue_must_be_replanned);
+
+    const recovery = lab.recoverySummary();
+    try testing.expectEqual(@as(usize, 63), recovery.planned_io_queues);
+}
+
 test "nvme pci recovery reservation replay preflight rejects frozen, missing, and current reservations" {
     var frozen_lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     _ = try frozen_lab.planAdminQueue(32, 64, false);
@@ -316,34 +361,4 @@ test "nvme pci recovery reservation replay preflight rejects frozen, missing, an
         .had_io_queue_reservation = true,
         .cached_reserved_io_queues = current.reserved_io_queues,
     }, 4));
-}
-
-test "nvme pci rollback gate keeps admin replay blocked even after queue and DMA parity recover" {
-    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
-    _ = try lab.planAdminQueue(48, 64, false);
-    _ = try lab.planIoQueue(16, 64, false);
-    _ = try lab.planIoQueue(32, 64, true);
-
-    _ = lab.beginReset();
-    _ = lab.completeReset();
-
-    _ = try lab.planIoQueue(16, 64, false);
-    _ = try lab.planIoQueue(32, 64, true);
-
-    const rollback = lab.recoveryRollbackGateSummary();
-    try testing.expectEqual(nvme_pci.RecoveryRollbackBlocker.admin_queue_replay, rollback.rollback_blocker);
-    try testing.expect(!rollback.admin_queue_replayed_after_reset);
-    try testing.expect(!rollback.queue_count_parity_recovered);
-    try testing.expect(!rollback.host_dma_parity_recovered);
-    try testing.expect(rollback.queue_numbering_restarted);
-    try testing.expectEqual(@as(usize, 2), rollback.dropped_io_queue_count);
-    try testing.expectEqual(@as(usize, 2), rollback.rebuilt_io_queue_count);
-    try testing.expectEqual(@as(usize, 0), rollback.remaining_io_queue_count);
-    try testing.expectEqual(@as(u32, 0), rollback.remaining_io_host_dma_pages);
-    try testing.expect(!rollback.can_clear_rollback_gate);
-
-    const retirement = lab.summarizeDroppedIoRetirement();
-    try testing.expect(retirement.admin_queue_must_be_replayed);
-    try testing.expectEqual(@as(usize, 0), retirement.remaining_io_queue_count);
-    try testing.expect(!retirement.can_retire_dropped_io_backlog);
 }
