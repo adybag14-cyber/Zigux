@@ -1,5 +1,6 @@
 const std = @import("std");
 
+const cpu_mask = @import("cpu_mask.zig");
 const logging = @import("logging.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const pin_path = @import("pin_path.zig");
@@ -9,7 +10,24 @@ fn expectHasDecl(comptime Module: type, comptime decl_name: []const u8) !void {
     try std.testing.expect(@hasDecl(Module, decl_name));
 }
 
+const CpuMaskReaderContext = struct {
+    input: []const u8,
+    cursor: usize = 0,
+};
+
+fn readCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
+    const typed_context: *CpuMaskReaderContext = @ptrCast(@alignCast(context.?));
+    if (typed_context.cursor >= typed_context.input.len) return null;
+
+    const remaining = typed_context.input.len - typed_context.cursor;
+    const count = @min(buffer.len, remaining);
+    @memcpy(buffer[0..count], typed_context.input[typed_context.cursor .. typed_context.cursor + count]);
+    typed_context.cursor += count;
+    return count;
+}
+
 test "materialized tools/lib/bpf Zigux segments compile together and keep their focused tests live" {
+    std.testing.refAllDecls(cpu_mask);
     std.testing.refAllDecls(logging);
     std.testing.refAllDecls(perf_buffer_poll);
     std.testing.refAllDecls(pin_path);
@@ -17,6 +35,19 @@ test "materialized tools/lib/bpf Zigux segments compile together and keep their 
 }
 
 test "materialized tools/lib/bpf Zigux segments keep their current bounded entrypoints explicit" {
+    try expectHasDecl(cpu_mask, "CpuMask");
+    try expectHasDecl(cpu_mask, "PossibleCpuSummary");
+    try expectHasDecl(cpu_mask, "ParseCpuMaskError");
+    try expectHasDecl(cpu_mask, "ChunkReader");
+    try expectHasDecl(cpu_mask, "parseCpuMaskString");
+    try expectHasDecl(cpu_mask, "parseCpuMaskFromReader");
+    try expectHasDecl(cpu_mask, "summarizePossibleCpus");
+    try expectHasDecl(cpu_mask, "summarizePossibleCpusFromReader");
+    try expectHasDecl(cpu_mask, "countPossibleCpus");
+    try expectHasDecl(cpu_mask, "isOnlineCpuEligible");
+    try expectHasDecl(cpu_mask, "derivePerfBufferAutoCpuCount");
+    try expectHasDecl(cpu_mask, "derivePerfBufferAutoCpuCountFromReader");
+
     try expectHasDecl(logging, "parseLogLevelSetting");
     try expectHasDecl(logging, "shouldLog");
     try expectHasDecl(logging, "shouldLogWithEnv");
@@ -204,6 +235,48 @@ test "materialized tools/lib/bpf Zigux segments keep stable libbpf type-name out
     try std.testing.expectEqualStrings("unknown_link_type(15)", try type_names.formatLibbpfBpfLinkType(link_buffer[0..], 15));
     try std.testing.expectEqualStrings("netfilter", try type_names.formatLibbpfBpfProgType(prog_buffer[0..], 32));
     try std.testing.expectEqualStrings("unknown_prog_type(33)", try type_names.formatLibbpfBpfProgType(prog_buffer[0..], 33));
+}
+
+test "materialized tools/lib/bpf Zigux segments keep stable cpu-mask helper outputs explicit" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    var parsed = try cpu_mask.parseCpuMaskString(allocator, "0-2, 4\n");
+    defer parsed.deinit(allocator);
+
+    try std.testing.expectEqual(@as(usize, 4), parsed.countSet());
+    try std.testing.expectEqualSlices(bool, &[_]bool{ true, true, true, false, true }, parsed.values);
+
+    const summary = cpu_mask.summarizePossibleCpus(parsed.values);
+    try std.testing.expectEqual(@as(usize, 5), summary.mask_bit_len);
+    try std.testing.expectEqual(@as(usize, 4), summary.possible_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 4), summary.highest_cpu_index);
+    try std.testing.expect(cpu_mask.isOnlineCpuEligible(parsed.values, 2));
+    try std.testing.expect(!cpu_mask.isOnlineCpuEligible(parsed.values, 3));
+    try std.testing.expectEqual(@as(usize, 4), summary.deriveAutoCpuCount(0));
+    try std.testing.expectEqual(@as(usize, 2), cpu_mask.derivePerfBufferAutoCpuCount(summary.possible_cpu_count, 2));
+
+    var scratch: [3]u8 = undefined;
+    var reader_context = CpuMaskReaderContext{ .input = "1,3-4\n" };
+    const reader = cpu_mask.ChunkReader{
+        .context = &reader_context,
+        .readFn = readCpuMaskChunks,
+    };
+    const reader_summary = try cpu_mask.summarizePossibleCpusFromReader(allocator, scratch[0..], reader);
+    try std.testing.expectEqual(@as(usize, 5), reader_summary.mask_bit_len);
+    try std.testing.expectEqual(@as(usize, 3), reader_summary.possible_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 4), reader_summary.highest_cpu_index);
+
+    var auto_context = CpuMaskReaderContext{ .input = "0-1,4\n" };
+    const auto_reader = cpu_mask.ChunkReader{
+        .context = &auto_context,
+        .readFn = readCpuMaskChunks,
+    };
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        try cpu_mask.derivePerfBufferAutoCpuCountFromReader(allocator, scratch[0..], auto_reader, 0),
+    );
 }
 
 test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outputs explicit" {
