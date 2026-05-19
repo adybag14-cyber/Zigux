@@ -82,9 +82,13 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectStringSliceContains(manifest.review_surfaces, "samples/zigux/README.md");
 
     try expectStringSliceContains(manifest.covered_helpers, "parseOptionStr");
+    try expectStringSliceContains(manifest.covered_helpers, "parse_option_str");
     try expectStringSliceContains(manifest.covered_helpers, "getOption");
+    try expectStringSliceContains(manifest.covered_helpers, "get_option");
     try expectStringSliceContains(manifest.covered_helpers, "getOptions");
+    try expectStringSliceContains(manifest.covered_helpers, "get_options");
     try expectStringSliceContains(manifest.covered_helpers, "nextArg");
+    try expectStringSliceContains(manifest.covered_helpers, "next_arg");
     try expectStringSliceContains(manifest.covered_helpers, "memparse");
 
     try expectContains(checker, "PHASE7_CMDLINE_PACKET_SELF_TEST=pass");
@@ -102,9 +106,13 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(sequencing_note, "`P7-L10` owns only cmdline helper-local parity, survey, manifest, checker, or reminder drift;");
 
     try expectContains(helper, "pub fn parseOptionStr");
+    try expectContains(helper, "pub const parse_option_str = parseOptionStr;");
     try expectContains(helper, "pub fn getOption");
+    try expectContains(helper, "pub const get_option = getOption;");
     try expectContains(helper, "pub fn getOptions");
+    try expectContains(helper, "pub const get_options = getOptions;");
     try expectContains(helper, "pub fn nextArg");
+    try expectContains(helper, "pub const next_arg = nextArg;");
     try expectContains(helper, "pub fn memparse");
 
     try expectContains(helper_companion, "const cmdline = @import(\"cmdline\");");
