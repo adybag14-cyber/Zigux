@@ -51,6 +51,13 @@ pub const phase7_argv_split_vectors = [_]ArgvSplitVector{
         .expect_empty_storage_view = true,
     },
     .{
+        .name = "leading_nul_reuses_empty_packet",
+        .input = "\x00ignored tail",
+        .expected_argc = 0,
+        .expected_tokens = blank_tokens[0..],
+        .expect_empty_storage_view = true,
+    },
+    .{
         .name = "first_nul_truncation_keeps_tail_outside_packet",
         .input = "alpha beta\x00ignored tail",
         .expected_argc = 2,
@@ -66,17 +73,19 @@ pub const phase7_argv_split_vectors = [_]ArgvSplitVector{
 };
 
 test "phase 7 argv split fixture vectors stay reviewable" {
-    try std.testing.expectEqual(@as(usize, 5), phase7_argv_split_vectors.len);
+    try std.testing.expectEqual(@as(usize, 6), phase7_argv_split_vectors.len);
     try std.testing.expectEqualStrings("copied_storage_whitespace_packet", phase7_argv_split_vectors[0].name);
     try std.testing.expectEqualStrings("blank_input_reuses_empty_packet", phase7_argv_split_vectors[1].name);
     try std.testing.expectEqualStrings("whitespace_before_first_nul_reuses_empty_packet", phase7_argv_split_vectors[2].name);
-    try std.testing.expectEqualStrings("first_nul_truncation_keeps_tail_outside_packet", phase7_argv_split_vectors[3].name);
-    try std.testing.expectEqualStrings("quoted_tokens_stay_whitespace_split", phase7_argv_split_vectors[4].name);
+    try std.testing.expectEqualStrings("leading_nul_reuses_empty_packet", phase7_argv_split_vectors[3].name);
+    try std.testing.expectEqualStrings("first_nul_truncation_keeps_tail_outside_packet", phase7_argv_split_vectors[4].name);
+    try std.testing.expectEqualStrings("quoted_tokens_stay_whitespace_split", phase7_argv_split_vectors[5].name);
     try std.testing.expect(phase7_argv_split_vectors[1].expect_empty_storage_view);
     try std.testing.expect(phase7_argv_split_vectors[2].expect_empty_storage_view);
-    try std.testing.expect(phase7_argv_split_vectors[3].expect_first_nul_truncation);
+    try std.testing.expect(phase7_argv_split_vectors[3].expect_empty_storage_view);
+    try std.testing.expect(phase7_argv_split_vectors[4].expect_first_nul_truncation);
     try std.testing.expectEqualStrings("gamma", phase7_argv_split_vectors[0].expected_tokens[2]);
-    try std.testing.expectEqual(@as(usize, 0), phase7_argv_split_vectors[2].expected_tokens.len);
-    try std.testing.expectEqualStrings("beta", phase7_argv_split_vectors[3].expected_tokens[1]);
-    try std.testing.expectEqualStrings("\"beta", phase7_argv_split_vectors[4].expected_tokens[1]);
+    try std.testing.expectEqual(@as(usize, 0), phase7_argv_split_vectors[3].expected_tokens.len);
+    try std.testing.expectEqualStrings("beta", phase7_argv_split_vectors[4].expected_tokens[1]);
+    try std.testing.expectEqualStrings("\"beta", phase7_argv_split_vectors[5].expected_tokens[1]);
 }
