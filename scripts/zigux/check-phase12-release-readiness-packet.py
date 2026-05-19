@@ -82,6 +82,7 @@ REQUIRED_MARKERS = {
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "If `zig` is unavailable on `PATH`, keep the same validator-first then smoke-first order and first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
+        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-test ZIG=<attached-zig-path>`",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
@@ -258,6 +259,7 @@ def run_self_test() -> int:
             (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][0]),
             (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][1]),
             (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][2]),
+            (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][3]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][0]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][1]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][2]),
