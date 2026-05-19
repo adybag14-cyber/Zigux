@@ -1,6 +1,6 @@
 # Phase 9 Runtime Trace-Events Survey
 
-PHASE9_SURVEYED_COMMIT=11db15ce30c044bcf24007b31a5875881eec98d5
+PHASE9_SURVEYED_COMMIT=9ca34d1aa5c3031e1126cf951cf7e4bc515fe7b4
 
 This survey keeps the Phase 9 runtime trace-events packet aligned with the roadmap after current `master` narrowed down to one direct sample family instead of the older broader loader-backed packet.
 
