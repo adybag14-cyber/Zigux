@@ -42,9 +42,9 @@ REQUIRED_MARKERS = [
 FORBIDDEN_MARKERS = [
     "`PHASE11_MATRIX_GAP_STATUS=gpio_hvc_and_dw_reread_with_bcm_gap`",
     "lane: `P11-L03`",
+    "`bcm2835_wdt`: current repo rereads do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "The reread driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
-    "`bcm2835_wdt`: current repo rereads do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
     "`PHASE11_MATRIX_GAP_STATUS=gpio_and_hvc_matrices_direct_readback_only`",
     "`PHASE11_MATRIX_GAP_STATUS=all_phase11_driver_matrices_direct_readback_only`",
 ]
