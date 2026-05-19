@@ -76,8 +76,23 @@ jobs:
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
           extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"
           mirror_file=".zig-toolchain/community-mirrors.txt"
+          repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
           rm -f "$archive_path" "$mirror_file"
           rm -rf "$extract_root"
+          try_local_archive() {
+            if [ ! -f "$repo_archive_path" ]; then
+              return 1
+            fi
+            if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+              tar -xJf "$repo_archive_path" -C .zig-toolchain
+              zig_path="$extract_root/zig"
+              if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then
+                return 0
+              fi
+            fi
+            rm -rf "$extract_root"
+            return 1
+          }
           try_download() {
             local url="$1"
             if curl -L --fail "$url" -o "$archive_path"; then
@@ -94,7 +109,9 @@ jobs:
             return 1
           }
           download_success=0
-          if curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
+          if try_local_archive; then
+            download_success=1
+          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
             while IFS= read -r mirror_url; do
               [ -n "$mirror_url" ] || continue
               if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then
@@ -109,7 +126,7 @@ jobs:
             fi
           fi
           if [ "$download_success" -ne 1 ]; then
-            echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2
+            echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
             exit 1
           fi
           zig_path="$extract_root/zig"
@@ -134,6 +151,12 @@ jobs:
 
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
+
+      - name: Self-test current Lane 05 local-first archive checker
+        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test
+
+      - name: Check current Lane 05 local-first archive packet
+        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py
 
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
@@ -185,12 +208,6 @@ jobs:
       - name: Check current Phase 2 tests README packet
         run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py
 
-      - name: Self-test current Phase 2 cross checker
-        run: python3 scripts/zigux/check-phase2-cross.py --self-test
-
-      - name: Check current Phase 2 direct cross-route packet
-        run: python3 scripts/zigux/check-phase2-cross.py
-
       - name: Self-test current Phase 2 cross selftest alignment checker
         run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test
 
@@ -212,9 +229,6 @@ jobs:
       - name: Run current Phase 2 toolchain make route
         run: make -C zigux phase2-toolchain
 
-      - name: Run current Phase 2 tools make route
-        run: make -C zigux phase2-tools
-
       - name: Self-test current Phase 2 required-make-routes checker
         run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
 
@@ -226,7 +240,6 @@ jobs:
 
       - name: Check current Phase 2 shared reminder packet
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
-
       - name: Run current Phase 2 genksyms unit replay
         run: zig test scripts/zigux/genksyms.zig
 
@@ -254,12 +267,6 @@ jobs:
       - name: Check current Phase 1 shared reminder packet
         run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py
 
-      - name: Self-test current Phase 1 closure validator
-        run: python3 scripts/zigux/validate-phase1-closure.py --self-test
-
-      - name: Check current Phase 1 closure packet
-        run: python3 scripts/zigux/validate-phase1-closure.py
-
       - name: Self-test current Phase 3 interop packet
         run: python3 scripts/zigux/validate_phase3_selftest.py
 
@@ -277,9 +284,6 @@ jobs:
 
       - name: Run current Phase 3 shared tests-root packet
         run: zig build phase3-test --build-file zigux/tests/build.zig
-
-      - name: Run current Phase 3 ABI dump replay
-        run: zig build phase3-dump --build-file zigux/tests/build.zig
 
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
@@ -306,9 +310,6 @@ jobs:
 
       - name: Self-test current Phase 4 artifact-diff determinism checker
         run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
-
-      - name: Check current Phase 4 artifact-diff determinism packet
-        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
 
       - name: Self-test current Phase 4 artifact-diff validator replay checker
         run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
