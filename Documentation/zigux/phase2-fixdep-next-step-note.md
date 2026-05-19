@@ -1,8 +1,29 @@
-# Phase 2 fixdep next step note Lane: `P2-L04` Current `master` still carries one fixdep-local external fixture gap even though the broader checker-and-route packet is present.
-## Current repo evidence - `scripts/zigux/fixdep.zig` still carries the helper-local unit anchor `double backslash before hash still starts a comment like C fixdep`, but `zigux/tests/fixtures/fixdep/cases.json` still stops at the current twelve-case external packet and does not yet ship `sample_double_backslash_comment`.
-- `Documentation/zigux/artifact-diff.md` and `Documentation/zigux/phase2-closure.md` still describe that same live twelve-case packet, so the missing external case is still a truthful same-lane next step rather than a reason to reopen parser semantics or shared Phase 2 route inventory.
-- `scripts/zigux/check-phase2-fixdep-gate.py` and `scripts/zigux/check-fixdep-diff.py` still describe the same twelve-case packet on current `master`, so landing the missing case remains a coupled checker follow-through instead of a note-only discrepancy.
-## Survey result - The earlier checker-only undercount is closed, but the helper-local double-backslash-comment path still lacks a committed external replay packet. - Treat this lane as active again until `sample_double_backslash_comment` lands together with the directly coupled fixdep checker updates.
-## Next safe step 1. Add `sample_double_backslash_comment` to `zigux/tests/fixtures/fixdep/cases.json` together with `sample_double_backslash_comment.d`, `sample_double_backslash_comment_source.rmeta`, `sample_double_backslash_comment_expected.txt`, and `sample_double_backslash_comment_expected.stderr.txt`. 2. Update `scripts/zigux/check-phase2-fixdep-gate.py` and `scripts/zigux/check-fixdep-diff.py` in the same change so the dedicated fixdep packet moves from twelve cases to thirteen without leaving the checker stack stale. 3. Re-run `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`, `python3 scripts/zigux/check-phase2-fixdep-gate.py`, `python3 scripts/zigux/check-fixdep-diff.py --self-test`, `python3 scripts/zigux/check-fixdep-diff.py`, and `zig test scripts/zigux/fixdep.zig` when a writable checkout with Zig is available.
-## Boundary Stay inside the `fixdep` lane only.
-Do not widen into `genksyms`, the kconfig bridge packet, or shared Phase 2 route inventory unless the missing external case proves one more directly coupled dependency.
+# Phase 2 fixdep next step note
+
+Lane: `P2-L01`
+
+Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-implementation anchor, but the broader external parity packet described by older fixdep notes is no longer directly materialized on current head.
+
+## Roadmap and ledger grounding
+
+- The Phase 2 roadmap still keeps `scripts/basic/fixdep.c` and `scripts/zigux/fixdep.zig` inside the selected dual-implementation tranche for toolchain and kbuild enablement.
+- The bootstrap ledger still records the bounded fixdep tranche around `scripts/zigux/fixdep.zig` together with a parity checker, validator entrypoint, fixture packet, and workflow-backed replay.
+
+## Current repo evidence
+
+- Current `master` still directly serves `scripts/zigux/fixdep.zig`, so the core dual-implementation helper remains real rather than speculative.
+- Current `master` also directly serves `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, `Documentation/zigux/phase2-closure.md`, and this note, and those shared surfaces now describe a narrower surviving Phase 2 packet centered on the kconfig bridges, toolchain pinning, and closure-side validators.
+- Repeated direct reads on current `master` now return missing for `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/check-phase2-fixdep-gate.py`, `zigux/tests/fixtures/fixdep/cases.json`, and `Documentation/zigux/artifact-diff.md`, so the older note about a live twelve-case external fixdep packet is no longer truthful on current head.
+- The live bootstrap workflow no longer shows dedicated fixdep parity or direct `zig test scripts/zigux/fixdep.zig` steps, which matches that narrower current-head packet rather than the older fixdep-specific replay story.
+
+## Survey result
+
+- The same-lane gap is now repo-reality drift, not helper-local parser drift.
+- `scripts/zigux/fixdep.zig` still satisfies the roadmap's selected dual-implementation anchor, but the directly readable checker, fixture, and closure companions recorded in older fixdep notes are no longer present on current `master`.
+- Because those companions are absent, the next honest move is not to add another external fixture case on top of a non-materialized packet.
+
+## Next safe step
+
+1. Re-materialize the smallest current-head fixdep companion packet first: one direct parity checker or one committed fixture roster that current `master` can actually read beside `scripts/zigux/fixdep.zig`.
+2. Only after that companion packet returns should follow-through widen into shared reminder surfaces such as the workflow, scripts-root README, or closure note.
+3. Keep this lane inside fixdep only; do not widen into genksyms, kconfig, or general Phase 2 route inventory.
