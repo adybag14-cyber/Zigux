@@ -10,24 +10,35 @@ from pathlib import Path
 CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")
 SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")
 EXPORT_UAPI_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
+HEADER_FAMILY_SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
+HEADER_FAMILY_VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")
 
 REQUIRED_MARKERS = {
     CATALOG_PATH: (
         'PHASE3_CATALOG_PHASE = "Phase 3"',
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
         'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test"',
         '"python3 scripts/zigux/validate-phase3-export-uapi-survey.py"',
+        '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py"',
         '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
     SURVEY_PATH: (
         "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
-        "Current `master` no longer shows a separate packet-local repo-reality gap for this starter export/UAPI packet.",
     ),
     EXPORT_UAPI_VALIDATOR_PATH: (
         'CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
+    ),
+    HEADER_FAMILY_SURVEY_PATH: (
+        "PHASE3_ABI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+    ),
+    HEADER_FAMILY_VALIDATOR_PATH: (
+        'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+        'print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")',
     ),
 }
 
@@ -84,18 +95,18 @@ def run_self_test() -> int:
         ),
         (
             CATALOG_PATH,
-            '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
-            "expected missing catalog export-uapi layout route marker was not reported",
+            '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
+            "expected missing catalog header-family self-test route marker was not reported",
         ),
         (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
-            "expected missing survey catalog-selftest guard marker was not reported",
+            HEADER_FAMILY_SURVEY_PATH,
+            "PHASE3_ABI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+            "expected missing header-family survey catalog-selftest guard marker was not reported",
         ),
         (
-            EXPORT_UAPI_VALIDATOR_PATH,
-            'CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
-            "expected missing export-uapi validator catalog-selftest marker was not reported",
+            HEADER_FAMILY_VALIDATOR_PATH,
+            'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+            "expected missing header-family validator catalog-selftest marker was not reported",
         ),
     )
 
