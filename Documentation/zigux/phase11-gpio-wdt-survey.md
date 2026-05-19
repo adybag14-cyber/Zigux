@@ -51,10 +51,10 @@ driver-plus-docs packet below:
 The returned driver and companion notes keep the bounded
 `platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
 `descriptorRequestSummary()`, `platformDrvdataCheckpointSummary()`,
-`nowayoutPolicySummary()`, `registrationHandoffSummary()`,
-`registrationPlanSummary()`, `registerDeviceCallSummary()`,
-`registerDeviceFailureSummary()`, `requestStop()`, and
-`summarizeTeardown()` checkpoint names reviewable as the current packet.
+`watchdogDrvdataCheckpointSummary()`, `nowayoutPolicySummary()`,
+`registrationHandoffSummary()`, `registrationPlanSummary()`,
+`registerDeviceCallSummary()`, `registerDeviceFailureSummary()`, `requestStop()`,
+and `summarizeTeardown()` checkpoint names reviewable as the current packet.
 
 ## Still-Bounded Gaps
 
@@ -78,9 +78,9 @@ Current authenticated contents reads keep a narrower gpio watchdog continuity
 packet directly reviewable on `master` through the returned driver plus the
 survey note, module slice, teardown note, and validation matrix.
 
-This survey therefore keeps the current-head packet honest without reviving the
-older replay, manifest, shared-contract, or survey-gate anchors as if they had
-all returned.
+That current packet now also makes the watchdog-drvdata ownership handoff
+explicit beside the existing platform-drvdata and register-device summaries
+without overstating live registration behavior.
 
 ## Bounded Meaning
 
@@ -93,4 +93,6 @@ shutdown execution, or hardware-validated teardown parity.
 
 If a future reread rematerializes the deeper gpio replay, manifest, or checker
 anchors, refresh this survey together with the validation matrix and the
-smallest directly coupled gpio reminder surface in one bounded pass.
+smallest directly coupled gpio reminder surface in one bounded pass. If the
+current smaller packet needs one more driver-local follow-up first, keep it to a
+reboot-glue checkpoint or another equally small truthfulness repair.
