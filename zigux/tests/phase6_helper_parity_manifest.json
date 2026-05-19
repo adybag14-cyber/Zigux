@@ -6,7 +6,6 @@
   "purpose": "Record the current directly readable Phase 6 helper-parity packet without overstating missing shared reminder, checker, or perf-note surfaces as returned evidence.",
   "shared_direct_evidence": [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
-    "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
@@ -93,6 +92,7 @@
     }
   ],
   "shared_follow_through_gaps": [
+    "Documentation/zigux/README.md",
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md"
   ]
