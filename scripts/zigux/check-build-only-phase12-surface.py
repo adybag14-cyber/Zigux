@@ -147,6 +147,7 @@ REQUIRED_MARKERS = {
         "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
         "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.",
         "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
+        "`.github/workflows/zigux-bootstrap.yml` also keeps `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` explicit after the shared `phase12-smoke` and `phase12-test` reruns, but this matrix should keep that throughput-parity step framed as adjacent `virtio_net` evidence rather than as part of the shared PMO smoke-first route.",
     ],
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
         "current `zigux/Makefile` now ships `phase12-smoke`, `phase12-test`, and `phase12` again, while `phase12-validate` is still absent, so only `make -C zigux phase12-validate` stays reminder vocabulary while `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
@@ -211,6 +212,8 @@ REQUIRED_MARKERS = {
         "        run: make -C zigux phase12-smoke",
         "- name: Run current Phase 12 shared test packet",
         "        run: make -C zigux phase12-test",
+        "- name: Run current Phase 12 throughput-parity anchor",
+        "        run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
     ],
 }
 
@@ -355,6 +358,7 @@ def run_self_test() -> int:
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][0]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][1]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][2]),
+            (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][3]),
             (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][0]),
             (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][1]),
             (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][2]),
@@ -399,6 +403,8 @@ def run_self_test() -> int:
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][9]),
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][10]),
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][11]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][12]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][13]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
