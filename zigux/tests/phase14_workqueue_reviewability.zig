@@ -1,4 +1,5 @@
 const std = @import("std");
+const workqueue_bridge = @import("workqueue_bridge");
 
 const Gap = struct {
     id: []const u8,
@@ -35,6 +36,12 @@ fn expectGapStatus(manifest: Manifest, id: []const u8, status: []const u8) !void
     return error.MissingExpectedGap;
 }
 
+fn expectBridgeRereadSurfaces(surface: []const u8, handoff: workqueue_bridge.MaintenanceHandoff) !void {
+    for (handoff.reread_surfaces) |path| {
+        try std.testing.expect(std.mem.indexOf(u8, surface, path) != null);
+    }
+}
+
 test "phase14 workqueue reviewability packet stays wired to the blocked-maintenance packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -51,11 +58,13 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     defer parsed.deinit();
 
     const manifest = parsed.value;
+    const bridge_handoff = workqueue_bridge.WorkqueueBridgeLab.maintenanceHandoff();
     try std.testing.expectEqualStrings("P14-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 14", manifest.phase);
     try std.testing.expectEqualStrings("9b98d3b9c812840bf279508030be0b8de093736c", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("kernel/workqueue.c", manifest.anchor);
     try std.testing.expectEqualStrings("blocked_maintenance", manifest.maintenance_handoff.current_lane_posture);
+    try std.testing.expectEqualStrings(bridge_handoff.posture, manifest.maintenance_handoff.current_lane_posture);
     try std.testing.expectEqual(@as(usize, 1), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqualStrings(
         "zig test zigux/tests/phase14_workqueue_reviewability.zig",
@@ -94,6 +103,7 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "PHASE14_SLICE=phase14-workqueue-scheduler-visible-worker-state-refinement") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "zigux/tests/phase14_workqueue_reviewability.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, slice_note, "blocked maintenance") != null);
+    try expectBridgeRereadSurfaces(slice_note, bridge_handoff);
 
     const survey_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
@@ -122,6 +132,7 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase14-validate") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared packet-local validation rather than direct bridge-local trust gates") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers") != null);
+    try expectBridgeRereadSurfaces(survey_note, bridge_handoff);
 
     const traceability_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
