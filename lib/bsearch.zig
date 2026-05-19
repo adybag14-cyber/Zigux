@@ -571,6 +571,67 @@ test "mutable equal-range wrappers expose whole duplicate spans for typed and ra
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 4, 8, 9, 16 }, raw_duplicates[0..]);
 }
 
+test "mutable wrappers keep write-through aliases with runtime-selected c abi comparator pointers" {
+    const typed_ascending_compare = compareCInt;
+    const typed_descending_compare = compareCDescendingInt;
+    const raw_ascending_compare = compareCOpaqueInt;
+    const raw_descending_compare = compareCOpaqueDescendingInt;
+
+    var typed_values = [_]i32{ 2, 4, 7, 11, 16, 23, 42 };
+    const typed_key = @as(i32, 11);
+    const typed_hit = searchMutable(i32, i32, &typed_key, typed_values[0..], typed_ascending_compare) orelse return error.TestUnexpectedResult;
+    typed_hit.* = 12;
+    try std.testing.expectEqual(@as(i32, 12), typed_values[3]);
+
+    const raw_key = @as(i32, 12);
+    const raw_hit = bsearchMutable(&raw_key, @ptrCast(typed_values[0..].ptr), typed_values.len, @sizeOf(i32), raw_ascending_compare) orelse return error.TestUnexpectedResult;
+    const typed_raw_hit: *i32 = @ptrCast(@alignCast(raw_hit));
+    typed_raw_hit.* = 13;
+    try std.testing.expectEqual(@as(i32, 13), typed_values[3]);
+
+    var typed_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const ascending_duplicate_key = @as(i32, 4);
+
+    const typed_lower = lowerBoundMutable(i32, i32, &ascending_duplicate_key, typed_duplicates[0..], typed_ascending_compare) orelse return error.TestUnexpectedResult;
+    typed_lower.* = 5;
+    try std.testing.expectEqual(@as(i32, 5), typed_duplicates[1]);
+
+    const typed_upper = upperBoundMutable(i32, i32, &ascending_duplicate_key, typed_duplicates[0..], typed_ascending_compare) orelse return error.TestUnexpectedResult;
+    typed_upper.* = 10;
+    try std.testing.expectEqual(@as(i32, 10), typed_duplicates[4]);
+
+    var raw_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const raw_lower = bsearchLowerBoundMutable(&ascending_duplicate_key, @ptrCast(raw_duplicates[0..].ptr), raw_duplicates.len, @sizeOf(i32), raw_ascending_compare) orelse return error.TestUnexpectedResult;
+    const typed_raw_lower: *i32 = @ptrCast(@alignCast(raw_lower));
+    typed_raw_lower.* = 6;
+    try std.testing.expectEqual(@as(i32, 6), raw_duplicates[1]);
+
+    const raw_upper = bsearchUpperBoundMutable(&ascending_duplicate_key, @ptrCast(raw_duplicates[0..].ptr), raw_duplicates.len, @sizeOf(i32), raw_ascending_compare) orelse return error.TestUnexpectedResult;
+    const typed_raw_upper: *i32 = @ptrCast(@alignCast(raw_upper));
+    typed_raw_upper.* = 10;
+    try std.testing.expectEqual(@as(i32, 10), raw_duplicates[4]);
+
+    var typed_descending_duplicates = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const descending_duplicate_key = @as(i32, 4);
+    const typed_descending_range = equalRangeMutable(i32, i32, &descending_duplicate_key, typed_descending_duplicates[0..], typed_descending_compare);
+    try std.testing.expectEqual(@as(usize, 3), typed_descending_range.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, typed_descending_range);
+    typed_descending_range[0] = 6;
+    typed_descending_range[typed_descending_range.len - 1] = 5;
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 16, 9, 6, 4, 5, 1 }, typed_descending_duplicates[0..]);
+
+    var raw_descending_duplicates = [_]i32{ 16, 9, 4, 4, 4, 1 };
+    const raw_descending_bytes = bsearchEqualRangeMutable(&descending_duplicate_key, @ptrCast(raw_descending_duplicates[0..].ptr), raw_descending_duplicates.len, @sizeOf(i32), raw_descending_compare);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), raw_descending_bytes.len);
+    const typed_raw_descending_ptr: [*]i32 = @ptrCast(@alignCast(raw_descending_bytes.ptr));
+    const typed_raw_descending = typed_raw_descending_ptr[0 .. raw_descending_bytes.len / @sizeOf(i32)];
+    try std.testing.expectEqual(@as(usize, 3), typed_raw_descending.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, typed_raw_descending);
+    typed_raw_descending[0] = 7;
+    typed_raw_descending[typed_raw_descending.len - 1] = 8;
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 16, 9, 7, 4, 8, 1 }, raw_descending_duplicates[0..]);
+}
+
 test "index range views keep typed and byte aliases aligned for hits and insertion sites" {
     const duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
     const duplicate_range = IndexRange{ .lower = 1, .upper = 4 };
