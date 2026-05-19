@@ -234,3 +234,29 @@ test "zallocValue re-zeroes optional slices after earlier dirty frees" {
     try std.testing.expect(value.?.view == null);
     try std.testing.expect(value.?.nested.maybe_count == null);
 }
+
+test "zallocValue re-zeroes packed bitfields after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Payload = packed struct(u16) {
+        active: bool,
+        mode: u3,
+        count: u4,
+        checksum: u8,
+    };
+
+    var value: ?*Payload = try zallocValue(allocator, Payload);
+    try std.testing.expect(value != null);
+    value.?.* = .{
+        .active = true,
+        .mode = 0b101,
+        .count = 0b1111,
+        .checksum = 0xaa,
+    };
+    zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Payload);
+    defer zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expectEqual(@as(u16, 0), @as(u16, @bitCast(value.?.*)));
+}
