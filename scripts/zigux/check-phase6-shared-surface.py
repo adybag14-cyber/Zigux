@@ -59,9 +59,17 @@ REQUIRED_PARITY_MANIFEST_SNIPPETS = [
     '"make -C zigux phase6-perf"',
     '"scripts/zigux/check-phase6-shared-surface.py"',
     '"scripts/zigux/check-phase6-present-entrypoints.py"',
+    '"zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig"',
+    '"zigux/tests/phase6_base64_c_parity.zig"',
+    '"zigux/tests/phase6_base64_c_casegen.zig"',
+    '"zigux/tests/fixtures/phase6_base64_c_harness.c"',
+    '"scripts/zigux/check-phase6-base64-c-parity.py"',
+    '"zigux/tests/phase6_checksum_c_parity.zig"',
+    '"zigux/tests/fixtures/phase6_checksum_c_harness.c"',
+    '"scripts/zigux/check-phase6-checksum-c-parity.py"',
 ]
 
-SELF_TEST_CASE_COUNT = 7
+SELF_TEST_CASE_COUNT = 9
 
 
 class ValidationError(RuntimeError):
@@ -138,6 +146,8 @@ def run_self_test() -> None:
             (root / HELPER_EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-bsearch-perf"'),
             (root / HELPER_PARITY_MANIFEST_PATH, '"public_tree_backed_shared_companions": ['),
             (root / HELPER_PARITY_MANIFEST_PATH, '"make -C zigux phase6-perf"'),
+            (root / HELPER_PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-base64-c-parity.py"'),
+            (root / HELPER_PARITY_MANIFEST_PATH, '"scripts/zigux/check-phase6-checksum-c-parity.py"'),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
