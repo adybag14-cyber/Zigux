@@ -19,6 +19,11 @@ BINDING_DEV_T = Path("zigux/bindings/dev_t.zig")
 BINDING_VERSION = Path("zigux/bindings/version.zig")
 BINDING_NOTIFIER = Path("zigux/bindings/notifier_abi.zig")
 EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
+PHASE3_CATALOG = Path("scripts/zigux/phase3_catalog.py")
+EXPORT_UAPI_SURVEY_VALIDATOR = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
+ABI_REPLAY = Path("zigux/tests/phase3_abi.zig")
+TESTS_BUILD = Path("zigux/tests/build.zig")
+ABI_DUMP = Path("zigux/tests/phase3_abi_dump_current.zig")
 
 REQUIRED_MARKERS = {
     ABI_SLICE_NOTE: (
@@ -36,6 +41,14 @@ REQUIRED_MARKERS = {
         "zigux/kernel/export_shim.zig",
         "scripts/zigux/check-phase3-abi.py",
         "scripts/zigux/validate-phase3.py",
+        "scripts/zigux/phase3_catalog.py",
+        "scripts/zigux/validate-phase3-export-uapi-survey.py",
+        "zigux/tests/phase3_abi.zig",
+        "zigux/tests/build.zig",
+        "zigux/tests/phase3_abi_dump_current.zig",
+        "scripts/zigux/check-phase3-catalog-selftest.py",
+        "Documentation/zigux/phase3-linux-zigux-header-governance.md",
+        "zigux/tests/fixtures/phase3_abi_manifest.json",
     ),
     ABI_HEADER: (
         "#define ZIGUX_ABI_VERSION 1U",
@@ -160,24 +173,60 @@ REQUIRED_MARKERS = {
         "pub fn statusIsOk(status: ExportStatus) bool {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
     ),
+    PHASE3_CATALOG: (
+        'PHASE3_CATALOG_SCOPE = "abi-runtime"',
+        'Path("scripts/zigux/phase3_catalog.py")',
+        'print("PHASE3_CATALOG_SELF_TEST=pass")',
+    ),
+    EXPORT_UAPI_SURVEY_VALIDATOR: (
+        'SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        'CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")',
+        'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
+    ),
+    ABI_REPLAY: (
+        'test "phase3 abi keeps shared layout assertions wired into the replay" {',
+        'test "phase3 abi keeps export shim compatibility and status helpers reviewable" {',
+        'test "phase3 abi keeps version and dev_t relays explicit" {',
+    ),
+    TESTS_BUILD: (
+        'const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);',
+        'const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);',
+        '"phase3-abi-core-packet"',
+        '"phase3-dump"',
+        'phase3_test_step.dependOn(&phase3_abi_core_packet.step);',
+    ),
+    ABI_DUMP: (
+        'const abi = @import("abi_bindings");',
+        "pub fn main(init: std.process.Init) !void {",
+        '"  \\"abi_version\\": {},\\n"',
+        '"  \\"notifier\\": {{\\n',
+    ),
 }
 
 SELF_TEST_CASES = (
     (
         ABI_SLICE_NOTE,
-        "scripts/zigux/check-phase3-abi.py",
+        "scripts/zigux/phase3_catalog.py",
+    ),
+    (
+        ABI_SLICE_NOTE,
+        "zigux/tests/phase3_abi.zig",
+    ),
+    (
+        ABI_SLICE_NOTE,
+        "zigux/tests/phase3_abi_dump_current.zig",
     ),
     (
         BINDING_ABI,
         "pub const NotifierResult = notifier_abi.NotifierResult;",
     ),
     (
-        BINDING_ABI,
-        "pub const ABI_VERSION: u16 = 1;",
+        ABI_REPLAY,
+        'test "phase3 abi keeps shared layout assertions wired into the replay" {',
     ),
     (
-        EXPORT_SHIM,
-        "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
+        PHASE3_CATALOG,
+        'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
 )
 
