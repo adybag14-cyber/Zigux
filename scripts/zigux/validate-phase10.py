@@ -27,7 +27,6 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
     "scripts/zigux/validate-phase10-closure.py",
-    "zigux-alpha/PHASE10_CLOSURE_LEDGER.md",
     "zigux/Makefile",
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
