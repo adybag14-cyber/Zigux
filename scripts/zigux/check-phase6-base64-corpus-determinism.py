@@ -40,6 +40,7 @@ EXPECTED_SLICE_SNIPPETS = [
     "- helper-local corpus checker: `scripts/zigux/check-phase6-base64-corpus-determinism.py`",
     "- exact fixture-owned corpus counts on current `master`: 22 standard encode cases, 18 variant encode cases, 22 standard decode cases, 12 variant decode cases, 16 invalid decode cases, and 6 perf replay cases, all centralized in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by `zigux/tests/phase6_base64.zig` or `zigux/tests/phase6_base64_perf.zig`",
     "- exact helper-local perf replay packet: ordered labels `STD_PAD`, `STD_NO_PAD`, `URLSAFE_PAD`, `URLSAFE_NO_PAD`, `IMAP_PAD`, and `IMAP_NO_PAD`, each with `iterations = 12000`, `max_encode_slowdown_pct = 150`, and `max_decode_slowdown_pct = 325`, owned once in `zigux/tests/fixtures/phase6_base64_vectors.zig` and replayed by the helper-local perf gate",
+    "- invalid-input rejection for malformed, embedded-NUL, and variant-mismatched decode inputs",
 ]
 
 EXPECTED_HELPER_TEST_SNIPPETS = [
@@ -48,6 +49,18 @@ EXPECTED_HELPER_TEST_SNIPPETS = [
     'for (fixtures.standard_decode_cases) |case| {',
     'for (fixtures.invalid_decode_cases) |case| {',
     'for (fixtures.variant_decode_cases) |case| {',
+    'try std.testing.expectError(base64.DecodeError.InvalidInput, base64.bytes(case.input, case.padding, variant));',
+    'try std.testing.expectError(base64.DecodeError.InvalidInput, base64.decode(buf[0..], case.input, case.padding, variant));',
+]
+
+EXPECTED_INVALID_FIXTURE_SNIPPETS = [
+    "const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };",
+    '.{ .input = "Zg=!", .padding = true, .variant_name = "std" },',
+    '.{ .input = "Zm$=", .padding = true, .variant_name = "std" },',
+    '.{ .input = invalid_with_nul[0..], .padding = true, .variant_name = "std" },',
+    '.{ .input = invalid_with_nul[0..], .padding = false, .variant_name = "std" },',
+    '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
+    '.{ .input = "Zg==", .padding = false, .variant_name = "imap" },',
 ]
 
 EXPECTED_PERF_TEST_SNIPPETS = [
@@ -56,7 +69,7 @@ EXPECTED_PERF_TEST_SNIPPETS = [
     "for (fixtures.perf_cases) |case| {",
 ]
 
-SELF_TEST_CASES = 8
+SELF_TEST_CASES = 10
 
 
 def read_text(path: Path) -> str:
@@ -161,6 +174,11 @@ def validate(repo_root: Path) -> None:
     fixtures_content = read_text(repo_root / FIXTURES_PATH)
     validate_fixture_counts(fixtures_content)
     validate_perf_labels(fixtures_content)
+    for snippet in EXPECTED_INVALID_FIXTURE_SNIPPETS:
+        if snippet not in fixtures_content:
+            raise ValidationError(
+                f"missing expected Phase 6 base64 corpus marker in {FIXTURES_PATH.as_posix()}: {snippet}"
+            )
 
 
 def write(path: Path, content: str) -> None:
@@ -221,9 +239,16 @@ pub const standard_decode_cases = [_]DecodeCase{
     .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{},
     .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{},
 };
+const invalid_with_nul = [_]u8{ 'Z', 'g', 0, '=' };
 pub const invalid_decode_cases = [_]InvalidDecodeCase{
-    .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{},
-    .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{},
+    .{ .input = "Zg=!", .padding = true, .variant_name = "std" },
+    .{ .input = "Zm$=", .padding = true, .variant_name = "std" },
+    .{}, .{}, .{}, .{},
+    .{ .input = invalid_with_nul[0..], .padding = true, .variant_name = "std" },
+    .{}, .{}, .{}, .{}, .{}, .{},
+    .{ .input = invalid_with_nul[0..], .padding = false, .variant_name = "std" },
+    .{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },
+    .{ .input = "Zg==", .padding = false, .variant_name = "imap" },
 };
 pub const variant_decode_cases = [_]DecodeCase{
     .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{}, .{},
@@ -314,6 +339,18 @@ def run_self_test() -> None:
             FIXTURES_PATH,
             "pub const invalid_decode_cases = [_]InvalidDecodeCase{",
             "pub const invalid_cases = [_]InvalidDecodeCase{",
+        )
+        expect_failure(
+            root,
+            FIXTURES_PATH,
+            '.{ .input = invalid_with_nul[0..], .padding = true, .variant_name = "std" },',
+            '.{ .input = "Zg==", .padding = true, .variant_name = "std" },',
+        )
+        expect_failure(
+            root,
+            FIXTURES_PATH,
+            '.{ .input = "Zg==", .padding = false, .variant_name = "urlsafe" },',
+            '.{ .input = "Zg==", .padding = false, .variant_name = "std" },',
         )
 
     print("PHASE6_BASE64_CORPUS_DETERMINISM_SELF_TEST=pass")
