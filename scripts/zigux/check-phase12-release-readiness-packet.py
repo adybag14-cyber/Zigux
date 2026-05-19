@@ -37,6 +37,9 @@ RAW_GITHUB_COVERAGE_SURVEY_PATH = (
 PHASE12_COMPLEX_DRIVER_LANE_PATH = (
     "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
 )
+PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = (
+    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
+)
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
@@ -58,6 +61,7 @@ REQUIRED_FILES = [
     RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
     PHASE12_COMPLEX_DRIVER_LANE_PATH,
+    PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     SCRIPTS_README_PATH,
@@ -122,6 +126,11 @@ REQUIRED_MARKERS = {
         "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, while only `make -C zigux phase12-validate` stays documented as shared reminder text until that wrapper returns on current `master`.",
         "Keep the current direct-read bridge split explicit too: fresh repo-first readback now returns `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, `zigux/Makefile`, and `zigux/tests/phase12_build.zig` on current `master`. The readable build file currently wires `zigux/tests/phase12_virtio_net_queue_resume.zig`, `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, `zigux/tests/phase12_virtio_net_post_reset_replay.zig`, and `zigux/tests/phase12_virtio_net_throughput_parity.zig` through the shared `smoke` and `test` steps, and the readable Makefile now exposes `phase12-smoke`, `phase12-test`, and `phase12` even though `phase12-validate` is still missing, so that checker-plus-workflow-plus-scripts-plus-Makefile-plus-build-file set stays direct support evidence only rather than proof for the larger starter-present `virtio_net`, rollback-lab `virtio_scsi`, or driver-local NVMe packet.",
         "keep those four `virtio_net` follow-ups framed as bounded queue-resume, transmit-disposition, post-reset replay, and throughput-parity reviewability inside the shared packet rather than as live DMA-safe receive ownership, queue restart parity, transport-backed queue flow, or completion-path parity",
+    ],
+    PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH: [
+        "- `PHASE12_LANE=libbpf-heavy-consumer-shared-release-packet`",
+        "- Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`, so keep only `make -C zigux phase12-validate` here as reminder vocabulary and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.",
+        "- The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.",
     ],
     SCRIPTS_README_PATH: [
         "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
@@ -258,6 +267,7 @@ def fixture_text(rel_path: str) -> str:
             RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
             RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
             PHASE12_COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex-Driver Lane Sequencing",
+            PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH: "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
             SCRIPTS_README_PATH: "# scripts/zigux",
             TESTS_README_PATH: "# zigux/tests",
             WORKFLOW_PATH: "name: zigux-bootstrap",
@@ -319,6 +329,7 @@ def run_self_test() -> int:
             RELEASE_COORDINATION_MATRIX_PATH,
             RAW_GITHUB_COVERAGE_SURVEY_PATH,
             PHASE12_COMPLEX_DRIVER_LANE_PATH,
+            PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
             BUILD_ONLY_CHECKER_PATH,
             RELEASE_READINESS_CHECKER_PATH,
             SCRIPTS_README_PATH,
