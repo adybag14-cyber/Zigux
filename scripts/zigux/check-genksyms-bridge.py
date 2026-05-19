@@ -93,6 +93,18 @@ EXPECTED_CASES = [
         "expected": "missing_long_reference_argument_expected.json",
     },
     {
+        "name": "long_version_before_missing_long_reference_argument",
+        "argv": ["--version", "--reference"],
+        "mode": "process_json",
+        "expected": "version_before_missing_long_reference_argument_expected.json",
+    },
+    {
+        "name": "abbreviated_long_version_before_missing_long_reference_argument",
+        "argv": ["--ver", "--reference"],
+        "mode": "process_json",
+        "expected": "version_before_missing_long_reference_argument_expected.json",
+    },
+    {
         "name": "missing_long_dump_types_argument",
         "argv": ["--dump-types"],
         "mode": "process_json",
@@ -375,6 +387,11 @@ EXPECTED_OUTPUTS = {
         "stderr": "option '--reference' requires an argument\n",
         "exit_code": 1,
     },
+    "version_before_missing_long_reference_argument_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\noption '--reference' requires an argument\n",
+        "exit_code": 1,
+    },
     "missing_long_dump_types_argument_expected.json": {
         "stdout": "",
         "stderr": "option '--dump-types' requires an argument\n",
@@ -484,7 +501,7 @@ EXPECTED_HARNESS_MARKERS = [
     'execv(tool_path, child_argv);',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -537,12 +554,15 @@ def validate_cases(payload: object) -> list[str]:
 def validate_checker_text(text: str) -> list[str]:
     issues: list[str] = []
     required_markers = [
-        "EXPECTED_SELF_TEST_CASE_COUNT = 16",
+        "EXPECTED_SELF_TEST_CASE_COUNT = 18",
         'GENKSYMS_HARNESS_REL = f"{FIXTURE_ROOT_REL}/genksyms_bridge_c_harness.c"',
         'print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")',
         'print("PHASE2_GENKSYMS_BRIDGE=pass")',
         "PHASE2_GENKSYMS_BRIDGE_RUNTIME_CASE_COUNT",
         "runtime_compile_failed",
+        '"name": "long_version_before_missing_long_reference_argument"',
+        '"name": "abbreviated_long_version_before_missing_long_reference_argument"',
+        '"expected": "version_before_missing_long_reference_argument_expected.json"',
         '"name": "abbreviated_long_version_before_invalid_short_option"',
         '"name": "abbreviated_long_version_before_missing_short_option_argument"',
         '"name": "long_version_before_unexpected_long_option_argument"',
@@ -624,49 +644,63 @@ def run_self_test() -> int:
             return 1
         checks_run += 1
         if validate_runtime_observation(
-            EXPECTED_CASES[11],
+            EXPECTED_CASES[7],
+            {"stdout": "", "stderr": "genksyms version 2.5.60\noption '--reference' requires an argument\n", "exit_code": 1},
+            "runtime:long-version-missing-long-reference-argument",
+        ):
+            return 1
+        checks_run += 1
+        if validate_runtime_observation(
+            EXPECTED_CASES[8],
+            {"stdout": "", "stderr": "genksyms version 2.5.60\noption '--reference' requires an argument\n", "exit_code": 1},
+            "runtime:abbreviated-long-version-missing-long-reference-argument",
+        ):
+            return 1
+        checks_run += 1
+        if validate_runtime_observation(
+            EXPECTED_CASES[13],
             {"stdout": "", "stderr": "genksyms version 2.5.60\noption '--help' doesn't allow an argument\n", "exit_code": 1},
             "runtime:long-version-unexpected-long-option-argument",
         ):
             return 1
         checks_run += 1
         if validate_runtime_observation(
-            EXPECTED_CASES[12],
+            EXPECTED_CASES[14],
             {"stdout": "", "stderr": "genksyms version 2.5.60\noption '--help' doesn't allow an argument\n", "exit_code": 1},
             "runtime:abbreviated-long-version-unexpected-long-option-argument",
         ):
             return 1
         checks_run += 1
         if validate_runtime_observation(
-            EXPECTED_CASES[15],
+            EXPECTED_CASES[17],
             {"stdout": "", "stderr": "genksyms version 2.5.60\ninvalid option -- 'x'\n", "exit_code": 1},
             "runtime:abbreviated-long-version-invalid-short-option",
         ):
             return 1
         checks_run += 1
         if validate_runtime_observation(
-            EXPECTED_CASES[16],
+            EXPECTED_CASES[18],
             {"stdout": "", "stderr": "genksyms version 2.5.60\nunrecognized option '--unknown'\n", "exit_code": 1},
             "runtime:long-version-invalid-long-option",
         ):
             return 1
         checks_run += 1
         if validate_runtime_observation(
-            EXPECTED_CASES[17],
+            EXPECTED_CASES[19],
             {"stdout": "", "stderr": "genksyms version 2.5.60\nunrecognized option '--unknown'\n", "exit_code": 1},
             "runtime:abbreviated-long-version-invalid-long-option",
         ):
             return 1
         checks_run += 1
         if validate_runtime_observation(
-            EXPECTED_CASES[19],
+            EXPECTED_CASES[21],
             {"stdout": "", "stderr": "genksyms version 2.5.60\noption requires an argument -- 'r'\n", "exit_code": 1},
             "runtime:abbreviated-long-version-missing-short-option-argument",
         ):
             return 1
         checks_run += 1
         if validate_runtime_observation(
-            EXPECTED_CASES[27],
+            EXPECTED_CASES[29],
             {"stdout": "", "stderr": "genksyms version 2.5.60\ngenksyms version 2.5.60\n", "exit_code": 0},
             "runtime:repeated-long-version",
         ):
