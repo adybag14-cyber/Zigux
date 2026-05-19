@@ -135,6 +135,9 @@ jobs:
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
 
+      - name: Self-test current Zig installer helper
+        run: python3 scripts/zigux/install-zig.py --self-test
+
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
 
@@ -233,6 +236,12 @@ jobs:
       - name: Check current Phase 2 shared reminder packet
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
 
+      - name: Self-test current Phase 2 artifact tools manifest checker
+        run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test
+
+      - name: Check current Phase 2 artifact tools manifest packet
+        run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py
+
       - name: Self-test current Phase 2 genksyms bridge checker
         run: python3 scripts/zigux/check-genksyms-bridge.py --self-test
 
@@ -241,6 +250,9 @@ jobs:
 
       - name: Run current Phase 2 genksyms unit replay
         run: zig test scripts/zigux/genksyms.zig
+
+      - name: Run current Phase 2 validate make route
+        run: make -C zigux phase2-validate
 
       - name: Validate current Phase 2 tool packet
         run: python3 scripts/zigux/validate-phase2.py
