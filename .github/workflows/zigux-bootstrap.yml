@@ -230,6 +230,12 @@ jobs:
       - name: Check current Phase 2 shared reminder packet
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
 
+      - name: Self-test current Phase 2 tool manifest checker
+        run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test
+
+      - name: Check current Phase 2 tool manifest packet
+        run: python3 scripts/zigux/check-phase2-tool-manifest.py
+
       - name: Self-test current Phase 2 artifact tools manifest checker
         run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test
 
