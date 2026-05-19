@@ -10,17 +10,70 @@ import sys
 import tempfile
 
 CHECK_COMMANDS = (
-    (Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"), ()),
-    (Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"), ()),
-    (Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py"), ()),
-    (Path("scripts/zigux/check-phase3-policy-starter-packet.py"), ()),
-    (Path("scripts/zigux/validate-phase3.py"), ()),
-    (Path("scripts/zigux/check-phase3-shared-tests-routes.py"), ()),
-    (Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"), ()),
-    (Path("scripts/zigux/validate-phase3-validator-support-surface.py"), ()),
-    (Path("scripts/zigux/validate-phase3-export-uapi-survey.py"), ()),
-    (Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"), ()),
-    (Path("scripts/zigux/check-phase3-selftest-surface.py"), ()),
+    (
+        Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
+        (),
+        ("PHASE3_DEV_T_STARTER_PACKET=pass",),
+    ),
+    (
+        Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
+        (),
+        ("PHASE3_ERRPTR_XARRAY_STARTER_PACKET=pass",),
+    ),
+    (
+        Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py"),
+        (),
+        ("PHASE3_XARRAY_SLOT_STARTER_PACKET=pass",),
+    ),
+    (
+        Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
+        (),
+        ("PHASE3_POLICY_STARTER_PACKET=pass",),
+    ),
+    (
+        Path("scripts/zigux/validate-phase3.py"),
+        (),
+        ("PHASE3_VALIDATION=pass",),
+    ),
+    (
+        Path("scripts/zigux/check-phase3-shared-tests-routes.py"),
+        (),
+        (
+            "validated zigux/tests/build.zig",
+            "validated scripts/zigux/validate_phase3_selftest.py",
+        ),
+    ),
+    (
+        Path("scripts/zigux/check-phase3-readme-tooling-inventory.py"),
+        (),
+        ("validated scripts/zigux/README.md",),
+    ),
+    (
+        Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
+        (),
+        (
+            "validated Documentation/zigux/phase3-validator-support-surface.md",
+            "validated Documentation/zigux/phase3-shared-reminder-gap.md",
+        ),
+    ),
+    (
+        Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
+        (),
+        (
+            "validated Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+            "PHASE3_EXPORT_UAPI_SURVEY=pass",
+        ),
+    ),
+    (
+        Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+        (),
+        ("validated Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",),
+    ),
+    (
+        Path("scripts/zigux/check-phase3-selftest-surface.py"),
+        (),
+        ("validated scripts/zigux/README.md",),
+    ),
 )
 
 SELF_TEST_MISSING_CASES = (
@@ -36,9 +89,13 @@ SELF_TEST_MISSING_CASES = (
 )
 
 
+def _missing_output_markers(stdout: str, markers: tuple[str, ...]) -> list[str]:
+    return [marker for marker in markers if marker not in stdout]
+
+
 def validate_script_list(repo_root: Path) -> list[str]:
     missing: list[str] = []
-    for rel_path, _args in CHECK_COMMANDS:
+    for rel_path, _args, _markers in CHECK_COMMANDS:
         if not (repo_root / rel_path).is_file():
             missing.append(f"missing phase3 check script: {rel_path.as_posix()}")
     return missing
@@ -51,7 +108,7 @@ def run_packet(repo_root: Path) -> int:
         print("\n".join(missing))
         return 1
 
-    for rel_path, args in CHECK_COMMANDS:
+    for rel_path, args, output_markers in CHECK_COMMANDS:
         result = subprocess.run(
             [sys.executable, rel_path.as_posix(), *args],
             cwd=repo_root,
@@ -68,9 +125,38 @@ def run_packet(repo_root: Path) -> int:
                 print(result.stderr.rstrip())
             return 1
 
+        missing_markers = _missing_output_markers(result.stdout, output_markers)
+        if missing_markers:
+            print("PHASE3_CHECK_RUNNER=fail")
+            print("phase3 check produced incomplete success output: " + rel_path.as_posix())
+            for marker in missing_markers:
+                print(f"missing output marker: {marker}")
+            if result.stdout:
+                print(result.stdout.rstrip())
+            if result.stderr:
+                print(result.stderr.rstrip())
+            return 1
+
     print("PHASE3_CHECK_RUNNER=pass")
     print(f"PHASE3_CHECK_RUNNER_CASE_COUNT={len(CHECK_COMMANDS)}")
     return 0
+
+
+def _write_synthetic_script(
+    path: Path,
+    output_markers: tuple[str, ...],
+    *,
+    failure_code: int | None = None,
+) -> None:
+    lines = ["#!/usr/bin/env python3", "import sys"]
+    for marker in output_markers:
+        lines.append(f"print({marker!r})")
+    if failure_code is None:
+        lines.append("raise SystemExit(0)")
+    else:
+        lines.append("print('synthetic stderr detail', file=sys.stderr)")
+        lines.append(f"raise SystemExit({failure_code})")
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -78,13 +164,10 @@ def run_self_test() -> int:
         root = Path(temp_dir)
 
         def populate_repo() -> None:
-            for rel_path, _args in CHECK_COMMANDS:
+            for rel_path, _args, output_markers in CHECK_COMMANDS:
                 path = root / rel_path
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_text(
-                    "#!/usr/bin/env python3\nraise SystemExit(0)\n",
-                    encoding="utf-8",
-                )
+                _write_synthetic_script(path, output_markers)
 
         populate_repo()
 
@@ -106,13 +189,10 @@ def run_self_test() -> int:
 
         failing_path = CHECK_COMMANDS[-2][0]
         populate_repo()
-        (root / failing_path).write_text(
-            "#!/usr/bin/env python3\n"
-            "import sys\n"
-            "print('synthetic phase3 validator failure')\n"
-            "print('synthetic stderr detail', file=sys.stderr)\n"
-            "raise SystemExit(9)\n",
-            encoding="utf-8",
+        _write_synthetic_script(
+            root / failing_path,
+            CHECK_COMMANDS[-2][2],
+            failure_code=9,
         )
         result = run_packet(root)
         if result != 1:
@@ -120,10 +200,29 @@ def run_self_test() -> int:
             print("expected failing child validator to fail the runner")
             return 1
 
+        shared_routes_path = root / CHECK_COMMANDS[5][0]
+        populate_repo()
+        _write_synthetic_script(
+            shared_routes_path,
+            (CHECK_COMMANDS[5][2][0],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing shared-routes output marker to fail the runner")
+            return 1
+
+        readme_inventory_path = root / CHECK_COMMANDS[6][0]
+        populate_repo()
+        _write_synthetic_script(readme_inventory_path, ())
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing readme-inventory output marker to fail the runner")
+            return 1
+
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 2}"
+            f"{len(SELF_TEST_MISSING_CASES) + 4}"
         )
         return 0
 
