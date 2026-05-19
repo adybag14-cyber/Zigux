@@ -157,7 +157,7 @@ WORKFLOW_MARKERS = (
 CHECKLIST_MARKERS = (
     "keep the directly readable local-only perf packet explicit",
     "keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
-    "keep the repo-reality warning explicit for the missing broader Phase 4 validator, build, and bitmap-diff companions",
+    "keep the repo-reality warning explicit for the broader Phase 4 validator, build, and bitmap-diff companions still needing raw-fallback proof or fresh authenticated blob capture",
     "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
     "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
     "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
@@ -403,7 +403,7 @@ def build_fixture_tree(root: Path) -> None:
                 "# Review Checklist",
                 "keep the directly readable local-only perf packet explicit",
                 "keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
-                "keep the repo-reality warning explicit for the missing broader Phase 4 validator, build, and bitmap-diff companions",
+                "keep the repo-reality warning explicit for the broader Phase 4 validator, build, and bitmap-diff companions still needing raw-fallback proof or fresh authenticated blob capture",
                 "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
                 "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
                 "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
