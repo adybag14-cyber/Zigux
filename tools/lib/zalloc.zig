@@ -66,6 +66,14 @@ test "zallocBytes supports zero-length slices and repeated free" {
     try std.testing.expect(bytes == null);
 }
 
+test "zfreeBytes tolerates null optionals" {
+    const allocator = std.testing.allocator;
+
+    var bytes: ?[]u8 = null;
+    zfreeBytes(allocator, &bytes);
+    try std.testing.expect(bytes == null);
+}
+
 test "zfreeValue tolerates null optionals" {
     const allocator = std.testing.allocator;
     const Value = struct {
