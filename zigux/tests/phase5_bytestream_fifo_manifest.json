@@ -1,7 +1,7 @@
 {
   "lane_key": "P5-L01",
   "phase": "Phase 5",
-  "surveyed_commit": "f5d7e8a4ffea5120ea712758c50d4460bd5d9ebc",
+  "surveyed_commit": "10ccc283e88f640da6d89b3feafff887b99bb489",
   "anchor": "samples/kfifo/bytestream-example.c",
   "sample_path": "samples/zigux/bytestream_fifo.zig",
   "validation_entrypoint": "zig build test --build-file zigux/tests/phase5_build.zig --summary all",
