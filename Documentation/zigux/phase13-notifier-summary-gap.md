@@ -40,7 +40,7 @@ This note still does not claim a broader list bridge or a closed notifier packet
 
 ## Why It Matters
 
-Phase 13 in the roadmap is still the shared-helper tranche around the `libfs`, `devres`, and Landlock anchors. The notifier or list packet remains adjacent evidence only, so the adjacent gap note should stay truthful about which checker-backed notifier or list-facing surfaces now exist, which shared build file has returned, which direct notifier helper is still missing, and which route names are still missing.
+Phase 13 in the roadmap is still the shared-helper tranche around the `libfs`, `devres`, and Landlock anchors. The notifier or list packet remains adjacent evidence only, so the adjacent gap note should stay truthful about which checker-backed notifier or list-facing surfaces now exist, which shared build file is still missing, which direct notifier helper is still missing, and which route names are still missing.
 
 ## Next Bounded Step
 
