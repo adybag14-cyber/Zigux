@@ -19,7 +19,7 @@ This note records the current policy and narrow-unsafe boundary for the bounded 
 - `PHASE3_UNSAFE_PATH=zigux/unsafe/narrow.zig`
 - `PHASE3_UNSAFE_SCOPE=narrow-mmio-and-raw-pointer-bridge-with-explicit-audit-gates`
 - `PHASE3_UNSAFE_BLOB_SHA=0ce01e9d472d0a3ce651808dacb0219a225b4012`
-- `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=f789117984029844a021ab64164a8c7fa0a983a6`
+- `PHASE3_POLICY_SLICE_DOC_BLOB_SHA=fefaca671e37ade8a5cc3aae3b843d858c7001b1`
 - `PHASE3_LOW_LEVEL_WRAPPER_SURVEY_DOC_BLOB_SHA=e38183c47ceca74e307bba8293e8edc649ece057`
 - `PHASE3_POLICY_STARTER_PACKET_MANIFEST_PATH=zigux/tests/phase3_policy_starter_packet_manifest.json`
 - `PHASE3_POLICY_PACKET_GATE=python3 scripts/zigux/check-phase3-policy-starter-packet.py`
