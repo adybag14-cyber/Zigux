@@ -257,6 +257,31 @@ test "starter packet keeps bitmap and cpumask exact-word windows aligned" {
     try testing.expect(!bitmap_view.testBit(bitmap, bitmap_view.bits_per_word + 6));
 }
 
+test "starter packet keeps bitmap and cpumask full tail-masked windows aligned" {
+    var backing = [_]usize{
+        ~@as(usize, 0),
+        bitmap_view.lastWordMask(bitmap_view.bits_per_word + 11),
+    };
+    const nbits = bitmap_view.bits_per_word + 11;
+    const bitmap = bitmap_view.viewFromWords(backing[0..], nbits);
+    const cpumask = cpumask_view.viewFromWords(backing[0..], nbits);
+    const bitmap_summary = bitmap_view.summarize(bitmap);
+    const cpumask_summary = cpumask_view.summarize(cpumask);
+
+    try testing.expect(bitmap_view.isValid(bitmap));
+    try testing.expect(cpumask_view.isValid(cpumask));
+    try testing.expectEqual(bitmap_summary.first_set, cpumask_summary.first_set);
+    try testing.expectEqual(bitmap_summary.first_zero, cpumask_summary.first_zero);
+    try testing.expectEqual(bitmap_summary.weight, cpumask_summary.weight);
+    try testing.expectEqual(bitmap_view.firstSet(bitmap), cpumask_view.firstCpu(cpumask));
+    try testing.expectEqual(bitmap_view.firstZero(bitmap), cpumask_view.firstAbsentCpu(cpumask));
+    try testing.expectEqual(bitmap_view.weight(bitmap), cpumask_view.weight(cpumask));
+    try testing.expectEqual(bitmap_view.testBit(bitmap, bitmap_view.bits_per_word + 10), cpumask_view.cpuIsSet(cpumask, bitmap_view.bits_per_word + 10));
+    try testing.expectEqual(bitmap_view.testBit(bitmap, bitmap_view.bits_per_word + 11), cpumask_view.cpuIsSet(cpumask, bitmap_view.bits_per_word + 11));
+    try testing.expect(bitmap_view.testBit(bitmap, bitmap_view.bits_per_word + 10));
+    try testing.expect(!bitmap_view.testBit(bitmap, bitmap_view.bits_per_word + 11));
+}
+
 test "starter packet keeps cpumask drift fail-closed while bitmap projection stays readable" {
     var backing = [_]usize{
         (@as(usize, 1) << 1) | (@as(usize, 1) << 4) | (@as(usize, 1) << 63),
