@@ -814,6 +814,24 @@ test "genksyms bridge preserves abbreviated long version side effects before mis
     }
 }
 
+test "genksyms bridge preserves abbreviated long version side effects before missing short dump-types arguments" {
+    const args = [_][]const u8{
+        "--ver",
+        "-T",
+    };
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try testing.expectEqual(@as(usize, 1), failure.version_count);
+            switch (failure.reason) {
+                .missing_option_argument => |option| try testing.expectEqualStrings("T", option),
+                else => return error.UnexpectedParseFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "genksyms bridge accepts unambiguous abbreviated long options" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
