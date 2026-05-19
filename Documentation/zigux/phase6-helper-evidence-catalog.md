@@ -25,10 +25,8 @@ The four Phase 6 slice notes keep the helper-local detail, but they do not keep 
 
 Fresh direct GitHub contents reads on current `master` still return missing for several shared-note and helper-local packet members that older Phase 6 reminder surfaces have treated as shipped evidence, including:
 
-- `Documentation/zigux/phase6-helper-parity-catalog.md`
 - `Documentation/zigux/phase6-hexdump-slice.md`
 - `Documentation/zigux/phase6-hexdump-perf-refresh.md`
-- `Documentation/zigux/phase6-perf-gate-survey.md`
 - `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`
 - `zigux/tests/phase6_base64_c_parity.zig`
 - `zigux/tests/phase6_base64_c_casegen.zig`
@@ -38,11 +36,13 @@ Fresh direct GitHub contents reads on current `master` still return missing for 
 - `scripts/zigux/check-phase6-base64-c-parity.py`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
 
-Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-present-entrypoints.py`.
+Current public raw readback rematerializes `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep those broader parity and perf notes as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime.
+
+Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-present-entrypoints.py`.
 
 The docs-root README still lacks a dedicated Phase 6 helper-evidence stanza on surveyed head `9ca34d1`, so keep `Documentation/zigux/README.md` in follow-through vocabulary rather than the current direct-readback packet until a later shared-note lane restores that docs-root reminder explicitly.
 
-The broader shared perf survey still sits in repo-reality-gap territory in this runtime, so the remaining shared perf-note risk stays note-local rather than helper-local: the directly readable helper-evidence packet already materializes `zigux/Makefile` with the current `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-bsearch-perf`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-perf-matrix-test`, `phase6-hexdump-test`, and `phase6-hexdump-perf` wrapper targets, it keeps the narrower helper-parity companion `zigux/tests/phase6_helper_parity_manifest.json`, and it keeps the bounded measurement posture reconstructible from the directly readable helper-local replays plus wrapper routes above without presenting `Documentation/zigux/phase6-perf-gate-survey.md` as returned current-head evidence.
+The broader shared perf survey is publicly readable again but still sits outside the direct authenticated shared packet in this runtime, so the remaining shared perf-note risk stays note-local rather than helper-local: the directly readable helper-evidence packet already materializes `zigux/Makefile` with the current `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-bsearch-perf`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-perf-matrix-test`, `phase6-hexdump-test`, and `phase6-hexdump-perf` wrapper targets, it keeps the narrower helper-parity companion `zigux/tests/phase6_helper_parity_manifest.json`, and it keeps the bounded measurement posture reconstructible from the directly readable helper-local replays plus wrapper routes above without presenting `Documentation/zigux/phase6-perf-gate-survey.md` as returned authenticated current-head evidence.
 
 ## Current helper-evidence rows
 
@@ -101,7 +101,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `bsearch` now keeps a dedicated helper-local perf replay in `zigux/tests/phase6_bsearch_perf.zig`, and `zigux/tests/fixtures/phase6_bsearch_vectors.zig` still centralizes the representative `len15`, `len64`, and `len1024` perf cases together with deterministic seeded hit and miss queries that keep average and worst-case comparator work inside the current binary-search budget.
 - `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed `64B` and `1501B` threshold matrix still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`.
 - `hexdump` keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`, with the current fixture matrix in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still covering four formatting cases from `16B-plain-g1` through `16B-ascii-g8`.
-- the remaining roadmap-aligned measurement gap has narrowed to shared-survey readback rather than helper-local replay coverage: `Documentation/zigux/phase6-perf-gate-survey.md` still sits in the current repo-reality-gap bucket for this shared packet, while exact authenticated blob-pin refresh for that broader perf note remains pending.
+- the remaining roadmap-aligned measurement gap has narrowed to exact authenticated readback for the broader shared notes rather than helper-local replay coverage: `Documentation/zigux/phase6-perf-gate-survey.md` is publicly readable again for fallback inspection, while exact authenticated blob-pin refresh for that broader perf note remains pending.
 
 ## Current shared replay inventory
 
