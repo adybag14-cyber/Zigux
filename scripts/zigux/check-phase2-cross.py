@@ -70,7 +70,13 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 33
+EXPECTED_SELF_TEST_CASE_COUNT = 35
+
+
+class DuplicateJsonKeyError(ValueError):
+    def __init__(self, key: str) -> None:
+        super().__init__(key)
+        self.key = key
 
 
 def read_text(path: Path) -> str:
@@ -82,9 +88,20 @@ def read_text(path: Path) -> str:
 
 def read_json(path: Path) -> object:
     try:
-        return json.loads(read_text(path))
+        return json.loads(read_text(path), object_pairs_hook=load_json_object)
     except json.JSONDecodeError as exc:
         raise SystemExit(f"invalid json in required file: {path}: {exc}") from exc
+    except DuplicateJsonKeyError as exc:
+        raise SystemExit(f"duplicate json key in required file: {path}: {exc.key}") from exc
+
+
+def load_json_object(pairs: list[tuple[object, object]]) -> dict[object, object]:
+    payload: dict[object, object] = {}
+    for key, value in pairs:
+        if key in payload:
+            raise DuplicateJsonKeyError(str(key))
+        payload[key] = value
+    return payload
 
 
 def write_text(path: Path, content: str) -> None:
@@ -434,6 +451,39 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve_path(root, TOOLCHAIN_POLICY)
+        path.write_text(
+            """{
+  "phase": "Phase 2",
+  "phase": "Phase 2",
+  "channel": "0.17.0-dev.87+9b177a7d2",
+  "minimum_version": "0.17.0-dev.87+9b177a7d2",
+  "archive_sha256": {
+    "x86_64-linux": "3333333333333333333333333333333333333333333333333333333333333333"
+  },
+  "upgrade_policy": {
+    "channel_minimum_lockstep": true,
+    "archive_target_scope": [
+      "x86_64-linux"
+    ],
+    "required_make_routes": [
+      "phase2-toolchain",
+      "phase2-validate"
+    ]
+  }
+}
+""",
+            encoding="utf-8",
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate json key" in str(exc)
+        else:
+            raise AssertionError("duplicate policy json key did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
         payload = json.loads(path.read_text(encoding="utf-8"))
         payload["archive_sha256"]["aarch64-linux"] = "4" * 64
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -518,6 +568,43 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("ARCHIVE_HASH_SCOPE_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in issues
         assert ("ARCHIVE_HASH_SCOPE_MISMATCH", "aarch64-linux,x86_64-linux") not in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        path.write_text(
+            """{
+  "phase": "Phase 2",
+  "status": "active",
+  "route": "make -C zigux phase2-cross",
+  "archive_target_scope": [
+    "x86_64-linux"
+  ],
+  "cross_targets": [
+    {
+      "target": "x86_64-linux",
+      "review_status": "pinned bootstrap archive",
+      "validation_mode": "archive_required",
+      "validation_mode": "archive_required",
+      "route": "make -C zigux phase2-cross"
+    },
+    {
+      "target": "aarch64-linux",
+      "review_status": "route contract only",
+      "validation_mode": "route_contract_only",
+      "route": "make -C zigux phase2-cross"
+    }
+  ]
+}
+""",
+            encoding="utf-8",
+        )
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate json key" in str(exc)
+        else:
+            raise AssertionError("duplicate fixture json key did not abort")
         checks_run += 1
 
         build_self_test_root(root)
