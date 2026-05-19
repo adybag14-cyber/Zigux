@@ -26,6 +26,17 @@ fn readCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
     return count;
 }
 
+fn readZeroCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
+    _ = context;
+    _ = buffer;
+    return 0;
+}
+
+fn readTooManyCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize {
+    _ = context;
+    return buffer.len + 1;
+}
+
 test "materialized tools/lib/bpf Zigux segments compile together and keep their focused tests live" {
     std.testing.refAllDecls(cpu_mask);
     std.testing.refAllDecls(logging);
@@ -472,6 +483,30 @@ test "materialized tools/lib/bpf Zigux segments keep stable cpu-mask helper outp
         @as(usize, 3),
         try cpu_mask.derivePerfBufferAutoCpuCountFromReader(allocator, scratch[0..], auto_reader, 0),
     );
+
+    try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(allocator, "4-2"));
+
+    const empty_reader = cpu_mask.ChunkReader{
+        .context = null,
+        .readFn = readZeroCpuMaskChunks,
+    };
+    try std.testing.expectError(
+        error.EmptyReadBuffer,
+        cpu_mask.parseCpuMaskFromReader(allocator, scratch[0..0], empty_reader),
+    );
+    try std.testing.expectError(
+        error.EmptyReadChunk,
+        cpu_mask.parseCpuMaskFromReader(allocator, scratch[0..], empty_reader),
+    );
+
+    const invalid_count_reader = cpu_mask.ChunkReader{
+        .context = null,
+        .readFn = readTooManyCpuMaskChunks,
+    };
+    try std.testing.expectError(
+        error.InvalidReadCount,
+        cpu_mask.parseCpuMaskFromReader(allocator, scratch[0..], invalid_count_reader),
+    );
 }
 
 test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outputs explicit" {
@@ -489,12 +524,26 @@ test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outp
         "/sys/fs/bpf/xdp_dispatch_v1",
         try pin_path.buildValidatedSanitizedProgramPinPath(buffer[0..], null, "xdp_dispatch.v1"),
     );
+    try std.testing.expectEqualStrings(
+        "/root_map",
+        try pin_path.pathnameConcat(buffer[0..], "/", "root_map"),
+    );
     try std.testing.expectError(
         error.InvalidName,
         pin_path.buildValidatedProgramPinPath(buffer[0..], null, "xdp/dispatch"),
     );
     try std.testing.expectError(
         error.InvalidRootPath,
+        pin_path.buildValidatedMapPinPath(buffer[0..], "/tmp/bpf/", "stats.map"),
+    );
+    try std.testing.expectError(
+        error.InvalidRootPath,
         pin_path.buildValidatedSanitizedProgramPinPath(buffer[0..], "tmp/bpf", "xdp_dispatch.v1"),
+    );
+
+    var short_buffer: [16]u8 = undefined;
+    try std.testing.expectError(
+        error.NameTooLong,
+        pin_path.buildProgramPinPath(short_buffer[0..], "/custom/root", "very_long_program_name"),
     );
 }
