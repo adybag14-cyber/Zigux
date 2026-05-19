@@ -68,7 +68,9 @@ pub const CreateRulesetSyscallPlan = struct {
     checks_initialization_gate: bool,
     checks_attr_presence_before_copy_from_user: bool,
     reuses_create_ruleset_validation: bool,
+    reuses_ruleset_fd_install_planning: bool,
     create_ruleset_plan: CreateRulesetPlan,
+    ruleset_fd_install_plan: ?RulesetFdInstallPlan,
 };
 
 pub const AddRuleInput = struct {
@@ -240,12 +242,19 @@ pub const SyscallsHelperLab = struct {
             return error.BadUserPointer;
         }
 
+        const ruleset_fd_install_plan = switch (create_ruleset_plan.mode) {
+            .create_handle => try planInstallRulesetFd(.{}),
+            .abi_version_query => null,
+        };
+
         return .{
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
             .checks_attr_presence_before_copy_from_user = true,
             .reuses_create_ruleset_validation = true,
+            .reuses_ruleset_fd_install_planning = true,
             .create_ruleset_plan = create_ruleset_plan,
+            .ruleset_fd_install_plan = ruleset_fd_install_plan,
         };
     }
 
@@ -359,7 +368,7 @@ pub const SyscallsHelperLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .reads_file_private_data = true,
-            .invokes_landlock_put_ruleset = true,
+            .invokes_landlock_put_ruleset: true,
             .returns_zero = true,
         };
     }
@@ -448,7 +457,7 @@ test "landlock syscalls create-ruleset still rejects empty handled access" {
     try std.testing.expectError(error.EmptyRuleset, SyscallsHelperLab.planCreateRuleset(.{}));
 }
 
-test "landlock syscalls top-level wrapper keeps version query nullable and explicit" {
+test "landlock syscalls top-level wrapper keeps version query install planning nullable and explicit" {
     const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
         .attr_present = false,
         .input = .{
@@ -461,8 +470,31 @@ test "landlock syscalls top-level wrapper keeps version query nullable and expli
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(wrapper.reuses_create_ruleset_validation);
+    try std.testing.expect(wrapper.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
+    try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
+}
+
+test "landlock syscalls top-level wrapper threads ruleset fd install only for create path" {
+    const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    });
+    const install_plan = wrapper.ruleset_fd_install_plan orelse unreachable;
+
+    try std.testing.expectEqual(CreateRulesetMode.create_handle, wrapper.create_ruleset_plan.mode);
+    try std.testing.expect(wrapper.create_ruleset_plan.performs_copy_from_user);
+    try std.testing.expect(wrapper.create_ruleset_plan.delegates_ruleset_creation_planning);
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, install_plan.anchor);
+    try std.testing.expectEqualStrings("[landlock-ruleset]", install_plan.label);
+    try std.testing.expect(install_plan.validates_label);
+    try std.testing.expect(install_plan.validates_install_flags);
+    try std.testing.expect(install_plan.validates_file_operations_binding);
+    try std.testing.expect(install_plan.performs_anon_inode_getfd);
+    try std.testing.expect(install_plan.returns_new_fd);
+    try std.testing.expect(install_plan.releases_ruleset_on_fd_failure);
 }
 
 test "landlock syscalls top-level wrapper requires attr presence for create path" {
