@@ -4,10 +4,11 @@
 Fail-closed checker for the bounded Phase 14 shared smoke route.
 
 This guard exists for the lane-local executable path only. It validates that
-the current repo exposes a dedicated `phase14-validate` Makefile route and
-that the bootstrap workflow reruns that route, without claiming that the
-missing `phase14-smoke`, `phase14-test`, or full bundle wrappers have
-returned.
+ the current repo exposes a dedicated `phase14-validate` Makefile route, that
+ the route reruns the shared smoke route checker plus the current validator and
+ release-boundary checker packets, and that the bootstrap workflow reruns that
+ same route, without claiming that the missing `phase14-smoke`, `phase14-test`,
+ or full bundle wrappers have returned.
 """
 
 from __future__ import annotations
@@ -28,6 +29,10 @@ MAKEFILE_MARKERS = [
     "phase14-validate:",
     "scripts/zigux/check-phase14-shared-smoke-route.py --self-test",
     "scripts/zigux/check-phase14-shared-smoke-route.py",
+    "scripts/zigux/validate-phase14.py --self-test",
+    "scripts/zigux/validate-phase14.py",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test",
+    "scripts/zigux/check-phase14-release-boundary-exact-counts.py",
 ]
 
 WORKFLOW_MARKERS = [
@@ -100,7 +105,9 @@ phase14-validate:
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py --self-test
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-shared-smoke-route.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/validate-phase14.py
 \tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py --self-test
+\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase14-release-boundary-exact-counts.py
 """
 
 
