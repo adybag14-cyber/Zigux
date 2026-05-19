@@ -52,6 +52,22 @@ PHASE12_VIRTIO_NET_POST_RESET_REPLAY_TEST_PATH = (
 PHASE12_VIRTIO_NET_THROUGHPUT_PARITY_TEST_PATH = (
     "zigux/tests/phase12_virtio_net_throughput_parity.zig"
 )
+RELEASE_COORDINATION_MATRIX_PATH = (
+    "Documentation/zigux/phase12-release-coordination-matrix.md"
+)
+RELEASE_COORDINATION_MATRIX_MARKERS = [
+    "readiness companion: `Documentation/zigux/phase12-release-readiness-survey.md`",
+    "verify-shard companion: `Documentation/zigux/phase12-libbpf-verify-shard-note.md`",
+    "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
+]
+RAW_GITHUB_COVERAGE_SURVEY_PATH = (
+    "Documentation/zigux/phase12-raw-github-coverage-survey.md"
+)
+RAW_GITHUB_COVERAGE_MARKER = (
+    "the raw-URL-backed direct replay catalog, the currently missing raw NVMe gap-note "
+    "handle, and the contents-bridge-backed shared support bundle are distinct evidence "
+    "states in this runtime"
+)
 
 REQUIRED_FILES = [
     BUILD_ONLY_CHECKER_PATH,
@@ -68,6 +84,8 @@ REQUIRED_FILES = [
     PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_TEST_PATH,
     PHASE12_VIRTIO_NET_POST_RESET_REPLAY_TEST_PATH,
     PHASE12_VIRTIO_NET_THROUGHPUT_PARITY_TEST_PATH,
+    RELEASE_COORDINATION_MATRIX_PATH,
+    RAW_GITHUB_COVERAGE_SURVEY_PATH,
 ]
 
 REQUIRED_MARKERS = {
@@ -112,6 +130,8 @@ REQUIRED_MARKERS = {
         "- name: Run current Phase 12 shared test packet",
         "        run: make -C zigux phase12-test",
     ],
+    RELEASE_COORDINATION_MATRIX_PATH: RELEASE_COORDINATION_MATRIX_MARKERS,
+    RAW_GITHUB_COVERAGE_SURVEY_PATH: [RAW_GITHUB_COVERAGE_MARKER],
 }
 
 PHASE12_BUILD_EXACT_COUNTS = {
@@ -190,74 +210,74 @@ def marker_fixture(title: str, markers: list[str]) -> str:
 
 
 def minimal_phase12_build() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const virtio_net_queue_resume_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/net/virtio_net_queue_resume.zig"),
+        .root_source_file = b.path(\"../../drivers/net/virtio_net_queue_resume.zig\"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_queue_resume_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_net_queue_resume.zig"),
+        .root_source_file = b.path(\"phase12_virtio_net_queue_resume.zig\"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_queue_resume_root_module.addImport(
-        "virtio_net_queue_resume",
+        \"virtio_net_queue_resume\",
         virtio_net_queue_resume_module,
     );
 
     const virtio_net_transmit_recycle_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/net/virtio_net_transmit_recycle.zig"),
+        .root_source_file = b.path(\"../../drivers/net/virtio_net_transmit_recycle.zig\"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_transmit_recycle_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_net_transmit_recycle.zig"),
+        .root_source_file = b.path(\"phase12_virtio_net_transmit_recycle.zig\"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_transmit_recycle_root_module.addImport(
-        "virtio_net_transmit_recycle",
+        \"virtio_net_transmit_recycle\",
         virtio_net_transmit_recycle_module,
     );
 
     const virtio_net_post_reset_replay_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/net/virtio_net_post_reset_replay.zig"),
+        .root_source_file = b.path(\"../../drivers/net/virtio_net_post_reset_replay.zig\"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_post_reset_replay_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_net_post_reset_replay.zig"),
+        .root_source_file = b.path(\"phase12_virtio_net_post_reset_replay.zig\"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_post_reset_replay_root_module.addImport(
-        "virtio_net_post_reset_replay",
+        \"virtio_net_post_reset_replay\",
         virtio_net_post_reset_replay_module,
     );
 
     const virtio_net_throughput_parity_module = b.createModule(.{
-        .root_source_file = b.path("../../drivers/net/virtio_net_throughput_parity.zig"),
+        .root_source_file = b.path(\"../../drivers/net/virtio_net_throughput_parity.zig\"),
         .target = target,
         .optimize = optimize,
     });
     const virtio_net_throughput_parity_root_module = b.createModule(.{
-        .root_source_file = b.path("phase12_virtio_net_throughput_parity.zig"),
+        .root_source_file = b.path(\"phase12_virtio_net_throughput_parity.zig\"),
         .target = target,
         .optimize = optimize,
     });
     virtio_net_throughput_parity_root_module.addImport(
-        "virtio_net_throughput_parity",
+        \"virtio_net_throughput_parity\",
         virtio_net_throughput_parity_module,
     );
 
     const phase12_virtio_net_queue_resume_tests = b.addTest(.{
-        .name = "phase12-virtio-net-queue-resume-tests",
+        .name = \"phase12-virtio-net-queue-resume-tests\",
         .root_module = virtio_net_queue_resume_root_module,
     });
     const run_virtio_net_queue_resume_tests = b.addRunArtifact(
@@ -265,7 +285,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const phase12_virtio_net_transmit_recycle_tests = b.addTest(.{
-        .name = "phase12-virtio-net-transmit-recycle-tests",
+        .name = \"phase12-virtio-net-transmit-recycle-tests\",
         .root_module = virtio_net_transmit_recycle_root_module,
     });
     const run_virtio_net_transmit_recycle_tests = b.addRunArtifact(
@@ -273,7 +293,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const phase12_virtio_net_post_reset_replay_tests = b.addTest(.{
-        .name = "phase12-virtio-net-post-reset-replay-tests",
+        .name = \"phase12-virtio-net-post-reset-replay-tests\",
         .root_module = virtio_net_post_reset_replay_root_module,
     });
     const run_virtio_net_post_reset_replay_tests = b.addRunArtifact(
@@ -281,7 +301,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const phase12_virtio_net_throughput_parity_tests = b.addTest(.{
-        .name = "phase12-virtio-net-throughput-parity-tests",
+        .name = \"phase12-virtio-net-throughput-parity-tests\",
         .root_module = virtio_net_throughput_parity_root_module,
     });
     const run_virtio_net_throughput_parity_tests = b.addRunArtifact(
@@ -289,8 +309,8 @@ pub fn build(b: *std.Build) void {
     );
 
     const smoke_step = b.step(
-        "smoke",
-        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity smoke tests",
+        \"smoke\",
+        \"Run the Phase 12 virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity smoke tests\",
     );
     smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
@@ -298,8 +318,8 @@ pub fn build(b: *std.Build) void {
     smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
 
     const test_step = b.step(
-        "test",
-        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests",
+        \"test\",
+        \"Run the Phase 12 virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests\",
     );
     test_step.dependOn(&run_virtio_net_queue_resume_tests.step);
     test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
@@ -314,6 +334,8 @@ def fixture_text(rel_path: str) -> str:
         title = {
             VALIDATOR_PATH: "# Phase 12 Support Validator",
             WORKFLOW_PATH: "name: zigux-bootstrap",
+            RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
+            RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
         }.get(rel_path, "# Fixture")
         if rel_path == PHASE12_BUILD_PATH:
             return minimal_phase12_build()
@@ -409,11 +431,54 @@ def run_self_test() -> int:
                 f"exact_count:{PHASE12_BUILD_PATH}:{marker}:expected={expected}:actual={expected - 1}",
             )
 
+        write_fixture_tree(base)
+        coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
+        coordination_matrix_path.write_text(
+            coordination_matrix_path.read_text(encoding="utf-8").replace(
+                RELEASE_COORDINATION_MATRIX_MARKERS[1], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:"
+            f"{RELEASE_COORDINATION_MATRIX_PATH}:{RELEASE_COORDINATION_MATRIX_MARKERS[1]}",
+        )
+
+        write_fixture_tree(base)
+        coordination_matrix_path = base / RELEASE_COORDINATION_MATRIX_PATH
+        coordination_matrix_path.write_text(
+            coordination_matrix_path.read_text(encoding="utf-8").replace(
+                RELEASE_COORDINATION_MATRIX_MARKERS[2], "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:"
+            f"{RELEASE_COORDINATION_MATRIX_PATH}:{RELEASE_COORDINATION_MATRIX_MARKERS[2]}",
+        )
+
+        write_fixture_tree(base)
+        raw_coverage_path = base / RAW_GITHUB_COVERAGE_SURVEY_PATH
+        raw_coverage_path.write_text(
+            raw_coverage_path.read_text(encoding="utf-8").replace(
+                RAW_GITHUB_COVERAGE_MARKER, "", 1
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "missing_marker:"
+            f"{RAW_GITHUB_COVERAGE_SURVEY_PATH}:{RAW_GITHUB_COVERAGE_MARKER}",
+        )
+
         case_count = (
             len(REQUIRED_FILES)
             + len(marker_cases)
             + sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
             + len(PHASE12_BUILD_EXACT_COUNTS)
+            + 3
         )
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
         print(f"PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
