@@ -66,6 +66,10 @@ pub fn causesImmediateHalt(mode: abi.PanicMode) bool {
     };
 }
 
+pub fn emitsImmediateAbort(mode: abi.PanicMode) bool {
+    return escalationFor(mode) == .immediate_abort;
+}
+
 pub fn emitsKernelBug(mode: abi.PanicMode) bool {
     return escalationFor(mode) == .kernel_bug;
 }
@@ -76,6 +80,10 @@ pub fn permitsWarningOnlyContinuation(mode: abi.PanicMode) bool {
 
 pub fn requireImmediateHalt(mode: abi.PanicMode) PanicPolicyError!void {
     if (!causesImmediateHalt(mode)) return error.UnexpectedEscalation;
+}
+
+pub fn requireImmediateAbort(mode: abi.PanicMode) PanicPolicyError!void {
+    if (!emitsImmediateAbort(mode)) return error.UnexpectedEscalation;
 }
 
 pub fn requireKernelBug(mode: abi.PanicMode) PanicPolicyError!void {
@@ -108,6 +116,30 @@ pub fn requireImmediateHaltInteropPolicy(policy: abi.InteropPolicy) PanicPolicyE
 
 pub fn requireImmediateHaltByte(mode: u8) PanicPolicyError!void {
     return requireImmediateHaltPolicyBytes(mode, 0);
+}
+
+pub fn emitsImmediateAbortPolicyBytes(mode: u8, reserved: u8) bool {
+    return emitsImmediateAbort(modeFromInteropPolicyBytes(mode, reserved) orelse return false);
+}
+
+pub fn emitsImmediateAbortInteropPolicy(policy: abi.InteropPolicy) bool {
+    return emitsImmediateAbortPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
+pub fn emitsImmediateAbortByte(mode: u8) bool {
+    return emitsImmediateAbortPolicyBytes(mode, 0);
+}
+
+pub fn requireImmediateAbortPolicyBytes(mode: u8, reserved: u8) PanicPolicyError!void {
+    return requireImmediateAbort(modeFromInteropPolicyBytes(mode, reserved) orelse return error.UnexpectedEscalation);
+}
+
+pub fn requireImmediateAbortInteropPolicy(policy: abi.InteropPolicy) PanicPolicyError!void {
+    return requireImmediateAbortPolicyBytes(policy.panic_mode, policy.reserved);
+}
+
+pub fn requireImmediateAbortByte(mode: u8) PanicPolicyError!void {
+    return requireImmediateAbortPolicyBytes(mode, 0);
 }
 
 pub fn emitsKernelBugPolicyBytes(mode: u8, reserved: u8) bool {
@@ -167,6 +199,10 @@ test "phase3 panic policy keeps escalation explicit" {
     try std.testing.expect(causesImmediateHalt(.bug));
     try std.testing.expect(!causesImmediateHalt(.warn));
 
+    try std.testing.expect(emitsImmediateAbort(.abort));
+    try std.testing.expect(!emitsImmediateAbort(.bug));
+    try std.testing.expect(!emitsImmediateAbort(.warn));
+
     try std.testing.expect(!emitsKernelBug(.abort));
     try std.testing.expect(emitsKernelBug(.bug));
     try std.testing.expect(!emitsKernelBug(.warn));
@@ -178,6 +214,10 @@ test "phase3 panic policy keeps escalation explicit" {
     try requireImmediateHalt(.abort);
     try requireImmediateHalt(.bug);
     try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHalt(.warn));
+
+    try requireImmediateAbort(.abort);
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbort(.bug));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbort(.warn));
 
     try std.testing.expectError(error.UnexpectedEscalation, requireKernelBug(.abort));
     try requireKernelBug(.bug);
@@ -280,6 +320,15 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltByte(2));
     try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltByte(9));
 
+    try std.testing.expect(emitsImmediateAbortByte(0));
+    try std.testing.expect(!emitsImmediateAbortByte(1));
+    try std.testing.expect(!emitsImmediateAbortByte(2));
+    try std.testing.expect(!emitsImmediateAbortByte(9));
+    try requireImmediateAbortByte(0);
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortByte(1));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortByte(2));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortByte(9));
+
     try std.testing.expect(causesImmediateHaltPolicyBytes(0, 0));
     try std.testing.expect(causesImmediateHaltPolicyBytes(1, 0));
     try std.testing.expect(!causesImmediateHaltPolicyBytes(2, 0));
@@ -288,6 +337,15 @@ test "phase3 panic policy stays explicit" {
     try requireImmediateHaltPolicyBytes(1, 0);
     try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltPolicyBytes(2, 0));
     try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltPolicyBytes(2, 1));
+
+    try std.testing.expect(emitsImmediateAbortPolicyBytes(0, 0));
+    try std.testing.expect(!emitsImmediateAbortPolicyBytes(1, 0));
+    try std.testing.expect(!emitsImmediateAbortPolicyBytes(2, 0));
+    try std.testing.expect(!emitsImmediateAbortPolicyBytes(2, 1));
+    try requireImmediateAbortPolicyBytes(0, 0);
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortPolicyBytes(1, 0));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortPolicyBytes(2, 0));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortPolicyBytes(2, 1));
 
     try std.testing.expect(causesImmediateHaltInteropPolicy(abort_policy));
     try std.testing.expect(causesImmediateHaltInteropPolicy(bug_policy));
@@ -299,6 +357,17 @@ test "phase3 panic policy stays explicit" {
     try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltInteropPolicy(warn_policy));
     try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltInteropPolicy(reserved_policy));
     try std.testing.expectError(error.UnexpectedEscalation, requireImmediateHaltInteropPolicy(unknown_policy));
+
+    try std.testing.expect(emitsImmediateAbortInteropPolicy(abort_policy));
+    try std.testing.expect(!emitsImmediateAbortInteropPolicy(bug_policy));
+    try std.testing.expect(!emitsImmediateAbortInteropPolicy(warn_policy));
+    try std.testing.expect(!emitsImmediateAbortInteropPolicy(reserved_policy));
+    try std.testing.expect(!emitsImmediateAbortInteropPolicy(unknown_policy));
+    try requireImmediateAbortInteropPolicy(abort_policy);
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortInteropPolicy(bug_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortInteropPolicy(warn_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortInteropPolicy(reserved_policy));
+    try std.testing.expectError(error.UnexpectedEscalation, requireImmediateAbortInteropPolicy(unknown_policy));
 
     try std.testing.expect(!emitsKernelBugByte(0));
     try std.testing.expect(emitsKernelBugByte(1));
