@@ -128,7 +128,7 @@ static inline int zigux_boundary_header_is_compatible(zigux_boundary_header head
     return zigux_uapi_boundary_header_is_compatible(header);
 }
 
-static inline int zigux_boundary_header_is_canonical(zigux_boundaryHeader header)
+static inline int zigux_boundary_header_is_canonical(zigux_boundary_header header)
 {
     return zigux_uapi_boundary_header_is_canonical(header);
 }
