@@ -57,7 +57,7 @@ Current `master` does expose the shared smoke note, the cross-anchor traceabilit
 
 It also now matters that the four non-doc companion layers split in different ways:
 
-- `zigux/Makefile` is readable again on current `master`, and its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes, but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
+- `zigux/Makefile` is readable again on current `master`, and its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes plus `phase14-validate`, but no `phase14-smoke`, `phase14-test`, or `phase14` targets
 - `scripts/zigux/validate-phase14.py` now returns through the current contents path and carries a real shared-smoke validator surface rather than the older placeholder-only body
 - `scripts/zigux/check-phase14-release-boundary-exact-counts.py` now returns through the current contents path and keeps the release-facing exact-count posture aligned with the recovered shared reminder packet
 - `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` are directly readable again as the workqueue-local reviewability shard, so this productization note should keep that study-only foothold explicit instead of leaving part of it in the missing executable layer
@@ -75,14 +75,14 @@ Direct GitHub contents reads in this lane still return missing-path results for 
 - `net/core/skbuff_bridge.zig`
 
 This means the current productization gap is narrower and more specific than the older note claimed.
-The remaining drift is the split between the directly readable shared-smoke documentation surfaces, the directly readable validator body, the directly readable release-boundary exact-count guard, the readable non-owner Makefile body with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no Phase 14 targets, the directly readable workqueue reviewability shard, and the still-unrecovered executable survey, manifest, and skbuff-side bridge layer beneath them.
+The remaining drift is the split between the directly readable shared-smoke documentation surfaces, the directly readable validator body, the directly readable release-boundary exact-count guard, the readable non-owner Makefile body with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes plus `phase14-validate` but no `phase14-smoke`, `phase14-test`, or `phase14` targets, the directly readable workqueue reviewability shard, and the still-unrecovered executable survey, manifest, and skbuff-side bridge layer beneath them.
 
 ## Product Judgment
 
 Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.
 
 Given current repo readback, the next honest delivery move is no longer the older validator-local exact-line handoff.
-The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable workqueue reviewability shard, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.
+The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable workqueue reviewability shard, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships none of the Phase 14 routes.
 
 Reviewers should therefore treat the shared smoke documentation packet as directly readable current evidence again, treat `scripts/zigux/validate-phase14.py` as directly readable current evidence rather than a blob-readable mixed-source file, keep `scripts/zigux/check-phase14-release-boundary-exact-counts.py` explicit as directly readable release-facing evidence, keep the workqueue-local reviewability shard explicit as returned study-only evidence, and still treat the executable build, manifest, survey, and skbuff bridge companions above as repo-reality gaps until they return through the same exact contents path.
 
@@ -90,4 +90,4 @@ Reviewers should therefore treat the shared smoke documentation packet as direct
 
 Stay in the same core-adjacent lane and keep the surviving shared reminder packet aligned around this 2026-05-19 readback split.
 
-The next honest follow-up is no longer another tests-root reminder rewrite unless a fresh reread finds drift there again. Instead, re-evaluate the smallest same-lane surface only if one of the current reminder notes stops keeping the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable workqueue reviewability shard, and the readable non-owner Makefile posture with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no Phase 14 targets aligned, or if the missing executable packet members above return through exact current-`master` readback.
+The next honest follow-up is no longer another tests-root reminder rewrite unless a fresh reread finds drift there again. Instead, re-evaluate the smallest same-lane surface only if one of the current reminder notes stops keeping the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable workqueue reviewability shard, and the readable non-owner Makefile posture with shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes plus `phase14-validate` but no `phase14-smoke`, `phase14-test`, or `phase14` aligned, or if the missing executable packet members above return through exact current-`master` readback.
