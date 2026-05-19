@@ -48,6 +48,7 @@ REQUIRED_NOTE_MARKERS = (
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`scripts/zigux/check-phase15-docs-readme-alignment.py`",
+    "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase15-review-process-handoff.py`",
     "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
     "`scripts/zigux/check-phase15-shared-summary-gap.py`",
@@ -64,6 +65,10 @@ STALE_TEXT_MARKERS = (
 )
 
 HANDOFF_STATUS_MARKER = "PHASE15_STATUS=handoff_next_steps_survey_landed"
+WATCHPOINTS_HEADING = "## Current shared-summary watchpoints"
+WATCHPOINT_REQUIRED_MARKERS = (
+    "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
+)
 
 
 def _read_text(path: Path) -> str:
@@ -73,9 +78,23 @@ def _read_text(path: Path) -> str:
         raise RuntimeError(f"missing file: {path}") from exc
 
 
+def _extract_section(text: str, heading: str) -> str:
+    marker = f"{heading}\n"
+    start = text.find(marker)
+    if start == -1:
+        return ""
+    start += len(marker)
+    remainder = text[start:]
+    next_heading = remainder.find("\n## ")
+    if next_heading == -1:
+        return remainder
+    return remainder[:next_heading]
+
+
 def collect_failures(root: Path) -> list[str]:
     gap_note = _read_text(root / GAP_NOTE_PATH)
     handoff_note = _read_text(root / HANDOFF_NOTE_PATH)
+    watchpoints = _extract_section(gap_note, WATCHPOINTS_HEADING)
     failures: list[str] = []
 
     for rel in MATERIALIZED_GOVERNANCE_PATHS:
@@ -99,6 +118,10 @@ def collect_failures(root: Path) -> list[str]:
     for marker in REQUIRED_NOTE_MARKERS:
         if marker not in gap_note:
             failures.append(f"gap note missing required marker: {marker}")
+
+    for marker in WATCHPOINT_REQUIRED_MARKERS:
+        if marker not in watchpoints:
+            failures.append(f"gap note watchpoints missing required marker: {marker}")
 
     for marker in STALE_TEXT_MARKERS:
         if marker in gap_note:
@@ -183,6 +206,22 @@ def run_self_test() -> int:
         expected = [f"expected materialized focused companion missing: {MATERIALIZED_FOCUSED_COMPANIONS[-1]}"]
         if failures != expected:
             raise AssertionError(f"unexpected focused-checker failure: {failures}")
+
+        tests_readme_marker_root = root / "tests_readme_marker"
+        _seed_repo(tests_readme_marker_root)
+        sample_gap_note = _sample_gap_note()
+        watchpoint_marker = "- `scripts/zigux/check-phase15-tests-readme-alignment.py`\n"
+        _write(
+            tests_readme_marker_root / GAP_NOTE_PATH,
+            sample_gap_note.rsplit(watchpoint_marker, 1)[0]
+            + sample_gap_note.rsplit(watchpoint_marker, 1)[1],
+        )
+        failures = collect_failures(tests_readme_marker_root)
+        expected = [
+            "gap note watchpoints missing required marker: `scripts/zigux/check-phase15-tests-readme-alignment.py`"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected tests-readme-marker failure: {failures}")
 
         rematerialized_root = root / "rematerialized"
         _seed_repo(rematerialized_root)
