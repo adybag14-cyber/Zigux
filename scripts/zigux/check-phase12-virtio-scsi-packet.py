@@ -3,7 +3,7 @@
 
 Fail-closed checker for the bounded Phase 12 virtio_scsi support packet.
 It keeps the existing slice note, support-manifest fixture, survey gate,
-fallback catalog, and shared Phase 12 route reminder aligned around one
+fallback catalog, and shared Phase 12 support-bundle reminder aligned around one
 packet-local validation hook.
 """
 
@@ -43,8 +43,8 @@ SLICE_MARKERS = [
     "`PHASE12_SLICE=virtio-scsi-queue-lab-support`",
     "- lane: `complex-drivers-infra`",
     "- `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice",
-    "- `zigux/tests/phase12_build.zig` keeps the direct replay, syntax-lab smoke, repeated-replan gate, repeated-rollback gate, survey gate, and support packet wired into the shared `phase12` smoke and test routes",
-    "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or build route drifts",
+    "- `zigux/tests/phase12_build.zig` now acts as a shared Phase 12 support-bundle surface only: current `master` wires the `virtio_net` queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests through the shared `smoke` and `test` steps, while the `virtio_scsi` direct replay, syntax-lab, repeated-replan gate, repeated-rollback gate, survey gate, and support packet remain lane-local validation surfaces",
+    "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or support-bundle reminder drifts",
     "## Repo-reality boundaries",
     "- `drivers/nvme/host/pci.zig` now lives in the separate Phase 12 NVMe packet on current `master`, so this `virtio_scsi` support note should treat NVMe as neighboring packet evidence rather than a repo-reality gap",
     "- `Documentation/zigux/phase12-closure.md` is still absent on the surveyed head",
@@ -165,8 +165,8 @@ def good_slice_text() -> str:
             "- `PHASE12_SLICE=virtio-scsi-queue-lab-support`",
             "- lane: `complex-drivers-infra`",
             "- `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice",
-            "- `zigux/tests/phase12_build.zig` keeps the direct replay, syntax-lab smoke, repeated-replan gate, repeated-rollback gate, survey gate, and support packet wired into the shared `phase12` smoke and test routes",
-            "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or build route drifts",
+            "- `zigux/tests/phase12_build.zig` now acts as a shared Phase 12 support-bundle surface only: current `master` wires the `virtio_net` queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests through the shared `smoke` and `test` steps, while the `virtio_scsi` direct replay, syntax-lab, repeated-replan gate, repeated-rollback gate, survey gate, and support packet remain lane-local validation surfaces",
+            "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or support-bundle reminder drifts",
             "",
             "## Repo-reality boundaries",
             "- `drivers/nvme/host/pci.zig` now lives in the separate Phase 12 NVMe packet on current `master`, so this `virtio_scsi` support note should treat NVMe as neighboring packet evidence rather than a repo-reality gap",
