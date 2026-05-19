@@ -63,6 +63,8 @@ Current `master` still does not expose the broader shared runtime-loader packet:
 - the older `samples/zigux/runtime_*_loader.zig` scaffolds
 - dedicated `phase9-*` runtime-pilot routes in `zigux/Makefile`
 
+Current `master` does still carry the separate Phase 9 runtime bitmap companion `samples/zigux/runtime_bitmap_loader.zig`, so the absent-loader wording above is about the older trace-events loader-backed packet rather than that separate bitmap family.
+
 So this slice must keep saying plainly that the broader shared runtime-loader packet remains absent on current `master`.
 
 ## Ownership
