@@ -280,6 +280,14 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
         if not isinstance(depfile, str) or not depfile:
             raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
 
+        target = validated_case.get("target")
+        if not isinstance(target, str) or not target:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_target")
+
+        cmdline = validated_case.get("cmdline")
+        if not isinstance(cmdline, str) or not cmdline:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_cmdline")
+
         expected_stdout_name = validated_case.get("expected")
         if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
             raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
@@ -501,7 +509,7 @@ def run_self_test() -> int:
             )
         finally:
             globals()["FIXTURE_DIR"] = original_fixture_dir
-    
+
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_stderr_fixture_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         for fixture_path in FIXTURE_DIR.iterdir():
@@ -534,6 +542,22 @@ def run_self_test() -> int:
         "missing_non_empty_depfile",
         lambda: validate_cases(missing_depfile_cases),
         f"{CASES_PATH}:sample:missing_non_empty_depfile",
+    )
+
+    missing_target_cases = copy_valid_cases(valid_cases)
+    find_case(missing_target_cases, "sample").pop("target", None)
+    counted_expect_failure(
+        "missing_non_empty_target",
+        lambda: validate_cases(missing_target_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_target",
+    )
+
+    empty_cmdline_cases = copy_valid_cases(valid_cases)
+    find_case(empty_cmdline_cases, "sample")["cmdline"] = ""
+    counted_expect_failure(
+        "missing_non_empty_cmdline",
+        lambda: validate_cases(empty_cmdline_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_cmdline",
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_depfile_fixture_") as tmp_dir:
