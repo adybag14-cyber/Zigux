@@ -41,19 +41,24 @@ The current host-free teardown review packet keeps these handoffs explicit:
 - `timeoutPropertyCheckpointSummary()` and
   `platformDrvdataCheckpointSummary()` as the ordering anchors that still feed
   the bounded register-device and teardown summaries
+- `watchdogDrvdataCheckpointSummary()` and `rebootGlueCheckpointSummary()` as
+  the bounded ownership-to-reboot-glue handoff before the first
+  `watchdog_stop_on_reboot()` request surface
 - the teardown handoff after descriptor preflight and the first bounded
   register-device request surface
 
-The returned driver-backed packet also keeps the stop-transition and
-teardown-ownership boundaries visible without claiming a code-backed
-`watchdog_set_drvdata()` checkpoint, a code-backed reboot-glue checkpoint, live
-GPIO execution, platform cleanup callbacks, or host-backed shutdown behavior.
+The returned driver-backed packet also keeps the stop-transition,
+reboot-glue handoff, and teardown-ownership boundaries visible without claiming
+live `watchdog_set_drvdata()` execution, live `watchdog_stop_on_reboot()`
+execution, live GPIO execution, platform cleanup callbacks, or host-backed
+shutdown behavior.
 
 ## Bounded Meaning
 
 This note records the returned teardown summaries only. It does not claim live
 GPIO descriptor acquisition, `platform_set_drvdata()` execution,
-`watchdog_set_drvdata()` execution, `devm_watchdog_register_device()` execution,
-platform-driver registration, live reboot-hook registration, remove-hook parity,
-or hardware-validated teardown parity. Those remain later same-lane
-follow-through steps rather than part of the already-landed packet.
+`watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution,
+`devm_watchdog_register_device()` execution, platform-driver registration, live
+reboot-hook registration, remove-hook parity, or hardware-validated teardown
+parity. Those remain later same-lane follow-through steps rather than part of
+the already-landed packet.
