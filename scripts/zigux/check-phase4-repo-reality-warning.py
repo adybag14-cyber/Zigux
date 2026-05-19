@@ -11,7 +11,8 @@ from pathlib import Path
 
 NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 CHECKLIST = Path("Documentation/zigux/review-checklist.md")
-README = Path("zigux/tests/README.md")
+TESTS_README = Path("zigux/tests/README.md")
+SCRIPTS_README = Path("scripts/zigux/README.md")
 SELF = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 PINS = Path("scripts/zigux/check-phase4-reversible-delivery-pins.py")
 PERF_BASELINE_CHECKER = Path("scripts/zigux/check-phase4-perf-baseline-packet.py")
@@ -80,7 +81,7 @@ NOTE_REQ = (
     PERF_CHECKER_MARKER,
 )
 
-README_PHASE4_REQ = (
+TESTS_README_PHASE4_REQ = (
     "Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.",
     "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
     "Current `master` keeps the shared Phase 4 rollback packet split rather than absent: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still do not materialize through authenticated contents reads in this runtime",
@@ -97,6 +98,12 @@ CHECKLIST_PHASE4_REQ = (
     "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
     "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
     "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval?",
+)
+
+SCRIPTS_README_PHASE4_REQ = (
+    "- Phase 4 flow - the current scripts-root artifact-diff and repo-reality packet stays reviewable through the directly readable helper, the returned contract checker, the determinism and validator-replay checkers, the shared repo-reality and pin guards, the dedicated local-only perf packet, the recovered broader note-and-checker companions, and the roadmap-backed atomic64 differential pair instead of reconstructing the validator, build, and bitmap replay companions from older route names alone",
+    "- `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, and `scripts/zigux/check-phase4-workflow-route-counts.py` keep the current helper-contract, validator-replay, shared rollback-owner reminder, local-only perf-governance, recovered remaining-gap, and route-inventory packet explicit on current `master`",
+    "- current `master` keeps the broader Phase 4 validator, build, and bitmap replay companions in a split-readback state rather than the missing bucket: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still flap in authenticated contents reads in this runtime, but public raw fallback rereads return those files on current `master`, so keep them explicit as now-returned companions while exact authenticated blob-pin refresh remains pending",
 )
 
 
@@ -148,6 +155,7 @@ def _require_direct_packet(root: Path) -> None:
         WORKFLOW,
         ATOMIC64_DIFF,
         RUNTIME_ATOMIC64_DIFF,
+        SCRIPTS_README,
     ):
         if not (root / rel).exists():
             missing_direct.append(rel.as_posix())
@@ -162,8 +170,9 @@ def check(root: Path) -> None:
         NOTE_REQ + DIRECT_READBACK_PACKET + RECOVERED_NOTE_PACKET + REMAINING_GAP_PACKET + ATOMIC64_DIRECT_PACKET,
         "phase4 note",
     )
-    require(read(root, README), README_PHASE4_REQ, "phase4 tests readme")
+    require(read(root, TESTS_README), TESTS_README_PHASE4_REQ, "phase4 tests readme")
     require(read(root, CHECKLIST), CHECKLIST_PHASE4_REQ, "phase4 review checklist")
+    require(read(root, SCRIPTS_README), SCRIPTS_README_PHASE4_REQ, "phase4 scripts readme")
     require_exact_self_test_count(
         note,
         "phase4 note",
@@ -223,10 +232,23 @@ def baseline_checklist() -> str:
     ]) + "\n"
 
 
+def baseline_scripts_readme() -> str:
+    return "\n".join([
+        "# scripts/zigux",
+        "",
+        "## Phase 4",
+        "",
+        "- Phase 4 flow - the current scripts-root artifact-diff and repo-reality packet stays reviewable through the directly readable helper, the returned contract checker, the determinism and validator-replay checkers, the shared repo-reality and pin guards, the dedicated local-only perf packet, the recovered broader note-and-checker companions, and the roadmap-backed atomic64 differential pair instead of reconstructing the validator, build, and bitmap replay companions from older route names alone",
+        "- `scripts/zigux/check-artifact-diff-contract.py`, `scripts/zigux/check-phase4-artifact-diff-determinism.py`, `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, and `scripts/zigux/check-phase4-workflow-route-counts.py` keep the current helper-contract, validator-replay, shared rollback-owner reminder, local-only perf-governance, recovered remaining-gap, and route-inventory packet explicit on current `master`",
+        "- current `master` keeps the broader Phase 4 validator, build, and bitmap replay companions in a split-readback state rather than the missing bucket: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still flap in authenticated contents reads in this runtime, but public raw fallback rereads return those files on current `master`, so keep them explicit as now-returned companions while exact authenticated blob-pin refresh remains pending",
+    ]) + "\n"
+
+
 def build_baseline_tree(root: Path) -> None:
     write(root, NOTE, baseline_note())
-    write(root, README, baseline_tests_readme())
+    write(root, TESTS_README, baseline_tests_readme())
     write(root, CHECKLIST, baseline_checklist())
+    write(root, SCRIPTS_README, baseline_scripts_readme())
     write(root, SELF, "# repo-reality warning checker placeholder\n")
     write(root, PINS, "# reversible-delivery pin checker placeholder\n")
     write(root, PERF_BASELINE_CHECKER, "# direct-readback perf checker placeholder\n")
@@ -318,7 +340,7 @@ def main() -> int:
                 raise AssertionError("expected pin self-test count drift to fail")
 
             build_baseline_tree(root)
-            readme_path = root / README
+            readme_path = root / TESTS_README
             readme_path.write_text(
                 readme_path.read_text(encoding="utf-8").replace(
                     "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
@@ -334,7 +356,7 @@ def main() -> int:
                 raise AssertionError("expected tests-readme recovered-note marker drift to fail")
 
             build_baseline_tree(root)
-            readme_path = root / README
+            readme_path = root / TESTS_README
             readme_path.write_text(
                 readme_path.read_text(encoding="utf-8").replace(
                     "Current `master` keeps the shared Phase 4 rollback packet split rather than absent: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still do not materialize through authenticated contents reads in this runtime",
@@ -492,7 +514,7 @@ def main() -> int:
                 raise AssertionError("expected missing runtime atomic64 diff to fail")
 
             build_baseline_tree(root)
-            tests_readme = root / README
+            tests_readme = root / TESTS_README
             tests_readme.unlink()
             try:
                 check(root)
