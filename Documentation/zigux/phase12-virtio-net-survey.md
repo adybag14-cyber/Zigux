@@ -8,7 +8,7 @@ This note records the current-master verification result for the bounded Phase 1
 - `PHASE12_SLICE=virtio-net-survey`
 - lane owner: `P12-L02`
 - scope: keep the bounded queue-topology, refill-order, control-queue, post-reset replay, queue-reset, and transmit-recycle review packet truthful without reopening live runtime data-path work
-- verified head: `b53ec2bd507d0b3283486e76acc273b184ad5bf8`
+- verified head: `4578c45f2ac8ed5cd61412e1140b48d8a7a73628`
 - repo-truth boundary:
   - `Documentation/zigux/phase12-virtio-net-survey.md`
   - `zigux/tests/phase12_virtio_net_manifest.json`
@@ -37,9 +37,9 @@ That remains high-value because `virtio_net.c` spans probe-time negotiation, que
 - current `master` now carries `zigux/tests/phase12_virtio_net_survey.zig`
 - current `master` now carries `zigux/tests/phase12_virtio_net_manifest.json`
 - current `master` now carries `zigux/tests/phase12_build.zig`
-- the shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable beside the direct starter packet, while the post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route
+- the shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable beside the direct starter packet, `zigux/Makefile` now again exposes `phase12-smoke`, `phase12-test`, and `phase12` convenience entrypoints, while the post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route
 
-Those checks mean the current lane is no longer a reland placeholder. The published packet now keeps a bounded Zig starter, direct test packet, dedicated syntax lab, dedicated survey gate, manifest, and shared Phase 12 build route on `master`, while still stopping below any live runtime DMA or transport-backed data-path claim.
+Those checks mean the current lane is no longer a reland placeholder. The published packet now keeps a bounded Zig starter, direct test packet, dedicated syntax lab, dedicated survey gate, manifest, returned shared make entrypoints, and shared Phase 12 build route on `master`, while still stopping below any live runtime DMA or transport-backed data-path claim.
 
 ## Packet boundary
 
@@ -57,7 +57,7 @@ The truthful current boundary is still intentionally narrow:
 
 - the bounded starter and its directly coupled tests are present on `master`
 - the starter now includes the queue-resume, transmit-recycle, and post-reset replay follow-ups beside queue-topology, refill-order, control-queue recovery, control-queue payload shaping, and queue-reset recovery reviewability
-- the shared Phase 12 build route includes the dedicated `virtio_net` syntax-lab smoke shard plus the direct queue-resume and transmit-recycle replays, while the post-reset replay remains outside `zigux/tests/phase12_build.zig`
+- the shared Phase 12 build route includes the dedicated `virtio_net` syntax-lab smoke shard plus the direct queue-resume and transmit-recycle replays, and current `zigux/Makefile` again exposes `phase12-smoke`, `phase12-test`, and `phase12`, while the post-reset replay remains outside `zigux/tests/phase12_build.zig`
 - the packet still does not claim live DMA-safe receive ownership, page-pool wiring, refill execution, transport-backed submit flow, interrupt-backed completion handling, or full `net_device` lifecycle parity
 - throughput and recovery parity remain roadmap requirements that need later bounded follow-ups before any broader complex-driver claim becomes honest
 
