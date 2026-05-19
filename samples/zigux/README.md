@@ -4,7 +4,7 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Fresh mixed readback on 2026-05-18 confirmed these current sample-root files on `master`:
+Fresh mixed readback on 2026-05-19 confirmed these current sample-root files on `master`:
 
 * `samples/zigux/README.md`
 * `samples/zigux/bytestream_fifo.zig`
@@ -26,7 +26,7 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 
 Current `master` keeps the bytestream sample-root port directly readable in `samples/zigux/` through `samples/zigux/bytestream_fifo.zig`.
 Current `master` keeps the kretprobe sample-root port directly readable in `samples/zigux/` through `samples/zigux/kretprobe_example.zig`.
-For the trace-events anchor, keep shared contributor guidance grounded in the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` plus the shared reminder packet. Fresh authenticated reread on 2026-05-18 still directly reconfirmed that bounded formatting companion, while the broader non-runtime trace-events sample-local companions still need a fresh reread before this README can treat them as returned current-`master` evidence:
+For the trace-events anchor, keep shared contributor guidance grounded in the bounded formatting companion at `samples/zigux/trace_events_string_formatting_sample.zig` plus the shared reminder packet. Fresh authenticated reread on 2026-05-19 still directly reconfirmed that bounded formatting companion, while the broader non-runtime trace-events sample-local companions still need a fresh reread before this README can treat them as returned current-`master` evidence:
 
 * `Documentation/zigux/phase5-trace-events-sample-survey.md`
 * `samples/zigux/trace_events_sample.zig`
