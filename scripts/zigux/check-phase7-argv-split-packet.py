@@ -35,11 +35,12 @@ REQUIRED_MARKERS = {
         "`zigux/tests/fixtures/phase7_argv_split_vectors.zig`",
         "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.",
         "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.",
+        "whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
         "PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass",
-        '"zigux/tests/fixtures/phase7_argv_split_vectors.zig",',
+        "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",",
     ],
     "lib/argv_split.zig": [
         "pub const ArgvSplitResult = struct {",
@@ -49,6 +50,7 @@ REQUIRED_MARKERS = {
         "pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {",
         "pub fn cArgv(self: *const ArgvSplitResult) [*:null]const ?[*:0]const u8 {",
         "fn nextSplitArgSpan(",
+        "test \"argvSplit treats whitespace before the first NUL as blank input\" {",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         'const argv_split = @import("argv_split");',
@@ -61,11 +63,13 @@ REQUIRED_MARKERS = {
         '"current_master_state": "helper_slice_test_fixture_survey_manifest_anchor"',
         '"zigux/tests/fixtures/phase7_argv_split_vectors.zig"',
         "fixture-backed helper-local survey-manifest-checker truthfulness packet",
+        "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         'test "phase 7 argv split survey keeps the returned fixture-backed helper-local packet truthful" {',
         'try std.testing.expectEqualStrings("helper_slice_test_fixture_survey_manifest_anchor", manifest.current_master_state);',
         'const fixture_vectors = try readRepoFile(allocator, fixture_path);',
+        'try expectContains(helper, "test \\"argvSplit treats whitespace before the first NUL as blank input\\" {");',
     ],
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
         "pub const ArgvSplitVector = struct {",
@@ -81,7 +85,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 22
 
 
 def read_text(path: Path) -> str:
@@ -166,6 +170,16 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        slice_text = read_text(slice_path)
+        slice_marker = "whitespace-before-first-NUL input still reuses the canonical blank storage and exported argv sentinels without allocator space"
+        slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_slice_first_nul_blank_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}",
+        )
+        write_fixture_root(tmp_root)
+
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
         manifest_text = read_text(manifest_path)
         manifest_marker = '"zigux/tests/fixtures/phase7_argv_split_vectors.zig"'
@@ -177,12 +191,32 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        manifest_text = read_text(manifest_path)
+        manifest_marker = "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL"
+        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_first_nul_blank_focus",
+            tmp_root,
+            f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}",
+        )
+        write_fixture_root(tmp_root)
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         survey_text = read_text(survey_path)
         survey_marker = 'const fixture_vectors = try readRepoFile(allocator, fixture_path);'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_fixture_reader",
+            tmp_root,
+            f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectContains(helper, "test \\"argvSplit treats whitespace before the first NUL as blank input\\" {");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_first_nul_blank_proof_marker",
             tmp_root,
             f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
         )
@@ -244,6 +278,16 @@ def run_self_test() -> None:
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_helper_nextsplitargspan_marker",
+            tmp_root,
+            f"lib/argv_split.zig: {helper_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = 'test "argvSplit treats whitespace before the first NUL as blank input" {'
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_helper_first_nul_blank_input_test",
             tmp_root,
             f"lib/argv_split.zig: {helper_marker}",
         )
