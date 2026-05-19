@@ -70,7 +70,7 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 35
+EXPECTED_SELF_TEST_CASE_COUNT = 38
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -446,6 +446,15 @@ def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_route_") as tmp_dir:
@@ -463,6 +472,16 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
             assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         build_self_test_root(root)
