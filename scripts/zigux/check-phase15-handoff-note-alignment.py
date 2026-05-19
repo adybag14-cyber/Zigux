@@ -8,6 +8,7 @@ from pathlib import Path
 
 HANDOFF_NOTE_PATH = Path("Documentation/zigux/phase15-handoff-next-steps-survey.md")
 MANIFEST_PATH = Path("zigux/tests/phase15_handoff_next_steps_manifest.json")
+RETIRED_MISSING_REPLAY_MARKER = "no dedicated handoff-specific Zig replay is directly materialized on current `master`"
 
 
 def _read_text(path: Path) -> str:
@@ -28,6 +29,9 @@ def collect_failures(root: Path) -> list[str]:
 
     if f"`{manifest['checker']}`" not in handoff_note:
         failures.append("handoff note is missing the focused handoff-note checker path")
+
+    if RETIRED_MISSING_REPLAY_MARKER in handoff_note:
+        failures.append("handoff note still frames the focused handoff replay as missing")
 
     for marker in manifest["required_markers"]:
         if marker not in handoff_note:
@@ -68,7 +72,7 @@ def _sample_manifest() -> str:
         {
             "lane_key": "P15-L08",
             "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-18",
+            "surveyed_commit": "current-master-readback-2026-05-19",
             "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
             "checker": "scripts/zigux/check-phase15-handoff-note-alignment.py",
             "present_paths": [
@@ -88,13 +92,13 @@ def _sample_manifest() -> str:
                 "zigux/tests/phase15_architecture_council_review_process_build.zig",
                 "zigux/tests/phase15_readiness_gate_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps_manifest.json",
+                "zigux/tests/phase15_handoff_next_steps.zig",
                 "scripts/zigux/check-phase15-review-process-handoff.py",
                 "scripts/zigux/check-phase15-tests-readme-alignment.py",
                 "scripts/zigux/check-phase15-shared-summary-gap.py",
                 "scripts/zigux/check-phase15-handoff-note-alignment.py"
             ],
             "still_missing_paths": [
-                "zigux/tests/phase15_handoff_next_steps.zig",
                 "scripts/zigux/validate-phase15.py",
                 "zigux/tests/phase15_build.zig",
                 "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
@@ -103,9 +107,8 @@ def _sample_manifest() -> str:
                 "PHASE15_STATUS=handoff_next_steps_survey_landed",
                 "PHASE15_LANE_KEY=P15-L08",
                 "PHASE15_PROVENANCE_MODE=dated_master_readback",
-                "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` is directly materialized on current `master`",
-                "no dedicated handoff-specific Zig replay is directly materialized on current `master`",
-                "treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` as the handoff-specific source of truth until that replay lands",
+                "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
+                "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.",
                 "an Architecture Council approval workflow implementation",
                 "a direct port-readiness decision for any Phase 15 anchor"
             ],
@@ -130,10 +133,9 @@ def _sample_handoff_note() -> str:
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
-- the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` is directly materialized on current `master`
-- no dedicated handoff-specific Zig replay is directly materialized on current `master`
-- treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` as the handoff-specific source of truth until that replay lands
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
+- the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
+- Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.
 
 ## Current handed-off packet on current master
 
@@ -153,6 +155,7 @@ def _sample_handoff_note() -> str:
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `zigux/tests/phase15_handoff_next_steps.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
@@ -160,14 +163,13 @@ def _sample_handoff_note() -> str:
 
 ## Roadmap-backed open handoff gaps
 
-- `zigux/tests/phase15_handoff_next_steps.zig`
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
 ## Handoff rules
 
-- if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused tests-readme checker, the checker-backed shared-gap packet, and the focused handoff-note checker instead of carrying stale future-target language
+- if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused tests-readme checker, the checker-backed shared-gap packet, the focused handoff-note checker, and the focused handoff-specific replay instead of carrying stale future-target language
 - if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here
 
 ## Non-goals
@@ -201,51 +203,47 @@ def run_self_test() -> int:
             if repo_path == MANIFEST_PATH.as_posix():
                 continue
             _write(missing_present_root / repo_path, "# fixture\n")
-        (missing_present_root / "zigux/tests/phase15_readiness_gate_manifest.json").unlink()
+        (missing_present_root / "zigux/tests/phase15_handoff_next_steps.zig").unlink()
         failures = collect_failures(missing_present_root)
         expected = [
-            "handoff note claims present path missing from repo: `zigux/tests/phase15_readiness_gate_manifest.json`"
+            "handoff note claims present path missing from repo: `zigux/tests/phase15_handoff_next_steps.zig`"
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-present failure: {failures}")
 
-        missing_gap_marker_root = root / "missing_gap_marker"
-        _write(missing_gap_marker_root / HANDOFF_NOTE_PATH, _sample_handoff_note().replace(
-            "- `zigux/tests/phase15_handoff_next_steps.zig`\n",
+        missing_present_marker_root = root / "missing_present_marker"
+        _write(missing_present_marker_root / HANDOFF_NOTE_PATH, _sample_handoff_note().replace(
+            "- `scripts/zigux/check-phase15-shared-summary-gap.py`\n",
             "",
             1,
         ))
-        _write(missing_gap_marker_root / MANIFEST_PATH, _sample_manifest())
-        manifest = _read_manifest(missing_gap_marker_root / MANIFEST_PATH)
+        _write(missing_present_marker_root / MANIFEST_PATH, _sample_manifest())
+        manifest = _read_manifest(missing_present_marker_root / MANIFEST_PATH)
         for repo_path in manifest["present_paths"]:
             if repo_path == MANIFEST_PATH.as_posix():
                 continue
-            _write(missing_gap_marker_root / repo_path, "# fixture\n")
-        failures = collect_failures(missing_gap_marker_root)
+            _write(missing_present_marker_root / repo_path, "# fixture\n")
+        failures = collect_failures(missing_present_marker_root)
         expected = [
-            "handoff note is missing gap-path marker: `zigux/tests/phase15_handoff_next_steps.zig`"
+            "handoff note is missing present-path marker: `scripts/zigux/check-phase15-shared-summary-gap.py`"
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected missing-gap-marker failure: {failures}")
+            raise AssertionError(f"unexpected missing-present-marker failure: {failures}")
 
-        returned_gap_root = root / "returned_gap"
-        _write(returned_gap_root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-        _write(returned_gap_root / MANIFEST_PATH, _sample_manifest())
-        manifest = _read_manifest(returned_gap_root / MANIFEST_PATH)
+        retired_gap_root = root / "retired_gap"
+        _write(retired_gap_root / HANDOFF_NOTE_PATH, _sample_handoff_note() + "\n- no dedicated handoff-specific Zig replay is directly materialized on current `master`\n")
+        _write(retired_gap_root / MANIFEST_PATH, _sample_manifest())
+        manifest = _read_manifest(retired_gap_root / MANIFEST_PATH)
         for repo_path in manifest["present_paths"]:
             if repo_path == MANIFEST_PATH.as_posix():
                 continue
-            _write(returned_gap_root / repo_path, "# fixture\n")
-        for repo_path in manifest["still_missing_paths"]:
-            if repo_path != "zigux/tests/phase15_handoff_next_steps.zig":
-                continue
-            _write(returned_gap_root / repo_path, "// fixture\n")
-        failures = collect_failures(returned_gap_root)
+            _write(retired_gap_root / repo_path, "# fixture\n")
+        failures = collect_failures(retired_gap_root)
         expected = [
-            "handoff note still frames shipped path as missing gap: `zigux/tests/phase15_handoff_next_steps.zig`"
+            "handoff note still frames the focused handoff replay as missing"
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected returned-gap failure: {failures}")
+            raise AssertionError(f"unexpected retired-gap failure: {failures}")
 
     print("PHASE15_HANDOFF_NOTE_ALIGNMENT_SELF_TEST=pass")
     return 0
