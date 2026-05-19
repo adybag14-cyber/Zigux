@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import argparse
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -69,6 +71,10 @@ VIRTIO_SCSI_SUPPORT_MANIFEST_PATH = (
 )
 LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
+
+BOUNDARY_CHECKERS = [
+    VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
+]
 
 # Keep the shared Phase 12 validator scoped to stable support-surface wording.
 # Exact blob pins in the raw-coverage note belong to the neighboring fallback lane.
@@ -140,7 +146,7 @@ REQUIRED_MARKERS = {
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
         "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12-smoke ZIG=<attached-zig-path>`",
-        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12 ZIG=<attached-zig-path>`",
+        "attached-Zig rerun vocabulary only until the wrapper returns: `make -C zigux phase12` ZIG=<attached-zig-path>`",
         "Do not invent a focused libbpf-only replay, a cross-build replay, or another unshipped closure route while using the degraded path.",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
@@ -288,6 +294,30 @@ FORBIDDEN_MARKERS = {
 }
 
 
+def run_checker(root: Path, checker_path: str) -> list[str]:
+    checker = root / checker_path
+    self_test = subprocess.run(
+        [sys.executable, str(checker), "--self-test"],
+        capture_output=True,
+        text=True,
+        cwd=root,
+    )
+    if self_test.returncode != 0:
+        detail = (self_test.stdout + self_test.stderr).strip() or "self-test exited non-zero"
+        return [f"checker_self_test_failed:{checker_path}:{detail.splitlines()[0]}"]
+
+    replay = subprocess.run(
+        [sys.executable, str(checker), "--root", str(root)],
+        capture_output=True,
+        text=True,
+        cwd=root,
+    )
+    if replay.returncode != 0:
+        detail = (replay.stdout + replay.stderr).strip() or "validation exited non-zero"
+        return [f"checker_validation_failed:{checker_path}:{detail.splitlines()[0]}"]
+    return []
+
+
 def validate(root: Path) -> tuple[list[str], list[str]]:
     missing: list[str] = []
     for rel_path in REQUIRED_FILES:
@@ -307,6 +337,8 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
         for marker in markers:
             if marker in text:
                 drift.append(f"forbidden_marker:{rel_path}:{marker}")
+    for checker_path in BOUNDARY_CHECKERS:
+        drift.extend(run_checker(root, checker_path))
     return [], drift
 
 
@@ -318,6 +350,23 @@ def write_text(path: Path, content: str) -> None:
 def marker_fixture(title: str, markers: list[str]) -> str:
     body = "\n".join(f"- {marker}" for marker in markers)
     return f"{title}\n\n{body}\n"
+
+
+def boundary_checker_fixture() -> str:
+    return """#!/usr/bin/env python3
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--self-test", action="store_true")
+parser.add_argument("--root")
+args = parser.parse_args()
+if args.self_test:
+    print("PHASE12_VIRTIO_SCSI_LIBBPF_BOUNDARY_SELF_TEST=pass")
+    raise SystemExit(0)
+if args.root and args.root.endswith("phase12-validator-checker-fail"):
+    print("fixture boundary checker failure")
+    raise SystemExit(1)
+print("phase12 virtio_scsi libbpf boundary validated")
+"""
 
 
 FIXTURE_TEXT = {
@@ -380,7 +429,7 @@ FIXTURE_TEXT = {
     )
     + "\n",
     VIRTIO_SCSI_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
-    VIRTIO_SCSI_BOUNDARY_CHECKER_PATH: "#!/usr/bin/env python3\n",
+    VIRTIO_SCSI_BOUNDARY_CHECKER_PATH: boundary_checker_fixture(),
     VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH: "\n".join(
         REQUIRED_MARKERS[VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH]
     )
@@ -467,7 +516,18 @@ def run_self_test() -> int:
             add_forbidden_marker(base / rel_path, marker)
             expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
 
-        case_count = len(missing_file_cases) + len(marker_cases) + len(forbidden_cases)
+        checker_fail_root = Path(tempfile.gettempdir()) / "phase12-validator-checker-fail"
+        if checker_fail_root.exists():
+            shutil.rmtree(checker_fail_root)
+        checker_fail_root.mkdir(parents=True)
+        write_fixture_root(checker_fail_root)
+        expect_failure(
+            checker_fail_root,
+            f"checker_validation_failed:{VIRTIO_SCSI_BOUNDARY_CHECKER_PATH}:fixture boundary checker failure",
+        )
+        shutil.rmtree(checker_fail_root, ignore_errors=True)
+
+        case_count = len(missing_file_cases) + len(marker_cases) + len(forbidden_cases) + 1
         print("PHASE12_VALIDATOR_SELF_TEST=pass")
         print(f"PHASE12_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
         return 0
