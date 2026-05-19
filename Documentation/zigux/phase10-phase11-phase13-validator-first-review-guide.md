@@ -6,200 +6,175 @@ Pair this note with `Documentation/zigux/phase10-phase11-phase13-tests-root-revi
 
 ## Why this note exists
 
-The shared scripts index already names the current checker stack for these packets, but reviewers still need one compact place that says which pre-replay gates, shared replay entrypoints, and adjacent evidence files should move together.
-Keep `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` aligned with this note when they describe the same active contributor packets, so checklist prompts, tests-root workflow guidance, and packet-local evidence do not drift into separate stories.
+The shared scripts index already names the checker stack for these packets, but reviewers still need one compact place that says which pre-replay gates, live replay entrypoints, and repo-reality gaps should move together.
+
+Keep `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` aligned with this note when they describe the same contributor-facing packets.
 
 ## Phase 10: Virtio lab packet
 
-Keep the validator-first route explicit:
-  * `python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test`
-  * `python3 scripts/zigux/check-phase10-bootstrap-route.py`
-  * `python3 scripts/zigux/check-phase10-shared-freeze-boundary.py`
-  * `python3 scripts/zigux/check-phase10-ring-packet.py`
-  * `python3 scripts/zigux/check-phase10-input-packet.py`
-  * `python3 scripts/zigux/check-phase10-mmio-packet.py`
-  * `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`
-  * `python3 scripts/zigux/check-phase10-harness-coverage.py`
-  * `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-  * `python3 scripts/zigux/validate-phase10.py --self-test`
-  * `python3 scripts/zigux/validate-phase10.py`
-  * `python3 scripts/zigux/validate-phase10-closure.py --self-test`
-  * `python3 scripts/zigux/validate-phase10-closure.py`
-  * `make -C zigux phase10-validate`
-  * `make -C zigux phase10-test`
-  * `make -C zigux phase10`
+Keep the current validator-first route explicit:
+
+- `python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test`
+- `python3 scripts/zigux/check-phase10-bootstrap-route.py`
+- `python3 scripts/zigux/check-phase10-shared-freeze-boundary.py`
+- `python3 scripts/zigux/check-phase10-ring-packet.py`
+- `python3 scripts/zigux/check-phase10-input-packet.py`
+- `python3 scripts/zigux/check-phase10-mmio-packet.py`
+- `python3 scripts/zigux/check-phase10-harness-coverage.py --self-test`
+- `python3 scripts/zigux/check-phase10-harness-coverage.py`
+- `python3 scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `python3 scripts/zigux/validate-phase10.py`
+- `python3 scripts/zigux/validate-phase10-closure.py`
+- `make -C zigux phase10-validate`
+- `make -C zigux phase10-test`
+- `make -C zigux phase10`
 
 Keep these evidence surfaces aligned in the same review:
-  * `Documentation/zigux/phase10-closure-evidence.md`
-  * `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
-  * `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-  * `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`
-  * `Documentation/zigux/freeze-map.md`
-  * `Documentation/zigux/review-checklist.md`
-  * `Documentation/zigux/README.md`
-  * `scripts/zigux/README.md`
-  * `zigux/tests/README.md`
-  * `Documentation/zigux/phase10-virtio-core-survey.md`
-  * `Documentation/zigux/phase10-virtio-ring-survey.md`
-  * `Documentation/zigux/phase10-virtio-ring-slice.md`
-  * `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`
-  * `Documentation/zigux/phase10-virtio-input-survey.md`
-  * `Documentation/zigux/phase10-virtio-input-slice.md`
-  * `Documentation/zigux/phase10-virtio-input-module-slice.md`
-  * `Documentation/zigux/phase10-virtio-mmio-survey.md`
-  * `Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md`
-  * `Documentation/zigux/phase10-virtio-mmio-slice.md`
-  * `drivers/virtio/virtio_mmio_verify.zig`
-  * `zigux/tests/phase10_closure_manifest.json`
-  * `zigux/tests/phase10_virtio_ring_manifest.json`
-  * `zigux/tests/phase10_virtio_input_manifest.json`
-  * `zigux/tests/phase10_virtio_mmio_manifest.json`
-  * `scripts/zigux/check-phase10-bootstrap-route.py`
-  * `scripts/zigux/check-phase10-shared-freeze-boundary.py`
-  * `scripts/zigux/check-phase10-ring-packet.py`
-  * `scripts/zigux/check-phase10-input-packet.py`
-  * `scripts/zigux/check-phase10-mmio-packet.py`
-  * `scripts/zigux/check-phase10-harness-coverage.py`
-  * `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
-  * `scripts/zigux/validate-phase10.py`
-  * `scripts/zigux/validate-phase10-closure.py`
-  * `zigux/tests/phase10_build.zig`
-  * `zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`
-  * `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`
-  * `zigux/tests/phase10_virtio_ring_reset_reuse.zig`
-  * `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`
-  * `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`
-  * `zigux/tests/phase10_virtio_ring_survey.zig`
-  * `zigux/tests/phase10_virtio_input.zig`
-  * `zigux/tests/phase10_virtio_input_probe_preflight.zig`
-  * `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`
-  * `zigux/tests/phase10_virtio_input_registration_preflight.zig`
-  * `zigux/tests/phase10_virtio_input_status_drain.zig`
-  * `zigux/tests/phase10_virtio_input_teardown_observation.zig`
-  * `zigux/tests/phase10_virtio_input_survey.zig`
-  * `zigux/tests/phase10_virtio_mmio.zig`
-  * `zigux/tests/phase10_virtio_mmio_survey.zig`
-  * `zigux/Makefile`
-  * `.github/workflows/zigux-bootstrap.yml`
 
-Reviewer prompt:
+- `Documentation/zigux/phase10-closure-evidence.md`
+- `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
+- `Documentation/zigux/phase10-virtio-core-survey.md`
+- `Documentation/zigux/phase10-virtio-ring-survey.md`
+- `Documentation/zigux/phase10-virtio-input-survey.md`
+- `Documentation/zigux/phase10-virtio-mmio-survey.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/check-phase10-bootstrap-route.py`
+- `scripts/zigux/check-phase10-shared-freeze-boundary.py`
+- `scripts/zigux/check-phase10-ring-packet.py`
+- `scripts/zigux/check-phase10-input-packet.py`
+- `scripts/zigux/check-phase10-mmio-packet.py`
+- `scripts/zigux/check-phase10-harness-coverage.py`
+- `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`
+- `scripts/zigux/validate-phase10.py`
+- `scripts/zigux/validate-phase10-closure.py`
+- `zigux/tests/phase10_closure_manifest.json`
+- `zigux/tests/phase10_build.zig`
+- `zigux/Makefile`
 
-  * Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the shared freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the shared validation pair, the closure manifest, the ring, input, and MMIO manifests, the returned `zigux/Makefile` Phase 10 routes, `drivers/virtio/virtio_mmio_verify.zig`, and the focused ring, input, and MMIO replays all naming the same bounded surfaces rather than promoting missing core-side companions back into live evidence?
-  * Does the Phase 10 freeze-boundary posture still keep `Documentation/zigux/freeze-map.md` explicit beside the ring and MMIO survey notes, leave `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, keep the blocked `phase10-ring-lab-driver-bridge` adjacent to the MMIO-owned `P10-L11` packet, and keep queue setup or reset execution parity, IRQ delivery, DMA behavior, input registration lifecycle closure, and MMIO lifecycle-and-IRQ follow-through parked behind the risky-transport blocker?
+Reviewer prompts:
+
+- Does the shared Phase 10 packet still read as one validator-first lab bundle, with the bootstrap-route guard, the freeze-boundary guard, the ring, input, and MMIO packet guards, the tests-root reminder guard, the shared validation pair, the closure manifest, and the returned `zigux/Makefile` Phase 10 routes all naming the same bounded surfaces?
+- Does the Phase 10 freeze-boundary posture still keep `Documentation/zigux/freeze-map.md` explicit, leave `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` in the separate Phase 14 study-only family, and keep queue setup or reset execution parity, IRQ delivery, DMA behavior, input registration lifecycle closure, and MMIO lifecycle-and-IRQ follow-through parked behind the risky-transport blocker?
 
 ## Phase 11: Simple-driver packet
 
-Keep the pre-replay checker stack explicit:
-  * `python3 scripts/zigux/check-phase11-build-inventory.py --self-test`
-  * `python3 scripts/zigux/check-phase11-build-inventory.py`
-  * `python3 scripts/zigux/check-phase11-layout-assert-surface.py --self-test`
-  * `python3 scripts/zigux/check-phase11-layout-assert-surface.py`
-  * `python3 scripts/zigux/check-phase11-hvc-validation-flow.py --self-test`
-  * `python3 scripts/zigux/check-phase11-hvc-validation-flow.py`
-  * `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py --self-test`
-  * `python3 scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
-  * `python3 scripts/zigux/check-phase11-shared-replay-contract.py --self-test`
-  * `python3 scripts/zigux/check-phase11-shared-replay-contract.py`
-  * `python3 scripts/zigux/check-phase11-header-boundary-packet.py --self-test`
-  * `python3 scripts/zigux/check-phase11-header-boundary-packet.py`
-  * `python3 scripts/zigux/validate-phase11.py --self-test`
-  * `python3 scripts/zigux/validate-phase11.py`
-  * `make -C zigux phase11-validate`
-  * `make -C zigux phase11`
-  * `make -C zigux phase11-hvc-survey`
+Keep the current pre-replay checker stack explicit:
+
+- `python3 scripts/zigux/check-phase11-build-inventory.py`
+- `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
+- `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+
 Keep these evidence surfaces aligned in the same review:
-  * `Documentation/zigux/phase11-shared-replay-contract.md`
-  * `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
-  * `Documentation/zigux/phase11-uapi-header-parity-survey.md`
-  * `Documentation/zigux/review-checklist.md`
-  * `scripts/zigux/check-phase11-build-inventory.py`
-  * `scripts/zigux/check-phase11-layout-assert-surface.py`
-  * `scripts/zigux/check-phase11-hvc-validation-flow.py`
-  * `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`
-  * `scripts/zigux/check-phase11-shared-replay-contract.py`
-  * `scripts/zigux/check-phase11-header-boundary-packet.py`
-  * `zigux/tests/fixtures/phase11_build_inventory.json`
-  * `zigux/tests/phase11_build.zig`
-  * `zigux/tests/phase11_dw_wdt_suspend_resume.zig`
-  * `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`
-  * `zigux/tests/phase11_hvc_console_modem_control_split.zig`
-  * `zigux/tests/phase11_hvc_console_poll_retry_split.zig`
-  * `zigux/tests/phase11_hvc_console_survey.zig`
-  * `zigux/tests/phase11_uapi_header_parity_manifest.json`
-  * `zigux/tests/phase11_gpio_wdt_manifest.json`
-  * `zigux/tests/phase11_bcm2835_wdt_manifest.json`
-  * `zigux/tests/phase11_dw_wdt_manifest.json`
-  * `zigux/tests/phase11_hvc_console_manifest.json`
-  * `zigux/Makefile`
-  * `.github/workflows/zigux-bootstrap.yml`
+
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-hvc-console-survey.md`
+- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
+- `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/check-phase11-build-inventory.py`
+- `scripts/zigux/check-phase11-matrix-gap-survey.py`
+- `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
+- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/phase11_dw_wdt_manifest.json`
+- `zigux/tests/phase11_dw_wdt.zig`
+- `zigux/tests/phase11_dw_wdt_survey.zig`
+- `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
+
+Keep the current repo-reality gaps explicit too:
+
+- `zigux/Makefile` is present on current `master`, but it still exposes no dedicated `make -C zigux phase11`, `make -C zigux phase11-validate`, or `make -C zigux phase11-contract` routes.
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, and `zigux/tests/phase11_build.zig` remain repo-reality gaps rather than shipped current-`master` evidence.
+
 Reviewer prompts:
-  * Does the shared Phase 11 replay still stay separate from the dedicated archival `hvc_console` survey while the shared starter packet explicitly includes `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, and `zigux/tests/phase11_hvc_console_poll_retry_split.zig`?
-  * Do the pre-replay checkers still describe the same delivery contract that the shared build inventory, the shared header-boundary packet, the active review checklist prompt, and the Phase 11 manifests claim?
+
+- Do the current Phase 11 checker stack, the current matrix-gap notes, the current HVC cleanup companion, and the current proof-backed HVC cleanup route still describe the same bounded simple-driver packet?
+- Does the guide keep the returned `zigux/Makefile` file distinct from the still-missing dedicated Phase 11 make routes, and keep the older shared replay contract surfaces framed as gaps rather than live evidence?
 
 ## Phase 13: Shared-helper release packet
 
-Keep the validator-first release route explicit:
-  * `python3 scripts/zigux/check-phase13-libfs-packet.py --self-test`
-  * `python3 scripts/zigux/check-phase13-libfs-packet.py`
-  * `python3 scripts/zigux/check-phase13-devres-packet.py --self-test`
-  * `python3 scripts/zigux/check-phase13-devres-packet.py`
-  * `python3 scripts/zigux/check-phase13-notifier-packet.py --self-test`
-  * `python3 scripts/zigux/check-phase13-notifier-packet.py`
-  * `python3 scripts/zigux/check-phase13-release-replay-exact-counts.py --self-test`
-  * `python3 scripts/zigux/check-phase13-release-replay-exact-counts.py`
-  * `python3 scripts/zigux/validate-phase13-release.py`
-  * `make -C zigux phase13-validate`
-  * `make -C zigux phase13`
-Keep these evidence surfaces aligned in the same review:
-  * `scripts/zigux/README.md`
-  * `Documentation/zigux/README.md`
-  * `Documentation/zigux/review-checklist.md`
-  * `Documentation/zigux/phase13-release-notes-survey.md`
-  * `Documentation/zigux/phase13-roadmap-traceability.md`
-  * `Documentation/zigux/phase13-libfs-survey.md`
-  * `Documentation/zigux/phase13-devres-survey.md`
-  * `Documentation/zigux/phase13-landlock-ruleset-survey.md`
-  * `Documentation/zigux/phase13-landlock-syscalls-survey.md`
-  * `Documentation/zigux/phase13-notifier-list-survey.md`
-  * `scripts/zigux/check-phase13-libfs-packet.py`
-  * `scripts/zigux/check-phase13-devres-packet.py`
-  * `scripts/zigux/check-phase13-notifier-packet.py`
-  * `scripts/zigux/check-phase13-release-replay-exact-counts.py`
-  * `zigux/tests/phase13_build.zig`
-  * `zigux/tests/phase13_libfs_manifest.json`
-  * `zigux/tests/phase13_devres_manifest.json`
-  * `zigux/tests/phase13_landlock_ruleset_manifest.json`
-  * `zigux/tests/phase13_landlock_syscalls_manifest.json`
-  * `zigux/tests/phase13_notifier_list_manifest.json`
-  * `zigux/tests/phase13_libfs.zig`
-  * `zigux/tests/phase13_libfs_reviewability.zig`
-  * `zigux/tests/phase13_devres.zig`
-  * `zigux/tests/phase13_devres_dma_coherent.zig`
-  * `zigux/tests/phase13_devres_iounmap_reviewability.zig`
-  * `zigux/tests/phase13_devres_iomap_reviewability.zig`
-  * `zigux/tests/phase13_devres_reviewability.zig`
-  * `zigux/tests/phase13_devres_wrapper_reviewability.zig`
-  * `zigux/tests/phase13_landlock_ruleset.zig`
-  * `zigux/tests/phase13_landlock_ruleset_reviewability.zig`
-  * `zigux/tests/phase13_landlock_syscalls.zig`
-  * `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
-  * `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`
-  * `zigux/tests/phase13_notifier_list_reviewability.zig`
-  * `zigux/bindings/notifier_abi.zig`
-  * `include/zigux/notifier_abi.h`
-  * `zigux/helpers/notifier_chain_view.zig`
-  * `zigux/Makefile`
-  * `.github/workflows/zigux-bootstrap.yml`
-Reviewer prompt:
-  * Does the shared Phase 13 packet still route through the libfs, devres, notifier, and exact-count guards plus the release validator before the fifteen-step replay bundle, with the scripts index, docs-root summary, review checklist, the dedicated libfs packet guard, the dedicated devres packet guard, the dedicated notifier packet guard, the shared replay-count guard, the direct libfs, devres, landlock-ruleset, and landlock-syscalls helper replays, the dedicated Landlock ruleset reviewability gate, the devres coherent-DMA plus plain-helper, `iounmap`, `iomap`, and wrapper reviewability gates, the Landlock ruleset plus ruleset-fops-sync plus syscall reviewability gates, the adjacent notifier reviewability packet, the dedicated exported C header in `include/zigux/notifier_abi.h`, the Zig notifier ABI foothold in `zigux/bindings/notifier_abi.zig`, and the direct notifier-chain-view replay through `zigux/helpers/notifier_chain_view.zig` all naming the same shared helper surfaces rather than letting those release surfaces drift apart?
+Keep the current contributor-facing guard path explicit:
 
-## Checklist carryover prompts
+- `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 
-Keep these reviewer questions explicit when `Documentation/zigux/review-checklist.md` or other shared contributor surfaces are refreshed:
-  * Phase 10: do `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-shared-freeze-boundary.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_input_manifest.json`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_build.zig`, `zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_virtio_input.zig`, `zigux/tests/phase10_virtio_input_probe_preflight.zig`, `zigux/tests/phase10_virtio_input_queue_callback_preflight.zig`, `zigux/tests/phase10_virtio_input_registration_preflight.zig`, `zigux/tests/phase10_virtio_input_status_drain.zig`, `zigux/tests/phase10_virtio_input_teardown_observation.zig`, `zigux/tests/phase10_virtio_input_survey.zig`, `zigux/tests/phase10_virtio_mmio.zig`, `zigux/tests/phase10_virtio_mmio_survey.zig`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` still describe the same validator-first lab bundle, keep the ring-side risky-transport bridge adjacent to the MMIO-owned `P10-L11` packet, leave the bounded core packet narrowed to the current survey surface until missing companions return, and keep the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit rather than silently counting them as Phase 10 evidence?
-  * Phase 11: do `Documentation/zigux/phase11-shared-replay-contract.md`, `scripts/zigux/check-phase11-build-inventory.py`, `scripts/zigux/check-phase11-layout-assert-surface.py`, `scripts/zigux/check-phase11-hvc-validation-flow.py`, `scripts/zigux/check-phase11-hvc-cleanup-alignment.py`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-header-boundary-packet.py`, `zigux/tests/phase11_build.zig`, `zigux/tests/phase11_dw_wdt_suspend_resume.zig`, `zigux/tests/phase11_dw_wdt_remove_idle_split.zig`, `zigux/tests/phase11_hvc_console_modem_control_split.zig`, `zigux/tests/phase11_hvc_console_poll_retry_split.zig`, `zigux/tests/phase11_hvc_console_survey.zig`, and `zigux/tests/phase11_uapi_header_parity_manifest.json` still keep the pre-replay stack, the shared-versus-dedicated `hvc_console` split, and the shared header-boundary packet aligned?
-  * Phase 13: do `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-notifier-list-survey.md`, `Documentation/zigux/README.md`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_manifest.json`, `zigux/tests/phase13_devres_manifest.json`, `zigux/tests/phase13_landlock_ruleset_manifest.json`, `zigux/tests/phase13_landlock_syscalls_manifest.json`, `zigux/tests/phase13_notifier_list_manifest.json`, `scripts/zigux/check-phase13-libfs-packet.py`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `scripts/zigux/check-phase13-release-replay-exact-counts.py`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_iounmap_reviewability.zig`, `zigux/tests/phase13_devres_iomap_reviewability.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_wrapper_reviewability.zig`, `zigux/tests/phase13_landlock_ruleset.zig`, `zigux/tests/phase13_landlock_ruleset_reviewability.zig`, `zigux/tests/phase13_landlock_ruleset_fops_sync.zig`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/notifier_abi.h`, and `zigux/helpers/notifier_chain_view.zig` still keep the validator-first release path, the four roadmap-anchor manifests plus the adjacent notifier-list manifest, the dedicated libfs, devres, and notifier packet guards, the shared replay-count guard, the direct libfs helper plus libfs reviewability replay, the direct devres, landlock-ruleset, and landlock-syscalls helper replays, the devres coherent-DMA plus plain-helper, `iounmap`, `iomap`, and wrapper reviewability gates, the Landlock ruleset plus ruleset-fops-sync plus syscall reviewability gates, the adjacent notifier evidence, the dedicated exported C header foothold, the Zig notifier ABI foothold, and the direct notifier-chain-view replay aligned?
+Keep these contributor-facing and helper-local surfaces aligned in the same review:
+
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-release-coordination-matrix.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `zigux/tests/README.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
+- `Documentation/zigux/phase13-libfs-survey.md`
+- `fs/libfs.zig`
+- `zigux/tests/phase13_libfs.zig`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+- `zigux/tests/phase13_libfs_manifest.json`
+- `Documentation/zigux/phase13-devres-slice.md`
+- `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`
+- `Documentation/zigux/phase13-devres-scatterlist-slice.md`
+- `scripts/zigux/check-phase13-devres-dma-boundary.py`
+- `scripts/zigux/check-phase13-devres-mmio-packet.py`
+- `lib/devres.zig`
+- `lib/devres_scatterlist.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`
+- `zigux/tests/phase13_devres_scatterlist.zig`
+- `zigux/tests/phase13_devres_scatterlist_build.zig`
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
+- `security/landlock/ruleset.zig`
+- `security/landlock/syscalls.zig`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-notifier-packet.py`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `zigux/bindings/notifier_abi.zig`
+- `zigux/helpers/list_view.zig`
+- `zigux/helpers/hlist_view.zig`
+- `include/zigux/abi.h`
+- `drivers/tty/hvc/hvc_console.h`
+
+Keep the current repo-reality gaps explicit too:
+
+- `zigux/Makefile` is present on current `master`, but it still does not expose `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`.
+- `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/tests/phase13_build.zig`, `zigux/tests/phase13_libfs_addressability.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/notifier_abi.h`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` remain repo-reality gaps rather than shipped current-`master` evidence.
+
+Reviewer prompts:
+
+- Does the shared Phase 13 packet still route through the contributor workflow guide, the shared-summary guard, the tests-root alignment companion, the helper-local `libfs`, `devres`, and Landlock ruleset packets, and the adjacent notifier evidence without promoting repo-reality gaps back into shipped release proof?
+- Does the guide keep the returned `zigux/Makefile` file distinct from the still-missing Phase 13 make routes, and keep the missing validator-first, notifier-priority, notifier-chain, and direct Landlock-syscalls replay surfaces framed as gaps rather than live evidence?
 
 ## Shared review rule
 
-When one of these packets changes, keep the checker stack, the shared replay path, and the named evidence files reviewable together. Do not treat a passing build file, one manifest refresh, or one survey note edit as enough on its own.
+When one of these packets changes, keep the checker stack, the live replay path, the current evidence files, and the repo-reality gaps reviewable together. Do not treat a passing build file, one manifest refresh, or one survey note edit as enough on its own.
