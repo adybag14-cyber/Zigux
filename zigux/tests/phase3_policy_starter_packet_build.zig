@@ -32,6 +32,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
+    layout_assert.addImport("abi_bindings", abi_bindings);
     const narrow_surface = b.createModule(.{
         .root_source_file = b.path("../unsafe/narrow.zig"),
         .target = target,
