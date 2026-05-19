@@ -29,6 +29,7 @@ The shipped cold-stage guard in `test "trace-events sample keeps selftest replay
 The fail-closed companion keeps unregistered function-thread failures fail-closed.
 The exit-rollback companion keeps failed-exit rollback explicit after reusable selftest replay by proving `error.OutstandingRegistration` leaves the selftest_complete summary unchanged until the function thread unregisters and clean exit succeeds.
 The registration-reentry companion keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
+Its paired initialized-direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
 
 ## Exact module-slice boundary
 
@@ -39,6 +40,7 @@ Current `master` proves a sample-local cold-stage guard plus init and function-t
 - `exit()` still only accepts `.initialized` or `.selftest_complete` with zero registration depth and then moves the sample to `.exited`.
 - the direct cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` keeps `runSelftest()` and `exit()` rejected before `init()` materializes the module state
 - the direct initialized-stage exit proof keeps zero selftest runs explicit and shows that later lifecycle calls stay rejected without changing the exited summary
+- the registration-reentry companion's initialized direct-activity exit proof keeps one main replay plus one function-thread replay explicit before clean exit and shows that the same initialized summary survives through exit without any selftest run
 - duplicate registration still fails with `error.FunctionThreadAlreadyRegistered`
 - unregistered function-thread emission still fails with `error.FunctionThreadNotRegistered`
 - failed exit with outstanding registration still fails with `error.OutstandingRegistration`
