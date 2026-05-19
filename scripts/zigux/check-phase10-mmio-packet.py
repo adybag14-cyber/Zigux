@@ -210,7 +210,7 @@ def write_fixture_files(root: Path) -> None:
 def expect_missing_marker(root: Path, rel_path: str, old: str, new: str, expected: str) -> None:
     path = root / rel_path
     original = path.read_text(encoding="utf-8")
-    path.writeText(original.replace(old, new, 1), encoding="utf-8")
+    path.write_text(original.replace(old, new, 1), encoding="utf-8")
     missing_files, missing_markers = validate(root)
     if missing_files:
         raise SystemExit(f"phase10-mmio-packet-self-test:unexpected_missing_files:{','.join(missing_files)}")
