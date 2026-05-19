@@ -284,7 +284,12 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
         if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
             raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
 
-        expected_exit_code = int(validated_case.get("expected_exit_code", 0))
+        expected_exit_code = validated_case.get("expected_exit_code", 0)
+        if not isinstance(expected_exit_code, int):
+            raise ValueError(
+                f"{CASES_PATH}:{name}:expected_exit_code_type="
+                f"{type(expected_exit_code).__name__},expected=int"
+            )
         if expected_exit_code != 0:
             expected_stderr_name = validated_case.get("expected_stderr")
             if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
@@ -406,6 +411,16 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample:unexpected_field:unexpected_field",
     )
 
+    expected_stdout_alias_cases = copy_valid_cases(valid_cases)
+    sample_alias_case = find_case(expected_stdout_alias_cases, "sample")
+    sample_alias_case.pop("expected", None)
+    sample_alias_case["expected_stdout"] = "sample_expected.txt"
+    expect_failure(
+        "unexpected_expected_stdout_field",
+        lambda: validate_cases(expected_stdout_alias_cases),
+        f"{CASES_PATH}:sample:unexpected_field:expected_stdout",
+    )
+
     reordered_cases = copy_valid_cases(valid_cases)
     reordered_cases[0], reordered_cases[1] = reordered_cases[1], reordered_cases[0]
     expect_failure(
@@ -431,14 +446,12 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample:missing_expected_output",
     )
 
-    expected_stdout_alias_cases = copy_valid_cases(valid_cases)
-    sample_alias_case = find_case(expected_stdout_alias_cases, "sample")
-    sample_alias_case.pop("expected", None)
-    sample_alias_case["expected_stdout"] = "sample_expected.txt"
+    string_expected_exit_cases = copy_valid_cases(valid_cases)
+    find_case(string_expected_exit_cases, "sample_comment_only")["expected_exit_code"] = "1"
     expect_failure(
-        "unexpected_expected_stdout_field",
-        lambda: validate_cases(expected_stdout_alias_cases),
-        f"{CASES_PATH}:sample:unexpected_field:expected_stdout",
+        "string_expected_exit_code_type",
+        lambda: validate_cases(string_expected_exit_cases),
+        f"{CASES_PATH}:sample_comment_only:expected_exit_code_type=str,expected=int",
     )
 
     mismatched_target_cases = copy_valid_cases(valid_cases)
@@ -518,7 +531,6 @@ def run_self_test() -> int:
             )
         finally:
             FIXTURE_DIR = original_fixture_dir
-
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
@@ -566,7 +578,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 18}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 19}")
     return 0
 
 
@@ -707,7 +719,7 @@ def main() -> int:
 
     for case in cases:
         depfile = FIXTURE_DIR / case["depfile"]
-        expected_stdout = FIXTURE_DIR / case["expected"]
+        expected_stdout = FIXTURE_DIR / case.get("expected_stdout", case["expected"])
         expected_stderr_name = case.get("expected_stderr")
         expected_stderr = FIXTURE_DIR / expected_stderr_name if expected_stderr_name else None
         expected_exit_code = int(case.get("expected_exit_code", 0))
