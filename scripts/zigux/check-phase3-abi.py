@@ -21,7 +21,6 @@ BINDING_VERSION = Path("zigux/bindings/version.zig")
 BINDING_NOTIFIER = Path("zigux/bindings/notifier_abi.zig")
 EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
 PHASE3_CATALOG = Path("scripts/zigux/phase3_catalog.py")
-EXPORT_UAPI_SURVEY_VALIDATOR = Path("scripts/zigux/validate-phase3-export-uapi-survey.py")
 ABI_TEST = Path("zigux/tests/phase3_abi.zig")
 TESTS_BUILD = Path("zigux/tests/build.zig")
 ABI_DUMP = Path("zigux/tests/phase3_abi_dump_current.zig")
@@ -44,12 +43,10 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase3-abi.py",
         "scripts/zigux/validate-phase3.py",
         "scripts/zigux/phase3_catalog.py",
-        "scripts/zigux/validate-phase3-export-uapi-survey.py",
         "zigux/tests/phase3_abi.zig",
         "zigux/tests/build.zig",
         "zigux/tests/phase3_abi_dump_current.zig",
         "scripts/zigux/check-phase3-catalog-selftest.py",
-        "Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "zigux/tests/fixtures/phase3_abi_manifest.json",
     ),
     ABI_HEADER: (
@@ -184,11 +181,6 @@ REQUIRED_MARKERS = {
         'Path("scripts/zigux/phase3_catalog.py")',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
-    EXPORT_UAPI_SURVEY_VALIDATOR: (
-        'SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
-        'CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")',
-        'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
-    ),
     ABI_TEST: (
         'test "phase3 abi keeps shared layout assertions wired into the replay" {',
         "layout_assert.assertBoundaryHeaderLayout();",
@@ -227,14 +219,12 @@ REQUIRED_MARKERS = {
         '"zigux/bindings/notifier_abi.zig"',
         '"scripts/zigux/validate-phase3.py"',
         '"scripts/zigux/phase3_catalog.py"',
-        '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
         '"zigux/tests/phase3_abi.zig"',
         '"zigux/tests/phase3_abi_dump_current.zig"',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
         '"scripts/zigux/check-phase3-catalog-selftest.py"',
-        '"Documentation/zigux/phase3-linux-zigux-header-governance.md"',
         '"next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work"',
     ),
 }
@@ -269,12 +259,16 @@ REQUIRED_PACKET_FILES = (
     "Documentation/zigux/phase3-abi-slice.md",
     "include/zigux/abi.h",
     "include/linux/zigux.h",
+    "include/zigux/dev_t.h",
+    "zigux/uapi/dev_t.zig",
+    "zigux/uapi/version.zig",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/bindings/version.zig",
     "zigux/bindings/notifier_abi.zig",
     "zigux/kernel/export_shim.zig",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/phase3_catalog.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
@@ -286,12 +280,10 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
-    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
 REQUIRED_REPO_REALITY_GAPS = (
     "scripts/zigux/check-phase3-catalog-selftest.py",
-    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
 )
 
 SAMPLE_MANIFEST = {
@@ -508,7 +500,7 @@ def run_self_test() -> int:
         )
         if expected_missing_route not in issues:
             print("PHASE3_ABI_CHECK_SELF_TEST=fail")
-            print("expected missing export/uapi layout replay route was not reported")
+            print("expected missing replay route was not reported")
             return 1
 
         for populate_path, markers in REQUIRED_MARKERS.items():
