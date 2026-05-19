@@ -17,6 +17,7 @@ Current direct contents reads on `master` now keep this owner note,
 `zigux/tests/phase11_dw_wdt.zig`,
 `zigux/tests/phase11_dw_wdt_survey.zig`,
 `drivers/watchdog/dw_wdt.zig`,
+`drivers/watchdog/dw_wdt_restart.zig`,
 `drivers/watchdog/dw_wdt_verify.zig`,
 `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and
 `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` directly readable for
@@ -25,19 +26,19 @@ the bounded DesignWare packet.
 Keep the older `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed as
 historical context until a future reread proves it returned. The live DesignWare
 packet is no longer just a docs-and-scaffold owner stack: the direct helper,
-verify helper, replay, survey replay, validation matrix, slice, survey, and
-teardown note are all current-head evidence again.
+restart helper, verify helper, replay, survey replay, validation matrix, slice,
+survey, and teardown note are all current-head evidence again.
 
 The directly readable owner packet now keeps the bounded lane reviewable through:
 - the current starter-laned gap inventory in `zigux/tests/phase11_dw_wdt_manifest.json`
 - the acquisition-facing scaffold in `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, including timer-clock, optional APB clock, reset-release posture, optional pretimeout-IRQ acquisition, imported-running handoff, and the missing timer-clock failure path
-- the direct helper pair `drivers/watchdog/dw_wdt.zig` and `drivers/watchdog/dw_wdt_verify.zig`
+- the direct helper trio `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_restart.zig`, and `drivers/watchdog/dw_wdt_verify.zig`
 - the direct replay pair `zigux/tests/phase11_dw_wdt.zig` and `zigux/tests/phase11_dw_wdt_survey.zig`
 - the directly readable reminder packet in `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, and `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`
 - the dedicated fail-closed companions `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py` and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 - this owner note together with `Documentation/zigux/phase11-driver-lane-sequencing.md` as the continuity packet that keeps the surviving DesignWare platform-registration follow-through explicit without widening it into live platform-driver execution or broader hardware-backed closure
 
-The roadmap still keeps this family inside straightforward driver delivery with teardown and failure-mode parity under `drivers/watchdog/*.zig`. That means the honest next step is still to attach the existing registration-facing handoff to one acquisition-facing platform-registration scaffold without widening into live clock, reset, IRQ, PM, or MMIO behavior.
+The roadmap still keeps this family inside straightforward driver delivery with teardown and failure-mode parity under `drivers/watchdog/*.zig`. The new direct restart helper closes the easiest remaining lifecycle-parity gap against the already-landed bcm2835 packet without pretending that platform-backed registration, PM, or MMIO execution is complete. That means the honest next step is still to attach the existing registration-facing handoff to one acquisition-facing platform-registration scaffold without widening into live clock, reset, IRQ, PM, or MMIO behavior.
 
 Current scaffold readback also already proves one bounded reset-side truthfulness point that this note should preserve: when timeout programming is present and the rest of the acquisition-facing handoff is ready, optional reset-control absence can still remain a ready-to-register scaffold branch while `reset_control_deassert` stays visible as an unrequested outcome rather than an implicit blocker.
 
@@ -84,6 +85,7 @@ The first scaffold packet should stay publishable with bounded proof only:
 - `Documentation/zigux/phase11-dw-wdt-slice.md`
 - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
 - `drivers/watchdog/dw_wdt.zig`
+- `drivers/watchdog/dw_wdt_restart.zig`
 - `drivers/watchdog/dw_wdt_verify.zig`
 - `zigux/tests/phase11_dw_wdt.zig`
 - `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`
@@ -97,7 +99,7 @@ If reset acquisition lands first, leave clock-path execution for the next
 bounded step. When reset control is absent, keep the ready-to-register branch
 explicit instead of treating reset wiring as a blocked prerequisite. Keep the
 missing timer-clock failure path explicit until live acquisition exists.
-Keep the directly readable registration scaffold, helper pair, replay pair,
-and reminder packet explicit while the next implementation step stays inside one
+Keep the directly readable registration scaffold, helper trio, replay pair, and
+reminder packet explicit while the next implementation step stays inside one
 platform-registration helper family. Keep the older packet-checker handle framed
 as historical context until current `master` rematerializes it again.
