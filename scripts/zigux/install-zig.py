@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import argparse
+from datetime import datetime, timedelta, timezone
+from email.utils import format_datetime, parsedate_to_datetime
 import hashlib
 import json
 import os
@@ -21,10 +23,11 @@ import zipfile
 INDEX_URL = 'https://ziglang.org/download/index.json'
 VERSION_KEY_RE = re.compile(r'^\d+\.\d+\.\d+(?:-dev\.\d+(?:\+[0-9A-Za-z.-]+)?)?$')
 ARCHIVE_SHA256_RE = re.compile(r'^[0-9a-f]{64}$')
-RETRYABLE_HTTP_STATUS_CODES = {500, 502, 503, 504}
+RETRYABLE_HTTP_STATUS_CODES = {408, 429, 500, 502, 503, 504}
 DOWNLOAD_RETRIES = 4
 DOWNLOAD_TIMEOUT = 120.0
 DOWNLOAD_CHUNK_SIZE = 1024 * 1024
+MAX_RETRY_DELAY = 30.0
 ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 TOOLCHAIN_POLICY = ROOT / 'scripts' / 'zigux' / 'zig-toolchain-policy.json'
 FALLBACK_CHANNEL = 'master'
@@ -115,6 +118,33 @@ def verify_archive_sha256(path: Path, expected_sha256: str) -> str:
     return actual_sha256.lower()
 
 
+def parse_retry_after(headers) -> float | None:
+    if headers is None:
+        return None
+    value = headers.get('Retry-After')
+    if value is None:
+        return None
+    text = value.strip()
+    if not text:
+        return None
+    if text.isdigit():
+        return float(text)
+    try:
+        parsed = parsedate_to_datetime(text)
+    except (TypeError, ValueError, IndexError, OverflowError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return max(0.0, parsed.timestamp() - time.time())
+
+
+def retry_delay_seconds(attempt: int, *, default_delay: float, headers=None) -> float:
+    parsed_retry_after = parse_retry_after(headers)
+    if parsed_retry_after is not None:
+        return min(parsed_retry_after, MAX_RETRY_DELAY)
+    return min(default_delay, MAX_RETRY_DELAY)
+
+
 def open_url(url: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
     last_error: Exception | None = None
     for attempt in range(1, retries + 1):
@@ -124,11 +154,18 @@ def open_url(url: str | urllib.request.Request, *, retries: int = 3, timeout: fl
             if exc.code not in RETRYABLE_HTTP_STATUS_CODES or attempt == retries:
                 raise
             last_error = exc
+            time.sleep(
+                retry_delay_seconds(
+                    attempt,
+                    default_delay=min(0.5 * attempt, 2.0),
+                    headers=exc.headers,
+                )
+            )
         except urllib.error.URLError as exc:
             if attempt == retries:
                 raise
             last_error = exc
-        time.sleep(min(0.5 * attempt, 2.0))
+            time.sleep(min(0.5 * attempt, 2.0))
     if last_error is not None:
         raise last_error
     raise RuntimeError(f'failed to open URL after retries: {url}')
@@ -222,6 +259,18 @@ def copy_url_to_file(
             return
         except TimeoutError as exc:
             last_error = exc
+        except urllib.error.HTTPError as exc:
+            last_error = exc
+            if attempt == retries:
+                break
+            time.sleep(
+                retry_delay_seconds(
+                    attempt,
+                    default_delay=min(1.5 * attempt, 5.0),
+                    headers=exc.headers,
+                )
+            )
+            continue
         except urllib.error.URLError as exc:
             last_error = exc
         if attempt == retries:
@@ -422,6 +471,16 @@ def run_self_test() -> int:
         else:
             raise AssertionError('expected sha mismatch to fail')
 
+    assert parse_retry_after(None) is None
+    assert parse_retry_after({}) is None
+    assert parse_retry_after({'Retry-After': '7'}) == 7.0
+    future_retry_at = format_datetime(datetime.now(timezone.utc) + timedelta(seconds=10), usegmt=True)
+    parsed_retry_after = parse_retry_after({'Retry-After': future_retry_at})
+    assert parsed_retry_after is not None
+    assert 0.0 <= parsed_retry_after <= 10.0
+    assert retry_delay_seconds(1, default_delay=0.5, headers={'Retry-After': '60'}) == MAX_RETRY_DELAY
+    assert retry_delay_seconds(2, default_delay=1.25, headers=None) == 1.25
+
     class FakeResponse:
         def __init__(self, events: list[bytes | BaseException], *, status: int):
             self._events = list(events)
@@ -444,6 +503,36 @@ def run_self_test() -> int:
             if isinstance(event, BaseException):
                 raise event
             return event
+
+    throttled_sleep_calls: list[float] = []
+    throttled_open_attempts = 0
+
+    def throttled_urlopen(target, timeout: float = 30.0):
+        del target, timeout
+        nonlocal throttled_open_attempts
+        throttled_open_attempts += 1
+        if throttled_open_attempts == 1:
+            raise urllib.error.HTTPError(
+                url='https://example.invalid/index.json',
+                code=429,
+                msg='Too Many Requests',
+                hdrs={'Retry-After': '0'},
+                fp=None,
+            )
+        return FakeResponse([b'{}'], status=200)
+
+    original_urlopen = urllib.request.urlopen
+    original_sleep = time.sleep
+    try:
+        urllib.request.urlopen = throttled_urlopen
+        time.sleep = throttled_sleep_calls.append
+        with open_url('https://example.invalid/index.json', retries=2, timeout=1.0) as response:
+            assert response.read() == b'{}'
+        assert throttled_open_attempts == 2
+        assert throttled_sleep_calls == [0.0]
+    finally:
+        urllib.request.urlopen = original_urlopen
+        time.sleep = original_sleep
 
     resume_headers: list[str | None] = []
 
@@ -474,6 +563,38 @@ def run_self_test() -> int:
         if temp_path.exists():
             temp_path.unlink()
         temp_path.parent.rmdir()
+
+    throttled_download_attempts = 0
+
+    def throttled_download_open_url(target: str | urllib.request.Request, *, retries: int = 3, timeout: float = 30.0):
+        del retries, timeout
+        nonlocal throttled_download_attempts
+        throttled_download_attempts += 1
+        if throttled_download_attempts == 1:
+            raise urllib.error.HTTPError(
+                url='https://example.invalid/archive.tar.xz',
+                code=429,
+                msg='Too Many Requests',
+                hdrs={'Retry-After': '0'},
+                fp=None,
+            )
+        if isinstance(target, urllib.request.Request):
+            assert target.headers.get('Range') is None
+        return FakeResponse([b'zig-download'], status=200)
+
+    throttled_download_path = Path(tempfile.mkdtemp(prefix='zigux_install_zig_throttle_')) / 'archive.tar.xz'
+    try:
+        shutil.which = lambda name: None if name == 'curl' else original_which(name)
+        globals()['open_url'] = throttled_download_open_url
+        copy_url_to_file('https://example.invalid/archive.tar.xz', throttled_download_path, retries=2, timeout=1.0)
+        assert throttled_download_path.read_bytes() == b'zig-download'
+        assert throttled_download_attempts == 2
+    finally:
+        shutil.which = original_which
+        globals()['open_url'] = original_open_url
+        if throttled_download_path.exists():
+            throttled_download_path.unlink()
+        throttled_download_path.parent.rmdir()
 
     curl_commands: list[list[str]] = []
 
@@ -572,7 +693,7 @@ def run_self_test() -> int:
         raise AssertionError('expected resolve_target to reject unknown target')
 
     print('ZIG_INSTALL_SELF_TEST=pass')
-    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=32')
+    print('ZIG_INSTALL_SELF_TEST_CASE_COUNT=39')
     return 0
 
 
