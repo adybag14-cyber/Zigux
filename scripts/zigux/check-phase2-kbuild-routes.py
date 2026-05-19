@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
+MAKEFILE = ROOT / "zigux" / "Makefile"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
     ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
@@ -24,6 +25,7 @@ SURFACE_PATHS = (
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
+    MAKEFILE,
 )
 
 WORKFLOW_LINES = (
@@ -71,6 +73,17 @@ README_FORBIDDEN_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/Makefile`, and `make -C zigux phase2`",
 )
 
+REQUIRED_MAKEFILE_LINES = (
+    "phase2-kconfig:",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+)
+
+DISALLOWED_MAKEFILE_LINES = (
+    "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/confdata_bridge.zig",
+)
+
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(WORKFLOW_LINES)
@@ -81,6 +94,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_FORBIDDEN_MARKERS)
     + 2
     + len(SURFACE_PATHS)
+    + len(REQUIRED_MAKEFILE_LINES)
+    + len(DISALLOWED_MAKEFILE_LINES)
 )
 
 
@@ -127,6 +142,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     readme_text = read_text(resolve_path(root, SCRIPTS_README))
+    makefile_text = read_text(resolve_path(root, MAKEFILE))
 
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -145,6 +161,21 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
+    issues.extend(
+        collect_exact_line_issues(
+            makefile_text,
+            REQUIRED_MAKEFILE_LINES,
+            "MISSING_MAKEFILE_LINES",
+            "DUPLICATE_MAKEFILE_LINES",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            makefile_text,
+            DISALLOWED_MAKEFILE_LINES,
+            "FORBIDDEN_MAKEFILE_LINES",
+        )
+    )
 
     for path in SURFACE_PATHS:
         if not resolve_path(root, path).exists():
@@ -184,7 +215,21 @@ def build_self_test_root(root: Path) -> None:
         *README_WARNING_LINES,
     ]
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
+    write_text(
+        resolve_path(root, MAKEFILE),
+        "\n".join(
+            (
+                "ZIG ?= zig",
+                "ZIGUX_ROOT := ..",
+                "",
+                *REQUIRED_MAKEFILE_LINES,
+            )
+        )
+        + "\n",
+    )
     for path in SURFACE_PATHS:
+        if path == MAKEFILE:
+            continue
         write_text(resolve_path(root, path), "present\n")
 
 
@@ -290,8 +335,36 @@ def run_self_test() -> int:
         for rel_path in SURFACE_PATHS:
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
+            if rel_path == MAKEFILE:
+                try:
+                    collect_issues(root)
+                except SystemExit as exc:
+                    assert "required file missing" in str(exc)
+                    assert str(resolve_path(root, rel_path)) in str(exc)
+                else:
+                    raise AssertionError("missing makefile did not abort")
+            else:
+                issues = collect_issues(root)
+                assert ("MISSING_SURFACE_PATHS", rel_path.relative_to(ROOT).as_posix()) in issues
+            checks_run += 1
+
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed for self-test"),
+                encoding="utf-8",
+            )
             issues = collect_issues(root)
-            assert ("MISSING_SURFACE_PATHS", rel_path.relative_to(ROOT).as_posix()) in issues
+            assert ("MISSING_MAKEFILE_LINES", marker) in issues
+            checks_run += 1
+
+        for marker in DISALLOWED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_MAKEFILE_LINES", marker) in issues
             checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
