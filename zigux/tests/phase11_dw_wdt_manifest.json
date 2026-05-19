@@ -20,7 +20,8 @@
     "dw_wdt_slice_note_present": true,
     "dw_wdt_survey_gate_present": true,
     "dw_wdt_survey_note_present": true,
-    "dw_wdt_pm_helper_present": true
+    "dw_wdt_pm_helper_present": true,
+    "dw_wdt_restart_helper_present": true
   },
   "gaps": [
     {
@@ -49,7 +50,7 @@
       "status": "starter_landed",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "The direct DesignWare replay still keeps timeout selection, restart intent, and registration-facing handoff outputs reviewable around the landed starter."
+      "why_now": "The direct DesignWare replay still keeps timeout selection, restart intent, registration-facing handoff outputs, and the new direct restart summary companion reviewable around the landed starter."
     },
     {
       "id": "phase11-dw-wdt-slice-note",
@@ -78,6 +79,13 @@
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt_registration_scaffold.zig",
       "why_now": "The scaffold replay keeps timer-clock path choice, reset-release posture, and register-device request ordering explicit before any host-backed platform path lands."
+    },
+    {
+      "id": "phase11-dw-wdt-restart-summary",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/dw_wdt_restart.zig",
+      "why_now": "The direct restart helper now keeps missing-drvdata and missing-timeout-image restart blocks explicit beside restart-priority registration, timeout-range and control-register writes, and reset-pulse expectations so DesignWare restart parity no longer lives only inside the broader verify helper."
     },
     {
       "id": "phase11-dw-wdt-teardown-parity",
@@ -112,7 +120,7 @@
       "status": "ready_next",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "With the PM handoff helper parked in-tree, the next real gap is hardware-backed MMIO validation around suspend, resume, and platform-backed probe or remove execution, still without widening into unrelated driver behavior."
+      "why_now": "With the PM handoff helper and direct restart summary parked in-tree, the next real gap is hardware-backed MMIO validation around suspend, resume, and platform-backed probe or remove execution, still without widening into unrelated driver behavior."
     }
   ]
 }
