@@ -151,8 +151,8 @@ REQUIRED_MARKERS = {
     RAW_GITHUB_COVERAGE_PATH: [
         "- exact coverage evidence checked on `2026-05-19`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
         *RAW_GITHUB_BRIDGE_MARKERS,
-        "while a direct contents read for `zigux/tests/phase12_build.zig` still returns `404` through the same current `master` bridge",
-        "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, and current Makefile as bounded reminder evidence only",
+        "- exact coverage evidence checked on `2026-05-19`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` at blob `bcf1055e6ff9d256cfed89e11e4ba2eb1ab9f61a`, `scripts/zigux/check-phase12-release-readiness-packet.py` at blob `c6ab6ebca92478200f39c5114ac50af315f42b44`, `.github/workflows/zigux-bootstrap.yml` at blob `8f373d8734694964dd63d754c4889fe82bd558b9`, `scripts/zigux/README.md` at blob `48950c1c089f447989a4b8424e49192ad3a416b4`, `zigux/Makefile` at blob `79c077334a5e3c67868081f4c9ae71e0e3cde541`, and `zigux/tests/phase12_build.zig` at blob `18a1f2bfbb78a7c3b871fba93b33f88cacf710d7`",
+        "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, current Makefile, and current `zigux/tests/phase12_build.zig` as bounded reminder evidence only",
         "the raw-URL-backed fallback pair and the contents-bridge-backed shared support bundle are distinct evidence paths in this runtime",
     ],
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
