@@ -1,5 +1,5 @@
 const std = @import("std");
-const hvc_console = @import("../../drivers/tty/hvc/hvc_console.zig");
+const hvc_console = @import("hvc_console");
 const layout_assert = @import("layout_assert");
 
 const WinsizeLayout = extern struct {
