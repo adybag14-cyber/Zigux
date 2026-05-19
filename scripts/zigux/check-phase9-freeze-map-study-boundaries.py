@@ -47,12 +47,21 @@ FREEZE_MAP_REQUIRED_MARKERS = [
 
 STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS = [
     "# Phase 15 Study-Only Anchor Accounting",
+    "PHASE15_STATUS=study_only_accounting_slice_landed",
+    "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "`kernel/workqueue.c`",
     "`kernel/trace/ring_buffer.c`",
     "`study_only`",
     "tracked outside the freeze-in-C scorecard",
     "this note is an inventory and handoff surface, not an approval record",
     "if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it",
+    "the freeze-map governance note, the parity scorecard, the handoff-next-steps survey, and the shared-summary gap note",
+    "boundary-study target first, not a rewrite target",
+    "remain future-only and not current product claims",
+    "no Architecture Council approval is currently recorded for a deep-core status change",
+    "a direct Zigux bridge for `kernel/workqueue.c`",
+    "a direct Zigux bridge for `kernel/trace/ring_buffer.c`",
+    "any future status-bucket change for either anchor must update the freeze map, the Phase 15 governance note, the parity scorecard, and this study-only accounting note together",
 ]
 
 
@@ -99,15 +108,27 @@ def build_freeze_map_fixture_text() -> str:
 def build_study_only_accounting_fixture_text() -> str:
     return """# Phase 15 Study-Only Anchor Accounting
 
+- `PHASE15_STATUS=study_only_accounting_slice_landed`
+- `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - `kernel/workqueue.c`
 - `kernel/trace/ring_buffer.c`
 - posture: `study_only`
 - current Phase 15 role: tracked outside the freeze-in-C scorecard
+- current companions: the freeze-map governance note, the parity scorecard, the handoff-next-steps survey, and the shared-summary gap note
+- roadmap reason: boundary-study target first, not a rewrite target
+- speculative direct ports remain future-only and not current product claims
+- no Architecture Council approval is currently recorded for a deep-core status change
 
 ## Accounting Rules
 
 - this note is an inventory and handoff surface, not an approval record
 - if the study-only anchor set changes in `Documentation/zigux/freeze-map.md`, this note must change with it
+- any future status-bucket change for either anchor must update the freeze map, the Phase 15 governance note, the parity scorecard, and this study-only accounting note together
+
+## Non-Goals
+
+- a direct Zigux bridge for `kernel/workqueue.c`
+- a direct Zigux bridge for `kernel/trace/ring_buffer.c`
 """
 
 
@@ -132,15 +153,18 @@ def run_self_test() -> int:
 
         for marker in FREEZE_MAP_REQUIRED_MARKERS:
             seed_fixture_tree(base)
-            write_text(base / FREEZE_MAP_PATH, build_freeze_map_fixture_text().replace(marker, "", 1))
+            current = build_freeze_map_fixture_text()
+            if current.count(marker) != 1:
+                continue
+            write_text(base / FREEZE_MAP_PATH, current.replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{FREEZE_MAP_PATH}:{marker}")
 
         for marker in STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS:
             seed_fixture_tree(base)
-            write_text(
-                base / STUDY_ONLY_ACCOUNTING_PATH,
-                build_study_only_accounting_fixture_text().replace(marker, "", 1),
-            )
+            current = build_study_only_accounting_fixture_text()
+            if current.count(marker) != 1:
+                continue
+            write_text(base / STUDY_ONLY_ACCOUNTING_PATH, current.replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{STUDY_ONLY_ACCOUNTING_PATH}:{marker}")
 
         for rel_path in [FREEZE_MAP_PATH, STUDY_ONLY_ACCOUNTING_PATH]:
@@ -160,8 +184,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Check that the Phase 9 freeze-map boundary packet keeps the study-only anchors, "
-            "shared runtime-trace-events reminder surfaces, and Phase 15 study-only accounting "
-            "note explicit together."
+            "shared runtime-trace-events reminder surfaces, and the fuller Phase 15 study-only "
+            "accounting posture explicit together."
         )
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
