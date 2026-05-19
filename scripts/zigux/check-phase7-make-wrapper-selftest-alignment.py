@@ -31,6 +31,8 @@ REQUIRED_CHECKER_MARKERS = (
 REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test",
     "run: python3 scripts/zigux/check-phase7-shared-control-gap.py",
+    "run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
 )
 
 FORBIDDEN_WORKFLOW_LINES = (
@@ -49,7 +51,7 @@ FORBIDDEN_MAKEFILE_LINES = (
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 13
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(path: Path) -> str:
@@ -155,6 +157,10 @@ def build_self_test_root(root: Path) -> None:
                 "        run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test",
                 "      - name: Check current Phase 7 shared-control gap packet",
                 "        run: python3 scripts/zigux/check-phase7-shared-control-gap.py",
+                "      - name: Self-test current Phase 7 make-wrapper selftest alignment checker",
+                "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test",
+                "      - name: Check current Phase 7 make-wrapper selftest alignment packet",
+                "        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py",
                 "",
             )
         ),
@@ -178,25 +184,16 @@ def run_self_test() -> int:
         assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[4]) in issues
         cases += 1
 
-        build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[0], "        run: true"),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[0]) in issues
-        cases += 1
-
-        build_self_test_root(root)
-        path = root / WORKFLOW
-        path.write_text(
-            replace_exact_line(path.read_text(encoding="utf-8"), REQUIRED_WORKFLOW_LINES[1], "        run: true"),
-            encoding="utf-8",
-        )
-        issues = collect_issues(root)
-        assert ("MISSING_WORKFLOW_HOOKS", REQUIRED_WORKFLOW_LINES[1]) in issues
-        cases += 1
+        for marker in REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = root / WORKFLOW
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "        run: true"),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
+            cases += 1
 
         for marker in FORBIDDEN_WORKFLOW_LINES:
             build_self_test_root(root)
