@@ -1,28 +1,27 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-18T12:38:00Z",
+  "verified_on_utc": "2026-05-19T00:30:00Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
   ],
-  "current_direct_readback_state": "survey_and_manifest_anchor",
+  "current_direct_readback_state": "public_fallback_core_packet",
   "visible_paths": [
-    "Documentation/zigux/phase7-helper-lane-sequencing.md",
+    "Documentation/zigux/phase7-rbtree-slice.md",
+    "lib/rbtree.zig",
+    "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
-    "zigux/tests/phase7_rbtree_manifest.json"
+    "zigux/tests/phase7_rbtree_manifest.json",
+    "scripts/zigux/check-phase7-rbtree-parity.py"
   ],
   "readable_non_owner_paths": [
     "zigux/Makefile",
     ".github/workflows/zigux-bootstrap.yml"
   ],
   "missing_paths": [
-    "Documentation/zigux/phase7-rbtree-slice.md",
-    "lib/rbtree.zig",
-    "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/fixtures/phase7_rbtree.json",
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
-    "scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/tests/phase7_build.zig",
     "scripts/zigux/validate-phase7.py"
   ],
@@ -40,10 +39,10 @@
     "make -C zigux phase7-test"
   ],
   "ownership_focus": [
-    "the surviving survey-plus-manifest anchor must not be presented as proof that the broader rbtree helper, dedicated test, fixture, checker, or shared build files have returned on current master",
-    "same-lane follow-through stays inside the surviving survey and manifest anchors until a fresh reread proves another rbtree companion returned on current master",
+    "the current public-fallback-visible rbtree core packet includes the slice note, helper, dedicated test, survey, manifest, and parity checker, but it still must not be presented as proof that the missing fixture pair or shared build-and-validator routes have returned on current master",
+    "same-lane follow-through stays inside the restored slice-helper-test-survey-manifest-checker packet until a fresh reread proves the fixture pair or shared build-and-validator companions returned on current master",
     "cross-helper truthfulness must keep the landed string_helpers packet explicit instead of repeating the older blocked-by-missing-string-helper claim",
-    "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` is directly readable again but still lacks dedicated `phase7-*` wrapper routes, `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps, and the missing helper, dedicated test, checker, and shared build files still block any claim that the broader rbtree build packet returned"
+    "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` is directly readable again but still lacks dedicated `phase7-*` wrapper routes, `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps, and the missing fixture pair plus shared build-and-validator files still block any claim that the broader rbtree build packet is fully restored"
   ],
-  "next_bounded_step": "Keep same-lane follow-through limited to survey-or-manifest truthfulness until a fresh reread proves the rbtree slice note, helper, dedicated test, fixtures, checker, or shared Phase 7 build files returned on current master."
+  "next_bounded_step": "Keep same-lane follow-through limited to the restored rbtree slice-helper-test-survey-manifest-checker packet until a fresh reread proves the fixture pair or shared Phase 7 build-and-validator routes returned on current master."
 }
