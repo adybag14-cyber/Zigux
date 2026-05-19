@@ -1,1 +1,1 @@
-{"tool":"scripts/kconfig/conf","mode":"savedefconfig","argv":["scripts/kconfig/conf","--savedefconfig","defconfig.out","Kconfig"],"env":{"ARCH":"x86_64","KCONFIG_CONFIG":".config"}}
+{"tool":"scripts/kconfig/conf","mode":"savedefconfig","argv":["scripts/kconfig/conf","--savedefconfig","silent=debug_defconfig","Kconfig"],"env":{"ARCH":"x86_64","KCONFIG_CONFIG":".config"}}
