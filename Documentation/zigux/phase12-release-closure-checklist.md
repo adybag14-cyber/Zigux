@@ -46,7 +46,7 @@ Keep the checklist in the open state while these Phase 12 closure blockers remai
 - `nvme_pci` remains driver-local and outside the shared `phase12` smoke-and-test route.
 - The libbpf Phase 12 packet remains parked behind survey, snapshot, and verify-shard reminder surfaces rather than a shipped direct replay bundle.
 - The shipped validator-first support bundle is `make -C zigux phase12-validate` only in older reminder vocabulary; current `zigux/Makefile` still omits that wrapper, so the PMO packet must keep `phase12-validate` framed as reminder-only vocabulary even though `phase12-smoke`, `phase12-test`, and `phase12` are shipped wrapper proof again.
-- Degraded GitHub contents reads in this runtime still make some shared replay support files readback-limited even when the public tree and companion notes show they are present on `master`.
+- The shared support packet still has mixed contents-bridge coverage on current `master`: the directly readable scripts-side support bundle, workflow, scripts-root README, and current Makefile remain available, while `Documentation/zigux/phase12-raw-github-coverage-survey.md` still records `zigux/tests/phase12_build.zig` as a degraded-readback anchor rather than a uniformly direct contents-bridge surface.
 
 ## Degraded Validation Path
 
