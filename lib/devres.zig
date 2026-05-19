@@ -117,3 +117,75 @@ pub const DevresHelperLab = struct {
         };
     }
 };
+
+const std = @import("std");
+
+test "descriptor stays helper-local" {
+    const descriptor = DevresHelperLab.descriptor();
+
+    try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
+    try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
+    try std.testing.expect(descriptor.provides_dmam_alloc_coherent_planning);
+    try std.testing.expect(!descriptor.touches_live_dma);
+    try std.testing.expect(!descriptor.touches_live_scatterlist);
+}
+
+test "managed allocation retains release record when acquisition succeeds" {
+    const plan = try DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 4096,
+        .release_record_allocated = true,
+        .allocation_succeeds = true,
+    });
+
+    try std.testing.expectEqual(@as(u64, 4096), plan.requested_size);
+    try std.testing.expect(plan.allocation_ready);
+    try std.testing.expect(plan.added_to_devres);
+    try std.testing.expect(plan.release_record_retained);
+    try std.testing.expect(!plan.release_record_freed);
+    try std.testing.expect(plan.should_free_on_detach);
+}
+
+test "managed allocation frees release record when allocation fails" {
+    const plan = try DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 4096,
+        .release_record_allocated = true,
+        .allocation_succeeds = false,
+    });
+
+    try std.testing.expect(!plan.allocation_ready);
+    try std.testing.expect(!plan.added_to_devres);
+    try std.testing.expect(!plan.release_record_retained);
+    try std.testing.expect(plan.release_record_freed);
+    try std.testing.expect(!plan.should_free_on_detach);
+}
+
+test "managed allocation frees release record for zero-sized requests" {
+    const plan = try DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 0,
+        .release_record_allocated = true,
+        .allocation_succeeds = true,
+    });
+
+    try std.testing.expectEqual(@as(u64, 0), plan.requested_size);
+    try std.testing.expect(!plan.allocation_ready);
+    try std.testing.expect(!plan.added_to_devres);
+    try std.testing.expect(plan.release_record_freed);
+    try std.testing.expect(!plan.should_free_on_detach);
+}
+
+test "managed allocation requires a release record" {
+    try std.testing.expectError(error.OutOfMemory, DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 512,
+        .release_record_allocated = false,
+        .allocation_succeeds = true,
+    }));
+}
+
+test "managed free planning consumes the devres release record" {
+    const plan = DevresHelperLab.planManagedDmamFreeCoherent(2048);
+
+    try std.testing.expectEqual(@as(u64, 2048), plan.requested_size);
+    try std.testing.expect(plan.frees_allocation);
+    try std.testing.expect(plan.releases_from_devres);
+    try std.testing.expect(plan.release_record_consumed);
+}
