@@ -201,6 +201,18 @@ pub fn defaultInteropPolicy() InteropPolicy {
     };
 }
 
+pub fn makeStatus(code: i32, facility: Facility) ExportStatus {
+    return .{
+        .code = code,
+        .facility = @intFromEnum(facility),
+        .flags = if (code < 0) STATUS_FLAG_ERROR else 0,
+    };
+}
+
+pub fn okStatus(facility: Facility) ExportStatus {
+    return makeStatus(0, facility);
+}
+
 pub fn statusIsOk(status: ExportStatus) bool {
     return (status.flags & STATUS_FLAG_ERROR) == 0;
 }
@@ -273,21 +285,9 @@ test "abi binding default interop policy stays safe by default" {
 }
 
 test "abi binding status helper mirrors the exported status flag contract" {
-    const ok = ExportStatus{
-        .code = 0,
-        .facility = FACILITY_HELPERS,
-        .flags = 0,
-    };
-    const negative = ExportStatus{
-        .code = -22,
-        .facility = FACILITY_KERNEL,
-        .flags = STATUS_FLAG_ERROR,
-    };
-    const positive = ExportStatus{
-        .code = 7,
-        .facility = FACILITY_DRIVERS,
-        .flags = 0,
-    };
+    const ok = okStatus(.helpers);
+    const negative = makeStatus(-22, .kernel);
+    const positive = makeStatus(7, .drivers);
     const flagged_positive = ExportStatus{
         .code = 7,
         .facility = FACILITY_DRIVERS,
@@ -295,8 +295,19 @@ test "abi binding status helper mirrors the exported status flag contract" {
     };
 
     try std.testing.expect(statusIsOk(ok));
+    try std.testing.expectEqual(@as(i32, 0), ok.code);
+    try std.testing.expectEqual(@as(u16, FACILITY_HELPERS), ok.facility);
+    try std.testing.expectEqual(@as(u16, 0), ok.flags);
+
     try std.testing.expect(!statusIsOk(negative));
+    try std.testing.expectEqual(@as(i32, -22), negative.code);
+    try std.testing.expectEqual(@as(u16, FACILITY_KERNEL), negative.facility);
+    try std.testing.expectEqual(@as(u16, STATUS_FLAG_ERROR), negative.flags);
+
     try std.testing.expect(statusIsOk(positive));
+    try std.testing.expectEqual(@as(i32, 7), positive.code);
+    try std.testing.expectEqual(@as(u16, FACILITY_DRIVERS), positive.facility);
+    try std.testing.expectEqual(@as(u16, 0), positive.flags);
     try std.testing.expect(!statusIsOk(flagged_positive));
 }
 
