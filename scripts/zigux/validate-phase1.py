@@ -43,6 +43,12 @@ class CheckSpec:
     requires: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True)
+class ValidationSummary:
+    optional_run_count: int
+    optional_skip_count: int
+
+
 MANDATORY_CHECKS = (
     CheckSpec(
         name="phase1-closure",
@@ -175,16 +181,25 @@ def should_run_optional(spec: CheckSpec, root: Path) -> tuple[bool, str | None]:
     return (True, None)
 
 
-def collect_issues(root: Path) -> tuple[list[str], list[str]]:
+def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]:
     issues: list[str] = []
     notes: list[str] = []
+    optional_run_count = 0
+    optional_skip_count = 0
 
     for rel in REQUIRED_PATHS:
         if not (root / rel).exists():
             issues.append(f"missing_required_path:{rel}")
 
     if issues:
-        return (issues, notes)
+        return (
+            issues,
+            notes,
+            ValidationSummary(
+                optional_run_count=optional_run_count,
+                optional_skip_count=optional_skip_count,
+            ),
+        )
 
     for spec in MANDATORY_CHECKS:
         self_test_result = run_command(command_for(spec, root, self_test=True), root)
@@ -213,9 +228,11 @@ def collect_issues(root: Path) -> tuple[list[str], list[str]]:
     for spec in OPTIONAL_CHECKS:
         should_run, reason = should_run_optional(spec, root)
         if not should_run:
+            optional_skip_count += 1
             notes.append(f"skipped_optional:{spec.name}:{reason}")
             continue
 
+        optional_run_count += 1
         self_test_result = run_command(command_for(spec, root, self_test=True), root)
         if self_test_result.returncode != 0:
             issues.append(f"optional_self_test_failed:{spec.name}:exit={self_test_result.returncode}")
@@ -227,11 +244,18 @@ def collect_issues(root: Path) -> tuple[list[str], list[str]]:
             issues.append(f"optional_live_failed:{spec.name}:exit={live_result.returncode}")
             append_output(issues, f"optional_live_failed:{spec.name}", live_result)
 
-    return (issues, notes)
+    return (
+        issues,
+        notes,
+        ValidationSummary(
+            optional_run_count=optional_run_count,
+            optional_skip_count=optional_skip_count,
+        ),
+    )
 
 
 def run_check(root: Path) -> int:
-    issues, notes = collect_issues(root)
+    issues, notes, summary = collect_issues(root)
     if issues:
         print("PHASE1_VALIDATION=fail")
         print("PHASE1_VALIDATION_ISSUES_START")
@@ -243,12 +267,16 @@ def run_check(root: Path) -> int:
             for note in notes:
                 print(note)
             print("PHASE1_VALIDATION_NOTES_END")
+        print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_RUN_COUNT={summary.optional_run_count}")
+        print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_SKIP_COUNT={summary.optional_skip_count}")
         return 1
 
     print("PHASE1_VALIDATION=pass")
     print(f"PHASE1_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     print(f"PHASE1_VALIDATION_MANDATORY_CHECK_COUNT={len(MANDATORY_CHECKS)}")
     print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_COUNT={len(OPTIONAL_CHECKS)}")
+    print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_RUN_COUNT={summary.optional_run_count}")
+    print(f"PHASE1_VALIDATION_OPTIONAL_CHECK_SKIP_COUNT={summary.optional_skip_count}")
     print(f"PHASE1_VALIDATION_NOTE_COUNT={len(notes)}")
     for note in notes:
         print(f"PHASE1_VALIDATION_NOTE={note}")
@@ -311,16 +339,20 @@ def run_self_test() -> int:
 
         success_root = base / "success"
         build_sample_repo(success_root)
-        issues, notes = collect_issues(success_root)
+        issues, notes, summary = collect_issues(success_root)
         assert issues == [], issues
         assert notes == [], notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         missing_required_root = base / "missing_required"
         build_sample_repo(missing_required_root)
         (missing_required_root / "Documentation/zigux/phase1-closure.md").unlink()
-        issues, _ = collect_issues(missing_required_root)
+        issues, _, summary = collect_issues(missing_required_root)
         assert "missing_required_path:Documentation/zigux/phase1-closure.md" in issues, issues
+        assert summary.optional_run_count == 0, summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         mandatory_self_test_root = base / "mandatory_self_test"
@@ -329,8 +361,10 @@ def run_self_test() -> int:
             mandatory_self_test_root / "scripts/zigux/check-phase1-string-review-packet.py",
             self_test_exit=1,
         )
-        issues, _ = collect_issues(mandatory_self_test_root)
+        issues, _, summary = collect_issues(mandatory_self_test_root)
         assert any(issue.startswith("mandatory_self_test_failed:phase1-string-review-packet") for issue in issues), issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         mandatory_live_root = base / "mandatory_live"
@@ -339,8 +373,10 @@ def run_self_test() -> int:
             mandatory_live_root / "scripts/zigux/check-phase1-direct-owner-markers.py",
             live_exit=1,
         )
-        issues, _ = collect_issues(mandatory_live_root)
+        issues, _, summary = collect_issues(mandatory_live_root)
         assert any(issue.startswith("mandatory_live_failed:phase1-direct-owner-markers") for issue in issues), issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         optional_live_root = base / "optional_live"
@@ -349,8 +385,10 @@ def run_self_test() -> int:
             optional_live_root / "scripts/zigux/check-phase1-replay-blockers.py",
             live_exit=1,
         )
-        issues, _ = collect_issues(optional_live_root)
+        issues, _, summary = collect_issues(optional_live_root)
         assert any(issue.startswith("optional_live_failed:phase1-replay-blockers") for issue in issues), issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         optional_scripts_readme_live_root = base / "optional_scripts_readme_live"
@@ -359,11 +397,13 @@ def run_self_test() -> int:
             optional_scripts_readme_live_root / "scripts/zigux/check-phase1-scripts-readme-alignment.py",
             live_exit=1,
         )
-        issues, _ = collect_issues(optional_scripts_readme_live_root)
+        issues, _, summary = collect_issues(optional_scripts_readme_live_root)
         assert any(
             issue.startswith("optional_live_failed:phase1-scripts-readme-alignment")
             for issue in issues
         ), issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         optional_shared_fixture_live_root = base / "optional_shared_fixture_live"
@@ -372,11 +412,13 @@ def run_self_test() -> int:
             optional_shared_fixture_live_root / "scripts/zigux/check-phase1-shared-fixture-gate.py",
             live_exit=1,
         )
-        issues, _ = collect_issues(optional_shared_fixture_live_root)
+        issues, _, summary = collect_issues(optional_shared_fixture_live_root)
         assert any(
             issue.startswith("optional_live_failed:phase1-shared-fixture-gate")
             for issue in issues
         ), issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         optional_shared_replay_live_root = base / "optional_shared_replay_live"
@@ -385,11 +427,13 @@ def run_self_test() -> int:
             optional_shared_replay_live_root / "scripts/zigux/check-phase1-shared-replay-roster.py",
             live_exit=1,
         )
-        issues, _ = collect_issues(optional_shared_replay_live_root)
+        issues, _, summary = collect_issues(optional_shared_replay_live_root)
         assert any(
             issue.startswith("optional_live_failed:phase1-shared-replay-roster")
             for issue in issues
         ), issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         optional_shared_helper_manifest_live_root = base / "optional_shared_helper_manifest_live"
@@ -398,27 +442,33 @@ def run_self_test() -> int:
             optional_shared_helper_manifest_live_root / "scripts/zigux/check-phase1-shared-helper-manifest-gate.py",
             live_exit=1,
         )
-        issues, _ = collect_issues(optional_shared_helper_manifest_live_root)
+        issues, _, summary = collect_issues(optional_shared_helper_manifest_live_root)
         assert any(
             issue.startswith("optional_live_failed:phase1-shared-helper-manifest-gate")
             for issue in issues
         ), issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         bench_skip_root = base / "bench_skip"
         build_sample_repo(bench_skip_root)
         (bench_skip_root / BENCH_EXPECTATIONS_REL).unlink()
-        issues, notes = collect_issues(bench_skip_root)
+        issues, notes, summary = collect_issues(bench_skip_root)
         assert issues == [], issues
         assert f"skipped_bench_live:missing_required_path:{BENCH_EXPECTATIONS_REL}" in notes, notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
         case_count += 1
 
         optional_skip_root = base / "optional_skip"
         build_sample_repo(optional_skip_root)
         (optional_skip_root / "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py").unlink()
-        issues, notes = collect_issues(optional_skip_root)
+        issues, notes, summary = collect_issues(optional_skip_root)
         assert issues == [], issues
         assert "skipped_optional:phase1-direct-anchor-manifest-gate:missing_script" in notes, notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 1, summary
+        assert summary.optional_skip_count == 1, summary
         case_count += 1
 
     print("PHASE1_VALIDATE_SELF_TEST=pass")
