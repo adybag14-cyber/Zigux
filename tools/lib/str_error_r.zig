@@ -118,3 +118,17 @@ test "strErrorR reuses caller buffers cleanly after longer messages" {
     try std.testing.expectEqualStrings("Permission denied", permission_rendered);
     try std.testing.expectEqual(@as(u8, 0), buffer[permission_rendered.len]);
 }
+
+test "strErrorR reuses smaller caller slices after a longer render" {
+    var storage = [_]u8{0xaa} ** 64;
+    const long_rendered = strErrorR(4096, storage[0..]);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", long_rendered);
+
+    const single_byte_rendered = strErrorR(0, storage[0..1]);
+    try std.testing.expectEqualStrings("", single_byte_rendered);
+    try std.testing.expectEqual(@as(u8, 0), storage[0]);
+
+    const truncated_permission = strErrorR(13, storage[0..6]);
+    try std.testing.expectEqualStrings("Permi", truncated_permission);
+    try std.testing.expectEqual(@as(u8, 0), storage[5]);
+}
