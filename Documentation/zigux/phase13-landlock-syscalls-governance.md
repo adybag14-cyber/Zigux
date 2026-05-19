@@ -10,22 +10,23 @@ Current `master` now materializes `security/landlock/syscalls.zig` as a helper-l
 
 ## Current Repo Reality
 
-Current `master` materializes the syscall helper starter plus the docs-root ownership packet through:
+Current `master` materializes the syscall helper starter plus the docs-root governance packet through:
 - `security/landlock/syscalls.zig`
 - `Documentation/zigux/phase13-landlock-syscalls-slice.md`
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`
-- `zigux/Makefile`
 
-Current `master` still does not materialize the older direct replay companions or the dedicated Phase 13 shared replay route through:
+Current `master` still does not materialize the older direct replay companions through:
 - `Documentation/zigux/phase13-landlock-syscalls-survey.md`
 - `zigux/tests/phase13_landlock_syscalls.zig`
 - `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
 - `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `zigux/tests/phase13_build.zig`
+
+Current `master` also keeps `zigux/Makefile` present without exposing a dedicated Phase 13 landlock replay route through:
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 
-Keep that live shape explicit as a bounded helper starter plus docs-root governance packet with a returned shared build file but no dedicated Phase 13 shared replay route, not as a fully materialized shared replay path.
+Keep that live shape explicit as a bounded helper starter plus docs-root governance packet with a present shared build root but no dedicated Phase 13 landlock replay route, not as a fully materialized shared replay path.
 
 Keep these neighboring surfaces distinct:
 - `Documentation/zigux/phase13-landlock-ruleset-ownership.md` for ruleset-helper ownership and review boundaries
@@ -64,7 +65,7 @@ The intent is simple: keep the syscall-facing policy packet reviewable as one bo
 Use this note to keep these boundaries explicit:
 - syscall policy wording, review prompts, and reminder-surface ownership belong here
 - ruleset-helper ownership stays with `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
-- shared packet routing stays with the shipped docs-root reminder surfaces above while the direct syscall replay companions and shared make-route handles remain absent; keep those paths recorded as repo reality rather than as shipped evidence
+- shared packet routing stays with the shipped docs-root reminder surfaces while the direct syscall companions and dedicated Makefile replay handles remain absent; keep those paths recorded as repo reality rather than as shipped evidence
 - adjacent notifier evidence stays explicit as release-surface support rather than becoming an extra shared replay step
 - if a future helper lands, keep it tied to descriptor-backed planning only instead of treating it as live syscall enforcement or as a claim that FD, file-buffer, credential, or domain ownership moved into Zigux
 
@@ -74,7 +75,7 @@ Keep this packet parked unless a future lane can add another equally bounded pla
 
 If a change updates the Phase 13 Landlock syscalls packet, verify that:
 - the broad Phase 13 reminder surfaces keep this governance note explicit beside the ruleset-ownership note and the adjacent notifier evidence packet when they describe the active shared-helper tranche
-- no wording here implies extra shared replay steps beyond the shipped helper, slice, and governance packet while the direct syscall companions remain absent
+- no wording here implies extra shared replay steps beyond the shipped helper, slice, and governance packet while the direct syscall companions and dedicated Makefile replay handles remain absent
 - syscall-facing policy claims stay separate from ruleset-helper ownership and from adjacent notifier evidence
 - the packet remains active and reviewable rather than being described as closed or frozen
 - any still-missing direct syscall companions stay framed as repo-reality gaps rather than as shipped current-`master` evidence
