@@ -74,7 +74,7 @@ WORKFLOW_COMMAND_MARKERS = [
     "# Run every master push so exact-head bootstrap status stays attached even when path filtering misses a live change.",
     "  push:\n    branches: [ master ]\n  pull_request:\n",
     "workflow_dispatch:",
-    "group: ${{ format('{0}-{1}', github.workflow, github.ref) }}",
+    "group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}",
     "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
     'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
     'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
@@ -113,6 +113,7 @@ WORKFLOW_COMMAND_MARKERS = [
 ]
 
 WORKFLOW_EXACT_LINES = [
+    "  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}",
     '          echo "$extract_root" >> "$GITHUB_PATH"',
     '          "$zig_path" version',
     '          if [ "${#scripts[@]}" -eq 0 ]; then',
@@ -244,7 +245,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 concurrency:
-  group: ${{ format('{0}-{1}', github.workflow, github.ref) }}
+  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
@@ -411,6 +412,21 @@ def run_self_test() -> int:
             encoding="utf-8",
         )
         expect_failure(base, "workflow_marker:if try_local_archive; then")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "  group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}\n",
+                "  group: ${{ format('{0}-{1}', github.workflow, github.ref) }}\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_marker:group: ${{ github.ref == 'refs/heads/master' && format('{0}-{1}-{2}', github.workflow, github.ref, github.sha) || format('{0}-{1}', github.workflow, github.ref) }}",
+        )
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
@@ -621,7 +637,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=18")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=19")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -632,8 +648,9 @@ def main() -> int:
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the "
             "workflow keeps its shipped current-master tail, the dedicated "
-            "docs-sanity checks, the Phase 2 fixdep gate checks, and the "
-            "installer-helper self-test reviewable."
+            "docs-sanity checks, the Phase 2 fixdep gate checks, the exact-head "
+            "master concurrency grouping, and the installer-helper self-test "
+            "reviewable."
         )
     )
     parser.add_argument(
