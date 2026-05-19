@@ -25,17 +25,19 @@ Current `master` keeps this narrow direct trace-events runtime packet:
 The direct sample still exposes `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking.
 Those cues are still sample-local pilot-module reviewability, not returned shared runtime-loader parity.
 The direct initialized-stage exit proof in `test "trace-events sample preserves initialized summary across direct exit without selftest"` keeps zero selftest runs explicit, preserves the initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
+The shipped cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` also keeps pre-init `runSelftest()` and `exit()` rejection explicit before the module ever reaches `.initialized`, so the packet distinguishes cold-stage fail-closed behavior from the later initialized-stage clean-exit path.
 The fail-closed companion keeps unregistered function-thread failures fail-closed.
 The exit-rollback companion keeps failed-exit rollback explicit after reusable selftest replay.
 The registration-reentry companion keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
 
 ## Exact module-slice boundary
 
-Current `master` proves a sample-local init and function-thread registration boundary, not a broader shared runtime-loader registration substrate.
+Current `master` proves a sample-local cold-stage guard plus init and function-thread registration boundary, not a broader shared runtime-loader registration substrate.
 
 - `init()` still only accepts the cold stage and moves the sample to `.initialized`.
 - `runSelftest()` still only accepts `.initialized` and moves the sample to `.selftest_complete`.
 - `exit()` still only accepts `.initialized` or `.selftest_complete` with zero registration depth and then moves the sample to `.exited`.
+- the direct cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` keeps `runSelftest()` and `exit()` rejected before `init()` materializes the module state
 - the direct initialized-stage exit proof keeps zero selftest runs explicit and shows that later lifecycle calls stay rejected without changing the exited summary
 - duplicate registration still fails with `error.FunctionThreadAlreadyRegistered`
 - unregistered function-thread emission still fails with `error.FunctionThreadNotRegistered`
