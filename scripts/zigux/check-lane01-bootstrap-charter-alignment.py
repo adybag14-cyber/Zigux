@@ -15,6 +15,7 @@ README_MARKERS = (
     "The bootstrap commit ledger currently records the bounded early commit train through the broadened Phase 2 tranche, so confirm later-lane state in the live product docs, current repo tree, and active lane notes before using it as a sole source of truth.",
     "`Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.",
     "`Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.",
+    "`scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.",
     "[Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)",
     "[Freeze Governance Companion](../Documentation/zigux/phase15-freeze-map-governance.md)",
 )
@@ -70,6 +71,7 @@ Rules
 Active product surfaces
 - `Documentation/zigux/README.md` is the live product documentation root once a slice has moved beyond bootstrap planning.
 - `Documentation/zigux/freeze-map.md` is the live freeze-anchor root for stay-in-C and study-only boundaries.
+- `scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.
 
 Start here
 - [Bootstrap Commit Ledger](./BOOTSTRAP_COMMIT_LEDGER.md)
@@ -149,6 +151,23 @@ def run_self_test() -> int:
         ]
         if missing != expected:
             raise AssertionError(f"unexpected missing markers for README ledger-scope case: {missing}")
+        _write(root / README_PATH, _sample_readme())
+        case_count += 1
+
+        _write(
+            root / README_PATH,
+            _sample_readme().replace(
+                "`scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet.\n",
+                "",
+                1,
+            ),
+        )
+        missing = collect_missing_markers(root)
+        expected = [
+            "readme:`scripts/zigux/check-lane01-bootstrap-charter-alignment.py` is the shipped bootstrap-charter guard for the planning-only `zigux-alpha/` packet."
+        ]
+        if missing != expected:
+            raise AssertionError(f"unexpected missing markers for README guard case: {missing}")
         _write(root / README_PATH, _sample_readme())
         case_count += 1
 
