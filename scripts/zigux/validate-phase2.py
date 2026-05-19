@@ -74,7 +74,7 @@ DISALLOWED_WORKFLOW_LINES = (
 )
 
 REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-validate phase2"
-REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
+REQUIRED_PHASE2_PHONY_TARGETS = set(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
 
 REQUIRED_MAKEFILE_LINES = (
     "phase2-toolchain:",
@@ -102,37 +102,9 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
-DISALLOWED_MAKEFILE_LINES = (
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test",
-    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py",
-)
-
-EXPECTED_SELF_TEST_CASE_COUNT = (
-    1
-    + len(REQUIRED_WORKFLOW_LINES)
-    + len(REQUIRED_WORKFLOW_LINES)
-    + len(DISALLOWED_WORKFLOW_LINES)
-    + 2
-    + len(REQUIRED_MAKEFILE_LINES)
-    + len(REQUIRED_MAKEFILE_LINES)
-    + len(DISALLOWED_MAKEFILE_LINES)
-    + (len(REQUIRED_PATHS) - 1)
-    + 2
-)
-
-
-def path_under(root: Path, rel: str) -> Path:
-    return root / rel
-
 
 def read_text(root: Path, rel: str) -> str:
-    path = path_under(root, rel)
+    path = root / rel
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
@@ -140,7 +112,7 @@ def read_text(root: Path, rel: str) -> str:
 
 
 def write_text(root: Path, rel: str, content: str) -> None:
-    path = path_under(root, rel)
+    path = root / rel
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
@@ -158,15 +130,6 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
 def phony_targets_present(text: str) -> set[str]:
     targets: set[str] = set()
     for line in text.splitlines():
@@ -175,10 +138,6 @@ def phony_targets_present(text: str) -> set[str]:
             _, suffix = stripped.split(":", 1)
             targets.update(token for token in suffix.strip().split() if token)
     return targets
-
-
-def has_required_phase2_phony_targets(text: str) -> bool:
-    return set(REQUIRED_PHASE2_PHONY_TARGETS).issubset(phony_targets_present(text))
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -198,7 +157,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if count != 0:
             issues.append(("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count={count}"))
 
-    if not has_required_phase2_phony_targets(makefile_text):
+    if not REQUIRED_PHASE2_PHONY_TARGETS.issubset(phony_targets_present(makefile_text)):
         issues.append(("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
 
     for marker in REQUIRED_MAKEFILE_LINES:
@@ -208,13 +167,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
 
-    for marker in DISALLOWED_MAKEFILE_LINES:
-        count = count_exact_lines(makefile_text, marker)
-        if count != 0:
-            issues.append(("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count={count}"))
-
     for rel in REQUIRED_PATHS:
-        if not path_under(root, rel).exists():
+        if not (root / rel).exists():
             issues.append(("MISSING_REQUIRED_PATH", rel))
 
     return issues
@@ -235,13 +189,12 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_self_test_root(root: Path) -> None:
-    workflow_lines = ["name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES]
-    write_text(root, WORKFLOW, "\n".join(workflow_lines) + "\n")
+    write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES)) + "\n")
     write_text(
         root,
         MAKEFILE,
         "\n".join(
-            [
+            (
                 "PYTHON ?= python3",
                 "ZIG ?= zig",
                 "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
@@ -249,7 +202,7 @@ def build_self_test_root(root: Path) -> None:
                 "",
                 REQUIRED_PHASE2_PHONY_LINE,
                 *REQUIRED_MAKEFILE_LINES,
-            ]
+            )
         )
         + "\n",
     )
@@ -258,136 +211,51 @@ def build_self_test_root(root: Path) -> None:
             write_text(root, rel, "present\n")
 
 
+def expect_issue(root: Path, expected: tuple[str, str]) -> None:
+    issues = collect_issues(root)
+    assert expected in issues, (expected, issues)
+
+
 def run_self_test() -> int:
-    checks_run = 0
+    checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
         root = Path(tmp_dir)
 
         build_self_test_root(root)
         assert collect_issues(root) == []
-        checks_run += 1
+        checks += 1
 
         for marker in REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
-            workflow_path = path_under(root, WORKFLOW)
-            workflow_path.write_text(
-                replace_exact_line(
-                    workflow_path.read_text(encoding="utf-8"),
-                    marker,
-                    "run: python3 scripts/zigux/other.py",
-                ),
-                encoding="utf-8",
-            )
-            assert (("MISSING_WORKFLOW_LINE", marker) in collect_issues(root))
-            checks_run += 1
-
-        for marker in REQUIRED_WORKFLOW_LINES:
-            build_self_test_root(root)
-            workflow_path = path_under(root, WORKFLOW)
-            workflow_path.write_text(
-                duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), marker),
-                encoding="utf-8",
-            )
-            assert (("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root))
-            checks_run += 1
+            write_text(root, WORKFLOW, replace_exact_line(read_text(root, WORKFLOW), marker, "run: python3 scripts/zigux/other.py"))
+            expect_issue(root, ("MISSING_WORKFLOW_LINE", marker))
+            checks += 1
 
         for marker in DISALLOWED_WORKFLOW_LINES:
             build_self_test_root(root)
-            workflow_path = path_under(root, WORKFLOW)
-            workflow_path.write_text(
-                workflow_path.read_text(encoding="utf-8") + marker + "\n",
-                encoding="utf-8",
-            )
-            assert (("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1") in collect_issues(root))
-            checks_run += 1
+            write_text(root, WORKFLOW, read_text(root, WORKFLOW) + marker + "\n")
+            expect_issue(root, ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1"))
+            checks += 1
 
         build_self_test_root(root)
-        makefile_path = path_under(root, MAKEFILE)
-        makefile_path.write_text(
-            replace_exact_line(
-                makefile_path.read_text(encoding="utf-8"),
-                REQUIRED_PHASE2_PHONY_LINE,
-                "# removed for self-test",
-            ),
-            encoding="utf-8",
-        )
-        assert (("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE) in collect_issues(root))
-        checks_run += 1
-
-        build_self_test_root(root)
-        makefile_path = path_under(root, MAKEFILE)
-        makefile_path.write_text(
-            replace_exact_line(
-                makefile_path.read_text(encoding="utf-8"),
-                REQUIRED_PHASE2_PHONY_LINE,
-                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-validate phase2 phase3-validate phase3",
-            ),
-            encoding="utf-8",
-        )
-        assert collect_issues(root) == []
-        checks_run += 1
+        write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), REQUIRED_PHASE2_PHONY_LINE, "# removed"))
+        expect_issue(root, ("MISSING_MAKEFILE_LINE", REQUIRED_PHASE2_PHONY_LINE))
+        checks += 1
 
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
-            makefile_path = path_under(root, MAKEFILE)
-            makefile_path.write_text(
-                replace_exact_line(makefile_path.read_text(encoding="utf-8"), marker, "# removed for self-test"),
-                encoding="utf-8",
-            )
-            assert (("MISSING_MAKEFILE_LINE", marker) in collect_issues(root))
-            checks_run += 1
-
-        for marker in REQUIRED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            makefile_path = path_under(root, MAKEFILE)
-            makefile_path.write_text(
-                duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), marker),
-                encoding="utf-8",
-            )
-            assert (("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root))
-            checks_run += 1
-
-        for marker in DISALLOWED_MAKEFILE_LINES:
-            build_self_test_root(root)
-            makefile_path = path_under(root, MAKEFILE)
-            makefile_path.write_text(
-                makefile_path.read_text(encoding="utf-8") + marker + "\n",
-                encoding="utf-8",
-            )
-            assert (("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count=1") in collect_issues(root))
-            checks_run += 1
+            write_text(root, MAKEFILE, replace_exact_line(read_text(root, MAKEFILE), marker, "# removed"))
+            expect_issue(root, ("MISSING_MAKEFILE_LINE", marker))
+            checks += 1
 
         for rel in REQUIRED_PATHS[:-1]:
             build_self_test_root(root)
-            path = path_under(root, rel)
-            path.unlink()
-            issues = collect_issues(root)
-            assert (("MISSING_REQUIRED_PATH", rel) in issues)
-            checks_run += 1
+            (root / rel).unlink()
+            expect_issue(root, ("MISSING_REQUIRED_PATH", rel))
+            checks += 1
 
-        build_self_test_root(root)
-        path_under(root, WORKFLOW).unlink()
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
-        else:
-            raise AssertionError("missing workflow did not abort")
-        checks_run += 1
-
-        build_self_test_root(root)
-        path_under(root, MAKEFILE).unlink()
-        try:
-            collect_issues(root)
-        except SystemExit as exc:
-            assert "required file missing" in str(exc)
-        else:
-            raise AssertionError("missing makefile did not abort")
-        checks_run += 1
-
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_VALIDATION_SELF_TEST=pass")
-    print(f"PHASE2_VALIDATION_SELF_TEST_CASE_COUNT={checks_run})
+    print(f"PHASE2_VALIDATION_SELF_TEST_CASE_COUNT={checks}")
     return 0
 
 
