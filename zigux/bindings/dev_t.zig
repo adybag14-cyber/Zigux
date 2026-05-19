@@ -21,6 +21,22 @@ pub fn eql(left: Fields, right: Fields) bool {
     return left.major == right.major and left.minor == right.minor;
 }
 
+pub fn makeDeviceNumber(major: u32, minor: u32) u32 {
+    return uapi.makeDeviceNumber(major, minor);
+}
+
+pub fn majorFromDeviceNumber(device_number: u32) u32 {
+    return uapi.majorFromDeviceNumber(device_number);
+}
+
+pub fn minorFromDeviceNumber(device_number: u32) u32 {
+    return uapi.minorFromDeviceNumber(device_number);
+}
+
+pub fn fieldsFromDeviceNumber(device_number: u32) Fields {
+    return uapi.fieldsFromDeviceNumber(device_number);
+}
+
 pub fn validate(fields: Fields) bool {
     return uapi.validate(fields);
 }
@@ -41,4 +57,14 @@ test "dev_t binding keeps the published layout contract" {
     try std.testing.expectEqual(@as(u32, 1), abi_version);
     try std.testing.expectEqual(@as(usize, 8), fields_size);
     try std.testing.expectEqual(@as(usize, 4), fields_align);
+}
+
+test "dev_t binding keeps packing helpers aligned with the UAPI packet" {
+    const fields = init(11, 29);
+    const encoded = makeDeviceNumber(fields.major, fields.minor);
+    const roundtrip = fieldsFromDeviceNumber(encoded);
+
+    try std.testing.expectEqual(@as(u32, 11), majorFromDeviceNumber(encoded));
+    try std.testing.expectEqual(@as(u32, 29), minorFromDeviceNumber(encoded));
+    try std.testing.expect(eql(fields, roundtrip));
 }
