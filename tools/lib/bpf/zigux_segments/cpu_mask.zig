@@ -325,8 +325,21 @@ test "cpu-mask parsing rejects invalid direct and reader-backed inputs" {
     const allocator = arena.allocator();
 
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "4-2"));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "+"));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "0,+"));
+    try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "0-+"));
 
     var scratch: [3]u8 = undefined;
+    var malformed_plus_context = ReaderContext{ .input = "0,+\n" };
+    const malformed_plus_reader = ChunkReader{
+        .context = &malformed_plus_context,
+        .readFn = readCpuMaskChunks,
+    };
+    try std.testing.expectError(
+        error.InvalidCpuRange,
+        parseCpuMaskFromReader(allocator, scratch[0..], malformed_plus_reader),
+    );
+
     const empty_reader = ChunkReader{
         .context = null,
         .readFn = readZeroCpuMaskChunks,
