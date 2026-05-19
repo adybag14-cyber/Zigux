@@ -19,6 +19,7 @@ README_MARKERS = (
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-errptr-xarray-slice.md",
     "Documentation/zigux/phase3-policy-slice.md",
+    "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
     "Documentation/zigux/phase3-validator-support-surface.md",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
     "Documentation/zigux/phase3-kernel-export-shim-governance.md",
@@ -33,6 +34,7 @@ README_MARKERS = (
     "zigux/bindings/version.zig",
     "zigux/bindings/notifier_abi.zig",
     "zigux/kernel/export_shim.zig",
+    "zigux/helpers/layout_assert.zig",
     "zigux/helpers/err_ptr.zig",
     "zigux/helpers/xa_value.zig",
     "zigux/helpers/panic_policy.zig",
@@ -50,6 +52,8 @@ README_MARKERS = (
     "zigux/tests/phase3_policy_starter_packet.zig",
     "zigux/tests/phase3_policy_starter_packet_build.zig",
     "zigux/tests/phase3_policy_starter_packet_manifest.json",
+    "zigux/tests/phase3_policy_dump.zig",
+    "zigux/tests/phase3_policy_dump_build.zig",
     "zigux/tests/phase3_low_level_wrappers.zig",
     "zigux/tests/phase3_low_level_wrappers_build.zig",
     "zigux/tests/phase3_export_uapi_layout.zig",
@@ -57,13 +61,17 @@ README_MARKERS = (
     "scripts/zigux/check-phase3-dev-t-starter-packet.py",
     "scripts/zigux/check-phase3-errptr-xarray-starter-packet.py",
     "scripts/zigux/check-phase3-policy-starter-packet.py",
+    "scripts/zigux/check-phase3-policy-dump.py",
+    "scripts/zigux/validate-phase3-policy-unsafe-survey.py",
     "scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "make -C zigux phase3-export-uapi-layout-test",
+    "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
+    "zigux/tests/fixtures/phase3_policy_dump_expected.txt",
 )
 
 TESTS_README_MARKERS = (
@@ -283,13 +291,10 @@ def _expect_issue(issues: list[str], expected: str) -> bool:
 
 
 def _remove_exact_line(path: Path, marker: str) -> None:
-    lines = _read(path).splitlines()
-    try:
-        lines.remove(marker)
-    except ValueError:
-        path.write_text(_read(path).replace(marker, "", 1), encoding="utf-8")
+    text = _read(path)
+    if marker not in text:
         return
-    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    path.write_text(text.replace(marker, ""), encoding="utf-8")
 
 
 def _append_duplicate_line(path: Path, marker: str) -> None:
@@ -299,16 +304,24 @@ def _append_duplicate_line(path: Path, marker: str) -> None:
 def run_self_test() -> int:
     cases = (
         (README_PATH, "Documentation/zigux/phase3-policy-slice.md", "docs README"),
+        (README_PATH, "Documentation/zigux/phase3-policy-unsafe-boundary-survey.md", "docs README"),
         (README_PATH, "Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md", "docs README"),
         (README_PATH, "Documentation/zigux/phase3-kernel-export-shim-governance.md", "docs README"),
         (README_PATH, "zigux/bindings/notifier_abi.zig", "docs README"),
+        (README_PATH, "zigux/helpers/layout_assert.zig", "docs README"),
         (README_PATH, "zigux/unsafe/narrow.zig", "docs README"),
+        (README_PATH, "scripts/zigux/check-phase3-policy-dump.py", "docs README"),
+        (README_PATH, "scripts/zigux/validate-phase3-policy-unsafe-survey.py", "docs README"),
         (README_PATH, "scripts/zigux/validate-phase3-low-level-wrapper-survey.py", "docs README"),
+        (README_PATH, "zigux/tests/phase3_policy_dump.zig", "docs README"),
+        (README_PATH, "zigux/tests/phase3_policy_dump_build.zig", "docs README"),
+        (README_PATH, "zigux/tests/fixtures/phase3_policy_dump_expected.txt", "docs README"),
         (README_PATH, "zigux/tests/phase3_low_level_wrappers.zig", "docs README"),
         (README_PATH, "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig", "docs README"),
         (README_PATH, "zigux/tests/phase3_export_uapi_layout.zig", "docs README"),
         (README_PATH, "zigux/tests/phase3_export_uapi_layout_build.zig", "docs README"),
         (README_PATH, "make -C zigux phase3-export-uapi-layout-test", "docs README"),
+        (README_PATH, "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig", "docs README"),
         (README_PATH, "Documentation/zigux/phase3-export-uapi-boundary-survey.md", "docs README"),
         (README_PATH, "Documentation/zigux/phase3-linux-zigux-header-governance.md", "docs README"),
         (README_PATH, "scripts/zigux/validate-phase3-export-uapi-survey.py", "docs README"),
