@@ -23,9 +23,9 @@ MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
-CATALOG_SELFTEST_GAP_PATH = "scripts/zigux/check-phase3-catalog-selftest.py"
+CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")
 
-MISSING_GAP_PATHS = (CATALOG_SELFTEST_GAP_PATH,)
+MISSING_GAP_PATHS = ()
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
@@ -43,21 +43,21 @@ REQUIRED_MARKERS = {
         "PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig",
         "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
-        "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py",
+        "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
         "The packet-local validator is now present and should stay aligned with this survey rather than being tracked as a missing companion.",
         "- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, `versionMatchesCurrent`, `validateVersion`, and the status-tagged `validateDeviceNumber` relay.",
         "- That same starter export surface also now carries the status-tagged `validateDeviceRange` relay plus the bounded `encodeDeviceNumber` and `decodeDeviceNumber` bridge without widening into broader UAPI growth.",
         "- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, and device-number bridge contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.",
-        "Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, and `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the returned Linux-header ownership note for this packet.",
-        "The remaining repo-reality gap for this packet is now the separate catalog-selftest guard:",
-        "This survey should keep the manifest-backed ABI inventory and the returned linux-header governance note explicit as shipped same-family companions while continuing to treat the absent catalog-selftest guard as the active packet-local gap.",
+        "Current `master` now directly serves `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the returned Linux-header ownership note for this packet, and `scripts/zigux/check-phase3-catalog-selftest.py` as the dedicated guard that keeps the catalog helper's export/UAPI self-test markers fail-closed.",
+        "Current `master` no longer shows a separate packet-local repo-reality gap for this starter export/UAPI packet.",
+        "This survey should keep the manifest-backed ABI inventory, the returned linux-header governance note, and the returned catalog-selftest guard explicit as shipped same-family companions while continuing to avoid broader UAPI claims.",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
         'SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
         'LINUX_HEADER_GOVERNANCE_NOTE_PATH = Path(',
         'MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
-        'CATALOG_SELFTEST_GAP_PATH = "scripts/zigux/check-phase3-catalog-selftest.py"',
+        'CATALOG_SELFTEST_CHECK_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
     ),
@@ -134,8 +134,14 @@ REQUIRED_MARKERS = {
     ),
     CATALOG_HELPER_PATH: (
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
-        'Path("scripts/zigux/phase3_catalog.py")',
+        'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
+    ),
+    CATALOG_SELFTEST_CHECK_PATH: (
+        'CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")',
+        'Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
+        'print("PHASE3_CATALOG_SELFTEST_CHECK_SELF_TEST=pass")',
+        'print("PHASE3_CATALOG_SELFTEST_CHECK=pass")',
     ),
 }
 
@@ -230,8 +236,8 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
-            "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py",
-            "expected missing catalog-selftest gap marker was not reported",
+            "PHASE3_EXPORT_UAPI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
+            "expected missing catalog-selftest guard marker was not reported",
         ),
         (
             VALIDATOR_PATH,
@@ -307,6 +313,11 @@ def run_self_test() -> int:
             CATALOG_HELPER_PATH,
             'print("PHASE3_CATALOG_SELF_TEST=pass")',
             "expected missing catalog helper marker was not reported",
+        ),
+        (
+            CATALOG_SELFTEST_CHECK_PATH,
+            'print("PHASE3_CATALOG_SELFTEST_CHECK=pass")',
+            "expected missing catalog-selftest checker pass marker was not reported",
         ),
     )
 
