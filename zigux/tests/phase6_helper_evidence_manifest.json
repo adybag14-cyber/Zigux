@@ -105,7 +105,6 @@
     "zigux/tests/phase6_checksum_c_parity.zig",
     "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "scripts/zigux/check-phase6-base64-c-parity.py",
-    "scripts/zigux/check-phase6-bsearch-corpus-evidence.py",
     "scripts/zigux/check-phase6-checksum-c-parity.py",
     "scripts/zigux/check-phase6-hexdump-packet.py"
   ],
