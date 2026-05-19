@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import io
 import json
 import tempfile
 from pathlib import Path
@@ -68,7 +70,7 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 32
+EXPECTED_SELF_TEST_CASE_COUNT = 33
 
 
 def read_text(path: Path) -> str:
@@ -316,7 +318,10 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
         raise AssertionError(f"unexpected issue codes missing from EXPECTED_ISSUE_CODES: {unexpected_codes}")
 
     print("PHASE2_DIRECT_CROSS_ROUTE=fail")
-    for code, values in grouped.items():
+    for code in EXPECTED_ISSUE_CODES:
+        values = grouped.get(code)
+        if not values:
+            continue
         print(f"{code}_START")
         for value in values:
             print(value)
@@ -661,6 +666,31 @@ def run_self_test() -> int:
         fixture["cross_targets"][1]["validation_mode"] = "unexpected_mode"
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_MODE", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        capture = io.StringIO()
+        with contextlib.redirect_stdout(capture):
+            exit_code = emit_issues(
+                [
+                    ("CROSS_TARGET_ORDER_MISMATCH", "aarch64-linux,x86_64-linux"),
+                    ("ARCHIVE_SCOPE_MISMATCH", "x86_64-linux"),
+                    ("MISSING_MAKEFILE_LINE", "phase2-cross:"),
+                ]
+            )
+        assert exit_code == 1
+        assert capture.getvalue().splitlines() == [
+            "PHASE2_DIRECT_CROSS_ROUTE=fail",
+            "MISSING_MAKEFILE_LINE_START",
+            "phase2-cross:",
+            "MISSING_MAKEFILE_LINE_END",
+            "ARCHIVE_SCOPE_MISMATCH_START",
+            "x86_64-linux",
+            "ARCHIVE_SCOPE_MISMATCH_END",
+            "CROSS_TARGET_ORDER_MISMATCH_START",
+            "aarch64-linux,x86_64-linux",
+            "CROSS_TARGET_ORDER_MISMATCH_END",
+        ]
         checks_run += 1
 
         for primary_path in (TOOLCHAIN_POLICY, MAKEFILE, FIXTURE):
