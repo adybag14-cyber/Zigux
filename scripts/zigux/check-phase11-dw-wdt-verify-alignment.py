@@ -14,6 +14,7 @@ FILES = {
     "matrix": "Documentation/zigux/phase11-dw-wdt-validation-matrix.md",
     "manifest": "zigux/tests/phase11_dw_wdt_manifest.json",
     "verify": "drivers/watchdog/dw_wdt_verify.zig",
+    "pm": "drivers/watchdog/dw_wdt_pm.zig",
 }
 
 EXPECTED_MATRIX_LANE = "P11-L05"
@@ -22,18 +23,25 @@ EXPECTED_MANIFEST_LANE = "P11-L05"
 EXPECTED_MANIFEST_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
 VERIFY_DESTINATION = "drivers/watchdog/dw_wdt_verify.zig"
 VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
+PM_DESTINATION = "drivers/watchdog/dw_wdt_pm.zig"
+PM_GAP_ID = "phase11-dw-wdt-live-platform-pm"
+NEXT_DESTINATION = "zigux/tests/phase11_dw_wdt.zig"
+NEXT_GAP_ID = "phase11-dw-wdt-live-mmio-validation"
 
 NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
     "- lane: `P11-L10`",
     "- current `master` no longer has a matrix-versus-manifest continuity split for the DesignWare verify packet: both `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` and `zigux/tests/phase11_dw_wdt_manifest.json` record continuity `P11-L05` with surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
-    "- `drivers/watchdog/dw_wdt_verify.zig` currently keeps registration-blocking failure paths, MMIO-blocked registration handoff, imported-running shared-clock fallback, and teardown and failure-mode parity explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, PM behavior, or live MMIO validation",
-    "This note now exists as a closed-gap companion: it records that the shared validation matrix and manifest agree again, and it keeps a small fail-closed checker in place so future lane or surveyed-head drift reopens immediately instead of hiding inside Phase 11 reminder surfaces.",
+    "- `drivers/watchdog/dw_wdt_verify.zig` currently keeps registration-blocking failure paths, MMIO-blocked registration handoff, imported-running shared-clock fallback, and teardown and failure-mode parity explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, live PM execution, or live MMIO validation",
+    "- `drivers/watchdog/dw_wdt_pm.zig` now also keeps bounded suspend and resume handoff summaries explicit across missing-drvdata blocks, running-hardware suspend stop intent, imported-running resume recovery, and timeout-reprogram blocks while still keeping live PM execution out of scope",
+    "This note now exists as a closed-gap companion: it records that the shared validation matrix and manifest agree again, it records that the adjacent bounded PM helper is now landed, and it keeps a small fail-closed checker in place so future lane or surveyed-head drift reopens immediately instead of hiding inside Phase 11 reminder surfaces.",
     "- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` describes the active continuity as `P11-L05` with surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` matches that same lane key and surveyed commit while still routing `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`",
+    "- `zigux/tests/phase11_dw_wdt_manifest.json` also marks `phase11-dw-wdt-live-platform-pm` as `starter_landed` at `drivers/watchdog/dw_wdt_pm.zig` and keeps `phase11-dw-wdt-live-mmio-validation` parked as `ready_next` at `zigux/tests/phase11_dw_wdt.zig`",
     "- `drivers/watchdog/dw_wdt_verify.zig` keeps `test \"phase11 dw_wdt verify keeps registration-blocking failure paths explicit\"`, `test \"phase11 dw_wdt verify keeps mmio-blocked registration handoff explicit\"`, `test \"phase11 dw_wdt verify keeps imported-running handoff and shared-clock fallback explicit\"`, `test \"phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit\"`, `test \"phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct\"`, and `test \"phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit\"` reviewable on current `master`",
-    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the resolved matrix-versus-manifest alignment and the current verify-helper scope fail-closed",
-    "- the next substantive non-doc move should remain one platform-backed acquisition scaffold only",
+    "- `drivers/watchdog/dw_wdt_pm.zig` keeps `test \"phase11 dw_wdt pm suspend keeps missing drvdata explicit\"`, `test \"phase11 dw_wdt pm suspend keeps running-hardware stop handoff explicit\"`, `test \"phase11 dw_wdt pm resume keeps imported-running handoff explicit\"`, and `test \"phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idle restore\"` reviewable on current `master`",
+    "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the resolved matrix-versus-manifest alignment, the adjacent bounded PM-helper landing, and the current next-step scope fail-closed",
+    "- the next substantive non-doc move should now remain the manifest-backed live-MMIO validation step, still without widening beyond the bounded platform-backed probe, remove, suspend, and resume edges already named by the current packet",
 ]
 
 MATRIX_MARKERS = [
@@ -58,6 +66,19 @@ VERIFY_MARKERS = [
     "try testing.expectEqual(dw_wdt.TeardownOutcome.reset_control_stop, stop_summary.outcome);",
     'test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit" {',
     "try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, stop_summary.outcome);",
+]
+
+PM_MARKERS = [
+    'pub const anchor_path = "drivers/watchdog/dw_wdt.c";',
+    'test "phase11 dw_wdt pm suspend keeps missing drvdata explicit" {',
+    "try std.testing.expectEqual(PmSuspendState.blocked_missing_drvdata, summary.state);",
+    'test "phase11 dw_wdt pm suspend keeps running-hardware stop handoff explicit" {',
+    "try std.testing.expectEqual(PmSuspendState.running_suspend_requires_stop, summary.state);",
+    'test "phase11 dw_wdt pm resume keeps imported-running handoff explicit" {',
+    "PmResumeState.import_running_state_then_restore_hooks,",
+    'test "phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idle restore" {',
+    "PmResumeState.blocked_live_mmio_timeout_reprogram,",
+    "try std.testing.expectEqual(PmResumeState.restore_idle_hooks, restored.state);",
 ]
 
 
@@ -106,6 +127,9 @@ def expect_manifest_state(manifest: dict[str, object]) -> None:
     if not isinstance(gaps, list):
         raise CheckError("manifest gaps must be a list")
 
+    found_verify = False
+    found_pm = False
+    found_next = False
     for entry in gaps:
         if not isinstance(entry, dict):
             raise CheckError("manifest gaps entries must be objects")
@@ -115,9 +139,38 @@ def expect_manifest_state(manifest: dict[str, object]) -> None:
                     "manifest teardown-parity destination mismatch: "
                     f"expected {VERIFY_DESTINATION}, got {entry.get('zigux_destination')!r}"
                 )
-            return
+            found_verify = True
+        if entry.get("id") == PM_GAP_ID:
+            if entry.get("zigux_destination") != PM_DESTINATION:
+                raise CheckError(
+                    "manifest pm destination mismatch: "
+                    f"expected {PM_DESTINATION}, got {entry.get('zigux_destination')!r}"
+                )
+            if entry.get("status") != "starter_landed":
+                raise CheckError(
+                    "manifest pm status mismatch: "
+                    f"expected 'starter_landed', got {entry.get('status')!r}"
+                )
+            found_pm = True
+        if entry.get("id") == NEXT_GAP_ID:
+            if entry.get("zigux_destination") != NEXT_DESTINATION:
+                raise CheckError(
+                    "manifest next-step destination mismatch: "
+                    f"expected {NEXT_DESTINATION}, got {entry.get('zigux_destination')!r}"
+                )
+            if entry.get("status") != "ready_next":
+                raise CheckError(
+                    "manifest next-step status mismatch: "
+                    f"expected 'ready_next', got {entry.get('status')!r}"
+                )
+            found_next = True
 
-    raise CheckError(f"manifest missing gap entry: {VERIFY_GAP_ID}")
+    if not found_verify:
+        raise CheckError(f"manifest missing gap entry: {VERIFY_GAP_ID}")
+    if not found_pm:
+        raise CheckError(f"manifest missing gap entry: {PM_GAP_ID}")
+    if not found_next:
+        raise CheckError(f"manifest missing gap entry: {NEXT_GAP_ID}")
 
 
 def run_check(root: Path) -> None:
@@ -125,10 +178,12 @@ def run_check(root: Path) -> None:
     matrix = read_text(root, FILES["matrix"])
     manifest = read_manifest(root)
     verify = read_text(root, FILES["verify"])
+    pm = read_text(root, FILES["pm"])
 
     expect_markers("note", note, NOTE_MARKERS)
     expect_markers("matrix", matrix, MATRIX_MARKERS)
     expect_markers("verify", verify, VERIFY_MARKERS)
+    expect_markers("pm", pm, PM_MARKERS)
     expect_manifest_state(manifest)
 
 
@@ -141,6 +196,7 @@ def build_fixture(root: Path) -> None:
     write(root / FILES["note"], "\n".join(NOTE_MARKERS) + "\n")
     write(root / FILES["matrix"], "\n".join(MATRIX_MARKERS) + "\n")
     write(root / FILES["verify"], "\n".join(VERIFY_MARKERS) + "\n")
+    write(root / FILES["pm"], "\n".join(PM_MARKERS) + "\n")
     write(
         root / FILES["manifest"],
         json.dumps(
@@ -151,7 +207,17 @@ def build_fixture(root: Path) -> None:
                     {
                         "id": VERIFY_GAP_ID,
                         "zigux_destination": VERIFY_DESTINATION,
-                    }
+                    },
+                    {
+                        "id": PM_GAP_ID,
+                        "status": "starter_landed",
+                        "zigux_destination": PM_DESTINATION,
+                    },
+                    {
+                        "id": NEXT_GAP_ID,
+                        "status": "ready_next",
+                        "zigux_destination": NEXT_DESTINATION,
+                    },
                 ],
             },
             indent=2,
@@ -183,6 +249,7 @@ def run_self_test() -> None:
             [("note", marker) for marker in NOTE_MARKERS]
             + [("matrix", marker) for marker in MATRIX_MARKERS]
             + [("verify", marker) for marker in VERIFY_MARKERS]
+            + [("pm", marker) for marker in PM_MARKERS]
         )
         for idx, (label, marker) in enumerate(marker_cases, start=1):
             case_root = tmpdir / f"marker_{idx}"
@@ -211,9 +278,9 @@ def run_self_test() -> None:
         shutil.copytree(fixture, manifest_gap_case, dirs_exist_ok=True)
         manifest_path = manifest_gap_case / FILES["manifest"]
         data = json.loads(manifest_path.read_text(encoding="utf-8"))
-        data["gaps"][0]["zigux_destination"] = "drivers/watchdog/dw_wdt.zig"
+        data["gaps"][1]["status"] = "ready_next"
         write(manifest_path, json.dumps(data, indent=2) + "\n")
-        expect_failure(manifest_gap_case, "manifest teardown-parity destination mismatch")
+        expect_failure(manifest_gap_case, "manifest pm status mismatch")
 
         self_test_case_count = len(marker_cases) + 3
         print("PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELF_TEST=pass")
