@@ -41,7 +41,7 @@ This note records the release-facing boundary posture for the shared Phase 14 sm
   - `zigux/tests/phase14_rcu_tree_survey.zig`
   - `net/core/skbuff_bridge.zig`
 - current Makefile posture: `zigux/Makefile` is readable again on current `master`, and its live body now exposes the shipped Phase 2 toolchain and kbuild routes together with the bounded `phase3-validate`, `phase3`, `phase4-validate`, `phase4-test`, `phase4`, `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-test`, `phase6-hexdump-perf`, `phase8-validate`, `phase8-test`, `phase8`, `phase10-validate`, `phase10-test`, `phase10`, `phase12-smoke`, `phase12-test`, and `phase12` routes, and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
-- current reminder-surface alignment: `Documentation/zigux/README.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the recovered study-only packet explicit, keep the directly readable workqueue reviewability shard visible, and frame the older `phase14-*` route names as packet-local or repo-reality-gap vocabulary rather than current Makefile-backed proof
+- current reminder-surface alignment: `Documentation/zigux/README.md`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` already keep the recovered study-only packet explicit, keep the directly readable workqueue reviewability shard visible, and frame the older `phase14-*` route names as packet-local or repo-reality-gap vocabulary rather than current Makefile-backed proof; the shared smoke note now treats the attached-toolchain wrapper triplet the same way instead of presenting it as active fallback guidance
 - current release boundary posture: keep the recovered study-only documentation packet explicit, keep the blob-readable validator visible as mixed-source evidence, keep the directly readable workqueue boundary shard explicit as returned study-only evidence, keep the returned exact-count checker explicit as a release-facing truthfulness guard, and keep the broader executable and wrapper-backed replay layer framed as packet-local or repo-reality-gap vocabulary until a fresh reread proves it returned on current `master`
 - bounded-internal sequencing guard: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain the two study-only anchors that can still receive boundary-map or concurrency-audit follow-through, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors whose status can only move through the Phase 15 governance packet
 - `PHASE14_SHARED_SMOKE_GATE_COUNT=1`
@@ -74,7 +74,9 @@ Do not present the compile-shard matrix, manifest-backed full-bundle replay, wra
 
 ## Packet-Local Rerun Vocabulary
 
-These commands remain the bounded rerun vocabulary for this packet, but this note should not treat them as current wrapper-backed release proof again until the same readback mode restores the missing build-side files and shows the `phase14-*` Makefile routes back on current `master`.
+No current direct-readback rerun command is proven from this note while the readable `zigux/Makefile` still lacks `phase14-*` targets and the dedicated build-side files remain missing in this lane's exact contents path.
+
+Keep the historical route names, direct-build names, and attached-toolchain examples below only as archival packet-local vocabulary for traceability. They should not be treated as active wrapper-backed guidance again until the same readback mode restores both the missing build-side files and the `phase14-*` Makefile routes on current `master`.
 
 - `make -C zigux phase14-validate`
 - `make -C zigux phase14-smoke`
