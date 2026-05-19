@@ -45,6 +45,9 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
         "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py",
         "The packet-local validator is now present and should stay aligned with this survey rather than being tracked as a missing companion.",
+        "- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, `versionMatchesCurrent`, `validateVersion`, and the status-tagged `validateDeviceNumber` relay.",
+        "- That same starter export surface also now carries the status-tagged `validateDeviceRange` relay plus the bounded `encodeDeviceNumber` and `decodeDeviceNumber` bridge without widening into broader UAPI growth.",
+        "- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, and device-number bridge contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.",
         "Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, and `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the returned Linux-header ownership note for this packet.",
         "The remaining repo-reality gap for this packet is now the separate catalog-selftest guard:",
         "This survey should keep the manifest-backed ABI inventory and the returned linux-header governance note explicit as shipped same-family companions while continuing to treat the absent catalog-selftest guard as the active packet-local gap.",
@@ -63,7 +66,12 @@ REQUIRED_MARKERS = {
         "pub fn headerIsCanonical(header: BoundaryHeader) bool {",
         "pub fn headerIsCompatible(header: BoundaryHeader) bool {",
         "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {",
+        "pub fn versionMatchesCurrent(candidate: Version) bool {",
+        "pub fn validateVersion(candidate: Version) ExportStatus {",
+        "pub fn encodeDeviceNumber(fields: DevTFields) ?u32 {",
+        "pub fn decodeDeviceNumber(device_number: u32) DevTFields {",
         "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
+        "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
     ),
     UAPI_VERSION_PATH: (
         "pub const abi_major: u32 = 0;",
@@ -84,6 +92,7 @@ REQUIRED_MARKERS = {
         "#define ZIGUX_UAPI_DEV_T_PACKET_PRESENT 1u",
         "static inline zigux_boundary_header zigux_uapi_boundary_header_current(uint16_t flags)",
         "static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
+        "static inline int zigux_uapi_dev_t_fields_range_is_valid(",
     ),
     LINUX_HEADER_GOVERNANCE_NOTE_PATH: (
         "PHASE3_ZIGUX_H_PATH=include/linux/zigux.h",
@@ -110,6 +119,8 @@ REQUIRED_MARKERS = {
     LAYOUT_TEST_PATH: (
         'test "export and uapi dev_t layouts stay aligned" {',
         'test "export and uapi version layouts stay aligned" {',
+        'test "export shim relays version compatibility without widening the boundary" {',
+        'test "export shim encodes starter dev_t numbers without widening the boundary" {',
         'test "export shim reuses the canonical boundary header contract" {',
         'test "export shim mirrors boundary header predicate helpers" {',
         'test "export shim keeps facility tagged statuses explicit" {',
@@ -199,6 +210,21 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, `versionMatchesCurrent`, `validateVersion`, and the status-tagged `validateDeviceNumber` relay.",
+            "expected missing survey export-shim relay marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "- That same starter export surface also now carries the status-tagged `validateDeviceRange` relay plus the bounded `encodeDeviceNumber` and `decodeDeviceNumber` bridge without widening into broader UAPI growth.",
+            "expected missing survey dev_t relay marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, and device-number bridge contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.",
+            "expected missing survey layout relay marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md",
             "expected missing survey linux-header governance note marker was not reported",
         ),
@@ -214,8 +240,18 @@ def run_self_test() -> int:
         ),
         (
             EXPORT_SHIM_PATH,
-            "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
-            "expected missing export-shim validation marker was not reported",
+            "pub fn versionMatchesCurrent(candidate: Version) bool {",
+            "expected missing export-shim version relay marker was not reported",
+        ),
+        (
+            EXPORT_SHIM_PATH,
+            "pub fn encodeDeviceNumber(fields: DevTFields) ?u32 {",
+            "expected missing export-shim dev_t bridge marker was not reported",
+        ),
+        (
+            EXPORT_SHIM_PATH,
+            "pub fn validateDeviceRange(start: DevTFields, end: DevTFields) ExportStatus {",
+            "expected missing export-shim range relay marker was not reported",
         ),
         (
             UAPI_VERSION_PATH,
@@ -229,8 +265,8 @@ def run_self_test() -> int:
         ),
         (
             LINUX_HEADER_PATH,
-            "static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
-            "expected missing linux header validator marker was not reported",
+            "static inline int zigux_uapi_dev_t_fields_range_is_valid(",
+            "expected missing linux header dev_t range marker was not reported",
         ),
         (
             LINUX_HEADER_GOVERNANCE_NOTE_PATH,
@@ -254,8 +290,13 @@ def run_self_test() -> int:
         ),
         (
             LAYOUT_TEST_PATH,
-            'test "export shim mirrors boundary header predicate helpers" {',
-            "expected missing layout test predicate marker was not reported",
+            'test "export shim relays version compatibility without widening the boundary" {',
+            "expected missing layout version relay marker was not reported",
+        ),
+        (
+            LAYOUT_TEST_PATH,
+            'test "export shim encodes starter dev_t numbers without widening the boundary" {',
+            "expected missing layout dev_t bridge marker was not reported",
         ),
         (
             LAYOUT_BUILD_PATH,
