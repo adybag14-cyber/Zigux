@@ -320,9 +320,10 @@ def expect_failure(root: Path, expected: str) -> None:
 
 def remove_marker(path: Path, marker: str) -> None:
     text = path.read_text(encoding="utf-8")
-    updated = text.replace(f"- {marker}\n", "", 1)
+    updated = text.replace(f"- {marker}\n", "")
+    updated = updated.replace(marker, "")
     if updated == text:
-        updated = text.replace(f"{marker}\n", "", 1)
+        raise SystemExit(f"marker not removable: {marker}")
     path.write_text(updated, encoding="utf-8")
 
 
@@ -338,64 +339,16 @@ def run_self_test() -> int:
         if missing or drift:
             raise SystemExit(f"fixture tree should pass but failed: {(missing + drift)!r}")
 
-        missing_file_cases = [
-            RELEASE_READINESS_SURVEY_PATH,
-            RELEASE_CLOSURE_CHECKLIST_PATH,
-            RAW_GITHUB_COVERAGE_PATH,
-            VIRTIO_SCSI_PACKET_CHECKER_PATH,
-            NVME_PACKET_CHECKER_PATH,
-            VIRTIO_SCSI_MANIFEST_PATH,
-            VIRTIO_SCSI_SURVEY_GATE_PATH,
-            VIRTIO_SCSI_SUPPORT_MANIFEST_PATH,
-            SCRIPTS_README_PATH,
-            MAKEFILE_PATH,
-            PHASE12_BUILD_PATH,
-        ]
+        missing_file_cases = list(REQUIRED_FILES)
         for rel_path in missing_file_cases:
             write_fixture_root(base)
             (base / rel_path).unlink()
             expect_failure(base, f"missing_file:{rel_path}")
 
         marker_cases = [
-            (
-                RELEASE_READINESS_SURVEY_PATH,
-                REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][1],
-            ),
-            (
-                RELEASE_CLOSURE_CHECKLIST_PATH,
-                REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][0],
-            ),
-            (
-                RELEASE_CLOSURE_CHECKLIST_PATH,
-                REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][2],
-            ),
-            (
-                RAW_GITHUB_COVERAGE_PATH,
-                RAW_GITHUB_BRIDGE_MARKERS[0],
-            ),
-            (
-                RAW_GITHUB_COVERAGE_PATH,
-                RAW_GITHUB_BRIDGE_MARKERS[3],
-            ),
-            (
-                RAW_GITHUB_COVERAGE_PATH,
-                REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH][-3],
-            ),
-            (
-                RELEASE_COORDINATION_MATRIX_PATH,
-                REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][2],
-            ),
-            (VIRTIO_SCSI_SURVEY_PATH, REQUIRED_MARKERS[VIRTIO_SCSI_SURVEY_PATH][0]),
-            (VIRTIO_SCSI_MANIFEST_PATH, REQUIRED_MARKERS[VIRTIO_SCSI_MANIFEST_PATH][0]),
-            (
-                VIRTIO_SCSI_SURVEY_GATE_PATH,
-                REQUIRED_MARKERS[VIRTIO_SCSI_SURVEY_GATE_PATH][4],
-            ),
-            (NVME_FALLBACK_PATH, REQUIRED_MARKERS[NVME_FALLBACK_PATH][6]),
-            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][0]),
-            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][1]),
-            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][2]),
-            (VALIDATOR_PATH, REQUIRED_MARKERS[VALIDATOR_PATH][4]),
+            (rel_path, marker)
+            for rel_path, markers in REQUIRED_MARKERS.items()
+            for marker in markers
         ]
         for rel_path, marker in marker_cases:
             write_fixture_root(base)
@@ -403,8 +356,9 @@ def run_self_test() -> int:
             expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
         forbidden_cases = [
-            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][0]),
-            (VALIDATOR_PATH, FORBIDDEN_MARKERS[VALIDATOR_PATH][0]),
+            (rel_path, marker)
+            for rel_path, markers in FORBIDDEN_MARKERS.items()
+            for marker in markers
         ]
         for rel_path, marker in forbidden_cases:
             write_fixture_root(base)
