@@ -28,6 +28,7 @@ CROSS_CHECKER_REL = Path("scripts/zigux/check-phase2-cross.py")
 CROSS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-cross-selftest-alignment.py")
 DOCS_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase2-docs-shared-reminder.py")
 REQUIRED_ROUTES_CHECKER_REL = Path("scripts/zigux/check-phase2-required-make-routes.py")
+TOOL_MANIFEST_CHECKER_REL = Path("scripts/zigux/check-phase2-tool-manifest.py")
 GENKSYMS_CHECKER_REL = Path("scripts/zigux/check-genksyms-bridge.py")
 TOOLCHAIN_POLICY_REL = Path("scripts/zigux/zig-toolchain-policy.json")
 CONF_BRIDGE_REL = Path("scripts/zigux/kconfig/conf_bridge.zig")
@@ -64,6 +65,7 @@ REQUIRED_FILES = (
     CROSS_ALIGNMENT_REL,
     DOCS_REMINDER_CHECKER_REL,
     REQUIRED_ROUTES_CHECKER_REL,
+    TOOL_MANIFEST_CHECKER_REL,
     GENKSYMS_CHECKER_REL,
     TOOLCHAIN_POLICY_REL,
     CONF_BRIDGE_REL,
@@ -90,6 +92,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
@@ -106,6 +109,7 @@ REQUIRED_CLOSURE_MARKERS = (
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-required-make-routes.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-tool-manifest.py`",
     "`python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
     "`python3 scripts/zigux/check-genksyms-bridge.py`",
     "`python3 scripts/zigux/validate-phase2-closure.py --self-test`",
@@ -144,6 +148,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
@@ -170,6 +175,7 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
     "phase2: phase2-validate",
 )
@@ -190,7 +196,10 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
 )
-EXPECTED_MANIFEST_CHECKERS = ("scripts/zigux/check-genksyms-bridge.py",)
+EXPECTED_MANIFEST_CHECKERS = (
+    "scripts/zigux/check-phase2-tool-manifest.py",
+    "scripts/zigux/check-genksyms-bridge.py",
+)
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("scripts/zigux/genksyms.zig",)
 FORBIDDEN_MANIFEST_GAPS = (
     "scripts/zigux/install-zig.py",
@@ -505,6 +514,7 @@ def build_self_test_root(root: Path) -> None:
 - `scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - `scripts/zigux/check-phase2-required-make-routes.py`
 - `scripts/zigux/check-phase2-docs-shared-reminder.py`
+- `scripts/zigux/check-phase2-tool-manifest.py`
 - `scripts/zigux/check-genksyms-bridge.py`
 - `scripts/zigux/validate-phase2.py`
 - `scripts/zigux/validate-phase2-closure.py`
@@ -521,7 +531,7 @@ def build_self_test_root(root: Path) -> None:
 
 ## Current Repo-Reality Gaps
 
-The older fixdep dual-implementation reminder surfaces are no longer part of the current closure-side authority on `master`; closure follow-through should stay tied to the toolchain, cross-route, kconfig, make-wrapper, and validator packet that the repo still ships directly.
+The older fixdep dual-implementation reminder surfaces are no longer part of the current closure-side authority on `master`; closure follow-through should stay tied to the toolchain, cross-route, kconfig, make-wrapper, manifest-guard, and validator packet that the repo still ships directly.
 
 - `PHASE2_CURRENT_GAP_PACKET=`
 
@@ -530,6 +540,7 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
 - `python3 scripts/zigux/install-zig.py --self-test`
 - `python3 scripts/zigux/check-phase2-cross.py --self-test`
 - `python3 scripts/zigux/check-phase2-required-make-routes.py --self-test`
+- `python3 scripts/zigux/check-phase2-tool-manifest.py`
 - `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
 - `python3 scripts/zigux/check-genksyms-bridge.py`
 - `python3 scripts/zigux/validate-phase2-closure.py --self-test`
@@ -564,7 +575,7 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
                 "make -C zigux phase2-validate",
                 "make -C zigux phase2",
             ],
-            "checkers": ["scripts/zigux/check-genksyms-bridge.py"],
+            "checkers": list(EXPECTED_MANIFEST_CHECKERS),
             "bridge_helpers": ["scripts/zigux/genksyms.zig"],
         },
     }
@@ -586,6 +597,7 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
     write_text(resolve(root, CROSS_ALIGNMENT_REL), "present\n")
     write_text(resolve(root, DOCS_REMINDER_CHECKER_REL), "present\n")
     write_text(resolve(root, REQUIRED_ROUTES_CHECKER_REL), "present\n")
+    write_text(resolve(root, TOOL_MANIFEST_CHECKER_REL), "present\n")
     write_text(resolve(root, GENKSYMS_CHECKER_REL), "present\n")
     write_text(resolve(root, TOOLCHAIN_POLICY_REL), "present\n")
     write_text(resolve(root, CONF_BRIDGE_REL), "present\n")
@@ -685,7 +697,7 @@ def run_self_test() -> int:
         assert isinstance(manifest, dict)
         manifest["present_surfaces"]["checkers"] = []
         write_text(path, json.dumps(manifest, indent=2) + "\n")
-        assert ("MISSING_MANIFEST_SURFACE", "checkers:scripts/zigux/check-genksyms-bridge.py") in collect_issues(root)
+        assert ("MISSING_MANIFEST_SURFACE", "checkers:scripts/zigux/check-phase2-tool-manifest.py") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
