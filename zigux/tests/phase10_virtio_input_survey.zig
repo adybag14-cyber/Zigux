@@ -37,7 +37,7 @@ test "phase10 virtio input survey note keeps the restored verifier, teardown par
     defer allocator.free(manifest);
 
     try expectContains(survey_note, "PHASE10_STATUS=parked");
-    try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L13");
+    try expectContains(survey_note, "PHASE10_LANE_KEY=P10-L22");
     try expectContains(survey_note, "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport");
     try expectContains(survey_note, "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`");
     try expectContains(survey_note, "lab-only driver validation");
