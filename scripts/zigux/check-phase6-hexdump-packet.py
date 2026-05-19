@@ -20,6 +20,7 @@ PERF_MATRIX_PATH = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")
 FIXTURES_PATH = Path("zigux/tests/fixtures/phase6_hexdump_vectors.zig")
 BUILD_PATH = Path("zigux/tests/phase6_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
+ROUTE_PATH = Path("scripts/zigux/check-phase6-hexdump-route.py")
 
 REQUIRED_SNIPPETS = {
     CATALOG_PATH: [
@@ -92,6 +93,14 @@ REQUIRED_SNIPPETS = {
         "phase6-hexdump-perf:",
         "$(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig --summary all",
     ],
+    ROUTE_PATH: [
+        '"""Guard the current Phase 6 hexdump review route."""',
+        'MAKEFILE = Path("zigux/Makefile")',
+        'BUILD_FILE = Path("zigux/tests/phase6_build.zig")',
+        'PERF_MATRIX_FILE = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")',
+        '"$(PYTHON) scripts/zigux/check-phase6-hexdump-route.py",',
+        '"PHASE6_HEXDUMP_ROUTE=pass"',
+    ],
 }
 
 SELF_TEST_CASES = [
@@ -139,6 +148,11 @@ SELF_TEST_CASES = [
         MAKEFILE_PATH,
         "$(ZIG) build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig --summary all",
         "$(ZIG) build phase6-hexdump-profile --build-file zigux/tests/phase6_build.zig --summary all",
+    ),
+    (
+        ROUTE_PATH,
+        '"PHASE6_HEXDUMP_ROUTE=pass"',
+        '"PHASE6_HEXDUMP_REVIEW_ROUTE=pass"',
     ),
 ]
 
