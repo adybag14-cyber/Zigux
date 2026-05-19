@@ -22,7 +22,7 @@ Fresh rereads on 2026-05-19 show that the attached-toolchain reminder split is n
 That means the older scripts-root omission recorded by this note is no longer the active same-lane gap on current `master`.
 
 The remaining readback split is narrower:
-- the reminder surfaces now keep the attached-toolchain boundary explicit, but only the scripts-root and tests-root reminders still spell out the older `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-*` examples directly
+- the reminder surfaces now keep the attached-toolchain boundary explicit, but only the scripts-root and tests-root reminders still spell out the older `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-*` examples directly, and both frame them as packet-local traceability vocabulary rather than active Makefile-backed fallback guidance
 - the shared smoke note and release-boundary note now treat those same wrapper names as historical packet-local vocabulary instead of current fallback guidance, which better matches the readable `zigux/Makefile` route reality
 - `zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
 - the broader executable packet still remains only partially recoverable in this lane even though the directly readable validator surface, the directly readable release-boundary guard, and the directly readable workqueue reviewability shard have returned
@@ -38,7 +38,7 @@ This is still a real operational-truthfulness issue rather than a new delivery c
 The attached-toolchain boundary itself is no longer the gap.
 
 The active same-lane follow-through has narrowed to the broader shared-reminder split around recovered readback versus historical wrapper vocabulary:
-1. keep `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, and `Documentation/zigux/phase14-shared-smoke-current-master-gap.md` aligned on the fact that the attached-toolchain boundary is still explicit, while only the scripts-root and tests-root reminders now spell out the older wrapper examples directly
+1. keep `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, and `Documentation/zigux/phase14-shared-smoke-current-master-gap.md` aligned on the fact that the attached-toolchain boundary is still explicit, while only the scripts-root and tests-root reminders now spell out the older wrapper examples directly as packet-local traceability cues rather than active Makefile-backed fallback guidance
 2. keep `zigux/Makefile` framed as readable current repo evidence that currently proves the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes rather than as returned proof of the older `phase14-*` routes
 3. keep `scripts/zigux/validate-phase14.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, the workqueue reviewability shard, `zigux/tests/phase14_build.zig`, and the other executable packet members framed according to the exact readback mode that is actually available in this lane
 
