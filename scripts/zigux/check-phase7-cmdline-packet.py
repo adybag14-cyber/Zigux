@@ -60,6 +60,7 @@ REQUIRED_MARKERS = {
         'test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {',
         'test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {',
         'test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {',
+        'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {',
     ],
     "zigux/tests/phase7_cmdline_manifest.json": [
         '"anchor": "lib/cmdline.c"',
@@ -80,7 +81,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -297,6 +298,16 @@ def run_self_test() -> None:
             "missing_companion_quoted_bare_grouping_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline.zig: {quoted_bare_grouping_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        companion_text = read_text(companion_path)
+        quoted_equals_marker = 'test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {'
+        companion_path.write_text(companion_text.replace(quoted_equals_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_companion_quoted_equals_and_unterminated_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline.zig: {quoted_equals_marker}",
         )
         write_fixture_root(tmp_root)
 
