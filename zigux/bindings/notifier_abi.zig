@@ -24,6 +24,13 @@ pub const NotifierBlock = extern struct {
     priority: i32,
 };
 
+pub const NotifierChainPriorityIncrease = extern struct {
+    previous_index: usize,
+    current_index: usize,
+    previous_priority: i32,
+    current_priority: i32,
+};
+
 pub const ListHead = extern struct {
     next: usize,
     prev: usize,
@@ -50,6 +57,30 @@ pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     }
 
     return true;
+}
+
+pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?NotifierChainPriorityIncrease {
+    var current = head orelse return null;
+    var previous_index: usize = 0;
+    var previous_priority = current.priority;
+
+    while (current.next != 0) {
+        const next: *const NotifierBlock = @ptrFromInt(current.next);
+        const current_index = previous_index + 1;
+        if (next.priority > previous_priority) {
+            return .{
+                .previous_index = previous_index,
+                .current_index = current_index,
+                .previous_priority = previous_priority,
+                .current_priority = next.priority,
+            };
+        }
+        previous_index = current_index;
+        previous_priority = next.priority;
+        current = next;
+    }
+
+    return null;
 }
 
 pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
@@ -98,6 +129,18 @@ test "notifier block layout stays aligned with the exported ABI header" {
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierBlock, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierBlock, "priority"));
     try std.testing.expectEqual(expected_size, @sizeOf(NotifierBlock));
+
+    const increase_expected_size = std.mem.alignForward(
+        usize,
+        (@sizeOf(usize) * 2) + (@sizeOf(i32) * 2),
+        @alignOf(NotifierChainPriorityIncrease),
+    );
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(NotifierChainPriorityIncrease));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(NotifierChainPriorityIncrease, "previous_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(NotifierChainPriorityIncrease, "current_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(NotifierChainPriorityIncrease, "previous_priority"));
+    try std.testing.expectEqual(@as(usize, (@sizeOf(usize) * 2) + @sizeOf(i32)), @offsetOf(NotifierChainPriorityIncrease, "current_priority"));
+    try std.testing.expectEqual(increase_expected_size, @sizeOf(NotifierChainPriorityIncrease));
 }
 
 test "list and hlist layouts stay aligned with the exported ABI header" {
@@ -168,6 +211,67 @@ test "notifier priority helper rejects increasing priority" {
     };
 
     try std.testing.expect(!chainHasNonincreasingPriority(&first));
+}
+
+test "notifier priority increase helper returns null for empty and single-node chains" {
+    try std.testing.expect(firstChainPriorityIncrease(null) == null);
+
+    const node = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 9,
+    };
+
+    try std.testing.expect(firstChainPriorityIncrease(&node) == null);
+}
+
+test "notifier priority increase helper returns null for equal and descending priorities" {
+    const third = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 3,
+    };
+    const second = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&third),
+        .priority = 5,
+    };
+    const first = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&second),
+        .priority = 5,
+    };
+
+    try std.testing.expect(firstChainPriorityIncrease(&first) == null);
+}
+
+test "notifier priority increase helper reports the first increase" {
+    const fourth = NotifierBlock{
+        .notifier_call = 0,
+        .next = 0,
+        .priority = 7,
+    };
+    const third = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&fourth),
+        .priority = 2,
+    };
+    const second = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&third),
+        .priority = 4,
+    };
+    const first = NotifierBlock{
+        .notifier_call = 0,
+        .next = @intFromPtr(&second),
+        .priority = 6,
+    };
+
+    const increase = firstChainPriorityIncrease(&first) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 2), increase.previous_index);
+    try std.testing.expectEqual(@as(usize, 3), increase.current_index);
+    try std.testing.expectEqual(@as(i32, 2), increase.previous_priority);
+    try std.testing.expectEqual(@as(i32, 7), increase.current_priority);
 }
 
 test "list helper accepts a sentinel-only list" {
