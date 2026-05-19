@@ -28,6 +28,7 @@ PRODUCTIZATION_GAP_PATH = "Documentation/zigux/phase14-productization-gap-survey
 SHARED_SMOKE_GAP_PATH = "Documentation/zigux/phase14-shared-smoke-current-master-gap.md"
 ATTACHED_TOOLCHAIN_GUIDANCE_PATH = "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md"
 CORE_BOUNDARY_TRACEABILITY_PATH = "Documentation/zigux/phase14-core-boundary-traceability.md"
+WORKQUEUE_SLICE_PATH = "Documentation/zigux/phase14-workqueue-bridge-slice.md"
 WORKQUEUE_SURVEY_PATH = "Documentation/zigux/phase14-workqueue-bridge-survey.md"
 SKBUFF_SURVEY_PATH = "Documentation/zigux/phase14-skbuff-bridge-survey.md"
 STUDY_ONLY_ACCOUNTING_PATH = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
@@ -37,6 +38,7 @@ RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-ex
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 WORKQUEUE_BRIDGE_PATH = "kernel/workqueue_bridge.zig"
+WORKQUEUE_BRIDGE_TEST_PATH = "zigux/tests/phase14_workqueue_bridge.zig"
 WORKQUEUE_REVIEWABILITY_PATH = "zigux/tests/phase14_workqueue_reviewability.zig"
 WORKQUEUE_MANIFEST_PATH = "zigux/tests/phase14_workqueue_bridge_manifest.json"
 VALIDATOR_PATH = "scripts/zigux/validate-phase14.py"
@@ -50,6 +52,7 @@ REQUIRED_FILES = [
     SHARED_SMOKE_GAP_PATH,
     ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
     CORE_BOUNDARY_TRACEABILITY_PATH,
+    WORKQUEUE_SLICE_PATH,
     WORKQUEUE_SURVEY_PATH,
     SKBUFF_SURVEY_PATH,
     STUDY_ONLY_ACCOUNTING_PATH,
@@ -59,6 +62,7 @@ REQUIRED_FILES = [
     TESTS_README_PATH,
     MAKEFILE_PATH,
     WORKQUEUE_BRIDGE_PATH,
+    WORKQUEUE_BRIDGE_TEST_PATH,
     WORKQUEUE_REVIEWABILITY_PATH,
     WORKQUEUE_MANIFEST_PATH,
     VALIDATOR_PATH,
@@ -117,6 +121,12 @@ REQUIRED_MARKERS = {
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py` is directly readable again as the release-facing truthfulness guard",
         "Documentation/zigux/phase14-workqueue-bridge-survey.md",
     ],
+    WORKQUEUE_SLICE_PATH: [
+        "  * `PHASE14_LANE_KEY=P14-L04`",
+        "  * `PHASE14_SLICE=phase14-workqueue-scheduler-visible-worker-state-refinement`",
+        "  * `PHASE14_DIRECT_ZIG_TEST=zigux/tests/phase14_workqueue_bridge.zig`",
+        "Keep the packet in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, and the shared Phase 14 smoke packet together before widening scope.",
+    ],
     WORKQUEUE_SURVEY_PATH: [
         "`PHASE14_ANCHOR=kernel/workqueue.c`",
         "`PHASE14_BLOCKER=phase14-workqueue-live-execution-blocker`",
@@ -174,6 +184,12 @@ REQUIRED_MARKERS = {
         "return .{",
         '.posture = "blocked_maintenance",',
         "zigux/tests/phase14_workqueue_reviewability.zig",
+    ],
+    WORKQUEUE_BRIDGE_TEST_PATH: [
+        'try std.testing.expectEqualStrings("phase14-workqueue-scheduler-visible-worker-state-refinement", workqueue_bridge.WorkqueueBridgeLab.currentSliceId());',
+        'try std.testing.expectEqualStrings("delayed-work-timer-and-requeue", map.areas[2].id);',
+        'try std.testing.expectEqualStrings("scheduler-visible-worker-state-refinement", audit.checkpoints[14].id);',
+        'try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "blocked maintenance") != null);',
     ],
     WORKQUEUE_REVIEWABILITY_PATH: [
         'try std.testing.expectEqualStrings("P14-L04", manifest.lane_key);',
@@ -248,6 +264,7 @@ def fixture_text(rel_path: str) -> str:
         SHARED_SMOKE_GAP_PATH: "# Phase 14 Shared Smoke Current-Master Gap",
         ATTACHED_TOOLCHAIN_GUIDANCE_PATH: "# Phase 14 Attached Toolchain Guidance Gap",
         CORE_BOUNDARY_TRACEABILITY_PATH: "# Phase 14 Core Boundary Traceability",
+        WORKQUEUE_SLICE_PATH: "# Phase 14 Workqueue Bridge Slice",
         WORKQUEUE_SURVEY_PATH: "# Phase 14 Workqueue Bridge Survey",
         SKBUFF_SURVEY_PATH: "# Phase 14 Skbuff Bridge Survey",
         STUDY_ONLY_ACCOUNTING_PATH: "# Phase 15 Study-Only Anchor Accounting",
@@ -301,12 +318,14 @@ def run_self_test() -> int:
             PRODUCTIZATION_GAP_PATH,
             SHARED_SMOKE_GAP_PATH,
             ATTACHED_TOOLCHAIN_GUIDANCE_PATH,
+            WORKQUEUE_SLICE_PATH,
             WORKQUEUE_SURVEY_PATH,
             SKBUFF_SURVEY_PATH,
             SCRIPTS_README_PATH,
             ROLLBACK_CHECKER_PATH,
             RELEASE_BOUNDARY_CHECKER_PATH,
             MAKEFILE_PATH,
+            WORKQUEUE_BRIDGE_TEST_PATH,
             WORKQUEUE_REVIEWABILITY_PATH,
             WORKQUEUE_MANIFEST_PATH,
         ]
@@ -322,12 +341,14 @@ def run_self_test() -> int:
             (SHARED_SMOKE_GAP_PATH, REQUIRED_MARKERS[SHARED_SMOKE_GAP_PATH][0]),
             (ATTACHED_TOOLCHAIN_GUIDANCE_PATH, REQUIRED_MARKERS[ATTACHED_TOOLCHAIN_GUIDANCE_PATH][0]),
             (CORE_BOUNDARY_TRACEABILITY_PATH, REQUIRED_MARKERS[CORE_BOUNDARY_TRACEABILITY_PATH][2]),
+            (WORKQUEUE_SLICE_PATH, REQUIRED_MARKERS[WORKQUEUE_SLICE_PATH][2]),
             (WORKQUEUE_SURVEY_PATH, REQUIRED_MARKERS[WORKQUEUE_SURVEY_PATH][0]),
             (SKBUFF_SURVEY_PATH, REQUIRED_MARKERS[SKBUFF_SURVEY_PATH][0]),
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
             (ROLLBACK_CHECKER_PATH, REQUIRED_MARKERS[ROLLBACK_CHECKER_PATH][0]),
             (RELEASE_BOUNDARY_CHECKER_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_CHECKER_PATH][0]),
             (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][5]),
+            (WORKQUEUE_BRIDGE_TEST_PATH, REQUIRED_MARKERS[WORKQUEUE_BRIDGE_TEST_PATH][0]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][1]),
             (WORKQUEUE_REVIEWABILITY_PATH, REQUIRED_MARKERS[WORKQUEUE_REVIEWABILITY_PATH][0]),
         ]
@@ -363,8 +384,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the rollback "
-            "threshold checker, recovered reminder packet, release-boundary checker, "
-            "workqueue reviewability shard, and current Makefile route reality."
+            "threshold checker, recovered reminder packet, release-boundary checker, direct "
+            "workqueue bridge packet, workqueue reviewability shard, and current Makefile route reality."
         )
     )
     parser.add_argument(
