@@ -171,6 +171,15 @@ pub fn summarizePossibleCpus(mask: []const bool) PossibleCpuSummary {
     };
 }
 
+pub fn summarizePossibleCpusFromString(
+    allocator: std.mem.Allocator,
+    input: []const u8,
+) ParseCpuMaskError!PossibleCpuSummary {
+    const parsed = try parseCpuMaskString(allocator, input);
+    defer parsed.deinit(allocator);
+    return summarizePossibleCpus(parsed.values);
+}
+
 pub fn summarizePossibleCpusFromReader(
     allocator: std.mem.Allocator,
     scratch: []u8,
@@ -194,6 +203,15 @@ pub fn derivePerfBufferAutoCpuCount(total_possible_cpus: usize, requested_cpu_co
         return total_possible_cpus;
     }
     return requested_cpu_count;
+}
+
+pub fn derivePerfBufferAutoCpuCountFromString(
+    allocator: std.mem.Allocator,
+    input: []const u8,
+    requested_cpu_count: usize,
+) ParseCpuMaskError!usize {
+    const summary = try summarizePossibleCpusFromString(allocator, input);
+    return summary.deriveAutoCpuCount(requested_cpu_count);
 }
 
 pub fn derivePerfBufferAutoCpuCountFromReader(
@@ -281,6 +299,26 @@ test "cpu-mask parser keeps stable direct summary outputs explicit" {
     try std.testing.expectEqual(@as(usize, 0), empty_summary.deriveAutoCpuCount(3));
 }
 
+test "cpu-mask string-backed summary helpers mirror the reader-backed auto-count surface" {
+    var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const summary = try summarizePossibleCpusFromString(allocator, " 1-2, 5\n");
+    try std.testing.expectEqual(@as(usize, 6), summary.mask_bit_len);
+    try std.testing.expectEqual(@as(usize, 3), summary.possible_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 5), summary.highest_cpu_index);
+
+    try std.testing.expectEqual(
+        @as(usize, 2),
+        try derivePerfBufferAutoCpuCountFromString(allocator, "1-2, 5\n", 2),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        try derivePerfBufferAutoCpuCountFromString(allocator, "1-2, 5\n", 9),
+    );
+}
+
 test "cpu-mask reader-backed helpers keep chunked summary outputs stable" {
     var arena = std.heap.ArenaAllocator.init(std.testing.allocator);
     defer arena.deinit();
@@ -328,6 +366,11 @@ test "cpu-mask parsing rejects invalid direct and reader-backed inputs" {
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "+"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "0,+"));
     try std.testing.expectError(error.InvalidCpuRange, parseCpuMaskString(allocator, "0-+"));
+    try std.testing.expectError(error.InvalidCpuRange, summarizePossibleCpusFromString(allocator, "0,+\n"));
+    try std.testing.expectError(
+        error.InvalidCpuRange,
+        derivePerfBufferAutoCpuCountFromString(allocator, "0,+\n", 1),
+    );
 
     var scratch: [3]u8 = undefined;
     var malformed_plus_context = ReaderContext{ .input = "0,+\n" };
