@@ -56,6 +56,15 @@ pub fn currentVersion() Version {
     return version.current();
 }
 
+pub fn versionMatchesCurrent(candidate: Version) bool {
+    return version.matchesCurrent(candidate);
+}
+
+pub fn validateVersion(candidate: Version) ExportStatus {
+    if (versionMatchesCurrent(candidate)) return okStatus(.kernel);
+    return errorStatus(invalid_argument, .kernel);
+}
+
 pub fn makeDevTFields(major: u32, minor: u32) DevTFields {
     return dev_t.init(major, minor);
 }
@@ -161,6 +170,48 @@ test "export shim keeps boundary header predicates aligned with ABI helpers" {
     try testing.expectEqual(future.flags, canonicalized.flags);
     try testing.expect(headerIsCanonical(canonicalized));
     try testing.expect(!extendsBoundary(canonicalized));
+}
+
+test "export shim relays starter version compatibility through status helpers" {
+    const live = currentVersion();
+    const stale_major = Version{
+        .abi_major = version.abi_major + 1,
+        .abi_minor = version.abi_minor,
+        .header_family_revision = version.header_family_revision,
+    };
+    const stale_minor = Version{
+        .abi_major = version.abi_major,
+        .abi_minor = version.abi_minor + 1,
+        .header_family_revision = version.header_family_revision,
+    };
+    const stale_revision = Version{
+        .abi_major = version.abi_major,
+        .abi_minor = version.abi_minor,
+        .header_family_revision = version.header_family_revision + 1,
+    };
+    const valid = validateVersion(live);
+    const invalid_major = validateVersion(stale_major);
+    const invalid_minor = validateVersion(stale_minor);
+    const invalid_revision = validateVersion(stale_revision);
+
+    try testing.expect(versionMatchesCurrent(live));
+    try testing.expect(!versionMatchesCurrent(stale_major));
+    try testing.expect(!versionMatchesCurrent(stale_minor));
+    try testing.expect(!versionMatchesCurrent(stale_revision));
+
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), valid.facility);
+    try testing.expectEqual(@as(u16, 0), valid.flags);
+
+    try testing.expectEqual(@as(i32, invalid_argument), invalid_major.code);
+    try testing.expectEqual(@as(i32, invalid_argument), invalid_minor.code);
+    try testing.expectEqual(@as(i32, invalid_argument), invalid_revision.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), invalid_major.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), invalid_minor.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(Facility.kernel)), invalid_revision.facility);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_major.flags);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_minor.flags);
+    try testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), invalid_revision.flags);
 }
 
 test "export shim status helpers keep facility and error flags explicit" {
