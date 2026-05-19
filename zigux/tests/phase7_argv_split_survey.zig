@@ -101,6 +101,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(fixture_vectors, "pub const phase7_argv_split_vectors = [_]ArgvSplitVector{");
     try expectContains(fixture_vectors, "copied_storage_whitespace_packet");
     try expectContains(fixture_vectors, "blank_input_reuses_empty_packet");
+    try expectContains(fixture_vectors, "whitespace_before_first_nul_reuses_empty_packet");
     try expectContains(fixture_vectors, "first_nul_truncation_keeps_tail_outside_packet");
     try expectContains(fixture_vectors, "quoted_tokens_stay_whitespace_split");
 
@@ -135,7 +136,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectStringSliceContains(manifest.ownership_focus, "blank-input results reuse exported empty storage and argv sentinel views without widening beyond the returned packet");
     try expectStringSliceContains(manifest.ownership_focus, "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL");
     try expectStringSliceContains(manifest.ownership_focus, "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet");
-    try expectStringSliceContains(manifest.ownership_focus, "fixture vectors keep copied-storage, blank-input, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership");
+    try expectStringSliceContains(manifest.ownership_focus, "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership");
     try expectStringSliceContains(manifest.ownership_focus, "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders");
     try expectContains(manifest.next_bounded_step, "fixture-backed");
     try expectContains(manifest.next_bounded_step, "vector-backed replay proof");
