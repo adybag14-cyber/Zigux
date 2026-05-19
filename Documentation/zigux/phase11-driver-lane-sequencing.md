@@ -82,6 +82,8 @@ Treat the current shared Phase 11 packet as the reminder surfaces that were
 
 - `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`
 - `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`
 - `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`
@@ -113,11 +115,14 @@ Treat the current shared Phase 11 packet as the reminder surfaces that were
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 
-Current rereads in this run rematerialized the returned DesignWare helper,
+Current rereads in this run rematerialized all four driver-local validation
+matrices named by the roadmap together with the returned DesignWare helper,
 replay, reminder-note, validation-matrix, and checker packet alongside the
 narrower HVC current-head continuity packet plus its cleanup companion,
-current-head checker, build inventory, and proof-backed adjunct stack. Keep
-only the older DesignWare packet-checker handle
+current-head checker, build inventory, and proof-backed adjunct stack. Keep the
+returned bcm2835 and gpio validation-matrix notes explicit as shared matrix
+boundary evidence while preserving their broader reminder follow-through as
+separate continuity lanes. Keep only the older DesignWare packet-checker handle
 `scripts/zigux/check-phase11-dw-wdt-packet.py` framed as historical or
 repo-reality-gap vocabulary until a future reread proves it returned.
 
@@ -134,7 +139,11 @@ Use this note to keep the bounded work order honest:
    change.
 2. Keep the shared-versus-dedicated split explicit: the shared sequencing lane
    owns reminder-surface truthfulness, not driver-local execution claims.
-3. Keep the current readback boundary honest: today that means the HVC
+3. Keep the current readback boundary honest: today that means the shared
+   validation-matrix packet for `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`,
+   `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`,
+   `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and
+   `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` plus the HVC
    current-head continuity packet with its cleanup companion,
    `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, shared build
    inventory anchor, and proof-backed adjunct stack plus the returned
@@ -166,7 +175,8 @@ Use this note to keep the bounded work order honest:
    execution, or hardware-backed closure beyond the helper, replay, manifest,
    scaffold, note, and checker surfaces that were directly reread in this run.
 7. When contributor-facing summaries reopen, keep them aligned with the returned
-   DesignWare helper-backed packet and the narrower HVC current-head continuity
+   bcm2835, gpio, HVC, and DesignWare validation-matrix packet, the returned
+   DesignWare helper-backed packet, and the narrower HVC current-head continuity
    packet plus its cleanup companion, current-head checker, shared build
    inventory, and proof-backed adjunct stack instead of reviving missing
    shared-contract surfaces or overstating the HVC archival stack.
