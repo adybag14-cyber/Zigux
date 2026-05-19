@@ -61,6 +61,8 @@ EXPECTED_ZIG_MARKERS = {
     "fd_exact_elf32": 'test "fd-backed exact 32-bit ELF header exits with stdout at EOF" {',
     "fd_exact_invalid_class": 'test "fd-backed exact invalid-class header exits silently at EOF" {',
     "fd_exact_not_elf": 'test "fd-backed exact non-ELF header exits with stderr at EOF" {',
+    "invalid_class_trailing": 'test "classifies unsupported ELF class with trailing bytes silently" {',
+    "partial_read_failure": 'test "readHeader keeps partial bytes when a later read fails" {',
 }
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
