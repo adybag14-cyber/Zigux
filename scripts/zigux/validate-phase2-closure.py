@@ -27,6 +27,7 @@ TESTS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-tests-readme-alignment.py
 CROSS_CHECKER_REL = Path("scripts/zigux/check-phase2-cross.py")
 CROSS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-cross-selftest-alignment.py")
 DOCS_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase2-docs-shared-reminder.py")
+TOOL_MANIFEST_CHECKER_REL = Path("scripts/zigux/check-phase2-tool-manifest.py")
 REQUIRED_ROUTES_CHECKER_REL = Path("scripts/zigux/check-phase2-required-make-routes.py")
 GENKSYMS_CHECKER_REL = Path("scripts/zigux/check-genksyms-bridge.py")
 TOOLCHAIN_POLICY_REL = Path("scripts/zigux/zig-toolchain-policy.json")
@@ -63,6 +64,7 @@ REQUIRED_FILES = (
     CROSS_CHECKER_REL,
     CROSS_ALIGNMENT_REL,
     DOCS_REMINDER_CHECKER_REL,
+    TOOL_MANIFEST_CHECKER_REL,
     REQUIRED_ROUTES_CHECKER_REL,
     GENKSYMS_CHECKER_REL,
     TOOLCHAIN_POLICY_REL,
@@ -170,6 +172,7 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
     "phase2: phase2-validate",
 )
@@ -190,7 +193,10 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
 )
-EXPECTED_MANIFEST_CHECKERS = ("scripts/zigux/check-genksyms-bridge.py",)
+EXPECTED_MANIFEST_CHECKERS = (
+    "scripts/zigux/check-phase2-tool-manifest.py",
+    "scripts/zigux/check-genksyms-bridge.py",
+)
 EXPECTED_MANIFEST_BRIDGE_HELPERS = ("scripts/zigux/genksyms.zig",)
 FORBIDDEN_MANIFEST_GAPS = (
     "scripts/zigux/install-zig.py",
@@ -303,7 +309,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + len(REQUIRED_MAKEFILE_LINES)
     + 1
-    + 6
+    + 7
 )
 
 
@@ -564,8 +570,8 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
                 "make -C zigux phase2-validate",
                 "make -C zigux phase2",
             ],
-            "checkers": ["scripts/zigux/check-genksyms-bridge.py"],
-            "bridge_helpers": ["scripts/zigux/genksyms.zig"],
+            "checkers": list(EXPECTED_MANIFEST_CHECKERS),
+            "bridge_helpers": list(EXPECTED_MANIFEST_BRIDGE_HELPERS),
         },
     }
     kconfig_cases = {"conf_cases": list(EXPECTED_CONF_CASE_DETAILS), "confdata_cases": []}
@@ -585,6 +591,7 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
     write_text(resolve(root, CROSS_CHECKER_REL), "present\n")
     write_text(resolve(root, CROSS_ALIGNMENT_REL), "present\n")
     write_text(resolve(root, DOCS_REMINDER_CHECKER_REL), "present\n")
+    write_text(resolve(root, TOOL_MANIFEST_CHECKER_REL), "present\n")
     write_text(resolve(root, REQUIRED_ROUTES_CHECKER_REL), "present\n")
     write_text(resolve(root, GENKSYMS_CHECKER_REL), "present\n")
     write_text(resolve(root, TOOLCHAIN_POLICY_REL), "present\n")
@@ -683,7 +690,16 @@ def run_self_test() -> int:
         path = resolve(root, MANIFEST_REL)
         manifest = read_json(path)
         assert isinstance(manifest, dict)
-        manifest["present_surfaces"]["checkers"] = []
+        manifest["present_surfaces"]["checkers"] = ["scripts/zigux/check-genksyms-bridge.py"]
+        write_text(path, json.dumps(manifest, indent=2) + "\n")
+        assert ("MISSING_MANIFEST_SURFACE", "checkers:scripts/zigux/check-phase2-tool-manifest.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_REL)
+        manifest = read_json(path)
+        assert isinstance(manifest, dict)
+        manifest["present_surfaces"]["checkers"] = ["scripts/zigux/check-phase2-tool-manifest.py"]
         write_text(path, json.dumps(manifest, indent=2) + "\n")
         assert ("MISSING_MANIFEST_SURFACE", "checkers:scripts/zigux/check-genksyms-bridge.py") in collect_issues(root)
         checks_run += 1
