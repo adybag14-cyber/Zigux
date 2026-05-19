@@ -194,6 +194,52 @@ test "phase 6 checksum carry helpers preserve one's-complement replacement behav
     try std.testing.expectEqual(checksum.compute(&ipv4_header), checksum.replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
 }
 
+test "phase 6 checksum pseudo-header helpers match direct reference accumulation" {
+    const payload = [_]u8{ 'p', 'h', 'a', 's', 'e', '6', '!' };
+    const payload_partial = checksum.partial(&payload, 0);
+
+    const v4_saddr: u32 = 0xc0a8_0001;
+    const v4_daddr: u32 = 0xc0a8_00c7;
+    const v4_proto: u8 = 17;
+    try std.testing.expectEqual(
+        referencePseudoHeaderV4(payload_partial, v4_saddr, v4_daddr, payload.len, v4_proto),
+        checksum.tcpUdpNofold(payload_partial, v4_saddr, v4_daddr, payload.len, v4_proto),
+    );
+    try std.testing.expectEqual(
+        referenceFold(referencePseudoHeaderV4(payload_partial, v4_saddr, v4_daddr, payload.len, v4_proto)),
+        checksum.tcpUdpMagic(payload_partial, v4_saddr, v4_daddr, payload.len, v4_proto),
+    );
+
+    const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
+    const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
+    const v6_len: u32 = payload.len;
+    const v6_proto: u8 = 58;
+    try std.testing.expectEqual(
+        referencePseudoHeaderV6(payload_partial, &v6_saddr, &v6_daddr, v6_len, v6_proto),
+        checksum.tcpUdpV6Nofold(payload_partial, &v6_saddr, &v6_daddr, v6_len, v6_proto),
+    );
+    try std.testing.expectEqual(
+        referenceFold(referencePseudoHeaderV6(payload_partial, &v6_saddr, &v6_daddr, v6_len, v6_proto)),
+        checksum.tcpUdpV6Magic(payload_partial, &v6_saddr, &v6_daddr, v6_len, v6_proto),
+    );
+}
+
+test "phase 6 checksum pseudo-header helpers keep high-length IPv6 carries visible" {
+    const payload_seed = checksum.partial("phase6", 0);
+
+    const v4_result = checksum.tcpUdpNofold(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17);
+    try std.testing.expectEqual(referencePseudoHeaderV4(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17), v4_result);
+    try std.testing.expectEqual(referenceFold(v4_result), checksum.tcpUdpMagic(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17));
+
+    const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
+    const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
+    const v6_len: u32 = 0x0001_2345;
+    const v6_proto: u8 = 58;
+    const v6_result = checksum.tcpUdpV6Nofold(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto);
+    try std.testing.expectEqual(referencePseudoHeaderV6(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto), v6_result);
+    try std.testing.expectEqual(referenceFold(v6_result), checksum.tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, v6_len, v6_proto));
+}
+
 test "phase 6 checksum negate stays involutive across representative carry edges" {
     const cases = [_]struct {
         sum: u32,
