@@ -12,6 +12,14 @@ const CountedTypedKey = struct {
     comparisons: *usize,
 };
 
+const max_perf_case_len: usize = comptime blk: {
+    var max_len: usize = 0;
+    for (fixtures.perf_cases) |case| {
+        max_len = @max(max_len, case.len);
+    }
+    break :blk max_len;
+};
+
 fn compareCountedOpaqueInt(key: *const anyopaque, item: *const anyopaque) callconv(.c) c_int {
     const typed_key: *const CountedOpaqueKey = @ptrCast(@alignCast(key));
     const typed_item: *const u32 = @ptrCast(@alignCast(item));
@@ -156,13 +164,14 @@ fn expectTypedUpperBoundBudget(
     return comparisons;
 }
 
-fn populateAscending(values: *[32]u32) void {
+fn populateAscending(values: []u32) void {
     for (values, 0..) |*slot, index| {
         slot.* = @as(u32, @intCast((index + 1) * 3));
     }
 }
 
-fn populateDescending(descending: *[32]u32, ascending: [32]u32) void {
+fn populateDescending(descending: []u32, ascending: []const u32) void {
+    std.debug.assert(descending.len == ascending.len);
     for (descending, 0..) |*slot, index| {
         slot.* = ascending[ascending.len - 1 - index];
     }
@@ -205,28 +214,38 @@ fn assertRepresentativeTypedBudget(items: []const u32, compare: bsearch.CCompara
 }
 
 test "phase 6 bsearch raw c abi budgets stay logarithmic for deterministic ascending and descending slices" {
-    var ascending_storage: [32]u32 = undefined;
-    populateAscending(&ascending_storage);
+    var ascending_storage: [max_perf_case_len]u32 = undefined;
+    populateAscending(ascending_storage[0..]);
 
-    var descending_storage: [32]u32 = undefined;
-    populateDescending(&descending_storage, ascending_storage);
+    var descending_storage: [max_perf_case_len]u32 = undefined;
+    populateDescending(descending_storage[0..], ascending_storage[0..]);
 
     for (fixtures.dynamic_case_lengths) |len| {
         try assertRepresentativeBudget(ascending_storage[0..len], compareCountedOpaqueInt);
         try assertRepresentativeBudget(descending_storage[(descending_storage.len - len)..], compareCountedOpaqueDescendingInt);
     }
+
+    for (fixtures.perf_cases) |case| {
+        try assertRepresentativeBudget(ascending_storage[0..case.len], compareCountedOpaqueInt);
+        try assertRepresentativeBudget(descending_storage[(descending_storage.len - case.len)..], compareCountedOpaqueDescendingInt);
+    }
 }
 
 test "phase 6 bsearch typed c abi budgets stay logarithmic for deterministic ascending and descending slices" {
-    var ascending_storage: [32]u32 = undefined;
-    populateAscending(&ascending_storage);
+    var ascending_storage: [max_perf_case_len]u32 = undefined;
+    populateAscending(ascending_storage[0..]);
 
-    var descending_storage: [32]u32 = undefined;
-    populateDescending(&descending_storage, ascending_storage);
+    var descending_storage: [max_perf_case_len]u32 = undefined;
+    populateDescending(descending_storage[0..], ascending_storage[0..]);
 
     for (fixtures.dynamic_case_lengths) |len| {
         try assertRepresentativeTypedBudget(ascending_storage[0..len], compareCountedTypedInt);
         try assertRepresentativeTypedBudget(descending_storage[(descending_storage.len - len)..], compareCountedTypedDescendingInt);
+    }
+
+    for (fixtures.perf_cases) |case| {
+        try assertRepresentativeTypedBudget(ascending_storage[0..case.len], compareCountedTypedInt);
+        try assertRepresentativeTypedBudget(descending_storage[(descending_storage.len - case.len)..], compareCountedTypedDescendingInt);
     }
 }
 
