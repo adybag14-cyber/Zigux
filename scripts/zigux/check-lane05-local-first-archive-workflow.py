@@ -18,6 +18,7 @@ SELF_TEST_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow
 CHECK_STEP = "- name: Check current Lane 05 local-first archive packet"
 CHECK_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py"
 NEXT_PHASE_STEP = "- name: Self-test current Phase 2 fixdep gate checker"
+THIRD_PARTY_PATH = "- 'third_party/**'"
 
 LOCAL_ARCHIVE_MARKERS = (
     'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
@@ -81,6 +82,7 @@ def check_workflow(text: str) -> None:
     require_marker(text, CHECK_STEP, "workflow checker step name")
     require_marker(text, CHECK_CMD, "workflow checker command")
     require_marker(text, NEXT_PHASE_STEP, "workflow next-step anchor")
+    require_marker(text, THIRD_PARTY_PATH, "workflow third-party path filter")
 
     require_exact_count(text, SETUP_STEP, 1, "workflow step name")
     require_exact_count(text, ARCHIVE_CHECK_STEP, 1, "workflow step name")
@@ -88,6 +90,7 @@ def check_workflow(text: str) -> None:
     require_exact_line_count(text, f"run: {SELF_TEST_CMD}", 1, "workflow run line")
     require_exact_count(text, CHECK_STEP, 1, "workflow step name")
     require_exact_line_count(text, f"run: {CHECK_CMD}", 1, "workflow run line")
+    require_exact_line_count(text, THIRD_PARTY_PATH, 1, "workflow path filter line")
     require_exact_count(text, 'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"', 1, "local archive path marker")
     require_exact_count(text, "try_local_archive() {", 1, "local archive helper definition")
     require_exact_count(text, "if try_local_archive; then", 1, "local archive helper invocation")
@@ -97,6 +100,8 @@ def check_workflow(text: str) -> None:
     require_order(text, ARCHIVE_CHECK_STEP, SELF_TEST_STEP, "workflow step order")
     require_order(text, SELF_TEST_STEP, CHECK_STEP, "workflow step order")
     require_order(text, CHECK_STEP, NEXT_PHASE_STEP, "workflow step order")
+    require_order(text, "- 'scripts/zigux/**'", THIRD_PARTY_PATH, "workflow pull_request path order")
+    require_order(text, THIRD_PARTY_PATH, "- 'tools/lib/*.zig'", "workflow pull_request path order")
 
     require_order(
         text,
@@ -145,13 +150,17 @@ jobs:
         uses: actions/checkout@v6.0.2
       - name: Setup pinned Zig toolchain
         run: |
-          repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"
+          paths:
+            - 'scripts/zigux/**'
+            - 'third_party/**'
+            - 'tools/lib/*.zig'
+          repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
           try_local_archive() {
-            if [ ! -f \"$repo_archive_path\" ]; then
+            if [ ! -f "$repo_archive_path" ]; then
               return 1
             fi
-            if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then
-              tar -xJf \"$repo_archive_path\" -C .zig-toolchain
+            if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+              tar -xJf "$repo_archive_path" -C .zig-toolchain
             fi
           }
           try_download() {
@@ -160,10 +169,10 @@ jobs:
           download_success=0
           if try_local_archive; then
             download_success=1
-          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"; then
+          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
             download_success=0
           fi
-          if try_download \"$ZIGUX_ZIG_URL\"; then
+          if try_download "$ZIGUX_ZIG_URL"; then
             download_success=1
           fi
           echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
@@ -179,7 +188,7 @@ jobs:
     check_workflow(good_workflow)
 
     missing_repo_archive = good_workflow.replace(
-        'repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"\n',
+        'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"\n',
         "",
         1,
     )
@@ -191,19 +200,20 @@ jobs:
         raise AssertionError("expected missing repo archive path failure")
 
     missing_local_validation = good_workflow.replace(
-        'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"',
+        'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
         'python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing',
         1,
     )
     try:
         check_workflow(missing_local_validation)
     except SystemExit as exc:
-        assert '--archive \"$repo_archive_path\"' in str(exc)
+        assert '--archive "$repo_archive_path"' in str(exc)
     else:
         raise AssertionError("expected missing local validation command failure")
 
     missing_self_test_step = good_workflow.replace(
-        f"      {SELF_TEST_STEP}\n        run: {SELF_TEST_CMD}\n",
+        "      - name: Self-test current Lane 05 local-first archive checker\n"
+        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test\n",
         "",
         1,
     )
@@ -215,7 +225,8 @@ jobs:
         raise AssertionError("expected missing checker self-test step failure")
 
     missing_check_step = good_workflow.replace(
-        f"      {CHECK_STEP}\n        run: {CHECK_CMD}\n",
+        "      - name: Check current Lane 05 local-first archive packet\n"
+        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py\n",
         "",
         1,
     )
@@ -229,18 +240,18 @@ jobs:
     reordered_fallback = good_workflow.replace(
         "          if try_local_archive; then\n"
         "            download_success=1\n"
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"; then\n'
+        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
         "            download_success=0\n"
         "          fi\n"
-        '          if try_download \"$ZIGUX_ZIG_URL\"; then\n'
+        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
         "            download_success=1\n"
         "          fi\n",
-        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"; then\n'
+        '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
         "            download_success=0\n"
         "          fi\n"
         "          if try_local_archive; then\n"
         "            download_success=1\n"
-        '          if try_download \"$ZIGUX_ZIG_URL\"; then\n'
+        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
         "            download_success=1\n"
         "          fi\n",
         1,
@@ -253,9 +264,12 @@ jobs:
         raise AssertionError("expected reordered fallback failure")
 
     duplicate_check_step = good_workflow.replace(
-        f"      {CHECK_STEP}\n        run: {CHECK_CMD}\n",
-        f"      {CHECK_STEP}\n        run: {CHECK_CMD}\n"
-        f"      {CHECK_STEP}\n        run: {CHECK_CMD}\n",
+        "      - name: Check current Lane 05 local-first archive packet\n"
+        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py\n",
+        "      - name: Check current Lane 05 local-first archive packet\n"
+        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py\n"
+        "      - name: Check current Lane 05 local-first archive packet\n"
+        "        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py\n",
         1,
     )
     try:
@@ -265,8 +279,33 @@ jobs:
     else:
         raise AssertionError("expected duplicate checker step failure")
 
+    missing_third_party_path = good_workflow.replace(
+        "            - 'third_party/**'\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_third_party_path)
+    except SystemExit as exc:
+        assert "third_party/**" in str(exc)
+    else:
+        raise AssertionError("expected missing third-party path failure")
+
+    duplicate_third_party_path = good_workflow.replace(
+        "            - 'third_party/**'\n",
+        "            - 'third_party/**'\n"
+        "            - 'third_party/**'\n",
+        1,
+    )
+    try:
+        check_workflow(duplicate_third_party_path)
+    except SystemExit as exc:
+        assert "third_party/**" in str(exc)
+    else:
+        raise AssertionError("expected duplicate third-party path failure")
+
     print("LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST=pass")
-    print("LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST_CASE_COUNT=7")
+    print("LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST_CASE_COUNT=9")
     return 0
 
 
