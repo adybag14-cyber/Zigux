@@ -15,6 +15,7 @@ SCRIPTS_README_REL = "scripts/zigux/README.md"
 TESTS_README_REL = "zigux/tests/README.md"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 BENCH_CHECKER_REL = "scripts/zigux/check-phase1-bench.py"
+BENCH_FAILURE_CHECKER_REL = "scripts/zigux/check-phase1-bench-failure-packet.py"
 BENCH_SUCCESS_CHECKER_REL = "scripts/zigux/check-phase1-bench-success-packet.py"
 
 REQUIRED_FILES = (
@@ -23,6 +24,7 @@ REQUIRED_FILES = (
     TESTS_README_REL,
     WORKFLOW_REL,
     BENCH_CHECKER_REL,
+    BENCH_FAILURE_CHECKER_REL,
     BENCH_SUCCESS_CHECKER_REL,
 )
 
@@ -52,6 +54,15 @@ MARKERS = {
         "print(f\"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}\")",
         "def run_self_test() -> None:",
         'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
+    ),
+    BENCH_FAILURE_CHECKER_REL: (
+        '"""Guard the Lane 16 bench checker\'s fail-closed failure packets."""',
+        "def extract_assert_block(text: str, first_line: str) -> list[str]:",
+        "FORBIDDEN_EXPECTATION_FAILURE_FRAGMENTS = (",
+        "FORBIDDEN_BENCH_FAILURE_BLOCK_FRAGMENTS = (",
+        'assert command_failure_output == [',
+        "print(\"PHASE1_BENCH_FAILURE_PACKET=pass\")",
+        "print(\"PHASE1_BENCH_FAILURE_PACKET_SELF_TEST=pass\")",
     ),
     BENCH_SUCCESS_CHECKER_REL: (
         '"""Guard the Lane 16 bench checker\'s clean success packet."""',
