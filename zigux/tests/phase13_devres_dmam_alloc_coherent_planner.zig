@@ -11,12 +11,13 @@ fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1 << 20));
 }
 
-test "phase13 devres descriptor records helper-first dmam_alloc_coherent planning" {
+test "phase13 devres descriptor records helper-first coherent alloc and free planning" {
     const descriptor = devres.DevresHelperLab.descriptor();
 
     try std.testing.expectEqualStrings("devres_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("lib/devres.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_dmam_alloc_coherent_planning);
+    try std.testing.expect(descriptor.provides_dmam_free_coherent_planning);
     try std.testing.expect(!descriptor.touches_live_dma);
     try std.testing.expect(!descriptor.touches_live_scatterlist);
 }
@@ -69,6 +70,8 @@ test "phase13 devres turns successful coherent-allocation planning into explicit
 
     const source = try readRepoFile(std.testing.allocator, "lib/devres.zig");
     defer std.testing.allocator.free(source);
+    try requireContains(source, "provides_dmam_free_coherent_planning: bool");
+    try requireContains(source, ".provides_dmam_free_coherent_planning = true");
     try requireContains(source, "const ReleaseCallPlan = struct");
     try requireContains(source, "fn planReleaseCall(requested_size: u64) ReleaseCallPlan");
     try requireContains(source, "const release_call = planReleaseCall(requested_size);");
@@ -115,6 +118,7 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "zigux/tests/phase13_devres_dma_coherent.zig");
     try requireContains(manifest, "planManagedReleaseRecordLifetime");
     try requireContains(manifest, "planManagedDmamFreeCoherent");
+    try requireContains(manifest, "provides_dmam_free_coherent_planning");
     try requireContains(manifest, "planReleaseCall");
     try requireContains(manifest, "release_record_consumed");
     try requireContains(manifest, "releases_from_devres");
@@ -129,6 +133,7 @@ test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma
     defer std.testing.allocator.free(note);
 
     try requireContains(note, "lands one pure `dmam_alloc_coherent()` planning surface in `lib/devres.zig`");
+    try requireContains(note, "advertises both coherent-allocation and coherent-free cleanup planning through `DevresHelperLab.descriptor()`");
     try requireContains(note, "routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)`");
     try requireContains(note, "routes `planManagedDmamFreeCoherent(...)` through one private `planReleaseCall(...)` helper");
     try requireContains(note, "accepts already-decided allocation inputs");
