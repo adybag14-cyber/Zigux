@@ -31,11 +31,14 @@ DIRECT_PACKET_PATHS = (
     "zigux/tests/phase5_kretprobe_example_survey.zig",
 )
 
-PUBLIC_TREE_PACKET_PATHS = (
+KOBJECT_DIRECT_PACKET_PATHS = (
     "Documentation/zigux/phase5-kobject-sample-survey.md",
     "samples/zigux/kobject_example.zig",
     "zigux/tests/phase5_kobject_example.zig",
     "zigux/tests/phase5_kobject_example_manifest.json",
+)
+
+KOBJECT_PUBLIC_TREE_PACKET_PATHS = (
     "zigux/tests/phase5_kobject_example_survey.zig",
     "zigux/tests/phase5_build.zig",
 )
@@ -54,9 +57,9 @@ REQUIRED_TEXT = (
     "Fresh 2026-05-19 reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries three in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps four focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.",
     "The same 2026-05-19 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:",
     "For the shared tracing and probe lane, ground reviewer guidance in the restored direct kretprobe packet plus the narrower trace-events packet above and these shared reminder surfaces:",
-    "The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback still did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited, while public-tree fallback still exposes the bounded packet below:",
-    "Keep shared contributor guidance honest about that split instead of restating the older kobject packet as direct authenticated proof or flattening it into a pure missing-packet story.",
-    "Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in the public-tree-backed-companion-plus-authenticated-gap bucket, same-lane follow-through should stay inside these bounded categories:",
+    "The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback directly returned the survey note, sample root, focused test, and manifest-backed contract again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` still need public-tree fallback in this runtime.",
+    "Keep shared contributor guidance honest about that split instead of flattening the whole kobject packet into public-tree-only support material, treating the sample-local direct proof as gone, or promoting the survey replay plus shared build route into returned authenticated proof.",
+    "Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in a mixed direct-plus-public-tree-backed split packet, same-lane follow-through should stay inside these bounded categories:",
     "Keep the current ten-cue review contract explicit in shared contributor guidance when a bytestream reminder surface is refreshed:",
     "Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.",
     "Respect the freeze map too.",
@@ -119,7 +122,7 @@ NO_EXTRA_SAMPLE_MARKERS = (
 
 FORBIDDEN_TEXT = (
     "Treat `samples/zigux/trace_events_string_formatting_sample.zig` as a returned full trace-events port or a fifth sample.",
-    "Treat `samples/zigux/kobject_example.zig` as direct authenticated proof.",
+    "Treat the whole `kobject` packet as fully direct authenticated proof.",
     "Treat `samples/zigux/runtime_*.zig` as extra Phase 5 evidence.",
 )
 
@@ -168,7 +171,13 @@ def collect_failures(root: Path) -> list[str]:
         if not (root / rel).exists():
             failures.append(f"repo:missing_direct_path:{rel}")
 
-    for rel in PUBLIC_TREE_PACKET_PATHS:
+    for rel in KOBJECT_DIRECT_PACKET_PATHS:
+        if f"`{rel}`" not in guide:
+            failures.append(f"guide:missing_kobject_direct_path:`{rel}`")
+        if not (root / rel).exists():
+            failures.append(f"repo:missing_kobject_direct_path:{rel}")
+
+    for rel in KOBJECT_PUBLIC_TREE_PACKET_PATHS:
         if f"`{rel}`" not in guide:
             failures.append(f"guide:missing_public_tree_path:`{rel}`")
         if not (root / rel).exists():
@@ -197,7 +206,8 @@ def _sample_guide() -> str:
         or rel.startswith("samples/zigux/")
         or rel.startswith("zigux/tests/phase5_")
     )
-    public_tree = "\n".join(f"* `{rel}`" for rel in PUBLIC_TREE_PACKET_PATHS)
+    kobject_direct = "\n".join(f"* `{rel}`" for rel in KOBJECT_DIRECT_PACKET_PATHS)
+    kobject_public_tree = "\n".join(f"* `{rel}`" for rel in KOBJECT_PUBLIC_TREE_PACKET_PATHS)
     trace_gaps = "\n".join(f"* `{rel}`" for rel in TRACE_EVENTS_COMPANION_GAP_PATHS)
     bytestream_contract = "\n".join(f"* {marker}" for marker in BYTESTREAM_CONTRACT_MARKERS)
     no_extra = "\n".join(f"* {marker}" for marker in NO_EXTRA_SAMPLE_MARKERS)
@@ -250,13 +260,19 @@ Keep the current ten-cue review contract explicit in shared contributor guidance
 
 Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
 
-The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback still did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited, while public-tree fallback still exposes the bounded packet below:
+The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback directly returned the survey note, sample root, focused test, and manifest-backed contract again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` still need public-tree fallback in this runtime.
 
-{public_tree}
+Authenticated contents readback now directly returns these kobject packet members:
 
-Keep shared contributor guidance honest about that split instead of restating the older kobject packet as direct authenticated proof or flattening it into a pure missing-packet story.
+{kobject_direct}
 
-Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in the public-tree-backed-companion-plus-authenticated-gap bucket, same-lane follow-through should stay inside these bounded categories:
+Fresh public current-`master` fallback still carries these companion paths:
+
+{kobject_public_tree}
+
+Keep shared contributor guidance honest about that split instead of flattening the whole kobject packet into public-tree-only support material, treating the sample-local direct proof as gone, or promoting the survey replay plus shared build route into returned authenticated proof.
+
+Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in a mixed direct-plus-public-tree-backed split packet, same-lane follow-through should stay inside these bounded categories:
 
 * one bytestream reminder-surface truthfulness repair at a time
 * one trace-events reminder-surface truthfulness repair at a time
@@ -352,7 +368,9 @@ def _seed(root: Path) -> None:
         if Path(rel) == APPROVED_IDIOM_PATH:
             continue
         _write(root / rel, "present\n")
-    for rel in PUBLIC_TREE_PACKET_PATHS:
+    for rel in KOBJECT_DIRECT_PACKET_PATHS:
+        _write(root / rel, "present\n")
+    for rel in KOBJECT_PUBLIC_TREE_PACKET_PATHS:
         _write(root / rel, "present\n")
 
 
@@ -543,7 +561,8 @@ def main() -> int:
         return 1
     print("PHASE5_REVIEW_GUIDE_SURFACE=pass")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DIRECT_PACKET_COUNT={len(DIRECT_PACKET_PATHS)}")
-    print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_PACKET_COUNT={len(PUBLIC_TREE_PACKET_PATHS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_KOBJECT_DIRECT_PACKET_COUNT={len(KOBJECT_DIRECT_PACKET_PATHS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_PACKET_COUNT={len(KOBJECT_PUBLIC_TREE_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_BYTESTREAM_CONTRACT_COUNT={len(BYTESTREAM_CONTRACT_MARKERS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DOCS_ROOT_REQUIRED_TEXT_COUNT={len(DOCS_ROOT_REQUIRED_TEXT)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_APPROVED_IDIOM_REQUIRED_TEXT_COUNT={len(APPROVED_IDIOM_REQUIRED_TEXT)}")
