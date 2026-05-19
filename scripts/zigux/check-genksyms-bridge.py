@@ -630,7 +630,7 @@ def run_self_test() -> int:
             (root / FIXTURE_ROOT_REL).mkdir(parents=True, exist_ok=True)
             (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
             (root / GENKSYMS_TOOL_REL).write_text("\n".join(EXPECTED_TOOL_TESTS + [""]), encoding="utf-8")
-            (root / GENKSYMS_HARNESS_REL).writeText("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
+            (root / GENKSYMS_HARNESS_REL).write_text("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
             (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
             for name, payload in EXPECTED_OUTPUTS.items():
                 (root / FIXTURE_ROOT_REL / name).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
