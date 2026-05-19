@@ -27,9 +27,6 @@
     "zig build phase3-xarray-slot-starter-packet-test --build-file zigux/tests/phase3_xarray_slot_starter_packet_build.zig",
     "zig build phase3-xarray-slot-dump --build-file zigux/tests/phase3_xarray_slot_dump_build.zig"
   ],
-  "repo_reality_gaps": [
-    "Documentation/zigux/phase3-validator-support-surface.md",
-    "scripts/zigux/validate-phase3.py"
-  ],
-  "next_safe_step": "reflect the docs-root xarray-slot slice note in Documentation/zigux/phase3-validator-support-surface.md without widening the packet beyond repo-backed starter and dump evidence"
+  "repo_reality_gaps": [],
+  "next_safe_step": "keep any future same-lane follow-through narrowed to shared validator-entrypoint alignment only if current master drifts away from this helper-local starter-plus-dump packet"
 }
