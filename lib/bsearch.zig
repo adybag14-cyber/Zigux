@@ -571,6 +571,51 @@ test "mutable equal-range wrappers expose whole duplicate spans for typed and ra
     try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 4, 8, 9, 16 }, raw_duplicates[0..]);
 }
 
+test "index range views keep typed and byte aliases aligned for hits and insertion sites" {
+    const duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const duplicate_range = IndexRange{ .lower = 1, .upper = 4 };
+
+    const typed_view = duplicate_range.sliceConst(i32, duplicates[0..]);
+    try std.testing.expectEqual(@as(usize, 3), typed_view.len);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, typed_view);
+    try std.testing.expectEqual(@intFromPtr(&duplicates[1]), @intFromPtr(typed_view.ptr));
+
+    const byte_view = duplicate_range.bytes(@ptrCast(duplicates[0..].ptr), @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(i32)), byte_view.len);
+    try std.testing.expectEqual(
+        @intFromPtr(@as([*]const u8, @ptrCast(duplicates[0..].ptr)) + @sizeOf(i32)),
+        @intFromPtr(byte_view.ptr),
+    );
+    const typed_byte_view: [*]const i32 = @ptrCast(@alignCast(byte_view.ptr));
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 4, 4 }, typed_byte_view[0 .. byte_view.len / @sizeOf(i32)]);
+
+    const missing_range = IndexRange{ .lower = 4, .upper = 4 };
+    const missing_typed_view = missing_range.sliceConst(i32, duplicates[0..]);
+    try std.testing.expectEqual(@as(usize, 0), missing_typed_view.len);
+    try std.testing.expectEqual(@intFromPtr(&duplicates[4]), @intFromPtr(missing_typed_view.ptr));
+
+    const missing_byte_view = missing_range.bytes(@ptrCast(duplicates[0..].ptr), @sizeOf(i32));
+    try std.testing.expectEqual(@as(usize, 0), missing_byte_view.len);
+    try std.testing.expectEqual(
+        @intFromPtr(@as([*]const u8, @ptrCast(duplicates[0..].ptr)) + (4 * @sizeOf(i32))),
+        @intFromPtr(missing_byte_view.ptr),
+    );
+
+    var mutable_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_typed_view = duplicate_range.sliceMutable(i32, mutable_duplicates[0..]);
+    mutable_typed_view[0] = 5;
+    mutable_typed_view[mutable_typed_view.len - 1] = 6;
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 5, 4, 6, 9, 16 }, mutable_duplicates[0..]);
+
+    var mutable_raw_duplicates = [_]i32{ 1, 4, 4, 4, 9, 16 };
+    const mutable_byte_view = duplicate_range.bytesMutable(@ptrCast(mutable_raw_duplicates[0..].ptr), @sizeOf(i32));
+    const typed_mutable_byte_view: [*]i32 = @ptrCast(@alignCast(mutable_byte_view.ptr));
+    const mutable_words = typed_mutable_byte_view[0 .. mutable_byte_view.len / @sizeOf(i32)];
+    mutable_words[0] = 7;
+    mutable_words[mutable_words.len - 1] = 8;
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 7, 4, 8, 9, 16 }, mutable_raw_duplicates[0..]);
+}
+
 test "empty and missing equal-range wrappers preserve insertion-site slices without comparator churn" {
     const empty = [_]i32{};
 
