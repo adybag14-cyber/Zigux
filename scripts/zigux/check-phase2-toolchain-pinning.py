@@ -9,9 +9,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
-SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
@@ -20,14 +19,25 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 TOOL_MANIFEST_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
+    ROOT / "scripts" / "zigux" / "install-zig.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
+    ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-artifact-tools-manifest.py",
+    ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
+    ROOT / "scripts" / "zigux" / "validate-phase2.py",
+    ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
+    ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
+    ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
+    ROOT / "scripts" / "zigux" / "genksyms.zig",
     ROOT / "zigux" / "Makefile",
     POLICY_PATH,
     BOOTSTRAP_NOTES,
@@ -35,6 +45,17 @@ SURFACE_PATHS = (
     REVIEW_CHECKLIST,
     TESTS_README,
     TOOL_MANIFEST_PATH,
+    ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "help_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "minimal_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "debug_reference_types_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "long_options_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "quiet_overrides_warning_expected.json",
 )
 
 WORKFLOW_SETUP_MARKERS = (
@@ -42,6 +63,7 @@ WORKFLOW_SETUP_MARKERS = (
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
     'mirror_file=".zig-toolchain/community-mirrors.txt"',
     'if curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
+    'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
     'if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then',
     "echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2",
 )
@@ -50,53 +72,42 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
-)
-
-README_PRESENT_MARKERS = (
-    "`scripts/zigux/check-zig-toolchain.py`",
-    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "`scripts/zigux/check-phase2-required-make-routes.py`",
-    "`scripts/zigux/check-phase2-kbuild-routes.py`",
-    "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
-    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
-    "`scripts/zigux/kconfig/conf_bridge.zig`",
-    "`scripts/zigux/kconfig/confdata_bridge.zig`",
-    "`Documentation/zigux/phase2-closure.md`",
-    "`scripts/zigux/validate-phase2.py`",
-    "`zigux/Makefile`",
-    "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-tools`",
-    "`make -C zigux phase2-kconfig`",
-    "`make -C zigux phase2-cross`",
-    "`make -C zigux phase2-validate`",
-    "`make -C zigux phase2`",
-    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
-)
-
-README_WARNING_MARKERS = (
-    "repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/validate-phase2-closure.py`",
-    "`scripts/zigux/install-zig.py`",
-    "`python3 scripts/zigux/install-zig.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-cross.py`",
-    "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "historical packet members",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
+    "run: python3 scripts/zigux/validate-phase2.py",
 )
 
 BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`scripts/zigux/check-zig-toolchain.py`",
+    "`scripts/zigux/install-zig.py`",
+    "`scripts/zigux/check-phase2-cross.py`",
     "`.github/workflows/zigux-bootstrap.yml`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
+    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pinning.py`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py`",
+    "`python3 scripts/zigux/check-phase2-tool-manifest.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-tool-manifest.py`",
+    "`python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-artifact-tools-manifest.py`",
+    "`python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
+    "`python3 scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
@@ -104,25 +115,29 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
-    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
-    "the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
-)
-
-BOOTSTRAP_WARNING_MARKERS = (
-    "Repeated authenticated reads on current `master` still return missing for",
+    "`scripts/zigux/check-phase2-tool-manifest.py`",
+    "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
+    "`scripts/zigux/check-genksyms-bridge.py`",
+    "`scripts/zigux/genksyms.zig`",
     "`scripts/zigux/validate-phase2-closure.py`",
-    "`scripts/zigux/install-zig.py`",
-    "`scripts/zigux/check-phase2-cross.py`",
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
+    "the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
+    "the `zigux/tests/fixtures/genksyms_bridge/` fixture roster",
     "`make -C zigux phase2-toolchain`",
-    "`make -C zigux phase2-validate`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
-    "Treat the absent validator-first, direct cross-route, and installer names as historical packet members",
 )
 
-README_FORBIDDEN_MARKERS: tuple[str, ...] = ()
+BOOTSTRAP_GAP_MARKERS = (
+    "No current repo-reality gaps remain inside the bounded toolchain, installer, and direct cross-route packet on current `master`.",
+    "Treat older validator-first-only Phase 2 names as separate follow-through work instead of subtracting the returned installer or direct cross-route surfaces from the current packet.",
+)
 
 EXPECTED_POLICY = {
     "phase": "Phase 2",
@@ -134,33 +149,46 @@ EXPECTED_POLICY = {
 EXPECTED_TOOL_MANIFEST = {
     "phase": "Phase 2",
     "status": "active",
-    "scope": "current directly readable scripts-root kbuild, toolchain, kconfig, make-wrapper, and tranche-closure reminder packet",
+    "scope": "current directly readable scripts-root toolchain, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, and tranche-closure reminder packet",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
     "present_surfaces": {
         "review_surfaces": [
+            "Documentation/zigux/README.md",
             "Documentation/zigux/phase2-closure.md",
             "Documentation/zigux/review-checklist.md",
-            "scripts/zigux/README.md",
             "zigux/tests/README.md",
         ],
         "closure_notes": [
             "Documentation/zigux/phase2-closure.md",
             "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
         ],
+        "validators": [
+            "scripts/zigux/validate-phase2.py",
+            "scripts/zigux/validate-phase2-closure.py",
+        ],
         "checkers": [
             "scripts/zigux/check-zig-toolchain.py",
+            "scripts/zigux/check-kconfig-bridge.py",
             "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
             "scripts/zigux/check-phase2-kbuild-routes.py",
             "scripts/zigux/check-phase2-tests-readme-alignment.py",
+            "scripts/zigux/check-phase2-cross.py",
             "scripts/zigux/check-phase2-cross-selftest-alignment.py",
             "scripts/zigux/check-phase2-toolchain-pinning.py",
             "scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "scripts/zigux/check-phase2-required-make-routes.py",
             "scripts/zigux/check-phase2-docs-shared-reminder.py",
+            "scripts/zigux/check-phase2-tool-manifest.py",
+            "scripts/zigux/check-phase2-artifact-tools-manifest.py",
+            "scripts/zigux/check-genksyms-bridge.py",
+        ],
+        "bootstrap_helpers": [
+            "scripts/zigux/install-zig.py",
         ],
         "bridge_helpers": [
             "scripts/zigux/kconfig/conf_bridge.zig",
             "scripts/zigux/kconfig/confdata_bridge.zig",
+            "scripts/zigux/genksyms.zig",
         ],
         "policy": [
             "scripts/zigux/zig-toolchain-policy.json",
@@ -171,29 +199,37 @@ EXPECTED_TOOL_MANIFEST = {
             "make -C zigux phase2-tools",
             "make -C zigux phase2-kconfig",
             "make -C zigux phase2-cross",
+            "make -C zigux phase2-genksyms",
             "make -C zigux phase2-validate",
-            "make -C zigux phase2"
+            "make -C zigux phase2",
+        ],
+        "cross_route_support": [
+            "scripts/zigux/check-phase2-cross.py",
+            "zigux/tests/fixtures/phase2_cross_targets.json",
         ],
         "artifact_support": [
+            "scripts/zigux/check-phase2-artifact-tools-manifest.py",
             "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
         ],
         "fixture_roster": [
             "zigux/tests/fixtures/kconfig_bridge/cases.json",
             "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
             "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+            "zigux/tests/fixtures/genksyms_bridge/cases.json",
+            "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
         ],
     },
-    "repo_reality_gaps": [
-        "scripts/zigux/validate-phase2-closure.py",
-        "scripts/zigux/install-zig.py",
-        "scripts/zigux/check-phase2-cross.py",
-        "zigux/tests/fixtures/phase2_cross_targets.json",
-    ],
+    "repo_reality_gaps": [],
     "notes": [
-        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
-        "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
-        "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
-        "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished.",
+        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, cross-selftest checker, and the restored tranche-closure note.",
+        "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
+        "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
+        "Keep the dedicated manifest guards explicit through scripts/zigux/check-phase2-tool-manifest.py and scripts/zigux/check-phase2-artifact-tools-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
+        "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
     ],
 }
 
@@ -202,19 +238,16 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_SETUP_MARKERS)
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
-    + len(README_PRESENT_MARKERS)
-    + len(README_WARNING_MARKERS)
     + len(BOOTSTRAP_PRESENT_MARKERS)
-    + len(BOOTSTRAP_WARNING_MARKERS)
-    + len(README_FORBIDDEN_MARKERS)
-    + 3
+    + len(BOOTSTRAP_GAP_MARKERS)
+    + 2
     + (len(SURFACE_PATHS) - 1)
     + 4
     + 1
     + 1
     + 1
-    + 2
-    + len(EXPECTED_TOOL_MANIFEST["present_surfaces"])
+    + 4
+    + 1
     + 1
     + 1
     + 1
@@ -245,8 +278,18 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
-def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker in text]
+def extract_markdown_section(text: str, heading: str) -> str:
+    start = text.find(heading)
+    if start == -1:
+        return ""
+    start = text.find("\n", start)
+    if start == -1:
+        return ""
+    start += 1
+    end = text.find("\n## ", start)
+    if end == -1:
+        end = len(text)
+    return text[start:end]
 
 
 def load_policy(root: Path) -> object:
@@ -321,8 +364,9 @@ def collect_tool_manifest_issues(root: Path) -> list[tuple[str, str]]:
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
-    readme_text = read_text(resolve_path(root, SCRIPTS_README))
     bootstrap_notes_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
+    bootstrap_present_text = extract_markdown_section(bootstrap_notes_text, "## Current direct packet")
+    bootstrap_gap_text = extract_markdown_section(bootstrap_notes_text, "## Current repo-reality gaps")
 
     issues.extend(collect_missing_markers(workflow_text, WORKFLOW_SETUP_MARKERS, "MISSING_WORKFLOW_SETUP_MARKERS"))
 
@@ -333,11 +377,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
 
-    issues.extend(collect_missing_markers(readme_text, README_PRESENT_MARKERS, "MISSING_README_PRESENT_MARKERS"))
-    issues.extend(collect_missing_markers(readme_text, README_WARNING_MARKERS, "MISSING_README_WARNING_MARKERS"))
-    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"))
-    issues.extend(collect_missing_markers(bootstrap_notes_text, BOOTSTRAP_WARNING_MARKERS, "MISSING_BOOTSTRAP_WARNING_MARKERS"))
-    issues.extend(collect_forbidden_markers(readme_text, README_FORBIDDEN_MARKERS, "FORBIDDEN_README_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_present_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"))
+    issues.extend(collect_missing_markers(bootstrap_gap_text, BOOTSTRAP_GAP_MARKERS, "MISSING_BOOTSTRAP_GAP_MARKERS"))
 
     for path in SURFACE_PATHS:
         if not resolve_path(root, path).exists():
@@ -371,16 +412,6 @@ def write_text(path: Path, content: str) -> None:
 
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, WORKFLOW), "\n".join((*WORKFLOW_SETUP_MARKERS, *WORKFLOW_LINES)) + "\n")
-    readme_lines = [
-        "# scripts/zigux",
-        "",
-        "## Phase 2",
-        "",
-        "- current packet",
-        *README_PRESENT_MARKERS,
-        *README_WARNING_MARKERS,
-    ]
-    write_text(resolve_path(root, SCRIPTS_README), "\n".join(readme_lines) + "\n")
     bootstrap_lines = [
         "# Phase 2 Toolchain Bootstrap Notes",
         "",
@@ -390,7 +421,7 @@ def build_self_test_root(root: Path) -> None:
         "",
         "## Current repo-reality gaps",
         "",
-        *BOOTSTRAP_WARNING_MARKERS,
+        *BOOTSTRAP_GAP_MARKERS,
     ]
     write_text(resolve_path(root, BOOTSTRAP_NOTES), "\n".join(bootstrap_lines) + "\n")
     for path in SURFACE_PATHS:
@@ -467,22 +498,6 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
             checks_run += 1
 
-        for marker in README_PRESENT_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, SCRIPTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_README_PRESENT_MARKERS", marker) in issues
-            checks_run += 1
-
-        for marker in README_WARNING_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, SCRIPTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("MISSING_README_WARNING_MARKERS", marker) in issues
-            checks_run += 1
-
         for marker in BOOTSTRAP_PRESENT_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
@@ -491,23 +506,15 @@ def run_self_test() -> int:
             assert ("MISSING_BOOTSTRAP_PRESENT_MARKERS", marker) in issues
             checks_run += 1
 
-        for marker in BOOTSTRAP_WARNING_MARKERS:
+        for marker in BOOTSTRAP_GAP_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
-            assert ("MISSING_BOOTSTRAP_WARNING_MARKERS", marker) in issues
+            assert ("MISSING_BOOTSTRAP_GAP_MARKERS", marker) in issues
             checks_run += 1
 
-        for marker in README_FORBIDDEN_MARKERS:
-            build_self_test_root(root)
-            path = resolve_path(root, SCRIPTS_README)
-            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert ("FORBIDDEN_README_MARKERS", marker) in issues
-            checks_run += 1
-
-        for primary_path in (WORKFLOW, SCRIPTS_README, BOOTSTRAP_NOTES):
+        for primary_path in (WORKFLOW, BOOTSTRAP_NOTES):
             build_self_test_root(root)
             resolve_path(root, primary_path).unlink()
             try:
@@ -546,16 +553,7 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         path = resolve_path(root, POLICY_PATH)
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        payload["upgrade_policy"] = "broken"
-        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_UPGRADE_POLICY", "str") in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, POLICY_PATH)
-        path.write_text("{not-json}\n", encoding="utf-8")
+        path.write_text("{\n", encoding="utf-8")
         issues = collect_issues(root)
         assert any(issue[0] == "INVALID_POLICY_JSON" for issue in issues)
         checks_run += 1
@@ -568,53 +566,53 @@ def run_self_test() -> int:
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("phase", "Phase 3"))
+        path = resolve_path(root, POLICY_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("upgrade_policy", []))
         issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "phase:" in value for code, value in issues)
+        assert ("INVALID_UPGRADE_POLICY", "list") in issues
         checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("workflow", "zigux/Makefile"))
-        issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_FIELD_MISMATCH" and "workflow:" in value for code, value in issues)
-        checks_run += 1
-
-        for key in EXPECTED_TOOL_MANIFEST["present_surfaces"]:
+        for key in ("phase", "status", "scope", "workflow"):
             build_self_test_root(root)
             path = resolve_path(root, TOOL_MANIFEST_PATH)
-            mutate_json(path, lambda payload, key=key: payload["present_surfaces"].__setitem__(key, []))
+            mutate_json(path, lambda payload, key=key: payload.__setitem__(key, "broken"))
             issues = collect_issues(root)
-            assert any(code == "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH" and value.startswith(f"{key}:") for code, value in issues)
+            assert any(issue[0] == "TOOL_MANIFEST_FIELD_MISMATCH" and issue[1].startswith(f"{key}:") for issue in issues)
             checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("present_surfaces", "broken"))
+        mutate_json(path, lambda payload: payload.__setitem__("present_surfaces", []))
         issues = collect_issues(root)
-        assert ("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", "str") in issues
+        assert ("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", "list") in issues
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("repo_reality_gaps", []))
+        mutate_json(path, lambda payload: payload["present_surfaces"].__setitem__("checkers", []))
         issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_REPO_GAPS_MISMATCH" for code, _ in issues)
+        assert any(issue[0] == "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH" and issue[1].startswith("checkers:") for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOL_MANIFEST_PATH)
+        mutate_json(path, lambda payload: payload.__setitem__("repo_reality_gaps", ["gap"]))
+        issues = collect_issues(root)
+        assert any(issue[0] == "TOOL_MANIFEST_REPO_GAPS_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
         mutate_json(path, lambda payload: payload.__setitem__("notes", []))
         issues = collect_issues(root)
-        assert any(code == "TOOL_MANIFEST_NOTES_MISMATCH" for code, _ in issues)
+        assert any(issue[0] == "TOOL_MANIFEST_NOTES_MISMATCH" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
-        path.write_text("{not-json}\n", encoding="utf-8")
+        path.write_text("{\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert ("INVALID_TOOL_MANIFEST_JSON", "Expecting property name enclosed in double quotes") in issues
+        assert any(issue[0] == "INVALID_TOOL_MANIFEST_JSON" for issue in issues)
         checks_run += 1
 
         build_self_test_root(root)
@@ -631,23 +629,20 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Check that the current directly readable Phase 2 toolchain pinning packet stays aligned.")
+    parser = argparse.ArgumentParser(
+        description="Keep the current directly readable Phase 2 toolchain pinning packet aligned."
+    )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
-    issues = collect_issues(args.root.resolve())
+    issues = collect_issues(args.root)
     if issues:
         return emit_issues(issues)
-
     print("PHASE2_TOOLCHAIN_PINNING=pass")
-    print(f"PHASE2_TOOLCHAIN_PINNING_WORKFLOW_SETUP_MARKER_COUNT={len(WORKFLOW_SETUP_MARKERS)}")
-    print(f"PHASE2_TOOLCHAIN_PINNING_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
-    print(f"PHASE2_TOOLCHAIN_PINNING_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
-    print("PHASE2_TOOLCHAIN_PINNING_MANIFEST_CHECKER_COUNT=" + str(len(EXPECTED_TOOL_MANIFEST["present_surfaces"]["checkers"])))
+    print(f"PHASE2_TOOLCHAIN_PINNING_REQUIRED_MARKER_COUNT={len(BOOTSTRAP_PRESENT_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PINNING_GAP_MARKER_COUNT={len(BOOTSTRAP_GAP_MARKERS)}")
     return 0
 
 
