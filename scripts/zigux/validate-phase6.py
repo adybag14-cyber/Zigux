@@ -51,6 +51,8 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "make -C zigux phase6-bsearch-perf",
     "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-test",
+    "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf-matrix-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
@@ -71,6 +73,8 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-base64-perf:",
     "phase6-bsearch-perf:",
     "$(ZIG) build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig --summary all",
+    "phase6-checksum-perf-matrix-test:",
+    "$(ZIG) build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
     "phase6-checksum-perf:",
     "phase6-hexdump-review:",
     "phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf",
@@ -80,6 +84,7 @@ REQUIRED_BUILD_SNIPPETS = [
     'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 helper perf gate");',
     'const bsearch_perf_root_module = b.createModule(.{',
     'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");',
+    "const checksum_perf_matrix_test_step = b.step(",
     'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
     'const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");',
 ]
@@ -89,9 +94,10 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Roadmap perf-gap readback",
     "## Current shared replay inventory",
     "- `make -C zigux phase6-bsearch-perf`",
+    "- `make -C zigux phase6-checksum-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 5
+SELF_TEST_CASE_COUNT = 7
 
 
 class ValidationError(RuntimeError):
@@ -244,12 +250,20 @@ def run_self_test() -> None:
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
-        write(root / HELPER_EVIDENCE_CATALOG, read_text(root / HELPER_EVIDENCE_CATALOG).replace("- `make -C zigux phase6-bsearch-perf`\n", "", 1))
+        write(root / MAKEFILE, read_text(root / MAKEFILE).replace("phase6-checksum-perf-matrix-test:\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / PHASE6_BUILD, read_text(root / PHASE6_BUILD).replace("const checksum_perf_matrix_test_step = b.step(\n", "", 1))
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        write(root / HELPER_EVIDENCE_CATALOG, read_text(root / HELPER_EVIDENCE_CATALOG).replace("- `make -C zigux phase6-checksum-perf-matrix-test`\n", "", 1))
         expect_failure(lambda: validate(root))
         cases_run += 1
         scaffold_repo(root)
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
-        manifest["current_shared_replay_inventory"] = manifest["current_shared_replay_inventory"][:-1]
+        manifest["current_shared_replay_inventory"].remove("make -C zigux phase6-checksum-perf-matrix-test")
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
