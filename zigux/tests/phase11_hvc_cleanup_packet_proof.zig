@@ -145,11 +145,17 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     );
     defer std.testing.allocator.free(driver);
 
+    try expectContains(matrix_doc, "khvcd sleep-and-reschedule handoff");
+    try expectContains(matrix_doc, "`__hvc_poll` drain-order");
+    try expectContains(matrix_doc, "`hvc_hangup()` disconnect");
     try expectContains(matrix_doc, "`hvc_remove()` handoff");
     try expectContains(matrix_doc, "`hvc_cleanup()` tty-port release");
     try expectContains(matrix_doc, "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and");
     try expectContains(matrix_doc, "modem-control helper summaries reviewable on current `master`.");
 
+    try expectContains(driver, "pub fn summarizeKhvcdSleepHandoff(request: KhvcdSleepRequest) KhvcdSleepSummary {");
+    try expectContains(driver, "pub fn summarizePollDrainOrder(request: PollDrainOrderRequest) PollDrainOrderSummary {");
+    try expectContains(driver, "pub fn summarizeHangupDisconnect(request: HangupDisconnectRequest) HangupDisconnectSummary {");
     try expectContains(driver, "pub const RemoveHandoffRequest = struct {");
     try expectContains(driver, "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {");
     try expectContains(driver, "pub const CleanupHandoffRequest = struct {");
@@ -159,7 +165,10 @@ test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to ma
     try expectContains(driver, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {");
     try expectContains(driver, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {");
     try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");
+    try expectContains(driver, "test \"phase11 hvc console keeps khvcd sleep-and-reschedule handoff reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps __hvc_poll drain-order summary reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps stale hangup short-circuit ownership reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps remove handoff summary reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\" {");
     try expectContains(driver, "test \"phase11 hvc console keeps hvc_kick wakeup cue reviewable\" {");
