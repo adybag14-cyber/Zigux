@@ -47,6 +47,7 @@
       "roadmap_anchor": "lib/bsearch.c",
       "zig_helper": "lib/bsearch.zig",
       "focused_helper_replay": "zigux/tests/phase6_bsearch.zig",
+      "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
       "focused_c_abi_replays": [
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "zigux/tests/phase6_bsearch_c_abi_budget.zig"
@@ -58,7 +59,22 @@
         "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
       ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
-      "current_review_posture": "direct-helper-readback-restored"
+      "current_review_posture": "direct-helper-readback-restored",
+      "current_perf_evidence": {
+        "case_labels": [
+          "len15",
+          "len64",
+          "len1024"
+        ],
+        "query_count": 16,
+        "budget_formula": "std.math.log2_int_ceil(len) + 1",
+        "linux_style_rerun_routes": [
+          "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-bsearch-test",
+          "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-bsearch-perf"
+        ]
+      }
     },
     {
       "key": "checksum",
@@ -116,6 +132,8 @@
     "make -C zigux phase6-base64-perf",
     "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-bsearch-test",
+    "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-bsearch-perf",
     "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
