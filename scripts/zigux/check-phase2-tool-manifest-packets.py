@@ -99,7 +99,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 64
+EXPECTED_SELF_TEST_CASE_COUNT = 66
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -164,6 +164,28 @@ def collect_non_string_manifest_entries(values: object, code: str) -> list[tuple
     if not isinstance(values, list):
         return []
     return [(code, repr(value)) for value in values if not isinstance(value, str)]
+
+
+def collect_branch_manifest_path_issues(
+    root: Path,
+    values: object,
+    *,
+    missing_code: str,
+    unexpected_code: str,
+) -> list[tuple[str, str]]:
+    if not isinstance(values, list):
+        return []
+
+    issues: list[tuple[str, str]] = []
+    for value in values:
+        if not isinstance(value, str):
+            continue
+        exists = resolve_path(root, Path(value)).exists()
+        if exists and unexpected_code:
+            issues.append((unexpected_code, value))
+        elif not exists and missing_code:
+            issues.append((missing_code, value))
+    return issues
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -237,6 +259,30 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         collect_duplicate_manifest_entries(
             master_present_branch_missing_files,
             "DUPLICATE_MASTER_PRESENT_BRANCH_MISSING_FILE_ENTRY",
+        )
+    )
+    issues.extend(
+        collect_branch_manifest_path_issues(
+            root,
+            present_files,
+            missing_code="PRESENT_FILE_MISSING_ON_BRANCH",
+            unexpected_code="",
+        )
+    )
+    issues.extend(
+        collect_branch_manifest_path_issues(
+            root,
+            missing_files,
+            missing_code="",
+            unexpected_code="MISSING_FILE_ALREADY_PRESENT_ON_BRANCH",
+        )
+    )
+    issues.extend(
+        collect_branch_manifest_path_issues(
+            root,
+            master_present_branch_missing_files,
+            missing_code="MASTER_PRESENT_BRANCH_PATH_NOT_MISSING_ON_BRANCH",
+            unexpected_code="MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT_ON_BRANCH",
         )
     )
     if isinstance(present_files, list) and isinstance(missing_files, list):
@@ -354,6 +400,13 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, BOOTSTRAP_NOTES, "\n".join(BOOTSTRAP_NOTES_MARKERS) + "\n")
     write_text(root, PHASE2_VALIDATOR, "\n".join(PHASE2_VALIDATOR_MARKERS) + "\n")
     write_text(root, PHASE2_CLOSURE_VALIDATOR, "\n".join(PHASE2_CLOSURE_VALIDATOR_MARKERS) + "\n")
+    for rel_path in EXPECTED_PRESENT_FILES:
+        target = Path(rel_path)
+        resolved = resolve_path(root, target)
+        if resolved.exists():
+            continue
+        placeholder = "# present\n" if target.suffix == ".py" else "present\n"
+        write_text(root, target, placeholder)
     write_text(root, MANIFEST, manifest_json())
 
 
@@ -505,23 +558,41 @@ def run_self_test() -> int:
         bad["master_present_branch_missing_files"] = [EXPECTED_PRESENT_FILES[0]]
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
+        assert ("MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT_ON_BRANCH", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
         bad = json.loads(manifest_json())
         bad["master_present_branch_missing_files"] = ["scripts/zigux/not-in-missing.py"]
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        issues = collect_issues(root)
         assert (
             "MASTER_PRESENT_BRANCH_PATH_NOT_MARKED_MISSING",
             "scripts/zigux/not-in-missing.py",
-        ) in collect_issues(root)
+        ) in issues
+        assert (
+            "MASTER_PRESENT_BRANCH_PATH_NOT_MISSING_ON_BRANCH",
+            "scripts/zigux/not-in-missing.py",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
         bad = json.loads(manifest_json())
         bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_PRESENT_FILES[0]]
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
-        assert ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
+        issues = collect_issues(root)
+        assert ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", EXPECTED_PRESENT_FILES[0]) in issues
+        assert ("MISSING_FILE_ALREADY_PRESENT_ON_BRANCH", EXPECTED_PRESENT_FILES[0]) in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        resolve_path(root, Path(EXPECTED_PRESENT_FILES[-1])).unlink()
+        assert ("PRESENT_FILE_MISSING_ON_BRANCH", EXPECTED_PRESENT_FILES[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, Path(EXPECTED_MISSING_FILES[0]), "# restored on branch\n")
+        assert ("MISSING_FILE_ALREADY_PRESENT_ON_BRANCH", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
