@@ -69,9 +69,13 @@ WORKFLOW_COMMAND_MARKERS = [
     "workflow_dispatch:",
     "group: ${{ format('{0}-{1}', github.workflow, github.ref) }}",
     "cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}",
+    "repo_archive_path=\"third_party/$ZIGUX_ZIG_FILENAME\"",
+    "if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$repo_archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"; then",
+    "if try_local_archive; then",
     "curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"",
     "python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
     "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
     "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test",
     "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
@@ -237,8 +241,16 @@ jobs:
       - name: Setup pinned Zig toolchain
         run: |
           set -euxo pipefail
-          curl -L --fail https://ziglang.org/download/community-mirrors.txt -o \"$mirror_file\"
-          python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"
+          repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"
+          if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$repo_archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then
+            echo using repo archive
+          fi
+          if try_local_archive; then
+            echo local archive ok
+          fi
+          curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"
+          python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"
+          echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org'
       - name: Compile current scripts
         run: |
           set -euxo pipefail
@@ -333,6 +345,33 @@ def run_self_test() -> int:
         workflow_path = base / WORKFLOW_PATH
         workflow_path.write_text(
             workflow_path.read_text(encoding="utf-8").replace(
+                'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"\n',
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            'workflow_marker:repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"',
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "if try_local_archive; then\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_marker:if try_local_archive; then")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
                 'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"\n',
                 "",
                 1,
@@ -341,7 +380,7 @@ def run_self_test() -> int:
         )
         expect_failure(
             base,
-            "workflow_marker:python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive \"$archive_path\" --archive-target \"$ZIGUX_ZIG_TARGET\"",
+            'workflow_marker:python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
         )
 
         write_fixture_tree(base)
