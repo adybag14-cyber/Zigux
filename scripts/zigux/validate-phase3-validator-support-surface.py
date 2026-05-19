@@ -48,8 +48,9 @@ REQUIRED_NOTE_MARKERS = (
 REQUIRED_SHARED_GAP_MARKERS = (
     "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root plus tests-root Phase 3 summaries now all reflect that return while scripts-root inventory work stays separate",
     "PHASE3_SHARED_REMINDER_NEXT_STEP=keep any future same-lane follow-through scoped to a fresh shared-summary reread only if current master changes reopen Phase 3 reminder drift",
-    "`Documentation/zigux/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` explicit as returned packet-local shared reminder evidence instead of framing them as repo-reality gaps.",
+    "`Documentation/zigux/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` explicit as returned shared reminder evidence instead of framing them as repo-reality gaps.",
     "`zigux/tests/README.md` now also keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md` and `scripts/zigux/validate-phase3-export-uapi-survey.py` explicit as returned tests-root evidence beside the starter, helper, policy, and layout-replay packet.",
+    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
     "The earlier shared-reminder drift is currently closed across the shared docs-root and tests-root summaries.",
 )
 
@@ -69,6 +70,7 @@ SELF_TEST_NOTE_MARKERS = (
 SELF_TEST_GAP_MARKERS = (
     "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root plus tests-root Phase 3 summaries now all reflect that return while scripts-root inventory work stays separate",
     "PHASE3_SHARED_REMINDER_NEXT_STEP=keep any future same-lane follow-through scoped to a fresh shared-summary reread only if current master changes reopen Phase 3 reminder drift",
+    "`Documentation/zigux/phase3-abi-h-boundary-next-step.md`",
     "The earlier shared-reminder drift is currently closed across the shared docs-root and tests-root summaries.",
 )
 
