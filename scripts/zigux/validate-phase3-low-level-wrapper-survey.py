@@ -257,7 +257,7 @@ def validate_repo(repo_root: Path) -> list[str]:
 
 def _populate_repo(root: Path) -> None:
     for relative_path, markers in REQUIRED_MARKERS.items():
-        _write(root / relative_path, "\\n".join(markers) + "\\n")
+        _write(root / relative_path, "\n".join(markers) + "\n")
 
 
 def run_self_test() -> int:
@@ -268,7 +268,7 @@ def run_self_test() -> int:
         issues = validate_repo(root)
         if issues:
             print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=fail")
-            print("\\n".join(issues))
+            print("\n".join(issues))
             return 1
 
         for relative_path, marker in SELF_TEST_CASES:
@@ -311,6 +311,7 @@ def main() -> int:
         return 1
 
     print(f"validated {args.repo_root / NOTE_PATH}")
+    print("PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass")
     return 0
 
 
