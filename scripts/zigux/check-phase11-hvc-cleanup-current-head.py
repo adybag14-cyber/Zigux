@@ -164,6 +164,14 @@ def read_inventory(root: Path) -> dict[str, object]:
     return payload
 
 
+def readText(path: Path) -> str:
+    return read_text(path)
+
+
+def readInventory(root: Path) -> dict[str, object]:
+    return read_inventory(root)
+
+
 def expect_list(payload: dict[str, object], key: str, expected: list[str]) -> None:
     value = payload.get(key)
     if value != expected:
@@ -471,7 +479,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_survey, dirs_exist_ok=True)
         write(
             missing_survey / SURVEY_PATH,
-            readText(missing_survey / SURVEY_PATH).replace(
+            read_text(missing_survey / SURVEY_PATH).replace(
                 "keep the deeper verify helper, sysrq helper, focused survey replay, manifest, teardown note, slice, and dedicated survey checker framed as archival or repo-reality-gap vocabulary until a future reread proves they returned beside the smaller companion packet.",
                 "",
             ),
@@ -482,7 +490,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_companion, dirs_exist_ok=True)
         write(
             missing_companion / COMPANION_PATH,
-            readText(missing_companion / COMPANION_PATH).replace(
+            read_text(missing_companion / COMPANION_PATH).replace(
                 "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
                 "",
             ),
@@ -493,7 +501,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_companion_export_build, dirs_exist_ok=True)
         write(
             missing_companion_export_build / COMPANION_PATH,
-            readText(missing_companion_export_build / COMPANION_PATH).replace(
+            read_text(missing_companion_export_build / COMPANION_PATH).replace(
                 "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
                 "",
             ),
@@ -504,7 +512,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_verify, dirs_exist_ok=True)
         write(
             missing_verify / VERIFY_PATH,
-            readText(missing_verify / VERIFY_PATH).replace(
+            read_text(missing_verify / VERIFY_PATH).replace(
                 "Current direct contents reads on `master` still do not rematerialize `drivers/tty/hvc/hvc_console_verify.zig`, so keep this note as the current-head reminder surface for those landed helper edges rather than treating the helper file itself as returned direct-readback evidence.",
                 "",
             ),
@@ -515,7 +523,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_verify_cleanup_trigger, dirs_exist_ok=True)
         write(
             missing_verify_cleanup_trigger / VERIFY_PATH,
-            readText(missing_verify_cleanup_trigger / VERIFY_PATH).replace(
+            read_text(missing_verify_cleanup_trigger / VERIFY_PATH).replace(
                 "`CleanupTrigger.hangup_only` and `CleanupTrigger.final_close_and_hangup` keep the hangup-only and combined cleanup trigger split explicit beside the earlier final-close-only path.",
                 "",
             ),
@@ -526,7 +534,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_verify_targeted_unregister, dirs_exist_ok=True)
         write(
             missing_verify_targeted_unregister / VERIFY_PATH,
-            readText(missing_verify_targeted_unregister / VERIFY_PATH).replace(
+            read_text(missing_verify_targeted_unregister / VERIFY_PATH).replace(
                 "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable without claiming that notifier teardown has become live runtime behavior.",
                 "",
             ),
@@ -537,7 +545,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_verify_targetless_dispatch, dirs_exist_ok=True)
         write(
             missing_verify_targetless_dispatch / VERIFY_PATH,
-            readText(missing_verify_targetless_dispatch / VERIFY_PATH).replace(
+            read_text(missing_verify_targetless_dispatch / VERIFY_PATH).replace(
                 "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
                 "",
             ),
@@ -548,7 +556,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_matrix, dirs_exist_ok=True)
         write(
             missing_matrix / MATRIX_PATH,
-            readText(missing_matrix / MATRIX_PATH).replace(
+            read_text(missing_matrix / MATRIX_PATH).replace(
                 "do not treat the deeper verify helper, sysrq helper, manifest, teardown note, dedicated survey checker, or focused survey and cleanup replays as current-head direct-readback evidence",
                 "",
             ),
@@ -559,7 +567,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_matrix_export_build, dirs_exist_ok=True)
         write(
             missing_matrix_export_build / MATRIX_PATH,
-            readText(missing_matrix_export_build / MATRIX_PATH).replace(
+            read_text(missing_matrix_export_build / MATRIX_PATH).replace(
                 "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
                 "",
             ),
@@ -570,7 +578,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_export_build_marker, dirs_exist_ok=True)
         write(
             missing_export_build_marker / EXPORT_BUILD_PATH,
-            readText(missing_export_build_marker / EXPORT_BUILD_PATH).replace(
+            read_text(missing_export_build_marker / EXPORT_BUILD_PATH).replace(
                 '.name = "phase11-hvc-export-surface-layout-proof",',
                 "",
             ),
@@ -584,21 +592,21 @@ def run_self_test() -> int:
 
         wrong_exact_checks = tmpdir / "wrong_exact_checks"
         shutil.copytree(fixture, wrong_exact_checks, dirs_exist_ok=True)
-        payload = readInventory(wrong_exact_checks)
+        payload = read_inventory(wrong_exact_checks)
         payload["exact_current_checks"] = payload["exact_current_checks"][:-1]
         write(wrong_exact_checks / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
         expect_failure(wrong_exact_checks, "exact_current_checks does not match the current-head HVC packet")
 
         wrong_adjunct = tmpdir / "wrong_adjunct"
         shutil.copytree(fixture, wrong_adjunct, dirs_exist_ok=True)
-        payload = readInventory(wrong_adjunct)
+        payload = read_inventory(wrong_adjunct)
         payload["shared_adjunct_replays"] = []
         write(wrong_adjunct / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
         expect_failure(wrong_adjunct, "shared_adjunct_replays does not match the current-head HVC packet")
 
         wrong_proof_command = tmpdir / "wrong_proof_command"
         shutil.copytree(fixture, wrong_proof_command, dirs_exist_ok=True)
-        payload = readInventory(wrong_proof_command)
+        payload = read_inventory(wrong_proof_command)
         payload["proof_replay_command"] = "zig build test --build-file zigux/tests/phase11_build.zig"
         write(wrong_proof_command / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
         expect_failure(wrong_proof_command, "proof_replay_command does not match the current-head HVC packet")
