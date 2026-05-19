@@ -47,6 +47,7 @@ The same 2026-05-18 repo-first inspection also confirmed a narrower current non-
 * `Documentation/zigux/phase5-sample-review-guide.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
+* `scripts/zigux/check-phase5-review-guide-surface.py`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
@@ -71,10 +72,12 @@ For the shared tracing and probe lane, ground reviewer guidance in the restored 
 * `Documentation/zigux/phase5-sample-review-guide.md`
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
+* `scripts/zigux/check-phase5-review-guide-surface.py`
 * `scripts/zigux/README.md`
 * `zigux/tests/README.md`
 
 Keep those shared surfaces honest about the restored direct kretprobe packet, the bounded trace-events formatting companion, the still-missing broader trace-events companion paths, and the shared-build gap instead of treating the trace-events anchor as either fully absent or fully restored authenticated proof.
+Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/check-phase5-review-guide-surface.py` should stay aligned with those same shared surfaces instead of being treated as an optional companion.
 
 ## Bytestream posture
 
