@@ -269,6 +269,9 @@ jobs:
       - name: Run current Phase 3 shared tests-root packet
         run: zig build phase3-test --build-file zigux/tests/build.zig
 
+      - name: Run current Phase 3 ABI dump replay
+        run: zig build phase3-dump --build-file zigux/tests/build.zig
+
       - name: Run current Phase 1 shared tests-root smoke
         run: zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig
 
