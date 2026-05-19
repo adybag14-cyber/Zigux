@@ -1,1 +1,1 @@
-{"counts":{"set":2,"unset":0},"entries":[{"name":"CONFIG_ALPHA","kind":"string","value":"enabled"},{"name":"CONFIG_BETA","kind":"value","value":"7"}]}
+{"counts":{"set":3,"unset":1},"entries":[{"name":"CONFIG_ALPHA","kind":"string","value":"enabled"},{"name":"CONFIG_BETA","kind":"value","value":"7"},{"name":"CONFIG_GAMMA","kind":"tristate","value":"m"},{"name":"CONFIG_REPEAT","kind":"unset","value":"n"}]}
