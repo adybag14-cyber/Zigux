@@ -13,6 +13,7 @@ ABI_BINDINGS_PATH = Path("zigux/bindings/abi.zig")
 NOTIFIER_BINDINGS_PATH = Path("zigux/bindings/notifier_abi.zig")
 ABI_CHECKER_PATH = Path("scripts/zigux/check-phase3-abi.py")
 PHASE3_CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")
+TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 
 REQUIRED_SOURCE_MARKERS = {
     ABI_HEADER_PATH: (
@@ -75,6 +76,12 @@ REQUIRED_SOURCE_MARKERS = {
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
         "def build_catalog(repo_root: Path) -> dict[str, object]:",
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
+    ),
+    TESTS_BUILD_PATH: (
+        'const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);',
+        'root_source_file = b.path("phase3_abi_dump_current.zig"),',
+        'const phase3_dump_step = b.step(',
+        'phase3_dump_step.dependOn(&phase3_abi_dump.step);',
     ),
 }
 
@@ -356,6 +363,18 @@ def build_catalog(repo_root: Path) -> dict[str, object]:
 print("PHASE3_CATALOG_SELF_TEST=pass")
 """
 
+SELF_TEST_BUILD = """\
+const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
+const root_module = b.createModule(.{
+    .root_source_file = b.path("phase3_abi_dump_current.zig"),
+});
+const phase3_dump_step = b.step(
+    "phase3-dump",
+    "Dump the current shared Phase 3 ABI snapshot from zigux/tests",
+);
+phase3_dump_step.dependOn(&phase3_abi_dump.step);
+"""
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -507,6 +526,7 @@ def run_self_test() -> int:
         _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
         _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
         _write(root / PHASE3_CATALOG_PATH, SELF_TEST_CATALOG)
+        _write(root / TESTS_BUILD_PATH, SELF_TEST_BUILD)
 
         issues = validate_repo(root)
         if issues:
@@ -634,8 +654,28 @@ def run_self_test() -> int:
             print("expected missing catalog marker was not reported")
             return 1
 
+        _write(root / PHASE3_CATALOG_PATH, SELF_TEST_CATALOG)
+
+        _write(
+            root / TESTS_BUILD_PATH,
+            SELF_TEST_BUILD.replace(
+                '    .root_source_file = b.path("phase3_abi_dump_current.zig"),\n',
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing zigux/tests/build.zig marker: "
+            'root_source_file = b.path("phase3_abi_dump_current.zig"),'
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing ABI dump build-route marker was not reported")
+            return 1
+
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=7")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
@@ -647,7 +687,7 @@ def main() -> int:
         "--repo-root",
         type=Path,
         default=Path("."),
-        help="repository root that contains include/zigux/, zigux/bindings/, and scripts/zigux/",
+        help="repository root that contains include/zigux/, zigux/bindings/, scripts/zigux/, and zigux/tests/",
     )
     parser.add_argument("--self-test", action="store_true")
     args = parser.parse_args()
@@ -662,7 +702,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_VALIDATION=pass")
-    print("PHASE3_SCOPE=shared-abi-binding-layout-and-catalog-surface")
+    print("PHASE3_SCOPE=shared-abi-binding-layout-catalog-and-dump-route-surface")
     return 0
 
 
