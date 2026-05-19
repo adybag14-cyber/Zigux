@@ -65,6 +65,13 @@
     "Prefer the dated master readback form for parked governance and stay-in-C review packets.",
     "Only record an exact head when the linked review needs it to anchor a named published decision"
   ],
+  "study_only_anchor_review_markers": [
+    "`kernel/workqueue.c`",
+    "`kernel/trace/ring_buffer.c`",
+    "remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "not candidates for a freeze-in-C status review through this note"
+  ],
+  "decision_record_template_study_only_rule": "Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.",
   "handoff_required_markers": [
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/README.md`",
