@@ -65,8 +65,8 @@ MARKERS = {
         '"PHASE1_BENCH_EXPECTATION_COUNT=",',
         'assert command_failure_output == [',
         'assert command_missing_output == [',
-        "print(\"PHASE1_BENCH_FAILURE_PACKET=pass\")",
-        "print(\"PHASE1_BENCH_FAILURE_PACKET_SELF_TEST=pass\")",
+        'print("PHASE1_BENCH_FAILURE_PACKET=pass")',
+        'print("PHASE1_BENCH_FAILURE_PACKET_SELF_TEST=pass")',
     ),
     BENCH_SUCCESS_CHECKER_REL: (
         '"""Guard the Lane 16 bench checker\'s clean success packet."""',
@@ -84,6 +84,71 @@ MARKERS = {
         'assert success_output == [',
         "print('PHASE1_BENCH_SUCCESS_PACKET=pass')",
         "print('PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST=pass')",
+    ),
+}
+
+EXPECTED_ASSERT_BLOCKS = {
+    BENCH_FAILURE_CHECKER_REL: (
+        (
+            "assert missing_output == [",
+            '"PHASE1_BENCH_CHECK=fail",',
+            '"PHASE1_BENCH_CHECK_REASON=expectations_missing",',
+            'f"PHASE1_BENCH_EXPECTATIONS={missing_expectations_path}",',
+            "]",
+        ),
+        (
+            "assert malformed_output == [",
+            '"PHASE1_BENCH_CHECK=fail",',
+            '"PHASE1_BENCH_CHECK_REASON=expectations_json_error",',
+            'f"PHASE1_BENCH_EXPECTATIONS={invalid_expectations_path}",',
+            '"EXPECTATIONS_JSON_ERROR=Expecting property name enclosed in double quotes",',
+            "]",
+        ),
+        (
+            "assert invalid_status_output == [",
+            '"PHASE1_BENCH_CHECK=fail",',
+            '"PHASE1_BENCH_CHECK_REASON=expectations_status",',
+            'f"PHASE1_BENCH_EXPECTATIONS={status_mismatch_path}",',
+            "]",
+        ),
+        (
+            "assert status_drift_output == [",
+            '"PHASE1_BENCH_CHECK=fail",',
+            '"PHASE1_BENCH_CHECK_REASON=status",',
+            'f"PHASE1_BENCH_EXPECTATIONS={bench_status_drift_path}",',
+            "]",
+        ),
+        (
+            "assert command_failure_output == [",
+            '"PHASE1_BENCH_CHECK=fail",',
+            '"PHASE1_BENCH_CHECK_REASON=bench_command_exit",',
+            'f"PHASE1_BENCH_EXPECTATIONS={command_failure_path}",',
+            '"BENCH_COMMAND_EXIT=7",',
+            "]",
+        ),
+        (
+            "assert command_missing_output == [",
+            '"PHASE1_BENCH_CHECK=fail",',
+            '"PHASE1_BENCH_CHECK_REASON=bench_command_missing",',
+            'f"PHASE1_BENCH_EXPECTATIONS={command_missing_path}",',
+            '"BENCH_COMMAND_MISSING=/missing/zig",',
+            "]",
+        ),
+        (
+            "assert checksum_drift_output == [",
+            '"PHASE1_BENCH_CHECK=fail",',
+            '"PHASE1_BENCH_CHECK_REASON=exact_checksum_mismatch",',
+            'f"PHASE1_BENCH_EXPECTATIONS={checksum_drift_path}",',
+            "]",
+        ),
+    ),
+    BENCH_SUCCESS_CHECKER_REL: (
+        (
+            "assert success_output == [",
+            '"PHASE1_BENCH_CHECK=pass",',
+            'f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations[\'checksums\'])}",',
+            "]",
+        ),
     ),
 }
 
@@ -111,6 +176,22 @@ def read_text(root: Path, relative_path: str) -> str:
     return (root / relative_path).read_text(encoding="utf-8")
 
 
+def extract_assert_block(text: str, first_line: str) -> list[str]:
+    block: list[str] = []
+    capturing = False
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not capturing:
+            if line == first_line:
+                capturing = True
+                block.append(line)
+            continue
+        block.append(line)
+        if line == "]":
+            return block
+    return block
+
+
 def collect_issues(root: Path) -> list[str]:
     issues: list[str] = []
     for relative_path in REQUIRED_FILES:
@@ -133,10 +214,18 @@ def collect_issues(root: Path) -> list[str]:
                 if count != 1:
                     issues.append(f"{relative_path}:marker_count:{marker}:expected=1:actual={count}")
 
-        for fragment in FORBIDDEN_FRAGMENTS.get(relative_path, ()): 
+        for fragment in FORBIDDEN_FRAGMENTS.get(relative_path, ()):
             count = text.count(fragment)
             if count != 0:
                 issues.append(f"{relative_path}:forbidden:{fragment}:actual={count}")
+
+        for expected_block in EXPECTED_ASSERT_BLOCKS.get(relative_path, ()):
+            first_line = expected_block[0]
+            if text.count(first_line) != 1:
+                continue
+            actual_block = extract_assert_block(text, first_line)
+            if actual_block != list(expected_block):
+                issues.append(f"{relative_path}:assert_block:{first_line}:{actual_block!r}")
 
     return issues
 
@@ -147,9 +236,25 @@ def write_text(root: Path, relative_path: str, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
+def build_sample_file(relative_path: str) -> str:
+    if relative_path == BENCH_FAILURE_CHECKER_REL:
+        block_lines = {line for block in EXPECTED_ASSERT_BLOCKS[relative_path] for line in block}
+        lines = [line for line in MARKERS[relative_path] if line not in block_lines]
+        for block in EXPECTED_ASSERT_BLOCKS[relative_path]:
+            lines.extend(block)
+        return "\n".join(lines) + "\n"
+    if relative_path == BENCH_SUCCESS_CHECKER_REL:
+        block_lines = {line for block in EXPECTED_ASSERT_BLOCKS[relative_path] for line in block}
+        lines = [line for line in MARKERS[relative_path] if line not in block_lines]
+        for block in EXPECTED_ASSERT_BLOCKS[relative_path]:
+            lines.extend(block)
+        return "\n".join(lines) + "\n"
+    return "\n".join(MARKERS[relative_path]) + "\n"
+
+
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
-        write_text(root, relative_path, "\n".join(MARKERS[relative_path]) + "\n")
+        write_text(root, relative_path, build_sample_file(relative_path))
 
 
 def mutate_remove(root: Path, relative_path: str, marker: str) -> None:
@@ -164,7 +269,19 @@ def mutate_duplicate(root: Path, relative_path: str, marker: str) -> None:
     path.write_text(text.replace(marker, marker + "\n" + marker, 1), encoding="utf-8")
 
 
-def expected_issue(relative_path: str, needle: str | None, operation: str) -> str:
+def mutate_assert_block_order(root: Path, relative_path: str, first_line: str) -> list[str]:
+    path = root / relative_path
+    text = path.read_text(encoding="utf-8")
+    actual_block = extract_assert_block(text, first_line)
+    reordered = list(actual_block)
+    reordered[1], reordered[2] = reordered[2], reordered[1]
+    original = "\n".join(actual_block)
+    updated = "\n".join(reordered)
+    path.write_text(text.replace(original, updated, 1), encoding="utf-8")
+    return reordered
+
+
+def expected_issue(relative_path: str, needle: str | None, operation: str, block: list[str] | None = None) -> str:
     if operation == "unlink":
         return f"missing_file:{relative_path}"
     if operation == "remove":
@@ -173,9 +290,13 @@ def expected_issue(relative_path: str, needle: str | None, operation: str) -> st
     if operation == "duplicate":
         assert needle is not None
         return f"{relative_path}:marker_count:{needle}:expected=1:actual=2"
-    assert operation == "append"
+    if operation == "append":
+        assert needle is not None
+        return f"{relative_path}:forbidden:{needle}:actual=1"
+    assert operation == "assert_block_reorder"
     assert needle is not None
-    return f"{relative_path}:forbidden:{needle}:actual=1"
+    assert block is not None
+    return f"{relative_path}:assert_block:{needle}:{block!r}"
 
 
 def run_self_test() -> int:
@@ -199,12 +320,16 @@ def run_self_test() -> int:
     for relative_path, fragments in FORBIDDEN_FRAGMENTS.items():
         for fragment in fragments:
             cases.append((f"forbidden:{relative_path}", relative_path, fragment, "append"))
+    for relative_path, blocks in EXPECTED_ASSERT_BLOCKS.items():
+        for block in blocks:
+            cases.append((f"assert_block:{relative_path}:{block[0]}", relative_path, block[0], "assert_block_reorder"))
 
     for label, relative_path, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-bench-current-packet-case-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
             target = root / relative_path
+            block: list[str] | None = None
             if operation == "unlink":
                 target.unlink()
             elif operation == "remove":
@@ -216,11 +341,14 @@ def run_self_test() -> int:
             elif operation == "append":
                 assert needle is not None
                 target.write_text(target.read_text(encoding="utf-8") + needle + "\n", encoding="utf-8")
+            else:
+                assert needle is not None
+                block = mutate_assert_block_order(root, relative_path, needle)
             issues = collect_issues(root)
-            if issues != [expected_issue(relative_path, needle, operation)]:
+            if issues != [expected_issue(relative_path, needle, operation, block)]:
                 print("PHASE1_BENCH_CURRENT_PACKET_SELF_TEST=fail")
                 print(f"case={label}")
-                print(f"expected={expected_issue(relative_path, needle, operation)}")
+                print(f"expected={expected_issue(relative_path, needle, operation, block)}")
                 print(f"actual={issues!r}")
                 return 1
 
