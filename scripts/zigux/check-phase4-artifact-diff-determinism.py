@@ -108,7 +108,6 @@ VALIDATOR_REPLAY_MARKERS = (
 )
 
 MISSING_BROADER_ARTIFACT_DIFF_COMPANIONS = (
-    "Documentation/zigux/artifact-diff.md",
     "scripts/zigux/check-artifact-diff-contract.py",
     "scripts/zigux/validate-phase4.py",
 )
@@ -215,7 +214,6 @@ def fixture_root(root: Path) -> None:
     * `scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
     * `scripts/zigux/artifact_diff.py`
   * authenticated contents reads on current `master` still return missing for these broader artifact-diff companions:
-    * `Documentation/zigux/artifact-diff.md`
     * `scripts/zigux/check-artifact-diff-contract.py`
     * `scripts/zigux/validate-phase4.py`
 
