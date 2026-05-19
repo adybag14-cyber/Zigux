@@ -158,9 +158,9 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "the directly readable `zigux/Makefile` blob",
-        "`scripts/zigux/check-phase12-release-readiness-packet.py` at blob `86a623d279b866a92fcd14673283d72143799914`",
-        "`.github/workflows/zigux-bootstrap.yml` at blob `86ed19e8e3be954a24e20f31b40712b334c6680f`",
-        "`scripts/zigux/README.md` at blob `0800fcf1335055ffcf7ef26879663f54c8ed79c3`",
+        "`scripts/zigux/check-phase12-release-readiness-packet.py` at blob `eef5c17189b4172566c8463ecaac07279632d94f`",
+        "`.github/workflows/zigux-bootstrap.yml` at blob `4528840fbf4753432ca6dce332a2ca5836b07b20`",
+        "`scripts/zigux/README.md` at blob `a2a363613107adaa66e5ae7e25a18c7b01487abf`",
         "`zigux/Makefile` at blob `93aebf412639ccc1122a74b87201f57f6e7bfc99`",
         "now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` again while still omitting `phase12-validate`",
         "keep the same reminder-only validator route plus shipped wrapper reruns explicit as `make -C zigux phase12-validate`, `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
@@ -229,24 +229,26 @@ def marker_fixture(title: str, markers: list[str]) -> str:
 
 
 def fixture_text(rel_path: str) -> str:
-    titles = {
-        RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
-        RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
-        RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
-        RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
-        PHASE12_COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex-Driver Lane Sequencing",
-        RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
-        SCRIPTS_README_PATH: "# scripts/zigux",
-    }
     if rel_path in REQUIRED_MARKERS:
-        title = titles.get(rel_path)
-        if title is not None:
-            return marker_fixture(title, REQUIRED_MARKERS[rel_path])
-        return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
-    if rel_path.endswith(".md"):
-        return "# Fixture\n"
+        title = {
+            RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
+            RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
+            RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
+            RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
+            PHASE12_COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex-Driver Lane Sequencing",
+            RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
+            SCRIPTS_README_PATH: "# scripts/zigux",
+        }.get(rel_path, "# Fixture")
+        if rel_path in {
+            VALIDATOR_PATH,
+            MAKEFILE_PATH,
+        }:
+            return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
+        return marker_fixture(title, REQUIRED_MARKERS[rel_path])
     if rel_path.endswith(".py"):
         return "#!/usr/bin/env python3\n"
+    if rel_path.endswith(".md"):
+        return "# Fixture\n"
     if rel_path.endswith(".zig"):
         return "// fixture\n"
     if rel_path.endswith(".json"):
