@@ -83,7 +83,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
@@ -160,6 +160,11 @@ def run_self_test() -> None:
         expect_missing_marker("missing_slice_case_copy_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}")
         write_fixture_root(tmp_root)
 
+        slice_marker = "quoted cmdline duplication that collapses trailing NULs"
+        slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_slice_cmdline_quote_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}")
+        write_fixture_root(tmp_root)
+
         helper_path = tmp_root / "lib" / "string_helpers.zig"
         helper_marker = "pub fn kstrdupQuotableCmdline("
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
@@ -211,6 +216,11 @@ def run_self_test() -> None:
         manifest_marker = "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings"
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_manifest_file_focus", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
+        write_fixture_root(tmp_root)
+
+        manifest_marker = "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters"
+        manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_manifest_cmdline_quote_focus", tmp_root, f"zigux/tests/phase7_string_helpers_manifest.json: {manifest_marker}")
         write_fixture_root(tmp_root)
 
         manifest_marker = "bounded uppercase and lowercase copies through the exported C-string boundary"
