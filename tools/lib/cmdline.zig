@@ -289,6 +289,16 @@ test "memparse clamps signed overflow after suffix expansion" {
     try std.testing.expectEqualStrings("tail", negative.rest);
 }
 
+test "memparse clamps signed hexadecimal overflow after suffix expansion" {
+    const positive = memparse("+0x8000000000000000Ktail");
+    try std.testing.expectEqual(@as(u64, std.math.maxInt(i64)), positive.value);
+    try std.testing.expectEqualStrings("tail", positive.rest);
+
+    const negative = memparse("-0x8000000000000000Ktail");
+    try std.testing.expectEqual(@as(u64, 0x8000000000000000), negative.value);
+    try std.testing.expectEqualStrings("tail", negative.rest);
+}
+
 test "memparse applies suffixes before signed clamping" {
     const negative = memparse("-2Ktail");
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative.value);
