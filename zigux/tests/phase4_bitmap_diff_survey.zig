@@ -178,67 +178,45 @@ test "phase 4 bitmap survey keeps the shared build route explicit" {
     try std.testing.expect(std.mem.indexOf(u8, phase4_build_source, "test_step.dependOn(&run_bitmap_live_helper_replay_tests.step);") != null);
 }
 
-test "phase 4 bitmap survey keeps bitmap gate-evidence coverage explicit" {
+test "phase 4 bitmap survey keeps the broader gate-evidence handoff explicit" {
     const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_source, .{});
 
     defer parsed.deinit();
 
     _ = parsed.value;
 
-    try expectContains(gate_evidence_source, "PHASE4_BITMAP_DIFF_BLOB_SHA=");
+    try expectContains(gate_evidence_source, "PHASE4_BITMAP_DIFF_BLOB_SHA=683160d3a86552a2a1be34b445fd6e0fb38dc122");
 
-    try expectContains(gate_evidence_source, "PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=");
+    try expectContains(gate_evidence_source, "PHASE4_BITMAP_LIVE_HELPER_REPLAY_BLOB_SHA=4a4c07e5f7b90fc96f06c86a17d3d30aa0d5b694");
 
-    try expectContains(gate_evidence_source, "zigux/tests/bitmap_diff.zig");
-    try expectContains(gate_evidence_source, "zigux/tests/phase4_bitmap_live_helper_replay.zig");
+    try expectContains(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19");
+
+    try expectContains(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42");
+
+    try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
+
+    try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42");
+
+    try expectContains(gate_evidence_source, "Documentation/zigux/phase4-reversible-delivery-evidence.md");
+
+    try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-gate-evidence.py");
+
+    try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-perf-baseline-packet.py");
+
+    try expectContains(gate_evidence_source, "scripts/zigux/check-phase4-workflow-route-counts.py");
+
+    try expectContains(gate_evidence_source, "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig");
+
+    try expectContains(gate_evidence_source, "make -C zigux phase4-perf-baseline-survey");
 
     try expectContains(
         gate_evidence_source,
-        "zig build phase4-bitmap-live-helper-replay --build-file zigux/tests/phase4_build.zig",
+        "PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
     );
 
-    try expectContains(gate_evidence_source, "make -C zigux phase4-bitmap-live-helper-replay");
+    try expectContains(gate_evidence_source, "make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m");
 
-    try expectContains(
-        gate_evidence_source,
-        "threshold_pending_until_bitmap_gate_grows_beyond_bounded_correctness_checks",
-    );
-    try expectContains(gate_evidence_source, "5216946504564592253");
-
-    try expectContains(gate_evidence_source, "7942141539243507472");
-
-    try expectContains(gate_evidence_source, "final_first_zero=109");
-
-    try expectContains(gate_evidence_source, "final_weight=1005");
-
-    try expectContains(gate_evidence_source, "final_nth_seven=123");
-
-    try expectContains(gate_evidence_source, "thirteen bounded range and prefix cases");
-
-    try expectContains(gate_evidence_source, "two `find_nth_bit` replays");
-    try expectContains(gate_evidence_source, "sixteen copy-tail cases");
-
-    try expectContains(gate_evidence_source, "explicit zero-length range/prefix and zero-length copy no-op coverage");
-
-    try expectContains(gate_evidence_source, "explicit partial-word 109-bit replay that keeps copied source tail bits through bit 126");
-
-    try expectContains(gate_evidence_source, "matching pre-filled 109-bit replay that clears the padded tail before the filled tail resumes");
-    try expectContains(gate_evidence_source, "aligned 97-bit copy replay that keeps the second copied word intact before the cleared tail resumes");
-
-    try expectContains(gate_evidence_source, "bounded out-of-bounds rejection coverage");
-
-    try expectContains(gate_evidence_source, "`13 DiffCase`, `16 CopyCase`, and `13 mixThresholdChecksum()` checkpoints");
-
-    try expectContains(gate_evidence_source, "bitmap_fill(..., 35)");
-
-    try expectContains(gate_evidence_source, "bitmap_fill(..., 115)");
-    try expectContains(gate_evidence_source, "bitmap_zero(..., 35)");
-
-    try expectContains(gate_evidence_source, "bitmap_zero(..., 115)");
-
-    try expectContains(gate_evidence_source, "64 and 128 visible beside them");
-
-    try expectContains(gate_evidence_source, "lib/test_bitmap.c");
+    try expectContains(gate_evidence_source, "make -C zigux phase4-kprobe-example-survey");
 }
 
 test "phase 4 bitmap survey keeps current exact-fill divergence explicit" {
