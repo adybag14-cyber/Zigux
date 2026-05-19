@@ -56,7 +56,7 @@ Tests-root reviewer prompt:
 
 Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` aligned with that stable handle as supporting shared reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.
 
-Keep `scripts/zigux/check-phase13-tests-readme-alignment.py` explicit as the shipped tests-root alignment companion for that stable handle rather than as a new replay route or Makefile-backed entrypoint.
+Keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` and `scripts/zigux/check-phase13-tests-readme-alignment.py` explicit as the shipped shared-summary and tests-root alignment companions for that stable handle rather than as new replay routes or Makefile-backed entrypoints.
 
 Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
@@ -94,6 +94,7 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - `scripts/zigux/check-phase13-tests-readme-alignment.py`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
 - `scripts/zigux/check-phase13-notifier-packet.py`
