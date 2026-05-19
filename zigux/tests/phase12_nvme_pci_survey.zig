@@ -143,6 +143,13 @@ test "phase12 nvme pci survey note keeps the roadmap gap and shared-build bounda
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-nvme-pci-survey.md", 16 * 1024);
     defer std.testing.allocator.free(survey_note);
 
+    const manifest_json = try readFileAlloc("zigux/tests/phase12_nvme_pci_manifest.json", 32 * 1024);
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+
+    const manifest = parsed.value;
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter_verifier_direct_replay_manifest_and_survey_gate_present_shared_build_unwired") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane owner: `P12-L08`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/nvme/host/pci.zig") != null);
@@ -152,7 +159,7 @@ test "phase12 nvme pci survey note keeps the roadmap gap and shared-build bounda
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not wire the NVMe direct replay into the shared `phase12-smoke` or `phase12` routes") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "live DMA mapping") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "transport-backed queue execution") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "aadaa43e686ef355a946793cd83ce9899309deef") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, manifest.surveyed_commit) != null);
 }
 
 test "phase12 nvme pci survey gate keeps present packet files explicit" {
