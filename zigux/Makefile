@@ -144,8 +144,6 @@ phase8-perf-buffer-poll-test:
 phase8-test:
 	cd $(ZIGUX_ROOT) && $(ZIG) build test --build-file zigux/tests/phase8_build.zig --summary all
 
-phase8: phase8-validate phase8-test
-
 phase10-validate:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-bootstrap-route.py
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase10-shared-freeze-boundary.py
