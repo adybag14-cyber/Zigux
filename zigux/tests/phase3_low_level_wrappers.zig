@@ -2,6 +2,8 @@ const std = @import("std");
 const atomic = @import("atomic");
 const barrier = @import("barrier");
 const mmio = @import("mmio");
+const unsafe_policy = @import("unsafe_policy");
+const narrow = @import("narrow");
 
 test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {
     var cell: u32 = 7;
@@ -136,4 +138,52 @@ test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explici
     );
     barrier.acquireRelease();
     try std.testing.expectEqual(@as(u16, 0x0F0F), register);
+}
+
+test "phase3 low-level wrappers keep raw-pointer bridge scope gates explicit beside MMIO policy gates" {
+    const raw_scope = @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge);
+    const mmio_scope = @intFromEnum(narrow.UnsafeScopeTag.volatile_mmio);
+
+    try std.testing.expect(unsafe_policy.permitsRawPointerBridgeByte(raw_scope));
+    try std.testing.expect(!unsafe_policy.permitsRawPointerBridgeByte(mmio_scope));
+    try std.testing.expect(narrow.permitsRawPointerBridge(.raw_pointer_bridge));
+    try std.testing.expect(!narrow.permitsRawPointerBridge(.volatile_mmio));
+
+    var bridge_words = [_]u32{ 0x1122_3344, 0x5566_7788 };
+    const bridge_addr = @intFromPtr(&bridge_words[0]);
+
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        narrow.pointerAtByte(u32, bridge_addr, @sizeOf(u32), mmio_scope),
+    );
+
+    const bridge_ptr = try narrow.pointerAtByte(u32, bridge_addr, @sizeOf(u32), raw_scope);
+    barrier.release();
+    bridge_ptr.* = 0xAABB_CCDD;
+    barrier.acquire();
+    try std.testing.expectEqual(@as(u32, 0xAABB_CCDD), bridge_words[0]);
+
+    const bridge_slice = try narrow.constSliceAtByte(u32, bridge_addr, bridge_words.len, raw_scope);
+    try std.testing.expectEqual(@as(u32, 0x5566_7788), bridge_slice[1]);
+}
+
+test "phase3 low-level wrappers keep raw-pointer bridge byte coverage explicit" {
+    const raw_scope = @intFromEnum(narrow.UnsafeScopeTag.raw_pointer_bridge);
+    const safe_scope = @intFromEnum(narrow.UnsafeScopeTag.none);
+
+    var bridge_word: u32 = 0xDEAD_BEEF;
+    const bridge_addr = @intFromPtr(&bridge_word);
+
+    try std.testing.expectError(
+        error.ByteLengthTooSmall,
+        narrow.pointerAtByte(u32, bridge_addr, @sizeOf(u16), raw_scope),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        narrow.writeValueAtByte(u32, bridge_addr, 0xCAFE_BABE, safe_scope),
+    );
+
+    try narrow.writeValueAtByte(u32, bridge_addr, 0xCAFE_BABE, raw_scope);
+    barrier.fullFence();
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), bridge_word);
 }
