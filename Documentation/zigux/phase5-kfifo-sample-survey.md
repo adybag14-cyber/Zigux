@@ -29,7 +29,7 @@ For this anchor, the repo still exposes the sample-root port itself in `samples/
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-18 confirmed these same-lane facts:
+Fresh repo-first inspection on 2026-05-19 confirmed these same-lane facts:
 
 - `samples/kfifo/bytestream-example.c` remains the Linux anchor for this slice.
 - `samples/zigux/bytestream_fifo.zig` is directly readable on current `master`.
@@ -65,9 +65,9 @@ Until a bounded runtime substrate exists, the approved Phase 5 `kfifo` idiom sho
 
 In practice, the approved idiom remains a bounded side-by-side sample, not a claim that Zigux already ships `proc_create()`, `kfifo_from_user()`, `kfifo_to_user()`, or runtime module parity.
 
-## Exact checks verified on 2026-05-18
+## Exact checks verified on 2026-05-19
 
-Fresh direct sample and tests readback on 2026-05-18 showed this exact packet on current `master`:
+Fresh direct sample and tests readback on 2026-05-19 showed this exact packet on current `master`:
 
 - `samples/zigux/bytestream_fifo.zig` currently carries three in-file self-checks, and those direct sample-root checks now prove the anchor replay sequence, the fixed-buffer storage backing, the ten-item `reviewContract().focus` order, `runPreviewBoundaryReplay()` at snapshot prefix `{ 2, 3, 4, 5 }`, the wrapped `{ 28, 4 }` visible-span split, `runRemainingCapacityReplay()` with `available_after_hello = 27` and `available_after_partial_drain = 8`, the short-drain `"hel"` / `"lo"` helper boundary, and invalid post-exit replay rejection.
 - `zigux/tests/phase5_bytestream_fifo.zig` currently carries four focused replay tests, which keep these exact checks explicit:
