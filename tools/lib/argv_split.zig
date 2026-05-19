@@ -48,6 +48,12 @@ fn countArgc(text: []const u8) usize {
     return count;
 }
 
+fn freeAllocatedArgs(allocator: std.mem.Allocator, argv: [][]u8, count: usize) void {
+    for (argv[0..count]) |arg| {
+        allocator.free(arg);
+    }
+}
+
 pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResult {
     const argc = countArgc(text);
     var argv = try allocator.alloc([]u8, argc);
@@ -55,6 +61,8 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
 
     var idx: usize = 0;
     var arg_idx: usize = 0;
+    errdefer freeAllocatedArgs(allocator, argv, arg_idx);
+
     while (idx < text.len) {
         idx = skipSpaces(text, idx);
         if (idx >= text.len) {
@@ -63,11 +71,6 @@ pub fn argvSplit(allocator: std.mem.Allocator, text: []const u8) !ArgvSplitResul
 
         const end = skipArg(text, idx);
         argv[arg_idx] = try allocator.dupe(u8, text[idx..end]);
-        errdefer {
-            for (argv[0..arg_idx + 1]) |arg| {
-                allocator.free(arg);
-            }
-        }
         arg_idx += 1;
         idx = end;
     }
@@ -112,4 +115,17 @@ test "argvSplit collapses repeated whitespace and blank inputs to zero arguments
     var only_spaces = try argv_split(std.testing.allocator, " \n\t ");
     defer argv_free(&only_spaces);
     try std.testing.expectEqual(@as(usize, 0), only_spaces.argc());
+}
+
+fn argvSplitAllocationProbe(allocator: std.mem.Allocator, text: []const u8) !void {
+    var result = try argvSplit(allocator, text);
+    defer result.deinit();
+}
+
+test "argvSplit frees earlier arguments when a later allocation fails" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        argvSplitAllocationProbe,
+        .{"alpha beta gamma delta"},
+    );
 }
