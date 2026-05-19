@@ -103,6 +103,18 @@ struct zigux_hlist_node {
     uintptr_t pprev;
 };
 
+typedef struct zigux_list_backlink_break {
+    size_t current_index;
+    uintptr_t expected_prev;
+    uintptr_t actual_prev;
+} zigux_list_backlink_break;
+
+typedef struct zigux_hlist_prev_link_break {
+    size_t current_index;
+    uintptr_t expected_pprev;
+    uintptr_t actual_pprev;
+} zigux_hlist_prev_link_break;
+
 static inline int zigux_notifier_chain_has_nonincreasing_priority(
     const struct zigux_notifier_block *head)
 {
@@ -154,10 +166,12 @@ static inline int zigux_notifier_first_chain_priority_increase(
     return 0;
 }
 
-static inline int zigux_list_has_consistent_backlinks(
-    const struct zigux_list_head *head)
+static inline int zigux_list_first_broken_backlink(
+    const struct zigux_list_head *head,
+    zigux_list_backlink_break *out)
 {
     uintptr_t expected_prev;
+    size_t current_index = 0;
     const struct zigux_list_head *cursor;
 
     if (!head)
@@ -165,25 +179,61 @@ static inline int zigux_list_has_consistent_backlinks(
 
     expected_prev = (uintptr_t)head;
     cursor = (const struct zigux_list_head *)(uintptr_t)head->next;
-    if (!cursor)
-        return 0;
-
-    while (cursor != head) {
-        if (cursor->prev != expected_prev)
-            return 0;
-        expected_prev = (uintptr_t)cursor;
-        cursor = (const struct zigux_list_head *)(uintptr_t)cursor->next;
-        if (!cursor)
-            return 0;
+    if (!cursor) {
+        if (out) {
+            out->current_index = 0;
+            out->expected_prev = expected_prev;
+            out->actual_prev = 0;
+        }
+        return 1;
     }
 
-    return head->prev == expected_prev;
+    while (cursor != head) {
+        if (cursor->prev != expected_prev) {
+            if (out) {
+                out->current_index = current_index;
+                out->expected_prev = expected_prev;
+                out->actual_prev = cursor->prev;
+            }
+            return 1;
+        }
+        expected_prev = (uintptr_t)cursor;
+        current_index += 1;
+        cursor = (const struct zigux_list_head *)(uintptr_t)cursor->next;
+        if (!cursor) {
+            if (out) {
+                out->current_index = current_index;
+                out->expected_prev = expected_prev;
+                out->actual_prev = 0;
+            }
+            return 1;
+        }
+    }
+
+    if (head->prev != expected_prev) {
+        if (out) {
+            out->current_index = current_index;
+            out->expected_prev = expected_prev;
+            out->actual_prev = head->prev;
+        }
+        return 1;
+    }
+
+    return 0;
 }
 
-static inline int zigux_hlist_has_consistent_prev_links(
-    const struct zigux_hlist_head *head)
+static inline int zigux_list_has_consistent_backlinks(
+    const struct zigux_list_head *head)
+{
+    return zigux_list_first_broken_backlink(head, NULL) == 0;
+}
+
+static inline int zigux_hlist_first_broken_prev_link(
+    const struct zigux_hlist_head *head,
+    zigux_hlist_prev_link_break *out)
 {
     uintptr_t expected_pprev;
+    size_t current_index = 0;
     const struct zigux_hlist_node *cursor;
 
     if (!head)
@@ -192,13 +242,26 @@ static inline int zigux_hlist_has_consistent_prev_links(
     expected_pprev = (uintptr_t)&head->first;
     cursor = (const struct zigux_hlist_node *)(uintptr_t)head->first;
     while (cursor) {
-        if (cursor->pprev != expected_pprev)
-            return 0;
+        if (cursor->pprev != expected_pprev) {
+            if (out) {
+                out->current_index = current_index;
+                out->expected_pprev = expected_pprev;
+                out->actual_pprev = cursor->pprev;
+            }
+            return 1;
+        }
         expected_pprev = (uintptr_t)&cursor->next;
+        current_index += 1;
         cursor = (const struct zigux_hlist_node *)(uintptr_t)cursor->next;
     }
 
-    return 1;
+    return 0;
+}
+
+static inline int zigux_hlist_has_consistent_prev_links(
+    const struct zigux_hlist_head *head)
+{
+    return zigux_hlist_first_broken_prev_link(head, NULL) == 0;
 }
 
 static inline zigux_boundary_header zigux_default_header(uint16_t flags)
