@@ -59,7 +59,7 @@
     {
       "id": "occupancy-summary-boundary",
       "kind": "capacity_accounting",
-      "expected": "occupancySummary() reports queue_len=0, available=32, and wrapped=false when cold and again after reset and exit, queue_len=5, available=27, and wrapped=false after enqueueing \"hello\", queue_len=10, available=22, and wrapped=false after runPreviewBoundaryReplay(), queue_len=32, available=0, and wrapped=false at full capacity before a skip, and queue_len=32, available=0, and wrapped=true after the skip-plus-refill wraparound case"
+      "expected": "the focused replay packet checks occupancySummary() at three exact boundaries: after runPreviewBoundaryReplay() it reports queue_len=10, available=22, and wrapped=false; after runWrappedPreviewReplay() it reports queue_len=32, available=0, and wrapped=true; after runRemainingCapacityReplay() it reports queue_len=24, available=8, and wrapped=true"
     },
     {
       "id": "wrapped-storage-window-boundary",
@@ -69,7 +69,7 @@
     {
       "id": "writable-span-boundary",
       "kind": "queue_shape",
-      "expected": "writableSpanSummary() reports tail_index=0, total_available=32, first_window_len=32, second_window_len=0, and wraps=false at cold and initialized boundaries, tail_index=17, total_available=22, first_window_len=15, second_window_len=7, and wraps=true after runPreviewBoundaryReplay(), and tail_index=4, total_available=0, first_window_len=0, second_window_len=0, and wraps=false after runWrappedPreviewReplay()"
+      "expected": "the focused replay packet checks writableSpanSummary() at three exact boundaries: after runPreviewBoundaryReplay() it reports tail_index=17, writable_count=22, first_window_len=15, second_window_len=7, and wraps=true; after runWrappedPreviewReplay() it reports tail_index=4, writable_count=0, first_window_len=0, second_window_len=0, and wraps=false; after runRemainingCapacityReplay() it reports tail_index=1, writable_count=8, first_window_len=8, second_window_len=0, and wraps=false"
     },
     {
       "id": "non-destructive-snapshot",
