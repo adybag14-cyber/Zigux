@@ -259,6 +259,7 @@ def ordered_conf_helper_anchors(conf_bridge_path: Path) -> list[str]:
     anchors = re.findall(r'^test "([^"]+)" \{$', source, re.M)
     if not anchors:
         raise SystemExit("failed to discover conf bridge test anchors")
+
     return anchors
 
 
@@ -496,6 +497,28 @@ def emit_manifest_issues(issues: list[tuple[str, str]]) -> None:
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
+
+
+def build_conf_command(conf_exe: Path, case: dict[str, object]) -> list[str]:
+    cmd = [str(conf_exe), str(case["mode"]), str(case["kconfig"]), str(case["config"]), str(case["arch"])]
+    if "mode_arg" in case:
+        cmd.append(str(case["mode_arg"]))
+    if case.get("silent"):
+        cmd.append("silent")
+    if "allconfig" in case:
+        cmd.append(f"allconfig={case['allconfig']}")
+    if "seed" in case:
+        cmd.append(f"seed={case['seed']}")
+    if "probability" in case:
+        cmd.append(f"probability={case['probability']}")
+    if "nosilentupdate" in case:
+        cmd.append(f"nosilentupdate={case['nosilentupdate']}")
+    return cmd
+
+
+def check_repeatable_json_output(expected: Path, actual: Path, repeat: Path) -> None:
+    run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(expected), str(actual)], cwd=str(ROOT))
+    run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(actual), str(repeat)], cwd=str(ROOT))
 
 
 def render_conf_bridge_self_test_source() -> str:
@@ -1010,29 +1033,25 @@ def main() -> int:
 
         for case in conf_cases:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            cmd = [str(conf_exe), str(case["mode"]), str(case["kconfig"]), str(case["config"]), str(case["arch"])]
-            if "mode_arg" in case:
-                cmd.append(str(case["mode_arg"]))
-            if case.get("silent"):
-                cmd.append("silent")
-            if "allconfig" in case:
-                cmd.append(f"allconfig={case['allconfig']}")
-            if "seed" in case:
-                cmd.append(f"seed={case['seed']}")
-            if "probability" in case:
-                cmd.append(f"probability={case['probability']}")
-            if "nosilentupdate" in case:
-                cmd.append(f"nosilentupdate={case['nosilentupdate']}")
+            repeat = tmp_dir / f"{case['name']}.repeat.json"
+            cmd = build_conf_command(conf_exe, case)
             result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
-            run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / str(case["expected"])), str(actual)], cwd=str(ROOT))
+            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
+            repeat.write_text(repeat_result.stdout, encoding="utf-8", newline="\n")
+            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
 
         for case in confdata_cases:
             actual = tmp_dir / f"{case['name']}.actual.json"
-            result = run([str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))], cwd=str(ROOT), capture_output=True)
+            repeat = tmp_dir / f"{case['name']}.repeat.json"
+            cmd = [str(confdata_exe), str(FIXTURE_DIR / str(case["input"]))]
+            result = run(cmd, cwd=str(ROOT), capture_output=True)
             actual.write_text(result.stdout, encoding="utf-8", newline="\n")
-            run([sys.executable, str(ARTIFACT_DIFF), "--mode", "json", str(FIXTURE_DIR / str(case["expected"])), str(actual)], cwd=str(ROOT))
+            repeat_result = run(cmd, cwd=str(ROOT), capture_output=True)
+            repeat.write_text(repeat_result.stdout, encoding="utf-8", newline="\n")
+            check_repeatable_json_output(FIXTURE_DIR / str(case["expected"]), actual, repeat)
 
+    print("KCONFIG_BRIDGE_DETERMINISM=pass")
     print("KCONFIG_BRIDGE_DIFF=pass")
     print(f"FIXTURE_DIR={FIXTURE_DIR}")
     return 0
