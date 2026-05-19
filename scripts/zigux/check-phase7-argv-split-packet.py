@@ -79,6 +79,7 @@ REQUIRED_MARKERS = {
         "copied_storage_whitespace_packet",
         "blank_input_reuses_empty_packet",
         "whitespace_before_first_nul_reuses_empty_packet",
+        "leading_nul_reuses_empty_packet",
         "first_nul_truncation_keeps_tail_outside_packet",
         "quoted_tokens_stay_whitespace_split",
     ],
@@ -88,7 +89,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 25
+SELF_TEST_CASE_COUNT = 26
 
 
 def read_text(path: Path) -> str:
@@ -270,6 +271,16 @@ def run_self_test() -> None:
         fixture_path.write_text(fixture_text.replace(fixture_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_fixture_blank_prefix_first_nul_vector_case",
+            tmp_root,
+            f"zigux/tests/fixtures/phase7_argv_split_vectors.zig: {fixture_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        fixture_text = read_text(fixture_path)
+        fixture_marker = "leading_nul_reuses_empty_packet"
+        fixture_path.write_text(fixture_text.replace(fixture_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_fixture_leading_nul_vector_case",
             tmp_root,
             f"zigux/tests/fixtures/phase7_argv_split_vectors.zig: {fixture_marker}",
         )
