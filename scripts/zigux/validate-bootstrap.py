@@ -68,9 +68,11 @@ REQUIRED_PATHS = (
 )
 
 WORKFLOW_SUBSTRING_MARKERS = (
+    'rm -f "$archive_path" "$mirror_file"\n          rm -rf "$extract_root"\n          try_download() {',
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'tar -xJf "$archive_path" -C .zig-toolchain',
     'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
+    'return 1\n          }\n          download_success=0',
     'curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"',
     'while IFS= read -r mirror_url; do',
     'if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then',
@@ -205,6 +207,18 @@ def duplicate_exact_line(text: str, marker: str) -> str:
             lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
+
+
+def swap_substrings(text: str, first: str, second: str) -> str:
+    first_index = text.find(first)
+    second_index = text.find(second)
+    if first_index == -1 or second_index == -1:
+        raise AssertionError(f"unable to swap workflow substrings: {first!r}, {second!r}")
+    if first_index > second_index:
+        first, second = second, first
+        first_index, second_index = second_index, first_index
+    between = text[first_index + len(first):second_index]
+    return text[:first_index] + second + between + first + text[second_index + len(second):]
 
 
 def swap_exact_lines(text: str, first: str, second: str) -> str:
@@ -506,7 +520,7 @@ def run_self_test() -> int:
             build_self_test_root(root)
             workflow_path = path_under(root, WORKFLOW)
             workflow_path.write_text(
-                swap_exact_lines(
+                swap_substrings(
                     workflow_path.read_text(encoding="utf-8"),
                     previous_marker,
                     current_marker,
