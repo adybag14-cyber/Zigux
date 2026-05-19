@@ -116,6 +116,31 @@ pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {
     );
 }
 
+pub fn assertListHeadLayout() LayoutError!void {
+    try expectLayout(abi.ListHead, @sizeOf(usize) * 2, @alignOf(usize));
+    try expectFieldCount(abi.ListHead, 2);
+    try expectFieldType(abi.ListHead, "next", usize);
+    try expectFieldType(abi.ListHead, "prev", usize);
+    try expectFieldLayout(abi.ListHead, "next", 0);
+    try expectFieldLayout(abi.ListHead, "prev", @sizeOf(usize));
+}
+
+pub fn assertHListHeadLayout() LayoutError!void {
+    try expectLayout(abi.HListHead, @sizeOf(usize), @alignOf(usize));
+    try expectFieldCount(abi.HListHead, 1);
+    try expectFieldType(abi.HListHead, "first", usize);
+    try expectFieldLayout(abi.HListHead, "first", 0);
+}
+
+pub fn assertHListNodeLayout() LayoutError!void {
+    try expectLayout(abi.HListNode, @sizeOf(usize) * 2, @alignOf(usize));
+    try expectFieldCount(abi.HListNode, 2);
+    try expectFieldType(abi.HListNode, "next", usize);
+    try expectFieldType(abi.HListNode, "pprev", usize);
+    try expectFieldLayout(abi.HListNode, "next", 0);
+    try expectFieldLayout(abi.HListNode, "pprev", @sizeOf(usize));
+}
+
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {
     try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 12, 4);
     try expectFieldCount(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 3);
@@ -220,6 +245,11 @@ test "layout assert reports mismatches without widening the call site" {
         flags: u16,
     };
 
+    const ListHead = extern struct {
+        next: usize,
+        prev: usize,
+    };
+
     try expectLayout(ExportStatus, 8, 4);
     try expectFieldCount(ExportStatus, 3);
     try expectFieldType(ExportStatus, "code", i32);
@@ -228,6 +258,7 @@ test "layout assert reports mismatches without widening the call site" {
     try std.testing.expectError(error.OffsetMismatch, expectOffset(ExportStatus, "flags", 4));
     try std.testing.expectError(error.FieldTypeMismatch, expectFieldType(ExportStatus, "facility", u32));
     try std.testing.expectError(error.FieldCountMismatch, expectFieldCount(ExportStatus, 2));
+    try std.testing.expectError(error.OffsetMismatch, expectFieldLayout(ListHead, "prev", 0));
 }
 
 test "layout assert exported ABI guards keep field types explicit" {
@@ -236,6 +267,9 @@ test "layout assert exported ABI guards keep field types explicit" {
     try assertInteropPolicyLayout();
     try assertNotifierBlockLayout();
     try assertNotifierChainPriorityIncreaseLayout();
+    try assertListHeadLayout();
+    try assertHListHeadLayout();
+    try assertHListNodeLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
