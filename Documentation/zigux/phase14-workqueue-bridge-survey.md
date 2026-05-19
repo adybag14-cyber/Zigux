@@ -37,6 +37,7 @@ Current direct-readback evidence for the workqueue anchor includes:
   * `Documentation/zigux/review-checklist.md`
   * `Documentation/zigux/freeze-map.md`
   * `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+  * `scripts/zigux/check-phase14-shared-smoke-route.py`
   * `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
   * `zigux/Makefile`
 
@@ -45,8 +46,8 @@ Those directly readable surfaces agree on the same bounded message:
   * `kernel/workqueue.c` remains `Study / Boundary Only`
   * the current bridge-local slice is `phase14-workqueue-scheduler-visible-worker-state-refinement`
   * `zigux/tests/phase14_workqueue_reviewability.zig` is the bridge-local reviewability check
-  * the broader shared Phase 14 smoke packet should keep the workqueue boundary shard, the directly readable release-boundary exact-count guard, and the readable current `zigux/Makefile` posture explicit without overstating build-backed replay
-  * the bridge-local trusted rerun stays limited to `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while the broader shared Phase 14 smoke packet keeps `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, the readable current `zigux/Makefile` surface with its shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes, `zig build test --build-file zigux/tests/phase14_build.zig --summary all`, and the older `phase14-*` Makefile wrappers framed as shared packet-local rerun vocabulary rather than direct bridge-local trust gates
+  * the broader shared Phase 14 smoke packet should keep the workqueue boundary shard, the directly readable release-boundary exact-count guard, the shared-smoke route checker, and the readable current `zigux/Makefile` posture explicit without overstating bridge-local ownership
+  * the bridge-local trusted rerun stays limited to `zig test zigux/tests/phase14_workqueue_reviewability.zig`, while the broader shared Phase 14 smoke packet now keeps `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and `make -C zigux phase14-validate` explicit as shared packet-local validation rather than direct bridge-local trust gates; the missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers still do not count as current proof
 
 ## Current workqueue packet posture
 
@@ -83,9 +84,9 @@ The packet is still blocked from claiming:
 The workqueue-local packet should stay aligned with the shared Phase 14 smoke packet on these points:
 
   * the workqueue anchor remains the non-frozen study-only foothold inside Phase 14
-  * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
-  * the bridge-local trusted rerun stays limited to the direct Zig test, while broader `phase14_build.zig` and `phase14-*` wrapper commands remain shared packet-local vocabulary until a future reread proves the build layer is directly readable again
-  * any future same-lane reminder repair should keep the workqueue packet explicit without presenting a returned `phase14-*` wrapper route as current proof unless a fresh reread shows it
+  * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `scripts/zigux/check-phase14-shared-smoke-route.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
+  * the bridge-local trusted rerun stays limited to the direct Zig test, while the broader `make -C zigux phase14-validate` route and its shared checker chain remain shared packet-local validation rather than bridge-local trust gates
+  * any future same-lane reminder repair should keep the workqueue packet explicit without presenting missing `phase14-smoke`, `phase14-test`, or `phase14` wrappers as current proof unless a fresh reread shows they returned
   * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey first; only if those lane-local surfaces cannot be made truthful on their own should a future run widen into the shared Phase 14 smoke packet
 
 ## Non-goals
@@ -93,7 +94,7 @@ The workqueue-local packet should stay aligned with the shared Phase 14 smoke pa
 This survey does not claim:
 
   * `kernel/workqueue.zig`
-  * a returned make-backed Phase 14 route
+  * a returned make-backed focused workqueue route
   * live enqueue, drain, cancel, or rescuer ownership
   * scheduler-facing parity
   * any Phase 15 status change
