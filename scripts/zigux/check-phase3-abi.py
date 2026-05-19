@@ -212,9 +212,9 @@ REQUIRED_MARKERS = {
         "const header_is_canonical = abi.headerIsCanonical(default_header);",
         "abi.STATUS_FLAG_ERROR,",
         "abi.NOTIFIER_DONE,",
-        '@offsetOf(abi.NotifierBlock, "priority"),',
+        '@offsetOf(abi.NotifierBlock, \\\"priority\\\"),',
         '"  \\\"abi_version\\\": {},\\n"',
-        '"  \\\"notifier\\\": {\\n"',
+        '"  \\\"notifier\\\": {{\\n',
     ),
     MANIFEST_PATH: (
         '"phase": "Phase 3"',
