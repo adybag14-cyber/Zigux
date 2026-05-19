@@ -29,6 +29,7 @@ CROSS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-cross-selftest-alignment.
 DOCS_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase2-docs-shared-reminder.py")
 REQUIRED_ROUTES_CHECKER_REL = Path("scripts/zigux/check-phase2-required-make-routes.py")
 TOOL_MANIFEST_CHECKER_REL = Path("scripts/zigux/check-phase2-tool-manifest.py")
+ARTIFACT_TOOLS_CHECKER_REL = Path("scripts/zigux/check-phase2-artifact-tools-manifest.py")
 GENKSYMS_CHECKER_REL = Path("scripts/zigux/check-genksyms-bridge.py")
 TOOLCHAIN_POLICY_REL = Path("scripts/zigux/zig-toolchain-policy.json")
 CONF_BRIDGE_REL = Path("scripts/zigux/kconfig/conf_bridge.zig")
@@ -66,6 +67,7 @@ REQUIRED_FILES = (
     DOCS_REMINDER_CHECKER_REL,
     REQUIRED_ROUTES_CHECKER_REL,
     TOOL_MANIFEST_CHECKER_REL,
+    ARTIFACT_TOOLS_CHECKER_REL,
     GENKSYMS_CHECKER_REL,
     TOOLCHAIN_POLICY_REL,
     CONF_BRIDGE_REL,
@@ -149,6 +151,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
     "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
@@ -165,6 +169,7 @@ REQUIRED_MAKEFILE_LINES = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py",
     "phase2-kconfig:",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
@@ -196,6 +201,7 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
     "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
 )
+EXPECTED_MANIFEST_ARTIFACT_SUPPORT = ("zigux/tests/fixtures/phase2_artifact_tools_manifest.json",)
 EXPECTED_MANIFEST_CHECKERS = (
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-genksyms-bridge.py",
@@ -312,7 +318,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + len(REQUIRED_MAKEFILE_LINES)
     + 1
-    + 6
+    + 7
 )
 
 
@@ -442,6 +448,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     bootstrap_helpers = require_manifest_list(issues, manifest, "bootstrap_helpers")
     cross_support = require_manifest_list(issues, manifest, "cross_route_support")
     fixture_roster = require_manifest_list(issues, manifest, "fixture_roster")
+    artifact_support = require_manifest_list(issues, manifest, "artifact_support")
     make_wrappers = require_manifest_list(issues, manifest, "make_wrappers")
     checkers = require_manifest_list(issues, manifest, "checkers")
     bridge_helpers = require_manifest_list(issues, manifest, "bridge_helpers")
@@ -458,6 +465,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         for marker in EXPECTED_MANIFEST_FIXTURE_ROSTER:
             if marker not in fixture_roster:
                 issues.append(("MISSING_MANIFEST_SURFACE", f"fixture_roster:{marker}"))
+    if artifact_support is not None:
+        for marker in EXPECTED_MANIFEST_ARTIFACT_SUPPORT:
+            if marker not in artifact_support:
+                issues.append(("MISSING_MANIFEST_SURFACE", f"artifact_support:{marker}"))
     if make_wrappers is not None:
         for marker in (
             "make -C zigux phase2-toolchain",
@@ -566,6 +577,7 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
             "bootstrap_helpers": list(EXPECTED_MANIFEST_BOOTSTRAP_HELPERS),
             "cross_route_support": list(EXPECTED_MANIFEST_CROSS_SUPPORT),
             "fixture_roster": list(EXPECTED_MANIFEST_FIXTURE_ROSTER),
+            "artifact_support": list(EXPECTED_MANIFEST_ARTIFACT_SUPPORT),
             "make_wrappers": [
                 "make -C zigux phase2-toolchain",
                 "make -C zigux phase2-tools",
@@ -598,6 +610,7 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
     write_text(resolve(root, DOCS_REMINDER_CHECKER_REL), "present\n")
     write_text(resolve(root, REQUIRED_ROUTES_CHECKER_REL), "present\n")
     write_text(resolve(root, TOOL_MANIFEST_CHECKER_REL), "present\n")
+    write_text(resolve(root, ARTIFACT_TOOLS_CHECKER_REL), "present\n")
     write_text(resolve(root, GENKSYMS_CHECKER_REL), "present\n")
     write_text(resolve(root, TOOLCHAIN_POLICY_REL), "present\n")
     write_text(resolve(root, CONF_BRIDGE_REL), "present\n")
@@ -698,6 +711,15 @@ def run_self_test() -> int:
         manifest["present_surfaces"]["checkers"] = []
         write_text(path, json.dumps(manifest, indent=2) + "\n")
         assert ("MISSING_MANIFEST_SURFACE", "checkers:scripts/zigux/check-phase2-tool-manifest.py") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, MANIFEST_REL)
+        manifest = read_json(path)
+        assert isinstance(manifest, dict)
+        manifest["present_surfaces"]["artifact_support"] = []
+        write_text(path, json.dumps(manifest, indent=2) + "\n")
+        assert ("MISSING_MANIFEST_SURFACE", "artifact_support:zigux/tests/fixtures/phase2_artifact_tools_manifest.json") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
