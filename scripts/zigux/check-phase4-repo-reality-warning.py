@@ -357,6 +357,66 @@ def main() -> int:
             else:
                 raise AssertionError("expected narrowed follow-up wording drift to fail")
 
+            build_baseline_tree(root)
+            perf_manifest = root / Path("zigux/tests/phase4_perf_baseline_manifest.json")
+            perf_manifest.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing perf manifest to fail")
+
+            build_baseline_tree(root)
+            perf_checker = root / PERF_BASELINE_CHECKER
+            perf_checker.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing perf checker to fail")
+
+            build_baseline_tree(root)
+            gate_note = root / Path("Documentation/zigux/phase4-gate-evidence.md")
+            gate_note.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing gate-evidence note to fail")
+
+            build_baseline_tree(root)
+            matrix_note = root / Path("Documentation/zigux/phase4-validation-matrix.md")
+            matrix_note.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing validation matrix note to fail")
+
+            build_baseline_tree(root)
+            tests_readme = root / README
+            tests_readme.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing tests readme to fail")
+
+            build_baseline_tree(root)
+            checklist = root / CHECKLIST
+            checklist.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing review checklist to fail")
+
         print("PHASE4_REPO_REALITY_WARNING_SELF_TEST=pass")
         print(f"PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES={cases}")
         return 0
