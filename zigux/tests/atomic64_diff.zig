@@ -276,7 +276,7 @@ test "atomic64 diff wrapper keeps the manifest build, validator, and matrix blob
 }
 
 test "atomic64 diff wrapper keeps the current manifest handoff explicit" {
-    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"lane_key\": \"P4-L02\"");
+    try expectMarker(phase4_runtime_atomic64_manifest_source, "\"lane_key\": \"P4-L01\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"roadmap_target_path\": \"zigux/tests/atomic64_diff.zig\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"owner\": \"ABI and Runtime Team\"");
     try expectMarker(phase4_runtime_atomic64_manifest_source, "\"rollback_owner\": \"ABI and Runtime Team\"");
