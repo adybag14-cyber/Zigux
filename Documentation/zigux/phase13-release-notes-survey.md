@@ -45,7 +45,7 @@ At the same time, fresh direct readback now keeps the broader docs-root reminder
 
 Current `master` also keeps the helper-local packet split visible from the release surface:
 
-- `libfs` stays roadmap-owned, but current `master` still does not materialize `Documentation/zigux/phase13-libfs-survey.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, or `zigux/tests/phase13_libfs_manifest.json`, so keep that starter, reviewability, and manifest packet recorded as repo-reality gaps together with `Documentation/zigux/phase13-libfs-slice.md` and `zigux/tests/phase13_libfs_addressability.zig`
+- `libfs` stays roadmap-owned, and current `master` does materialize the shipped helper-first packet through `Documentation/zigux/phase13-libfs-survey.md`, `fs/libfs.zig`, `zigux/tests/phase13_libfs.zig`, `zigux/tests/phase13_libfs_reviewability.zig`, and `zigux/tests/phase13_libfs_manifest.json`, while `Documentation/zigux/phase13-libfs-slice.md` and `zigux/tests/phase13_libfs_addressability.zig` remain separate repo-reality gaps
 - `devres` stays anchored through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while older `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay explicit repo-reality gaps
 - `landlock/ruleset` stays helper-local through its ownership, slice, survey, source, and manifest-backed replay surfaces, while `landlock/syscalls` stays helper-local through its governance note, slice, and source starter without collapsing into docs-only governance metadata
 - adjacent notifier evidence remains support material rather than a fifth roadmap anchor
@@ -68,12 +68,7 @@ Keep broad release wording tied to that reminder packet while the missing valida
 
 Direct current-`master` readback in this run still returned missing for:
 
-- `Documentation/zigux/phase13-libfs-survey.md`
 - `Documentation/zigux/phase13-libfs-slice.md`
-- `fs/libfs.zig`
-- `zigux/tests/phase13_libfs.zig`
-- `zigux/tests/phase13_libfs_reviewability.zig`
-- `zigux/tests/phase13_libfs_manifest.json`
 - `zigux/tests/phase13_libfs_addressability.zig`
 - `scripts/zigux/validate-phase13-release.py`
 - `make -C zigux phase13-validate`
@@ -85,7 +80,7 @@ Direct current-`master` readback in this run still returned missing for:
 
 Keep those missing validator-first helper and route surfaces framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle. `zigux/Makefile` itself is present on current `master`, but it still does not expose the Phase 13 route family, so keep the returned file distinct from the still-missing `phase13` handles.
 
-Current `master` now keeps `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` aligned around the narrower current `devres` packet, so the remaining follow-through stays limited to whichever future broad reminder surface drifts next rather than the old docs-root repair.
+Current `master` now keeps `Documentation/zigux/README.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` aligned around the narrower current `devres` packet while still keeping the shipped helper-first `libfs` survey packet explicit, so the remaining follow-through stays limited to whichever future broad reminder surface drifts next rather than the old docs-root repair.
 
 Keep older or still-missing direct companions explicit too instead of promoting them into shipped current-`master` evidence when they are not freshly reread in the same run.
 
