@@ -128,7 +128,7 @@ static inline int zigux_boundary_header_is_compatible(zigux_boundary_header head
     return zigux_uapi_boundary_header_is_compatible(header);
 }
 
-static inline int zigux_boundary_header_is_canonical(zigux_boundary_header header)
+static inline int zigux_boundary_header_is_canonical(zigux_boundaryHeader header)
 {
     return zigux_uapi_boundary_header_is_canonical(header);
 }
@@ -142,6 +142,12 @@ static inline uint32_t zigux_boundary_header_requested_extra_bytes(
     zigux_boundary_header header)
 {
     return zigux_uapi_boundary_header_requested_extra_bytes(header);
+}
+
+static inline zigux_boundary_header zigux_boundary_header_canonicalize(
+    zigux_boundary_header header)
+{
+    return zigux_uapi_boundary_header_canonicalize(header);
 }
 
 static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)
