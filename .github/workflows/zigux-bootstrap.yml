@@ -109,10 +109,18 @@ jobs:
             echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
             exit 1
           fi
+          zig_path="$extract_root/zig"
+          echo "$extract_root" >> "$GITHUB_PATH"
+          "$zig_path" version
       - name: Compile current scripts
         run: |
           set -euxo pipefail
           mapfile -t scripts < <(find scripts/zigux -maxdepth 1 -type f -name '*.py' | sort)
+          if [ "${#scripts[@]}" -eq 0 ]; then
+            echo 'no Python scripts found under scripts/zigux' >&2
+            exit 1
+          fi
+          python3 -m py_compile "${scripts[@]}"
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
       - name: Check current Zig toolchain policy packet
