@@ -9,7 +9,8 @@ module/sample2.o module/sample2.d: zigux/tests/fixtures/fixdep/sample2.c \
  zigux/tests/fixtures/fixdep/shared\:config.h \
  zigux/tests/fixtures/fixdep/escaped\ space-config.h \
  zigux/tests/fixtures/fixdep/shared\#config.h \
- zigux/tests/fixtures/fixdep/sample2-config.h
+ zigux/tests/fixtures/fixdep/sample2-config.h \
  zigux/tests/fixtures/fixdep/sample.rlib \
- zigux/tests/fixtures/fixdep/shared\:config.h
+ zigux/tests/fixtures/fixdep/shared\:config.h \
+ zigux/tests/fixtures/fixdep/sample.rmeta
 # comment line that should be ignored
