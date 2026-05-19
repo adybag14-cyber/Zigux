@@ -81,6 +81,10 @@ pub fn main(init: std.process.Init) !void {
     const cpumask = cpumask_view.viewFromWords(cpumask_words[0..], 16);
     const cpumask_summary = cpumask_view.summarize(cpumask);
 
+    var cpumask_clear_words = [_]usize{0};
+    const cpumask_clear = cpumask_view.viewFromWords(cpumask_clear_words[0..], 16);
+    const cpumask_clear_summary = cpumask_view.summarize(cpumask_clear);
+
     var cpumask_cross_words = [_]usize{
         (@as(usize, 1) << 5) | (@as(usize, 1) << (bitmap_view.bits_per_word - 1)),
         (@as(usize, 1) << 1) | (@as(usize, 1) << 6) | (@as(usize, 1) << 10),
@@ -138,6 +142,22 @@ pub fn main(init: std.process.Init) !void {
         cpumask_view.cpuIsSet(cpumask, 7),
         1,
         cpumask_view.cpuIsSet(cpumask, 1),
+        true,
+    );
+    try writeCase(
+        writer,
+        "cpumask_all_clear_window",
+        "cpumask",
+        cpumask_clear.nbits,
+        cpumask_clear.nr_cpu_ids,
+        cpumask_clear.word_count,
+        cpumask_clear_summary.first_set,
+        cpumask_clear_summary.first_zero,
+        cpumask_clear_summary.weight,
+        0,
+        cpumask_view.cpuIsSet(cpumask_clear, 0),
+        15,
+        cpumask_view.cpuIsSet(cpumask_clear, 15),
         true,
     );
     try writeCase(
