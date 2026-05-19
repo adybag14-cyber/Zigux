@@ -123,6 +123,7 @@ REQUIRED_MARKERS = {
         "Keep `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py` explicit as the shipped shared support bundle so the tests-root summary does not undercount the dedicated release-readiness checker.",
         "Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.",
         "keep the degraded rerun order honest by relying on the repo-local `.zig-toolchain` fallback in `zigux/Makefile` before the attached-Zig `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` vocabulary.",
+        "Keep `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` explicit as the current shared smoke-first build gate,",
         "Keep the bounded packet split explicit here too: `virtio_net` remains starter-present reviewability, `virtio_scsi` remains the smoke-first and rollback-lab packet",
     ],
     WORKFLOW_PATH: [
@@ -150,6 +151,16 @@ FORBIDDEN_MARKERS = {
     ]
 }
 
+EXACT_LINE_MARKER_PATHS = {
+    WORKFLOW_PATH,
+}
+
+
+def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
+    if rel_path in EXACT_LINE_MARKER_PATHS:
+        return marker in text.splitlines()
+    return marker in text
+
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
@@ -162,7 +173,7 @@ def validate(root: Path) -> list[str]:
     for rel_path, markers in REQUIRED_MARKERS.items():
         text = (root / rel_path).read_text(encoding="utf-8")
         for marker in markers:
-            if marker not in text:
+            if not has_required_marker(rel_path, text, marker):
                 failures.append(f"missing_marker:{rel_path}:{marker}")
 
     for rel_path, markers in FORBIDDEN_MARKERS.items():
@@ -200,6 +211,7 @@ def fixture_text(rel_path: str) -> str:
         if rel_path in {
             VALIDATOR_PATH,
             MAKEFILE_PATH,
+            WORKFLOW_PATH,
         }:
             return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
         return marker_fixture(title, REQUIRED_MARKERS[rel_path])
