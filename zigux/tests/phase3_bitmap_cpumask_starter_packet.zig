@@ -614,6 +614,40 @@ test "cpumask starter helpers fail closed when nr_cpu_ids drifts from nbits" {
     try testing.expectEqual(@as(u32, 0), summary.weight);
 }
 
+test "cpumask starter helpers keep drifted all-clear bitmap projections distinct from the empty sentinel" {
+    var backing = [_]usize{0};
+    var invalid = cpumask_view.viewFromWords(backing[0..], 16);
+    invalid.nr_cpu_ids = 15;
+    const projected = binding.asBitmap(invalid);
+    const cpumask_summary = cpumask_view.summarize(invalid);
+    const bitmap_summary = bitmap_view.summarize(projected);
+
+    try testing.expect(bitmap_view.isValid(projected));
+    try testing.expectEqual(invalid.words_addr, projected.words_addr);
+    try testing.expectEqual(invalid.nbits, projected.nbits);
+    try testing.expectEqual(invalid.word_count, projected.word_count);
+    try testing.expect(!bitmap_view.testBit(projected, 0));
+    try testing.expect(!bitmap_view.testBit(projected, 15));
+    try testing.expectEqual(@as(u32, 16), bitmap_view.firstSet(projected));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstZero(projected));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.weight(projected));
+    try testing.expectEqual(@as(u32, 16), bitmap_summary.first_set);
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.weight);
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.reserved);
+
+    try testing.expect(!cpumask_view.isValid(invalid));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 0));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid, 15));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid));
+    try testing.expectEqual(@as(u32, 0), cpumask_summary.first_set);
+    try testing.expectEqual(@as(u32, 0), cpumask_summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), cpumask_summary.weight);
+    try testing.expectEqual(@as(u32, 0), cpumask_summary.reserved);
+}
+
 test "cpumask starter helpers keep empty sentinel behavior explicit" {
     const view = cpumask_view.viewFromWords(&.{}, 0);
     const summary = cpumask_view.summarize(view);
