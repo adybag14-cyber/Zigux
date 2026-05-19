@@ -8,6 +8,37 @@ Purpose
   * keep product-facing validation code separate from ad hoc experiments
   * provide the checks for helper parity, ABI assertions, and rollback readiness
 
+## Phase 1 shared host-tools packet
+
+Keep the current direct-readback Phase 1 reminder packet:
+
+- `Documentation/zigux/phase1-closure.md`
+- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`
+- `Documentation/zigux/README.md`
+- `Documentation/zigux/review-checklist.md`
+- `scripts/zigux/README.md`
+- `scripts/zigux/validate-phase1-closure.py`
+- `scripts/zigux/check-phase1-string-review-packet.py`
+- `scripts/zigux/check-phase1-direct-owner-markers.py`
+- `scripts/zigux/check-phase1-bench.py`
+- `scripts/zigux/check-phase1-shared-reminder-packet.py`
+- `zigux/tests/README.md`
+- `zigux/tests/build.zig`
+- `zigux/tests/fixtures/phase1_helper_manifest.json`
+- `zigux/tests/phase1_host_tools_smoke.zig`
+- `.github/workflows/zigux-bootstrap.yml`
+
+Keep the tests-root reminder aligned with the live owner-map split and the shipped smoke route instead of reviving the older validator-first, parity, bench-route, or replay packet as if it were current direct-readback evidence.
+
+`zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
+
+That shared smoke route should stay paired with the restored closure-side validator, the direct owner-map and string-review guards, the shipped bench checker, and the committed helper manifest so the tests-root note matches the same bounded Phase 1 packet already named by the docs root, lane-sequencing note, and scripts-root reminder.
+
+Current `master` still keeps `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` outside the direct-readback packet here, so leave those validator-first, parity, bench-route, harness, and make-wrapper names framed as historical packet members until a fresh reread restores them on current `master`.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 1 reminder keep the restored closure-side validator, the direct owner-map and string-review guards, the shipped bench checker, the shared reminder checker, the helper manifest, the shipped smoke route, and the historical-warning wording aligned without reopening helper semantics or promoting missing validator-first and make-route surfaces back into current tests-root evidence?
+
 ## Phase 14 shared smoke packet
 
 Keep the current bounded Phase 14 reminder packet explicit through `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and keep the blob-readable `scripts/zigux/validate-phase14.py` plus the directly readable workqueue reviewability shard explicit as mixed-source evidence rather than missing executable-layer proof.
