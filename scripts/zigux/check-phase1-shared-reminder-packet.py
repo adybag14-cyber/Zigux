@@ -482,6 +482,14 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "duplicate_tests_smoke_route_marker",
+            lambda root: mutate_duplicate_marker(
+                root,
+                "zigux/tests/README.md",
+                MARKERS["zigux/tests/README.md"][1],
+            ),
+        ),
+        (
             "missing_workflow_bench_selftest",
             lambda root: mutate_remove_marker(
                 root,
