@@ -92,6 +92,8 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-kbuild-routes.py",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "run: python3 scripts/zigux/check-phase2-cross.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-cross.py",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
