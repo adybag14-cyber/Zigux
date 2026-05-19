@@ -43,6 +43,19 @@ pub const ConfigWriteDispositionSummary = struct {
     has_changes: bool,
 };
 
+pub const ConfigWritePlanFreshnessSummary = struct {
+    anchor: []const u8,
+    plan_present: bool,
+    plan_matches_generation: bool,
+    relative_offset: u32,
+    absolute_offset: u32,
+    planned_value: u32,
+    planned_generation: u32,
+    current_generation: u32,
+    within_config_window: bool,
+    available_for_disposition: bool,
+};
+
 pub const FeatureNegotiationSummary = struct {
     anchor: []const u8,
     selected_device_feature_word: u32,
@@ -192,6 +205,37 @@ pub const VirtioMmioLab = struct {
         };
         self.pending_config_write = plan;
         return plan;
+    }
+
+    pub fn configWritePlanFreshnessSummary(self: *const Self) ConfigWritePlanFreshnessSummary {
+        if (self.pending_config_write) |plan| {
+            const plan_matches_generation = plan.config_generation == self.config_generation;
+            return .{
+                .anchor = plan.anchor,
+                .plan_present = true,
+                .plan_matches_generation = plan_matches_generation,
+                .relative_offset = plan.relative_offset,
+                .absolute_offset = plan.absolute_offset,
+                .planned_value = plan.planned_value,
+                .planned_generation = plan.config_generation,
+                .current_generation = self.config_generation,
+                .within_config_window = plan.within_config_window,
+                .available_for_disposition = plan_matches_generation and plan.within_config_window,
+            };
+        }
+
+        return .{
+            .anchor = anchor_path,
+            .plan_present = false,
+            .plan_matches_generation = false,
+            .relative_offset = 0,
+            .absolute_offset = 0,
+            .planned_value = 0,
+            .planned_generation = 0,
+            .current_generation = self.config_generation,
+            .within_config_window = false,
+            .available_for_disposition = false,
+        };
     }
 
     pub fn configWriteDispositionSummary(self: *const Self) !ConfigWriteDispositionSummary {
@@ -470,6 +514,53 @@ test "phase10 virtio mmio restaging config bytes clears stale planned config wri
     try std.testing.expectEqual(@as(u32, 0x0506_0708), refreshed.previous_value);
     try std.testing.expectEqual(@as(u32, 0x0506_0709), refreshed.planned_value);
     try std.testing.expectEqual(@as(u4, 0b0001), refreshed.changed_byte_mask);
+}
+
+test "phase10 virtio mmio config-write plan freshness keeps staged availability reviewable" {
+    var device = try VirtioMmioLab.init(86, &[_]u16{ 8, 16 });
+    try device.stageConfigBytes(&[_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0x05, 0x04, 0x03, 0x02 });
+
+    const absent = device.configWritePlanFreshnessSummary();
+    try std.testing.expectEqualStrings(anchor_path, absent.anchor);
+    try std.testing.expect(!absent.plan_present);
+    try std.testing.expect(!absent.plan_matches_generation);
+    try std.testing.expectEqual(@as(u32, 0), absent.current_generation);
+    try std.testing.expect(!absent.available_for_disposition);
+
+    const plan = try device.planConfigWriteOffset(mmio_window_bytes + 4, 0x0203_0407);
+    const fresh = device.configWritePlanFreshnessSummary();
+    try std.testing.expectEqualStrings(anchor_path, fresh.anchor);
+    try std.testing.expect(fresh.plan_present);
+    try std.testing.expect(fresh.plan_matches_generation);
+    try std.testing.expectEqual(plan.relative_offset, fresh.relative_offset);
+    try std.testing.expectEqual(plan.absolute_offset, fresh.absolute_offset);
+    try std.testing.expectEqual(plan.planned_value, fresh.planned_value);
+    try std.testing.expectEqual(plan.config_generation, fresh.planned_generation);
+    try std.testing.expectEqual(device.config_generation, fresh.current_generation);
+    try std.testing.expect(fresh.within_config_window);
+    try std.testing.expect(fresh.available_for_disposition);
+
+    device.bumpConfigGeneration();
+    const cleared = device.configWritePlanFreshnessSummary();
+    try std.testing.expect(!cleared.plan_present);
+    try std.testing.expect(!cleared.plan_matches_generation);
+    try std.testing.expectEqual(@as(u32, 1), cleared.current_generation);
+    try std.testing.expect(!cleared.available_for_disposition);
+
+    device.pending_config_write = .{
+        .anchor = anchor_path,
+        .relative_offset = 4,
+        .absolute_offset = mmio_window_bytes + 4,
+        .planned_value = 0x0203_0409,
+        .config_generation = 0,
+        .within_config_window = true,
+    };
+    const stale = device.configWritePlanFreshnessSummary();
+    try std.testing.expect(stale.plan_present);
+    try std.testing.expect(!stale.plan_matches_generation);
+    try std.testing.expectEqual(@as(u32, 0), stale.planned_generation);
+    try std.testing.expectEqual(@as(u32, 1), stale.current_generation);
+    try std.testing.expect(!stale.available_for_disposition);
 }
 
 test "phase10 virtio mmio selected queue readiness exposes advertised and programmed sizes" {
