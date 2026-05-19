@@ -22,7 +22,7 @@
 Phase 4 in `ZAR_TO_ZIGUX_PRODUCT_ROADMAP (1).md` still calls for host-side artifact-diff checks under `scripts/zigux/` so future Zigux ports stay measurable and reversible.
 
 Current `master` now offers direct current-head readback for the helper itself through `scripts/zigux/artifact_diff.py`, but it still does not expose the full older helper-plus-contract packet. The directly readable Phase 4 packet therefore keeps the artifact-diff contract visible through a split handoff:
-  * `scripts/zigux/artifact_diff.py` is directly readable again on current `master`, so the bounded helper-side `text`, `json`, and `sha256` comparison entrypoints plus the shipped `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19` packet are current-head evidence rather than historical provenance.
+  * `scripts/zigux/artifact_diff.py` is directly readable again on current `master`, so the bounded helper-side `text`, `json`, and `bytes` comparison entrypoints, the legacy `sha256 -> bytes` mode alias, and the shipped `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=20` packet are current-head evidence rather than historical provenance.
   * `Documentation/zigux/phase4-reversible-delivery-evidence.md` still records that the broader validator, lab-matrix, and local-only perf packet is currently a repo-reality gap and treats the older contract and validator companions as historical provenance rather than current-head proof.
   * `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same repo-reality-warning posture explicit, including the host-side artifact-diff references that still matter for Phase 4 review.
   * `scripts/zigux/check-phase4-repo-reality-warning.py` fail-closes on that shared warning packet so future reruns must narrow the warning if the broader Phase 4 packet returns.
@@ -31,19 +31,21 @@ Current `master` now offers direct current-head readback for the helper itself t
 ## Current Exact Helper Checks
 
 Current exact helper-side checks verified from the live `scripts/zigux/artifact_diff.py` body and replayed locally from that fetched source in this run are:
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=19`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,sha256_pass,sha256_drift,text_missing_expected,text_missing_actual,text_missing_both,sha256_missing_expected,sha256_missing_actual,sha256_missing_both,invalid_mode_rejected`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_MODES=text,json,sha256`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASE_COUNT=20`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_SELF_TEST_CASES=text_pass,text_mismatch,json_pass,json_mismatch,json_invalid_expected,json_invalid_actual,json_invalid_both,json_missing_expected,json_missing_actual,json_missing_both,bytes_pass,bytes_drift,text_missing_expected,text_missing_actual,text_missing_both,bytes_missing_expected,bytes_missing_actual,bytes_missing_both,legacy_sha256_alias,invalid_mode_rejected`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_MODES=text,json,bytes`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_HELPER_LEGACY_MODE_ALIASES=sha256->bytes`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_SUCCESS_LINES=ARTIFACT_DIFF,MODE,EXPECTED,ACTUAL`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_SHA256_PASS_DETAIL=SHA256=<digest>`
-  * `PHASE4_ARTIFACT_DIFF_CURRENT_SHA256_FAIL_DETAIL=EXPECTED_SHA256=<digest>,ACTUAL_SHA256=<digest>`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_BYTES_PASS_DETAIL=SHA256=<digest>`
+  * `PHASE4_ARTIFACT_DIFF_CURRENT_BYTES_FAIL_DETAIL=EXPECTED_SHA256=<digest>,ACTUAL_SHA256=<digest>`
   * `PHASE4_ARTIFACT_DIFF_CURRENT_ERROR_LINES=EXPECTED_JSON_ERROR_or_ACTUAL_JSON_ERROR_or_EXPECTED_EXISTS_AND_ACTUAL_EXISTS`
 
 The bounded current replay evidence for those exact checks was:
-  * `python3 scripts/zigux/artifact_diff.py --self-test` returns `ARTIFACT_DIFF_SELF_TEST=pass`, `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19`, and the exact `ARTIFACT_DIFF_SELF_TEST_CASES=` catalog for the current helper packet
+  * `python3 scripts/zigux/artifact_diff.py --self-test` returns `ARTIFACT_DIFF_SELF_TEST=pass`, `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=20`, and the exact `ARTIFACT_DIFF_SELF_TEST_CASES=` catalog for the current helper packet
   * `python3 scripts/zigux/artifact_diff.py --mode json <expected> <actual>` prints `ARTIFACT_DIFF=pass`, `MODE=json`, `EXPECTED=<path>`, and `ACTUAL=<path>` when canonical decoded JSON matches even if formatting differs
   * `python3 scripts/zigux/artifact_diff.py --mode text <expected> <actual>` prints `ARTIFACT_DIFF=fail`, `MODE=text`, `EXPECTED=<path>`, and `ACTUAL=<path>` when UTF-8 text differs, with no extra mismatch detail lines beyond that status-and-path packet
-  * `python3 scripts/zigux/artifact_diff.py --mode sha256 <expected> <actual>` prints `ARTIFACT_DIFF=fail`, `MODE=sha256`, `EXPECTED=<path>`, `ACTUAL=<path>`, `EXPECTED_SHA256=<digest>`, and `ACTUAL_SHA256=<digest>` when the digests differ
+  * `python3 scripts/zigux/artifact_diff.py --mode bytes <expected> <actual>` prints `ARTIFACT_DIFF=fail`, `MODE=bytes`, `EXPECTED=<path>`, `ACTUAL=<path>`, `EXPECTED_SHA256=<digest>`, and `ACTUAL_SHA256=<digest>` when the digests differ
+  * `python3 scripts/zigux/artifact_diff.py --mode sha256 <expected> <actual>` keeps working as a legacy alias and still prints `MODE=bytes` after normalization before the same digest-detail lines
   * `python3 scripts/zigux/artifact_diff.py --mode json <expected> <invalid-actual>` prints `ARTIFACT_DIFF=fail`, `MODE=json`, `EXPECTED=<path>`, `ACTUAL=<path>`, and the exact invalid-JSON location line while returning the normal failure exit status
 ## Historical Catalog Provenance
 
@@ -58,9 +60,9 @@ The last directly readable broader contract packet recorded these counts and cat
 Treat those broader contract counts as last-known provenance only. They are useful for later same-lane recovery work, but this survey should not present them as fresh current-head proof while `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/validate-phase4.py` remain unreadable on current `master`.
 ## Current Conclusion
 
-The real same-lane drift was that the helper packet moved past the older `bytes` and seven-case story, but this survey still described that retired helper contract instead of the current `sha256` and nineteen-case packet.
+The real same-lane drift was that this survey still relabeled the current helper's byte-mode packet as a `sha256` mode family and undercounted the live self-test catalog.
 
-The truthful current-head posture is narrower: the helper itself is directly readable again on current `master` through `scripts/zigux/artifact_diff.py`, and this survey now records the exact current helper-side checks and output shapes that were replayed in this run, while `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/validate-phase4.py` remain broader missing companions rather than fresh current-head proof.
+The truthful current-head posture is narrower: the helper itself is directly readable again on current `master` through `scripts/zigux/artifact_diff.py`, its direct modes are `text`, `json`, and `bytes`, its legacy `sha256` alias normalizes to `MODE=bytes`, and it now ships a twenty-case self-test catalog, while `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/validate-phase4.py` remain broader missing companions rather than fresh current-head proof.
 ## Next Safe Step
   * if a future same-family lane republishes `Documentation/zigux/artifact-diff.md`, `scripts/zigux/check-artifact-diff-contract.py`, or `scripts/zigux/validate-phase4.py`, re-read the exact current packet first, rerun `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`, and then decide whether the older broader contract counts still match the republished current-head files before promoting them back to current-head evidence in the same change
   * until then, keep follow-up scoped to one reminder-surface or checker repair at a time and do not widen this lane into broader Phase 4 validator, matrix, local-only perf, bitmap, atomic64, or starter-gap work
