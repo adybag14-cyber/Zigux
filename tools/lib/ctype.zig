@@ -124,6 +124,30 @@ test "ctype transforms and ascii helpers behave" {
     try std.testing.expect(!isodigit('8'));
 }
 
+test "ctype digit helpers stay within ascii digit bounds" {
+    try std.testing.expect(isdigit('0'));
+    try std.testing.expect(isdigit('9'));
+    try std.testing.expect(!isdigit('/'));
+    try std.testing.expect(!isdigit(':'));
+    try std.testing.expect(!isdigit('a'));
+    try std.testing.expect(isodigit('0'));
+    try std.testing.expect(isodigit('7'));
+    try std.testing.expect(!isodigit('8'));
+    try std.testing.expect(!isodigit('/'));
+}
+
+test "ctype digit helpers stay aligned with the table and octal subset rules" {
+    var ch: u16 = 0;
+    while (ch < 256) : (ch += 1) {
+        const byte: u8 = @intCast(ch);
+        const expected_digit = (table[byte] & _D) != 0;
+        const expected_octal = expected_digit and byte <= '7';
+
+        try std.testing.expectEqual(expected_digit, isdigit(byte));
+        try std.testing.expectEqual(expected_octal, isodigit(byte));
+    }
+}
+
 test "ctype extended latin pairs and table-driven invariants stay aligned" {
     try std.testing.expect(isupper(0xC0));
     try std.testing.expect(islower(0xE0));
