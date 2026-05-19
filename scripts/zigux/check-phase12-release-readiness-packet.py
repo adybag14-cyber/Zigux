@@ -84,6 +84,7 @@ REQUIRED_MARKERS = {
         "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
         "Current repo-reality override: `zigux/Makefile` still omits `phase12-validate` on current `master`, but it now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` wrappers again.",
         "first rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile`",
+        "keep the reminder-only `make -C zigux phase12-validate` vocabulary explicit ahead of the shipped wrapper reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
