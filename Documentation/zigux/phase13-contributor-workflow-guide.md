@@ -109,13 +109,16 @@ Keep `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/pha
 Keep notifier evidence explicit as adjacent release-surface support through:
 
 - `Documentation/zigux/phase13-notifier-list-survey.md`
+- `scripts/zigux/check-phase13-notifier-packet.py`
+- `zigux/tests/phase13_notifier_list_manifest.json`
+- `zigux/tests/phase13_notifier_list_reviewability.zig`
 - `zigux/bindings/notifier_abi.zig`
 - `zigux/helpers/list_view.zig`
 - `zigux/helpers/hlist_view.zig`
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
 
-Keep `zigux/helpers/notifier_chain_view.zig`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, and `include/zigux/notifier_abi.h` recorded as repo-reality gaps until they rematerialize on current `master`. `zigux/Makefile` is present again, but `make -C zigux phase13-validate` and `make -C zigux phase13` still remain repo-reality-gap route names until that Phase 13 shared build handle is restored.
+Keep `zigux/helpers/notifier_chain_view.zig`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `include/zigux/notifier_abi.h` recorded as repo-reality gaps until they rematerialize on current `master`. `zigux/Makefile` is present again, but `make -C zigux phase13-validate` and `make -C zigux phase13` still remain repo-reality-gap route names until that Phase 13 shared build handle is restored.
 
 ## Reviewer Prompt
 
@@ -128,8 +131,8 @@ Before landing a broad Phase 13 reminder change, check that:
 - helper-local owner maps for `libfs`, `devres`, and `landlock` remain explicit
 - the shipped `devres` packet still runs through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `lib/devres.zig`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, while `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, and `scripts/zigux/check-phase13-devres-packet-alignment.py` stay recorded as repo-reality gaps rather than shipped current-`master` evidence
 - adjacent notifier evidence stays adjacent rather than becoming a fifth helper family
-- the returned notifier survey, `zigux/bindings/notifier_abi.zig`, and the `list_view` and `hlist_view` helpers stay explicit as adjacent evidence without being promoted into the shared helper handle
-- `zigux/helpers/notifier_chain_view.zig` stays recorded as a repo-reality gap, while `zigux/Makefile` stays distinguished from the still-missing `make -C zigux phase13-validate` and `make -C zigux phase13` route names instead of promoting that partial build surface into shipped current-`master` Phase 13 evidence
+- the shipped notifier survey, focused checker, manifest, reviewability gate, `zigux/bindings/notifier_abi.zig`, and the `list_view` and `hlist_view` helpers stay explicit as adjacent evidence without being promoted into the shared helper handle
+- `zigux/helpers/notifier_chain_view.zig`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, and `include/zigux/notifier_abi.h` stay recorded as repo-reality gaps, while `zigux/Makefile` stays distinguished from the still-missing `make -C zigux phase13-validate` and `make -C zigux phase13` route names instead of promoting that partial build surface into shipped current-`master` Phase 13 evidence
 - `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig` stay explicit as the current Landlock syscall starter surfaces while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` stay recorded as repo-reality gaps rather than shipped current-`master` evidence
 
 ## Non-Goals
