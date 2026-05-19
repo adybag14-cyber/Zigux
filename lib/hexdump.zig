@@ -84,6 +84,18 @@ pub fn bin2hex(dst: []u8, src: []const u8) HexError![]u8 {
     return dst[0 .. src.len * 2];
 }
 
+pub fn bin2hexUpper(dst: []u8, src: []const u8) HexError![]u8 {
+    if (dst.len < src.len * 2) {
+        return HexError.DestinationTooSmall;
+    }
+
+    var rest = dst;
+    for (src) |byte| {
+        rest = try hexBytePackUpper(rest, byte);
+    }
+    return dst[0 .. src.len * 2];
+}
+
 pub fn hexDumpLineLength(
     len_input: usize,
     rowsize_input: usize,
@@ -403,6 +415,27 @@ test "hex2bin and bin2hex snake-case aliases stay aligned" {
     try std.testing.expectEqualStrings("0af15c", alias_written);
 }
 
+test "bin2hexUpper emits uppercase bulk output and alias stays aligned" {
+    const sample = [_]u8{ 0x0a, 0xf1, 0x5c };
+    var direct_buf: [8]u8 = [_]u8{0xaa} ** 8;
+    var alias_buf: [8]u8 = [_]u8{0xbb} ** 8;
+
+    const direct_written = try bin2hexUpper(direct_buf[0..], &sample);
+    const alias_written = try bin2HexUpper(alias_buf[0..], &sample);
+    try std.testing.expectEqualStrings("0AF15C", direct_written);
+    try std.testing.expectEqualStrings(direct_written, alias_written);
+    try std.testing.expectEqual(@as(u8, 0xaa), direct_buf[direct_written.len]);
+    try std.testing.expectEqual(@as(u8, 0xbb), alias_buf[alias_written.len]);
+}
+
+test "bin2hexUpper preserves destination on bounds errors" {
+    const sample = [_]u8{ 0x0a, 0xf1, 0x5c };
+    var tiny = [_]u8{ 0xcc, 0xdd, 0xee, 0xff, 0x11 };
+
+    try std.testing.expectError(HexError.DestinationTooSmall, bin2hexUpper(tiny[0..], &sample));
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0xcc, 0xdd, 0xee, 0xff, 0x11 }, &tiny);
+}
+
 test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {
     const sample = [_]u8{ 0x00, 0xbe, 0xff };
     var lower: [6]u8 = undefined;
@@ -583,3 +616,4 @@ test "hexDumpToBuffer reports normalized required length for empty and zero-size
 pub const hex_to_bin = hexToBin;
 pub const hex2Bin = hex2bin;
 pub const bin2Hex = bin2hex;
+pub const bin2HexUpper = bin2hexUpper;
