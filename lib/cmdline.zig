@@ -410,6 +410,9 @@ pub fn memparse(text: []const u8) MemparseResult {
     }
 
     if (!parsed_any) {
+        if (!signed_input and base_info.base == 16 and base_info.digits_start == 2 and text.len >= 2 and text[0] == '0' and (text[1] == 'x' or text[1] == 'X')) {
+            return .{ .value = 0, .rest = text[1..] };
+        }
         return .{ .value = 0, .rest = text };
     }
 
@@ -584,6 +587,10 @@ test "memparse applies suffixes before signed clamping" {
 }
 
 test "memparse keeps signed non-decimal prefixes aligned with suffix handling" {
+    const bare_hex = memparse("0xK");
+    try std.testing.expectEqual(@as(u64, 0), bare_hex.value);
+    try std.testing.expectEqualStrings("xK", bare_hex.rest);
+
     const negative_hex = memparse("-0x2Ktail");
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative_hex.value);
     try std.testing.expectEqualStrings("tail", negative_hex.rest);
