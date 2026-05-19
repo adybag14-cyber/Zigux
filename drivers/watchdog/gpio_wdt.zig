@@ -170,6 +170,23 @@ pub const PlatformDrvdataCheckpointSummary = struct {
     blocked_on_platform_registration: bool,
 };
 
+pub const WatchdogDrvdataCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    parent_attached: bool,
+    module_owner_attached: bool,
+    platform_drvdata_owner_identity: []const u8,
+    watchdog_drvdata_owner_identity: []const u8,
+    timeout_property_precedes_platform_drvdata: bool,
+    platform_drvdata_precedes_watchdog_drvdata: bool,
+    watchdog_drvdata_precedes_registration_handoff: bool,
+    watchdog_drvdata_reuses_parent_linkage: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+    blocked_on_reboot_glue: bool,
+};
+
 pub const NowayoutPolicySummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -518,6 +535,25 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn watchdogDrvdataCheckpointSummary(self: *const Self) WatchdogDrvdataCheckpointSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .parent_attached = true,
+            .module_owner_attached = true,
+            .platform_drvdata_owner_identity = "gpio_wdt_priv",
+            .watchdog_drvdata_owner_identity = "gpio_wdt_priv",
+            .timeout_property_precedes_platform_drvdata = true,
+            .platform_drvdata_precedes_watchdog_drvdata = true,
+            .watchdog_drvdata_precedes_registration_handoff = true,
+            .watchdog_drvdata_reuses_parent_linkage = true,
+            .blocked_on_live_gpio_lookup = true,
+            .blocked_on_platform_registration = true,
+            .blocked_on_reboot_glue = true,
+        };
+    }
+
     pub fn drvdataOwnershipCheckpointSummary(self: *const Self) PlatformDrvdataCheckpointSummary {
         return self.platformDrvdataCheckpointSummary();
     }
@@ -672,4 +708,22 @@ pub const GpioWatchdogLab = struct {
 fn validateHeartbeatMargin(hw_margin_ms: u32) !void {
     if (hw_margin_ms < min_hw_margin_ms) return error.HeartbeatMarginTooSmall;
     if (hw_margin_ms > max_hw_margin_ms) return error.HeartbeatMarginTooLarge;
+}
+
+test "watchdog drvdata checkpoint stays between platform drvdata and register-device handoff" {
+    const lab = try GpioWatchdogLab.init(.toggle, 60, false);
+    const platform_drvdata = lab.platformDrvdataCheckpointSummary();
+    const watchdog_drvdata = lab.watchdogDrvdataCheckpointSummary();
+    const register_call = lab.registerDeviceCallSummary(false);
+
+    try std.testing.expect(platform_drvdata.timeout_property_precedes_drvdata_binding);
+    try std.testing.expect(platform_drvdata.drvdata_binding_precedes_registration_handoff);
+    try std.testing.expect(watchdog_drvdata.timeout_property_precedes_platform_drvdata);
+    try std.testing.expect(watchdog_drvdata.platform_drvdata_precedes_watchdog_drvdata);
+    try std.testing.expect(watchdog_drvdata.watchdog_drvdata_precedes_registration_handoff);
+    try std.testing.expect(watchdog_drvdata.watchdog_drvdata_reuses_parent_linkage);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", watchdog_drvdata.platform_drvdata_owner_identity);
+    try std.testing.expectEqualStrings("gpio_wdt_priv", watchdog_drvdata.watchdog_drvdata_owner_identity);
+    try std.testing.expect(register_call.register_device_requested);
+    try std.testing.expect(register_call.blocked_on_reboot_glue);
 }
