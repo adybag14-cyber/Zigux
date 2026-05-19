@@ -97,6 +97,8 @@ REQUIRED_MARKERS = {
         "keep the reminder-only `make -C zigux phase12-validate` vocabulary explicit ahead of the shipped wrapper reruns `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>`",
         "Keep the degraded-workflow validator-side support bundle explicit beside that same order too:",
         "  * `scripts/zigux/validate-phase12.py`",
+        "The active smoke-first direct shard set on current `master` is `zigux/tests/phase12_virtio_net_queue_resume.zig` and `zigux/tests/phase12_virtio_net_transmit_recycle.zig`, because those are the only files the current `smoke` step actually runs.",
+        "The broader starter-present `virtio_net` direct and syntax-lab packet, the driver-local `virtio_scsi` rollback-lab packet, and the published-but-still-unwired NVMe foothold remain adjacent review surfaces in the PMO note set, but they are not wired shared `smoke` or `test` build outputs in current `zigux/tests/phase12_build.zig`.",
     ],
     RELEASE_CLOSURE_CHECKLIST_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
