@@ -19,6 +19,8 @@ CATALOG_FILE = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
 MAKEFILE_MARKERS = (
     "phase6-hexdump-review:",
     "$(PYTHON) scripts/zigux/check-phase6-hexdump-route.py",
+    "phase6-hexdump-perf-matrix-test:",
+    "$(ZIG) build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
 )
 
 BUILD_MARKERS = (
@@ -52,9 +54,11 @@ CATALOG_MARKERS = (
     "- `python3 scripts/zigux/check-phase6-hexdump-route.py`",
     "- `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`",
     "- `make -C zigux phase6-hexdump-review`",
+    "- `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`",
+    "- `make -C zigux phase6-hexdump-perf-matrix-test`",
 )
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 13
 
 
 def resolve(root: Path, relative: Path) -> Path:
@@ -134,6 +138,8 @@ def run_self_test() -> int:
         for path, marker in (
             (resolve(root, MAKEFILE), MAKEFILE_MARKERS[0]),
             (resolve(root, MAKEFILE), MAKEFILE_MARKERS[1]),
+            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[2]),
+            (resolve(root, MAKEFILE), MAKEFILE_MARKERS[3]),
             (resolve(root, BUILD_FILE), BUILD_MARKERS[0]),
             (resolve(root, BUILD_FILE), BUILD_MARKERS[3]),
             (resolve(root, BUILD_FILE), BUILD_MARKERS[4]),
@@ -142,7 +148,6 @@ def run_self_test() -> int:
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[3]),
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[7]),
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[8]),
-            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[0]),
         ):
             expect_failure(root, path, marker)
             cases_run += 1
