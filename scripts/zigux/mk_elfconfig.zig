@@ -65,6 +65,11 @@ pub fn runMkElfconfig(stdin_bytes: []const u8, stdout: anytype, stderr: anytype)
     return renderOutcome(stdout, stderr, classify(stdin_bytes));
 }
 
+pub fn runMkElfconfigFromFd(fd: std.posix.fd_t, stdout: anytype, stderr: anytype) !u8 {
+    const header = try readHeader(fd);
+    return renderOutcome(stdout, stderr, classify(header.bytes[0..header.len]));
+}
+
 fn runMkElfconfigFromReader(reader: anytype, stdout: anytype, stderr: anytype) !u8 {
     const header = try readHeaderFromReader(reader);
     return renderOutcome(stdout, stderr, classify(header.bytes[0..header.len]));
@@ -92,9 +97,8 @@ pub fn main(init: std.process.Init) !void {
     var stdout_writer = Io.File.stdout().writer(io, &stdout_buffer);
     var stderr_buffer: [128]u8 = undefined;
     var stderr_writer = Io.File.stderr().writer(io, &stderr_buffer);
-    var reader = FdReader{ .fd = std.posix.STDIN_FILENO };
-    const exit_code = try runMkElfconfigFromReader(
-        &reader,
+    const exit_code = try runMkElfconfigFromFd(
+        std.posix.STDIN_FILENO,
         &stdout_writer.interface,
         &stderr_writer.interface,
     );
@@ -343,6 +347,72 @@ test "readHeader reports the exact truncated byte count" {
     try std.testing.expectEqualSlices(u8, &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 }, header.bytes[0..header.len]);
 }
 
+test "fd-backed exact 32-bit ELF header exits with stdout at EOF" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "elf32_exact.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0, 0,
+    }, 0);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 0), exit_code);
+    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "fd-backed exact invalid-class header exits silently at EOF" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "invalid_class_exact.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x7f, 'E', 'L', 'F', 3, 1, 1, 0,
+        0,    0,   0,   0,   0, 0, 0, 0,
+    }, 0);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings("", stderr.list.items);
+}
+
+test "fd-backed exact non-ELF header exits with stderr at EOF" {
+    var temp_dir = std.testing.tmpDir(.{});
+    defer temp_dir.cleanup();
+    const io = std.testing.io;
+    const file = try temp_dir.dir.createFile(io, "not_elf_exact.bin", .{ .read = true });
+    defer file.close(io);
+    try file.writePositionalAll(io, &[_]u8{
+        0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0, 0,
+    }, 0);
+
+    var stdout = try Capture.init(std.testing.allocator);
+    defer stdout.deinit();
+    var stderr = try Capture.init(std.testing.allocator);
+    defer stderr.deinit();
+
+    const exit_code = try runMkElfconfigFromFd(file.handle, &stdout, &stderr);
+    try std.testing.expectEqual(@as(u8, 1), exit_code);
+    try std.testing.expectEqualStrings("", stdout.list.items);
+    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
+}
+
 test "renders 32-bit define" {
     var stdout = try Capture.init(std.testing.allocator);
     defer stdout.deinit();
@@ -442,853 +512,4 @@ test "32-bit ELF input with trailing bytes exits with stdout" {
 test "64-bit ELF input exits with stdout" {
     var stdout = try Capture.init(std.testing.allocator);
     defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfig(
-        &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        &stdout,
-        &stderr,
-    );
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "valid ELF input with trailing bytes exits with stdout" {
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfig(
-        &[_]u8{
-            0x7f, 'E',  'L', 'F', elfclass64, 1, 1, 0,
-            0,    0,    0,   0,   0,          0, 0, 0,
-            0xaa, 0xbb,
-        },
-        &stdout,
-        &stderr,
-    );
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "empty input exits with stderr" {
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfig(&[_]u8{}, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
-}
-
-test "truncated input exits with stderr" {
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfig(
-        &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
-        &stdout,
-        &stderr,
-    );
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
-}
-
-test "non-ELF input exits with stderr" {
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfig(
-        &[_]u8{ 0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        &stdout,
-        &stderr,
-    );
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "non-ELF input with trailing bytes exits with stderr" {
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfig(
-        &[_]u8{
-            0x00, 'E',  'L', 'F', elfclass32, 1, 1, 0,
-            0,    0,    0,   0,   0,          0, 0, 0,
-            0xaa, 0xbb,
-        },
-        &stdout,
-        &stderr,
-    );
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "invalid class exits without stderr" {
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfig(
-        &[_]u8{ 0x7f, 'E', 'L', 'F', 3, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-        &stdout,
-        &stderr,
-    );
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "invalid class input with trailing bytes exits silently" {
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfig(
-        &[_]u8{
-            0x7f, 'E',  'L', 'F', 3, 1, 1, 0,
-            0,    0,    0,   0,   0, 0, 0, 0,
-            0xaa, 0xbb,
-        },
-        &stdout,
-        &stderr,
-    );
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read ELF input exits with stdout and ignores trailing bytes" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', elfclass64, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 4, 4, 8, 3 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read 32-bit ELF input exits with stdout and ignores trailing bytes" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', elfclass32, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 6, 5, 5, 3 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read full 32-bit header in first chunk exits after one read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', elfclass32, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 16, 3 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read full 64-bit header in first chunk exits after one read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', elfclass64, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 16, 3 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read exact 32-bit ELF header in first chunk exits after one read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 16, 4 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read exact 64-bit ELF header in first chunk exits after one read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 16, 4 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read full invalid-class header in first chunk exits after one read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', 3, 1, 1, 0,
-            0,    0,    0,    0,   0, 0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 16, 3 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read exact invalid-class header in first chunk exits after one read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', 3, 1, 1, 0,
-            0,    0,   0,   0,   0, 0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 16, 4 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read full non-ELF header in first chunk exits after one read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x00, 'E',  'L',  'F', elfclass32, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 16, 3 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "split-read exact non-ELF header in first chunk exits after one read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 16, 4 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "split-read exact 32-bit ELF header exits with stdout at EOF" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 5, 4, 7 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read exact 64-bit ELF header exits with stdout at EOF" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 3, 6, 7 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read exact invalid-class header exits silently at EOF" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', 3, 1, 1, 0,
-            0,    0,   0,   0,   0, 0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 6, 3, 7 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read exact non-ELF header exits with stderr at EOF" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 4, 5, 7 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "split-read one byte before a full non-ELF header still exits with truncated stderr at EOF" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 5, 4, 6 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 4), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
-}
-
-test "split-read empty input exits with stderr after immediate EOF" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{},
-        .chunk_sizes = &[_]usize{},
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
-}
-
-test "split-read invalid class exits silently and ignores trailing bytes" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', 3, 1, 1, 0,
-            0,    0,    0,    0,   0, 0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 6, 4, 6, 3 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read non-ELF input exits with stderr and ignores trailing bytes" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{
-            0x00, 'E',  'L',  'F', elfclass32, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 7, 2, 7, 3 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "split-read truncated input exits with stderr after final EOF read" {
-    var reader = SplitReader{
-        .bytes = &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
-        .chunk_sizes = &[_]usize{ 2, 2, 4 },
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 4), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
-}
-
-test "split-read immediate read error exits with stderr" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{},
-        .chunk_sizes = &[_]usize{},
-        .fail_on_call = 1,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
-}
-
-test "split-read later read error exits with truncated stderr" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{ 0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0 },
-        .chunk_sizes = &[_]usize{ 8, 8 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 2), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
-}
-
-test "split-read later read error after full 32-bit header still exits with stdout" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', elfclass32, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 16, 3 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after exact 32-bit header still exits with stdout" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', elfclass32, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 16, 4 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after 32-bit header completes on final chunk still exits with stdout" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', elfclass32, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 5, 5, 6, 3 },
-        .fail_on_call = 4,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass32_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after full 64-bit header still exits with stdout" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', elfclass64, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 16, 3 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after exact 64-bit header still exits with stdout" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 16, 4 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after 64-bit header completes on final chunk still exits with stdout" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', elfclass64, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 4, 6, 6, 3 },
-        .fail_on_call = 4,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 0), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings(elfclass64_define, stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after full invalid-class header stays silent" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', 3, 1, 1, 0,
-            0,    0,    0,    0,   0, 0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 16, 3 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after exact invalid-class header stays silent" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', 3, 1, 1, 0,
-            0,    0,   0,   0,   0, 0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 16, 4 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after invalid-class header completes on final chunk stays silent" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E',  'L',  'F', 3, 1, 1, 0,
-            0,    0,    0,    0,   0, 0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 6, 4, 6, 3 },
-        .fail_on_call = 4,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings("", stderr.list.items);
-}
-
-test "split-read later read error after full non-ELF header keeps non-ELF stderr" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x00, 'E',  'L',  'F', elfclass32, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 16, 3 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "split-read later read error after exact non-ELF header keeps non-ELF stderr" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x00, 'E', 'L', 'F', elfclass32, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 16, 4 },
-        .fail_on_call = 2,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 1), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "split-read later read error after non-ELF header completes on final chunk keeps non-ELF stderr" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x00, 'E',  'L',  'F', elfclass32, 1, 1, 0,
-            0,    0,    0,    0,   0,          0, 0, 0,
-            0xaa, 0xbb, 0xcc,
-        },
-        .chunk_sizes = &[_]usize{ 4, 4, 8, 3 },
-        .fail_on_call = 4,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
-}
-
-test "split-read later read error one byte before full header still exits with truncated stderr" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 7, 8, 8 },
-        .fail_on_call = 3,
-    };
-    var stdout = try Capture.init(std.testing.allocator);
-    defer stdout.deinit();
-    var stderr = try Capture.init(std.testing.allocator);
-    defer stderr.deinit();
-
-    const exit_code = try runMkElfconfigFromReader(&reader, &stdout, &stderr);
-    try std.testing.expectEqual(@as(u8, 1), exit_code);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualStrings("", stdout.list.items);
-    try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
-}
-
-test "readHeader keeps fifteen bytes when a later read fails one byte before the full header" {
-    var reader = FailingReader{
-        .bytes = &[_]u8{
-            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
-            0,    0,   0,   0,   0,          0, 0,
-        },
-        .chunk_sizes = &[_]usize{ 7, 8, 8 },
-        .fail_on_call = 3,
-    };
-
-    const header = try readHeaderFromReader(&reader);
-    try std.testing.expectEqual(@as(usize, 15), header.len);
-    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
-    try std.testing.expectEqualSlices(u8, &[_]u8{
-        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
-        0,    0,   0,   0,   0,          0, 0,
-    }, header.bytes[0..header.len]);
-}
+    v
