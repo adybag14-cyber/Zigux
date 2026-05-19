@@ -11,6 +11,7 @@ import sys
 SURFACE_PATH = Path("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
 TESTS_ROOT_README_PATH = Path("zigux/tests/README.md")
 SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
+DOCS_ROOT_README_PATH = Path("Documentation/zigux/README.md")
 PHASE10_START = "## Phase 10 tests-root packet"
 PHASE10_END = "## Phase 11 tests-root packet"
 
@@ -66,6 +67,15 @@ SCRIPTS_ROOT_REQUIRED_MARKERS = (
     "keep risky transport parked behind the shared closure note, freeze map, and adjacent survey packet instead of widening this scripts-root reminder into queue restart, registration lifecycle, IRQ delivery, DMA behavior, or broader transport claims",
 )
 
+DOCS_ROOT_REQUIRED_MARKERS = (
+    "public current-`master` reread now rematerializes `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_ring.zig`, so keep those returned core-note, verify, manifest, focused replay, survey, and broader ring-replay packet surfaces explicit here instead of leaving them in repo-reality-gap or last-known packet wording.",
+    "keep `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the narrower current repo-reality gaps until a fresh reread rematerializes the bounded driver-id packet on current `master`.",
+)
+
+DOCS_ROOT_FORBIDDEN_MARKERS = (
+    "while `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_ring.zig` stay framed as repo-reality gaps or last-known packet members until a fresh reread restores them on current `master`.",
+)
+
 
 def phase10_section(text: str) -> str:
     start = text.find(PHASE10_START)
@@ -101,6 +111,11 @@ def check_tests_root_readme(text: str) -> None:
 
 def check_scripts_readme(text: str) -> None:
     require_markers(text, SCRIPTS_ROOT_REQUIRED_MARKERS, "scripts-readme")
+
+
+def check_docs_root_readme(text: str) -> None:
+    require_markers(text, DOCS_ROOT_REQUIRED_MARKERS, "docs-root-readme")
+    forbid_markers(text, DOCS_ROOT_FORBIDDEN_MARKERS, "docs-root-readme")
 
 
 def run_self_test() -> int:
@@ -149,10 +164,15 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
 - `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` keep the returned closure-manifest and shared build gate explicit from the scripts root beside the same checker-backed review packet
 - keep risky transport parked behind the shared closure note, freeze map, and adjacent survey packet instead of widening this scripts-root reminder into queue restart, registration lifecycle, IRQ delivery, DMA behavior, or broader transport claims
 """
+    good_docs_root = """# Zigux Documentation
+  * keep the bounded Phase 10 packet split explicit here too: the ring, input, and MMIO reminder packet stays rooted in the returned survey notes plus the shared checker-backed closure gate, and public current-`master` reread now rematerializes `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_ring.zig`, so keep those returned core-note, verify, manifest, focused replay, survey, and broader ring-replay packet surfaces explicit here instead of leaving them in repo-reality-gap or last-known packet wording.
+  * keep `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the narrower current repo-reality gaps until a fresh reread rematerializes the bounded driver-id packet on current `master`.
+"""
 
     check_companion_text(good_companion)
     check_tests_root_readme(good_tests_root)
     check_scripts_readme(good_scripts_root)
+    check_docs_root_readme(good_docs_root)
 
     bad_companion = good_companion.replace(
         "`scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`",
@@ -202,8 +222,32 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
     else:
         raise AssertionError("expected scripts-root marker failure")
 
+    stale_docs_root = good_docs_root.replace(
+        "public current-`master` reread now rematerializes",
+        "while `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, and `zigux/tests/phase10_virtio_ring.zig` stay framed as repo-reality gaps or last-known packet members until a fresh reread restores them on current `master`, while public current-`master` reread now rematerializes",
+        1,
+    )
+    try:
+        check_docs_root_readme(stale_docs_root)
+    except SystemExit as exc:
+        assert "docs-root-readme" in str(exc)
+    else:
+        raise AssertionError("expected stale docs-root marker failure")
+
+    bad_docs_root = good_docs_root.replace(
+        "keep `drivers/virtio/virtio_driver_id.zig` and `zigux/tests/phase10_virtio_driver_id.zig` framed as the narrower current repo-reality gaps until a fresh reread rematerializes the bounded driver-id packet on current `master`.",
+        "keep the bounded driver-id packet explicit.",
+        1,
+    )
+    try:
+        check_docs_root_readme(bad_docs_root)
+    except SystemExit as exc:
+        assert "docs-root-readme" in str(exc)
+    else:
+        raise AssertionError("expected docs-root driver-id gap marker failure")
+
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=5")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -213,6 +257,7 @@ def main() -> int:
     parser.add_argument("--source", type=Path, default=SURFACE_PATH)
     parser.add_argument("--tests-root-readme", type=Path, default=TESTS_ROOT_README_PATH)
     parser.add_argument("--scripts-readme", type=Path, default=SCRIPTS_README_PATH)
+    parser.add_argument("--docs-root-readme", type=Path, default=DOCS_ROOT_README_PATH)
     args = parser.parse_args()
 
     if args.self_test:
@@ -221,6 +266,7 @@ def main() -> int:
     check_companion_text(args.source.read_text(encoding="utf-8"))
     check_tests_root_readme(args.tests_root_readme.read_text(encoding="utf-8"))
     check_scripts_readme(args.scripts_readme.read_text(encoding="utf-8"))
+    check_docs_root_readme(args.docs_root_readme.read_text(encoding="utf-8"))
     print("PHASE10_TESTS_ROOT_COMPANION_CHECK=pass")
     return 0
 
