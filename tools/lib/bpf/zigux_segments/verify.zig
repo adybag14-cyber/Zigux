@@ -398,10 +398,24 @@ test "materialized tools/lib/bpf Zigux segments keep stable logging helper outpu
         logging.libbpfErrorMessage(-@intFromEnum(logging.LibbpfErrno.verify)).?,
     );
     try std.testing.expectEqualStrings(
+        "Something wrong in libelf",
+        try logging.formatLibbpfError(
+            error_buffer[0..],
+            -@as(i32, @intFromEnum(logging.LibbpfErrno.libelf)),
+        ),
+    );
+    try std.testing.expectEqualStrings(
         "Kernel verifier blocks program loading",
         try logging.formatLibbpfError(
             error_buffer[0..],
             -@as(i32, @intFromEnum(logging.LibbpfErrno.verify)),
+        ),
+    );
+    try std.testing.expectEqualStrings(
+        "Incorrect netlink message parsing",
+        try logging.formatLibbpfError(
+            error_buffer[0..],
+            -@as(i32, @intFromEnum(logging.LibbpfErrno.nlparse)),
         ),
     );
     try std.testing.expectEqualStrings(
@@ -427,6 +441,7 @@ test "materialized tools/lib/bpf Zigux segments keep stable libbpf type-name out
     var prog_buffer: [32]u8 = undefined;
 
     try std.testing.expectEqualStrings("ringbuf", try type_names.formatLibbpfBpfMapType(map_buffer[0..], 27));
+    try std.testing.expectEqualStrings("unknown_map_type(35)", try type_names.formatLibbpfBpfMapType(map_buffer[0..], 35));
     try std.testing.expectEqualStrings("unknown_map_type(99)", try type_names.formatLibbpfBpfMapType(map_buffer[0..], 99));
     try std.testing.expectEqualStrings("perf_event", try type_names.formatLibbpfBpfAttachType(attach_buffer[0..], 41));
     try std.testing.expectEqualStrings("unknown_attach_type(59)", try type_names.formatLibbpfBpfAttachType(attach_buffer[0..], 59));
