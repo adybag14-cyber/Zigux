@@ -43,9 +43,12 @@ REQUIRED_MARKERS = {
     ],
     "lib/argv_split.zig": [
         "pub const ArgvSplitResult = struct {",
+        "pub fn countArgc(",
+        "pub fn argvSplit(",
         "pub fn argvSplitWithArgc(",
         "pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {",
         "pub fn cArgv(self: *const ArgvSplitResult) [*:null]const ?[*:0]const u8 {",
+        "fn nextSplitArgSpan(",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         'const argv_split = @import("argv_split");',
@@ -78,7 +81,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -212,6 +215,37 @@ def run_self_test() -> None:
             "missing_fixture_first_nul_vector_case",
             tmp_root,
             f"zigux/tests/fixtures/phase7_argv_split_vectors.zig: {fixture_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        helper_path = tmp_root / "lib" / "argv_split.zig"
+        helper_text = read_text(helper_path)
+        helper_marker = "pub fn countArgc("
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_helper_countargc_marker",
+            tmp_root,
+            f"lib/argv_split.zig: {helper_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "pub fn argvSplit("
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_helper_argvsplit_marker",
+            tmp_root,
+            f"lib/argv_split.zig: {helper_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = "fn nextSplitArgSpan("
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_helper_nextsplitargspan_marker",
+            tmp_root,
+            f"lib/argv_split.zig: {helper_marker}",
         )
         write_fixture_root(tmp_root)
 
