@@ -17,15 +17,18 @@ REQUIRED_TOP_LEVEL = {
 
 REQUIRED_TOOLING = {
     "primary": ["scripts/zigux/artifact_diff.py"],
-    "consumers": ["scripts/zigux/check-kconfig-bridge.py"],
+    "consumers": [
+        "scripts/zigux/check-kconfig-bridge.py",
+        "scripts/zigux/check-fixdep-diff.py",
+    ],
     "checkers": ["scripts/zigux/check-phase2-artifact-tools-manifest.py"],
     "supported_modes": ["json", "text", "bytes"],
 }
 
 REQUIRED_NOTE_MARKERS = (
-    "The artifact diff helper provides deterministic comparison output for fixture-backed scripts-root checks.",
+    "The artifact diff helper provides deterministic comparison output for fixture-backed scripts-root checks in both the kconfig bridge and fixdep parity packets.",
     "Keep `scripts/zigux/check-phase2-artifact-tools-manifest.py` explicit so the bounded Phase 2 artifact-support manifest fails closed beside the broader Phase 2 tool packet.",
-    "Keep future Phase 2 artifact-diff follow-up bounded to live consumers and directly readable fixture packets before widening into broader closure routes.",
+    "Keep future Phase 2 artifact-diff follow-up bounded to live consumers like `scripts/zigux/check-kconfig-bridge.py` and `scripts/zigux/check-fixdep-diff.py` plus directly readable fixture packets before widening into broader closure routes.",
 )
 
 
