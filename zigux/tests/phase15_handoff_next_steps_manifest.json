@@ -1,5 +1,5 @@
 {
-  "lane_key": "P15-L08",
+  "lane_key": "P15-L07",
   "phase": "Phase 15",
   "surveyed_commit": "current-master-readback-2026-05-19",
   "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -35,7 +35,7 @@
   ],
   "required_markers": [
     "PHASE15_STATUS=handoff_next_steps_survey_landed",
-    "PHASE15_LANE_KEY=P15-L08",
+    "PHASE15_LANE_KEY=P15-L07",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
     "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.",
@@ -51,5 +51,14 @@
   "handoff_rule_markers": [
     "if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts",
     "if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here"
+  ],
+  "roadmap_alignment_markers": [
+    "The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.",
+    "These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features."
+  ],
+  "pending_next_step_markers": [
+    "tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet",
+    "reread this handoff note together with any newly landed handoff-specific validator-first or dedicated-build companion before treating that companion as current evidence here",
+    "revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves"
   ]
 }
