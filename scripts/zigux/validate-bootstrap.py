@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().paren
 WORKFLOW = ".github/workflows/zigux-bootstrap.yml"
 SCRIPTS_README = "scripts/zigux/README.md"
 TOOLCHAIN_CHECKER = "scripts/zigux/check-zig-toolchain.py"
+INSTALL_ZIG_HELPER = "scripts/zigux/install-zig.py"
 FIXDEP_GATE_CHECKER = "scripts/zigux/check-phase2-fixdep-gate.py"
 FIXDEP_DIFF_CHECKER = "scripts/zigux/check-fixdep-diff.py"
 FIXDEP_ZIG = "scripts/zigux/fixdep.zig"
@@ -22,6 +23,7 @@ PINNING_CHECKER = "scripts/zigux/check-phase2-toolchain-pinning.py"
 PIN_SCOPE_CHECKER = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 REQUIRED_MAKE_ROUTES_CHECKER = "scripts/zigux/check-phase2-required-make-routes.py"
 SHARED_REMINDER_CHECKER = "scripts/zigux/check-phase2-docs-shared-reminder.py"
+ARTIFACT_TOOLS_MANIFEST_CHECKER = "scripts/zigux/check-phase2-artifact-tools-manifest.py"
 GENKSYMS_BRIDGE_CHECKER = "scripts/zigux/check-genksyms-bridge.py"
 GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
 PHASE2_VALIDATOR = "scripts/zigux/validate-phase2.py"
@@ -55,6 +57,7 @@ class DuplicateTrackingDict(dict[str, object]):
 REQUIRED_PATHS = (
     SCRIPTS_README,
     TOOLCHAIN_CHECKER,
+    INSTALL_ZIG_HELPER,
     FIXDEP_GATE_CHECKER,
     FIXDEP_DIFF_CHECKER,
     FIXDEP_ZIG,
@@ -63,6 +66,7 @@ REQUIRED_PATHS = (
     PIN_SCOPE_CHECKER,
     REQUIRED_MAKE_ROUTES_CHECKER,
     SHARED_REMINDER_CHECKER,
+    ARTIFACT_TOOLS_MANIFEST_CHECKER,
     GENKSYMS_BRIDGE_CHECKER,
     GENKSYMS_ZIG,
     PHASE2_VALIDATOR,
@@ -92,6 +96,7 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
     "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
@@ -125,25 +130,38 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
+    "run: make -C zigux phase2-validate",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
 README_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
+    "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`.github/workflows/zigux-bootstrap.yml`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "repeated authenticated reads on current `master` still return missing for",
-    "`scripts/zigux/install-zig.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
+    "`make -C zigux phase2-toolchain`",
+    "`make -C zigux phase2-tools`",
+    "`make -C zigux phase2-kconfig`",
+    "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-validate`",
 )
 
 TOOLCHAIN_CHECKER_MARKERS = (
@@ -441,6 +459,7 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(("#!/usr/bin/env python3", *TOOLCHAIN_CHECKER_MARKERS)) + "\n",
     )
     for rel in (
+        INSTALL_ZIG_HELPER,
         FIXDEP_GATE_CHECKER,
         FIXDEP_DIFF_CHECKER,
         FIXDEP_ZIG,
@@ -449,6 +468,7 @@ def build_self_test_root(root: Path) -> None:
         PIN_SCOPE_CHECKER,
         REQUIRED_MAKE_ROUTES_CHECKER,
         SHARED_REMINDER_CHECKER,
+        ARTIFACT_TOOLS_MANIFEST_CHECKER,
         GENKSYMS_BRIDGE_CHECKER,
         GENKSYMS_ZIG,
         PHASE2_VALIDATOR,
