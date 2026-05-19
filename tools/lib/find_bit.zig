@@ -347,6 +347,10 @@ fn clumpMask(nbits: usize, offset: usize) u8 {
 }
 
 pub fn findNextClump8(clump: *u8, addr: []const Word, nbits: usize, offset: usize) usize {
+    if (offset >= nbits) {
+        return nbits;
+    }
+
     const next = findNextBit(addr, nbits, offset);
     if (next == nbits) {
         return nbits;
@@ -719,6 +723,18 @@ test "clump8 zero-bit and past-end windows leave the caller byte untouched" {
     try std.testing.expectEqual(@as(u8, 0x5a), clump);
 }
 
+test "clump8 past-end scans return without reading bitmap words" {
+    const empty = [_]Word{};
+    var clump: u8 = 0x5a;
+
+    try std.testing.expectEqual(@as(usize, 8), findNextClump8(&clump, &empty, 8, 8));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+    try std.testing.expectEqual(@as(usize, 8), find_next_clump8(&clump, &empty, 8, 12));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+    try std.testing.expectEqual(@as(usize, 8), _find_next_clump8(&clump, &empty, 8, 20));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+}
+
 test "getValue8 reads aligned bytes from bitmap words" {
     const bitmap = [_]Word{
         (@as(Word, 0x42) << 8) | (@as(Word, 0xa5) << 24),
@@ -877,7 +893,6 @@ test "Linux-style aliases mirror the primary find helpers, including andnot" {
     try std.testing.expectEqual(findNextAndNotBit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long), find_next_andnot_bit(&andnot_lhs, &andnot_rhs, nbits, bits_per_long));
     try std.testing.expectEqual(findNextZeroBit(&zero_map, nbits, 5), find_next_zero_bit(&zero_map, nbits, 5));
     try std.testing.expectEqual(findLastBit(&bitmap, nbits), find_last_bit(&bitmap, nbits));
-
     var clump: u8 = 0;
     try std.testing.expectEqual(@as(usize, 0), find_first_clump8(&clump, &[_]Word{@as(Word, 1)}, 8));
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
