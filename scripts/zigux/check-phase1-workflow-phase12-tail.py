@@ -191,7 +191,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase11_proof_step")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
@@ -217,7 +217,7 @@ def run_self_test() -> int:
             print("self-test:broken_phase11_to_phase12_chain_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
@@ -255,7 +255,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_tail_selftest_run_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         duplicate_check = (
