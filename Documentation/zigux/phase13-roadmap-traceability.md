@@ -48,7 +48,8 @@ Use this compact reread before editing the broader Phase 13 reminder packet.
 - shared-summary guard handoff note: `Documentation/zigux/phase13-shared-summary-guard-gap.md` keeps the old missing-checker closure explicit beside that shipped guard
 - stable shared tests-root companion: `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md` keeps the returned direct `devres` DMA replay and the still-missing Landlock syscall test companions explicit in the shared reminder packet
 - stable contributor-facing handle: `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`
-- support companions for that stable handle: `Documentation/zigux/phase13-release-coordination-matrix.md` and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- contributor-surface sync companion: `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` keeps the docs-root, scripts-root, tests-root, checklist, and helper-local reminder packet coupled to the same current-`master` Phase 13 evidence set
+- support companions for that stable handle: `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, and `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 
 Current `master` maps the four roadmap anchors to these bounded packet states:
 
