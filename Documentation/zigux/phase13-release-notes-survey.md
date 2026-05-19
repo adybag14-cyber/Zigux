@@ -116,6 +116,22 @@ When this survey changes, reread these shared reminder surfaces together first:
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 
+If the release-facing `devres` packet is what moved, reread these same-lane packet surfaces in the same pass before changing this note:
+
+- `Documentation/zigux/phase13-devres-slice.md`
+- `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`
+- `Documentation/zigux/phase13-devres-scatterlist-slice.md`
+- `scripts/zigux/check-phase13-devres-dma-boundary.py`
+- `scripts/zigux/check-phase13-devres-mmio-packet.py`
+- `lib/devres.zig`
+- `lib/devres_scatterlist.zig`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_scatterlist.zig`
+- `zigux/tests/phase13_devres_scatterlist_build.zig`
+
 Only widen beyond this survey if a fresh current-`master` reread shows that one of those coupled reminder surfaces cannot stay truthful without the adjacent same-lane follow-through.
 
 ## Non-Goals
