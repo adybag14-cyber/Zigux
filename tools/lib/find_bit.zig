@@ -406,7 +406,7 @@ pub fn _find_last_bit(addr: []const Word, nbits: usize) usize {
     return findLastBit(addr, nbits);
 }
 
-test "find first and next set bits across words" {
+test "find first and next set bits across words, with andnot gaps explicit" {
     var bitmap = [_]Word{ 0, 0, 0 };
     bitmap[0] |= @as(Word, 1) << 5;
     bitmap[1] |= @as(Word, 1) << 3;
@@ -831,7 +831,7 @@ test "tail-word next zero and shared scans skip earlier in-range matches before 
     try std.testing.expectEqual(@as(usize, nbits), findNextAndBit(&tail_and_lhs, &tail_and_rhs, nbits, bits_per_long + 5));
 }
 
-test "low-level underscore aliases mirror the primary find helpers" {
+test "low-level underscore aliases mirror the primary find helpers, including andnot" {
     const nbits = bits_per_long + 5;
     const bitmap = [_]Word{ (@as(Word, 1) << 7), (@as(Word, 1) << 3) | (@as(Word, 1) << 10) };
     const zero_map = [_]Word{ ~(@as(Word, 1) << 4), lastWordMask(nbits) };
@@ -859,7 +859,7 @@ test "low-level underscore aliases mirror the primary find helpers" {
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
 
-test "Linux-style aliases mirror the primary find helpers" {
+test "Linux-style aliases mirror the primary find helpers, including andnot" {
     const nbits = bits_per_long + 5;
     const bitmap = [_]Word{ (@as(Word, 1) << 7), (@as(Word, 1) << 3) | (@as(Word, 1) << 10) };
     const zero_map = [_]Word{ ~(@as(Word, 1) << 4), lastWordMask(nbits) };
