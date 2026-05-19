@@ -196,15 +196,15 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
         manifest.roadmap_gap_summary.roadmap_phase_goal,
     );
     try std.testing.expectEqualStrings(
-        "narrow trace-events sample packet plus family-local survey witness",
+        "narrow trace-events sample packet plus family-local survey witness beside a returned bounded phase9_build bundle",
         manifest.roadmap_gap_summary.landed_pilot_state,
     );
     try std.testing.expectEqualStrings(
-        "broader shared runtime-loader, shared build route, and shared runtime_* replay family remain absent on current master",
+        "broader shared runtime-loader and broader shared runtime_* replay family remain absent on current master",
         manifest.roadmap_gap_summary.missing_capability,
     );
     try std.testing.expectEqualStrings(
-        "keep the survey note, manifest, survey gate, and module-slice aligned with the surviving sample family while shared loader work stays parked",
+        "keep the survey note, manifest, survey gate, and module-slice aligned with the surviving sample family and the returned bounded phase9_build bundle while shared loader work stays parked",
         manifest.roadmap_gap_summary.next_gate,
     );
 
