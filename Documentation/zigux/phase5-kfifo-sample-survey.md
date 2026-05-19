@@ -12,6 +12,7 @@ This note tracks the bounded Phase 5 reference-sample survey for the roadmap's `
   - `Documentation/zigux/phase5-kfifo-sample-survey.md`
   - `Documentation/zigux/phase5-sample-review-guide.md`
   - `samples/zigux/README.md`
+  - `scripts/zigux/check-phase5-review-guide-surface.py`
   - `scripts/zigux/README.md`
   - `zigux/tests/README.md`
   - `samples/zigux/bytestream_fifo.zig`
@@ -37,7 +38,7 @@ Fresh repo-first inspection on 2026-05-18 confirmed these same-lane facts:
 - the broader exact behavior packet is now directly readable through authenticated contents readback for `zigux/tests/phase5_bytestream_fifo.zig`, which currently carries four focused replay tests for lane scoping, transfer counts, helper boundaries, queue-shape boundaries, preview behavior, and lifecycle guards.
 - the manifest-backed packet remains directly readable through authenticated contents readback for `zigux/tests/phase5_bytestream_fifo_manifest.json`.
 - the survey packet is now directly readable through authenticated contents readback for `zigux/tests/phase5_bytestream_fifo_survey.zig`, which currently carries four survey-packet checks that keep this note, the manifest, and the direct sample-plus-tests wording aligned.
-- the shared review path still runs through `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the directly readable manifest companion, the directly readable focused replay packet, the directly readable survey gate, and the public-tree `zigux/tests/phase5_build.zig` route.
+- the shared review path still runs through `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase5-review-guide-surface.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, the directly readable manifest companion, the directly readable focused replay packet, the directly readable survey gate, and the public-tree `zigux/tests/phase5_build.zig` route.
 - authenticated GitHub contents reads in this environment still do not recover `zigux/tests/phase5_build.zig`, so reminder surfaces should keep that shared build path framed as public-tree-backed companion evidence instead of calling it directly readable or collapsing it into a missing-packet story.
 
 That means the honest same-lane posture today is:
@@ -45,7 +46,7 @@ That means the honest same-lane posture today is:
 - the roadmap-backed kfifo sample idiom is still present at the sample root
 - the ownership rule remains non-runtime and fixed-buffer-backed
 - the sample-root file itself now exposes three direct self-checks
-- the directly readable focused replay packet, manifest companion, survey gate, scripts-root reminder, and tests-root guide now keep the broader bytestream review packet explicit while the shared build companion stays on the public-tree-backed side
+- the directly readable focused replay packet, manifest companion, survey gate, shipped review-guide checker, scripts-root reminder, and tests-root guide now keep the broader bytestream review packet explicit while the shared build companion stays on the public-tree-backed side
 - current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample, so this bytestream packet must not be used to imply bitmap-side sample delivery or reopen the separate later-phase runtime bitmap family
 
 ## Approved idiom for the current bytestream sample
