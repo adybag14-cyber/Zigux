@@ -112,6 +112,8 @@ MARKERS = {
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
+        "run: python3 scripts/zigux/validate-phase1-closure.py --self-test",
+        "run: python3 scripts/zigux/validate-phase1-closure.py",
     ),
 }
 
