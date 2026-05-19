@@ -306,7 +306,11 @@
         "test \"memparse keeps signed values and their trailing rest aligned\"",
         "test \"memparse consumes suffix after saturation\"",
         "test \"memparse applies suffixes before signed clamping\"",
+        "test \"strchr mirrors full-length C-string searches\"",
+        "test \"strrchr finds the last in-range match with C-string semantics\"",
+        "test \"strpbrk finds the first accepted byte with C-string semantics\"",
         "test \"strnchr honors count and C-string boundaries\"",
+        "test \"strnlen honors count and C-string boundaries\"",
         "test \"strnchrNul returns the first match, NUL, or count boundary\""
       ],
       "memparse_review_anchors": [
@@ -348,11 +352,15 @@
       "strscpy_review_summary": "helper-local string copy-and-pad anchors stay explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated strscpy() or strscpyPad() fixture keys",
       "strnchr_review_anchor": "test \"strnchr honors count and C-string boundaries\"",
       "counted_search_review_anchors": [
+        "test \"strchr mirrors full-length C-string searches\"",
+        "test \"strrchr finds the last in-range match with C-string semantics\"",
+        "test \"strpbrk finds the first accepted byte with C-string semantics\"",
         "test \"strnchr honors count and C-string boundaries\"",
+        "test \"strnlen honors count and C-string boundaries\"",
         "test \"strnchrNul returns the first match, NUL, or count boundary\""
       ],
       "strnchrnul_review_anchor": "test \"strnchrNul returns the first match, NUL, or count boundary\"",
-      "strnchr_review_summary": "the direct counted-search follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search fixture keys, so strnchr() count-limited scanning and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors",
+      "strnchr_review_summary": "the direct counted-search and C-string search-length follow-up stays explicit because the shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors",
       "basename_review_anchor": "test \"kbasename returns the final path component with C-string semantics\"",
       "basename_review_summary": "helper-local basename path-tail anchor stays explicit through the direct string tests because the shared Phase 1 replay still does not carry dedicated kbasename fixture keys, so final path-component extraction at the first C-string terminator remains review-visible at the helper surface",
       "trim_nul_review_anchor": "test \"phase 1 string trim helpers stop at embedded NUL after trailing whitespace\"",
