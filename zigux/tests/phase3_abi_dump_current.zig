@@ -41,6 +41,35 @@ pub fn main(init: std.process.Init) !void {
         },
     );
     try stdout.print(
+        "  \"chrdev_budget_window\": {{\n    \"status_skipped\": {},\n    \"budget_flag_budget_applied\": {},\n    \"budget_window_flag_window_applied\": {},\n    \"budget_window_status_skipped\": {},\n    \"view\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"ack_window_offset\": {},\n        \"delivery_window_offset\": {},\n        \"status_offset\": {}\n      }}\n    }},\n    \"summary\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"applied_offset\": {},\n        \"skipped_offset\": {},\n        \"delivered_offset\": {}\n      }}\n    }},\n    \"budget_view\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"budget_offset\": {},\n        \"window_offset\": {},\n        \"flags_offset\": {}\n      }}\n    }},\n    \"budget_summary\": {{\n      \"size\": {},\n      \"align\": {},\n      \"fields\": {{\n        \"attempted_offset\": {},\n        \"applied_offset\": {},\n        \"skipped_offset\": {}\n      }}\n    }}\n  }},\n",
+        .{
+            abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_STATUS_SKIPPED,
+            abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_FLAG_BUDGET_APPLIED,
+            abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_FLAG_WINDOW_APPLIED,
+            abi.CHRDEV_NOTIFY_ACK_WINDOW_POLICY_BUDGET_WINDOW_DELIVERY_WINDOW_BUDGET_WINDOW_STATUS_SKIPPED,
+            @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView),
+            @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window"),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "delivery_window"),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "status"),
+            @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary),
+            @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "applied"),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "skipped"),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummary, "delivered"),
+            @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView),
+            @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "budget"),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "window"),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetView, "flags"),
+            @sizeOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary),
+            @alignOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "attempted"),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "applied"),
+            @offsetOf(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped"),
+        },
+    );
+    try stdout.print(
         "  \"interop_policy\": {{\n    \"size\": {},\n    \"align\": {},\n    \"fields\": {{\n      \"panic_mode_offset\": {},\n      \"allocator_mode_offset\": {},\n      \"unsafe_scope_offset\": {},\n      \"reserved_offset\": {}\n    }},\n    \"default\": {{\n      \"panic_mode\": {},\n      \"allocator_mode\": {},\n      \"unsafe_scope\": {},\n      \"reserved\": {}\n    }}\n  }},\n",
         .{
             @sizeOf(abi.InteropPolicy),
