@@ -25,6 +25,8 @@ SURVEY_NOTE_MARKERS = [
     "PHASE10_STATUS=parked",
     "drivers/virtio/virtio_mmio.zig",
     "drivers/virtio/virtio_mmio_verify.zig",
+    "zigux/tests/phase10_virtio_mmio.zig",
+    "zigux/tests/phase10_virtio_mmio_manifest.json",
     "zigux/tests/phase10_virtio_mmio_survey.zig",
     "interrupt-ack disposition review",
     "config-write disposition reporting",
@@ -138,7 +140,7 @@ HELPER_TEST_MARKERS = [
 ]
 
 SURVEY_GATE_MARKERS = [
-    'test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {',
+    'test "phase10 virtio mmio survey note keeps the direct lab gate, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {',
     'try expectContains(survey_note, "interrupt-ack disposition review");',
     'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");',
