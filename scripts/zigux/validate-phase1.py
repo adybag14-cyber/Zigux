@@ -457,7 +457,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_shared_replay_live_root = base / "optional_shared_replay_live"
-        build_sampleRepo(optional_shared_replay_live_root)
+        build_sample_repo(optional_shared_replay_live_root)
         build_stub_script(
             optional_shared_replay_live_root / "scripts/zigux/check-phase1-shared-replay-roster.py",
             live_exit=1,
