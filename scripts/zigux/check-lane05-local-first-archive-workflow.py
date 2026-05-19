@@ -23,6 +23,8 @@ CHECK_STEP = "- name: Check current Lane 05 local-first archive packet"
 CHECK_CMD = "python3 scripts/zigux/check-lane05-local-first-archive-workflow.py"
 NEXT_PHASE_STEP = "- name: Self-test current Phase 2 fixdep gate checker"
 THIRD_PARTY_PATH = "- 'third_party/**'"
+DIRECT_DOWNLOAD_GUARD = 'if [ "$download_success" -ne 1 ]; then'
+DIRECT_DOWNLOAD_CMD = 'if try_download "$ZIGUX_ZIG_URL"; then'
 
 POLICY_MARKERS = (
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
@@ -46,7 +48,8 @@ LOCAL_ARCHIVE_MARKERS = (
     'tar -xJf "$repo_archive_path" -C .zig-toolchain',
     "if try_local_archive; then",
     'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-    'if try_download "$ZIGUX_ZIG_URL"; then',
+    DIRECT_DOWNLOAD_GUARD,
+    DIRECT_DOWNLOAD_CMD,
     "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
 )
 
@@ -123,6 +126,7 @@ def check_workflow(text: str) -> None:
     require_exact_count(text, 'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"', 1, "local archive path marker")
     require_exact_count(text, "try_local_archive() {", 1, "local archive helper definition")
     require_exact_count(text, "if try_local_archive; then", 1, "local archive helper invocation")
+    require_exact_count(text, DIRECT_DOWNLOAD_CMD, 1, "direct-download fallback")
 
     require_order(text, CHECKOUT_STEP, SETUP_STEP, "workflow step order")
     require_order(text, SETUP_STEP, TOOLCHAIN_SELF_TEST_STEP, "workflow step order")
@@ -204,8 +208,14 @@ def check_workflow(text: str) -> None:
     require_order(
         text,
         'elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
-        'if try_download "$ZIGUX_ZIG_URL"; then',
-        "workflow mirrors before direct download order",
+        DIRECT_DOWNLOAD_GUARD,
+        "workflow mirrors before direct-download guard order",
+    )
+    require_order(
+        text,
+        DIRECT_DOWNLOAD_GUARD,
+        DIRECT_DOWNLOAD_CMD,
+        "workflow direct-download guard order",
     )
 
 
@@ -251,8 +261,10 @@ jobs:
           elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then
             download_success=0
           fi
-          if try_download "$ZIGUX_ZIG_URL"; then
-            download_success=1
+          if [ "$download_success" -ne 1 ]; then
+            if try_download "$ZIGUX_ZIG_URL"; then
+              download_success=1
+            fi
           fi
           echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2
       - name: Self-test current Zig toolchain checker
@@ -377,16 +389,20 @@ jobs:
         '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
         "            download_success=0\n"
         "          fi\n"
-        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
-        "            download_success=1\n"
+        '          if [ "$download_success" -ne 1 ]; then\n'
+        '            if try_download "$ZIGUX_ZIG_URL"; then\n'
+        "              download_success=1\n"
+        "            fi\n"
         "          fi\n",
         '          elif curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then\n'
         "            download_success=0\n"
         "          fi\n"
         "          if try_local_archive; then\n"
         "            download_success=1\n"
-        '          if try_download "$ZIGUX_ZIG_URL"; then\n'
-        "            download_success=1\n"
+        '          if [ "$download_success" -ne 1 ]; then\n'
+        '            if try_download "$ZIGUX_ZIG_URL"; then\n'
+        "              download_success=1\n"
+        "            fi\n"
         "          fi\n",
         1,
     )
@@ -441,6 +457,43 @@ jobs:
         case_count += 1
     else:
         raise AssertionError("expected duplicate third-party path failure")
+
+    missing_direct_download_guard = good_workflow.replace(
+        '          if [ "$download_success" -ne 1 ]; then\n',
+        "",
+        1,
+    ).replace(
+        '            if try_download "$ZIGUX_ZIG_URL"; then\n',
+        '          if try_download "$ZIGUX_ZIG_URL"; then\n',
+        1,
+    ).replace(
+        "          fi\n"
+        "          echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2\n",
+        "          echo 'failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org' >&2\n",
+        1,
+    )
+    try:
+        check_workflow(missing_direct_download_guard)
+    except SystemExit as exc:
+        assert "download_success" in str(exc) or "direct-download guard" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing direct-download guard failure")
+
+    reordered_direct_download_guard = good_workflow.replace(
+        '          if [ "$download_success" -ne 1 ]; then\n'
+        '            if try_download "$ZIGUX_ZIG_URL"; then\n',
+        '            if try_download "$ZIGUX_ZIG_URL"; then\n'
+        '          if [ "$download_success" -ne 1 ]; then\n',
+        1,
+    )
+    try:
+        check_workflow(reordered_direct_download_guard)
+    except SystemExit as exc:
+        assert "direct-download guard order" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected reordered direct-download guard failure")
 
     print("LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST=pass")
     print(f"LANE05_LOCAL_FIRST_ARCHIVE_WORKFLOW_SELF_TEST_CASE_COUNT={case_count}")
