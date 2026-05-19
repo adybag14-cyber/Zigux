@@ -29,6 +29,7 @@ XARRAY_SLOT_STARTER_FILE = Path("zigux/tests/phase3_xarray_slot_starter_packet.z
 SHARED_TESTS_BUILD_FILE = Path("zigux/tests/build.zig")
 SHARED_VALIDATOR_FILE = Path("scripts/zigux/validate-phase3.py")
 CATALOG_TOOL_FILE = Path("scripts/zigux/phase3_catalog.py")
+FIXTURE_MANIFEST_FILE = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 RUNNER_MARKER = "scripts/zigux/run-phase3-checks.py"
 SHARED_TESTS_ROUTES_MARKER = "scripts/zigux/check-phase3-shared-tests-routes.py"
@@ -57,7 +58,7 @@ CATALOG_SELFTEST_GAP_MARKER = "scripts/zigux/check-phase3-catalog-selftest.py"
 CATALOG_TOOL_MARKER = "scripts/zigux/phase3_catalog.py"
 WRAPPER_GENERATION_GAP_MARKER = "scripts/zigux/generate-phase3-check-wrappers.py"
 SHARED_VALIDATOR_MARKER = "scripts/zigux/validate-phase3.py"
-MANIFEST_ROOT_GAP_MARKER = "zigux/tests/phase3_abi_manifest.json"
+FIXTURE_MANIFEST_MARKER = "zigux/tests/fixtures/phase3_abi_manifest.json"
 XARRAY_SLOT_HELPER_MARKER = "zigux/helpers/xarray_slot_view.zig"
 XARRAY_SLOT_STARTER_MARKER = "zigux/tests/phase3_xarray_slot_starter_packet.zig"
 SHARED_TESTS_BUILD_MARKER = "zigux/tests/build.zig"
@@ -65,10 +66,11 @@ XARRAY_SLOT_BUILD_ROUTE_MARKER = (
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig"
 )
 README_GAP_SUMMARY_MARKER = (
-    "so treat those catalog-selftest, wrapper-generation, and manifest-root routes as "
-    "current repo-reality gaps until fresh current-tree proof lands, while "
-    "`scripts/zigux/validate-phase3.py` stays framed as the separately readable shared "
-    "validator entrypoint rather than a missing scripts-root route"
+    "so treat those catalog-selftest and wrapper-generation routes as current repo-reality "
+    "gaps until fresh current-tree proof lands, while `scripts/zigux/validate-phase3.py` "
+    "stays framed as the separately readable shared validator entrypoint and "
+    "`zigux/tests/fixtures/phase3_abi_manifest.json` stays explicit as the manifest-backed "
+    "inventory companion"
 )
 HEADER_FAMILY_VALIDATOR_GAP_MARKER = (
     "scripts/zigux/validate-phase3-abi-header-family-survey.py"
@@ -106,6 +108,7 @@ REQUIRED_FILES = (
     RUNNER_FILE,
     SHARED_VALIDATOR_FILE,
     CATALOG_TOOL_FILE,
+    FIXTURE_MANIFEST_FILE,
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
@@ -182,6 +185,7 @@ REQUIRED_MARKERS = (
     "zigux/unsafe/narrow.zig",
     "zigux/uapi/dev_t.zig",
     "zigux/uapi/version.zig",
+    "zigux/tests/fixtures/phase3_abi_manifest.json",
     "zigux/tests/phase3_dev_t_starter_packet.zig",
     "zigux/tests/phase3_dev_t_starter_packet_build.zig",
     "zigux/tests/phase3_errptr_xarray_starter_packet.zig",
@@ -201,7 +205,7 @@ REQUIRED_MARKERS = (
     CATALOG_SELFTEST_GAP_MARKER,
     WRAPPER_GENERATION_GAP_MARKER,
     SHARED_VALIDATOR_MARKER,
-    MANIFEST_ROOT_GAP_MARKER,
+    FIXTURE_MANIFEST_MARKER,
     README_GAP_SUMMARY_MARKER,
     HEADER_FAMILY_VALIDATOR_GAP_MARKER,
     HEADER_FAMILY_NOTE_GAP_MARKER,
@@ -245,7 +249,7 @@ README_MARKER_CASES = (
     (CATALOG_TOOL_MARKER, "expected missing catalog tool README marker was not reported"),
     (WRAPPER_GENERATION_GAP_MARKER, "expected missing wrapper-generation gap README marker was not reported"),
     (SHARED_VALIDATOR_MARKER, "expected missing shared validator README marker was not reported"),
-    (MANIFEST_ROOT_GAP_MARKER, "expected missing manifest-root gap README marker was not reported"),
+    (FIXTURE_MANIFEST_MARKER, "expected missing fixture-manifest README marker was not reported"),
     (XARRAY_SLOT_HELPER_MARKER, "expected missing xarray-slot helper README marker was not reported"),
     (XARRAY_SLOT_STARTER_MARKER, "expected missing xarray-slot starter README marker was not reported"),
     (SHARED_TESTS_BUILD_MARKER, "expected missing shared tests build README marker was not reported"),
@@ -277,6 +281,7 @@ FILE_CASES = (
     (NARROW_UNSAFE_FILE, "expected missing narrow-unsafe file was not reported"),
     (UAPI_FILE, "expected missing UAPI file was not reported"),
     (CATALOG_TOOL_FILE, "expected missing catalog tool file was not reported"),
+    (FIXTURE_MANIFEST_FILE, "expected missing fixture manifest file was not reported"),
     (
         LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
         "expected missing low-level-wrapper survey validator file was not reported",
