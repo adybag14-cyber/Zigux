@@ -185,6 +185,12 @@ jobs:
       - name: Check current Phase 2 tests README packet
         run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py
 
+      - name: Self-test current Phase 2 cross checker
+        run: python3 scripts/zigux/check-phase2-cross.py --self-test
+
+      - name: Check current Phase 2 direct cross-route packet
+        run: python3 scripts/zigux/check-phase2-cross.py
+
       - name: Self-test current Phase 2 cross selftest alignment checker
         run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test
 
