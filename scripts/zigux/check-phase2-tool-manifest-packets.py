@@ -99,7 +99,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 41
+EXPECTED_SELF_TEST_CASE_COUNT = 55
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -132,8 +132,21 @@ def read_manifest(root: Path) -> dict[str, object]:
     return payload
 
 
-def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
-    return [(code, marker) for marker in markers if marker not in text]
+def collect_marker_count_issues(
+    text: str,
+    markers: tuple[str, ...],
+    *,
+    missing_code: str,
+    duplicate_code: str,
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = text.count(marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
 
 
 def collect_duplicate_manifest_entries(values: object, code: str) -> list[tuple[str, str]]:
@@ -155,26 +168,36 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     phase2_closure_validator_text = read_text(root, PHASE2_CLOSURE_VALIDATOR)
     manifest = read_manifest(root)
 
-    issues.extend(collect_missing_markers(closure_doc_text, CLOSURE_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"))
     issues.extend(
-        collect_missing_markers(
+        collect_marker_count_issues(
+            closure_doc_text,
+            CLOSURE_DOC_MARKERS,
+            missing_code="MISSING_CLOSURE_DOC_MARKERS",
+            duplicate_code="DUPLICATE_CLOSURE_DOC_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_marker_count_issues(
             bootstrap_notes_text,
             BOOTSTRAP_NOTES_MARKERS,
-            "MISSING_BOOTSTRAP_NOTES_MARKERS",
+            missing_code="MISSING_BOOTSTRAP_NOTES_MARKERS",
+            duplicate_code="DUPLICATE_BOOTSTRAP_NOTES_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_count_issues(
             phase2_validator_text,
             PHASE2_VALIDATOR_MARKERS,
-            "MISSING_PHASE2_VALIDATOR_MARKERS",
+            missing_code="MISSING_PHASE2_VALIDATOR_MARKERS",
+            duplicate_code="DUPLICATE_PHASE2_VALIDATOR_MARKERS",
         )
     )
     issues.extend(
-        collect_missing_markers(
+        collect_marker_count_issues(
             phase2_closure_validator_text,
             PHASE2_CLOSURE_VALIDATOR_MARKERS,
-            "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS",
+            missing_code="MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS",
+            duplicate_code="DUPLICATE_PHASE2_CLOSURE_VALIDATOR_MARKERS",
         )
     )
 
@@ -294,6 +317,12 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     return text.replace(marker, replacement, 1)
 
 
+def duplicate_once(text: str, marker: str) -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, f"{marker}\n{marker}", 1)
+
+
 def assert_system_exit_contains(callback, expected_fragment: str) -> None:
     try:
         callback()
@@ -312,21 +341,43 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for path, markers, code in (
-            (CLOSURE_DOC, CLOSURE_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"),
-            (BOOTSTRAP_NOTES, BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"),
-            (PHASE2_VALIDATOR, PHASE2_VALIDATOR_MARKERS, "MISSING_PHASE2_VALIDATOR_MARKERS"),
+        for path, markers, missing_code, duplicate_code in (
+            (
+                CLOSURE_DOC,
+                CLOSURE_DOC_MARKERS,
+                "MISSING_CLOSURE_DOC_MARKERS",
+                "DUPLICATE_CLOSURE_DOC_MARKERS",
+            ),
+            (
+                BOOTSTRAP_NOTES,
+                BOOTSTRAP_NOTES_MARKERS,
+                "MISSING_BOOTSTRAP_NOTES_MARKERS",
+                "DUPLICATE_BOOTSTRAP_NOTES_MARKERS",
+            ),
+            (
+                PHASE2_VALIDATOR,
+                PHASE2_VALIDATOR_MARKERS,
+                "MISSING_PHASE2_VALIDATOR_MARKERS",
+                "DUPLICATE_PHASE2_VALIDATOR_MARKERS",
+            ),
             (
                 PHASE2_CLOSURE_VALIDATOR,
                 PHASE2_CLOSURE_VALIDATOR_MARKERS,
                 "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS",
+                "DUPLICATE_PHASE2_CLOSURE_VALIDATOR_MARKERS",
             ),
         ):
             for marker in markers:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
                 resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
-                assert (code, marker) in collect_issues(root)
+                assert (missing_code, marker) in collect_issues(root)
+                checks_run += 1
+
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(duplicate_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                assert (duplicate_code, f"{marker}:count=2") in collect_issues(root)
                 checks_run += 1
 
         build_self_test_root(root)
