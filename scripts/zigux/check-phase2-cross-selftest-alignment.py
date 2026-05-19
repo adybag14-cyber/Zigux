@@ -10,7 +10,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 PHASE2_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
+REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
+SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 TOOLCHAIN_PINNING = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py"
 TESTS_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
@@ -29,11 +31,26 @@ PHASE2_NOTES_MARKERS = (
     "`make -C zigux phase2-cross`",
 )
 
+REVIEW_CHECKLIST_MARKERS = (
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "current rematerialized Phase 2 closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, toolchain self-check, and make-wrapper packet",
+)
+
 TESTS_README_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, tool-manifest, artifact-tools-manifest, required-make-route, toolchain reminder, kconfig bridge checker, and genksyms bridge set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
     "current `master` now directly materializes `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
     "keep the fixture-backed tool-manifest, artifact-tools, cross-target, kconfig bridge, and genksyms bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
+)
+
+SCRIPTS_README_MARKERS = (
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
+    "keep those installer, tool-manifest, direct cross-route, and genksyms bridge surfaces explicit beside the shipped toolchain and kbuild reminder packet",
 )
 
 MAKEFILE_LINES = (
@@ -178,9 +195,23 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     )
     issues.extend(
         collect_missing_markers(
+            read_text(resolve_path(root, REVIEW_CHECKLIST)),
+            REVIEW_CHECKLIST_MARKERS,
+            "MISSING_REVIEW_CHECKLIST_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
             read_text(resolve_path(root, TESTS_README)),
             TESTS_README_MARKERS,
             "MISSING_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
+            read_text(resolve_path(root, SCRIPTS_README)),
+            SCRIPTS_README_MARKERS,
+            "MISSING_SCRIPTS_README_MARKERS",
         )
     )
     issues.extend(
@@ -226,7 +257,9 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(DOCS_ROOT_README_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_NOTES), "\n".join(PHASE2_NOTES_MARKERS) + "\n")
+    write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
     write_text(resolve_path(root, TOOLCHAIN_PINNING), "\n".join(TOOLCHAIN_PINNING_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_ALIGNMENT), "\n".join(TESTS_ALIGNMENT_MARKERS) + "\n")
@@ -289,13 +322,15 @@ def run_self_test() -> int:
         1
         + len(DOCS_ROOT_README_MARKERS)
         + len(PHASE2_NOTES_MARKERS)
+        + len(REVIEW_CHECKLIST_MARKERS)
         + len(TESTS_README_MARKERS)
+        + len(SCRIPTS_README_MARKERS)
         + len(MAKEFILE_LINES)
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
         + 13
-        + 7
+        + 9
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
         root = Path(tmp_dir)
@@ -318,11 +353,25 @@ def run_self_test() -> int:
             assert ("MISSING_PHASE2_NOTES_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
+        for marker in REVIEW_CHECKLIST_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
         for marker in TESTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
             path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_TESTS_README_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in SCRIPTS_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_SCRIPTS_README_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in MAKEFILE_LINES:
@@ -465,7 +514,9 @@ def run_self_test() -> int:
         for path in (
             DOCS_ROOT_README,
             PHASE2_NOTES,
+            REVIEW_CHECKLIST,
             TESTS_README,
+            SCRIPTS_README,
             MAKEFILE,
             TOOLCHAIN_PINNING,
             TESTS_ALIGNMENT,
@@ -505,7 +556,7 @@ def main() -> int:
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
-        f"{len(DOCS_ROOT_README_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(TESTS_README_MARKERS) + len(MAKEFILE_LINES) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
+        f"{len(DOCS_ROOT_README_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(TESTS_README_MARKERS) + len(SCRIPTS_README_MARKERS) + len(MAKEFILE_LINES) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
     )
     print("PHASE2_CROSS_ALIGNMENT_FIXTURE_TARGET_COUNT=2")
     return 0
