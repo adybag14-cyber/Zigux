@@ -305,6 +305,8 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
         _ = index;
         try std.testing.expectEqualStrings(expected, focusName(focus));
     }
+    try std.testing.expectEqual(@as(usize, 8), replay.size_text.len);
+    try std.testing.expectEqualSlices(u8, "1.50 KiB", replay.size_text.bytes[0..replay.size_text.len]);
     try std.testing.expectEqualSlices(u8, "1.50Ki", replay.compact_size_text.bytes[0..replay.compact_size_text.len]);
     try std.testing.expectEqualSlices(u8, "mode_ready", replay.replaced_text.bytes[0..replay.replaced_text.len]);
     try std.testing.expectEqual(@as(usize, 5), replay.padded_text.len);
