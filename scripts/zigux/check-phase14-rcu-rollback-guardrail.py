@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+from __future__ import annotations
+
+import argparse
+import shutil
+import tempfile
+from pathlib import Path
+
+SELF_PATH = Path(__file__).resolve()
+NOTE_PATH = "Documentation/zigux/phase14-rcu-tree-survey.md"
+
+
+def infer_repo_root() -> Path:
+    for candidate in [SELF_PATH.parent, *SELF_PATH.parents]:
+        if (candidate / NOTE_PATH).exists():
+            return candidate
+    return SELF_PATH.parent
+
+
+ROOT = infer_repo_root()
+
+REQUIRED_MARKERS = [
+    "`PHASE14_LANE_KEY=P14-L16`",
+    "`PHASE14_STATUS_BUCKET=freeze_in_c`",
+    "`PHASE14_ANCHOR=kernel/rcu/tree.c`",
+    "`PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`",
+    "directly readable dedicated packet surfaces on current `master`:",
+    "executable packet companions still missing through current contents-path readback:",
+    "`zigux/tests/phase14_rcu_tree_manifest.json`",
+    "`zigux/tests/phase14_rcu_tree_survey.zig`",
+    "`scripts/zigux/check-phase14-rcu-rollback-guardrail.py`",
+    "`phase14-rcu-tree-rollback-threshold-guardrail`",
+    "rollback owner: `Repo Tooling Pod`",
+    "`Architecture Council` reopen record",
+    "parity scorecard evidence and benchmark notes",
+    "validation replay command and evidence archive path",
+]
+
+FORBIDDEN_MARKERS = [
+    "current review packet:",
+]
+
+
+def validate(root: Path) -> list[str]:
+    failures: list[str] = []
+    note = root / NOTE_PATH
+    if not note.exists():
+        return [f"missing_file:{NOTE_PATH}"]
+
+    text = note.read_text(encoding="utf-8")
+    for marker in REQUIRED_MARKERS:
+        if marker not in text:
+            failures.append(f"missing_marker:{marker}")
+    for marker in FORBIDDEN_MARKERS:
+        if marker in text:
+            failures.append(f"forbidden_marker:{marker}")
+    return failures
+
+
+def write_text(path: Path, content: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+
+
+FIXTURE_NOTE = """# Phase 14 RCU Tree Survey
+This document records the current Phase 14 boundary-study packet for `kernel/rcu/tree.c` as it exists on verified `master`.
+## Status
+- `PHASE14_LANE_KEY=P14-L16`
+- `PHASE14_STATUS_BUCKET=freeze_in_c`
+- `PHASE14_ANCHOR=kernel/rcu/tree.c`
+- `PHASE14_ROADMAP_DESTINATION=kernel/rcu/tree_bridge.zig`
+- `PHASE14_BLOCKED_GAP=phase14-rcu-tree-bridge-blocker`
+- survey provenance captured against verified `master` head `4c889233d157960514b241bcd5aff7cac5fda312`
+- directly readable dedicated packet surfaces on current `master`:
+  - `Documentation/zigux/phase14-rcu-tree-survey.md`
+  - `Documentation/zigux/freeze-map.md`
+  - `Documentation/zigux/phase14-core-boundary-traceability.md`
+  - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+- executable packet companions still missing through current contents-path readback:
+  - `zigux/tests/phase14_rcu_tree_manifest.json`
+  - `zigux/tests/phase14_rcu_tree_survey.zig`
+- dedicated rollback guard surface:
+  - `scripts/zigux/check-phase14-rcu-rollback-guardrail.py`
+## Rollback guardrail
+- manifest-backed guardrail: `phase14-rcu-tree-rollback-threshold-guardrail` keeps this freeze-in-C packet fail-closed until the same review packet carries the required reopen evidence instead of a lighter status-review claim.
+- rollback owner: `Repo Tooling Pod`
+- required evidence before any status review:
+  - `Architecture Council` reopen record linked from the active review packet
+  - parity scorecard evidence and benchmark notes attached to the same review packet
+  - validation replay command and evidence archive path recorded beside the latest blocker disposition
+"""
+
+
+def run_self_test() -> int:
+    base = Path(tempfile.mkdtemp(prefix="phase14-rcu-guardrail-"))
+    try:
+        write_text(base / NOTE_PATH, FIXTURE_NOTE)
+        failures = validate(base)
+        if failures:
+            raise SystemExit(f"fixture should pass but failed: {failures!r}")
+
+        cases = [
+            ("remove-lane-key", "`PHASE14_LANE_KEY=P14-L16`", "missing_marker:`PHASE14_LANE_KEY=P14-L16`"),
+            (
+                "remove-missing-section",
+                "executable packet companions still missing through current contents-path readback:",
+                "missing_marker:executable packet companions still missing through current contents-path readback:",
+            ),
+            (
+                "remove-checker",
+                "`scripts/zigux/check-phase14-rcu-rollback-guardrail.py`",
+                "missing_marker:`scripts/zigux/check-phase14-rcu-rollback-guardrail.py`",
+            ),
+        ]
+        for _, marker, expected in cases:
+            write_text(base / NOTE_PATH, FIXTURE_NOTE.replace(marker + "\n", "", 1))
+            failures = validate(base)
+            if expected not in failures:
+                raise SystemExit(f"expected {expected!r}, got {failures!r}")
+
+        write_text(base / NOTE_PATH, FIXTURE_NOTE + "\n- current review packet:\n")
+        failures = validate(base)
+        if "forbidden_marker:current review packet:" not in failures:
+            raise SystemExit(f"expected forbidden marker failure, got {failures!r}")
+
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass")
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST_CASE_COUNT=4")
+        return 0
+    finally:
+        shutil.rmtree(base, ignore_errors=True)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Check that the dedicated Phase 14 RCU rollback note stays aligned with the "
+            "current freeze-in-C guardrail markers and does not overstate missing executable companions."
+        )
+    )
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate.")
+    parser.add_argument("--self-test", action="store_true", help="Run the fixture-backed self-test.")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return run_self_test()
+
+    failures = validate(args.root)
+    if failures:
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL=fail")
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_DRIFT_START")
+        for failure in failures:
+            print(failure)
+        print("PHASE14_RCU_ROLLBACK_GUARDRAIL_DRIFT_END")
+        return 1
+
+    print("PHASE14_RCU_ROLLBACK_GUARDRAIL=pass")
+    print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_MARKER_COUNT={len(REQUIRED_MARKERS)}")
+    print(f"PHASE14_RCU_ROLLBACK_GUARDRAIL_FORBIDDEN_COUNT={len(FORBIDDEN_MARKERS)}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
