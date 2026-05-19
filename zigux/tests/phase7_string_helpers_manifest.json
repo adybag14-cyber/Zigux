@@ -3,6 +3,8 @@
   "lane_key_note": "helper-local keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those shared-control lanes.",
   "phase": "Phase 7",
   "anchor": "lib/string_helpers.c",
+  "direct_repo_anchor": "lib/string_helpers.zig",
+  "anchor_state_note": "Phase 7 still traces back to `lib/string_helpers.c`, but the directly readable current-master helper-local anchor for this packet is `lib/string_helpers.zig`. Treat `lib/string_helpers.c` and `include/linux/string_helpers.h` as roadmap provenance only unless a fresh reread proves they are directly readable again on current `master`.",
   "current_master_state": "expanded_starter_packet",
   "review_surfaces": [
     "Documentation/zigux/phase7-string-helpers-slice.md",
