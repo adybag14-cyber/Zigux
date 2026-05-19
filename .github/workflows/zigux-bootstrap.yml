@@ -213,6 +213,9 @@ jobs:
       - name: Run current Phase 2 toolchain make route
         run: make -C zigux phase2-toolchain
 
+      - name: Run current Phase 2 tools make route
+        run: make -C zigux phase2-tools
+
       - name: Self-test current Phase 2 required-make-routes checker
         run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test
 
