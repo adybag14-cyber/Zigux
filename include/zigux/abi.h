@@ -211,6 +211,65 @@ static inline zigux_boundary_header zigux_default_header(uint16_t flags)
     return header;
 }
 
+static inline zigux_boundary_header zigux_compatible_header(
+    uint32_t size,
+    uint16_t flags)
+{
+    zigux_boundary_header header = zigux_default_header(flags);
+    header.size = size;
+    return header;
+}
+
+static inline int zigux_abi_version_is_current(uint16_t abi_version)
+{
+    return abi_version == (uint16_t)ZIGUX_ABI_VERSION;
+}
+
+static inline int zigux_header_is_canonical(zigux_boundary_header header)
+{
+    return header.size == (uint32_t)sizeof(zigux_boundary_header) &&
+        zigux_abi_version_is_current(header.abi_version);
+}
+
+static inline int zigux_header_is_compatible(zigux_boundary_header header)
+{
+    return header.size >= (uint32_t)sizeof(zigux_boundary_header) &&
+        zigux_abi_version_is_current(header.abi_version);
+}
+
+static inline int zigux_header_extends_boundary(zigux_boundary_header header)
+{
+    return zigux_header_is_compatible(header) &&
+        !zigux_header_is_canonical(header);
+}
+
+static inline uint32_t zigux_header_requested_extra_bytes(
+    zigux_boundary_header header)
+{
+    if (!zigux_header_extends_boundary(header))
+        return 0;
+    return header.size - (uint32_t)sizeof(zigux_boundary_header);
+}
+
+static inline zigux_boundary_header zigux_header_canonicalize(
+    zigux_boundary_header header)
+{
+    header.size = (uint32_t)sizeof(zigux_boundary_header);
+    header.abi_version = (uint16_t)ZIGUX_ABI_VERSION;
+    return header;
+}
+
+static inline struct zigux_interop_policy zigux_default_interop_policy(void)
+{
+    struct zigux_interop_policy policy = {
+        .panic_mode = (uint8_t)ZIGUX_PANIC_ABORT,
+        .allocator_mode = (uint8_t)ZIGUX_ALLOC_CALLER_PROVIDED,
+        .unsafe_scope = (uint8_t)ZIGUX_UNSAFE_NONE,
+        .reserved = 0,
+    };
+    return policy;
+}
+
 static inline int zigux_export_status_ok(struct zigux_export_status status)
 {
     return (status.flags & (uint16_t)ZIGUX_STATUS_FLAG_ERROR) == 0;
