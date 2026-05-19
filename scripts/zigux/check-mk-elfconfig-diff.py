@@ -67,6 +67,8 @@ EXPECTED_ZIG_MARKERS = {
     "not_elf_trailing_direct": 'test "classifies non-ELF input with trailing bytes" {',
     "partial_read_failure": 'test "readHeader keeps partial bytes when a later read fails" {',
     "readheader_split_fill": 'test "readHeader stops after filling the first ELF header across split reads" {',
+    "readheader_split_truncated_count": 'test "readHeader preserves truncated byte count across split reads" {',
+    "readheader_immediate_error": 'test "readHeader treats an immediate read error like truncated input" {',
     "readheader_truncated_count": 'test "readHeader reports the exact truncated byte count" {',
     "readheader_zero_eof": 'test "readHeader returns zero bytes on immediate EOF" {',
     "render_not_elf": 'test "renders non-ELF error" {',
@@ -97,9 +99,9 @@ int main(int argc, char **argv)
 \t\tbreak;
 \tcase ELFCLASS64:
 \t\tprintf("#define KERNEL_ELFCLASS ELFCLASS64\\n");
-\t\tbreak;
+\t	break;
 \tdefault:
-\t\texit(1);
+\t	exit(1);
 \t}
 
 \treturn 0;
