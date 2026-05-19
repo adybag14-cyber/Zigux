@@ -14,6 +14,8 @@ NOTIFIER_BINDINGS_PATH = Path("zigux/bindings/notifier_abi.zig")
 ABI_CHECKER_PATH = Path("scripts/zigux/check-phase3-abi.py")
 PHASE3_CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")
 TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
+EXPORT_UAPI_LAYOUT_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
+EXPORT_UAPI_LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 
 REQUIRED_SOURCE_MARKERS = {
     ABI_HEADER_PATH: (
@@ -82,6 +84,20 @@ REQUIRED_SOURCE_MARKERS = {
         'root_source_file = b.path("phase3_abi_dump_current.zig"),',
         'const phase3_dump_step = b.step(',
         'phase3_dump_step.dependOn(&phase3_abi_dump.step);',
+    ),
+    EXPORT_UAPI_LAYOUT_PATH: (
+        'test "export and uapi dev_t layouts stay aligned" {',
+        'test "export and uapi version layouts stay aligned" {',
+        'test "export shim relays version compatibility without widening the boundary" {',
+        'test "export shim reuses the canonical boundary header contract" {',
+        'test "export shim mirrors boundary header predicate helpers" {',
+    ),
+    EXPORT_UAPI_LAYOUT_BUILD_PATH: (
+        '.root_source_file = b.path("../uapi/dev_t.zig"),',
+        '.root_source_file = b.path("../uapi/version.zig"),',
+        '.root_source_file = b.path("../kernel/export_shim.zig"),',
+        '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
+        '"phase3-export-uapi-layout-test"',
     ),
 }
 
@@ -375,6 +391,38 @@ const phase3_dump_step = b.step(
 phase3_dump_step.dependOn(&phase3_abi_dump.step);
 """
 
+SELF_TEST_EXPORT_UAPI_LAYOUT = """\
+test "export and uapi dev_t layouts stay aligned" {
+}
+test "export and uapi version layouts stay aligned" {
+}
+test "export shim relays version compatibility without widening the boundary" {
+}
+test "export shim reuses the canonical boundary header contract" {
+}
+test "export shim mirrors boundary header predicate helpers" {
+}
+"""
+
+SELF_TEST_EXPORT_UAPI_LAYOUT_BUILD = """\
+const uapi_dev_t = b.createModule(.{
+    .root_source_file = b.path("../uapi/dev_t.zig"),
+});
+const uapi_version = b.createModule(.{
+    .root_source_file = b.path("../uapi/version.zig"),
+});
+const export_shim = b.createModule(.{
+    .root_source_file = b.path("../kernel/export_shim.zig"),
+});
+const root_module = b.createModule(.{
+    .root_source_file = b.path("phase3_export_uapi_layout.zig"),
+});
+const test_step = b.step(
+    "phase3-export-uapi-layout-test",
+    "Run the Phase 3 export/UAPI layout replay",
+);
+"""
+
 
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -527,6 +575,8 @@ def run_self_test() -> int:
         _write(root / ABI_CHECKER_PATH, SELF_TEST_CHECKER)
         _write(root / PHASE3_CATALOG_PATH, SELF_TEST_CATALOG)
         _write(root / TESTS_BUILD_PATH, SELF_TEST_BUILD)
+        _write(root / EXPORT_UAPI_LAYOUT_PATH, SELF_TEST_EXPORT_UAPI_LAYOUT)
+        _write(root / EXPORT_UAPI_LAYOUT_BUILD_PATH, SELF_TEST_EXPORT_UAPI_LAYOUT_BUILD)
 
         issues = validate_repo(root)
         if issues:
@@ -674,8 +724,48 @@ def run_self_test() -> int:
             print("expected missing ABI dump build-route marker was not reported")
             return 1
 
+        _write(root / TESTS_BUILD_PATH, SELF_TEST_BUILD)
+
+        _write(
+            root / EXPORT_UAPI_LAYOUT_PATH,
+            SELF_TEST_EXPORT_UAPI_LAYOUT.replace(
+                'test "export shim mirrors boundary header predicate helpers" {\n',
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing zigux/tests/phase3_export_uapi_layout.zig marker: "
+            'test "export shim mirrors boundary header predicate helpers" {'
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing export/uapi layout marker was not reported")
+            return 1
+
+        _write(root / EXPORT_UAPI_LAYOUT_PATH, SELF_TEST_EXPORT_UAPI_LAYOUT)
+
+        _write(
+            root / EXPORT_UAPI_LAYOUT_BUILD_PATH,
+            SELF_TEST_EXPORT_UAPI_LAYOUT_BUILD.replace(
+                '"phase3-export-uapi-layout-test"',
+                '"phase3-export-uapi-layout"',
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing zigux/tests/phase3_export_uapi_layout_build.zig marker: "
+            '"phase3-export-uapi-layout-test"'
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing export/uapi layout build marker was not reported")
+            return 1
+
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=8")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=10")
     return 0
 
 
@@ -702,7 +792,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_VALIDATION=pass")
-    print("PHASE3_SCOPE=shared-abi-binding-layout-catalog-and-dump-route-surface")
+    print("PHASE3_SCOPE=shared-abi-binding-layout-catalog-dump-and-export-uapi-layout-route-surface")
     return 0
 
 
