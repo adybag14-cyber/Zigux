@@ -45,6 +45,7 @@ EXPECTED_ISSUE_CODES = (
     "MISSING_MAKEFILE_LINE",
     "DUPLICATE_MAKEFILE_LINE",
     "ARCHIVE_HASH_SCOPE_MISMATCH",
+    "ARCHIVE_HASH_SCOPE_ORDER_MISMATCH",
     "INVALID_FIXTURE_SHAPE",
     "UNEXPECTED_FIXTURE_FIELD",
     "INVALID_FIXTURE_FIELD",
@@ -65,7 +66,7 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 23
+EXPECTED_SELF_TEST_CASE_COUNT = 24
 
 
 def read_text(path: Path) -> str:
@@ -185,8 +186,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         elif count != 1:
             issues.append(("DUPLICATE_MAKEFILE_LINE", f"{marker}:count={count}"))
 
-    if archive_sha256_targets != archive_target_scope:
+    if set(archive_sha256_targets) != set(archive_target_scope):
         issues.append(("ARCHIVE_HASH_SCOPE_MISMATCH", ",".join(sorted(archive_sha256_targets))))
+    elif archive_sha256_targets != archive_target_scope:
+        issues.append(("ARCHIVE_HASH_SCOPE_ORDER_MISMATCH", ",".join(archive_sha256_targets)))
 
     if not isinstance(fixture, dict):
         issues.append(("INVALID_FIXTURE_SHAPE", "root"))
@@ -400,6 +403,20 @@ def run_self_test() -> int:
         payload["archive_sha256"]["aarch64-linux"] = "4" * 64
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("ARCHIVE_HASH_SCOPE_MISMATCH", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "aarch64-linux"]
+        payload["archive_sha256"] = {
+            "aarch64-linux": "4" * 64,
+            "x86_64-linux": "3" * 64,
+        }
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("ARCHIVE_HASH_SCOPE_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in issues
+        assert ("ARCHIVE_HASH_SCOPE_MISMATCH", "aarch64-linux,x86_64-linux") not in issues
         checks_run += 1
 
         build_self_test_root(root)
