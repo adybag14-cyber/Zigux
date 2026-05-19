@@ -51,6 +51,7 @@ REQUIRED_MARKERS = {
         "pub fn cArgv(self: *const ArgvSplitResult) [*:null]const ?[*:0]const u8 {",
         "fn nextSplitArgSpan(",
         "test \"argvSplit treats whitespace before the first NUL as blank input\" {",
+        "test \"argvSplit treats a leading NUL as blank input\" {",
     ],
     "zigux/tests/phase7_argv_split.zig": [
         'const argv_split = @import("argv_split");',
@@ -91,7 +92,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 28
+SELF_TEST_CASE_COUNT = 29
 
 
 def read_text(path: Path) -> str:
@@ -344,6 +345,16 @@ def run_self_test() -> None:
         helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_helper_first_nul_blank_input_test",
+            tmp_root,
+            f"lib/argv_split.zig: {helper_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        helper_text = read_text(helper_path)
+        helper_marker = 'test "argvSplit treats a leading NUL as blank input" {'
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_helper_leading_nul_blank_input_test",
             tmp_root,
             f"lib/argv_split.zig: {helper_marker}",
         )
