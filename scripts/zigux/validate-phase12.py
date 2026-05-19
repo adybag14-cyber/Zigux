@@ -78,6 +78,7 @@ RAW_GITHUB_BRIDGE_MARKERS = [
     "`.github/workflows/zigux-bootstrap.yml`",
     "`scripts/zigux/README.md`",
     "`zigux/Makefile`",
+    "`zigux/tests/phase12_build.zig`",
 ]
 
 REQUIRED_FILES = [
@@ -151,7 +152,6 @@ REQUIRED_MARKERS = {
     RAW_GITHUB_COVERAGE_PATH: [
         "- exact coverage evidence checked on `2026-05-19`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
         *RAW_GITHUB_BRIDGE_MARKERS,
-        "- exact coverage evidence checked on `2026-05-19`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py` at blob `30ca23c746e0b80b28d6622cd2e39ebeb6e08f03`, `scripts/zigux/check-phase12-release-readiness-packet.py` at blob `f472b7cb52626b90678cdb978b35b22abfd79f11`, `.github/workflows/zigux-bootstrap.yml` at blob `8f373d8734694964dd63d754c4889fe82bd558b9`, `scripts/zigux/README.md` at blob `48950c1c089f447989a4b8424e49192ad3a416b4`, `zigux/Makefile` at blob `79c077334a5e3c67868081f4c9ae71e0e3cde541`, and `zigux/tests/phase12_build.zig` at blob `18a1f2bfbb78a7c3b871fba93b33f88cacf710d7`",
         "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, current Makefile, and current `zigux/tests/phase12_build.zig` as bounded reminder evidence only",
         "the raw-URL-backed direct replay catalog, the currently missing raw NVMe gap-note handle, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
     ],
