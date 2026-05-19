@@ -79,6 +79,10 @@ Direct current-`master` readback in this run still returned missing for:
 - `zigux/tests/phase13_build.zig`
 - `scripts/zigux/check-phase13-devres-packet-alignment.py`
 - `scripts/zigux/check-phase13-landlock-ruleset-packet.py`
+- `Documentation/zigux/phase13-landlock-syscalls-survey.md`
+- `zigux/tests/phase13_landlock_syscalls.zig`
+- `zigux/tests/phase13_landlock_syscalls_reviewability.zig`
+- `zigux/tests/phase13_landlock_syscalls_manifest.json`
 - `scripts/zigux/check-phase13-notifier-priority-signal.py`
 
 Keep those missing validator-first helper and route surfaces framed as repo-reality gaps instead of presenting them as a stable shared Phase 13 release handle. `zigux/Makefile` itself is present on current `master`, but it still does not expose the Phase 13 route family, so keep the returned file distinct from the still-missing `phase13` handles.
