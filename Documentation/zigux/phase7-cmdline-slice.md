@@ -36,8 +36,8 @@ This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `mas
 4. keep adjacent Phase 7 families out of this packet unless a fresh reread says otherwise
 - do not count `lib/argv_split.zig`
 - do not count `lib/string_helpers.zig`
-- do not count `tools/lib/rbtree.zig`
-- do not count missing `lib/rbtree.zig`
+- do not count `Documentation/zigux/phase7-rbtree-slice.md`
+- do not count `lib/rbtree.zig`
 - do not count shared validator, Makefile, workflow, or build-route reminders here
 
 ## Current Parity Surface
@@ -73,7 +73,7 @@ This helper-local Phase 7 cmdline slice does not yet claim:
 
 - the separate `argv_split` ownership-and-tokenization packet
 - the separate `string_helpers` escape, quoting, and string-array helper packet
-- a returned `rbtree` helper-local packet under `lib/`
+- the separate `rbtree` helper-local packet under `lib/`
 - any standalone `samples/zigux/*cmdline*` sample-root delivery
 - shared validator, Makefile, workflow, or tests-root reminder ownership
 
