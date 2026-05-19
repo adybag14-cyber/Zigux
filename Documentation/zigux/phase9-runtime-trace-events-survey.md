@@ -44,6 +44,8 @@ Current `master` still does not expose:
 - the older `samples/zigux/runtime_*_loader.zig` scaffolds
 - dedicated `phase9-*` runtime-pilot routes in `zigux/Makefile`
 
+Current `master` does still carry the separate Phase 9 runtime bitmap companion `samples/zigux/runtime_bitmap_loader.zig`, so the absent-loader wording above is about the older trace-events loader-backed packet rather than that separate bitmap family.
+
 So this survey packet closes one bounded roadmap gap by restoring a direct review witness under `zigux/tests/runtime_*`, but it does not claim returned shared loader parity, live `module_init()` or `module_exit()` wiring, depmod-visible registration, or broader runtime-substrate readiness.
 
 ## Boundary Rules
