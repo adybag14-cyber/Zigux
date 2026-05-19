@@ -97,19 +97,15 @@ fn expectCurrentReminderRoute(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-tests-readme-alignment.py");
     try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-review-process-handoff.py");
     try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
-    try expectContains(scorecard_doc, "python3 scripts/zigux/validate-phase15.py");
     try expectContains(scorecard_doc, "zig test zigux/tests/phase15_parity_scorecard.zig");
-    try expectContains(scorecard_doc, "zig build test --build-file zigux/tests/phase15_build.zig");
-    try expectContains(scorecard_doc, "make -C zigux phase15-validate");
-    try expectContains(scorecard_doc, "make -C zigux phase15-test");
-    try expectContains(scorecard_doc, "make -C zigux phase15");
     try expectContains(scorecard_doc, "anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`");
-    try expectContains(scorecard_doc, "those validator-first and shared-build routes are now shipped reminder-route evidence on current `master`, but they still remain governance-accounting support for the blocked scorecard posture rather than a deep-core status-change or port-readiness claim");
+    try expectContains(scorecard_doc, "current `master` still returns missing for `scripts/zigux/validate-phase15.py` and `zigux/tests/phase15_build.zig`, so the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes remain broader gap vocabulary rather than shipped reminder-route evidence");
+    try std.testing.expect(std.mem.indexOf(u8, scorecard_doc, "those validator-first and shared-build routes are now shipped reminder-route evidence on current `master`") == null);
 }
 
 fn expectCurrentBoundedStepHandoff(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "## Next bounded step");
-    try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording drifts enough that the aggregate metrics, anchor records, or shipped reminder-route inventory need another truthfulness refresh.");
+    try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording and current-master gap inventory drift enough that the aggregate metrics or anchor records need another truthfulness refresh.");
 }
 
 fn expectAnchorPacketAlignment(scorecard_doc: []const u8, governance_note: []const u8, anchor: Anchor) !void {
