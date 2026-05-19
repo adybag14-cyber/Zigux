@@ -90,6 +90,43 @@ keep the fixture-backed tool-manifest, artifact-tools, cross-target, and kconfig
 Tests-root reviewer prompt:
 - Does the bounded Phase 2 reminder keep the current direct-readback toolchain, installer, direct cross-route, cross-selftest, docs-shared-reminder, required-make-route, validator, closure-validator, kconfig bridge, make-wrapper, and fixture packet aligned without reviving older missing validator-first or wrapper-only proof?
 
+## Phase 3 shared substrate packet
+
+Keep the current direct-readback Phase 3 reminder packet:
+
+- `Documentation/zigux/phase3-abi-slice.md`
+- `Documentation/zigux/phase3-errptr-xarray-slice.md`
+- `Documentation/zigux/phase3-policy-slice.md`
+- `Documentation/zigux/phase3-export-uapi-boundary-survey.md`
+- `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`
+- `Documentation/zigux/review-checklist.md`
+- `zigux/tests/README.md`
+- `zigux/tests/build.zig`
+- `zigux/tests/phase3_dev_t_starter_packet.zig`
+- `zigux/tests/phase3_errptr_xarray_starter_packet.zig`
+- `zigux/tests/phase3_xarray_slot_starter_packet.zig`
+- `zigux/tests/phase3_policy_starter_packet.zig`
+- `zigux/tests/phase3_export_uapi_layout.zig`
+- `zigux/tests/phase3_low_level_wrappers.zig`
+- `zigux/tests/phase3_low_level_wrappers_build.zig`
+- `scripts/zigux/check-phase3-abi.py`
+- `scripts/zigux/validate-phase3.py`
+- `scripts/zigux/validate-phase3-export-uapi-survey.py`
+- `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`
+
+Keep the shared tests-root reminder aligned with the returned starter, helper, policy, export/UAPI survey, layout-replay, and low-level-wrapper packet instead of narrowing Phase 3 evidence back to the older starter-only story.
+
+`zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`
+
+`zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig`
+
+`zig build phase3-test --build-file zigux/tests/build.zig`
+
+Current `master` keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig` explicit beside the shared `zigux/tests/build.zig` routes, so the tests-root packet should keep both the packet-local survey validators and the returned low-level-wrapper replay/build anchor visible without widening Phase 3 into the broader validator-support, catalog-selftest, or header-family surfaces.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 3 reminder keep the starter, helper, policy, export/UAPI survey, layout-replay, and low-level-wrapper packet aligned across `zigux/tests/build.zig`, the packet-local survey validators, and the dedicated low-level-wrapper replay/build anchor without reopening broader shared-validator, catalog-selftest, or header-family claims?
+
 ## Phase 10 shared virtio closure packet
 
 Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit as the shared Phase 10 tests-root reminder packet.
