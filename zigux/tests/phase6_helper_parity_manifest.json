@@ -53,9 +53,7 @@
       ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
-      "still_missing_direct_companions": [
-        "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
-      ]
+      "still_missing_direct_companions": []
     },
     {
       "key": "checksum",
