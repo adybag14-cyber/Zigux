@@ -12,8 +12,9 @@ class ValidationError(RuntimeError):
     """Raised when an expected Phase 6 hexdump marker is missing."""
 
 
-CATALOG_PATH = Path("Documentation/zigux/phase6-helper-evidence-catalog.md")
+CATALOG_PATH = Path("Documentation/zigux/phase6-helper-parity-catalog.md")
 LIB_PATH = Path("lib/hexdump.zig")
+SLICE_PATH = Path("Documentation/zigux/phase6-hexdump-slice.md")
 HELPER_TEST_PATH = Path("zigux/tests/phase6_hexdump.zig")
 PERF_PATH = Path("zigux/tests/phase6_hexdump_perf.zig")
 PERF_MATRIX_PATH = Path("zigux/tests/phase6_hexdump_perf_matrix.zig")
@@ -24,20 +25,33 @@ ROUTE_PATH = Path("scripts/zigux/check-phase6-hexdump-route.py")
 
 REQUIRED_SNIPPETS = {
     CATALOG_PATH: [
-        "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
-        "- current review posture: direct helper-local evidence is readable again through `lib/hexdump.zig`, `zigux/tests/phase6_hexdump.zig`, `zigux/tests/phase6_hexdump_perf.zig`, `zigux/tests/phase6_hexdump_perf_matrix.zig`, `zigux/tests/fixtures/phase6_hexdump_vectors.zig`, `scripts/zigux/check-phase6-hexdump-packet.py`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders, while the slice note and perf refresh note still need fresh direct reads before they are presented as current shipped evidence",
-        "- `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
-        "- `zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig`",
-        "- `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`",
-        "- `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`",
-        "- `zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig`",
+        "- helper: `lib/hexdump.zig`",
+        "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
+        "- Linux-style packet review route: `make -C zigux phase6-hexdump-review`",
+        "- exact perf-matrix preflight: `zigux/tests/phase6_hexdump_perf_matrix.zig`",
+        "- direct local rerun route: `zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig`",
     ],
     LIB_PATH: [
-        "pub const HexError = error{",
+        'pub const hex_asc = "0123456789abcdef";',
+        "pub fn hexAscHi(byte: u8) u8 {",
+        "pub fn hexAscUpperHi(byte: u8) u8 {",
+        "pub fn hexBytePack(buf: []u8, byte: u8) HexError![]u8 {",
+        "pub fn hexBytePackUpper(buf: []u8, byte: u8) HexError![]u8 {",
         "pub fn hex2bin(dst: []u8, src: []const u8) HexError!void {",
         "pub fn bin2hex(dst: []u8, src: []const u8) HexError![]u8 {",
         "pub fn hexDumpLineLength(",
         "pub fn hexDumpToBuffer(",
+        'test "hex2bin and bin2hex snake-case aliases stay aligned" {',
+        'test "hexBytePack helpers chain bytes and preserve destination on bounds errors" {',
+        'test "hexDumpLineLength mirrors formatter normalization" {',
+    ],
+    SLICE_PATH: [
+        "`PHASE6_STATUS=parked_reviewable`",
+        "`PHASE6_SLICE=hexdump-leaf-helper`",
+        "`scripts/zigux/check-phase6-hexdump-packet.py`",
+        "`make -C zigux phase6-hexdump-review`",
+        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
+        "focused helper formatting parity plus a four-case fixture-backed slowdown matrix keep the shipped hexdump packet reviewable",
     ],
     HELPER_TEST_PATH: [
         'test "phase 6 hexdump helper packet replays the serialized parity matrix" {',
@@ -49,7 +63,7 @@ REQUIRED_SNIPPETS = {
     PERF_PATH: [
         "fn validatePerfMatrix() !void {",
         'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF_CASE_COUNT={d}\\n", .{fixtures.perf_cases.len});',
-        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF={s}\\n", .{',
+        'try stdout_writer.interface.print("PHASE6_HEXDUMP_PERF={s}\\n", .{if (failed) "fail" else "pass"});',
         "return error.HexdumpPerfRegression;",
     ],
     PERF_MATRIX_PATH: [
@@ -69,9 +83,9 @@ REQUIRED_SNIPPETS = {
         "pub const overflow_cases = [_]OverflowCase{",
         "pub const length_cases = [_]LengthCase{",
         "pub const perf_cases = [_]PerfCase{",
-        '.label = "16B-plain-g1",',
-        '.label = "32B-ascii-g2",',
-        '.label = "16B-ascii-g4",',
+        '.name = "empty ascii line reports zero length",',
+        '.name = "plain rowsize-16 group-8 line length",',
+        '.name = "ascii rowsize-16 group-8 line length",',
         '.label = "16B-ascii-g8",',
     ],
     BUILD_PATH: [
@@ -106,23 +120,28 @@ REQUIRED_SNIPPETS = {
 SELF_TEST_CASES = [
     (
         CATALOG_PATH,
-        "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-packet.py`",
-        "- helper-local packet checker: `scripts/zigux/check-phase6-hexdump-proof.py`",
-    ),
-    (
-        CATALOG_PATH,
-        "- `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
-        "- `python3 scripts/zigux/check-phase6-hexdump-proof.py`",
+        "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-packet.py`",
+        "- direct local packet checker: `python3 scripts/zigux/check-phase6-hexdump-proof.py`",
     ),
     (
         LIB_PATH,
-        "pub fn hexDumpToBuffer(",
-        "pub fn hexDumpBuffer(",
+        "pub fn hexBytePackUpper(buf: []u8, byte: u8) HexError![]u8 {",
+        "pub fn hexBytePackUpper(dst: []u8, byte: u8) HexError![]u8 {",
+    ),
+    (
+        LIB_PATH,
+        'test "hexDumpLineLength mirrors formatter normalization" {',
+        'test "hexDumpLength mirrors formatter normalization" {',
+    ),
+    (
+        SLICE_PATH,
+        "the landed `hexAsc*`, `hexBytePack`, `hexBytePackUpper`, and `hexDumpLineLength` helper parity surface",
+        "the landed nibble-helper parity surface",
     ),
     (
         HELPER_TEST_PATH,
-        'test "phase 6 hexdump direct helper entrypoints stay aligned with the packet" {',
-        'test "phase 6 hexdump direct helper entrypoints stay aligned with the review packet" {',
+        'test "phase 6 hexdump direct pack helpers keep uppercase and lowercase nibble parity" {',
+        'test "phase 6 hexdump direct pack helpers keep nibble parity" {',
     ),
     (
         PERF_PATH,
@@ -136,8 +155,8 @@ SELF_TEST_CASES = [
     ),
     (
         FIXTURES_PATH,
-        "pub const perf_cases = [_]PerfCase{",
-        "pub const perf_vectors = [_]PerfCase{",
+        '.name = "ascii rowsize-16 group-8 line length",',
+        '.name = "ascii rowsize-16 group-16 line length",',
     ),
     (
         BUILD_PATH,
