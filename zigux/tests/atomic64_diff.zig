@@ -448,7 +448,7 @@ test "atomic64 diff wrapper keeps the Linux-style phase4 make routes explicit" {
     defer std.testing.allocator.free(makefile_source);
     try expectMarker(
         makefile_source,
-        "PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4",
+        "PHONY += phase3-low-level-wrappers-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4",
     );
     try expectMarker(makefile_source, "phase4-runtime-atomic64-diff:");
     try expectMarker(
@@ -824,7 +824,7 @@ test "atomic64 diff wrapper pins the current bounded runtime case groups" {
     try expectRuntimeCaseGroupCardinality(
         "const inc_not_zero_cases = [_]IncNotZeroCase{",
         "const dec_if_positive_cases = [_]DecIfPositiveCase{",
-        2,
+        3,
     );
     try expectRuntimeCaseGroupCardinality(
         "const dec_if_positive_cases = [_]DecIfPositiveCase{",
