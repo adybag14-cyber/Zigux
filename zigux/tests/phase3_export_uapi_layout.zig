@@ -173,3 +173,31 @@ test "export shim keeps facility tagged statuses explicit" {
     try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.drivers)), positive.facility);
     try testing.expectEqual(@as(u16, 0), positive.flags);
 }
+
+test "export shim relays starter dev_t validation and range checks through the focused replay" {
+    const valid = export_shim.validateDeviceNumber(uapi_dev_t.max_major, uapi_dev_t.max_minor);
+    const invalid = export_shim.validateDeviceNumber(uapi_dev_t.max_major + 1, 0);
+    const good_range = export_shim.validateDeviceRange(
+        export_shim.makeDevTFields(1, 2),
+        export_shim.makeDevTFields(1, 3),
+    );
+    const bad_range = export_shim.validateDeviceRange(
+        export_shim.makeDevTFields(1, 3),
+        export_shim.makeDevTFields(1, 2),
+    );
+
+    try testing.expect(export_shim.statusIsOk(valid));
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), valid.facility);
+    try testing.expectEqual(@as(u16, 0), valid.flags);
+
+    try testing.expect(!export_shim.statusIsOk(invalid));
+    try testing.expectEqual(@as(i32, -22), invalid.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid.facility);
+    try testing.expectEqual(@as(u16, 1), invalid.flags);
+
+    try testing.expect(export_shim.statusIsOk(good_range));
+    try testing.expectEqual(@as(i32, 0), good_range.code);
+    try testing.expect(!export_shim.statusIsOk(bad_range));
+    try testing.expectEqual(@as(i32, -22), bad_range.code);
+}
