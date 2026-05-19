@@ -16,6 +16,11 @@ The helper packet now consists of:
 - `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`
 - `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`
 
+Fixture governance stays helper-local:
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, freed-release-record, and missing-release-record fixture coverage for `planManagedReleaseRecordLifetime(...)` and `planManagedDmamAllocCoherent(...)`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` is the packet-local owner map for that fixture and should stay aligned with the helper and planner replay
+- `zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only and does not own the release-record lifetime fixture for this planner packet
+
 Adjacent boundary evidence stays unchanged:
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
