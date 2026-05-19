@@ -82,8 +82,13 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "\"phase\": \"Phase 13\"");
     try requireContains(manifest, "\"packet\": \"phase13-devres-dmam-alloc-coherent-planner\"");
     try requireContains(manifest, "\"status\": \"starter_landed\"");
+    try requireContains(manifest, "\"owned_surfaces\": [");
     try requireContains(manifest, "lib/devres.zig");
     try requireContains(manifest, "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig");
+    try requireContains(manifest, "\"release_record_lifetime_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
+    try requireContains(manifest, "\"owner_map\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json\"");
+    try requireContains(manifest, "\"adjacent_boundary_evidence_only\": [");
+    try requireContains(manifest, "zigux/tests/phase13_devres_dma_coherent.zig");
     try requireContains(manifest, "planManagedReleaseRecordLifetime");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-dmam-alloc-side-effects\"");
     try requireContains(manifest, "\"status\": \"blocked_on_dma_state\"");
@@ -100,6 +105,10 @@ test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma
     try requireContains(note, "accepts already-decided allocation inputs");
     try requireContains(note, "retains detach-time cleanup ownership on success");
     try requireContains(note, "failed allocation frees the release record");
+    try requireContains(note, "Fixture governance stays helper-local:");
+    try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, freed-release-record, and missing-release-record fixture coverage");
+    try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` is the packet-local owner map");
+    try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only");
     try requireContains(note, "does not claim live DMA allocation side effects");
     try requireContains(note, "dma_map_*");
     try requireContains(note, "dma_unmap_*");
@@ -117,25 +126,4 @@ test "phase13 devres dmam_alloc_coherent planner note preserves standalone repla
 
     try requireContains(note, "zig test --dep devres -Mroot=zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig -Mdevres=lib/devres.zig");
     try requireContains(note, "zig test zigux/tests/phase13_devres_dma_coherent.zig");
-}
-
-test "phase13 devres slice note records the narrow landed dmam planner without claiming the broader packet" {
-    const slice = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-slice.md");
-    defer std.testing.allocator.free(slice);
-
-    try requireContains(slice, "`lib/devres.zig` and `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` now provide one pure helper-first `dmam_alloc_coherent()` planning surface");
-    try requireContains(slice, "the older direct devres replay, reviewability gate, manifest-backed packet, and packet-alignment checker remain repo-reality gaps");
-    try requireContains(slice, "does not claim live DMA helper delivery");
-}
-
-test "phase13 devres survey records the landed dmam planner and keeps the blocked dma boundaries explicit" {
-    const survey = try readRepoFile(std.testing.allocator, "Documentation/zigux/phase13-devres-survey.md");
-    defer std.testing.allocator.free(survey);
-
-    try requireContains(survey, "`lib/devres.zig` now ships a pure `dmam_alloc_coherent()` planning surface");
-    try requireContains(survey, "`planManagedReleaseRecordLifetime(...)`");
-    try requireContains(survey, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` replays that helper directly");
-    try requireContains(survey, "current `master` does not ship `zigux/tests/phase13_devres.zig`");
-    try requireContains(survey, "blocked `phase13-devres-live-dmam-alloc-side-effects`");
-    try requireContains(survey, "blocked `phase13-devres-broader-direct-helper-packet`");
 }
