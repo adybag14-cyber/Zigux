@@ -8,12 +8,18 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[2]
+DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 PHASE2_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 TOOLCHAIN_PINNING = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py"
 TESTS_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 CROSS_TARGETS = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+
+DOCS_ROOT_README_MARKERS = (
+    "`scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master` again, so keep the installer and direct cross-route packet explicit beside the shipped toolchain, kconfig, genksyms, and make-wrapper surfaces instead of leaving them in historical-gap wording.",
+    "`python3 scripts/zigux/validate-phase2.py`, `python3 scripts/zigux/validate-phase2-closure.py`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-genksyms`, `make -C zigux phase2-validate`, and `make -C zigux phase2` replay the bounded current Phase 2 closure-side, bounded genksyms bridge, and make-wrapper packet without widening it back into older missing-route assumptions.",
+)
 
 PHASE2_NOTES_MARKERS = (
     "`scripts/zigux/check-phase2-cross.py`",
@@ -158,6 +164,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     issues.extend(
         collect_missing_markers(
+            read_text(resolve_path(root, DOCS_ROOT_README)),
+            DOCS_ROOT_README_MARKERS,
+            "MISSING_DOCS_ROOT_README_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_missing_markers(
             read_text(resolve_path(root, PHASE2_NOTES)),
             PHASE2_NOTES_MARKERS,
             "MISSING_PHASE2_NOTES_MARKERS",
@@ -211,6 +224,7 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_self_test_root(root: Path) -> None:
+    write_text(resolve_path(root, DOCS_ROOT_README), "\n".join(DOCS_ROOT_README_MARKERS) + "\n")
     write_text(resolve_path(root, PHASE2_NOTES), "\n".join(PHASE2_NOTES_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
@@ -273,6 +287,7 @@ def run_self_test() -> int:
     checks_run = 0
     expected_case_count = (
         1
+        + len(DOCS_ROOT_README_MARKERS)
         + len(PHASE2_NOTES_MARKERS)
         + len(TESTS_README_MARKERS)
         + len(MAKEFILE_LINES)
@@ -280,7 +295,7 @@ def run_self_test() -> int:
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
         + 12
-        + 6
+        + 7
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
         root = Path(tmp_dir)
@@ -288,6 +303,13 @@ def run_self_test() -> int:
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
+
+        for marker in DOCS_ROOT_README_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, DOCS_ROOT_README)
+            path.write_text(remove_marker(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("MISSING_DOCS_ROOT_README_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
 
         for marker in PHASE2_NOTES_MARKERS:
             build_self_test_root(root)
@@ -430,6 +452,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         for path in (
+            DOCS_ROOT_README,
             PHASE2_NOTES,
             TESTS_README,
             MAKEFILE,
@@ -471,7 +494,7 @@ def main() -> int:
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
-        f"{len(PHASE2_NOTES_MARKERS) + len(TESTS_README_MARKERS) + len(MAKEFILE_LINES) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
+        f"{len(DOCS_ROOT_README_MARKERS) + len(PHASE2_NOTES_MARKERS) + len(TESTS_README_MARKERS) + len(MAKEFILE_LINES) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
     )
     print("PHASE2_CROSS_ALIGNMENT_FIXTURE_TARGET_COUNT=2")
     return 0
