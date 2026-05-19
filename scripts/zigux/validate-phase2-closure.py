@@ -114,7 +114,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 85
+EXPECTED_SELF_TEST_CASE_COUNT = 87
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -673,21 +673,20 @@ def run_self_test() -> int:
         assert ("CHECKER_NOT_MARKED_PRESENT", EXPECTED_TOOL_MANIFEST_CHECKER) in collect_issues(root)
         checks_run += 1
 
-        build_self_test_root(root)
-        shared_path = EXPECTED_SHARED_PRESENT_FILES[0]
-        bad = json.loads(manifest_json())
-        bad["missing_files"] = EXPECTED_MISSING_FILES + [shared_path]
-        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
-        assert ("SHARED_TOOL_STILL_MARKED_MISSING", shared_path) in collect_issues(root)
-        checks_run += 1
+        for shared_path in EXPECTED_SHARED_PRESENT_FILES:
+            build_self_test_root(root)
+            bad = json.loads(manifest_json())
+            bad["missing_files"] = EXPECTED_MISSING_FILES + [shared_path]
+            write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+            assert ("SHARED_TOOL_STILL_MARKED_MISSING", shared_path) in collect_issues(root)
+            checks_run += 1
 
-        build_self_test_root(root)
-        shared_path = EXPECTED_SHARED_PRESENT_FILES[0]
-        bad = json.loads(manifest_json())
-        bad["present_files"] = [path for path in EXPECTED_PRESENT_FILES if path != shared_path]
-        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
-        assert ("SHARED_TOOL_NOT_MARKED_PRESENT", shared_path) in collect_issues(root)
-        checks_run += 1
+            build_self_test_root(root)
+            bad = json.loads(manifest_json())
+            bad["present_files"] = [path for path in EXPECTED_PRESENT_FILES if path != shared_path]
+            write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+            assert ("SHARED_TOOL_NOT_MARKED_PRESENT", shared_path) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(present_files="wrong"))
