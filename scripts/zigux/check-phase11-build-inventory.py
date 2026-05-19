@@ -30,6 +30,8 @@ EXACT_CURRENT_CHECKS = (
     "python3 scripts/zigux/check-phase11-build-inventory.py",
     "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
     "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    "zig build test --build-file zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zig build test --build-file zigux/tests/phase11_hvc_export_surface_layout_build.zig",
     "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
 )
 
@@ -328,25 +330,25 @@ def fixture_inventory() -> dict[str, object]:
     }
 
 
-FIXTURE_BUILD_TEXT = """const std = @import("std");
+FIXTURE_BUILD_TEXT = """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),
+        .root_source_file = b.path(\"phase11_hvc_cleanup_packet_proof.zig\"),
         .target = target,
         .optimize = optimize,
     });
 
     const proof_tests = b.addTest(.{
-        .name = "phase11-hvc-cleanup-packet-proof",
+        .name = \"phase11-hvc-cleanup-packet-proof\",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");
+    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC cleanup packet proof\");
     test_step.dependOn(&run_proof_tests.step);
 }
 """
@@ -438,7 +440,10 @@ def run_self_test() -> int:
         shutil.copytree(fixture, wrong_adjunct_build_replays, dirs_exist_ok=True)
         inventory = read_json(wrong_adjunct_build_replays / INVENTORY_PATH)
         inventory["shared_adjunct_build_replays"] = inventory["shared_adjunct_build_replays"][:-1]
-        write(wrong_adjunct_build_replays / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        write(
+            wrong_adjunct_build_replays / INVENTORY_PATH,
+            json.dumps(inventory, indent=2) + "\n",
+        )
         expect_failure(
             wrong_adjunct_build_replays,
             "shared_adjunct_build_replays does not match",
