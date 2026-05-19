@@ -72,6 +72,13 @@ pub const MaintenanceHandoff = struct {
     next_future_target: []const u8,
 };
 
+pub const CancelPathHandoff = struct {
+    anchor_symbol: []const u8,
+    ownership: Ownership,
+    observed_fields: []const []const u8,
+    blocked_by: []const u8,
+};
+
 const boundary_areas = [_]BoundaryArea{
     .{
         .id = "submission-routing",
@@ -99,7 +106,7 @@ const boundary_areas = [_]BoundaryArea{
         .summary = "Keep flush, drain, and cancellation completion ownership explicitly in C.",
         .ownership = .stay_in_c,
         .anchor_symbols = &[_][]const u8{ "__flush_workqueue", "drain_workqueue", "__cancel_work_sync" },
-        .rationale = "The bridge can now point directly at insert_wq_barrier(), start_flush_work(), and WORK_OFFQ_CANCELING as the flush-start and cancel-completion seams, but those waits still depend on active-color progression, chained flushers, cancellation wait state, and worker progress owned by the current C implementation.",
+        .rationale = "The bridge can now point directly at insert_wq_barrier(), start_flush_work(), and WORK_OFFQ_CANCELING as the flush-start and cancel-completion seams, but those waits still depend on active-color progression, chained flushers, cancellation disable depth, cancellation wait state, and worker progress owned by the current C implementation.",
     },
     .{
         .id = "worker-pool-concurrency",
@@ -294,6 +301,13 @@ const maintenance_reopen_conditions = [_][]const u8{
     "genuinely narrower stay-in-C evidence appears around delayed-work requeue governance, flush-drain ownership, hotplug topology rebinding, or scheduler-visible worker-state transitions without implying live execution ownership",
 };
 
+const cancel_path_observed_fields = [_][]const u8{
+    "WORK_OFFQ_DISABLE_BITS",
+    "work->data",
+    "__flush_work()",
+    "disable_work()",
+};
+
 pub const WorkqueueBridgeLab = struct {
     pub fn descriptor() ModuleDescriptor {
         return .{
@@ -334,6 +348,15 @@ pub const WorkqueueBridgeLab = struct {
             .reread_surfaces = maintenance_reread_surfaces[0..],
             .reopen_conditions = maintenance_reopen_conditions[0..],
             .next_future_target = "Keep the packet in blocked maintenance and reread the bridge, dedicated tests, manifest, slice note, and survey note together before touching any broader Phase 14 shared reminder surface.",
+        };
+    }
+
+    pub fn cancelPathHandoff() CancelPathHandoff {
+        return .{
+            .anchor_symbol = "__cancel_work_sync",
+            .ownership = .stay_in_c,
+            .observed_fields = cancel_path_observed_fields[0..],
+            .blocked_by = "__cancel_work_sync() may preserve disable depth through disable_work() before falling back to __flush_work(), so cancellation completion stays inside the live C pending-bit and completion rules rather than becoming a Zig wrapper claim.",
         };
     }
 
@@ -391,6 +414,7 @@ test "workqueue bridge boundary map records blocked-maintenance stay-in-c areas"
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "insert_wq_barrier()") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "start_flush_work()") != null);
     try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "WORK_OFFQ_CANCELING") != null);
+    try std.testing.expect(std.mem.indexOf(u8, map.areas[3].rationale, "disable depth") != null);
 }
 
 test "workqueue bridge concurrency audit matches blocked-maintenance packet" {
@@ -444,4 +468,18 @@ test "workqueue bridge maintenance handoff keeps blocked-maintenance reread surf
     try std.testing.expect(std.mem.indexOf(u8, handoff.reopen_conditions[2], "scheduler-visible worker-state transitions") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "blocked maintenance") != null);
     try std.testing.expect(std.mem.indexOf(u8, handoff.next_future_target, "shared reminder surface") != null);
+}
+
+test "workqueue bridge cancel-path handoff keeps cancellation completion explicit and in C" {
+    const cancel_handoff = WorkqueueBridgeLab.cancelPathHandoff();
+
+    try std.testing.expectEqualStrings("__cancel_work_sync", cancel_handoff.anchor_symbol);
+    try std.testing.expect(cancel_handoff.ownership == .stay_in_c);
+    try std.testing.expectEqual(@as(usize, 4), cancel_handoff.observed_fields.len);
+    try std.testing.expectEqualStrings("WORK_OFFQ_DISABLE_BITS", cancel_handoff.observed_fields[0]);
+    try std.testing.expectEqualStrings("work->data", cancel_handoff.observed_fields[1]);
+    try std.testing.expectEqualStrings("__flush_work()", cancel_handoff.observed_fields[2]);
+    try std.testing.expectEqualStrings("disable_work()", cancel_handoff.observed_fields[3]);
+    try std.testing.expect(std.mem.indexOf(u8, cancel_handoff.blocked_by, "disable depth") != null);
+    try std.testing.expect(std.mem.indexOf(u8, cancel_handoff.blocked_by, "pending-bit and completion rules") != null);
 }
