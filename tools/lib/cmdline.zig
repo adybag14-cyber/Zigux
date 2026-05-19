@@ -338,3 +338,17 @@ test "nextArg treats a leading or post-space NUL as end of input" {
     try std.testing.expect(nextArg("\x00panic=-1") == null);
     try std.testing.expect(nextArg(" \t\x00panic=-1") == null);
 }
+
+test "nextArg truncates a quoted bare token at an embedded NUL" {
+    const parsed = nextArg("\"console quiet\x00root=/dev/vda") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("console quiet", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("", parsed.remaining);
+}
+
+test "nextArg truncates a quoted value at an embedded NUL" {
+    const parsed = nextArg("rdinit=\"/bin/sh\x00 panic=-1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("rdinit", parsed.param);
+    try std.testing.expectEqualStrings("/bin/sh", parsed.value.?);
+    try std.testing.expectEqualStrings("", parsed.remaining);
+}
