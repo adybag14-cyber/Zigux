@@ -515,9 +515,20 @@ test "cpumask starter helpers fail closed when nr_cpu_ids drifts from nbits" {
     invalid.nr_cpu_ids = 7;
     const projected = binding.asBitmap(invalid);
     const summary = cpumask_view.summarize(invalid);
+    const bitmap_summary = bitmap_view.summarize(projected);
 
+    try testing.expectEqual(invalid.words_addr, projected.words_addr);
+    try testing.expectEqual(invalid.nbits, projected.nbits);
+    try testing.expectEqual(invalid.word_count, projected.word_count);
     try testing.expect(bitmap_view.isValid(projected));
     try testing.expect(bitmap_view.testBit(projected, 5));
+    try testing.expectEqual(@as(u32, 5), bitmap_view.firstSet(projected));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstZero(projected));
+    try testing.expectEqual(@as(u32, 1), bitmap_view.weight(projected));
+    try testing.expectEqual(@as(u32, 5), bitmap_summary.first_set);
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.first_zero);
+    try testing.expectEqual(@as(u32, 1), bitmap_summary.weight);
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.reserved);
     try testing.expect(!cpumask_view.isValid(invalid));
     try testing.expect(!cpumask_view.cpuIsSet(invalid, 5));
     try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid));
