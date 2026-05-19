@@ -134,6 +134,11 @@ pub fn readInteropPolicyBytes(
     return read(T, ptr);
 }
 
+pub fn readInteropPolicyByte(comptime T: type, unsafe_scope: u8, ptr: *const volatile T) PolicyError!T {
+    try requireInteropPolicyByte(unsafe_scope);
+    return read(T, ptr);
+}
+
 pub fn writeInteropPolicyBytes(
     comptime T: type,
     unsafe_scope: u8,
@@ -142,6 +147,16 @@ pub fn writeInteropPolicyBytes(
     value: T,
 ) PolicyError!void {
     try requireInteropPolicyBytes(unsafe_scope, reserved);
+    write(T, ptr, value);
+}
+
+pub fn writeInteropPolicyByte(
+    comptime T: type,
+    unsafe_scope: u8,
+    ptr: *volatile T,
+    value: T,
+) PolicyError!void {
+    try requireInteropPolicyByte(unsafe_scope);
     write(T, ptr, value);
 }
 
@@ -156,6 +171,16 @@ pub fn exchangeInteropPolicyBytes(
     return exchange(T, ptr, value);
 }
 
+pub fn exchangeInteropPolicyByte(
+    comptime T: type,
+    unsafe_scope: u8,
+    ptr: *volatile T,
+    value: T,
+) PolicyError!T {
+    try requireInteropPolicyByte(unsafe_scope);
+    return exchange(T, ptr, value);
+}
+
 pub fn writeMaskedInteropPolicyBytes(
     comptime T: type,
     unsafe_scope: u8,
@@ -165,6 +190,17 @@ pub fn writeMaskedInteropPolicyBytes(
     set_mask: T,
 ) PolicyError!T {
     try requireInteropPolicyBytes(unsafe_scope, reserved);
+    return writeMasked(T, ptr, clear_mask, set_mask);
+}
+
+pub fn writeMaskedInteropPolicyByte(
+    comptime T: type,
+    unsafe_scope: u8,
+    ptr: *volatile T,
+    clear_mask: T,
+    set_mask: T,
+) PolicyError!T {
+    try requireInteropPolicyByte(unsafe_scope);
     return writeMasked(T, ptr, clear_mask, set_mask);
 }
 
@@ -436,6 +472,42 @@ test "phase3 mmio helper keeps scoped masked writes and byte-policy exchanges ex
         try writeMaskedInteropPolicy(u16, mmio_policy, register_ptr, 0x0F00, 0x00A0),
     );
     try std.testing.expectEqual(@as(u16, 0x50A0), register);
+}
+
+test "phase3 mmio helper keeps byte-policy shorthand access explicit" {
+    var register: u32 = 0x00AA_5500;
+    const register_ptr: *volatile u32 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u32 = @ptrCast(&register);
+    const mmio_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio);
+    const no_unsafe_scope = @intFromEnum(abi.UnsafeScope.none);
+    const raw_pointer_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge);
+
+    try std.testing.expectEqual(@as(u32, 0x00AA_5500), try readInteropPolicyByte(u32, mmio_scope, const_register_ptr));
+    try std.testing.expectError(error.UnsafeScopeDenied, readInteropPolicyByte(u32, no_unsafe_scope, const_register_ptr));
+
+    try writeInteropPolicyByte(u32, mmio_scope, register_ptr, 0x1234_5678);
+    try std.testing.expectEqual(@as(u32, 0x1234_5678), register);
+    try std.testing.expectError(error.UnsafeScopeDenied, writeInteropPolicyByte(u32, raw_pointer_scope, register_ptr, 0));
+
+    try std.testing.expectEqual(
+        @as(u32, 0x1234_5678),
+        try exchangeInteropPolicyByte(u32, mmio_scope, register_ptr, 0xCAFE_BABE),
+    );
+    try std.testing.expectEqual(@as(u32, 0xCAFE_BABE), register);
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        exchangeInteropPolicyByte(u32, no_unsafe_scope, register_ptr, 0),
+    );
+
+    try std.testing.expectEqual(
+        @as(u32, 0xCA0E_B00E),
+        try writeMaskedInteropPolicyByte(u32, mmio_scope, register_ptr, 0x00F0_0FF0, 0x000E_000E),
+    );
+    try std.testing.expectEqual(@as(u32, 0xCA0E_B00E), register);
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        writeMaskedInteropPolicyByte(u32, raw_pointer_scope, register_ptr, 0xFFFF_0000, 0),
+    );
 }
 
 test "phase3 mmio helper keeps interop-policy reads and writes routed through require helpers" {
