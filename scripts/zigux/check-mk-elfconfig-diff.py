@@ -59,6 +59,8 @@ EXPECTED_RESULT_KEYS = frozenset({"stdout", "stderr", "exit_code"})
 EXPECTED_ZIG_MARKERS = {
     "fd_entrypoint": "pub fn runMkElfconfigFromFd(",
     "fd_exact_elf32": 'test "fd-backed exact 32-bit ELF header exits with stdout at EOF" {',
+    "fd_exact_elf64": 'test "fd-backed exact 64-bit ELF header exits with stdout at EOF" {',
+    "fd_exact_truncated": 'test "fd-backed exact truncated header exits with stderr at EOF" {',
     "fd_exact_invalid_class": 'test "fd-backed exact invalid-class header exits silently at EOF" {',
     "fd_exact_not_elf": 'test "fd-backed exact non-ELF header exits with stderr at EOF" {',
     "elf32_trailing_direct": 'test "classifies 32-bit ELF input even when trailing bytes are present" {',
