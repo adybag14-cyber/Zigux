@@ -23,6 +23,7 @@ PINNING_CHECKER = "scripts/zigux/check-phase2-toolchain-pinning.py"
 PIN_SCOPE_CHECKER = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 REQUIRED_MAKE_ROUTES_CHECKER = "scripts/zigux/check-phase2-required-make-routes.py"
 SHARED_REMINDER_CHECKER = "scripts/zigux/check-phase2-docs-shared-reminder.py"
+TOOL_MANIFEST_CHECKER = "scripts/zigux/check-phase2-tool-manifest.py"
 ARTIFACT_TOOLS_MANIFEST_CHECKER = "scripts/zigux/check-phase2-artifact-tools-manifest.py"
 GENKSYMS_BRIDGE_CHECKER = "scripts/zigux/check-genksyms-bridge.py"
 GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
@@ -66,6 +67,7 @@ REQUIRED_PATHS = (
     PIN_SCOPE_CHECKER,
     REQUIRED_MAKE_ROUTES_CHECKER,
     SHARED_REMINDER_CHECKER,
+    TOOL_MANIFEST_CHECKER,
     ARTIFACT_TOOLS_MANIFEST_CHECKER,
     GENKSYMS_BRIDGE_CHECKER,
     GENKSYMS_ZIG,
@@ -130,6 +132,8 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
     "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
@@ -145,6 +149,7 @@ README_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`.github/workflows/zigux-bootstrap.yml`",
@@ -154,6 +159,7 @@ README_MARKERS = (
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
+    "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`make -C zigux phase2-toolchain`",
@@ -468,6 +474,7 @@ def build_self_test_root(root: Path) -> None:
         PIN_SCOPE_CHECKER,
         REQUIRED_MAKE_ROUTES_CHECKER,
         SHARED_REMINDER_CHECKER,
+        TOOL_MANIFEST_CHECKER,
         ARTIFACT_TOOLS_MANIFEST_CHECKER,
         GENKSYMS_BRIDGE_CHECKER,
         GENKSYMS_ZIG,
