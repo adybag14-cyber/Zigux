@@ -24,7 +24,7 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 14
+EXPECTED_SELF_TEST_CASES = 16
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -48,12 +48,12 @@ MANIFEST_MARKERS = (
 
 SURVEY_MARKERS = (
     'test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {',
-    'try requireMarkerCount("\\"acceptable_limit_iterations\\": 4", 2);',
-    'try requireMarkerCount("\\"acceptable_limit_sample_count\\": 7", 2);',
-    'try requireMarker("\\"benchmark_command\\": \\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\"");',
-    'try requireMarker("\\"benchmark_command\\": \\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\"");',
-    'try requireMarker("\\"shared_ci_perf_promotion_status\\": \\"pending\\"");',
-    'try requireMarker("\\"coordination_owners\\": [");',
+    'try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);',
+    'try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);',
+    'try requireMarker("\\\"benchmark_command\\\": \\\\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\\\"");',
+    'try requireMarker("\\\"benchmark_command\\\": \\\\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\\\"");',
+    'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\\\"pending\\\\\"");',
+    'try requireMarker("\\\"coordination_owners\\\": [");',
 )
 
 MATRIX_MARKERS = (
@@ -278,14 +278,14 @@ def build_fixture_tree(root: Path) -> None:
     write_text(
         root / SURVEY,
         """test "phase4 perf baseline survey keeps exact local-only iteration and sample counts explicit" {
-    try requireMarkerCount("\\"acceptable_limit_iterations\\": 4", 2);
-    try requireMarkerCount("\\"acceptable_limit_sample_count\\": 7", 2);
+    try requireMarkerCount("\\\"acceptable_limit_iterations\\\": 4", 2);
+    try requireMarkerCount("\\\"acceptable_limit_sample_count\\\": 7", 2);
 }
 test "phase4 perf baseline survey keeps atomic64 and bitmap command evidence explicit" {
-    try requireMarker("\\"benchmark_command\\": \\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\"");
-    try requireMarker("\\"benchmark_command\\": \\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\"");
-    try requireMarker("\\"shared_ci_perf_promotion_status\\": \\"pending\\"");
-    try requireMarker("\\"coordination_owners\\": [");
+    try requireMarker("\\\"benchmark_command\\\": \\\\\"zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig\\\\\"");
+    try requireMarker("\\\"benchmark_command\\\": \\\\\"zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig\\\\\"");
+    try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\\\"pending\\\\\"");
+    try requireMarker("\\\"coordination_owners\\\": [");
 }
 """,
     )
@@ -351,11 +351,13 @@ def run_self_test() -> int:
             ),
             (MANIFEST, '"coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]', '"coordination_owners": ["ABI and Replay Team", "Shared Subsystems Pod"]', 'manifest_json:promotion_decision.coordination_owners:'),
             (MANIFEST, '"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"', '"benchmark_command": "zig build phase4-runtime-atomic64-bench --build-file zigux/tests/phase4_build.zig"', 'manifest_marker:"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"'),
-            (SURVEY, 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");', 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"approved\\\"");', 'survey_marker:try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\"pending\\\"");'),
+            (SURVEY, 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\\\"pending\\\\\"");', 'try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\\\"approved\\\\\"");', 'survey_marker:try requireMarker("\\\"shared_ci_perf_promotion_status\\\": \\\\\"pending\\\\\"");'),
             (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are pending review today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
             (REVIEW_CHECKLIST, "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion", "keep the ABI and Runtime Team as the decision owner for any broader shared-CI perf promotion", "review_checklist_marker:keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion"),
             (NOTE, "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14", "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=8", "note_marker:The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here"),
+            (TESTS_README, "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`", "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet-drift.py`", "tests_readme_marker:Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`"),
             (TESTS_README, "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`", "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey_drift.zig`", "tests_readme_marker:Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`"),
+            (TESTS_README, "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone", "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-validation-matrix.md` instead of reconstructing the broader packet from older route names alone", "tests_readme_marker:current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone"),
         )
 
         for rel, old, new, expected_prefix in variants:
