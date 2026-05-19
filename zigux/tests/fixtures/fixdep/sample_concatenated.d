@@ -11,3 +11,10 @@ sample_concatenated.o: zigux/tests/fixtures/fixdep/sample_concatenated_temp.c \
  zigux/tests/fixtures/fixdep/escaped\ space-config.h \
  zigux/tests/fixtures/fixdep/shared\#config.h \
  zigux/tests/fixtures/fixdep/shared\:config.h
+# rustc comment continues \
+across one more intermediate physical line \
+before the final concatenated target
+sample_concatenated.o: zigux/tests/fixtures/fixdep/sample_concatenated_temp.c \
+ zigux/tests/fixtures/fixdep/shared\#config.h \
+ zigux/tests/fixtures/fixdep/escaped\ space-config.h \
+ zigux/tests/fixtures/fixdep/shared\:config.h
