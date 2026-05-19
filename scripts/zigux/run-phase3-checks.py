@@ -36,6 +36,11 @@ CHECK_COMMANDS = (
         ("PHASE3_VALIDATION=pass",),
     ),
     (
+        Path("scripts/zigux/check-phase3-abi.py"),
+        (),
+        ("PHASE3_ABI_CHECK=pass",),
+    ),
+    (
         Path("scripts/zigux/check-phase3-shared-tests-routes.py"),
         (),
         (
@@ -80,12 +85,13 @@ SELF_TEST_MISSING_CASES = (
     (0, "expected missing leading script was not reported"),
     (2, "expected xarray-slot script omission was not reported"),
     (4, "expected shared ABI validator omission was not reported"),
-    (5, "expected shared-tests-routes script omission was not reported"),
-    (6, "expected readme-tooling script omission was not reported"),
-    (7, "expected validator-support script omission was not reported"),
-    (8, "expected export-uapi survey script omission was not reported"),
-    (9, "expected low-level-wrapper script omission was not reported"),
-    (10, "expected selftest-surface script omission was not reported"),
+    (5, "expected shared ABI checker omission was not reported"),
+    (6, "expected shared-tests-routes script omission was not reported"),
+    (7, "expected readme-tooling script omission was not reported"),
+    (8, "expected validator-support script omission was not reported"),
+    (9, "expected export-uapi survey script omission was not reported"),
+    (10, "expected low-level-wrapper script omission was not reported"),
+    (11, "expected selftest-surface script omission was not reported"),
 )
 
 
@@ -200,18 +206,18 @@ def run_self_test() -> int:
             print("expected failing child validator to fail the runner")
             return 1
 
-        shared_routes_path = root / CHECK_COMMANDS[5][0]
+        shared_routes_path = root / CHECK_COMMANDS[6][0]
         populate_repo()
         _write_synthetic_script(
             shared_routes_path,
-            (CHECK_COMMANDS[5][2][0],),
+            (CHECK_COMMANDS[6][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
             print("expected missing shared-routes output marker to fail the runner")
             return 1
 
-        readme_inventory_path = root / CHECK_COMMANDS[6][0]
+        readme_inventory_path = root / CHECK_COMMANDS[7][0]
         populate_repo()
         _write_synthetic_script(readme_inventory_path, ())
         if run_packet(root) != 1:
