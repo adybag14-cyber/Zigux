@@ -8,7 +8,7 @@ This note records one bounded Phase 14 productization-evidence gap on current `m
 - `PHASE14_LANE_KEY=P14-L05`
 - `PHASE14_PROVENANCE_MODE=dated_master_readback`
 - re-read against fresh current-master recovery on 2026-05-18
-- role: keep the shared Phase 14 evidence packet truthful when this lane can recover the documentation layer directly, recover `scripts/zigux/validate-phase14.py` again through pinned blob readback, recover the workqueue boundary shard again through current public file readback, and now recover `zigux/Makefile` again through the contents path while that live Makefile body no longer exposes the older Phase 14 rerun routes named by saved reminder notes
+- role: keep the shared Phase 14 evidence packet truthful when this lane can recover the documentation layer directly, recover `scripts/zigux/validate-phase14.py` again through pinned blob readback, recover the workqueue boundary shard again through current public file readback, recover `scripts/zigux/check-phase14-release-boundary-exact-counts.py` again through the current contents path, and now recover `zigux/Makefile` again through the contents path while that live Makefile body no longer exposes the older Phase 14 rerun routes named by saved reminder notes
 
 ## Why this gap matters
 
@@ -16,7 +16,7 @@ The Phase 14 roadmap keeps core-adjacent work in a bounded study-only or stay-in
 
 Current `master` now exposes more of the shared smoke packet than this note previously recorded, but the packet is still only partially recoverable through the exact read modes available in this lane.
 
-That makes the honest same-lane task narrower than reviving old packet claims: record the updated split between the directly readable documentation layer, the recovered validator body, the recovered workqueue boundary shard, the newly readable current Makefile body, and the still-missing executable layer so later shared-surface repairs start from repo reality instead of from stale reminder text.
+That makes the honest same-lane task narrower than reviving old packet claims: record the updated split between the directly readable documentation layer, the recovered validator body, the recovered workqueue boundary shard, the returned release-boundary exact-count guard, the newly readable current Makefile body, and the still-missing executable layer so later shared-surface repairs start from repo reality instead of from stale reminder text.
 
 ## Current-Master Companions Recoverable In This Lane
 
@@ -37,6 +37,7 @@ Fresh current-master rereads on 2026-05-18 now recover these shared-smoke, workq
 - `zigux/tests/README.md`
 - `zigux/Makefile`
 - `scripts/zigux/validate-phase14.py`
+- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
 - `kernel/workqueue_bridge.zig`
 - `zigux/tests/phase14_workqueue_bridge.zig`
 - `zigux/tests/phase14_workqueue_reviewability.zig`
@@ -46,6 +47,7 @@ Those readable notes and paths keep the current narrow posture visible:
 
 - the shared smoke note, cross-anchor traceability note, productization note, freeze map, docs-root summary, checklist, tests-root reminder, scripts-root reminder, attached-toolchain guidance note, and release-boundary note are directly readable again through this lane's contents path or current mixed-readback path
 - `scripts/zigux/validate-phase14.py` is recoverable again through pinned blob readback and now carries a real shared-smoke validator surface instead of the older placeholder body
+- `scripts/zigux/check-phase14-release-boundary-exact-counts.py` is directly readable again through the current contents path and now keeps the release-facing exact-count posture aligned with the returned shared reminder packet
 - `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` are directly readable again as the workqueue-local reviewability shard, so the shared smoke packet should keep that study-only foothold explicit instead of treating it as part of the still-missing executable layer
 - `zigux/Makefile` is directly readable again through the contents path, and its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes, but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets
 - that means the older validator-local exact-line handoff is still not the next honest same-lane fix: before revisiting `MAKE_EXACT_LINES`, any shared reminder surface that drifts again needs to keep the visible post-Phase-2 Makefile route families and the readable non-owner posture explicit instead of calling the returned file a Phase-2-only surface
@@ -58,7 +60,6 @@ Those readable notes and paths keep the current narrow posture visible:
 
 On the same current `master`, the GitHub contents read path used in this lane still returns `404` for the executable and machine-readable shared-smoke packet members below:
 
-- `scripts/zigux/check-phase14-release-boundary-exact-counts.py`
 - `zigux/tests/phase14_build.zig`
 - `zigux/tests/phase14_end_to_end_smoke_manifest.json`
 - `zigux/tests/phase14_end_to_end_smoke_survey.zig`
@@ -67,7 +68,7 @@ On the same current `master`, the GitHub contents read path used in this lane st
 - `zigux/tests/phase14_rcu_tree_survey.zig`
 - `net/core/skbuff_bridge.zig`
 
-This note does not claim those paths are globally absent from every repo access mode. It records the narrower fact that this lane's exact current-master contents readback still misses them, while `scripts/zigux/validate-phase14.py` is presently recoverable only through pinned blob readback and the workqueue-local reviewability shard is presently recoverable through current public file readback rather than the same path-based contents bridge. Broad reminder text should not present that broader executable layer as directly re-read current-master evidence in this environment without a fresh successful readback of the remaining missing files.
+This note does not claim those paths are globally absent from every repo access mode. It records the narrower fact that this lane's exact current-master contents readback still misses them, while `scripts/zigux/validate-phase14.py` is presently recoverable only through pinned blob readback, `scripts/zigux/check-phase14-release-boundary-exact-counts.py` is presently recoverable through the current contents path, and the workqueue-local reviewability shard is presently recoverable through current public file readback rather than the same path-based contents bridge. Broad reminder text should not present that broader executable layer as directly re-read current-master evidence in this environment without a fresh successful readback of the remaining missing files.
 
 ## Current Bounded Conclusion
 
@@ -75,7 +76,7 @@ The directly recoverable Phase 14 evidence on current `master` is broader than t
 
 It is no longer truthful to describe `scripts/zigux/validate-phase14.py` as a placeholder-only return. It is also no longer truthful to treat `zigux/Makefile` as live current-master evidence for the older `phase14-*` rerun routes, because the current readable Makefile body now exposes a Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 surface while still omitting all Phase 14 routes.
 
-The current productization gap is therefore the mismatch between the recovered shared-smoke documentation packet, the blob-readable validator body, the directly readable workqueue boundary shard, the now-readable non-owner Makefile body, and the still-missing executable layer beneath them.
+The returned release-boundary exact-count checker narrows the shared-smoke gap further: the current productization gap is now the mismatch between the recovered shared-smoke documentation packet, the blob-readable validator body, the directly readable release-boundary exact-count guard, the directly readable workqueue boundary shard, the now-readable non-owner Makefile body, and the still-missing executable layer beneath them.
 
 That updated split has already closed the older release-boundary, attached-toolchain, checklist, scripts-root, and tests-root reminder drifts as same-lane fixes. No broader shared reminder undercount remains visible on current `master`.
 
@@ -85,6 +86,6 @@ Keep `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `Document
 
 If the same-lane reminder packet is touched again on current `master`, publish only the smallest shared reminder repair that matches a fresh reread of `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` against the current Makefile posture instead of assuming another tests-root undercount by default.
 
-If a later run regains fresh exact readback for `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, or the `phase14-*` Makefile routes on current `master`, re-evaluate this note against `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` before restoring any stronger replay or validator-local wording.
+If a later run regains fresh exact readback for `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, or the `phase14-*` Makefile routes on current `master`, re-evaluate this note against `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` before restoring any stronger replay or validator-local wording.
 
 If a later run restores exact readback for the missing executable packet members without restoring the old Makefile routes, keep the shared smoke packet aligned with that narrower repo reality instead of reviving stale validator-first wording.
