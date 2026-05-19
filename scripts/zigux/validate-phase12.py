@@ -22,6 +22,12 @@ RELEASE_COORDINATION_MATRIX_PATH = (
     "Documentation/zigux/phase12-release-coordination-matrix.md"
 )
 RAW_GITHUB_COVERAGE_PATH = "Documentation/zigux/phase12-raw-github-coverage-survey.md"
+PHASE12_COMPLEX_DRIVER_LANE_PATH = (
+    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+)
+PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH = (
+    "Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md"
+)
 VIRTIO_NET_SURVEY_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
 VIRTIO_SCSI_FALLBACK_PATH = (
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
@@ -81,6 +87,8 @@ REQUIRED_FILES = [
     RELEASE_CLOSURE_CHECKLIST_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_PATH,
+    PHASE12_COMPLEX_DRIVER_LANE_PATH,
+    PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
     VIRTIO_NET_SURVEY_PATH,
     VIRTIO_SCSI_FALLBACK_PATH,
     VIRTIO_SCSI_SLICE_PATH,
@@ -142,6 +150,16 @@ REQUIRED_MARKERS = {
         "while a direct contents read for `zigux/tests/phase12_build.zig` still returns `404` through the same current `master` bridge",
         "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, and current Makefile as bounded reminder evidence only",
         "the raw-URL-backed fallback pair and the contents-bridge-backed shared support bundle are distinct evidence paths in this runtime",
+    ],
+    PHASE12_COMPLEX_DRIVER_LANE_PATH: [
+        "Keep the shared validator-first then smoke-first packet wording explicit: current `zigux/Makefile` now ships `phase12-smoke`, `phase12-test`, and `phase12` again, while `phase12-validate` is still absent, so only `make -C zigux phase12-validate` stays reminder vocabulary while `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
+        "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, while only `make -C zigux phase12-validate` stays documented as shared reminder text until that wrapper returns on current `master`.",
+        "keep those two `virtio_net` follow-ups framed as bounded transmit-disposition and queue-resume reviewability inside the shared packet rather than as live DMA-safe receive ownership, queue restart parity, transport-backed queue flow, or completion-path parity",
+    ],
+    PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH: [
+        "Keep the shared libbpf packet explicit through `Documentation/zigux/phase12-libbpf-segment-survey.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, and the still-present `zigux/tests/fixtures/phase12_libbpf_snapshot.json` snapshot anchor, while treating the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` as parked note-owned boundaries until they land again on current `master`, while keeping `tools/lib/bpf/zigux_segments/verify.zig` explicit as the directly readable compile-together shard for the current helper footing, and while keeping `tools/lib/bpf/zigux_segments/manifest.json` explicit as the directly readable legacy helper catalog on current `master`.",
+        "Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`, so keep only `make -C zigux phase12-validate` here as reminder vocabulary and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.",
+        "The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.",
     ],
     VIRTIO_SCSI_FALLBACK_PATH: [
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
@@ -295,6 +313,14 @@ FIXTURE_TEXT = {
         "# Phase 12 Raw GitHub Coverage Survey",
         REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_PATH],
     ),
+    PHASE12_COMPLEX_DRIVER_LANE_PATH: marker_fixture(
+        "# Phase 12 Complex-Driver Lane Sequencing",
+        REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH],
+    ),
+    PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH: marker_fixture(
+        "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
+        REQUIRED_MARKERS[PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH],
+    ),
     VIRTIO_NET_SURVEY_PATH: "# Phase 12 Virtio Net Survey\n",
     VIRTIO_SCSI_FALLBACK_PATH: marker_fixture(
         "# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog",
@@ -414,8 +440,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 shared support bundle around the release "
-            "packet, fallback packet, driver-local surveys, and current master route "
-            "reality."
+            "packet, fallback packet, shared anti-overlap companions, driver-local "
+            "surveys, and current master route reality."
         )
     )
     parser.add_argument(
