@@ -245,7 +245,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_guard_line")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         note_text = load_text(root, NOTE_REL)
         write_file(root, NOTE_REL, note_text + PHASE12_GUARD_LINE + "\n")
@@ -275,6 +275,24 @@ def run_self_test() -> int:
         build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE10_SELFTEST_STEP[0]}\n"))
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE10_SELFTEST_STEP[0]}:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase10_selftest_step_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE10_CHECK_STEP[0]}\n"))
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE10_CHECK_STEP[0]}:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase10_check_step_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE10_VALIDATE_STEP[0]}\n"))
         failures = collect_failures(root)
         if f"workflow_step:{PHASE10_VALIDATE_STEP[0]}:expected=1:actual=0" not in failures:
@@ -293,6 +311,24 @@ def run_self_test() -> int:
         build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE11_SELFTEST_STEP[0]}\n"))
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE11_SELFTEST_STEP[0]}:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase11_selftest_step_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE11_CHECK_STEP[0]}\n"))
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE11_CHECK_STEP[0]}:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase11_check_step_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"))
         failures = collect_failures(root)
         if f"workflow_step:{PHASE12_SELFTEST_STEP[0]}:expected=1:actual=0" not in failures:
@@ -306,6 +342,15 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if f"workflow_step:{PHASE12_CHECK_STEP[0]}:expected=1:actual=0" not in failures:
             print("self-test:missing_phase12_check")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_ANCHOR_STEP[0]}\n"))
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE12_ANCHOR_STEP[0]}:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase12_anchor_step_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
