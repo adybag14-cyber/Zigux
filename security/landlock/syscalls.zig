@@ -6,6 +6,8 @@ pub const LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON: u32 = 1 << 0;
 pub const LANDLOCK_RESTRICT_SELF_TSYNC: u32 = 1 << 1;
 pub const O_RDWR: u32 = 0x2;
 pub const O_CLOEXEC: u32 = 0x80000;
+pub const FMODE_CAN_READ: u32 = 1 << 0;
+pub const FMODE_CAN_WRITE: u32 = 1 << 1;
 
 pub const ModuleDescriptor = struct {
     name: []const u8,
@@ -157,9 +159,16 @@ pub const RulesetFdStubOperation = enum {
     write,
 };
 
+pub const RulesetFdStubRequest = struct {
+    operation: RulesetFdStubOperation,
+    mode_bits: u32,
+};
+
 pub const RulesetFdStubPlan = struct {
     anchor: []const u8,
     operation: RulesetFdStubOperation,
+    validates_mode_bits: bool,
+    required_mode_bits: u32,
     enables_read_mode: bool,
     enables_write_mode: bool,
     returns_einval: bool,
@@ -266,6 +275,11 @@ pub const SyscallsHelperLab = struct {
             return error.BadUserPointer;
         }
 
+        const ruleset_fd_install_plan = switch (create_ruleset_plan.mode) {
+            .create_handle => try planInstallRulesetFd(.{}),
+            .abi_version_query => null,
+        };
+
         return .{
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
@@ -273,10 +287,7 @@ pub const SyscallsHelperLab = struct {
             .reuses_create_ruleset_validation = true,
             .reuses_ruleset_fd_install_planning = true,
             .create_ruleset_plan = create_ruleset_plan,
-            .ruleset_fd_install_plan = switch (create_ruleset_plan.mode) {
-                .create_handle => try planInstallRulesetFd(.{}),
-                .abi_version_query => null,
-            },
+            .ruleset_fd_install_plan = ruleset_fd_install_plan,
         };
     }
 
@@ -386,11 +397,22 @@ pub const SyscallsHelperLab = struct {
         };
     }
 
-    pub fn planRulesetFdStub(operation: RulesetFdStubOperation) RulesetFdStubPlan {
-        return switch (operation) {
+    pub fn planRulesetFdStub(request: RulesetFdStubRequest) !RulesetFdStubPlan {
+        const expected_mode_bits = switch (request.operation) {
+            .read => FMODE_CAN_READ,
+            .write => FMODE_CAN_WRITE,
+        };
+
+        if (request.mode_bits != expected_mode_bits) {
+            return error.UnsupportedRulesetFdMode;
+        }
+
+        return switch (request.operation) {
             .read => .{
                 .anchor = descriptor().anchor,
                 .operation = .read,
+                .validates_mode_bits = true,
+                .required_mode_bits = expected_mode_bits,
                 .enables_read_mode = true,
                 .enables_write_mode = false,
                 .returns_einval = true,
@@ -399,6 +421,8 @@ pub const SyscallsHelperLab = struct {
             .write => .{
                 .anchor = descriptor().anchor,
                 .operation = .write,
+                .validates_mode_bits = true,
+                .required_mode_bits = expected_mode_bits,
                 .enables_read_mode = false,
                 .enables_write_mode = true,
                 .returns_einval = true,
@@ -521,28 +545,27 @@ test "landlock syscalls top-level wrapper keeps version query nullable and expli
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(wrapper.reuses_create_ruleset_validation);
+    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
+    try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
+}
+
+test "landlock syscalls top-level wrapper keeps version query install planning nullable and explicit" {
+    const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr_size = 0,
+            .flags = LANDLOCK_CREATE_RULESET_VERSION,
+        },
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
+    try std.testing.expect(wrapper.checks_initialization_gate);
+    try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(wrapper.reuses_create_ruleset_validation);
     try std.testing.expect(wrapper.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
     try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
-}
-
-test "landlock syscalls top-level wrapper requires attr presence for create path" {
-    try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockCreateRuleset(.{
-        .attr_present = false,
-        .input = .{
-            .attr = .{ .handled_access_fs = 0x4 },
-        },
-    }));
-}
-
-test "landlock syscalls top-level wrapper rejects disabled boot before planning" {
-    try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockCreateRuleset(.{
-        .initialized = false,
-        .input = .{
-            .attr = .{ .handled_access_fs = 0x4 },
-        },
-    }));
 }
 
 test "landlock syscalls top-level wrapper threads ruleset fd install only for create path" {
@@ -565,6 +588,24 @@ test "landlock syscalls top-level wrapper threads ruleset fd install only for cr
     try std.testing.expect(install_plan.performs_anon_inode_getfd);
     try std.testing.expect(install_plan.returns_new_fd);
     try std.testing.expect(install_plan.releases_ruleset_on_fd_failure);
+}
+
+test "landlock syscalls top-level wrapper requires attr presence for create path" {
+    try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    }));
+}
+
+test "landlock syscalls top-level wrapper rejects disabled boot before planning" {
+    try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .initialized = false,
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    }));
 }
 
 test "landlock syscalls restrict-self keeps no_new_privs and domain merge planning explicit" {
@@ -730,20 +771,41 @@ test "landlock syscalls ruleset release rejects missing file or ruleset state" {
     }));
 }
 
-test "landlock syscalls ruleset fd stubs keep dummy operation discipline explicit" {
-    const read_plan = SyscallsHelperLab.planRulesetFdStub(.read);
+test "landlock syscalls ruleset fd stubs validate exact mode discipline" {
+    const read_plan = try SyscallsHelperLab.planRulesetFdStub(.{
+        .operation = .read,
+        .mode_bits = FMODE_CAN_READ,
+    });
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, read_plan.anchor);
     try std.testing.expectEqual(RulesetFdStubOperation.read, read_plan.operation);
+    try std.testing.expect(read_plan.validates_mode_bits);
+    try std.testing.expectEqual(@as(u32, FMODE_CAN_READ), read_plan.required_mode_bits);
     try std.testing.expect(read_plan.enables_read_mode);
     try std.testing.expect(!read_plan.enables_write_mode);
     try std.testing.expect(read_plan.returns_einval);
     try std.testing.expect(!read_plan.mutates_ruleset_state);
 
-    const write_plan = SyscallsHelperLab.planRulesetFdStub(.write);
+    const write_plan = try SyscallsHelperLab.planRulesetFdStub(.{
+        .operation = .write,
+        .mode_bits = FMODE_CAN_WRITE,
+    });
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, write_plan.anchor);
     try std.testing.expectEqual(RulesetFdStubOperation.write, write_plan.operation);
+    try std.testing.expect(write_plan.validates_mode_bits);
+    try std.testing.expectEqual(@as(u32, FMODE_CAN_WRITE), write_plan.required_mode_bits);
     try std.testing.expect(!write_plan.enables_read_mode);
     try std.testing.expect(write_plan.enables_write_mode);
     try std.testing.expect(write_plan.returns_einval);
     try std.testing.expect(!write_plan.mutates_ruleset_state);
+}
+
+test "landlock syscalls ruleset fd stubs reject mismatched or combined mode bits" {
+    try std.testing.expectError(error.UnsupportedRulesetFdMode, SyscallsHelperLab.planRulesetFdStub(.{
+        .operation = .read,
+        .mode_bits = FMODE_CAN_WRITE,
+    }));
+    try std.testing.expectError(error.UnsupportedRulesetFdMode, SyscallsHelperLab.planRulesetFdStub(.{
+        .operation = .write,
+        .mode_bits = FMODE_CAN_READ | FMODE_CAN_WRITE,
+    }));
 }
