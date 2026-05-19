@@ -375,6 +375,21 @@ def run_self_test() -> int:
         (VALIDATOR_SUPPORT_PATH, "Documentation/zigux/phase3-abi-h-boundary-next-step.md", "validator-support note"),
         (
             VALIDATOR_SUPPORT_PATH,
+            "Documentation/zigux/phase3-shared-reminder-gap.md",
+            "validator-support note",
+        ),
+        (
+            VALIDATOR_SUPPORT_PATH,
+            "scripts/zigux/validate-phase3-validator-support-surface.py",
+            "validator-support note",
+        ),
+        (
+            VALIDATOR_SUPPORT_PATH,
+            "zig build phase3-dev-t-starter-packet-test --build-file zigux/tests/phase3_dev_t_starter_packet_build.zig --summary all",
+            "validator-support note",
+        ),
+        (
+            VALIDATOR_SUPPORT_PATH,
             "The following representative wider header-family routes still read as absent on the live tree and should be treated as repo-reality gaps rather than shipped validator support:",
             "validator-support note",
         ),
@@ -479,7 +494,22 @@ def run_self_test() -> int:
             'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
             "selftest driver",
         ),
+        (
+            SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/validate-phase3.py")',
+            "selftest driver",
+        ),
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/run-phase3-checks.py")', "selftest driver"),
+        (
+            SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/check-phase3-selftest-surface.py")',
+            "selftest driver",
+        ),
         (
             SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
