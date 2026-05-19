@@ -1,7 +1,7 @@
 {
   "packet": "phase6-helper-parity",
   "phase": "Phase 6",
-  "surveyed_head": "61e026c",
+  "surveyed_head": "9ca34d1",
   "lane_scope": "shared helper-parity rows and machine-readable manifest only",
   "purpose": "Record the current directly readable Phase 6 helper-parity packet without overstating missing shared reminder, checker, or perf-note surfaces as returned evidence.",
   "shared_direct_evidence": [
