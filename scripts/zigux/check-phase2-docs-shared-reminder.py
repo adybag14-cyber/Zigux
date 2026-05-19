@@ -46,14 +46,17 @@ REVIEW_CHECKLIST_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`scripts/zigux/check-genksyms-bridge.py`",
+    "`scripts/zigux/genksyms.zig`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/`",
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "current directly readable Phase 2 toolchain, installer, direct cross-route, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
+    "current directly readable Phase 2 toolchain, installer, direct cross-route, kbuild, kconfig bridge, genksyms bridge, docs-shared-reminder, and required-make-route packet",
     "`Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
@@ -76,12 +79,14 @@ REVIEW_CHECKLIST_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "current rematerialized Phase 2 closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, toolchain self-check, and make-wrapper packet",
+    "current rematerialized Phase 2 closure-side, closure-validator, validation, installer, direct cross-route, genksyms bridge, artifact-support, toolchain self-check, and make-wrapper packet",
 )
 
 REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
     "current directly readable Phase 2 toolchain, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
+    "current directly readable Phase 2 toolchain, installer, direct cross-route, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
     "current rematerialized Phase 2 closure-side, closure-validator, validation, artifact-support, toolchain self-check, and make-wrapper packet",
+    "current rematerialized Phase 2 closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, toolchain self-check, and make-wrapper packet",
     "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` stay framed as historical packet members rather than shipped current-`master` evidence",
 )
 
