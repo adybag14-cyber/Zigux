@@ -42,11 +42,15 @@ test "phase4 perf baseline survey keeps atomic64 and bitmap command evidence exp
     try requireMarkerCount("\"final_first_zero\": 109", 2);
 }
 
-test "phase4 perf baseline survey keeps rollback and decision ownership explicit" {
+test "phase4 perf baseline survey keeps rollback, decision, and wrapper ownership explicit" {
     try requireMarker("\"lane_key\": \"P4-L20\"");
     try requireMarker("\"phase\": \"Phase 4\"");
     try requireMarker("\"rollback_owner\": \"Validation and Perf Team\"");
     try requireMarker("\"decision_owner\": \"Validation and Perf Team\"");
+    try requireMarker("\"dedicated_local_survey_wrapper\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\"");
+    try requireMarker("\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"");
+    try requireMarker("\"validation_entrypoint\": \"zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig\"");
+    try requireMarker("\"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\"");
     try requireMarker("\"shared_ci_perf_promotion_status\": \"pending\"");
     try requireMarker("\"local_only_posture_note\": \"The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.\"");
 }
