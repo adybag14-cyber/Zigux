@@ -45,6 +45,14 @@ def collect_failures(root: Path) -> list[str]:
         if marker not in handoff_note:
             failures.append(f"handoff note is missing handoff-rule marker: {marker}")
 
+    for marker in manifest["roadmap_alignment_markers"]:
+        if marker not in handoff_note:
+            failures.append(f"handoff note is missing roadmap-alignment marker: {marker}")
+
+    for marker in manifest["pending_next_step_markers"]:
+        if marker not in handoff_note:
+            failures.append(f"handoff note is missing pending-next-step marker: {marker}")
+
     for repo_path in manifest["present_paths"]:
         marker = f"`{repo_path}`"
         if marker not in handoff_note:
@@ -70,7 +78,7 @@ def _write(path: Path, text: str) -> None:
 def _sample_manifest() -> str:
     return json.dumps(
         {
-            "lane_key": "P15-L08",
+            "lane_key": "P15-L07",
             "phase": "Phase 15",
             "surveyed_commit": "current-master-readback-2026-05-19",
             "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -106,7 +114,7 @@ def _sample_manifest() -> str:
             ],
             "required_markers": [
                 "PHASE15_STATUS=handoff_next_steps_survey_landed",
-                "PHASE15_LANE_KEY=P15-L08",
+                "PHASE15_LANE_KEY=P15-L07",
                 "PHASE15_PROVENANCE_MODE=dated_master_readback",
                 "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
                 "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.",
@@ -122,6 +130,15 @@ def _sample_manifest() -> str:
             "handoff_rule_markers": [
                 "if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts",
                 "if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here"
+            ],
+            "roadmap_alignment_markers": [
+                "The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.",
+                "These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features."
+            ],
+            "pending_next_step_markers": [
+                "tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet",
+                "reread this handoff note together with any newly landed handoff-specific validator-first or dedicated-build companion before treating that companion as current evidence here",
+                "revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves"
             ]
         },
         indent=2,
@@ -132,7 +149,7 @@ def _sample_handoff_note() -> str:
     return """# Phase 15 Handoff Next Steps Survey
 
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L08`
+- `PHASE15_LANE_KEY=P15-L07`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
 - the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
@@ -165,9 +182,19 @@ def _sample_handoff_note() -> str:
 
 ## Roadmap-backed open handoff gaps
 
+The roadmap-required Phase 15 governance features are already materialized on current `master`: the freeze map, the Architecture Council review process, the parity scorecard, and the policy for code that remains in C indefinitely all have directly readable owner notes in the current packet.
+
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
+
+These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features.
+
+## Pending next-step order
+
+1. tighten the smallest shared reminder surface first if docs-root, checklist, scripts-root, or tests-root wording drifts away from the directly materialized governance packet
+2. reread this handoff note together with any newly landed handoff-specific validator-first or dedicated-build companion before treating that companion as current evidence here
+3. revisit freeze-map or parity-scorecard status only if an owning governance packet changes or a deep-core blocker disposition actually moves
 
 ## Handoff rules
 
