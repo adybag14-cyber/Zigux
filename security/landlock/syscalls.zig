@@ -2,6 +2,8 @@ const std = @import("std");
 const landlock_ruleset = @import("ruleset.zig");
 
 pub const LANDLOCK_CREATE_RULESET_VERSION: u32 = 1 << 0;
+pub const LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON: u32 = 1 << 0;
+pub const LANDLOCK_RESTRICT_SELF_TSYNC: u32 = 1 << 1;
 pub const O_RDWR: u32 = 0x2;
 pub const O_CLOEXEC: u32 = 0x80000;
 
@@ -10,6 +12,7 @@ pub const ModuleDescriptor = struct {
     anchor: []const u8,
     provides_create_ruleset_planning: bool,
     provides_abi_version_query_planning: bool,
+    provides_restrict_self_planning: bool,
     provides_add_rule_planning: bool,
     provides_ruleset_fd_install_planning: bool,
     provides_ruleset_fd_stub_planning: bool,
@@ -71,6 +74,26 @@ pub const CreateRulesetSyscallPlan = struct {
     reuses_ruleset_fd_install_planning: bool,
     create_ruleset_plan: CreateRulesetPlan,
     ruleset_fd_install_plan: ?RulesetFdInstallPlan,
+};
+
+pub const RestrictSelfRequest = struct {
+    initialized: bool = true,
+    ruleset_present: bool = true,
+    no_new_privs: bool = true,
+    flags: u32 = 0,
+};
+
+pub const RestrictSelfPlan = struct {
+    anchor: []const u8,
+    checks_initialization_gate: bool,
+    validates_ruleset_presence: bool,
+    validates_no_new_privs: bool,
+    validates_flags: bool,
+    logs_new_exec_transitions: bool,
+    requests_tsync: bool,
+    prepares_new_domain: bool,
+    merges_ruleset_into_domain: bool,
+    updates_current_cred: bool,
 };
 
 pub const AddRuleInput = struct {
@@ -162,6 +185,7 @@ pub const SyscallsHelperLab = struct {
             .anchor = "security/landlock/syscalls.c",
             .provides_create_ruleset_planning = true,
             .provides_abi_version_query_planning = true,
+            .provides_restrict_self_planning = true,
             .provides_add_rule_planning = true,
             .provides_ruleset_fd_install_planning = true,
             .provides_ruleset_fd_stub_planning = true,
@@ -242,11 +266,6 @@ pub const SyscallsHelperLab = struct {
             return error.BadUserPointer;
         }
 
-        const ruleset_fd_install_plan = switch (create_ruleset_plan.mode) {
-            .create_handle => try planInstallRulesetFd(.{}),
-            .abi_version_query => null,
-        };
-
         return .{
             .anchor = descriptor().anchor,
             .checks_initialization_gate = true,
@@ -254,7 +273,38 @@ pub const SyscallsHelperLab = struct {
             .reuses_create_ruleset_validation = true,
             .reuses_ruleset_fd_install_planning = true,
             .create_ruleset_plan = create_ruleset_plan,
-            .ruleset_fd_install_plan = ruleset_fd_install_plan,
+            .ruleset_fd_install_plan = switch (create_ruleset_plan.mode) {
+                .create_handle => try planInstallRulesetFd(.{}),
+                .abi_version_query => null,
+            },
+        };
+    }
+
+    pub fn planLandlockRestrictSelf(request: RestrictSelfRequest) !RestrictSelfPlan {
+        if (!request.initialized) {
+            return error.BootDisabled;
+        }
+        if (!request.ruleset_present) {
+            return error.MissingRuleset;
+        }
+        if (!request.no_new_privs) {
+            return error.MissingNoNewPrivileges;
+        }
+        if ((request.flags & ~(LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON | LANDLOCK_RESTRICT_SELF_TSYNC)) != 0) {
+            return error.UnsupportedRestrictSelfFlags;
+        }
+
+        return .{
+            .anchor = descriptor().anchor,
+            .checks_initialization_gate = true,
+            .validates_ruleset_presence = true,
+            .validates_no_new_privs = true,
+            .validates_flags = true,
+            .logs_new_exec_transitions = (request.flags & LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON) != 0,
+            .requests_tsync = (request.flags & LANDLOCK_RESTRICT_SELF_TSYNC) != 0,
+            .prepares_new_domain = true,
+            .merges_ruleset_into_domain = true,
+            .updates_current_cred = false,
         };
     }
 
@@ -374,13 +424,14 @@ pub const SyscallsHelperLab = struct {
     }
 };
 
-test "landlock syscalls descriptor stays within create and add-rule planning boundaries" {
+test "landlock syscalls descriptor stays within create, restrict-self, and add-rule planning boundaries" {
     const descriptor = SyscallsHelperLab.descriptor();
 
     try std.testing.expectEqualStrings("landlock_syscalls_helper_lab", descriptor.name);
     try std.testing.expectEqualStrings("security/landlock/syscalls.c", descriptor.anchor);
     try std.testing.expect(descriptor.provides_create_ruleset_planning);
     try std.testing.expect(descriptor.provides_abi_version_query_planning);
+    try std.testing.expect(descriptor.provides_restrict_self_planning);
     try std.testing.expect(descriptor.provides_add_rule_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_install_planning);
     try std.testing.expect(descriptor.provides_ruleset_fd_stub_planning);
@@ -470,27 +521,28 @@ test "landlock syscalls top-level wrapper keeps version query nullable and expli
     try std.testing.expect(wrapper.checks_initialization_gate);
     try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
     try std.testing.expect(wrapper.reuses_create_ruleset_validation);
-    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
-    try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
-}
-
-test "landlock syscalls top-level wrapper keeps version query install planning nullable and explicit" {
-    const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
-        .attr_present = false,
-        .input = .{
-            .attr_size = 0,
-            .flags = LANDLOCK_CREATE_RULESET_VERSION,
-        },
-    });
-
-    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
-    try std.testing.expect(wrapper.checks_initialization_gate);
-    try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
-    try std.testing.expect(wrapper.reuses_create_ruleset_validation);
     try std.testing.expect(wrapper.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
     try std.testing.expectEqual(@as(?RulesetFdInstallPlan, null), wrapper.ruleset_fd_install_plan);
+}
+
+test "landlock syscalls top-level wrapper requires attr presence for create path" {
+    try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    }));
+}
+
+test "landlock syscalls top-level wrapper rejects disabled boot before planning" {
+    try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .initialized = false,
+        .input = .{
+            .attr = .{ .handled_access_fs = 0x4 },
+        },
+    }));
 }
 
 test "landlock syscalls top-level wrapper threads ruleset fd install only for create path" {
@@ -515,21 +567,35 @@ test "landlock syscalls top-level wrapper threads ruleset fd install only for cr
     try std.testing.expect(install_plan.releases_ruleset_on_fd_failure);
 }
 
-test "landlock syscalls top-level wrapper requires attr presence for create path" {
-    try std.testing.expectError(error.BadUserPointer, SyscallsHelperLab.planLandlockCreateRuleset(.{
-        .attr_present = false,
-        .input = .{
-            .attr = .{ .handled_access_fs = 0x4 },
-        },
-    }));
+test "landlock syscalls restrict-self keeps no_new_privs and domain merge planning explicit" {
+    const plan = try SyscallsHelperLab.planLandlockRestrictSelf(.{
+        .flags = LANDLOCK_RESTRICT_SELF_LOG_NEW_EXEC_ON | LANDLOCK_RESTRICT_SELF_TSYNC,
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, plan.anchor);
+    try std.testing.expect(plan.checks_initialization_gate);
+    try std.testing.expect(plan.validates_ruleset_presence);
+    try std.testing.expect(plan.validates_no_new_privs);
+    try std.testing.expect(plan.validates_flags);
+    try std.testing.expect(plan.logs_new_exec_transitions);
+    try std.testing.expect(plan.requests_tsync);
+    try std.testing.expect(plan.prepares_new_domain);
+    try std.testing.expect(plan.merges_ruleset_into_domain);
+    try std.testing.expect(!plan.updates_current_cred);
 }
 
-test "landlock syscalls top-level wrapper rejects disabled boot before planning" {
-    try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockCreateRuleset(.{
+test "landlock syscalls restrict-self rejects disabled boot missing preconditions and unknown flags" {
+    try std.testing.expectError(error.BootDisabled, SyscallsHelperLab.planLandlockRestrictSelf(.{
         .initialized = false,
-        .input = .{
-            .attr = .{ .handled_access_fs = 0x4 },
-        },
+    }));
+    try std.testing.expectError(error.MissingRuleset, SyscallsHelperLab.planLandlockRestrictSelf(.{
+        .ruleset_present = false,
+    }));
+    try std.testing.expectError(error.MissingNoNewPrivileges, SyscallsHelperLab.planLandlockRestrictSelf(.{
+        .no_new_privs = false,
+    }));
+    try std.testing.expectError(error.UnsupportedRestrictSelfFlags, SyscallsHelperLab.planLandlockRestrictSelf(.{
+        .flags = 1 << 5,
     }));
 }
 
