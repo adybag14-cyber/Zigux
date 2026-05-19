@@ -486,6 +486,12 @@ fn addPhase3LowLevelWrappers(
         .optimize = optimize,
     });
     unsafe_policy.addImport("abi_bindings", abi_bindings);
+    const narrow = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow.addImport("abi_bindings", abi_bindings);
     const atomic = b.createModule(.{
         .root_source_file = b.path("../helpers/atomic.zig"),
         .target = target,
@@ -512,6 +518,8 @@ fn addPhase3LowLevelWrappers(
     root_module.addImport("atomic", atomic);
     root_module.addImport("barrier", barrier);
     root_module.addImport("mmio", mmio);
+    root_module.addImport("unsafe_policy", unsafe_policy);
+    root_module.addImport("narrow", narrow);
 
     const tests = b.addTest(.{
         .name = "phase3-low-level-wrappers",
