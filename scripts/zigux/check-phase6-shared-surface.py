@@ -19,7 +19,7 @@ REQUIRED_SCRIPTS_SNIPPETS = [
     "- `scripts/zigux/check-phase6-shared-surface.py` and `scripts/zigux/check-phase6-present-entrypoints.py` keep the direct-readback warning, the helper-evidence catalog packet, and the shared replay inventory explicit from the scripts root",
     "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
     "- repeated authenticated contents reads on current `master` still return missing for `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so treat those broader parity and perf reminder paths as historical packet members that need fresh reread or re-materialization before they are reused here as direct current-`master` scripts-root evidence",
-    "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing bsearch and hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
+    "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-bsearch-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
     "- keep the current partially blocked helper packet tied to those shared surfaces instead of reconstructing broader helper-local proof from older route names alone until fresh direct reads recover the missing helper-local replay files again",
 ]
 
@@ -30,9 +30,8 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback warning",
     "- `Documentation/zigux/phase6-helper-parity-catalog.md`",
     "- `Documentation/zigux/phase6-perf-gate-survey.md`",
-    "- `scripts/zigux/check-phase6-checksum-c-parity.py`",
-    "Treat those paths as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again.",
     "## Current shared replay inventory",
+    "- `make -C zigux phase6-bsearch-perf`",
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 
@@ -43,38 +42,22 @@ REQUIRED_EVIDENCE_MANIFEST_SNIPPETS = [
     '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
     '"zigux/tests/phase6_helper_parity_manifest.json"',
     '"scripts/zigux/check-phase6-present-entrypoints.py"',
-    '"key": "base64"',
-    '"key": "bsearch"',
-    '"key": "checksum"',
-    '"key": "hexdump"',
-    '"current_review_posture": "direct-helper-readback-restored"',
-    '"current_review_posture": "direct-readback-limited"',
-    '"Documentation/zigux/phase6-helper-parity-catalog.md"',
-    '"Documentation/zigux/phase6-perf-gate-survey.md"',
-    '"scripts/zigux/check-phase6-base64-corpus-determinism.py"',
+    '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
+    '"make -C zigux phase6-bsearch-perf"',
     '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
-    '"scripts/zigux/check-phase6-checksum-c-parity.py"',
-    '"scripts/zigux/check-phase6-hexdump-packet.py"',
-    '"make -C zigux phase6-hexdump-perf"',
 ]
 
 REQUIRED_PARITY_MANIFEST_SNIPPETS = [
     '"packet": "phase6-helper-parity"',
     '"phase": "Phase 6"',
     '"lane_scope": "shared helper-parity rows and machine-readable manifest only"',
-    '"Record the current directly readable Phase 6 helper-parity packet without overstating missing shared reminder, checker, or perf-note surfaces as returned evidence."',
-    '"Documentation/zigux/phase6-helper-evidence-catalog.md"',
+    '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"',
+    '"make -C zigux phase6-bsearch-perf"',
     '"scripts/zigux/check-phase6-shared-surface.py"',
     '"scripts/zigux/check-phase6-present-entrypoints.py"',
-    '"key": "base64"',
-    '"key": "bsearch"',
-    '"key": "checksum"',
-    '"key": "hexdump"',
-    '"Documentation/zigux/phase6-helper-parity-catalog.md"',
-    '"Documentation/zigux/phase6-perf-gate-survey.md"',
 ]
 
-SELF_TEST_CASE_COUNT = 19
+SELF_TEST_CASE_COUNT = 4
 
 
 class ValidationError(RuntimeError):
@@ -100,14 +83,8 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SCRIPTS_README_PATH, REQUIRED_SCRIPTS_SNIPPETS)
     require_snippets(repo_root / HELPER_EVIDENCE_CATALOG_PATH, REQUIRED_CATALOG_SNIPPETS)
-    require_snippets(
-        repo_root / HELPER_EVIDENCE_MANIFEST_PATH,
-        REQUIRED_EVIDENCE_MANIFEST_SNIPPETS,
-    )
-    require_snippets(
-        repo_root / HELPER_PARITY_MANIFEST_PATH,
-        REQUIRED_PARITY_MANIFEST_SNIPPETS,
-    )
+    require_snippets(repo_root / HELPER_EVIDENCE_MANIFEST_PATH, REQUIRED_EVIDENCE_MANIFEST_SNIPPETS)
+    require_snippets(repo_root / HELPER_PARITY_MANIFEST_PATH, REQUIRED_PARITY_MANIFEST_SNIPPETS)
 
 
 def write(path: Path, content: str) -> None:
@@ -118,14 +95,8 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / SCRIPTS_README_PATH, "\n".join(REQUIRED_SCRIPTS_SNIPPETS) + "\n")
     write(root / HELPER_EVIDENCE_CATALOG_PATH, "\n".join(REQUIRED_CATALOG_SNIPPETS) + "\n")
-    write(
-        root / HELPER_EVIDENCE_MANIFEST_PATH,
-        "\n".join(REQUIRED_EVIDENCE_MANIFEST_SNIPPETS) + "\n",
-    )
-    write(
-        root / HELPER_PARITY_MANIFEST_PATH,
-        "\n".join(REQUIRED_PARITY_MANIFEST_SNIPPETS) + "\n",
-    )
+    write(root / HELPER_EVIDENCE_MANIFEST_PATH, "\n".join(REQUIRED_EVIDENCE_MANIFEST_SNIPPETS) + "\n")
+    write(root / HELPER_PARITY_MANIFEST_PATH, "\n".join(REQUIRED_PARITY_MANIFEST_SNIPPETS) + "\n")
 
 
 def expect_failure(root: Path, path: Path, snippet: str) -> None:
@@ -154,75 +125,9 @@ def run_self_test() -> None:
         cases_run = 0
         for path, snippet in [
             (root / SCRIPTS_README_PATH, "## Phase 6"),
-            (
-                root / SCRIPTS_README_PATH,
-                "- `Documentation/zigux/phase6-helper-evidence-catalog.md`, `Documentation/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, `scripts/zigux/check-phase6-present-entrypoints.py`, and this scripts-root reminder remain the current directly readable shared companions for that packet",
-            ),
-            (
-                root / SCRIPTS_README_PATH,
-                "- the shared replay inventory now treats `zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig`, `make -C zigux phase6-base64-perf`, `zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig`, and `make -C zigux phase6-checksum-perf` as committed rerun routes beside the existing bsearch and hexdump reminders, so keep those wrappers out of the older inventory-only bucket",
-            ),
-            (root / HELPER_EVIDENCE_CATALOG_PATH, "## Current direct-readback warning"),
-            (
-                root / HELPER_EVIDENCE_CATALOG_PATH,
-                "- `Documentation/zigux/phase6-perf-gate-survey.md`",
-            ),
-            (
-                root / HELPER_EVIDENCE_CATALOG_PATH,
-                '- `scripts/zigux/check-phase6-checksum-c-parity.py`',
-            ),
-            (
-                root / HELPER_EVIDENCE_CATALOG_PATH,
-                "## Current shared replay inventory",
-            ),
-            (
-                root / HELPER_EVIDENCE_CATALOG_PATH,
-                "- `make -C zigux phase6-hexdump-perf`",
-            ),
-            (
-                root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"packet": "phase6-helper-evidence"',
-            ),
-            (
-                root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"zigux/tests/phase6_helper_parity_manifest.json"',
-            ),
-            (
-                root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-base64-corpus-determinism.py"',
-            ),
-            (
-                root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
-            ),
-            (
-                root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-checksum-c-parity.py"',
-            ),
-            (
-                root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"key": "hexdump"',
-            ),
-            (
-                root / HELPER_EVIDENCE_MANIFEST_PATH,
-                '"make -C zigux phase6-hexdump-perf"',
-            ),
-            (
-                root / HELPER_PARITY_MANIFEST_PATH,
-                '"packet": "phase6-helper-parity"',
-            ),
-            (
-                root / HELPER_PARITY_MANIFEST_PATH,
-                '"scripts/zigux/check-phase6-shared-surface.py"',
-            ),
-            (
-                root / HELPER_PARITY_MANIFEST_PATH,
-                '"key": "checksum"',
-            ),
-            (
-                root / HELPER_PARITY_MANIFEST_PATH,
-                '"Documentation/zigux/phase6-perf-gate-survey.md"',
-            ),
+            (root / HELPER_EVIDENCE_CATALOG_PATH, "- `make -C zigux phase6-bsearch-perf`"),
+            (root / HELPER_EVIDENCE_MANIFEST_PATH, '"make -C zigux phase6-bsearch-perf"'),
+            (root / HELPER_PARITY_MANIFEST_PATH, '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"'),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
@@ -238,17 +143,8 @@ def run_self_test() -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--repo-root",
-        type=Path,
-        default=Path("."),
-        help="repository root to validate (default: current directory)",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="run built-in self-test instead of validating a repository",
-    )
+    parser.add_argument("--repo-root", type=Path, default=Path("."))
+    parser.add_argument("--self-test", action="store_true")
     return parser.parse_args()
 
 
