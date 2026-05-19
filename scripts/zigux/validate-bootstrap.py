@@ -77,6 +77,7 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/validate-bootstrap.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -142,7 +143,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(README_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
     + (len(REQUIRED_PATHS) - 1)
-    + 28
+    + 29
 )
 
 
@@ -589,13 +590,29 @@ def run_self_test() -> int:
             swap_exact_lines(
                 workflow_path.read_text(encoding="utf-8"),
                 "run: python3 scripts/zigux/check-kconfig-bridge.py",
+                "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "OUT_OF_ORDER_WORKFLOW_MARKER",
+            "run: python3 scripts/zigux/check-kconfig-bridge.py -> run: zig test scripts/zigux/kconfig/conf_bridge.zig",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = path_under(root, WORKFLOW)
+        workflow_path.write_text(
+            swap_exact_lines(
+                workflow_path.read_text(encoding="utf-8"),
+                "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
                 "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
             ),
             encoding="utf-8",
         )
         assert (
             "OUT_OF_ORDER_WORKFLOW_MARKER",
-            "run: python3 scripts/zigux/check-kconfig-bridge.py -> run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
+            "run: zig test scripts/zigux/kconfig/conf_bridge.zig -> run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
         ) in collect_issues(root)
         checks_run += 1
 
