@@ -58,7 +58,9 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch raw c abi equal-range budgets stay logarithmic for duplicate spans in both sort orders" {',
         'test "phase 6 bsearch typed c abi equal-range budgets stay logarithmic for duplicate spans in both sort orders" {',
         'test "phase 6 bsearch typed c abi runtime-selected comparator pointers keep the budget contract" {',
+        'test "phase 6 bsearch typed c abi runtime-selected bound and equal-range comparator pointers keep the budget contract" {',
         'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {',
+        'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {',
     ],
     FIXTURES_PATH: [
         "pub const representative_duplicate_values = [_]u32{ 3, 6, 9, 12, 21, 21, 21, 24, 27, 30, 33, 36, 39, 42, 45 };",
@@ -111,8 +113,18 @@ SELF_TEST_CASES = [
     ),
     (
         BUDGET_TEST_PATH,
+        'test "phase 6 bsearch typed c abi runtime-selected bound and equal-range comparator pointers keep the budget contract" {',
+        'test "phase 6 bsearch typed c abi runtime-selected bound comparator pointers keep the budget contract" {',
+    ),
+    (
+        BUDGET_TEST_PATH,
         'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {',
         'test "phase 6 bsearch runtime-selected raw comparator pointers keep the budget contract" {',
+    ),
+    (
+        BUDGET_TEST_PATH,
+        'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {',
+        'test "phase 6 bsearch runtime-selected raw bound comparator pointers keep the budget contract" {',
     ),
     (
         FIXTURES_PATH,
