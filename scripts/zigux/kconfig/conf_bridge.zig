@@ -566,6 +566,23 @@ test "conf bridge emits explicit empty allconfig override for alldefconfig" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
 }
 
+test "conf bridge emits explicit empty allconfig override for allnoconfig" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allnoconfig,
+        .kconfig = "Kconfig",
+        .config = "no/.config",
+        .arch = "arm64",
+        .allconfig = "",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allnoconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+}
+
 test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     var capture = try TestCapture.init(std.testing.allocator, 160);
     defer capture.deinit();
@@ -820,6 +837,16 @@ test "bridge options parser accepts explicit allconfig override for allmodconfig
 
 test "bridge options parser accepts explicit empty allconfig override for alldefconfig" {
     const options = try parseBridgeOptions(.alldefconfig, &.{"allconfig="});
+    try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
+    try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
+    try std.testing.expect(options.nosilentupdate == null);
+}
+
+test "bridge options parser accepts explicit empty allconfig override for allnoconfig" {
+    const options = try parseBridgeOptions(.allnoconfig, &.{"allconfig="});
     try std.testing.expect(options.silent == false);
     try std.testing.expect(options.allconfig != null);
     try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
