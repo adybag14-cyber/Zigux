@@ -13,6 +13,7 @@ ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase10-virtio-ring-survey.md": [
         "`phase10-virtio-ring-survey-gate`",
+        "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
         "while `zigux/tests/phase10_virtio_ring.zig` still returns missing on current `master`.",
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
@@ -51,13 +52,16 @@ REQUIRED_MARKERS = {
         'test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {',
     ],
     "zigux/tests/phase10_build.zig": [
+        '.root_source_file = b.path("phase10_virtio_ring_notification_data_readiness.zig"),',
         '.root_source_file = b.path("phase10_virtio_ring_survey.zig"),',
+        '.name = "phase10-virtio-ring-notification-data-readiness-tests",',
         '.name = "phase10-virtio-ring-verify-tests",',
         '.name = "phase10-virtio-ring-prepare-kick-idempotent-tests",',
         '.name = "phase10-virtio-ring-reset-reuse-tests",',
         '.name = "phase10-virtio-ring-broken-queue-queue-discipline-tests",',
         '.name = "phase10-virtio-ring-delayed-callback-budget-tests",',
         '.name = "phase10-virtio-ring-survey-tests",',
+        "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
         "test_step.dependOn(&run_phase10_virtio_ring_survey_tests.step);",
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
     ],
@@ -69,6 +73,13 @@ REQUIRED_MARKERS = {
         '"id": "phase10-ring-verify-replay"',
         '"id": "phase10-ring-lab-driver-bridge"',
         '"status": "blocked_on_risky_transport"',
+    ],
+    "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
+        'test "phase10 virtio ring notification-data replay keeps split and packed next-avail state explicit" {',
+        "const split_summary = try ring.notificationDataSummary(1);",
+        "const packed_summary = try ring.notificationDataSummary(2);",
+        'test "phase10 virtio ring reset-readiness replay orders blockers before a clean queue reset" {',
+        "const reset = try ring.resetQueue(5);",
     ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
         'test "phase10 virtio ring repeated prepareKick stays idle until new descriptors are published" {',
@@ -201,6 +212,10 @@ def run_self_test() -> int:
         cases = [
             (
                 "Documentation/zigux/phase10-virtio-ring-survey.md",
+                "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-ring-survey.md",
                 "`zigux/tests/phase10_virtio_ring_survey.zig`",
             ),
             (
@@ -225,11 +240,19 @@ def run_self_test() -> int:
             ),
             (
                 "zigux/tests/phase10_build.zig",
-                '.name = "phase10-virtio-ring-survey-tests",',
+                '.name = "phase10-virtio-ring-notification-data-readiness-tests",',
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "test_step.dependOn(&run_phase10_virtio_ring_notification_data_readiness_tests.step);",
             ),
             (
                 "zigux/tests/phase10_virtio_ring_manifest.json",
                 '"id": "phase10-virtio-ring-survey-gate"',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+                "const packed_summary = try ring.notificationDataSummary(2);",
             ),
             (
                 "zigux/tests/phase10_virtio_ring_survey.zig",
@@ -253,10 +276,10 @@ def run_self_test() -> int:
             "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
             "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
         )
-        expect_missing_file(root, "zigux/tests/phase10_virtio_ring_survey.zig")
+        expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
