@@ -4,12 +4,17 @@ This directory is the sample-root boundary for Zigux.
 
 ## Current repo reality on `master`
 
-Fresh authenticated readback on 2026-05-17 shows that current `master` directly exposes these files in `samples/zigux/`:
+Fresh mixed readback on 2026-05-19 confirmed these current sample-root files on `master`:
 
 * `samples/zigux/README.md`
-* `samples/zigux/runtime_trace_events.zig`
-* `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+* `samples/zigux/bytestream_fifo.zig`
+* `samples/zigux/kobject_example.zig`
+* `samples/zigux/kretprobe_example.zig`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
+* `samples/zigux/runtime_trace_events.zig`
+* `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
+* `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+* `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
 The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux anchors:
 
@@ -18,14 +23,15 @@ The Phase 5 roadmap still scopes the non-runtime sample lane to these four Linux
 * `samples/kprobes/kretprobe_example.c`
 * `samples/trace_events/trace-events-sample.c`
 
-Those four roadmap-backed anchors are not currently directly readable as sample-root files on current `master` through this route.
-Keep shared contributor guidance honest about that gap instead of repeating older sample packets as if those files were directly present here today.
+Current `master` keeps the bytestream sample-root port directly readable in `samples/zigux/` through `samples/zigux/bytestream_fifo.zig`.
+Current `master` keeps the kobject sample-root port directly readable in `samples/zigux/` through `samples/zigux/kobject_example.zig`.
+Current `master` keeps the kretprobe sample-root port directly readable in `samples/zigux/` through `samples/zigux/kretprobe_example.zig`.
+For the trace-events anchor, current `master` keeps the direct non-runtime sample packet reviewable through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, while `samples/zigux/trace_events_string_formatting_sample.zig` remains a bounded formatting companion inside the same approved anchor rather than a fifth sample.
+Keep the shared `zigux/tests/phase5_build.zig` route framed as companion evidence rather than direct authenticated proof.
 
 ## Phase 5 reminder
 
-When a shared Phase 5 guide, checklist, or README mentions the bytestream, kobject, kretprobe, or trace-events anchors, treat them as roadmap-backed reference targets and reminder surfaces rather than current sample-root proof from this directory unless a fresh reread confirms those exact files have returned.
-
-Keep the shared `zigux/tests/phase5_build.zig` route out of direct-proof wording unless a fresh reread confirms that exact path too.
+When a shared Phase 5 guide, checklist, or README mentions the bytestream, kobject, kretprobe, or trace-events anchors, keep the roadmap-backed non-runtime lane explicit and keep the shared `zigux/tests/phase5_build.zig` route out of direct-proof wording unless a fresh reread confirms that exact path too.
 
 Do not widen this lane into runtime-loader, module-registration, procfs, sysfs, user-copy, workqueue, ring-buffer, or other runtime-substrate claims.
 
@@ -48,6 +54,8 @@ Current `master` does carry one bounded `*string*` and `*format*` companion thro
 The directly readable runtime-facing sample-root evidence on current `master` belongs to the separate later runtime lane:
 
 * `samples/zigux/runtime_trace_events.zig`
+* `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`
 * `samples/zigux/runtime_trace_events_unregistered_gate.zig`
+* `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`
 
 Keep those files in the separate Phase 9 runtime packet instead of counting them as extra Phase 5 samples.
