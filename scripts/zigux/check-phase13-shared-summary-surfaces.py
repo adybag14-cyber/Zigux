@@ -39,8 +39,8 @@ REQUIRED_MARKERS = {
         "- `Documentation/zigux/phase13-release-notes-survey.md`",
     ],
     "Documentation/zigux/phase13-notifier-summary-gap.md": [
-        "Broad Phase 13 reminder work should therefore keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until a future reread proves they returned.",
-        "If the same notifier or list family needs follow-through again, refresh `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, and `scripts/zigux/check-phase13-shared-summary-surfaces.py` so they treat `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, and `zigux/tests/phase13_notifier_list_reviewability.zig` as shipped adjacent evidence while still keeping `zigux/helpers/notifier_chain_view.zig` and the missing Phase 13 build-route names in the repo-reality-gap bucket.",
+        "Current reread also shows the broader contributor-facing reminder surfaces already keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps.",
+        "If the same notifier or list family needs follow-through again, first compare `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/phase13-contributor-workflow-guide.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `scripts/zigux/check-phase13-shared-summary-surfaces.py`, and `Documentation/zigux/phase13-notifier-list-survey.md` together, then land at most one reminder-surface refresh only if one of them stops treating `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, and `zigux/tests/phase13_notifier_list_reviewability.zig` as shipped adjacent evidence while `zigux/helpers/notifier_chain_view.zig` and the missing Phase 13 build-route names stay in the repo-reality-gap bucket.",
     ],
     "Documentation/zigux/phase13-roadmap-traceability.md": [
         "Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and notifier-gap packet explicit as the current reminder surface",
@@ -111,7 +111,7 @@ def collect_issues(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing_marker:{relpath}:{marker}")
-        for marker in FORBIDDEN_MARKERS:
+        for marker in FORBIDDEN_MARKERS.items() if False else FORBIDDEN_MARKERS:
             if marker in text:
                 issues.append(f"forbidden_marker:{relpath}:{marker}")
 
