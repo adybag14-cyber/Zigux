@@ -45,6 +45,7 @@ BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
 )
+VIRTIO_NET_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-net-packet.py"
 VIRTIO_SCSI_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-scsi-packet.py"
 VIRTIO_SCSI_BOUNDARY_CHECKER_PATH = (
     "scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py"
@@ -60,6 +61,7 @@ VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 TESTS_README_PATH = "zigux/tests/README.md"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
+VIRTIO_NET_MANIFEST_PATH = "zigux/tests/phase12_virtio_net_manifest.json"
 VIRTIO_SCSI_MANIFEST_PATH = "zigux/tests/phase12_virtio_scsi_manifest.json"
 VIRTIO_SCSI_SURVEY_GATE_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
 VIRTIO_SCSI_SUPPORT_MANIFEST_PATH = (
@@ -100,6 +102,7 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
+    VIRTIO_NET_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
     VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
@@ -109,6 +112,7 @@ REQUIRED_FILES = [
     TESTS_README_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
+    VIRTIO_NET_MANIFEST_PATH,
     VIRTIO_SCSI_MANIFEST_PATH,
     VIRTIO_SCSI_SURVEY_GATE_PATH,
     VIRTIO_SCSI_SUPPORT_MANIFEST_PATH,
@@ -161,6 +165,14 @@ REQUIRED_MARKERS = {
         "Current repo-reality override: `zigux/Makefile` now rematerializes `phase12-smoke`, `phase12-test`, and `phase12` on current `master` while still omitting `phase12-validate`, so keep only `make -C zigux phase12-validate` here as reminder vocabulary and keep the directly readable support bundle explicit through `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py --self-test`, `python3 scripts/zigux/check-phase12-libbpf-snapshot.py`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, and `scripts/zigux/validate-phase12.py` beside the returned smoke-and-test wrappers.",
         "The older helper-first segment footing remains a Phase 12 heavy-consumer packet on current `master`; do not recast it as lingering Phase 8 work now that the roadmap and docs root already place it in the shared Phase 12 release packet.",
     ],
+    VIRTIO_NET_SURVEY_PATH: [
+        "`PHASE12_STATUS=starter-present-post-reset-replay-followup`",
+        "lane owner: `P12-L02`",
+        "current `master` now also carries `drivers/net/virtio_net_post_reset_replay.zig`",
+        "the shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable beside the direct starter packet",
+        "while the post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route",
+        "the packet still does not claim live DMA-safe receive ownership, page-pool wiring, refill execution, transport-backed submit flow, interrupt-backed completion handling, or full `net_device` lifecycle parity",
+    ],
     VIRTIO_SCSI_FALLBACK_PATH: [
         "- survey-backed anchor: `zigux/tests/phase12_virtio_scsi_manifest.json`",
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
@@ -176,6 +188,23 @@ REQUIRED_MARKERS = {
         "still does not claim live DMA-safe request submission",
         "control-path governance",
         "frozen control-path restore-order surface inside `recoveryControlPathGovernanceSummary()`",
+    ],
+    VIRTIO_NET_PACKET_CHECKER_PATH: [
+        "PHASE12_VIRTIO_NET_PACKET_SELF_TEST=pass",
+        "Documentation/zigux/phase12-virtio-net-survey.md",
+        "zigux/tests/phase12_virtio_net_manifest.json",
+        "zigux/tests/phase12_build.zig",
+        "phase12_virtio_net_post_reset_replay.zig",
+        "phase12-virtio-net-post-reset-replay-tests",
+    ],
+    VIRTIO_NET_MANIFEST_PATH: [
+        '"lane_key": "P12-L02"',
+        '"phase": "Phase 12"',
+        '"anchor": "drivers/net/virtio_net.c"',
+        '"id": "phase12-build-gate"',
+        '"id": "phase12-virtio-net-post-reset-replay-followup"',
+        '"id": "phase12-virtio-net-runtime-data-path"',
+        '"status": "blocked_on_dma_transport_runtime"',
     ],
     VIRTIO_SCSI_MANIFEST_PATH: [
         "\"lane_key\": \"P12-L13\"",
@@ -225,11 +254,13 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
     ],
     VALIDATOR_PATH: [
+        VIRTIO_NET_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
         VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
         VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_CHECKER_PATH,
         NVME_PACKET_CHECKER_PATH,
+        VIRTIO_NET_MANIFEST_PATH,
         VIRTIO_SCSI_MANIFEST_PATH,
         VIRTIO_SCSI_SURVEY_GATE_PATH,
         "PHASE12_VALIDATOR_SELF_TEST=pass",
@@ -321,7 +352,10 @@ FIXTURE_TEXT = {
         "# Phase 12 Libbpf Heavy-Consumer Lane Sequencing",
         REQUIRED_MARKERS[PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH],
     ),
-    VIRTIO_NET_SURVEY_PATH: "# Phase 12 Virtio Net Survey\n",
+    VIRTIO_NET_SURVEY_PATH: marker_fixture(
+        "# Phase 12 Virtio Net Survey",
+        REQUIRED_MARKERS[VIRTIO_NET_SURVEY_PATH],
+    ),
     VIRTIO_SCSI_FALLBACK_PATH: marker_fixture(
         "# Phase 12 Virtio SCSI Raw GitHub Fallback Catalog",
         REQUIRED_MARKERS[VIRTIO_SCSI_FALLBACK_PATH],
@@ -341,6 +375,10 @@ FIXTURE_TEXT = {
     SCRIPTS_README_PATH: "# scripts/zigux\n",
     BUILD_ONLY_CHECKER_PATH: "#!/usr/bin/env python3\n",
     RELEASE_READINESS_CHECKER_PATH: "#!/usr/bin/env python3\n",
+    VIRTIO_NET_PACKET_CHECKER_PATH: "\n".join(
+        REQUIRED_MARKERS[VIRTIO_NET_PACKET_CHECKER_PATH]
+    )
+    + "\n",
     VIRTIO_SCSI_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH: "\n".join(
@@ -356,6 +394,7 @@ FIXTURE_TEXT = {
     TESTS_README_PATH: "# zigux/tests\n",
     MAKEFILE_PATH: "\n".join(REQUIRED_MARKERS[MAKEFILE_PATH]) + "\n",
     PHASE12_BUILD_PATH: "// phase12 build fixture\n",
+    VIRTIO_NET_MANIFEST_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_NET_MANIFEST_PATH]) + "\n",
     VIRTIO_SCSI_MANIFEST_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_SCSI_MANIFEST_PATH]) + "\n",
     VIRTIO_SCSI_SURVEY_GATE_PATH: "\n".join(REQUIRED_MARKERS[VIRTIO_SCSI_SURVEY_GATE_PATH]) + "\n",
     VIRTIO_SCSI_SUPPORT_MANIFEST_PATH: (
