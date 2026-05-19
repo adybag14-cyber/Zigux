@@ -23,13 +23,18 @@ CLOSURE_REQUIRED_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/cases.json`",
+    "`scripts/zigux/genksyms.zig`",
+    "`make -C zigux phase2-genksyms`",
     "`PHASE2_CURRENT_GAP_PACKET=`",
     "current `master` no longer leaves the installer hook, direct cross-route packet, or returned closure-validator companions in the repo-reality-gap bucket",
+    "bounded genksyms bridge checker",
 )
 
 CLOSURE_FORBIDDEN_MARKERS = (
@@ -48,13 +53,18 @@ BOOTSTRAP_REQUIRED_MARKERS = (
     "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`make -C zigux phase2-genksyms`",
+    "bounded genksyms bridge checker and fixture roster",
     "No current repo-reality gaps remain inside the bounded toolchain, installer, and direct cross-route packet on current `master`.",
 )
 
 VALIDATOR_REQUIRED_MARKERS = (
     '"scripts/zigux/install-zig.py",',
-    '"scripts/zigux/validate-phase2-closure.py",',
-    '"zigux/tests/fixtures/phase2_cross_targets.json",',
+    '"scripts/zigux/check-genksyms-bridge.py",',
+    '"scripts/zigux/genksyms.zig",',
+    '"zigux/tests/fixtures/genksyms_bridge/cases.json",',
+    '"zigux/tests/fixtures/genksyms_bridge/help_expected.json",',
+    '"make -C zigux phase2-genksyms",',
     '"run: python3 scripts/zigux/validate-phase2.py",',
 )
 
@@ -63,11 +73,18 @@ CLOSURE_VALIDATOR_REQUIRED_MARKERS = (
     '"scripts/zigux/check-phase2-cross.py",',
     '"zigux/tests/fixtures/phase2_cross_targets.json",',
     '"scripts/zigux/validate-phase2-closure.py",',
+    '"scripts/zigux/genksyms.zig",',
+    '"zigux/tests/fixtures/genksyms_bridge/cases.json",',
+    '"zigux/tests/fixtures/genksyms_bridge/help_expected.json",',
 )
 
 MAKEFILE_REQUIRED_MARKERS = (
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
+    "phase2-genksyms:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
 )
 
 EXPECTED_PRESENT_SURFACES = {
@@ -93,6 +110,7 @@ EXPECTED_PRESENT_SURFACES = {
         "scripts/zigux/check-phase2-toolchain-pin-scope.py",
         "scripts/zigux/check-phase2-required-make-routes.py",
         "scripts/zigux/check-phase2-docs-shared-reminder.py",
+        "scripts/zigux/check-genksyms-bridge.py",
     ],
     "bootstrap_helpers": [
         "scripts/zigux/install-zig.py",
@@ -100,6 +118,7 @@ EXPECTED_PRESENT_SURFACES = {
     "bridge_helpers": [
         "scripts/zigux/kconfig/conf_bridge.zig",
         "scripts/zigux/kconfig/confdata_bridge.zig",
+        "scripts/zigux/genksyms.zig",
     ],
     "policy": [
         "scripts/zigux/zig-toolchain-policy.json",
@@ -110,6 +129,7 @@ EXPECTED_PRESENT_SURFACES = {
         "make -C zigux phase2-tools",
         "make -C zigux phase2-kconfig",
         "make -C zigux phase2-cross",
+        "make -C zigux phase2-genksyms",
         "make -C zigux phase2-validate",
         "make -C zigux phase2",
     ],
@@ -124,14 +144,20 @@ EXPECTED_PRESENT_SURFACES = {
         "zigux/tests/fixtures/kconfig_bridge/cases.json",
         "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
         "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+        "zigux/tests/fixtures/genksyms_bridge/cases.json",
+        "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
+        "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+        "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
+        "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+        "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
     ],
 }
 
 EXPECTED_NOTE_MARKERS = (
     "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, returned installer helper, direct cross-route checker",
     "Keep scripts/zigux/validate-phase2-closure.py out of the repo-reality-gap list",
-    "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers",
-    "Keep the returned installer helper, direct cross-route checker, and phase2_cross_targets fixture explicit",
+    "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-validate, and phase2 make wrappers",
+    "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, and bounded genksyms fixture packet explicit",
 )
 
 
@@ -195,7 +221,7 @@ def collect_manifest_issues(manifest: dict[str, object]) -> list[tuple[str, str]
         issues.append(("INVALID_MANIFEST_FIELD", "phase"))
     if manifest.get("status") != "active":
         issues.append(("INVALID_MANIFEST_FIELD", "status"))
-    if manifest.get("scope") != "current directly readable scripts-root toolchain, installer, direct cross-route, kbuild, kconfig, make-wrapper, and tranche-closure reminder packet":
+    if manifest.get("scope") != "current directly readable scripts-root toolchain, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, and tranche-closure reminder packet":
         issues.append(("INVALID_MANIFEST_FIELD", "scope"))
     if manifest.get("workflow") != ".github/workflows/zigux-bootstrap.yml":
         issues.append(("INVALID_MANIFEST_FIELD", "workflow"))
@@ -269,7 +295,7 @@ def build_manifest(*, bad_field: str | None = None, bad_value: object | None = N
     payload: dict[str, object] = {
         "phase": "Phase 2",
         "status": "active",
-        "scope": "current directly readable scripts-root toolchain, installer, direct cross-route, kbuild, kconfig, make-wrapper, and tranche-closure reminder packet",
+        "scope": "current directly readable scripts-root toolchain, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, and tranche-closure reminder packet",
         "workflow": ".github/workflows/zigux-bootstrap.yml",
         "present_surfaces": EXPECTED_PRESENT_SURFACES,
         "repo_reality_gaps": [],
