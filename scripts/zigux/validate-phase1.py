@@ -226,7 +226,7 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
             continue
         live_result = run_command(command_for(spec, root, self_test=False), root)
         if live_result.returncode != 0:
-            issues.append(f"mandatory_live_failed:{spec.name}:exit={self_test_result.returncode}")
+            issues.append(f"mandatory_live_failed:{spec.name}:exit={live_result.returncode}")
             append_output(issues, f"mandatory_live_failed:{spec.name}", live_result)
 
     bench_expectations = root / BENCH_EXPECTATIONS_REL
@@ -388,7 +388,7 @@ def run_self_test() -> int:
             live_exit=1,
         )
         issues, _, summary = collect_issues(mandatory_live_root)
-        assert any(issue.startswith("mandatory_live_failed:phase1-direct-owner-markers") for issue in issues), issues
+        assert "mandatory_live_failed:phase1-direct-owner-markers:exit=1" in issues, issues
         assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
         assert summary.optional_skip_count == 0, summary
         case_count += 1
