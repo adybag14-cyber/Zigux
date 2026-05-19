@@ -34,6 +34,9 @@ RELEASE_COORDINATION_MATRIX_PATH = (
 RAW_GITHUB_COVERAGE_SURVEY_PATH = (
     "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 )
+PHASE12_COMPLEX_DRIVER_LANE_PATH = (
+    "Documentation/zigux/phase12-complex-driver-lane-sequencing.md"
+)
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 RELEASE_READINESS_CHECKER_PATH = (
     "scripts/zigux/check-phase12-release-readiness-packet.py"
@@ -54,6 +57,7 @@ REQUIRED_FILES = [
     RELEASE_CLOSURE_CHECKLIST_PATH,
     RELEASE_COORDINATION_MATRIX_PATH,
     RAW_GITHUB_COVERAGE_SURVEY_PATH,
+    PHASE12_COMPLEX_DRIVER_LANE_PATH,
     BUILD_ONLY_CHECKER_PATH,
     RELEASE_READINESS_CHECKER_PATH,
     SCRIPTS_README_PATH,
@@ -103,6 +107,12 @@ REQUIRED_MARKERS = {
         "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
         "the raw-URL-backed fallback pair and the contents-bridge-backed shared support bundle are distinct evidence paths in this runtime",
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.",
+    ],
+    PHASE12_COMPLEX_DRIVER_LANE_PATH: [
+        "Keep the shared validator-first then smoke-first packet wording explicit: current `zigux/Makefile` now ships `phase12-smoke`, `phase12-test`, and `phase12` again, while `phase12-validate` is still absent, so only `make -C zigux phase12-validate` stays reminder vocabulary while `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
+        "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, while only `make -C zigux phase12-validate` stays documented as shared reminder text until that wrapper returns on current `master`.",
+        "Keep the current partial direct-read bridge explicit too: `Documentation/zigux/phase12-raw-github-coverage-survey.md` now records that `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, and `zigux/Makefile` are directly readable on current `master`, while `zigux/tests/phase12_build.zig` still fails through the same bridge, and the readable Makefile now exposes `phase12-smoke`, `phase12-test`, and `phase12` even though `phase12-validate` is still missing, so that checker-plus-workflow-plus-scripts-plus-Makefile set stays split support evidence only rather than proof for the larger shared packet.",
+        "keep those two `virtio_net` follow-ups framed as bounded transmit-disposition and queue-resume reviewability inside the shared packet rather than as live DMA-safe receive ownership, queue restart parity, transport-backed queue flow, or completion-path parity",
     ],
     SCRIPTS_README_PATH: [
         "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the scripts root while `make -C zigux phase12-validate` stays reminder-only vocabulary until the wrapper returns on current `master`",
@@ -209,6 +219,7 @@ def fixture_text(rel_path: str) -> str:
             RELEASE_CLOSURE_CHECKLIST_PATH: "# Phase 12 Release Closure Checklist",
             RELEASE_COORDINATION_MATRIX_PATH: "# Phase 12 Release Coordination Matrix",
             RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
+            PHASE12_COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex-Driver Lane Sequencing",
             SCRIPTS_README_PATH: "# scripts/zigux",
             TESTS_README_PATH: "# zigux/tests",
             WORKFLOW_PATH: "name: zigux-bootstrap",
@@ -269,6 +280,7 @@ def run_self_test() -> int:
             RELEASE_CLOSURE_CHECKLIST_PATH,
             RELEASE_COORDINATION_MATRIX_PATH,
             RAW_GITHUB_COVERAGE_SURVEY_PATH,
+            PHASE12_COMPLEX_DRIVER_LANE_PATH,
             BUILD_ONLY_CHECKER_PATH,
             RELEASE_READINESS_CHECKER_PATH,
             SCRIPTS_README_PATH,
