@@ -188,6 +188,12 @@ def collect_branch_manifest_path_issues(
     return issues
 
 
+def string_list_contains(values: object, expected: str) -> bool:
+    if not isinstance(values, list):
+        return False
+    return any(value == expected for value in values if isinstance(value, str))
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     closure_doc_text = read_text(root, CLOSURE_DOC)
@@ -332,14 +338,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if manifest.get("workflow_surface") != EXPECTED_WORKFLOW_SURFACE:
         issues.append(("INVALID_MANIFEST_FIELD", "workflow_surface"))
 
-    if CHECKER_PATH in manifest.get("missing_files", []):
+    if string_list_contains(missing_files, CHECKER_PATH):
         issues.append(("CHECKER_STILL_MARKED_MISSING", CHECKER_PATH))
-    if CHECKER_PATH not in manifest.get("present_files", []):
+    if not string_list_contains(present_files, CHECKER_PATH):
         issues.append(("CHECKER_NOT_MARKED_PRESENT", CHECKER_PATH))
     for shared_path in EXPECTED_SHARED_PRESENT_FILES:
-        if shared_path in manifest.get("missing_files", []):
+        if string_list_contains(missing_files, shared_path):
             issues.append(("SHARED_TOOL_STILL_MARKED_MISSING", shared_path))
-        if shared_path not in manifest.get("present_files", []):
+        if not string_list_contains(present_files, shared_path):
             issues.append(("SHARED_TOOL_NOT_MARKED_PRESENT", shared_path))
 
     return issues
@@ -599,12 +605,15 @@ def run_self_test() -> int:
         write_text(root, MANIFEST, manifest_json(present_files="wrong"))
         issues = collect_issues(root)
         assert ("MANIFEST_FIELD_NOT_LIST", "present_files") in issues
+        assert ("CHECKER_NOT_MARKED_PRESENT", CHECKER_PATH) in issues
+        assert ("SHARED_TOOL_NOT_MARKED_PRESENT", EXPECTED_SHARED_PRESENT_FILES[0]) in issues
         checks_run += 1
 
         build_self_test_root(root)
         write_text(root, MANIFEST, manifest_json(missing_files="wrong"))
         issues = collect_issues(root)
         assert ("MANIFEST_FIELD_NOT_LIST", "missing_files") in issues
+        assert ("INVALID_MANIFEST_FIELD", "missing_files") in issues
         checks_run += 1
 
         build_self_test_root(root)
