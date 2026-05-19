@@ -125,6 +125,13 @@ OPTIONAL_CHECKS = (
         required=False,
         requires=(str(PHASE1_HELPERS_FIXTURE_REL), str(PHASE1_REPLAY_BLOCKERS_REL)),
     ),
+    CheckSpec(
+        name="phase1-shared-helper-manifest-gate",
+        script_rel="scripts/zigux/check-phase1-shared-helper-manifest-gate.py",
+        self_test_args=("--self-test",),
+        live_args=("--root", "{root}"),
+        required=False,
+    ),
 )
 
 
@@ -294,6 +301,7 @@ def build_sample_repo(root: Path) -> None:
     write_text(root / ARTIFACT_DIFF_HELPER_REL, "print('artifact diff helper placeholder')\n")
     write_text(root / PHASE1_HELPERS_FIXTURE_REL, "{\n  \"status\": \"pass\"\n}\n")
     write_text(root / PHASE1_REPLAY_BLOCKERS_REL, "{\n  \"status\": \"parked\"\n}\n")
+    write_text(root / "zigux/tests/fixtures/phase1_helper_manifest.json", "{\n  \"status\": \"closed\"\n}\n")
 
 
 def run_self_test() -> int:
@@ -380,6 +388,19 @@ def run_self_test() -> int:
         issues, _ = collect_issues(optional_shared_replay_live_root)
         assert any(
             issue.startswith("optional_live_failed:phase1-shared-replay-roster")
+            for issue in issues
+        ), issues
+        case_count += 1
+
+        optional_shared_helper_manifest_live_root = base / "optional_shared_helper_manifest_live"
+        build_sample_repo(optional_shared_helper_manifest_live_root)
+        build_stub_script(
+            optional_shared_helper_manifest_live_root / "scripts/zigux/check-phase1-shared-helper-manifest-gate.py",
+            live_exit=1,
+        )
+        issues, _ = collect_issues(optional_shared_helper_manifest_live_root)
+        assert any(
+            issue.startswith("optional_live_failed:phase1-shared-helper-manifest-gate")
             for issue in issues
         ), issues
         case_count += 1
