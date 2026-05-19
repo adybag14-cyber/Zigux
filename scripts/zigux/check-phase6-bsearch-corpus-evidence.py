@@ -25,19 +25,25 @@ REQUIRED_SNIPPETS = {
     SLICE_PATH: [
         "- `PHASE6_STATUS=parked`",
         "- lane state: helper slice restored; parked unless helper-local parity, portability, duplicate-span, raw C ABI bounds, or compact fixture-companion drift reappears",
+        "- `upperBound`",
+        "- `upperBoundMutable`",
+        "- `bsearchUpperBound`",
+        "- `bsearchUpperBoundMutable`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- the compact shared seed fixture companion keeps representative ascending, descending, duplicate, symbol, packed-record, and deterministic query corpus reviewable without widening this lane into a standalone timing route",
         "- helper-local checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
     ],
     CATALOG_PATH: [
         "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-        "- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders",
+        "- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders`",
         "- `bsearch` still measures bounded search cost through `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, and the deterministic `perf_cases` plus seeded query corpus in `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, which hold raw C ABI search and equal-range comparisons to logarithmic budgets across representative lengths instead of using a dedicated wall-clock slowdown harness.",
     ],
     LIB_PATH: [
         "pub fn lowerBoundIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) usize {",
+        "pub fn upperBound(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) ?*const T {",
         "pub fn equalRangeMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) []T {",
         "pub fn bsearchLowerBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {",
+        "pub fn bsearchUpperBoundMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) ?*anyopaque {",
         "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
     ],
     HELPER_TEST_PATH: [
@@ -81,8 +87,13 @@ REQUIRED_SNIPPETS = {
 SELF_TEST_CASES = [
     (
         SLICE_PATH,
-        "- helper-local checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
-        "- helper-local checker: `scripts/zigux/check-phase6-bsearch-helper-check.py`",
+        "- `upperBound`",
+        "- `upperBoundView`",
+    ),
+    (
+        SLICE_PATH,
+        "- `bsearchUpperBoundMutable`",
+        "- `bsearchUpperSpanMutable`",
     ),
     (
         CATALOG_PATH,
