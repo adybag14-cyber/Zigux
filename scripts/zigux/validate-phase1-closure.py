@@ -17,11 +17,15 @@ PHASE1_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequenc
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+STRING_REVIEW_PACKET_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
+DIRECT_OWNER_MARKERS_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
+SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
 RBTREE_HELPER_REL = Path("tools/lib/rbtree.zig")
 STRING_HELPER_REL = Path("tools/lib/string.zig")
@@ -32,11 +36,15 @@ REQUIRED_FILES = (
     DOCS_ROOT_REL,
     REVIEW_CHECKLIST_REL,
     SCRIPTS_README_REL,
+    STRING_REVIEW_PACKET_REL,
+    DIRECT_OWNER_MARKERS_REL,
     BENCH_CHECKER_REL,
+    SHARED_REMINDER_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
     MANIFEST_REL,
+    BITMAP_HELPER_REL,
     FIND_BIT_HELPER_REL,
     RBTREE_HELPER_REL,
     STRING_HELPER_REL,
@@ -77,6 +85,60 @@ EXPECTED_BITMAP_HELPER_TEST_ANCHORS = [
     'test "bitmap allocation helpers size zero fill and reset optionals"',
 ]
 
+EXPECTED_BITMAP_REVIEW_FIELDS = {
+    "first_word_boundary_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
+    "final_partial_word_anchor": 'test "bitmap range helpers preserve edges across whole-word spans"',
+    "fill_tail_clamp_anchor": 'test "bitmap full empty and weight ignore out-of-range tail bits"',
+    "predicate_tail_mask_anchor": 'test "bitmap tail-masked helpers ignore out-of-range differences"',
+    "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
+    "review_packet_summary": (
+        "shared Phase 1 fixture keys now own bitmap allocator sizing, zero-filled allocation words, "
+        "scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current "
+        "master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw "
+        "copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend "
+        "handling, zero-sized destination-view no-op coverage, tail-masked predicate behavior, "
+        "out-of-range tail-bit full or empty or weight masking, caller-window xor clamping, "
+        "terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer "
+        "preservation, and allocator optional-reset coverage."
+    ),
+    "parity_fixture_keys": [
+        "alloc_words",
+        "zalloc_words",
+        "zalloc_values",
+        "scnprintf",
+        "truncated_scnprintf_len",
+        "truncated_scnprintf",
+        "terminator_only_scnprintf_len",
+        "terminator_only_nul",
+        "zero_length_scnprintf_len",
+    ],
+    "partial_xor_review_fields": [
+        "partial_xor_nbits",
+        "partial_xor_masked_values",
+    ],
+    "scnprintf_cross_word_anchor": 'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
+    "scnprintf_truncation_anchor": 'test "bitmap scnprintf truncates and keeps a terminator slot"',
+    "empty_buffer_anchor": 'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    "copy_alias_anchor": 'test "bitmap copy aliases preserve tail clearing and extension semantics"',
+    "copy_raw_alias_anchor": 'test "bitmap copy alias preserves raw source words without tail clearing"',
+    "copy_zero_and_aligned_anchors": [
+        'test "bitmap copy and extend handles zero and aligned counts"',
+        'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    ],
+    "zero_bit_noop_anchor": "",
+    "zero_bit_binary_identity_anchor": "",
+    "linux_alias_anchor": "",
+    "next_safe_step_note": (
+        "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
+        "direct-anchor drift inside the current helper-local packet or committed shared replay "
+        "drift in the bitmap parity fields; current master still ships direct fill-tail clamp, "
+        "copy-alias, truncation, cross-word scnprintf, empty-buffer, and allocator-reset anchors "
+        "here, while zero-bit and Linux-style alias follow-through no longer live in the "
+        "helper-local packet, and if the separate bitmap closure-validator anchor-sync repair is "
+        "still outstanding, treat that as the only other bitmap follow-through."
+    ),
+}
+
 EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS = [
     'test "find first and next set bits across words"',
     'test "find zero bits respects the declared bit count"',
@@ -97,6 +159,7 @@ EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS = [
     'test "clump8 scans keep tail bytes reachable from partial final words"',
     'test "clump8 scans mask tail bits beyond nbits"',
     'test "clump8 scans leave the caller byte untouched when no set bit remains"',
+    'test "clump8 zero-bit and past-end windows leave the caller byte untouched"',
     'test "getValue8 reads aligned bytes from bitmap words"',
     'test "head-word boundary scans keep the last in-range bit reachable from an inclusive start"',
     'test "tail-word boundary scans keep the last in-range bit reachable from an inclusive start"',
@@ -107,27 +170,6 @@ EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS = [
     'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
     'test "low-level underscore aliases mirror the primary find helpers"',
     'test "Linux-style aliases mirror the primary find helpers"',
-]
-
-EXPECTED_RBTREE_HELPER_TEST_ANCHORS = [
-    'test "rbtree inserts and traverses in sorted order"',
-    'test "rbtree erase and replace keep traversal consistent"',
-    'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
-    'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
-    'test "rbtree eraseInit detaches erased node"',
-    'test "rbtree eraseInit clears singleton roots before reseed"',
-    'test "rbtree postorder and empty node helpers behave"',
-    'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
-    'test "rbtree nextMatch walks the duplicate range in order"',
-    'test "rbtree matchIterator walks the duplicate range in order"',
-    'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
-    'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
-    'test "rbtree cached root keeps the leftmost pointer in sync"',
-    'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
-    'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
-    'test "rbtree eraseCached returns null for a singleton cached tree"',
-    'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
-    'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
 ]
 
 EXPECTED_FIND_BIT_SOURCE_SYMBOLS = [
@@ -181,6 +223,27 @@ EXPECTED_FIND_BIT_REVIEW_FIELDS = {
         "or neighboring helper families."
     ),
 }
+
+EXPECTED_RBTREE_HELPER_TEST_ANCHORS = [
+    'test "rbtree inserts and traverses in sorted order"',
+    'test "rbtree erase and replace keep traversal consistent"',
+    'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
+    'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
+    'test "rbtree eraseInit detaches erased node"',
+    'test "rbtree eraseInit clears singleton roots before reseed"',
+    'test "rbtree postorder and empty node helpers behave"',
+    'test "rbtree findAdd keeps the first duplicate and inserts new keys"',
+    'test "rbtree nextMatch walks the duplicate range in order"',
+    'test "rbtree matchIterator walks the duplicate range in order"',
+    'test "rbtree addCached returns the inserted node only when it becomes leftmost"',
+    'test "rbtree findAddCached keeps cached leftmost stable while inserting misses"',
+    'test "rbtree cached root keeps the leftmost pointer in sync"',
+    'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
+    'test "rbtree replaceNodeCached keeps non-leftmost leftmost unchanged"',
+    'test "rbtree eraseCached returns null for a singleton cached tree"',
+    'test "rbtree eraseInitCached detaches nodes while keeping cached leftmost aligned"',
+    'test "rbtree eraseInitCached clears singleton cached roots before reseed"',
+]
 
 EXPECTED_RBTREE_REVIEW_FIELDS = {
     "phase1_helper_replay_anchor": 'test "phase 1 helper ports match committed parity fixture"',
@@ -263,12 +326,23 @@ EXPECTED_RBTREE_REVIEW_FIELDS = {
     "next_safe_step_note": (
         "If this helper lane reopens, keep the already-landed shared-replay promotion for "
         "`cached_leftmost_return_serials` aligned across the committed fixture, shared replay, "
-        "and direct cached-root anchors; until another committed cached-root replay field lands, "
+        "and direct cached-root anchors; until another committed cached-root field lands, "
         "insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, "
         "and reseed behavior stay owned by direct helper-local anchors."
     ),
 }
 
+EXPECTED_STRING_SOURCE_SYMBOLS = [
+    "pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {",
+    "pub fn sysfs_streq(lhs: []const u8, rhs: []const u8) bool {",
+    "pub fn sysfsMatchString(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn sysfs_match_string(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn matchString(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn match_string(haystack: []const []const u8, needle: []const u8) ?usize {",
+    "pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {",
+    "pub fn strnchrNul(buf: []const u8, count: usize, needle: u8) usize {",
+    "pub fn strnchrnul(buf: []const u8, count: usize, needle: u8) usize {",
+]
 
 EXPECTED_STRING_PACKET = {
     "helper_test_anchors": [
@@ -312,7 +386,11 @@ EXPECTED_STRING_PACKET = {
         'test "memparse keeps signed values and their trailing rest aligned"',
         'test "memparse consumes suffix after saturation"',
         'test "memparse applies suffixes before signed clamping"',
+        'test "strchr mirrors full-length C-string searches"',
+        'test "strrchr finds the last in-range match with C-string semantics"',
+        'test "strpbrk finds the first accepted byte with C-string semantics"',
         'test "strnchr honors count and C-string boundaries"',
+        'test "strnlen honors count and C-string boundaries"',
         'test "strnchrNul returns the first match, NUL, or count boundary"',
     ],
     "memparse_review_anchors": [
@@ -327,21 +405,8 @@ EXPECTED_STRING_PACKET = {
     "memparse_review_summary": (
         "helper-local memparse safety anchors stay explicit through the direct string tests so "
         "sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split "
-        "aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of "
-        "trapping, and suffixes are still consumed after saturation"
-    ),
-    "prefix_suffix_review_anchors": [
-        'test "strHasPrefix returns the matched prefix length with C-string semantics"',
-        'test "strHasSuffix returns the matched suffix length with C-string semantics"',
-        'test "strstarts mirrors the header-level prefix helper"',
-        'test "strEndsWith honors C-string boundaries"',
-    ],
-    "prefix_suffix_review_summary": (
-        "helper-local prefix and suffix boundary anchors stay explicit through the direct string "
-        "tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity "
-        "rather than dedicated prefix or suffix fixture fields, so strHasPrefix and str_has_prefix "
-        "plus strHasSuffix and str_has_suffix plus strstarts plus strEndsWith and str_ends_with "
-        "plus strends remain review-visible at the helper surface"
+        "aligned, suffix scaling happens before signed clamping, and saturated signed overflow "
+        "stays fail-closed without reopening the older closure-side validator names."
     ),
     "sysfs_review_anchors": [
         'test "sysfsStreq treats trailing newline and NUL as equivalent"',
@@ -350,45 +415,23 @@ EXPECTED_STRING_PACKET = {
         'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
     ],
     "sysfs_review_summary": (
-        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through "
-        "the direct string tests because the shared Phase 1 replay still carries no dedicated "
-        "sysfs fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString and "
-        "sysfs_match_string remain review-visible at the helper surface"
+        "the helper-local sysfs review anchors stay explicit because the shared Phase 1 replay still "
+        "does not carry dedicated newline-aware sysfs fixture keys, so trailing-newline equivalence "
+        "and newline-aware match ordering remain owned by the direct string packet"
     ),
-    "lookup_review_anchors": [
-        'test "matchString finds C-string matches and preserves first-match order"',
-        'test "match_string mirrors matchString for empty and matched lists"',
-    ],
-    "lookup_review_summary": (
-        "helper-local string lookup anchors stay explicit through the direct string tests because "
-        "the shared Phase 1 replay still does not carry dedicated matchString() or "
-        "match_string() fixture keys, so C-string list lookup order and the Linux-style alias "
-        "remain review-visible at the helper surface"
-    ),
-    "strscpy_review_anchors": [
-        'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
-        'test "strscpyPad zero-pads the tail after a short source"',
-        'test "strscpyPad stops at embedded NUL and pads the remaining tail"',
-        'test "strscpyPad preserves strscpy truncation semantics"',
-        'test "strscpy_pad mirrors strscpyPad padding semantics"',
-        'test "strscpy and strscpyPad keep one-byte destinations terminated"',
-    ],
-    "strscpy_review_summary": (
-        "helper-local string copy-and-pad anchors stay explicit through the direct string tests "
-        "because the shared Phase 1 replay still does not carry dedicated strscpy() or "
-        "strscpyPad() fixture keys"
-    ),
-    "counted_search_review_anchors": [
-        'test "strnchr honors count and C-string boundaries"',
-        'test "strnchrNul returns the first match, NUL, or count boundary"',
+    "search_review_anchors": [
+        'test "strchr mirrors full-length C-string searches"',
+        'test "strrchr finds the last in-range match with C-string semantics"',
+        'test "strpbrk finds the first accepted byte with C-string semantics"',
     ],
     "strnchr_review_anchor": 'test "strnchr honors count and C-string boundaries"',
     "strnchrnul_review_anchor": 'test "strnchrNul returns the first match, NUL, or count boundary"',
     "strnchr_review_summary": (
-        "the direct counted-search follow-up stays explicit because the shared Phase 1 replay "
-        "still does not carry dedicated counted-search fixture keys, so strnchr() count-limited "
-        "scanning and strnchrNul() or strnchrnul() match-or-NUL boundary behavior remain owned "
-        "by the helper-local anchors"
+        "the direct counted-search and C-string search-length follow-up stays explicit because the "
+        "shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture "
+        "keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte "
+        "scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() "
+        "or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors"
     ),
     "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
     "basename_review_summary": (
@@ -399,30 +442,29 @@ EXPECTED_STRING_PACKET = {
     ),
     "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
     "trim_nul_review_summary": (
-        "the direct trim follow-up stays explicit because the shared Phase 1 string fixture "
-        "records the trimmed bytes but not the preserved tail bytes beyond the first embedded "
-        "terminator"
+        "the direct trim follow-up stays explicit because the shared Phase 1 string fixture records "
+        "the trimmed bytes but not the preserved tail bytes beyond the first embedded terminator"
     ),
     "phase1_trim_cstr_replay_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
     "phase1_trim_cstr_replay_summary": (
-        "the shared Phase 1 string replay still only locks the plain trailing-whitespace "
-        "trimSpaces bytes from the committed fixture, while the direct helper-local trim "
-        "follow-up keeps embedded-NUL trimming for trimSpaces and strim plus strstrip and "
-        "preserved tail-byte review explicit because the shared packet still does not exercise "
-        "every trim alias or every post-NUL byte position"
+        "the shared Phase 1 string replay still only locks the plain trailing-whitespace trimSpaces "
+        "bytes from the committed fixture, while the direct helper-local trim follow-up keeps "
+        "embedded-NUL trimming for trimSpaces and strim plus strstrip and preserved tail-byte review "
+        "explicit because the shared packet still does not exercise every trim alias or every "
+        "post-NUL byte position"
     ),
     "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
     "memchr_moving_dirty_review_summary": (
-        "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins "
-        "one fixed dirty index and the clean case, but not the moving earliest-mismatch ownership "
-        "as later dirty bytes become the next live divergence"
+        "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins one "
+        "fixed dirty index and the clean case, but not the moving earliest-mismatch ownership as later "
+        "dirty bytes become the next live divergence"
     ),
     "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
     "shared_replace_char_cstr_review_summary": (
-        "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, "
-        "trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the "
-        "dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule "
-        "explicit without widening helper-local memparse ownership"
+        "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, "
+        "removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL "
+        "replaceChar follow-up keeps the first-terminator stop rule explicit without widening "
+        "helper-local memparse ownership"
     ),
     "parity_fixture_keys": [
         "strtobool_y",
@@ -458,21 +500,23 @@ EXPECTED_MARKERS = {
         "Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,"
         "Documentation/zigux/review-checklist.md,scripts/zigux/README.md,"
         "scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,"
-        "scripts/zigux/check-phase1-bench.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,"
-        "zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`"
+        "scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,"
+        "scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,"
+        "zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`"
     ),
     "gap_packet": (
         "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,"
         "zigux/tests/phase1_helpers.zig,zigux/tests/phase1_bench.zig,"
-        "zigux/tests/fixtures/phase1_bench_expectations.json,"
-        "zigux/tests/fixtures/phase1_helpers_c_harness.c,zigux/Makefile`"
+        "zigux/tests/fixtures/phase1_bench_expectations.json,zigux/tests/fixtures/phase1_helpers_c_harness.c`"
     ),
     "closure_validator": "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
     "shared_tests_route": "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     "validator_state": "`PHASE1_CLOSURE_VALIDATOR_STATE=available_current_master`",
     "next_step": (
-        "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface against the restored closure note "
-        "and closure validator`"
+        "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface or one helper-family tie-breaker "
+        "against the restored closure note, the closure validator, the shared tests-root smoke "
+        "route, and the helper-specific next_safe_step_note entries in the committed manifest "
+        "rather than widening back into the older validator-first or replay-side closure stack.`"
     ),
 }
 
@@ -487,24 +531,72 @@ def repo_root(override: str | None) -> Path:
 
 
 def load_text(root: Path, relative_path: Path) -> str:
-    path = root / relative_path
-    try:
-        return path.read_text(encoding="utf-8")
-    except FileNotFoundError:
-        raise FileNotFoundError(relative_path.as_posix()) from None
+    return (root / relative_path).read_text(encoding="utf-8")
 
 
 def require_exact_occurrence(text: str, label: str, needle: str) -> list[str]:
     count = text.count(needle)
-    if count == 1:
-        return []
-    return [f"{label}:expected_once:{needle}:actual_count={count}"]
+    return [] if count == 1 else [f"{label}:expected_once:actual_count={count}:{needle}"]
 
 
 def require_exact_value(label: str, actual: object, expected: object) -> list[str]:
-    if actual == expected:
-        return []
-    return [f"{label}:expected={expected!r}:actual={actual!r}"]
+    return [] if actual == expected else [f"{label}:expected={expected!r}:actual={actual!r}"]
+
+
+def iter_anchor_strings(expected: object) -> list[str]:
+    anchors: list[str] = []
+    if isinstance(expected, str):
+        if expected.startswith('test "'):
+            anchors.append(expected)
+    elif isinstance(expected, list):
+        for item in expected:
+            if isinstance(item, str) and item.startswith('test "'):
+                anchors.append(item)
+    return anchors
+
+
+def append_helper_source_checks(
+    failures: list[str],
+    helper_text: str,
+    helper_rel: Path,
+    helper_test_anchors: list[str],
+    extra_expected_fields: dict[str, object] | None = None,
+    source_symbols: list[str] | None = None,
+) -> None:
+    seen: set[str] = set()
+    for anchor in helper_test_anchors:
+        if anchor not in seen:
+            failures.extend(
+                require_exact_occurrence(
+                    helper_text,
+                    f"{helper_rel.as_posix()}:helper_test_anchor",
+                    anchor,
+                )
+            )
+            seen.add(anchor)
+
+    if extra_expected_fields:
+        for key, expected in extra_expected_fields.items():
+            for anchor in iter_anchor_strings(expected):
+                if anchor in seen:
+                    continue
+                failures.extend(
+                    require_exact_occurrence(
+                        helper_text,
+                        f"{helper_rel.as_posix()}:{key}",
+                        anchor,
+                    )
+                )
+                seen.add(anchor)
+
+    for symbol in source_symbols or []:
+        failures.extend(
+            require_exact_occurrence(
+                helper_text,
+                f"{helper_rel.as_posix()}:source_symbol",
+                symbol,
+            )
+        )
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -512,7 +604,6 @@ def collect_failures(root: Path) -> list[str]:
     for relative_path in REQUIRED_FILES:
         if not (root / relative_path).is_file():
             failures.append(f"missing_file:{relative_path.as_posix()}")
-
     if failures:
         return failures
 
@@ -521,65 +612,31 @@ def collect_failures(root: Path) -> list[str]:
         failures.extend(
             require_exact_occurrence(closure_text, f"{PHASE1_CLOSURE_REL.as_posix()}:{label}", marker)
         )
-
     for marker in FORBIDDEN_MARKERS:
         count = closure_text.count(marker)
         if count:
             failures.append(
-                f"{PHASE1_CLOSURE_REL.as_posix()}:forbidden_marker:{marker}:actual_count={count}"
+                f"{PHASE1_CLOSURE_REL.as_posix()}:forbidden_marker:actual_count={count}:{marker}"
             )
 
-    try:
-        manifest = json.loads(load_text(root, MANIFEST_REL))
-    except json.JSONDecodeError as exc:
-        return [f"{MANIFEST_REL.as_posix()}:json_decode_error:{exc}"]
-
+    manifest = json.loads(load_text(root, MANIFEST_REL))
     if not isinstance(manifest, dict):
         return [f"{MANIFEST_REL.as_posix()}:expected=dict:actual={type(manifest).__name__}"]
 
+    failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:phase", manifest.get("phase"), "Phase 1"))
+    failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:status", manifest.get("status"), "closed"))
     failures.extend(
-        require_exact_value(
-            f"{MANIFEST_REL.as_posix()}:phase",
-            manifest.get("phase"),
-            "Phase 1",
-        )
+        require_exact_value(f"{MANIFEST_REL.as_posix()}:helper_count", manifest.get("helper_count"), len(EXPECTED_HELPERS))
     )
-    failures.extend(
-        require_exact_value(
-            f"{MANIFEST_REL.as_posix()}:status",
-            manifest.get("status"),
-            "closed",
-        )
-    )
-    failures.extend(
-        require_exact_value(
-            f"{MANIFEST_REL.as_posix()}:helper_count",
-            manifest.get("helper_count"),
-            len(EXPECTED_HELPERS),
-        )
-    )
-    failures.extend(
-        require_exact_value(
-            f"{MANIFEST_REL.as_posix()}:helpers",
-            manifest.get("helpers"),
-            EXPECTED_HELPERS,
-        )
-    )
+    failures.extend(require_exact_value(f"{MANIFEST_REL.as_posix()}:helpers", manifest.get("helpers"), EXPECTED_HELPERS))
 
     review_anchors = manifest.get("review_anchors")
     if not isinstance(review_anchors, dict):
-        failures.append(
-            f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"
-        )
-        return failures
+        return [f"{MANIFEST_REL.as_posix()}:review_anchors:expected=dict:actual={type(review_anchors).__name__}"]
 
     bitmap_review = review_anchors.get("tools/lib/bitmap.zig")
     if not isinstance(bitmap_review, dict):
-        failures.append(
-            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:expected=dict:actual={type(bitmap_review).__name__}"
-        )
-        return failures
-
+        return [f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:expected=dict:actual={type(bitmap_review).__name__}"]
     failures.extend(
         require_exact_value(
             f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:helper_test_anchors",
@@ -587,14 +644,18 @@ def collect_failures(root: Path) -> list[str]:
             EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
         )
     )
+    for key, expected in EXPECTED_BITMAP_REVIEW_FIELDS.items():
+        failures.extend(
+            require_exact_value(
+                f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/bitmap.zig:{key}",
+                bitmap_review.get(key),
+                expected,
+            )
+        )
 
     find_bit_review = review_anchors.get("tools/lib/find_bit.zig")
     if not isinstance(find_bit_review, dict):
-        failures.append(
-            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/find_bit.zig:expected=dict:actual={type(find_bit_review).__name__}"
-        )
-        return failures
-
+        return [f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/find_bit.zig:expected=dict:actual={type(find_bit_review).__name__}"]
     failures.extend(
         require_exact_value(
             f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/find_bit.zig:helper_test_anchors",
@@ -602,7 +663,6 @@ def collect_failures(root: Path) -> list[str]:
             EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
         )
     )
-
     for key, expected in EXPECTED_FIND_BIT_REVIEW_FIELDS.items():
         failures.extend(
             require_exact_value(
@@ -614,11 +674,7 @@ def collect_failures(root: Path) -> list[str]:
 
     rbtree_review = review_anchors.get("tools/lib/rbtree.zig")
     if not isinstance(rbtree_review, dict):
-        failures.append(
-            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig:expected=dict:actual={type(rbtree_review).__name__}"
-        )
-        return failures
-
+        return [f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig:expected=dict:actual={type(rbtree_review).__name__}"]
     failures.extend(
         require_exact_value(
             f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/rbtree.zig:helper_test_anchors",
@@ -626,7 +682,6 @@ def collect_failures(root: Path) -> list[str]:
             EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
         )
     )
-
     for key, expected in EXPECTED_RBTREE_REVIEW_FIELDS.items():
         failures.extend(
             require_exact_value(
@@ -638,11 +693,7 @@ def collect_failures(root: Path) -> list[str]:
 
     string_review = review_anchors.get("tools/lib/string.zig")
     if not isinstance(string_review, dict):
-        failures.append(
-            f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/string.zig:expected=dict:actual={type(string_review).__name__}"
-        )
-        return failures
-
+        return [f"{MANIFEST_REL.as_posix()}:review_anchors.tools/lib/string.zig:expected=dict:actual={type(string_review).__name__}"]
     for key, expected in EXPECTED_STRING_PACKET.items():
         failures.extend(
             require_exact_value(
@@ -652,43 +703,33 @@ def collect_failures(root: Path) -> list[str]:
             )
         )
 
-    find_bit_text = load_text(root, FIND_BIT_HELPER_REL)
-    for anchor in EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS:
-        failures.extend(
-            require_exact_occurrence(
-                find_bit_text,
-                f"{FIND_BIT_HELPER_REL.as_posix()}:helper_test_anchor",
-                anchor,
-            )
-        )
-    for symbol in EXPECTED_FIND_BIT_SOURCE_SYMBOLS:
-        failures.extend(
-            require_exact_occurrence(
-                find_bit_text,
-                f"{FIND_BIT_HELPER_REL.as_posix()}:source_symbol",
-                symbol,
-            )
-        )
-
-    rbtree_text = load_text(root, RBTREE_HELPER_REL)
-    for anchor in EXPECTED_RBTREE_HELPER_TEST_ANCHORS:
-        failures.extend(
-            require_exact_occurrence(
-                rbtree_text,
-                f"{RBTREE_HELPER_REL.as_posix()}:helper_test_anchor",
-                anchor,
-            )
-        )
-
-    string_text = load_text(root, STRING_HELPER_REL)
-    for anchor in EXPECTED_STRING_PACKET["helper_test_anchors"]:
-        failures.extend(
-            require_exact_occurrence(
-                string_text,
-                f"{STRING_HELPER_REL.as_posix()}:helper_test_anchor",
-                anchor,
-            )
-        )
+    append_helper_source_checks(
+        failures,
+        load_text(root, BITMAP_HELPER_REL),
+        BITMAP_HELPER_REL,
+        EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+        extra_expected_fields=EXPECTED_BITMAP_REVIEW_FIELDS,
+    )
+    append_helper_source_checks(
+        failures,
+        load_text(root, FIND_BIT_HELPER_REL),
+        FIND_BIT_HELPER_REL,
+        EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+        source_symbols=EXPECTED_FIND_BIT_SOURCE_SYMBOLS,
+    )
+    append_helper_source_checks(
+        failures,
+        load_text(root, RBTREE_HELPER_REL),
+        RBTREE_HELPER_REL,
+        EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
+    )
+    append_helper_source_checks(
+        failures,
+        load_text(root, STRING_HELPER_REL),
+        STRING_HELPER_REL,
+        EXPECTED_STRING_PACKET["helper_test_anchors"],
+        source_symbols=EXPECTED_STRING_SOURCE_SYMBOLS,
+    )
 
     return failures
 
@@ -702,6 +743,29 @@ def replace_once(text: str, old: str, new: str) -> str:
     if old not in text:
         raise ValueError(f"missing expected marker: {old}")
     return text.replace(old, new, 1)
+
+
+def build_helper_fixture_text(helper_test_anchors: list[str], extra_expected_fields: dict[str, object] | None = None, source_symbols: list[str] | None = None) -> str:
+    lines: list[str] = []
+    seen: set[str] = set()
+
+    for symbol in source_symbols or []:
+        if symbol not in seen:
+            lines.append(symbol)
+            seen.add(symbol)
+
+    for anchor in helper_test_anchors:
+        if anchor not in seen:
+            lines.append(anchor)
+            seen.add(anchor)
+
+    for expected in (extra_expected_fields or {}).values():
+        for anchor in iter_anchor_strings(expected):
+            if anchor not in seen:
+                lines.append(anchor)
+                seen.add(anchor)
+
+    return "\n".join(lines) + "\n"
 
 
 def make_fixture_tree(root: Path) -> None:
@@ -727,6 +791,7 @@ def make_fixture_tree(root: Path) -> None:
             ]
         ),
     )
+
     write_text(
         root / MANIFEST_REL,
         json.dumps(
@@ -738,6 +803,7 @@ def make_fixture_tree(root: Path) -> None:
                 "review_anchors": {
                     "tools/lib/bitmap.zig": {
                         "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+                        **EXPECTED_BITMAP_REVIEW_FIELDS,
                     },
                     "tools/lib/find_bit.zig": {
                         "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
@@ -754,387 +820,114 @@ def make_fixture_tree(root: Path) -> None:
         )
         + "\n",
     )
+
+    write_text(
+        root / BITMAP_HELPER_REL,
+        build_helper_fixture_text(
+            EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
+            extra_expected_fields=EXPECTED_BITMAP_REVIEW_FIELDS,
+        ),
+    )
     write_text(
         root / FIND_BIT_HELPER_REL,
-        "\n".join(EXPECTED_FIND_BIT_SOURCE_SYMBOLS + EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS) + "\n",
+        build_helper_fixture_text(
+            EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
+            source_symbols=EXPECTED_FIND_BIT_SOURCE_SYMBOLS,
+        ),
     )
     write_text(
         root / RBTREE_HELPER_REL,
-        "\n".join(EXPECTED_RBTREE_HELPER_TEST_ANCHORS) + "\n",
+        build_helper_fixture_text(EXPECTED_RBTREE_HELPER_TEST_ANCHORS),
     )
     write_text(
         root / STRING_HELPER_REL,
-        "\n".join(EXPECTED_STRING_PACKET["helper_test_anchors"]) + "\n",
+        build_helper_fixture_text(
+            EXPECTED_STRING_PACKET["helper_test_anchors"],
+            source_symbols=EXPECTED_STRING_SOURCE_SYMBOLS,
+        ),
     )
+
+
+def mutate_manifest_packet(root: Path, helper: str, field: str, value: object) -> None:
+    manifest_path = root / MANIFEST_REL
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["review_anchors"][helper][field] = value
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
 
 def run_self_test() -> int:
     cases = [
-        ("baseline", None, True),
+        ("baseline", None),
         (
             "missing_restore_state",
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
-                replace_once(
-                    load_text(root, PHASE1_CLOSURE_REL),
-                    EXPECTED_MARKERS["restore_state"],
-                    "`PHASE1_CLOSURE_RESTORE_STATE=docs_only`",
-                ),
+                replace_once(load_text(root, PHASE1_CLOSURE_REL), EXPECTED_MARKERS["restore_state"], "`PHASE1_CLOSURE_RESTORE_STATE=docs_only`"),
             ),
-            False,
         ),
         (
-            "missing_validator_marker",
+            "old_next_step_marker",
             lambda root: write_text(
                 root / PHASE1_CLOSURE_REL,
                 replace_once(
                     load_text(root, PHASE1_CLOSURE_REL),
-                    EXPECTED_MARKERS["closure_validator"],
-                    "`PHASE1_CLOSURE_VALIDATOR=missing`",
+                    EXPECTED_MARKERS["next_step"],
+                    "`PHASE1_NEXT_SAFE_STEP=sync one shared reminder surface against the restored closure note and closure validator`",
                 ),
             ),
-            False,
+        ),
+        ("missing_bitmap_helper_file", lambda root: (root / BITMAP_HELPER_REL).unlink()),
+        (
+            "bad_bitmap_review_field",
+            lambda root: mutate_manifest_packet(root, "tools/lib/bitmap.zig", "copy_raw_alias_anchor", "drift"),
         ),
         (
-            "missing_bench_packet_marker",
+            "missing_bitmap_source_anchor",
             lambda root: write_text(
-                root / PHASE1_CLOSURE_REL,
+                root / BITMAP_HELPER_REL,
                 replace_once(
-                    load_text(root, PHASE1_CLOSURE_REL),
-                    "scripts/zigux/check-phase1-bench.py,",
+                    load_text(root, BITMAP_HELPER_REL),
+                    EXPECTED_BITMAP_REVIEW_FIELDS["scnprintf_cross_word_anchor"] + "\n",
                     "",
                 ),
             ),
-            False,
-        ),
-        (
-            "missing_file",
-            lambda root: (root / PHASE1_SMOKE_REL).unlink(),
-            False,
-        ),
-        (
-            "missing_bench_checker_file",
-            lambda root: (root / BENCH_CHECKER_REL).unlink(),
-            False,
-        ),
-        (
-            "bad_status",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "parked",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS,
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
-                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
-                                **EXPECTED_RBTREE_REVIEW_FIELDS,
-                            },
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
-        ),
-        (
-            "bad_helper_count",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "closed",
-                        "helper_count": 12,
-                        "helpers": EXPECTED_HELPERS,
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
-                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
-                                **EXPECTED_RBTREE_REVIEW_FIELDS,
-                            },
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
-        ),
-        (
-            "bad_helper_list",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "closed",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS[:-1],
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
-                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
-                                **EXPECTED_RBTREE_REVIEW_FIELDS,
-                            },
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
-        ),
-        (
-            "bad_bitmap_helper_anchors",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "closed",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS,
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": ["drift"],
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
-                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
-                                **EXPECTED_RBTREE_REVIEW_FIELDS,
-                            },
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
-        ),
-        (
-            "bad_find_bit_helper_anchors",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "closed",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS,
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": ["drift"],
-                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
-                                **EXPECTED_RBTREE_REVIEW_FIELDS,
-                            },
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
         ),
         (
             "bad_find_bit_review_field",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "closed",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS,
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
-                                **(EXPECTED_FIND_BIT_REVIEW_FIELDS | {"same_word_start_masks": "drift"}),
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
-                                **EXPECTED_RBTREE_REVIEW_FIELDS,
-                            },
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
-        ),
-        (
-            "bad_rbtree_helper_anchors",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "closed",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS,
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
-                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": ["drift"],
-                                **EXPECTED_RBTREE_REVIEW_FIELDS,
-                            },
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
-        ),
-        (
-            "bad_rbtree_review_field",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "closed",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS,
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
-                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
-                                **(EXPECTED_RBTREE_REVIEW_FIELDS | {"low_level_alias_anchor": "drift"}),
-                            },
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
+            lambda root: mutate_manifest_packet(root, "tools/lib/find_bit.zig", "same_word_start_masks", "drift"),
         ),
         (
             "missing_find_bit_source_symbol",
             lambda root: write_text(
                 root / FIND_BIT_HELPER_REL,
-                replace_once(
-                    load_text(root, FIND_BIT_HELPER_REL),
-                    EXPECTED_FIND_BIT_SOURCE_SYMBOLS[0] + "\n",
-                    "",
-                ),
+                replace_once(load_text(root, FIND_BIT_HELPER_REL), EXPECTED_FIND_BIT_SOURCE_SYMBOLS[0] + "\n", ""),
             ),
-            False,
         ),
         (
-            "missing_find_bit_source_anchor",
-            lambda root: write_text(
-                root / FIND_BIT_HELPER_REL,
-                replace_once(
-                    load_text(root, FIND_BIT_HELPER_REL),
-                    EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS[4] + "\n",
-                    "",
-                ),
-            ),
-            False,
+            "bad_rbtree_review_field",
+            lambda root: mutate_manifest_packet(root, "tools/lib/rbtree.zig", "low_level_alias_anchor", "drift"),
+        ),
+        (
+            "bad_rbtree_cached_root_alias_field",
+            lambda root: mutate_manifest_packet(root, "tools/lib/rbtree.zig", "cached_root_alias_anchor", "drift"),
         ),
         (
             "missing_rbtree_source_anchor",
             lambda root: write_text(
                 root / RBTREE_HELPER_REL,
-                replace_once(
-                    load_text(root, RBTREE_HELPER_REL),
-                    EXPECTED_RBTREE_HELPER_TEST_ANCHORS[3] + "\n",
-                    "",
-                ),
+                replace_once(load_text(root, RBTREE_HELPER_REL), EXPECTED_RBTREE_HELPER_TEST_ANCHORS[3] + "\n", ""),
             ),
-            False,
         ),
         (
             "bad_string_review_field",
-            lambda root: write_text(
-                root / MANIFEST_REL,
-                json.dumps(
-                    {
-                        "phase": "Phase 1",
-                        "status": "closed",
-                        "helper_count": len(EXPECTED_HELPERS),
-                        "helpers": EXPECTED_HELPERS,
-                        "review_anchors": {
-                            "tools/lib/bitmap.zig": {
-                                "helper_test_anchors": EXPECTED_BITMAP_HELPER_TEST_ANCHORS,
-                            },
-                            "tools/lib/find_bit.zig": {
-                                "helper_test_anchors": EXPECTED_FIND_BIT_HELPER_TEST_ANCHORS,
-                                **EXPECTED_FIND_BIT_REVIEW_FIELDS,
-                            },
-                            "tools/lib/rbtree.zig": {
-                                "helper_test_anchors": EXPECTED_RBTREE_HELPER_TEST_ANCHORS,
-                                **EXPECTED_RBTREE_REVIEW_FIELDS,
-                            },
-                            "tools/lib/string.zig": EXPECTED_STRING_PACKET | {"basename_review_anchor": "drift"},
-                        },
-                    },
-                    indent=2,
-                )
-                + "\n",
-            ),
-            False,
+            lambda root: mutate_manifest_packet(root, "tools/lib/string.zig", "basename_review_anchor", "drift"),
         ),
         (
             "missing_string_source_anchor",
             lambda root: write_text(
                 root / STRING_HELPER_REL,
-                replace_once(
-                    load_text(root, STRING_HELPER_REL),
-                    EXPECTED_STRING_PACKET["helper_test_anchors"][15] + "\n",
-                    "",
-                ),
+                replace_once(load_text(root, STRING_HELPER_REL), EXPECTED_STRING_PACKET["helper_test_anchors"][15] + "\n", ""),
             ),
-            False,
         ),
         (
             "forbidden_old_marker",
@@ -1142,20 +935,34 @@ def run_self_test() -> int:
                 root / PHASE1_CLOSURE_REL,
                 load_text(root, PHASE1_CLOSURE_REL) + "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`\n",
             ),
-            False,
+        ),
+        (
+            "missing_shared_reminder_checker_file",
+            lambda root: (root / SHARED_REMINDER_CHECKER_REL).unlink(),
+        ),
+        (
+            "missing_string_review_checker_file",
+            lambda root: (root / STRING_REVIEW_PACKET_REL).unlink(),
+        ),
+        (
+            "missing_direct_owner_checker_file",
+            lambda root: (root / DIRECT_OWNER_MARKERS_REL).unlink(),
         ),
     ]
 
-    for name, mutate, expect_ok in cases:
+    for name, mutate in cases:
         with tempfile.TemporaryDirectory(prefix="phase1-closure-selftest-") as tmp:
             root = Path(tmp)
             make_fixture_tree(root)
             if mutate is not None:
                 mutate(root)
             failures = collect_failures(root)
-            ok = not failures
-            if ok != expect_ok:
-                print(f"phase1-closure-self-test:{name}:unexpected={failures}")
+            if name == "baseline":
+                if failures:
+                    print(f"phase1-closure-self-test:{name}:unexpected={failures}")
+                    return 1
+            elif not failures:
+                print(f"phase1-closure-self-test:{name}:expected_failure")
                 return 1
 
     print("PHASE1_CLOSURE_SELF_TEST=pass")
@@ -1172,8 +979,7 @@ def main() -> int:
     if args.self_test:
         return run_self_test()
 
-    root = repo_root(args.root)
-    failures = collect_failures(root)
+    failures = collect_failures(repo_root(args.root))
     if failures:
         for failure in failures:
             print(failure)
