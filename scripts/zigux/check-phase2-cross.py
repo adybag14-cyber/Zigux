@@ -41,6 +41,29 @@ EXPECTED_CROSS_TARGETS = {
 }
 EXPECTED_CROSS_TARGET_ORDER = tuple(EXPECTED_CROSS_TARGETS)
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
+EXPECTED_ISSUE_CODES = (
+    "MISSING_MAKEFILE_LINE",
+    "DUPLICATE_MAKEFILE_LINE",
+    "ARCHIVE_HASH_SCOPE_MISMATCH",
+    "INVALID_FIXTURE_SHAPE",
+    "UNEXPECTED_FIXTURE_FIELD",
+    "INVALID_FIXTURE_FIELD",
+    "INVALID_FIXTURE_ARCHIVE_SCOPE_ENTRY",
+    "DUPLICATE_FIXTURE_ARCHIVE_SCOPE",
+    "ARCHIVE_SCOPE_MISMATCH",
+    "INVALID_CROSS_TARGET_ENTRY",
+    "UNEXPECTED_CROSS_TARGET_FIELD",
+    "DUPLICATE_CROSS_TARGET",
+    "UNEXPECTED_CROSS_TARGET",
+    "INVALID_CROSS_TARGET_ROUTE",
+    "INVALID_CROSS_TARGET_REVIEW_STATUS",
+    "INVALID_CROSS_TARGET_MODE",
+    "INVALID_CROSS_TARGET_EXPECTED_MODE",
+    "CROSS_TARGET_SET_MISMATCH",
+    "CROSS_TARGET_ORDER_MISMATCH",
+    "ARCHIVE_REQUIRED_TARGET_SET_MISMATCH",
+    "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
+)
 
 EXPECTED_SELF_TEST_CASE_COUNT = 23
 
@@ -258,6 +281,10 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
     grouped: dict[str, list[str]] = {}
     for code, value in issues:
         grouped.setdefault(code, []).append(value)
+
+    unexpected_codes = sorted(set(grouped) - set(EXPECTED_ISSUE_CODES))
+    if unexpected_codes:
+        raise AssertionError(f"unexpected issue codes missing from EXPECTED_ISSUE_CODES: {unexpected_codes}")
 
     print("PHASE2_DIRECT_CROSS_ROUTE=fail")
     for code, values in grouped.items():
