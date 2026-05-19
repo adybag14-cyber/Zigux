@@ -1,15 +1,15 @@
 # Phase 2 Closure
 
-This note restores the missing Phase 2 tranche-closure record in a current-master-safe form.
+This note keeps the current Phase 2 closure-side packet aligned to the directly readable toolchain, installer, cross-route, kconfig-bridge, make-wrapper, manifest, and validator surfaces on current `master`.
 
 ## Status
 
 - `PHASE2_STATUS=parked`
 - `PHASE2_CLOSURE_RESTORE_STATE=docs_plus_manifest`
 - manifest: `zigux/tests/fixtures/phase2_tool_manifest.json`
-- current authority: the committed Phase 2 tool manifest, this closure note, the toolchain bootstrap note, the live toolchain and reminder guards, the shipped `zigux/Makefile` wrappers, the current bridge fixture roster, and the surviving direct fixdep closure anchors remain the trustworthy current-master sources for the bounded Phase 2 tranche
+- current authority: this closure note, the committed Phase 2 tool manifest, the toolchain bootstrap note, the live toolchain, installer, cross-route, reminder, and pinning guards, the returned closure-side validator pair, the shipped `zigux/Makefile` wrappers, and the current kconfig plus cross-route fixture manifests remain the trustworthy current-master sources for the bounded Phase 2 tranche
 
-The bounded Phase 2 tranche remains the directly readable toolchain, selected dual-implementation reminder packet, kbuild-route, kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and artifact-support packet already present on current `master`.
+The bounded Phase 2 tranche remains the directly readable toolchain, installer, direct cross-route, selected kconfig-bridge, required-make-route, validator-entrypoint, closure-validator, and fixture-backed artifact-support packet already present on current `master`.
 
 ## Current Closure Packet
 
@@ -17,23 +17,22 @@ The currently reviewable Phase 2 closure packet is:
 
 - `Documentation/zigux/phase2-closure.md`
 - `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`
-- `Documentation/zigux/phase2-fixdep-next-step-note.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `scripts/zigux/README.md`
-- `scripts/zigux/fixdep.zig`
-- `scripts/zigux/check-phase2-fixdep-gate.py`
-- `scripts/zigux/validate-phase2.py`
-- `scripts/zigux/validate-phase2-closure.py`
+- `scripts/zigux/install-zig.py`
 - `scripts/zigux/check-zig-toolchain.py`
 - `scripts/zigux/check-phase2-kbuild-routes.py`
 - `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`
 - `scripts/zigux/check-phase2-tests-readme-alignment.py`
+- `scripts/zigux/check-phase2-cross.py`
 - `scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - `scripts/zigux/check-phase2-toolchain-pinning.py`
 - `scripts/zigux/check-phase2-toolchain-pin-scope.py`
 - `scripts/zigux/check-phase2-required-make-routes.py`
 - `scripts/zigux/check-phase2-docs-shared-reminder.py`
+- `scripts/zigux/validate-phase2.py`
+- `scripts/zigux/validate-phase2-closure.py`
 - `scripts/zigux/zig-toolchain-policy.json`
 - `scripts/zigux/kconfig/conf_bridge.zig`
 - `scripts/zigux/kconfig/confdata_bridge.zig`
@@ -41,46 +40,54 @@ The currently reviewable Phase 2 closure packet is:
 - `zigux/tests/README.md`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
+- `zigux/tests/fixtures/phase2_cross_targets.json`
 - `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`
 - `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`
 - `zigux/tests/fixtures/kconfig_bridge/cases.json`
 
-- `PHASE2_CURRENT_CLOSURE_PACKET=Documentation/zigux/phase2-closure.md,Documentation/zigux/phase2-toolchain-bootstrap-notes.md,Documentation/zigux/phase2-fixdep-next-step-note.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/fixdep.zig,scripts/zigux/check-phase2-fixdep-gate.py,scripts/zigux/validate-phase2.py,scripts/zigux/validate-phase2-closure.py,scripts/zigux/check-zig-toolchain.py,scripts/zigux/check-phase2-kbuild-routes.py,scripts/zigux/check-phase2-kconfig-selftest-alignment.py,scripts/zigux/check-phase2-tests-readme-alignment.py,scripts/zigux/check-phase2-cross-selftest-alignment.py,scripts/zigux/check-phase2-toolchain-pinning.py,scripts/zigux/check-phase2-toolchain-pin-scope.py,scripts/zigux/check-phase2-required-make-routes.py,scripts/zigux/check-phase2-docs-shared-reminder.py,scripts/zigux/zig-toolchain-policy.json,scripts/zigux/kconfig/conf_bridge.zig,scripts/zigux/kconfig/confdata_bridge.zig,zigux/Makefile,zigux/tests/README.md,zigux/tests/fixtures/phase2_tool_manifest.json,zigux/tests/fixtures/phase2_artifact_tools_manifest.json,zigux/tests/fixtures/kconfig_bridge/conf_manifest.json,zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json,zigux/tests/fixtures/kconfig_bridge/cases.json`
-
-The surviving fixdep portion of the current closure packet is now the direct helper anchor `scripts/zigux/fixdep.zig` plus the returned governance companions `Documentation/zigux/phase2-fixdep-next-step-note.md` and `scripts/zigux/check-phase2-fixdep-gate.py`. Current `master` does not directly materialize the older external fixdep parity companions `scripts/basic/fixdep.c`, `scripts/zigux/check-fixdep-diff.py`, `zigux/tests/fixtures/fixdep/cases.json`, `zigux/tests/fixtures/fixdep/sample_multi_target.d`, `zigux/tests/fixtures/fixdep/sample_escaped_space.d`, or `zigux/tests/fixtures/fixdep/sample_concatenated.d`, so keep those paths out of the current closure packet until a future reread proves they returned.
+- `PHASE2_CURRENT_CLOSURE_PACKET=Documentation/zigux/phase2-closure.md,Documentation/zigux/phase2-toolchain-bootstrap-notes.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/install-zig.py,scripts/zigux/check-zig-toolchain.py,scripts/zigux/check-phase2-kbuild-routes.py,scripts/zigux/check-phase2-kconfig-selftest-alignment.py,scripts/zigux/check-phase2-tests-readme-alignment.py,scripts/zigux/check-phase2-cross.py,scripts/zigux/check-phase2-cross-selftest-alignment.py,scripts/zigux/check-phase2-toolchain-pinning.py,scripts/zigux/check-phase2-toolchain-pin-scope.py,scripts/zigux/check-phase2-required-make-routes.py,scripts/zigux/check-phase2-docs-shared-reminder.py,scripts/zigux/validate-phase2.py,scripts/zigux/validate-phase2-closure.py,scripts/zigux/zig-toolchain-policy.json,scripts/zigux/kconfig/conf_bridge.zig,scripts/zigux/kconfig/confdata_bridge.zig,zigux/Makefile,zigux/tests/README.md,zigux/tests/fixtures/phase2_tool_manifest.json,zigux/tests/fixtures/phase2_artifact_tools_manifest.json,zigux/tests/fixtures/phase2_cross_targets.json,zigux/tests/fixtures/kconfig_bridge/conf_manifest.json,zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json,zigux/tests/fixtures/kconfig_bridge/cases.json`
 
 ## Current Repo-Reality Gaps
 
-Within the bounded Phase 2 closure packet, current `master` no longer leaves the installer hook, direct cross-route companions, or the surviving fixdep reminder surfaces in the repo-reality-gap bucket.
+Within the bounded Phase 2 closure packet, current `master` no longer leaves the installer hook, direct cross-route packet, or returned closure-validator companions in the repo-reality-gap bucket.
+
+The older fixdep dual-implementation reminder surfaces are no longer part of the current closure-side authority on `master`; closure follow-through should stay tied to the toolchain, cross-route, kconfig, make-wrapper, and validator packet that the repo still ships directly.
 
 - `PHASE2_CURRENT_GAP_PACKET=`
 
-The current closure-side packet now stays anchored to the materialized closure note, validator entrypoint, closure validator, toolchain, returned installer hook, direct cross-route checker, surviving fixdep reminder packet, and the shipped make-wrapper plus bridge-fixture companions that current `master` can honestly support.
+The current closure-side packet now stays anchored to the materialized closure note, validator entrypoint, closure validator, toolchain policy, returned installer helper, direct cross-route checker, shared reminder guards, selected kconfig bridge helpers, current manifests, and shipped make-wrapper routes that current `master` can honestly support.
 
 ## Closure Validation
 
-The current closure packet is intentionally narrow and replayable, and it now names the policy-only, archive-integrity, dedicated toolchain-pinning probes, and the restored closure-side validator that the live Phase 2 make-wrapper can run beside the shared routes:
+The current closure packet is intentionally narrow and replayable, and it now names the policy-only, archive-integrity, returned installer and cross-route companions, required-make-route guard, docs-shared reminder, restored closure-side validator, and shipped wrapper routes that current `master` can actually replay:
 
 - `python3 scripts/zigux/check-zig-toolchain.py --self-test`
 - `python3 scripts/zigux/check-zig-toolchain.py --policy-only`
 - `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`
+- `python3 scripts/zigux/install-zig.py --self-test`
 - `python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test`
 - `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`
 - `python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test`
+- `python3 scripts/zigux/check-phase2-cross.py --self-test`
+- `python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test`
 - `python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test`
+- `python3 scripts/zigux/check-phase2-required-make-routes.py --self-test`
 - `python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test`
 - `python3 scripts/zigux/validate-phase2.py`
 - `python3 scripts/zigux/validate-phase2-closure.py --self-test`
 - `python3 scripts/zigux/validate-phase2-closure.py`
 - `make -C zigux phase2-toolchain`
+- `make -C zigux phase2-tools`
+- `make -C zigux phase2-kconfig`
+- `make -C zigux phase2-cross`
 - `make -C zigux phase2-validate`
 - `make -C zigux phase2`
 
-- `PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/check-zig-toolchain.py --self-test,python3 scripts/zigux/check-zig-toolchain.py --policy-only,python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing,python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test,python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test,python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test,python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test,python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test,python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py --self-test,python3 scripts/zigux/validate-phase2-closure.py`
-- `PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-validate,make -C zigux phase2`
+- `PHASE2_CLOSURE_VALIDATORS=python3 scripts/zigux/check-zig-toolchain.py --self-test,python3 scripts/zigux/check-zig-toolchain.py --policy-only,python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing,python3 scripts/zigux/install-zig.py --self-test,python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test,python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test,python3 scripts/zigux/check-phase2-kbuild-routes.py --self-test,python3 scripts/zigux/check-phase2-cross.py --self-test,python3 scripts/zigux/check-phase2-cross-selftest-alignment.py --self-test,python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test,python3 scripts/zigux/check-phase2-required-make-routes.py --self-test,python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test,python3 scripts/zigux/validate-phase2.py,python3 scripts/zigux/validate-phase2-closure.py --self-test,python3 scripts/zigux/validate-phase2-closure.py`
+- `PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-validate,make -C zigux phase2`
 
 ## Next Step
 
-The next bounded same-lane follow-through is to leave this closure packet parked unless a future Phase 2 reread finds fresh drift between the restored closure-side packet and the shared docs-root, checklist, scripts-root, or tests-root reminders, or unless the narrowed fixdep reminder packet loses one of its current direct-readback anchors on current `master`.
+The next bounded same-lane follow-through is to leave this closure packet parked unless a future Phase 2 reread finds fresh drift between this closure note, `scripts/zigux/validate-phase2-closure.py`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/Makefile`, or the current kconfig bridge fixture roster.
 
-- `PHASE2_NEXT_SAFE_STEP=leave the restored Phase 2 closure packet parked unless shared reminder drift reopens around the returned installer hook, direct cross-route companions, or the narrowed fixdep reminder packet on current master`
+- `PHASE2_NEXT_SAFE_STEP=leave the current Phase 2 closure packet parked unless the returned installer, cross-route, manifest, shared reminder, make-wrapper, or current kconfig bridge packet drifts on current master`
