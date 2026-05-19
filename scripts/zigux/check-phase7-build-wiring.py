@@ -10,6 +10,10 @@ BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
 BUILD_MARKERS = [
+    '"../../lib/string_helpers.zig"',
+    '"../../lib/cmdline.zig"',
+    '"../../lib/argv_split.zig"',
+    '"../../lib/rbtree.zig"',
     '"phase7-string-helpers-test"',
     '"phase7-string-helpers-survey"',
     '"phase7-string-helpers-sample-boundary"',
@@ -61,6 +65,10 @@ FIXTURE_TEXTS = {
             '    _ = b.step("phase7-rbtree-test", "Run the Phase 7 rbtree helper tests");',
             '    _ = b.step("phase7-rbtree-survey", "Run the Phase 7 rbtree survey replay");',
             '    _ = b.step("test", "Run Phase 7 runtime helper tests");',
+            '    _ = b.createModule(.{ .root_source_file = b.path("../../lib/string_helpers.zig") });',
+            '    _ = b.createModule(.{ .root_source_file = b.path("../../lib/cmdline.zig") });',
+            '    _ = b.createModule(.{ .root_source_file = b.path("../../lib/argv_split.zig") });',
+            '    _ = b.createModule(.{ .root_source_file = b.path("../../lib/rbtree.zig") });',
             '}',
         ]
     )
@@ -137,6 +145,30 @@ def run_self_test() -> None:
     missing_file_cases = [(f"missing_{rel.name}", rel) for rel in REQUIRED_FILES]
     marker_cases = [
         (
+            "missing_string_helpers_helper_path",
+            BUILD_PATH,
+            '"../../lib/string_helpers.zig"',
+            '"../../lib/string_helpers_missing.zig"',
+        ),
+        (
+            "missing_cmdline_helper_path",
+            BUILD_PATH,
+            '"../../lib/cmdline.zig"',
+            '"../../lib/cmdline_missing.zig"',
+        ),
+        (
+            "missing_argv_split_helper_path",
+            BUILD_PATH,
+            '"../../lib/argv_split.zig"',
+            '"../../lib/argv_split_missing.zig"',
+        ),
+        (
+            "missing_rbtree_helper_path",
+            BUILD_PATH,
+            '"../../lib/rbtree.zig"',
+            '"../../lib/rbtree_missing.zig"',
+        ),
+        (
             "missing_cmdline_survey_marker",
             BUILD_PATH,
             '"phase7-cmdline-survey"',
@@ -195,8 +227,8 @@ def run_self_test() -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that the shipped Phase 7 build graph stays returned through "
-            "validate-phase7.py and phase7_build.zig while Makefile wrappers remain parked."
+            "Check that the shipped Phase 7 build graph keeps its helper dependency "
+            "paths and returned test steps in phase7_build.zig while Makefile wrappers remain parked."
         )
     )
     parser.add_argument(
