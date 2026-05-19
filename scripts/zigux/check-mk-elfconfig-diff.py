@@ -56,7 +56,6 @@ EXPECTED_FIXTURE_FILES = frozenset(
     }
 )
 EXPECTED_RESULT_KEYS = frozenset({"stdout", "stderr", "exit_code"})
-SELF_TEST_CASE_COUNT = 10
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
 #include <stdio.h>
@@ -260,6 +259,16 @@ def check_cases(*, zig: str, compiler: str) -> None:
     print(f"MK_ELFCONFIG_CASE_COUNT={len(cases)}")
 
 
+def validate_self_test_case_count(cases: list[dict[str, str]]) -> int:
+    expected_case_count = len(EXPECTED_CASES)
+    actual_case_count = len(cases)
+    if actual_case_count != expected_case_count:
+        raise ValueError(
+            f"{CASES_PATH}:case_count={actual_case_count},expected_case_count={expected_case_count}"
+        )
+    return actual_case_count
+
+
 def run_self_test() -> None:
     validate_fixture_inventory()
     cases = validate_cases(load_json(CASES_PATH))
@@ -269,7 +278,7 @@ def run_self_test() -> None:
     if not ZIG_TOOL.exists():
         raise FileNotFoundError(ZIG_TOOL)
     print("MK_ELFCONFIG_DIFF_SELF_TEST=pass")
-    print(f"MK_ELFCONFIG_DIFF_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
+    print(f"MK_ELFCONFIG_DIFF_SELF_TEST_CASE_COUNT={validate_self_test_case_count(cases)}")
 
 
 def main() -> int:
