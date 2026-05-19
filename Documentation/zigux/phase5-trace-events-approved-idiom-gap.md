@@ -31,9 +31,10 @@ Keep the approved formatting idiom bounded to the current landed reminder packet
 - `samples/zigux/README.md`
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 - `scripts/zigux/README.md`
+- `scripts/zigux/check-phase5-review-guide-surface.py`
 - `zigux/tests/README.md`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the older non-runtime trace-events sample-local companions stay in the repo-reality-gap or public-tree-backed companion bucket until a fresh reread proves they returned directly on `master`, and the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof.
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the older non-runtime trace-events sample-local companions stay in the repo-reality-gap or public-tree-backed companion bucket until a fresh reread proves they returned directly on `master`, the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
 
 ## Exact checks run on 2026-05-18
 
@@ -75,4 +76,4 @@ Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/v
 
 ## Next bounded step
 
-Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still treats the narrower formatting companion as a returned full trace-events packet, loses the selected-string plus `iter=%d` cue, stops mentioning the bounded destination failure check, or stops framing `zigux/tests/phase5_build.zig` and the older sample-local companions as public-tree-backed companion evidence or repo-reality gaps while authenticated contents reread still misses those paths.
+Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still treats the narrower formatting companion as a returned full trace-events packet, loses the selected-string plus `iter=%d` cue, stops naming the shipped guide-surface guard, or stops framing `zigux/tests/phase5_build.zig` and the older sample-local companions as public-tree-backed companion evidence or repo-reality gaps while authenticated contents reread still misses those paths.
