@@ -26,8 +26,7 @@
   ],
   "still_missing_broader_paths": [
     "scripts/zigux/validate-phase15.py",
-    "zigux/tests/phase15_build.zig",
-    "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+    "zigux/tests/phase15_build.zig"
   ],
   "maintenance_replay_commands": [
     "python3 scripts/zigux/check-phase15-docs-readme-alignment.py",
