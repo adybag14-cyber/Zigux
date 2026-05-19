@@ -35,7 +35,7 @@ env:
 
 concurrency:
   group: ${{ format('{0}-{1}', github.workflow, github.ref) }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   bootstrap:
@@ -126,6 +126,9 @@ jobs:
           fi
           python3 -m py_compile "${scripts[@]}"
 
+      - name: Self-test restored Zig installer helper
+        run: python3 scripts/zigux/install-zig.py --self-test
+
       - name: Self-test current Zig toolchain checker
         run: python3 scripts/zigux/check-zig-toolchain.py --self-test
 
@@ -190,6 +193,12 @@ jobs:
 
       - name: Check current Phase 2 cross alignment packet
         run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py
+
+      - name: Self-test current Phase 2 direct cross-route checker
+        run: python3 scripts/zigux/check-phase2-cross.py --self-test
+
+      - name: Check current Phase 2 direct cross-route packet
+        run: python3 scripts/zigux/check-phase2-cross.py
 
       - name: Self-test current Phase 2 toolchain pinning checker
         run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test
