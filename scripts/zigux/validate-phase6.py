@@ -38,6 +38,8 @@ EXPECTED_HELPER_EVIDENCE_PACKET = "phase6-helper-evidence"
 EXPECTED_HELPER_PARITY_PACKET = "phase6-helper-parity"
 EXPECTED_PHASE = "Phase 6"
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
+EXPECTED_SHARED_PERF_WRAPPER = "make -C zigux phase6-perf"
+EXPECTED_SHARED_PERF_WRAPPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_SHARED_REPLAY_INVENTORY = [
     "zig build phase6-base64-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-base64-test",
@@ -71,6 +73,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "$(ZIG) build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig --summary all",
     "phase6-checksum-perf:",
     "phase6-hexdump-review:",
+    "phase6-perf: phase6-base64-perf phase6-bsearch-perf phase6-checksum-perf phase6-hexdump-review phase6-hexdump-perf-matrix-test phase6-hexdump-perf",
 ]
 
 REQUIRED_BUILD_SNIPPETS = [
@@ -88,7 +91,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-bsearch-perf`",
 ]
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 5
 
 
 class ValidationError(RuntimeError):
@@ -111,6 +114,26 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
     for snippet in snippets:
         if snippet not in content:
             raise ValidationError(f"missing expected Phase 6 marker in {path.as_posix()}: {snippet}")
+
+
+def extract_shared_perf_wrapper_keys(helper_parity_manifest: dict[str, object]) -> list[str]:
+    helpers = helper_parity_manifest.get("helpers")
+    if not isinstance(helpers, list):
+        raise ValidationError("phase6 helper parity helpers missing")
+
+    keys: list[str] = []
+    for helper in helpers:
+        if not isinstance(helper, dict):
+            continue
+        current_perf_evidence = helper.get("current_perf_evidence")
+        if not isinstance(current_perf_evidence, dict):
+            continue
+        routes = current_perf_evidence.get("linux_style_rerun_routes")
+        if isinstance(routes, list) and EXPECTED_SHARED_PERF_WRAPPER in routes:
+            key = helper.get("key")
+            if isinstance(key, str):
+                keys.append(key)
+    return keys
 
 
 def run_checker(root: Path, checker: Path, flag: str) -> None:
@@ -137,6 +160,8 @@ def validate(root: Path) -> None:
         raise ValidationError("phase6 roadmap anchors drift")
     if helper_evidence_manifest.get("current_shared_replay_inventory") != EXPECTED_SHARED_REPLAY_INVENTORY:
         raise ValidationError("phase6 shared replay inventory drift")
+    if extract_shared_perf_wrapper_keys(helper_parity_manifest) != EXPECTED_SHARED_PERF_WRAPPER_KEYS:
+        raise ValidationError("phase6 shared perf wrapper route drift")
 
     require_snippets(root / MAKEFILE, REQUIRED_MAKEFILE_SNIPPETS)
     require_snippets(root / PHASE6_BUILD, REQUIRED_BUILD_SNIPPETS)
@@ -164,6 +189,32 @@ def scaffold_repo(root: Path) -> None:
     write(root / HELPER_PARITY_MANIFEST, json.dumps({
         "packet": EXPECTED_HELPER_PARITY_PACKET,
         "phase": EXPECTED_PHASE,
+        "helpers": [
+            {
+                "key": "base64",
+                "current_perf_evidence": {
+                    "linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER],
+                },
+            },
+            {
+                "key": "bsearch",
+                "current_perf_evidence": {
+                    "linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER],
+                },
+            },
+            {
+                "key": "checksum",
+                "current_perf_evidence": {
+                    "linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER],
+                },
+            },
+            {
+                "key": "hexdump",
+                "current_perf_evidence": {
+                    "linux_style_rerun_routes": [EXPECTED_SHARED_PERF_WRAPPER],
+                },
+            },
+        ],
     }, indent=2) + "\n")
     write(root / PHASE6_BUILD, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKEFILE, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
@@ -200,6 +251,12 @@ def run_self_test() -> None:
         manifest = read_json(root / HELPER_EVIDENCE_MANIFEST)
         manifest["current_shared_replay_inventory"] = manifest["current_shared_replay_inventory"][:-1]
         write(root / HELPER_EVIDENCE_MANIFEST, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(lambda: validate(root))
+        cases_run += 1
+        scaffold_repo(root)
+        parity_manifest = read_json(root / HELPER_PARITY_MANIFEST)
+        parity_manifest["helpers"][1]["current_perf_evidence"]["linux_style_rerun_routes"] = []
+        write(root / HELPER_PARITY_MANIFEST, json.dumps(parity_manifest, indent=2) + "\n")
         expect_failure(lambda: validate(root))
         cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
