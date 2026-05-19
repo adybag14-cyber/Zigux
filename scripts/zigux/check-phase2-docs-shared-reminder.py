@@ -17,6 +17,7 @@ PHASE2_NOTES_MARKERS = (
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/install-zig.py` is directly readable on current `master`",
     "`scripts/zigux/check-zig-toolchain.py` is directly readable on current `master`",
     "`zigux/tests/fixtures/phase2_cross_targets.json` keeps the rematerialized direct cross-route packet explicit",
