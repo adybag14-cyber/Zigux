@@ -59,7 +59,8 @@
         "max_decode_slowdown_pct": 325,
         "linux_style_rerun_routes": [
           "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
-          "make -C zigux phase6-base64-perf"
+          "make -C zigux phase6-base64-perf",
+          "make -C zigux phase6-perf"
         ]
       }
     },
@@ -96,7 +97,8 @@
           "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
           "make -C zigux phase6-bsearch-test",
           "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
-          "make -C zigux phase6-bsearch-perf"
+          "make -C zigux phase6-bsearch-perf",
+          "make -C zigux phase6-perf"
         ]
       }
     },
