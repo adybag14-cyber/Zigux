@@ -129,6 +129,18 @@ pub fn compareExchangeWeak(
     return @cmpxchgWeak(T, ptr, expected_value, desired_value, success, failure);
 }
 
+pub fn fetchAdd(
+    comptime T: type,
+    ptr: *T,
+    operand: T,
+    comptime order: Ordering,
+) RmwError!T {
+    if (comptime !rmwOrderAllowed(order)) {
+        return error.InvalidRmwOrdering;
+    }
+    return @atomicRmw(T, ptr, .Add, operand, order);
+}
+
 pub fn fetchNand(
     comptime T: type,
     ptr: *T,
@@ -259,6 +271,19 @@ test "phase3 atomic helper wraps compare-exchange without widening failure seman
         compareExchangeWeak(u32, &value, 2, 5, .seq_cst, .release),
     );
     try std.testing.expectEqual(@as(u32, 2), value);
+}
+
+test "phase3 atomic helper keeps fetch-add updates explicit" {
+    var value: u16 = 12;
+
+    try std.testing.expectEqual(@as(u16, 12), try fetchAdd(u16, &value, 5, .monotonic));
+    try std.testing.expectEqual(@as(u16, 17), value);
+
+    try std.testing.expectEqual(@as(u16, 17), try fetchAdd(u16, &value, 8, .acq_rel));
+    try std.testing.expectEqual(@as(u16, 25), value);
+
+    try std.testing.expectError(error.InvalidRmwOrdering, fetchAdd(u16, &value, 3, .unordered));
+    try std.testing.expectEqual(@as(u16, 25), value);
 }
 
 test "phase3 atomic helper keeps fetch-nand updates explicit" {
