@@ -14,7 +14,7 @@ This note keeps the current Phase 11 `bcm2835_wdt` lane truthful on `master`. It
 Current `master` keeps this bounded starter packet reviewable through:
 * heartbeat bounds and watchdog-tick conversions in the driver helpers
 * probe-state and platform-handoff summaries, including ownership cues for poweroff handling
-* bounded runtime register-image modeling for `start()`, `stop()`, `restart()`, `poweroff()`, and `remove()`
+* bounded watchdog-lab state transitions for `start()`, `stop()`, `restart()`, and `poweroff()`, without claiming a live `remove()` helper or full register-image parity beyond the current helper-backed replay surface
 * dedicated replay coverage in `zigux/tests/phase11_bcm2835_wdt.zig`
 * compile-local verify coverage in `drivers/watchdog/bcm2835_wdt_verify.zig`
 * dedicated survey-gate coverage in `zigux/tests/phase11_bcm2835_wdt_survey.zig`
