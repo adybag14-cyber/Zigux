@@ -37,6 +37,23 @@ pub const QueueNotificationSummary = struct {
     needs_kick: bool,
 };
 
+pub const QueuePublishReadinessBlocker = enum {
+    queue_broken,
+    queue_full,
+};
+
+pub const QueuePublishReadinessSummary = struct {
+    anchor: []const u8,
+    queue_index: u16,
+    descriptor_count: u16,
+    outstanding_chain_count: u16,
+    unpublished_chain_count: u16,
+    available_descriptor_count: u16,
+    broken: bool,
+    can_publish: bool,
+    blocker: ?QueuePublishReadinessBlocker,
+};
+
 pub const NotificationDataSummary = struct {
     anchor: []const u8,
     queue_index: u16,
@@ -294,6 +311,31 @@ pub const VirtioRingLab = struct {
             .delayed_event_target_idx = slot.last_used_idx +% delay_budget_count,
             .pending_used_chain_count = pending_used_chain_count,
             .should_poll = pending_used_chain_count > delay_budget_count,
+        };
+    }
+
+    pub fn queuePublishReadinessSummary(self: *const Self, queue_index: u16) !QueuePublishReadinessSummary {
+        const index = try checkedQueueIndex(queue_index);
+        const slot = self.queues[index];
+        if (!slot.active) return error.QueueNotDefined;
+
+        const blocker: ?QueuePublishReadinessBlocker = if (slot.broken)
+            .queue_broken
+        else if (slot.outstanding_chain_count == slot.descriptor_count)
+            .queue_full
+        else
+            null;
+
+        return .{
+            .anchor = descriptor().anchor,
+            .queue_index = queue_index,
+            .descriptor_count = slot.descriptor_count,
+            .outstanding_chain_count = slot.outstanding_chain_count,
+            .unpublished_chain_count = slot.num_added,
+            .available_descriptor_count = slot.descriptor_count - slot.outstanding_chain_count,
+            .broken = slot.broken,
+            .can_publish = blocker == null,
+            .blocker = blocker,
         };
     }
 
