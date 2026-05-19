@@ -152,6 +152,12 @@ jobs:
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
 
+      - name: Self-test current Lane 05 local-first archive checker
+        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py --self-test
+
+      - name: Check current Lane 05 local-first archive packet
+        run: python3 scripts/zigux/check-lane05-local-first-archive-workflow.py
+
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
 
