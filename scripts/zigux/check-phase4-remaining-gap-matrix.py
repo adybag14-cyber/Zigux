@@ -369,6 +369,11 @@ def run_self_test() -> int:
             return 1
         cases += 1
 
+        if cases != EXPECTED_SELF_TEST_CASE_COUNT:
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print(f"expected {EXPECTED_SELF_TEST_CASE_COUNT} self-test cases, saw {cases}")
+            return 1
+
         print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass")
         print(f"PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT={cases}")
         return 0
