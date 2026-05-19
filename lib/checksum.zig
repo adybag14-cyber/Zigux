@@ -107,6 +107,10 @@ pub fn compute(bytes: []const u8) u16 {
     return fold(partial(bytes, 0));
 }
 
+pub fn ipComputeCsum(bytes: []const u8) u16 {
+    return compute(bytes);
+}
+
 pub fn ipFastCsum(header: []const u8) u16 {
     std.debug.assert((header.len & 3) == 0);
     var sum: u64 = 0;
@@ -274,6 +278,7 @@ test "partial and compute match reference accumulation across seeded odd payload
     };
     for (compute_cases) |case| {
         try std.testing.expectEqual(fold(referencePartial(case, 0)), compute(case));
+        try std.testing.expectEqual(compute(case), ipComputeCsum(case));
     }
 }
 
