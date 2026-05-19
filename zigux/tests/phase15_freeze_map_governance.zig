@@ -97,7 +97,7 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
 
     try std.testing.expectEqualStrings("P15-L04", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
-    try std.testing.expectEqualStrings("current-master-readback-2026-05-18", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("current-master-readback-2026-05-19", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try expectContains(manifest.surveyed_commit_mode_reason, "dated master-readback marker");
     try std.testing.expectEqualStrings("Documentation/zigux/freeze-map.md", manifest.anchor);
@@ -181,7 +181,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "PHASE15_LANE_KEY=P15-L04");
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
-    try expectContains(governance_note, "current-master-readback-2026-05-18");
+    try expectContains(governance_note, "current-master-readback-2026-05-19");
     try expectContains(governance_note, "shared reminder surfaces still carry as repo-reality gaps on current `master`");
     try expectContains(governance_note, "direct current-master contents reads still return not-found for the broader Phase 15 validator-first and dedicated-build companion paths");
     try expectContains(governance_note, "the current `zigux/Makefile` readback still carries no `phase15-validate`, `phase15-test`, or `phase15` targets");
