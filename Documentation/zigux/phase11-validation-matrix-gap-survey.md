@@ -36,7 +36,7 @@ Current repo rereads in this run rematerialize the gpio watchdog, HVC, and
 DesignWare matrix notes, but do not rematerialize
 `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, so the shared
 matrix packet should treat gpio, HVC, and DesignWare as current reread matrix
-Evidence while keeping bcm2835 in repo-reality-gap vocabulary.
+evidence while keeping bcm2835 in repo-reality-gap vocabulary.
 
 The reread driver-local Phase 11 matrix notes on current `master` are
 `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`,
