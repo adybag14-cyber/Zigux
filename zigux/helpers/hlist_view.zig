@@ -89,12 +89,53 @@ pub const HListView = struct {
         return self.firstBrokenPrevLink() == null;
     }
 
+    fn firstCycleEntry(self: HListView) ?*const HListNode {
+        var slow = self.first();
+        var fast = self.first();
+
+        while (fast) |fast_node| {
+            const fast_mid = nodeFromRaw(fast_node.next) orelse return null;
+            const fast_end = nodeFromRaw(fast_mid.next) orelse return null;
+
+            slow = if (slow) |slow_node| nodeFromRaw(slow_node.next) else null;
+            const slow_node = slow orelse return null;
+
+            fast = fast_end;
+            if (slow_node == fast_end) {
+                var entry = self.first() orelse return null;
+                var cycle_cursor = slow_node;
+                while (entry != cycle_cursor) {
+                    entry = nodeFromRaw(entry.next) orelse return null;
+                    cycle_cursor = nodeFromRaw(cycle_cursor.next) orelse return null;
+                }
+                return entry;
+            }
+        }
+
+        return null;
+    }
+
     pub fn firstBrokenPrevLink(self: HListView) ?PrevLinkBreak {
+        const cycle_entry = self.firstCycleEntry();
+        var revisited_cycle_entry = false;
         var expected_pprev = @intFromPtr(&self.head.first);
         var current_index: usize = 0;
         var cursor = self.first();
 
         while (cursor) |node| {
+            if (cycle_entry) |entry| {
+                if (node == entry) {
+                    if (revisited_cycle_entry) {
+                        return .{
+                            .current_index = current_index,
+                            .expected_pprev = expected_pprev,
+                            .actual_pprev = node.pprev,
+                        };
+                    }
+                    revisited_cycle_entry = true;
+                }
+            }
+
             if (node.pprev != expected_pprev) {
                 return .{
                     .current_index = current_index,
@@ -318,6 +359,27 @@ test "hlist view fails closed for a self-looped first node" {
     const breakage = view.firstBrokenPrevLink().?;
     try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&node.next)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+}
+
+test "hlist view first prev-link witness fails closed on a consistent malformed cycle" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&head.first);
+    second.next = @intFromPtr(&first);
+    second.pprev = @intFromPtr(&first.next);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(view.hasCycle());
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 2), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&second.next)), breakage.expected_pprev);
     try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
     try std.testing.expect(!view.hasConsistentPrevLinks());
 }
