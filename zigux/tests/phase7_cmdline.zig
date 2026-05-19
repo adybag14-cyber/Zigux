@@ -47,3 +47,21 @@ test "phase 7 cmdline companion replays quoted argument splitting and memparse b
     try std.testing.expectEqual(@as(u64, 0), no_conversion.value);
     try std.testing.expectEqualStrings("+nope", no_conversion.rest);
 }
+
+test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries" {
+    const leading = cmdline.nextArg(" \tmode=fast");
+    try std.testing.expectEqualStrings("", leading.param);
+    try std.testing.expect(leading.value == null);
+    try std.testing.expectEqualStrings("mode=fast", leading.rest);
+    try std.testing.expectEqualStrings("mode=fast", leading.remaining);
+
+    const quoted = cmdline.next_arg("\"mode=fast path\" tail");
+    try std.testing.expectEqualStrings("mode", quoted.param);
+    try std.testing.expectEqualStrings("fast path", quoted.value.?);
+    try std.testing.expectEqualStrings("tail", quoted.remaining);
+
+    const nul_bounded = cmdline.nextArg("console=ttyS0\x00 root=/dev/vda");
+    try std.testing.expectEqualStrings("console", nul_bounded.param);
+    try std.testing.expectEqualStrings("ttyS0", nul_bounded.value.?);
+    try std.testing.expectEqualStrings("", nul_bounded.remaining);
+}
