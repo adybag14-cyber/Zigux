@@ -13,6 +13,7 @@ REQUIRED_PRESENT_FILES = (
     Path("scripts/zigux/check-phase1-string-review-packet.py"),
     Path("scripts/zigux/check-phase1-direct-owner-markers.py"),
     Path("scripts/zigux/check-phase1-bench.py"),
+    Path("scripts/zigux/check-phase1-shared-reminder-packet.py"),
     Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md"),
     Path("Documentation/zigux/phase1-closure.md"),
     Path("Documentation/zigux/README.md"),
@@ -39,6 +40,7 @@ README_MARKERS = (
     "- Phase 1 flow - the current host-tools reminder packet keeps the closed helper tranche reviewable through the live owner-map and string-review guards instead of rebuilding the broader installer-backed closure packet from older missing routes",
     "- `python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, and `python3 scripts/zigux/check-phase1-bench.py --self-test` replay the shipped bounded Phase 1 reminder checks, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the shipped shared tests-root smoke route",
     "- `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner, bench, and closure-validator packet explicit from the scripts root",
+    "- `scripts/zigux/check-phase1-shared-reminder-packet.py`, `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py` keep the broader shared reminder packet and its workflow-backed self-test explicit beside that scripts-root reminder surface",
     "- `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `zigux/tests/build.zig`, `zigux/tests/phase1_host_tools_smoke.zig`, and `scripts/zigux/README.md` remain the current reminder-surface companions for that packet",
     "- `Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` are back on current `master`, so bitmap-side follow-through can use that restored closure packet as live reminder evidence instead of replaying older missing validator-first or make-route names by default",
     "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
@@ -121,14 +123,14 @@ def run_self_test() -> int:
         )
         write_text(readme_path, duplicated)
         failures = collect_failures(duplicate_root)
-        assert failures == [f"readme_marker_count:2:{README_MARKERS[0]}"]
+        assert failures == [f"readme_marker_count:2:{README_MARKERS[0]}]
         checks_run += 1
 
         missing_readme_root = root / "missing-readme"
         build_sample_root(missing_readme_root)
         (missing_readme_root / README_REL).unlink()
         failures = collect_failures(missing_readme_root)
-        assert failures == [f"missing_file:{README_REL.as_posix()}"]
+        assert failures == [f"missing_file:{README_REL.as_posix()}]
         checks_run += 1
 
         for relative_path in REQUIRED_PRESENT_FILES:
@@ -136,7 +138,7 @@ def run_self_test() -> int:
             build_sample_root(broken_root)
             (broken_root / relative_path).unlink()
             failures = collect_failures(broken_root)
-            assert failures == [f"missing_present_file:{relative_path.as_posix()}"]
+            assert failures == [f"missing_present_file:{relative_path.as_posix()}]
             checks_run += 1
 
         for relative_path in REQUIRED_MISSING_FILES:
@@ -144,7 +146,7 @@ def run_self_test() -> int:
             build_sample_root(broken_root)
             write_text(broken_root / relative_path, "returned\n")
             failures = collect_failures(broken_root)
-            assert failures == [f"unexpected_materialized_gap:{relative_path.as_posix()}"]
+            assert failures == [f"unexpected_materialized_gap:{relative_path.as_posix()}]
             checks_run += 1
 
     assert checks_run == expected_case_count
