@@ -39,13 +39,20 @@ The active shared packet stays contributor-facing and review-first. Helper-local
 
 ## Release Handle
 
-1. `Documentation/zigux/phase13-contributor-workflow-guide.md`
-2. `Documentation/zigux/phase13-release-coordination-matrix.md`
-3. `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
-4. `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
-5. `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
+Keep the stable contributor-facing handle distinct from this PMO coordination companion:
 
-That is the shipped shared-summary handle for this packet, with the tests-root alignment companion kept explicit beside it.
+1. `Documentation/zigux/phase13-contributor-workflow-guide.md`
+2. `scripts/zigux/README.md`
+3. `zigux/tests/README.md`
+
+Keep these PMO coordination companions aligned beside that stable handle:
+
+4. `Documentation/zigux/phase13-release-coordination-matrix.md`
+5. `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+6. `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+7. `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
+
+That keeps the stable contributor-facing handle centered on the workflow guide, scripts-root reminder, and tests-root reminder while this matrix, the sequencing note, and the two shipped guards stay explicit as coordination companions.
 
 ## Repo-Reality Gaps
 
