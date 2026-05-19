@@ -13,6 +13,8 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 - sequencing companion: `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - release-notes companion: `Documentation/zigux/phase13-release-notes-survey.md`
 - roadmap-traceability companion: `Documentation/zigux/phase13-roadmap-traceability.md`
+- shared-summary-gap companion: `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- notifier-gap companion: `Documentation/zigux/phase13-notifier-summary-gap.md`
 - shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - tests-root alignment companion: `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 
@@ -31,7 +33,7 @@ The active shared packet stays contributor-facing and review-first. Helper-local
 
 ## Owner Split
 
-- PMO / Release Management: keep this matrix, the workflow guide, the sequencing note, the release-notes survey, the roadmap-traceability note, the shared-summary guard, and the tests-root alignment companion aligned
+- PMO / Release Management: keep this matrix, the workflow guide, the sequencing note, the release-notes survey, the roadmap-traceability note, the shared-summary-gap note, the notifier-gap note, the shared-summary guard, and the tests-root alignment companion aligned
 - helper-local owners: keep `libfs`, `devres`, and `landlock` packet wording grounded in their shipped surveys, slices, starter files, focused reviewability manifests, and the narrower current `devres` packet's dedicated DMA-boundary checker pair, pure `dmam_alloc_coherent()` planner note plus manifest-backed replay, helper-first scatterlist build shard, while keeping the shipped Landlock syscalls governance-plus-slice-plus-starter packet explicit through `Documentation/zigux/phase13-landlock-syscalls-governance.md`, `Documentation/zigux/phase13-landlock-syscalls-slice.md`, and `security/landlock/syscalls.zig` and leaving `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` recorded as repo-reality gaps
 - adjacent notifier support: keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` truthful as support evidence without promoting them into a fifth helper lane
 
@@ -49,10 +51,12 @@ Keep these PMO coordination companions aligned beside that stable handle:
 5. `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 6. `Documentation/zigux/phase13-release-notes-survey.md`
 7. `Documentation/zigux/phase13-roadmap-traceability.md`
-8. `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
-9. `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
+8. `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+9. `Documentation/zigux/phase13-notifier-summary-gap.md`
+10. `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
+11. `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
 
-That keeps the stable contributor-facing handle centered on the workflow guide, scripts-root reminder, and tests-root reminder while this matrix, the sequencing note, the release-note and roadmap-traceability companions, and the two shipped guards stay explicit as coordination companions.
+That keeps the stable contributor-facing handle centered on the workflow guide, scripts-root reminder, and tests-root reminder while this matrix, the sequencing note, the release-note and roadmap-traceability companions, the two gap notes, and the two shipped guards stay explicit as coordination companions.
 
 ## Repo-Reality Gaps
 
@@ -69,7 +73,7 @@ Keep the still-missing Phase 13 route family recorded as repo-reality gaps rathe
 
 When shared Phase 13 wording changes:
 
-1. reread this matrix beside the workflow guide, shared-helper sequencing note, release-notes survey, and roadmap-traceability note
+1. reread this matrix beside the workflow guide, shared-helper sequencing note, release-notes survey, roadmap-traceability note, shared-summary-gap note, and notifier-gap note
 2. rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 3. rerun `python3 scripts/zigux/check-phase13-tests-readme-alignment.py` when the tests-root reminder packet changes or when shared wording could drift into `zigux/tests/README.md`
 4. keep the Makefile-backed route family recorded as repo-reality gaps while distinguishing the returned `zigux/Makefile` file from the still-missing Phase 13 routes
@@ -79,7 +83,7 @@ When shared Phase 13 wording changes:
 
 The last docs-root `devres` wording repair is now landed, so keep the broader shared Phase 13 packet parked unless a fresh reread opens another reminder-surface drift.
 
-- keep `Documentation/zigux/README.md`, `Documentation/zigux/phase13-release-notes-survey.md`, and `Documentation/zigux/phase13-roadmap-traceability.md` aligned around the narrower current-`master` `devres` packet, including the pure `dmam_alloc_coherent()` planner note plus manifest-backed replay and the helper-first scatterlist build shard, now that the docs root no longer treats `Documentation/zigux/phase13-devres-survey.md` and `lib/devres.zig` as repo-reality gaps
+- keep `Documentation/zigux/README.md`, `Documentation/zigux/phase13-release-notes-survey.md`, `Documentation/zigux/phase13-roadmap-traceability.md`, `Documentation/zigux/phase13-shared-summary-guard-gap.md`, and `Documentation/zigux/phase13-notifier-summary-gap.md` aligned around the narrower current-`master` `devres` packet, including the pure `dmam_alloc_coherent()` planner note plus manifest-backed replay and the helper-first scatterlist build shard, now that the docs root no longer treats `Documentation/zigux/phase13-devres-survey.md` and `lib/devres.zig` as repo-reality gaps
 - keep the shipped tests-root alignment companion plus the focused adjacent notifier packet explicit when broader contributor-facing reminder surfaces refresh
 - keep the missing Phase 13 route family and the adjacent notifier follow-through parked as separate same-lane or helper-local work, while keeping the shipped Landlock syscalls governance-plus-slice-plus-starter packet explicit and the still-missing syscall survey-and-replay companions parked as separate repo-reality gaps
 
