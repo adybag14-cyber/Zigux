@@ -12,7 +12,7 @@ Authenticated sample-root readback still directly exposes this bounded non-runti
 
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 
-Fresh shared-packet reread on 2026-05-18 reconfirmed that the broader non-runtime trace-events sample-local companions still need fresh reread proof before they can be treated as returned direct current-`master` evidence:
+Fresh shared-packet reread on 2026-05-19 reconfirmed that the broader non-runtime trace-events sample-local companions still need fresh reread proof before they can be treated as returned direct current-`master` evidence:
 
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `samples/zigux/trace_events_sample.zig`
@@ -55,7 +55,8 @@ Those checks confirmed this current sample behavior:
 ## Review boundary
 
 Current `master` still ships no standalone `samples/zigux/*printf*`, `*vsprintf*`, or broad `*format*` Phase 5 reference sample outside the bounded trace-events companion.
-Current `master` also still ships no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample outside the same bounded trace-events companion and the shared reminder packet.
+Current `master` also still ships no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.
+Keep that no-extra-sample boundary separate from the bounded trace-events formatting companion so this note does not blur helper-family reminders into trace-events proof.
 
 Use this note only to restate the bounded formatting cue that Phase 5 reviewers should preserve inside the roadmap-backed `trace_events` anchor.
 
