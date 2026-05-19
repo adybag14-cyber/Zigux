@@ -37,6 +37,8 @@ CLOSURE_DOC_MARKERS = [
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
+    "zigux/tests/phase10_virtio_mmio_survey.zig",
+    "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
     "fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`",
     "shared reminder-surface drift",
 ]
@@ -636,6 +638,32 @@ def run_self_test() -> int:
             raise SystemExit("phase10-closure-self-test:focused_replay_blank_label_not_detected")
         closure_path.write_text(json.dumps(original), encoding="utf-8")
 
+        closure_doc = root / "Documentation/zigux/phase10-closure-evidence.md"
+        original_closure_doc = closure_doc.read_text(encoding="utf-8")
+        closure_doc.write_text(
+            original_closure_doc.replace(
+                "zigux/tests/phase10_virtio_mmio_survey.zig",
+                "zigux/tests/phase10_virtio_mmio_survey_missing.zig",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if "closure:zigux/tests/phase10_virtio_mmio_survey.zig" not in collect_missing_markers(root):
+            raise SystemExit("phase10-closure-self-test:mmio_survey_gate_marker_not_detected")
+        closure_doc.write_text(original_closure_doc, encoding="utf-8")
+
+        closure_doc.write_text(
+            original_closure_doc.replace(
+                "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md",
+                "Documentation/zigux/phase10-virtio-mmio-config-write-disposition-missing.md",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        if "closure:Documentation/zigux/phase10-virtio-mmio-config-write-disposition-companion.md" not in collect_missing_markers(root):
+            raise SystemExit("phase10-closure-self-test:mmio_companion_marker_not_detected")
+        closure_doc.write_text(original_closure_doc, encoding="utf-8")
+
         makefile = root / "zigux/Makefile"
         makefile.write_text("", encoding="utf-8")
         if "make:PHONY += phase10-validate phase10-test phase10" not in collect_missing_markers(root):
@@ -660,7 +688,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=17")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=19")
     return 0
 
 
