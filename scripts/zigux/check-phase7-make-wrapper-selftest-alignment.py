@@ -10,6 +10,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) >= 3 else Path.cwd()
 
 ACTIVE_CHECKER = Path("scripts/zigux/check-phase7-shared-control-gap.py")
+SEQUENCING_NOTE = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 PARKED_PATHS = (
@@ -26,6 +27,12 @@ REQUIRED_CHECKER_MARKERS = (
     'print("PHASE7_SHARED_CONTROL_GAP_SELF_TEST=pass")',
     'print(f"PHASE7_SHARED_CONTROL_GAP_SELF_TEST_CASE_COUNT={cases_run}")',
     'print("PHASE7_SHARED_CONTROL_GAP=pass")',
+)
+
+REQUIRED_SEQUENCING_MARKERS = (
+    "- shared control-surface packet, lane `P7-Y05`:",
+    "- `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`",
+    "- `scripts/zigux/check-phase7-shared-control-gap.py`",
 )
 
 REQUIRED_WORKFLOW_LINES = (
@@ -51,7 +58,7 @@ FORBIDDEN_MAKEFILE_LINES = (
     "phase7:",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+EXPECTED_SELF_TEST_CASE_COUNT = 18
 
 
 def read_text(path: Path) -> str:
@@ -74,12 +81,17 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         return issues
 
     checker_text = read_text(checker_path)
+    sequencing_text = read_text(root / SEQUENCING_NOTE)
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
 
     for marker in REQUIRED_CHECKER_MARKERS:
         if marker not in checker_text:
             issues.append(("MISSING_CHECKER_MARKERS", marker))
+
+    for marker in REQUIRED_SEQUENCING_MARKERS:
+        if marker not in sequencing_text:
+            issues.append(("MISSING_SEQUENCING_MARKERS", marker))
 
     for rel in PARKED_PATHS:
         if (root / rel).exists():
@@ -137,6 +149,10 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(REQUIRED_CHECKER_MARKERS) + "\n",
     )
     write_text(
+        root / SEQUENCING_NOTE,
+        "\n".join(REQUIRED_SEQUENCING_MARKERS) + "\n",
+    )
+    write_text(
         root / MAKEFILE,
         "\n".join(
             (
@@ -183,6 +199,17 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("MISSING_CHECKER_MARKERS", REQUIRED_CHECKER_MARKERS[4]) in issues
         cases += 1
+
+        for marker in REQUIRED_SEQUENCING_MARKERS:
+            build_self_test_root(root)
+            path = root / SEQUENCING_NOTE
+            path.write_text(
+                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("MISSING_SEQUENCING_MARKERS", marker) in issues
+            cases += 1
 
         for marker in REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
