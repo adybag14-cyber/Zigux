@@ -11,7 +11,7 @@ This note records the current export shim and starter UAPI boundary evidence tha
 - `PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig`
 - `PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig`
 - `PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h`
-- `PHASE3_LINUX_ZIGUX_H_GOVERNANCE_GAP=Documentation/zigux/phase3-linux-zigux-header-governance.md`
+- `PHASE3_LINUX_ZIGUX_H_GOVERNANCE_NOTE=Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - `PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h`
 - `PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json`
 - `PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig`
@@ -33,19 +33,18 @@ On current `master`, this packet stays narrow and explicit:
 - `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header and the starter `dev_t` packet.
 - `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, and device-number bridge contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.
 
-Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper and `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, but repeated current-head reads still return missing for `Documentation/zigux/phase3-linux-zigux-header-governance.md`.
+Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, and `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the returned Linux-header ownership note for this packet.
 
 ## Current Gap
 
-The remaining repo-reality gap for this packet is now the absent linux-header governance companion plus the separate catalog-selftest guard:
+The remaining repo-reality gap for this packet is now the separate catalog-selftest guard:
 
-- `Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - `scripts/zigux/check-phase3-catalog-selftest.py`
 
-This survey should keep the manifest-backed ABI inventory explicit as a shipped same-family companion while continuing to treat the absent linux-header governance note and absent catalog-selftest guard as the active packet-local gaps.
+This survey should keep the manifest-backed ABI inventory and the returned linux-header governance note explicit as shipped same-family companions while continuing to treat the absent catalog-selftest guard as the active packet-local gap.
 
 ## Scope
 
-This survey stays packet-local to the shipped starter export shim, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` replay pair, the bounded catalog helper at `scripts/zigux/phase3_catalog.py`, the shared manifest-backed inventory at `zigux/tests/fixtures/phase3_abi_manifest.json`, and the packet-local validator at `scripts/zigux/validate-phase3-export-uapi-survey.py`.
+This survey stays packet-local to the shipped starter export shim, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` replay pair, the bounded catalog helper at `scripts/zigux/phase3_catalog.py`, the shared manifest-backed inventory at `zigux/tests/fixtures/phase3_abi_manifest.json`, the returned Linux-header governance note at `Documentation/zigux/phase3-linux-zigux-header-governance.md`, and the packet-local validator at `scripts/zigux/validate-phase3-export-uapi-survey.py`.
 
-It does not claim a returned linux-header governance companion, a returned Phase 3 catalog-selftest guard, a larger UAPI family, or broader export/UAPI-only replay routes than the current starter packet actually ships.
+It does not claim a returned Phase 3 catalog-selftest guard, a larger UAPI family, or broader export/UAPI-only replay routes than the current starter packet actually ships.
