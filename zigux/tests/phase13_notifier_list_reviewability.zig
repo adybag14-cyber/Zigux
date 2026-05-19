@@ -16,7 +16,11 @@ test "phase13 notifier manifest records the checker-backed adjacent packet" {
     try requireContains(manifest_text, "\"current_notifier_packet_checker_present\": true");
     try requireContains(manifest_text, "\"current_phase13_notifier_list_manifest_present\": true");
     try requireContains(manifest_text, "\"current_phase13_notifier_list_reviewability_present\": true");
+    try requireContains(manifest_text, "\"current_list_view_present\": true");
+    try requireContains(manifest_text, "\"current_hlist_view_present\": true");
     try requireContains(manifest_text, "\"current_phase13_build_present\": false");
+    try requireContains(manifest_text, "\"id\": \"phase13-notifier-list-view-helper\"");
+    try requireContains(manifest_text, "\"id\": \"phase13-notifier-hlist-view-helper\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-focused-packet-checker\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-reviewability-gate\"");
     try requireContains(manifest_text, "\"id\": \"phase13-notifier-chain-helper-gap\"");
@@ -30,6 +34,8 @@ test "phase13 notifier survey keeps the checker-backed adjacent packet explicit"
     try requireContains(survey, "`scripts/zigux/check-phase13-notifier-packet.py`");
     try requireContains(survey, "`zigux/tests/phase13_notifier_list_manifest.json`");
     try requireContains(survey, "`zigux/tests/phase13_notifier_list_reviewability.zig`");
+    try requireContains(survey, "`zigux/helpers/list_view.zig`");
+    try requireContains(survey, "`zigux/helpers/hlist_view.zig`");
     try requireContains(survey, "`zigux/helpers/notifier_chain_view.zig`");
     try requireContains(survey, "`make -C zigux phase13-validate`");
     try requireContains(survey, "focused checker");
@@ -41,6 +47,8 @@ test "phase13 notifier checker stays explicit in the focused reviewability gate"
 
     try requireContains(checker, "PHASE13_NOTIFIER_PACKET=pass");
     try requireContains(checker, "phase13-notifier-focused-packet-checker");
+    try requireContains(checker, "phase13-notifier-list-view-helper");
+    try requireContains(checker, "phase13-notifier-hlist-view-helper");
     try requireContains(checker, "Documentation/zigux/phase13-notifier-list-survey.md");
     try requireContains(checker, "zigux/tests/phase13_notifier_list_manifest.json");
     try requireContains(checker, "drivers/tty/hvc/hvc_console.h");
