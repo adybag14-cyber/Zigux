@@ -67,6 +67,51 @@ pub fn build(b: *std.Build) void {
         }),
     });
 
+    const runtime_kretprobe_sample_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-sample-tests",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("../../samples/zigux/runtime_kretprobe.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    const runtime_kretprobe_module_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-module-tests",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("runtime_kretprobe_module.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    const runtime_kretprobe_diff_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-diff-tests",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("runtime_kretprobe_diff.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    const runtime_kretprobe_loader_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-loader-tests",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("../../samples/zigux/runtime_kretprobe_loader.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
+    const runtime_kretprobe_survey_tests = b.addTest(.{
+        .name = "phase9-runtime-kretprobe-survey-tests",
+        .root_module = b.createModule(.{
+            .root_source_file = b.path("runtime_kretprobe_survey.zig"),
+            .target = target,
+            .optimize = optimize,
+        }),
+    });
+
     const runtime_loader_selftest_complete_exit_parity_tests = b.addTest(.{
         .name = "phase9-runtime-loader-selftest-complete-exit-parity-tests",
         .root_module = b.createModule(.{
@@ -83,7 +128,13 @@ pub fn build(b: *std.Build) void {
     const run_runtime_bitmap_loader_tests = b.addRunArtifact(runtime_bitmap_loader_tests);
     const run_runtime_bitmap_survey_tests = b.addRunArtifact(runtime_bitmap_survey_tests);
     const run_runtime_bitmap_top_bit_tests = b.addRunArtifact(runtime_bitmap_top_bit_tests);
-    const run_runtime_loader_selftest_complete_exit_parity_tests = b.addRunArtifact(runtime_loader_selftest_complete_exit_parity_tests);
+    const run_runtime_kretprobe_sample_tests = b.addRunArtifact(runtime_kretprobe_sample_tests);
+    const run_runtime_kretprobe_module_tests = b.addRunArtifact(runtime_kretprobe_module_tests);
+    const run_runtime_kretprobe_diff_tests = b.addRunArtifact(runtime_kretprobe_diff_tests);
+    const run_runtime_kretprobe_loader_tests = b.addRunArtifact(runtime_kretprobe_loader_tests);
+    const run_runtime_kretprobe_survey_tests = b.addRunArtifact(runtime_kretprobe_survey_tests);
+    const run_runtime_loader_selftest_complete_exit_parity_tests =
+        b.addRunArtifact(runtime_loader_selftest_complete_exit_parity_tests);
 
     const phase9_runtime_atomic64_diff = b.step(
         "phase9-runtime-atomic64-diff",
@@ -108,10 +159,21 @@ pub fn build(b: *std.Build) void {
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_survey_tests.step);
     phase9_runtime_bitmap.dependOn(&run_runtime_bitmap_top_bit_tests.step);
 
+    const phase9_runtime_kretprobe = b.step(
+        "phase9-runtime-kretprobe-tests",
+        "Run the Phase 9 runtime kretprobe sample, module, diff, loader, and survey tests.",
+    );
+    phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_sample_tests.step);
+    phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_module_tests.step);
+    phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_diff_tests.step);
+    phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_loader_tests.step);
+    phase9_runtime_kretprobe.dependOn(&run_runtime_kretprobe_survey_tests.step);
+
     const phase9_runtime_loader_shared = b.step(
         "phase9-runtime-loader-shared-tests",
         "Run the shared Phase 9 runtime loader handoff parity tests.",
     );
     phase9_runtime_loader_shared.dependOn(&run_runtime_bitmap_loader_tests.step);
+    phase9_runtime_loader_shared.dependOn(&run_runtime_kretprobe_loader_tests.step);
     phase9_runtime_loader_shared.dependOn(&run_runtime_loader_selftest_complete_exit_parity_tests.step);
 }
