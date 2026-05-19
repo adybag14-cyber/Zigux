@@ -15,7 +15,8 @@ This note records the current export shim and starter UAPI boundary evidence tha
 - `PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig`
 - `PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`
-- `PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/phase3_catalog.py`
+- `PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py`
+- `PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py`
 - `PHASE3_EXPORT_UAPI_ACTIVE_GAP=Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - `PHASE3_EXPORT_UAPI_ACTIVE_GAP=zigux/tests/fixtures/phase3_abi_manifest.json`
 
@@ -31,11 +32,13 @@ On current `master`, this packet stays narrow and explicit:
 - `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header and the starter `dev_t` packet.
 - `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader` and `ExportStatus` size, alignment, and field-offset contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.
 
+Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, but that one helper should not be used to imply that the separate catalog-selftest guard or manifest-backed ABI inventory have returned.
+
 ## Current Gap
 
-The remaining repo-reality gaps for this packet are still the shared catalog route, the linux-header governance note, and the shared manifest-backed inventory:
+The remaining repo-reality gaps for this packet are still the separate catalog-selftest guard, the linux-header governance note, and the shared manifest-backed inventory:
 
-- `scripts/zigux/phase3_catalog.py`
+- `scripts/zigux/check-phase3-catalog-selftest.py`
 - `Documentation/zigux/phase3-linux-zigux-header-governance.md`
 - `zigux/tests/fixtures/phase3_abi_manifest.json`
 
@@ -43,6 +46,6 @@ This survey should stay truthful about those missing companions rather than pres
 
 ## Scope
 
-This survey stays packet-local to the shipped starter export shim, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` replay pair, and the packet-local validator at `scripts/zigux/validate-phase3-export-uapi-survey.py`.
+This survey stays packet-local to the shipped starter export shim, the starter `zigux/uapi/version.zig` and `zigux/uapi/dev_t.zig` companions, `include/linux/zigux.h`, the paired `include/zigux/dev_t.h` contract, the focused `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig` replay pair, the bounded catalog helper at `scripts/zigux/phase3_catalog.py`, and the packet-local validator at `scripts/zigux/validate-phase3-export-uapi-survey.py`.
 
-It does not claim a returned Phase 3 catalog, a returned linux-header governance note, or a returned manifest-backed ABI inventory that current `master` still does not materialize.
+It does not claim a returned Phase 3 catalog-selftest guard, a returned linux-header governance note, or a returned manifest-backed ABI inventory that current `master` still does not materialize.
