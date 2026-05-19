@@ -3,9 +3,10 @@
   "lane": "abi-runtime",
   "slug": "phase3-abi-packet",
   "status": "shared_abi_binding_surface_present",
-  "scope": "shared ABI bindings, notifier layouts, export-status layout, and header-compatibility replay",
+  "scope": "shared ABI bindings, notifier layouts, export-status layout, header-compatibility replay, and bounded header-family survey follow-through",
   "packet_files": [
     "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
     "include/linux/zigux.h",
@@ -18,6 +19,7 @@
     "zigux/kernel/export_shim.zig",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
@@ -26,9 +28,11 @@
   "replay_routes": [
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
+    "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig"
   ],
   "repo_reality_gaps": [],
-  "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work"
+  "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, directly coupled header-to-binding checks, and the separate broader header-family binding follow-through before widening into later Phase 3 catalog or export/UAPI survey work"
 }
