@@ -19,6 +19,7 @@ DIRECT_PACKET_PATHS = (
     "samples/zigux/kretprobe_example.zig",
     "samples/zigux/trace_events_string_formatting_sample.zig",
     "scripts/zigux/README.md",
+    "scripts/zigux/check-phase5-review-guide-surface.py",
     "zigux/tests/README.md",
     "zigux/tests/phase5_bytestream_fifo.zig",
     "zigux/tests/phase5_bytestream_fifo_manifest.json",
@@ -120,7 +121,13 @@ def collect_failures(root: Path) -> list[str]:
 
 
 def _sample_guide() -> str:
-    direct = "\n".join(f"* `{rel}`" for rel in DIRECT_PACKET_PATHS if rel.startswith("Documentation/zigux/phase5-") or rel.startswith("samples/zigux/") or rel.startswith("zigux/tests/phase5_"))
+    direct = "\n".join(
+        f"* `{rel}`"
+        for rel in DIRECT_PACKET_PATHS
+        if rel.startswith("Documentation/zigux/phase5-")
+        or rel.startswith("samples/zigux/")
+        or rel.startswith("zigux/tests/phase5_")
+    )
     public_tree = "\n".join(f"* `{rel}`" for rel in PUBLIC_TREE_PACKET_PATHS)
     trace_gaps = "\n".join(f"* `{rel}`" for rel in TRACE_EVENTS_COMPANION_GAP_PATHS)
     no_extra = "\n".join(f"* {marker}" for marker in NO_EXTRA_SAMPLE_MARKERS)
@@ -141,6 +148,7 @@ The same 2026-05-18 repo-first inspection also confirmed a narrower current non-
 * `samples/zigux/README.md`
 * `samples/zigux/trace_events_string_formatting_sample.zig`
 * `scripts/zigux/README.md`
+* `scripts/zigux/check-phase5-review-guide-surface.py`
 * `zigux/tests/README.md`
 
 Keep the missing-companion boundary explicit too:
@@ -156,6 +164,7 @@ For the shared tracing and probe lane, ground reviewer guidance in the restored 
 * `Documentation/zigux/review-checklist.md`
 * `samples/zigux/README.md`
 * `scripts/zigux/README.md`
+* `scripts/zigux/check-phase5-review-guide-surface.py`
 * `zigux/tests/README.md`
 
 The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback still did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited, while public-tree fallback still exposes the bounded packet below:
@@ -190,7 +199,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 6
+    expected_case_count = 7
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -209,6 +218,18 @@ def run_self_test() -> int:
         expected = ["guide:missing_direct_path:`zigux/tests/phase5_bytestream_fifo_manifest.json`"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-direct-marker failure: {failures}")
+        checks_run += 1
+
+        missing_checker_marker_root = root / "missing_checker_marker"
+        _seed(missing_checker_marker_root)
+        _write(
+            missing_checker_marker_root / GUIDE_PATH,
+            _sample_guide().replace("* `scripts/zigux/check-phase5-review-guide-surface.py`\n", "", 2),
+        )
+        failures = collect_failures(missing_checker_marker_root)
+        expected = ["guide:missing_direct_path:`scripts/zigux/check-phase5-review-guide-surface.py`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-checker-marker failure: {failures}")
         checks_run += 1
 
         missing_public_tree_file_root = root / "missing_public_tree_file"
