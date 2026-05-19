@@ -38,6 +38,7 @@ EXACT_CURRENT_CHECKS = (
 BUILD_FILE_PATH = Path(REQUIRED_PROOF_ROUTE["proof_build_file"])
 INVENTORY_PATH = Path("zigux/tests/fixtures/phase11_build_inventory.json")
 HVC_VALIDATION_MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
+WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 REQUIRED_BUILD_TEXT_MARKERS = (
     "phase11_hvc_cleanup_packet_proof.zig",
@@ -94,6 +95,29 @@ REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
     "`zigux/tests/phase11_hvc_cleanup_packet_proof.zig`",
     "`zigux/tests/phase11_hvc_cleanup_packet_build.zig`",
     "current-head HVC continuity packet rather than a whole-Phase-11 replay roster",
+)
+
+REQUIRED_WORKFLOW_PHASE11_STEPS = (
+    (
+        "Self-test current Phase 11 build inventory checker",
+        "python3 scripts/zigux/check-phase11-build-inventory.py --self-test",
+    ),
+    (
+        "Check current Phase 11 build inventory packet",
+        "python3 scripts/zigux/check-phase11-build-inventory.py",
+    ),
+    (
+        "Self-test current Phase 11 HVC cleanup current-head checker",
+        "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
+    ),
+    (
+        "Check current Phase 11 HVC cleanup current-head packet",
+        "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+    ),
+    (
+        "Run current Phase 11 HVC cleanup packet proof",
+        "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+    ),
 )
 
 
@@ -155,6 +179,20 @@ def mapping_from_entries(
             raise CheckError(f"invalid entry in {label}")
         mapping[key] = value
     return mapping
+
+
+def workflow_steps_from_entries(
+    entries: object,
+    label: str,
+) -> list[tuple[str, str]]:
+    steps: list[tuple[str, str]] = []
+    for entry in expect_object_list(label, entries):
+        name = entry.get("name")
+        run = entry.get("run")
+        if not isinstance(name, str) or not isinstance(run, str):
+            raise CheckError(f"invalid entry in {label}")
+        steps.append((name, run))
+    return steps
 
 
 def expect_exact_string(label: str, actual: object, expected: str) -> str:
@@ -219,6 +257,7 @@ def build_route_markers_from_inventory(inventory: dict[str, object]) -> tuple[st
 def run_check(root: Path) -> None:
     inventory = read_json(root / INVENTORY_PATH)
     build_text = read_text(root / BUILD_FILE_PATH)
+    workflow_text = read_text(root / WORKFLOW_PATH)
     for marker in REQUIRED_BUILD_TEXT_MARKERS:
         if marker not in build_text:
             raise CheckError(f"missing marker in {BUILD_FILE_PATH}: {marker}")
@@ -268,6 +307,18 @@ def run_check(root: Path) -> None:
         inventory.get("exact_current_checks"),
         EXACT_CURRENT_CHECKS,
     )
+    workflow_steps = workflow_steps_from_entries(
+        inventory.get("workflow_phase11_steps"),
+        "workflow_phase11_steps",
+    )
+    if workflow_steps != list(REQUIRED_WORKFLOW_PHASE11_STEPS):
+        raise CheckError("workflow_phase11_steps does not match the current-head Phase 11 packet")
+    normalized_workflow_text = normalize_whitespace(workflow_text)
+    for name, run in workflow_steps:
+        if normalize_whitespace(f"- name: {name}") not in normalized_workflow_text:
+            raise CheckError(f"missing workflow step in {WORKFLOW_PATH}: {name}")
+        if normalize_whitespace(f"run: {run}") not in normalized_workflow_text:
+            raise CheckError(f"missing workflow run in {WORKFLOW_PATH}: {run}")
     expect_exact_string_list(
         "dedicated_survey_replays",
         inventory.get("dedicated_survey_replays"),
@@ -322,6 +373,10 @@ def fixture_inventory() -> dict[str, object]:
         ],
         "forbidden_markers": list(FORBIDDEN_BUILD_TEXT_MARKERS),
         "exact_current_checks": list(EXACT_CURRENT_CHECKS),
+        "workflow_phase11_steps": [
+            {"name": name, "run": run}
+            for name, run in REQUIRED_WORKFLOW_PHASE11_STEPS
+        ],
         "dedicated_survey_replays": list(REQUIRED_DEDICATED_SURVEY_REPLAYS),
         "shared_split_replays": [],
         "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
@@ -366,11 +421,30 @@ FIXTURE_HVC_VALIDATION_MATRIX_TEXT = """# Phase 11 HVC Console Validation Matrix
 - current-head HVC continuity packet rather than a whole-Phase-11 replay roster
 """
 
+FIXTURE_WORKFLOW_TEXT = """name: zigux-bootstrap
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Self-test current Phase 11 build inventory checker
+        run: python3 scripts/zigux/check-phase11-build-inventory.py --self-test
+      - name: Check current Phase 11 build inventory packet
+        run: python3 scripts/zigux/check-phase11-build-inventory.py
+      - name: Self-test current Phase 11 HVC cleanup current-head checker
+        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test
+      - name: Check current Phase 11 HVC cleanup current-head packet
+        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py
+      - name: Run current Phase 11 HVC cleanup packet proof
+        run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig
+"""
+
 
 def build_fixture(root: Path) -> None:
     write(root / BUILD_FILE_PATH, FIXTURE_BUILD_TEXT)
     write(root / INVENTORY_PATH, json.dumps(fixture_inventory(), indent=2) + "\n")
     write(root / HVC_VALIDATION_MATRIX_PATH, FIXTURE_HVC_VALIDATION_MATRIX_TEXT)
+    write(root / WORKFLOW_PATH, FIXTURE_WORKFLOW_TEXT)
 
 
 def expect_failure(root: Path, fragment: str) -> None:
@@ -426,6 +500,27 @@ def run_self_test() -> int:
         inventory["exact_current_checks"] = inventory["exact_current_checks"][:-1]
         write(wrong_exact_checks / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_exact_checks, "exact_current_checks does not match")
+        case_count += 1
+
+        wrong_workflow_steps = tmpdir / "wrong_workflow_steps"
+        shutil.copytree(fixture, wrong_workflow_steps, dirs_exist_ok=True)
+        inventory = read_json(wrong_workflow_steps / INVENTORY_PATH)
+        inventory["workflow_phase11_steps"] = inventory["workflow_phase11_steps"][:-1]
+        write(wrong_workflow_steps / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_workflow_steps, "workflow_phase11_steps does not match")
+        case_count += 1
+
+        missing_workflow_step = tmpdir / "missing_workflow_step"
+        shutil.copytree(fixture, missing_workflow_step, dirs_exist_ok=True)
+        write(
+            missing_workflow_step / WORKFLOW_PATH,
+            read_text(missing_workflow_step / WORKFLOW_PATH).replace(
+                "      - name: Run current Phase 11 HVC cleanup packet proof\n        run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig\n",
+                "",
+                1,
+            ),
+        )
+        expect_failure(missing_workflow_step, "Run current Phase 11 HVC cleanup packet proof")
         case_count += 1
 
         wrong_adjunct_replays = tmpdir / "wrong_adjunct_replays"
