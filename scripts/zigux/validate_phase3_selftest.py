@@ -44,6 +44,14 @@ SELFTEST_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/check-phase3-policy-dump.py"),
+        ("--self-test",),
+        (
+            "PHASE3_POLICY_DUMP_SELF_TEST=pass",
+            "PHASE3_POLICY_DUMP_EXPECTED_LINE_COUNT=",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3.py"),
         ("--self-test",),
         (
@@ -253,24 +261,25 @@ def run_self_test() -> int:
             (1, "expected errptr-xarray starter script omission was not reported"),
             (2, "expected xarray-slot script omission was not reported"),
             (3, "expected policy starter script omission was not reported"),
-            (4, "expected shared ABI validator omission was not reported"),
-            (5, "expected shared ABI checker omission was not reported"),
-            (6, "expected shared-routes script omission was not reported"),
-            (7, "expected readme-tooling script omission was not reported"),
-            (8, "expected catalog-selftest script omission was not reported"),
-            (9, "expected runner omission was not reported"),
-            (10, "expected validator-support script omission was not reported"),
-            (11, "expected export-uapi survey script omission was not reported"),
-            (12, "expected policy-unsafe survey script omission was not reported"),
-            (13, "expected low-level-wrapper script omission was not reported"),
-            (14, "expected missing trailing script was not reported"),
+            (4, "expected policy dump script omission was not reported"),
+            (5, "expected shared ABI validator omission was not reported"),
+            (6, "expected shared ABI checker omission was not reported"),
+            (7, "expected shared-routes script omission was not reported"),
+            (8, "expected readme-tooling script omission was not reported"),
+            (9, "expected catalog-selftest script omission was not reported"),
+            (10, "expected runner omission was not reported"),
+            (11, "expected validator-support script omission was not reported"),
+            (12, "expected export-uapi survey script omission was not reported"),
+            (13, "expected policy-unsafe survey script omission was not reported"),
+            (14, "expected low-level-wrapper script omission was not reported"),
+            (15, "expected missing trailing script was not reported"),
         )
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
                 return 1
 
         _populate_repo(root)
-        failing_path = root / SELFTEST_COMMANDS[13][0]
+        failing_path = root / SELFTEST_COMMANDS[14][0]
         _write_synthetic_script(
             failing_path,
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
@@ -283,7 +292,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_pass_path = root / SELFTEST_COMMANDS[9][0]
+        missing_pass_path = root / SELFTEST_COMMANDS[10][0]
         _write_synthetic_script(
             missing_pass_path,
             None,
@@ -295,7 +304,31 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_count_path = root / SELFTEST_COMMANDS[4][0]
+        missing_policy_dump_pass_path = root / SELFTEST_COMMANDS[4][0]
+        _write_synthetic_script(
+            missing_policy_dump_pass_path,
+            None,
+            "PHASE3_POLICY_DUMP_EXPECTED_LINE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing policy-dump pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_policy_dump_count_path = root / SELFTEST_COMMANDS[4][0]
+        _write_synthetic_script(
+            missing_policy_dump_count_path,
+            "PHASE3_POLICY_DUMP_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing policy-dump count marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_count_path = root / SELFTEST_COMMANDS[5][0]
         _write_synthetic_script(
             missing_count_path,
             "PHASE3_VALIDATION_SELF_TEST=pass",
@@ -307,7 +340,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_export_uapi_pass_path = root / SELFTEST_COMMANDS[11][0]
+        missing_export_uapi_pass_path = root / SELFTEST_COMMANDS[12][0]
         _write_synthetic_script(
             missing_export_uapi_pass_path,
             None,
@@ -319,7 +352,7 @@ def run_self_test() -> int:
             return 1
 
         _populate_repo(root)
-        missing_export_uapi_count_path = root / SELFTEST_COMMANDS[11][0]
+        missing_export_uapi_count_path = root / SELFTEST_COMMANDS[12][0]
         _write_synthetic_script(
             missing_export_uapi_count_path,
             "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
@@ -333,7 +366,7 @@ def run_self_test() -> int:
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 6}"
+        f"{len(missing_cases) + 8}"
     )
     return 0
 
