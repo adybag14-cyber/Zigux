@@ -46,25 +46,27 @@ below:
 The returned driver plus the paired module slice and teardown note keep the
 bounded `descriptorRequestSummary()`, `timeoutPropertyCheckpointSummary()`,
 `platformDrvdataCheckpointSummary()`, `watchdogDrvdataCheckpointSummary()`,
-`nowayoutPolicySummary()`, `registrationHandoffSummary()`,
-`registrationPlanSummary()`, `registerDeviceCallSummary()`,
-`registerDeviceFailureSummary()`, `requestStop()`, and
-`summarizeTeardown()` checkpoint names reviewable as driver-backed teardown
+`rebootGlueCheckpointSummary()`, `nowayoutPolicySummary()`,
+`registrationHandoffSummary()`, `registrationPlanSummary()`,
+`registerDeviceCallSummary()`, `registerDeviceFailureSummary()`, `requestStop()`,
+and `summarizeTeardown()` checkpoint names reviewable as driver-backed teardown
 and failure-mode surfaces.
 
 ## Teardown And Failure-Mode Review Surface
 
 - driver anchor: `drivers/watchdog/gpio_wdt.zig` keeps the bounded descriptor,
   timeout-property, platform-drvdata ordering, watchdog-drvdata ordering,
-  nowayout policy, registration, register-device failure, and teardown
-  checkpoint names directly readable without claiming live side effects.
+  reboot-glue handoff, nowayout policy, registration, register-device failure,
+  and teardown checkpoint names directly readable without claiming live side
+  effects.
 - teardown handoff: `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
-  keeps the bounded stop-request split, register-device failure cues, and
-  teardown ownership explicit without claiming remove-hook or reboot-backed
-  shutdown execution.
+  keeps the bounded stop-request split, reboot-glue transition, and
+  register-device failure cues explicit without claiming live remove-hook or
+  reboot-backed shutdown execution.
 - failure-mode packet: `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   keeps the bounded checkpoint names explicit without claiming live GPIO,
-  `watchdog_set_drvdata()` execution, or watchdog-core side effects.
+  `watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution, or
+  watchdog-core side effects.
 - matrix posture: this matrix records only those returned driver and
   documentation surfaces and does not treat absent replay, manifest, survey
   gate, shared-contract, or build-route files as current-head evidence.
@@ -78,6 +80,7 @@ and failure-mode surfaces.
   build-route surfaces.
 - Do not use this note to claim live GPIO descriptor acquisition,
   `platform_set_drvdata()` execution, `watchdog_set_drvdata()` execution,
+  `watchdog_stop_on_reboot()` execution,
   `devm_watchdog_register_device()` execution, platform-driver registration,
   watchdog-core registration, remove hooks, reboot-backed teardown execution, or
   hardware-validated parity.
@@ -88,5 +91,5 @@ and failure-mode surfaces.
 ## Next Blocked Step
 
 The next honest gpio-only follow-up is still one equally small same-lane
-reboot-glue checkpoint or validation-truthfulness repair, rather than new
+remove-hook checkpoint or validation-truthfulness repair, rather than new
 runtime behavior.
