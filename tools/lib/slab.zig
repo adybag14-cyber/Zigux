@@ -91,6 +91,20 @@ test "kmallocArray fail paths keep allocation counters unchanged" {
     try std.testing.expectEqual(@as(isize, 0), kmalloc_nr_allocated);
 }
 
+test "kmallocArray fail paths keep live allocation counters unchanged" {
+    kmalloc_nr_allocated = 0;
+
+    const live = kmallocBytes(4, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(live);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocArray(4, 2, 0) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+
+    try std.testing.expect(kmallocArray(std.math.maxInt(usize), 2, GFP_KERNEL) == null);
+    try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
+}
+
 test "kfree ignores null slices without changing counters" {
     kmalloc_nr_allocated = 0;
     kfree(null);
