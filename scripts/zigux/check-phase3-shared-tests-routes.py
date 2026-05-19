@@ -81,6 +81,7 @@ REQUIRED_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-dev-t-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-abi.py")',
     'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
     'Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py")',
     'Path("scripts/zigux/check-phase3-selftest-surface.py")',
@@ -117,6 +118,10 @@ SELF_TEST_CASES = (
     (BUILD_PATH, "phase3_test_step.dependOn(&phase3_xarray_slot_starter_packet.step);"),
     (BUILD_PATH, "phase3_dump_step.dependOn(&phase3_abi_dump.step);"),
     (BUILD_PATH, "smoke_step.dependOn(phase3_test_step);"),
+    (
+        SELFTEST_DRIVER_PATH,
+        'Path("scripts/zigux/check-phase3-abi.py")',
+    ),
     (
         SELFTEST_DRIVER_PATH,
         'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
