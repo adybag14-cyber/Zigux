@@ -65,8 +65,14 @@ test "phase 8 exec-cmd review witness keeps the surviving shared reminder surfac
     try std.testing.expect(std.mem.indexOf(u8, workflow, "Run Phase 8 tooling tests") != null);
 }
 
-test "phase 8 exec-cmd review witness records current missing packet members" {
+test "phase 8 exec-cmd review witness records current focused replay and missing packet members" {
     try expectExistingPath("zigux/tests/phase8_exec_cmd.zig");
+    try expectExistingPath("zigux/tests/phase8_exec_cmd_only_build.zig");
+
+    const build_file = try readRepoFile("zigux/tests/phase8_exec_cmd_only_build.zig");
+    defer std.testing.allocator.free(build_file);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase8_exec_cmd.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, build_file, "phase 8 exec-cmd review witness") != null);
 
     // Current `master` still carries the shared reminder file, but these older
     // exec-cmd packet members are absent and should not be treated as live proof.
@@ -74,5 +80,4 @@ test "phase 8 exec-cmd review witness records current missing packet members" {
     try expectMissingPath("Documentation/zigux/phase8-exec-cmd-slice.md");
     try expectMissingPath("Documentation/zigux/phase8-tooling-lane-sequencing.md");
     try expectMissingPath("scripts/zigux/check-phase8-exec-cmd-packet.py");
-    try expectMissingPath("zigux/tests/phase8_exec_cmd_only_build.zig");
 }
