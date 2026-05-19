@@ -83,6 +83,22 @@ fn expectRangeBudget(items: []const u32, target: u32, expected: bsearch.IndexRan
     return comparisons;
 }
 
+fn expectRawLowerBoundBudget(items: []const u32, target: u32, expected: usize, compare: bsearch.CRawComparator) !usize {
+    var comparisons: usize = 0;
+    const key = CountedOpaqueKey{ .target = target, .comparisons = &comparisons };
+    const index = bsearch.bsearchLowerBoundIndex(&key, @ptrCast(items.ptr), items.len, @sizeOf(u32), compare);
+    try std.testing.expectEqual(expected, index);
+    return comparisons;
+}
+
+fn expectRawUpperBoundBudget(items: []const u32, target: u32, expected: usize, compare: bsearch.CRawComparator) !usize {
+    var comparisons: usize = 0;
+    const key = CountedOpaqueKey{ .target = target, .comparisons = &comparisons };
+    const index = bsearch.bsearchUpperBoundIndex(&key, @ptrCast(items.ptr), items.len, @sizeOf(u32), compare);
+    try std.testing.expectEqual(expected, index);
+    return comparisons;
+}
+
 fn expectTypedSearchBudget(
     items: []const u32,
     target: u32,
@@ -111,6 +127,32 @@ fn expectTypedRangeBudget(
     const key = CountedTypedKey{ .target = target, .comparisons = &comparisons };
     const range = bsearch.equalRangeIndex(CountedTypedKey, u32, &key, items, compare);
     try std.testing.expectEqual(expected, range);
+    return comparisons;
+}
+
+fn expectTypedLowerBoundBudget(
+    items: []const u32,
+    target: u32,
+    expected: usize,
+    compare: bsearch.CComparator(CountedTypedKey, u32),
+) !usize {
+    var comparisons: usize = 0;
+    const key = CountedTypedKey{ .target = target, .comparisons = &comparisons };
+    const index = bsearch.lowerBoundIndex(CountedTypedKey, u32, &key, items, compare);
+    try std.testing.expectEqual(expected, index);
+    return comparisons;
+}
+
+fn expectTypedUpperBoundBudget(
+    items: []const u32,
+    target: u32,
+    expected: usize,
+    compare: bsearch.CComparator(CountedTypedKey, u32),
+) !usize {
+    var comparisons: usize = 0;
+    const key = CountedTypedKey{ .target = target, .comparisons = &comparisons };
+    const index = bsearch.upperBoundIndex(CountedTypedKey, u32, &key, items, compare);
+    try std.testing.expectEqual(expected, index);
     return comparisons;
 }
 
@@ -220,6 +262,40 @@ test "phase 6 bsearch typed c abi equal-range budgets stay logarithmic for dupli
 
     const descending_miss_budget = try expectTypedRangeBudget(descending_duplicates[0..], 20, .{ .lower = 6, .upper = 6 }, compareCountedTypedDescendingInt);
     try std.testing.expect(descending_miss_budget <= (2 * maxBinarySearchComparisons(descending_duplicates.len)));
+}
+
+test "phase 6 bsearch raw c abi bound budgets stay logarithmic for duplicate spans and insertion points" {
+    const ascending_duplicates = fixtures.representative_duplicate_values;
+    const descending_duplicates = fixtures.representative_descending_duplicate_values;
+
+    const ascending_budget = maxBinarySearchComparisons(ascending_duplicates.len);
+    try std.testing.expect((try expectRawLowerBoundBudget(ascending_duplicates[0..], 21, 4, compareCountedOpaqueInt)) <= ascending_budget);
+    try std.testing.expect((try expectRawUpperBoundBudget(ascending_duplicates[0..], 21, 7, compareCountedOpaqueInt)) <= ascending_budget);
+    try std.testing.expect((try expectRawLowerBoundBudget(ascending_duplicates[0..], 20, 4, compareCountedOpaqueInt)) <= ascending_budget);
+    try std.testing.expect((try expectRawUpperBoundBudget(ascending_duplicates[0..], 20, 4, compareCountedOpaqueInt)) <= ascending_budget);
+
+    const descending_budget = maxBinarySearchComparisons(descending_duplicates.len);
+    try std.testing.expect((try expectRawLowerBoundBudget(descending_duplicates[0..], 21, 3, compareCountedOpaqueDescendingInt)) <= descending_budget);
+    try std.testing.expect((try expectRawUpperBoundBudget(descending_duplicates[0..], 21, 6, compareCountedOpaqueDescendingInt)) <= descending_budget);
+    try std.testing.expect((try expectRawLowerBoundBudget(descending_duplicates[0..], 20, 6, compareCountedOpaqueDescendingInt)) <= descending_budget);
+    try std.testing.expect((try expectRawUpperBoundBudget(descending_duplicates[0..], 20, 6, compareCountedOpaqueDescendingInt)) <= descending_budget);
+}
+
+test "phase 6 bsearch typed c abi bound budgets stay logarithmic for duplicate spans and insertion points" {
+    const ascending_duplicates = fixtures.representative_duplicate_values;
+    const descending_duplicates = fixtures.representative_descending_duplicate_values;
+
+    const ascending_budget = maxBinarySearchComparisons(ascending_duplicates.len);
+    try std.testing.expect((try expectTypedLowerBoundBudget(ascending_duplicates[0..], 21, 4, compareCountedTypedInt)) <= ascending_budget);
+    try std.testing.expect((try expectTypedUpperBoundBudget(ascending_duplicates[0..], 21, 7, compareCountedTypedInt)) <= ascending_budget);
+    try std.testing.expect((try expectTypedLowerBoundBudget(ascending_duplicates[0..], 20, 4, compareCountedTypedInt)) <= ascending_budget);
+    try std.testing.expect((try expectTypedUpperBoundBudget(ascending_duplicates[0..], 20, 4, compareCountedTypedInt)) <= ascending_budget);
+
+    const descending_budget = maxBinarySearchComparisons(descending_duplicates.len);
+    try std.testing.expect((try expectTypedLowerBoundBudget(descending_duplicates[0..], 21, 3, compareCountedTypedDescendingInt)) <= descending_budget);
+    try std.testing.expect((try expectTypedUpperBoundBudget(descending_duplicates[0..], 21, 6, compareCountedTypedDescendingInt)) <= descending_budget);
+    try std.testing.expect((try expectTypedLowerBoundBudget(descending_duplicates[0..], 20, 6, compareCountedTypedDescendingInt)) <= descending_budget);
+    try std.testing.expect((try expectTypedUpperBoundBudget(descending_duplicates[0..], 20, 6, compareCountedTypedDescendingInt)) <= descending_budget);
 }
 
 test "phase 6 bsearch typed c abi runtime-selected comparator pointers keep the budget contract" {
