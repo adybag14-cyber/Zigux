@@ -32,20 +32,19 @@ pub fn isCompatibleSize(value: u32) bool {
 }
 
 pub fn headerIsCanonical(header: BoundaryHeader) bool {
-    return isCanonicalSize(header.size) and isCurrentAbiVersion(header.abi_version);
+    return abi.headerIsCanonical(header);
 }
 
 pub fn headerIsCompatible(header: BoundaryHeader) bool {
-    return isCompatibleSize(header.size) and isCurrentAbiVersion(header.abi_version);
+    return abi.headerIsCompatible(header);
 }
 
 pub fn extendsBoundary(header: BoundaryHeader) bool {
-    return headerIsCompatible(header) and !headerIsCanonical(header);
+    return abi.extendsBoundary(header);
 }
 
 pub fn requestedExtraBytes(header: BoundaryHeader) u32 {
-    if (!extendsBoundary(header)) return 0;
-    return header.size - header_size;
+    return abi.requestedExtraBytes(header);
 }
 
 pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {
@@ -79,23 +78,15 @@ pub fn decodeDeviceNumber(device_number: u32) DevTFields {
 }
 
 pub fn okStatus(facility: Facility) ExportStatus {
-    return .{
-        .code = 0,
-        .facility = @intFromEnum(facility),
-        .flags = 0,
-    };
+    return abi.okStatus(facility);
 }
 
 pub fn errorStatus(code: i32, facility: Facility) ExportStatus {
-    return .{
-        .code = code,
-        .facility = @intFromEnum(facility),
-        .flags = if (code < 0) abi.STATUS_FLAG_ERROR else 0,
-    };
+    return abi.makeStatus(code, facility);
 }
 
 pub fn statusIsOk(status: ExportStatus) bool {
-    return (status.flags & abi.STATUS_FLAG_ERROR) == 0;
+    return abi.statusIsOk(status);
 }
 
 pub fn validateDeviceFields(fields: DevTFields) ExportStatus {
