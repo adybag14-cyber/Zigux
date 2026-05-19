@@ -33,6 +33,7 @@ BINDING_PATHS = (
     Path("zigux/uapi/version.zig"),
     Path("zigux/bindings/dev_t.zig"),
     Path("zigux/bindings/version.zig"),
+    Path("zigux/bindings/header_family.zig"),
     Path("zigux/bindings/abi.zig"),
     Path("zigux/bindings/notifier_abi.zig"),
 )
