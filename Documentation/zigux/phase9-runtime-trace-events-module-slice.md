@@ -46,6 +46,12 @@ Current `master` proves a sample-local cold-stage guard plus init and function-t
 The paired family-local survey packet through `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` now keeps that pilot-module story directly reviewable under `zigux/tests/runtime_*` again without pretending the wider loader-backed family returned.
 That paired survey packet stays adjacent to the shared repo-level rerun guard in `.github/workflows/zigux-bootstrap.yml`, which reruns `zig test samples/zigux/runtime_trace_events.zig`, `zig test samples/zigux/runtime_trace_events_unregistered_gate.zig`, `zig test samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, `zig test samples/zigux/runtime_trace_events_registration_reentry_gate.zig`, and `zig test zigux/tests/runtime_trace_events_survey.zig` without turning the workflow into dedicated `phase9-*` build-route proof.
 
+## Keep earlier-phase references in their own lanes:
+
+- `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 references.
+- `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references.
+- Those earlier-phase anchors stay adjacent context for the narrow trace-events packet rather than shared runtime-pilot evidence.
+
 ## Still Absent
 
 Current `master` still does not expose the broader shared runtime-loader packet:
