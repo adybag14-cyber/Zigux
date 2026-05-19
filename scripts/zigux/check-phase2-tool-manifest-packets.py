@@ -79,8 +79,14 @@ CLOSURE_VALIDATOR_REQUIRED_MARKERS = (
 )
 
 WORKFLOW_REQUIRED_MARKERS = (
-    'run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test',
-    'run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py',
+    "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+)
+
+WORKFLOW_REQUIRED_RUN_SEQUENCE = (
+    "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
 )
 
 MAKEFILE_REQUIRED_MARKERS = (
@@ -220,6 +226,22 @@ def collect_exact_line_issues(text: str, markers: tuple[str, ...], missing_code:
     return issues
 
 
+def collect_run_sequence_issues(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    run_lines = [line.strip() for line in text.splitlines() if line.strip().startswith("run: ")]
+    positions: list[int] = []
+    for marker in markers:
+        matches = [index for index, line in enumerate(run_lines) if line == marker]
+        if len(matches) != 1:
+            return []
+        positions.append(matches[0])
+
+    expected_positions = list(range(positions[0], positions[0] + len(markers)))
+    if positions != expected_positions:
+        joined = " -> ".join(markers)
+        return [(code, joined)]
+    return []
+
+
 def require_string_list(
     issues: list[tuple[str, str]],
     mapping: dict[str, object],
@@ -291,6 +313,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(collect_exact_line_issues(workflow_text, WORKFLOW_REQUIRED_MARKERS, "MISSING_WORKFLOW_MARKER", "DUPLICATE_WORKFLOW_MARKER"))
+    issues.extend(collect_run_sequence_issues(workflow_text, WORKFLOW_REQUIRED_RUN_SEQUENCE, "MISORDERED_WORKFLOW_RUN_SEQUENCE"))
     issues.extend(collect_marker_issues(makefile_text, MAKEFILE_REQUIRED_MARKERS, "MISSING_MAKEFILE_MARKER"))
     issues.extend(collect_manifest_issues(read_manifest(root)))
 
@@ -337,7 +360,7 @@ def build_self_test_root(root: Path) -> None:
         PHASE2_CLOSURE_VALIDATOR,
         "\n".join(CLOSURE_VALIDATOR_REQUIRED_MARKERS) + "\n",
     )
-    write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *WORKFLOW_REQUIRED_MARKERS)) + "\n")
+    write_text(root, WORKFLOW, "\n".join(("name: zigux-bootstrap", *WORKFLOW_REQUIRED_RUN_SEQUENCE)) + "\n")
     write_text(root, MAKEFILE, "\n".join(MAKEFILE_REQUIRED_MARKERS) + "\n")
     write_text(root, MANIFEST, build_manifest())
 
@@ -400,6 +423,39 @@ def run_self_test() -> int:
             write_text(root, WORKFLOW, replace_exact_line(read_text(root, WORKFLOW), workflow_marker))
             assert ("MISSING_WORKFLOW_MARKER", workflow_marker) in collect_issues(root)
             checks += 1
+
+        build_self_test_root(root)
+        swapped = "\n".join(
+            (
+                "name: zigux-bootstrap",
+                WORKFLOW_REQUIRED_RUN_SEQUENCE[0],
+                WORKFLOW_REQUIRED_RUN_SEQUENCE[2],
+                WORKFLOW_REQUIRED_RUN_SEQUENCE[1],
+            )
+        ) + "\n"
+        write_text(root, WORKFLOW, swapped)
+        assert (
+            "MISORDERED_WORKFLOW_RUN_SEQUENCE",
+            " -> ".join(WORKFLOW_REQUIRED_RUN_SEQUENCE),
+        ) in collect_issues(root)
+        checks += 1
+
+        build_self_test_root(root)
+        separated = "\n".join(
+            (
+                "name: zigux-bootstrap",
+                WORKFLOW_REQUIRED_RUN_SEQUENCE[0],
+                "run: python3 scripts/zigux/placeholder.py",
+                WORKFLOW_REQUIRED_RUN_SEQUENCE[1],
+                WORKFLOW_REQUIRED_RUN_SEQUENCE[2],
+            )
+        ) + "\n"
+        write_text(root, WORKFLOW, separated)
+        assert (
+            "MISORDERED_WORKFLOW_RUN_SEQUENCE",
+            " -> ".join(WORKFLOW_REQUIRED_RUN_SEQUENCE),
+        ) in collect_issues(root)
+        checks += 1
 
         build_self_test_root(root)
         write_text(root, MAKEFILE, MAKEFILE_REQUIRED_MARKERS[0] + "\n")
