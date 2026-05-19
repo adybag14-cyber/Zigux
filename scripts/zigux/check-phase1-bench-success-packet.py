@@ -9,16 +9,19 @@ from pathlib import Path
 
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[2]
-BENCH_CHECKER_REL = "scripts/zigux/check-phase1-bench.py"
+BENCH_CHECKER_REL = 'scripts/zigux/check-phase1-bench.py'
 
 REQUIRED_MARKERS = (
-    'print("PHASE1_BENCH_CHECK=pass")',
+    'def emit_success_packet(expectations: dict[str, object]) -> int:',
+    "print('PHASE1_BENCH_CHECK=pass')",
     'print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations[\'checksums\'])}")',
+    'return emit_success_packet(expectations)',
 )
 
 FORBIDDEN_FRAGMENTS = (
-    'print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")',
-    'print(f"PHASE1_BENCH_ZIG={zig}")',
+    "print(f'PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}')",
+    "print(f'PHASE1_BENCH_SOURCE={PHASE1_BENCH}')",
+    "print(f'PHASE1_BENCH_ZIG={zig}')",
 )
 
 
@@ -33,20 +36,20 @@ def checker_path(root: Path) -> Path:
 def collect_issues(root: Path) -> list[str]:
     path = checker_path(root)
     if not path.exists():
-        return [f"missing_file:{BENCH_CHECKER_REL}"]
+        return [f'missing_file:{BENCH_CHECKER_REL}']
 
-    text = path.read_text(encoding="utf-8")
+    text = path.read_text(encoding='utf-8')
     issues: list[str] = []
 
     for marker in REQUIRED_MARKERS:
         count = text.count(marker)
         if count != 1:
-            issues.append(f"marker_count:{marker}:expected=1:actual={count}")
+            issues.append(f'marker_count:{marker}:expected=1:actual={count}')
 
     for fragment in FORBIDDEN_FRAGMENTS:
         count = text.count(fragment)
         if count != 0:
-            issues.append(f"forbidden:{fragment}:actual={count}")
+            issues.append(f'forbidden:{fragment}:actual={count}')
 
     return issues
 
@@ -54,83 +57,83 @@ def collect_issues(root: Path) -> list[str]:
 def write_checker(root: Path, content: str) -> None:
     path = checker_path(root)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+    path.write_text(content, encoding='utf-8')
 
 
 def build_sample_checker() -> str:
-    return "\n".join((*REQUIRED_MARKERS, "")) + "\n"
+    return '\n'.join((*REQUIRED_MARKERS, '')) + '\n'
 
 
 def expected_issue(needle: str | None, operation: str) -> str:
-    if operation == "unlink":
-        return f"missing_file:{BENCH_CHECKER_REL}"
-    if operation == "remove":
+    if operation == 'unlink':
+        return f'missing_file:{BENCH_CHECKER_REL}'
+    if operation == 'remove':
         assert needle is not None
-        return f"marker_count:{needle}:expected=1:actual=0"
-    if operation == "duplicate":
+        return f'marker_count:{needle}:expected=1:actual=0'
+    if operation == 'duplicate':
         assert needle is not None
-        return f"marker_count:{needle}:expected=1:actual=2"
-    assert operation == "append"
+        return f'marker_count:{needle}:expected=1:actual=2'
+    assert operation == 'append'
     assert needle is not None
-    return f"forbidden:{needle}:actual=1"
+    return f'forbidden:{needle}:actual=1'
 
 
 def run_self_test() -> int:
-    with tempfile.TemporaryDirectory(prefix="phase1-bench-success-packet-ok-") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix='phase1-bench-success-packet-ok-') as tmpdir:
         root = Path(tmpdir)
         write_checker(root, build_sample_checker())
         issues = collect_issues(root)
         if issues:
-            print("PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST=fail")
+            print('PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST=fail')
             for issue in issues:
                 print(issue)
             return 1
 
-    cases: list[tuple[str | None, str | None, str]] = [(None, None, "unlink")]
+    cases: list[tuple[str | None, str | None, str]] = [(None, None, 'unlink')]
     for marker in REQUIRED_MARKERS:
-        cases.append((f"remove:{marker}", marker, "remove"))
-        cases.append((f"duplicate:{marker}", marker, "duplicate"))
+        cases.append((f'remove:{marker}', marker, 'remove'))
+        cases.append((f'duplicate:{marker}', marker, 'duplicate'))
     for fragment in FORBIDDEN_FRAGMENTS:
-        cases.append((f"forbidden:{fragment}", fragment, "append"))
+        cases.append((f'forbidden:{fragment}', fragment, 'append'))
 
     for label, needle, operation in cases:
-        with tempfile.TemporaryDirectory(prefix="phase1-bench-success-packet-case-") as tmpdir:
+        with tempfile.TemporaryDirectory(prefix='phase1-bench-success-packet-case-') as tmpdir:
             root = Path(tmpdir)
             write_checker(root, build_sample_checker())
             path = checker_path(root)
 
-            if operation == "unlink":
+            if operation == 'unlink':
                 path.unlink()
-            elif operation == "remove":
+            elif operation == 'remove':
                 assert needle is not None
-                path.write_text(path.read_text(encoding="utf-8").replace(needle + "\n", "", 1), encoding="utf-8")
-            elif operation == "duplicate":
+                path.write_text(path.read_text(encoding='utf-8').replace(needle + '\n', '', 1), encoding='utf-8')
+            elif operation == 'duplicate':
                 assert needle is not None
                 path.write_text(
-                    path.read_text(encoding="utf-8").replace(needle, needle + "\n" + needle, 1),
-                    encoding="utf-8",
+                    path.read_text(encoding='utf-8').replace(needle, needle + '\n' + needle, 1),
+                    encoding='utf-8',
                 )
             else:
                 assert needle is not None
-                path.write_text(path.read_text(encoding="utf-8") + needle + "\n", encoding="utf-8")
+                path.write_text(path.read_text(encoding='utf-8') + needle + '\n', encoding='utf-8')
 
             issues = collect_issues(root)
             if issues != [expected_issue(needle, operation)]:
-                print("PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST=fail")
-                print(f"case={label}")
-                print(f"expected={expected_issue(needle, operation)}")
-                print(f"actual={issues!r}")
+                print('PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST=fail')
+                print(f'case={label}')
+                print(f'expected={expected_issue(needle, operation)}')
+                print(f'actual={issues!r}')
                 return 1
 
-    print("PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST=pass")
-    print(f"PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST_CASE_COUNT={len(cases) + 1}")
+    print('PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST=pass')
+    print(f'PHASE1_BENCH_SUCCESS_PACKET_SELF_TEST_CASE_COUNT={len(cases) + 1}')
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", help="override repository root")
-    parser.add_argument("--self-test", action="store_true", help="run the built-in self-test")
+    parser.add_argument('--root', help='override repository root')
+    parser.add_argument('--self-test', action='store_true', help='run the built-in self-test')
     args = parser.parse_args()
 
     if args.self_test:
@@ -138,15 +141,15 @@ def main() -> int:
 
     issues = collect_issues(repo_root(args.root))
     if issues:
-        print("PHASE1_BENCH_SUCCESS_PACKET=fail")
+        print('PHASE1_BENCH_SUCCESS_PACKET=fail')
         for issue in issues:
             print(issue)
         return 1
 
-    print("PHASE1_BENCH_SUCCESS_PACKET=pass")
-    print(f"PHASE1_BENCH_SUCCESS_PACKET_REQUIRED_MARKER_COUNT={len(REQUIRED_MARKERS)}")
+    print('PHASE1_BENCH_SUCCESS_PACKET=pass')
+    print(f'PHASE1_BENCH_SUCCESS_PACKET_REQUIRED_MARKER_COUNT={len(REQUIRED_MARKERS)}')
     return 0
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     raise SystemExit(main())
