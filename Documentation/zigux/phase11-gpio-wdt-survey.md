@@ -20,6 +20,7 @@ wording drifted ahead of current contents reads.
   - `Documentation/zigux/phase11-gpio-wdt-survey.md`
   - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
   - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
+  - `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
   - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - current authenticated contents readback still does not rematerialize
   `zigux/tests/phase11_gpio_wdt.zig`,
@@ -34,7 +35,7 @@ wording drifted ahead of current contents reads.
   route
 - remaining unported work is still direct focused replay or manifest recovery,
   platform-driver registration reviewability, watchdog-core registration
-  reviewability, remove-hook reviewability, reboot-backed teardown execution,
+  reviewability, live remove-hook execution, reboot-backed teardown execution,
   and hardware-backed validation
 
 ## Current-Head Packet
@@ -46,6 +47,7 @@ driver-plus-docs packet below:
 - `Documentation/zigux/phase11-gpio-wdt-survey.md`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
+- `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
 The returned driver and companion notes keep the bounded
@@ -71,19 +73,19 @@ Keep the lane below live GPIO descriptor execution, `platform_set_drvdata()`
 execution, `watchdog_set_drvdata()` execution,
 `watchdog_stop_on_reboot()` execution,
 `devm_watchdog_register_device()` execution, platform-driver registration,
-watchdog-core registration, remove-hook parity, reboot-backed teardown, and
-hardware-backed validation.
+watchdog-core registration, live remove-hook execution, reboot-backed teardown,
+and hardware-backed validation.
 
 ## What Landed
 
 Current authenticated contents reads keep a narrower gpio watchdog continuity
 packet directly reviewable on `master` through the returned driver plus the
-survey note, module slice, teardown note, and validation matrix.
+survey note, module slice, teardown note, remove-handoff note, and validation
+matrix.
 
-That current packet now also makes the watchdog-drvdata ownership handoff and
-its bounded reboot-glue checkpoint explicit beside the existing platform-drvdata
-and register-device summaries without overstating live registration or shutdown
-behavior.
+That current packet now also keeps the bounded remove-handoff packet explicit
+beside the existing watchdog-drvdata ownership handoff and reboot-glue
+checkpoint without overstating live unregister or shutdown behavior.
 
 ## Bounded Meaning
 
@@ -91,11 +93,11 @@ This note records that the gpio watchdog simple-driver lane still has reviewable
 current-head continuity through the driver-plus-docs packet listed above.
 
 It does not claim live GPIO descriptor acquisition, drvdata execution,
-watchdog-core registration side effects, remove-hook behavior, reboot-backed
-shutdown execution, or hardware-validated teardown parity.
+watchdog-core registration side effects, live remove-hook execution,
+reboot-backed shutdown execution, or hardware-validated teardown parity.
 
 If a future reread rematerializes the deeper gpio replay, manifest, or checker
 anchors, refresh this survey together with the validation matrix and the
 smallest directly coupled gpio reminder surface in one bounded pass. If the
-current smaller packet needs one more driver-local follow-up first, keep it to a
-remove-hook checkpoint or another equally small truthfulness repair.
+current smaller packet needs one more driver-local follow-up first, keep it to
+focused replay recovery or another equally small truthfulness repair.
