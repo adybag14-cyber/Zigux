@@ -285,7 +285,7 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
 
         expected_exit_code = validated_case.get("expected_exit_code", 0)
-        if not isinstance(expected_exit_code, int):
+        if not isinstance(expected_exit_code, int) or isinstance(expected_exit_code, bool):
             raise ValueError(
                 f"{CASES_PATH}:{name}:expected_exit_code_type="
                 f"{type(expected_exit_code).__name__},expected=int"
@@ -454,6 +454,14 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample_comment_only:expected_exit_code_type=str,expected=int",
     )
 
+    bool_expected_exit_cases = copy_valid_cases(valid_cases)
+    find_case(bool_expected_exit_cases, "sample_comment_only")["expected_exit_code"] = True
+    expect_failure(
+        "bool_expected_exit_code_type",
+        lambda: validate_cases(bool_expected_exit_cases),
+        f"{CASES_PATH}:sample_comment_only:expected_exit_code_type=bool,expected=int",
+    )
+
     mismatched_target_cases = copy_valid_cases(valid_cases)
     find_case(mismatched_target_cases, "sample")["target"] = "sample-wrong.o"
     expect_failure(
@@ -531,6 +539,7 @@ def run_self_test() -> int:
             )
         finally:
             FIXTURE_DIR = original_fixture_dir
+
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
@@ -578,7 +587,7 @@ def run_self_test() -> int:
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 19}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 20}")
     return 0
 
 
