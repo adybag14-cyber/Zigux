@@ -31,9 +31,9 @@ This note records the current kernel-facing ownership boundary for `zigux/kernel
 
 ## Current Gap
 
-The honest same-lane task on current `master` is ownership clarity, not broader Phase 3 expansion. `zigux/kernel/export_shim.zig` already carries a real kernel-facing relay surface, but that surface needs its own dedicated note so review stays anchored to the shim itself instead of being inferred indirectly from the wider ABI, export-uapi, or shared reminder packets.
+The honest same-lane gap on current `master` is no longer the absence of a dedicated kernel-facing note. That ownership note already ships here beside `zigux/kernel/export_shim.zig`, and the directly coupled `phase3_export_uapi_layout` replay pair already keeps the shim reviewable on a bounded test route.
 
-That means this kernel-facing packet should stay limited to constructor, predicate, compatibility, version, status, and bounded `dev_t` relay ownership around `zigux/kernel/export_shim.zig` and the directly coupled `phase3_export_uapi_layout` replay pair. The note should not be used to imply that broader export-uapi survey routes, shared ABI validator stacks, or low-level-wrapper packets are complete just because the kernel-facing shim is present.
+The remaining packet-local risk is note drift. If `zigux/kernel/export_shim.zig` adds, removes, or renames constructor, predicate, version, status, or bounded `dev_t` relays, this note should be refreshed in the same bounded change so review stays anchored to the shim itself instead of silently falling back to wider ABI, export-uapi, or shared reminder packets.
 
 ## Scope
 
