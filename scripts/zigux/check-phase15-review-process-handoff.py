@@ -101,10 +101,17 @@ def collect_failures(root: Path) -> list[str]:
             "review checklist is missing the Phase 15 Architecture Council entry-review prompt"
         )
     else:
-        for field in manifest["required_review_fields"]:
-            if field not in checklist_entry_prompt:
+        checklist_expected_markers = (
+            manifest["review_process_note"],
+            manifest["decision_record_template"],
+            "owners of the exact Architecture Council field inventory",
+            "stay-in-C closeout record",
+            "reopen-evidence details",
+        )
+        for marker in checklist_expected_markers:
+            if marker not in checklist_entry_prompt:
                 failures.append(
-                    f"review checklist entry prompt is missing required review field: {field}"
+                    f"review checklist entry prompt is missing required boundary marker: {marker}"
                 )
 
     for field in manifest["stay_in_c_closeout_fields"]:
@@ -392,7 +399,7 @@ def _sample_indefinite_c_policy() -> str:
 def _sample_review_checklist() -> str:
     return """# Zigux Review Checklist
 
-  * if a freeze-map anchor is entering Architecture Council status review, are the exact Linux anchor path, roadmap phase, decision record ID, lane owner, current status bucket, requested decision bucket, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, parity scorecard link or blocker record, indefinite-C policy link or explicit non-applicability note, explicit non-goals, and written rationale explicit?
+  * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details?
 """
 
 
@@ -569,13 +576,17 @@ def run_self_test() -> int:
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(
             root / REVIEW_CHECKLIST_PATH,
-            _sample_review_checklist().replace("required approver set, ", "", 1),
+            _sample_review_checklist().replace(
+                " and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+                "",
+                1,
+            ),
         )
         failures = collect_failures(root)
         if failures != [
-            "review checklist entry prompt is missing required review field: required approver set"
+            "review checklist entry prompt is missing required boundary marker: Documentation/zigux/phase15-architecture-council-decision-record-template.md"
         ]:
-            raise AssertionError(f"unexpected checklist-field failure: {failures}")
+            raise AssertionError(f"unexpected checklist-boundary-marker failure: {failures}")
 
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(
