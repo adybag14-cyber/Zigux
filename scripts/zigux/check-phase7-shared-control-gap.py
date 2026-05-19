@@ -9,6 +9,7 @@ from pathlib import Path
 
 SEQUENCING_NOTE_PATH = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
 STRING_HELPERS_SLICE_PATH = Path("Documentation/zigux/phase7-string-helpers-slice.md")
+BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 
 DIRECT_PACKET = [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
@@ -73,9 +74,19 @@ STRING_HELPERS_SLICE_REQUIRED_SNIPPETS = [
     "unless a fresh same-family reread proves those broader shared-control reminders are directly readable again on current `master`.",
 ]
 
+BUILD_WIRING_REQUIRED_SNIPPETS = [
+    "FORBIDDEN_MAKEFILE_MARKERS = [",
+    '    "phase7-validate",',
+    '    "phase7-test",',
+    '    "phase7:",',
+    '            "Check that the shipped Phase 7 shared control packet stays parked on "',
+    '            "current repo reality until Phase 7 build routes rematerialize."',
+]
+
 SELF_TEST_CASE_COUNT = (
     len(SEQUENCING_REQUIRED_SNIPPETS)
     + len(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
+    + len(BUILD_WIRING_REQUIRED_SNIPPETS)
     + len(PARKED_SHARED_CONTROL_PATHS)
     + len(DIRECT_PACKET[2:])
     + len(READABLE_NON_OWNER_FILES)
@@ -142,6 +153,7 @@ def require_repo_reality(repo_root: Path) -> None:
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SEQUENCING_NOTE_PATH, SEQUENCING_REQUIRED_SNIPPETS)
     require_snippets(repo_root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
+    require_snippets(repo_root / BUILD_WIRING_CHECKER_PATH, BUILD_WIRING_REQUIRED_SNIPPETS)
     require_repo_reality(repo_root)
 
 
@@ -153,7 +165,10 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / SEQUENCING_NOTE_PATH, "\n".join(SEQUENCING_REQUIRED_SNIPPETS) + "\n")
     write(root / STRING_HELPERS_SLICE_PATH, "\n".join(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS) + "\n")
+    write(root / BUILD_WIRING_CHECKER_PATH, "\n".join(BUILD_WIRING_REQUIRED_SNIPPETS) + "\n")
     for rel in DIRECT_PACKET[2:]:
+        if rel == BUILD_WIRING_CHECKER_PATH.as_posix():
+            continue
         write(root / Path(rel), "# direct phase7 shared-control packet file\n")
     write(
         root / Path(".github/workflows/zigux-bootstrap.yml"),
@@ -205,6 +220,7 @@ def run_self_test() -> None:
         for path, snippets in (
             (root / SEQUENCING_NOTE_PATH, SEQUENCING_REQUIRED_SNIPPETS),
             (root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS),
+            (root / BUILD_WIRING_CHECKER_PATH, BUILD_WIRING_REQUIRED_SNIPPETS),
         ):
             for snippet in snippets:
                 expect_failure(root, path, snippet)
@@ -225,7 +241,10 @@ def run_self_test() -> None:
             try:
                 expect_validation_error(root, rel)
             finally:
-                write(direct_path, "# direct phase7 shared-control packet file\n")
+                if rel == BUILD_WIRING_CHECKER_PATH.as_posix():
+                    write(direct_path, "\n".join(BUILD_WIRING_REQUIRED_SNIPPETS) + "\n")
+                else:
+                    write(direct_path, "# direct phase7 shared-control packet file\n")
             cases_run += 1
 
         for rel in READABLE_NON_OWNER_FILES:
