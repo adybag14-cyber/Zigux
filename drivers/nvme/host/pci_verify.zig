@@ -283,6 +283,49 @@ test "nvme pci recovery reservation replay preflight stays non-mutating and cont
     try testing.expectEqual(@as(u16, 4), next.queue_id);
 }
 
+test "nvme pci recovery reservation replay preflight keeps descriptor rebuild debt visible under controller caps" {
+    var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
+    _ = try lab.planAdminQueue(32, 64, false);
+    const reservation = try lab.reserveIoQueues(6, 6);
+    _ = try lab.planPrpMetadataBudget(4096 * 5, 0);
+
+    _ = lab.beginReset();
+    _ = lab.completeReset();
+    _ = try lab.planAdminQueue(32, 64, false);
+
+    const preflight = try lab.planRecoveryReservationReplay(.{
+        .cached_prp_metadata_generation = reservation.reset_generation,
+        .had_prp_metadata_plan = true,
+        .had_admin_queue_plan = true,
+        .cached_queue_reservation_generation = reservation.reset_generation,
+        .had_io_queue_reservation = true,
+        .cached_reserved_io_queues = reservation.reserved_io_queues,
+    }, 3);
+    try testing.expectEqualStrings("drivers/nvme/host/pci.c", preflight.anchor);
+    try testing.expectEqual(nvme_pci.RecoveryState.running, preflight.state);
+    try testing.expectEqual(@as(u32, 1), preflight.reset_generation);
+    try testing.expectEqual(@as(usize, 6), preflight.requested_reserved_io_queues);
+    try testing.expectEqual(@as(usize, 3), preflight.controller_io_queue_limit);
+    try testing.expectEqual(@as(usize, 64), preflight.planner_remaining_io_slots);
+    try testing.expectEqual(@as(usize, 3), preflight.replayable_reserved_io_queues);
+    try testing.expectEqual(@as(u16, 1), preflight.first_queue_id);
+    try testing.expectEqual(@as(u16, 3), preflight.last_queue_id);
+    try testing.expectEqual(@as(usize, 3), preflight.planned_io_queues_after_replay);
+    try testing.expectEqual(@as(u16, 4), preflight.next_io_queue_id_after_replay);
+    try testing.expect(preflight.queue_numbering_restarted);
+    try testing.expect(preflight.controller_limited);
+    try testing.expect(!preflight.planner_limited);
+    try testing.expect(!preflight.queue_planning_blocked);
+    try testing.expect(!preflight.queues_frozen);
+    try testing.expect(preflight.cached_queue_reservation_stale);
+    try testing.expect(preflight.cached_prp_metadata_stale);
+    try testing.expect(preflight.descriptor_rebuild_required);
+    try testing.expect(!preflight.admin_queue_must_be_replanned);
+
+    const recovery = lab.recoverySummary();
+    try testing.expectEqual(@as(usize, 0), recovery.planned_io_queues);
+}
+
 test "nvme pci recovery reservation replay preflight marks stale PRP metadata and planner-limited replay debt" {
     var lab = try nvme_pci.NvmePciQueueLab.init(4096, 8);
     _ = try lab.planAdminQueue(32, 64, false);
