@@ -73,9 +73,13 @@ def load_archive_target_scope(root: Path) -> list[str]:
         raise SystemExit(f"invalid archive_target_scope in required file: {root / POLICY}")
 
     normalized: list[str] = []
+    seen_targets: set[str] = set()
     for value in archive_target_scope:
         if not is_strict_non_empty_string(value):
             raise SystemExit(f"invalid archive_target_scope entry in required file: {root / POLICY}")
+        if value in seen_targets:
+            raise SystemExit(f"duplicate archive_target_scope entry in required file: {root / POLICY}: {value}")
+        seen_targets.add(value)
         normalized.append(value)
     return normalized
 
@@ -364,6 +368,18 @@ def run_self_test() -> int:
             assert "invalid archive_target_scope entry" in str(exc)
         else:
             raise AssertionError("expected whitespace-padded archive_target_scope entry to fail closed")
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_fixture_issues(root)
+        except SystemExit as exc:
+            assert "duplicate archive_target_scope entry" in str(exc)
+        else:
+            raise AssertionError("expected duplicate archive_target_scope entry to fail closed")
         checks_run += 1
 
         build_self_test_root(root)
