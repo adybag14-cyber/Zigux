@@ -114,6 +114,16 @@ REQUIRED_MARKERS = {
     ],
 }
 
+PHASE12_BUILD_EXACT_COUNTS = {
+    "b.createModule(.{": 8,
+    ".addImport(": 4,
+    "b.addTest(.{": 4,
+    "b.addRunArtifact(": 4,
+    "smoke_step.dependOn(": 4,
+    "test_step.dependOn(": 4,
+    "b.step(": 2,
+}
+
 FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: [
         "phase12-validate:",
@@ -130,9 +140,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-EXACT_LINE_MARKER_PATHS = {
-    WORKFLOW_PATH,
-}
+EXACT_LINE_MARKER_PATHS = {WORKFLOW_PATH}
 
 
 def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
@@ -154,11 +162,21 @@ def validate(root: Path) -> list[str]:
         for marker in markers:
             if not has_required_marker(rel_path, text, marker):
                 failures.append(f"missing_marker:{rel_path}:{marker}")
+
+    build_text = (root / PHASE12_BUILD_PATH).read_text(encoding="utf-8")
+    for marker, expected in PHASE12_BUILD_EXACT_COUNTS.items():
+        actual = build_text.count(marker)
+        if actual != expected:
+            failures.append(
+                f"exact_count:{PHASE12_BUILD_PATH}:{marker}:expected={expected}:actual={actual}"
+            )
+
     for rel_path, markers in FORBIDDEN_MARKERS.items():
         text = (root / rel_path).read_text(encoding="utf-8")
         for marker in markers:
             if marker in text:
                 failures.append(f"forbidden_marker:{rel_path}:{marker}")
+
     return failures
 
 
@@ -171,13 +189,135 @@ def marker_fixture(title: str, markers: list[str]) -> str:
     return f"{title}\n\n" + "\n".join(f"- {marker}" for marker in markers) + "\n"
 
 
+def minimal_phase12_build() -> str:
+    return """const std = @import("std");
+
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const virtio_net_queue_resume_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_queue_resume.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_net_queue_resume_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_queue_resume.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_queue_resume_root_module.addImport(
+        "virtio_net_queue_resume",
+        virtio_net_queue_resume_module,
+    );
+
+    const virtio_net_transmit_recycle_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_transmit_recycle.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_net_transmit_recycle_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_transmit_recycle.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_transmit_recycle_root_module.addImport(
+        "virtio_net_transmit_recycle",
+        virtio_net_transmit_recycle_module,
+    );
+
+    const virtio_net_post_reset_replay_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_post_reset_replay.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_net_post_reset_replay_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_post_reset_replay.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_post_reset_replay_root_module.addImport(
+        "virtio_net_post_reset_replay",
+        virtio_net_post_reset_replay_module,
+    );
+
+    const virtio_net_throughput_parity_module = b.createModule(.{
+        .root_source_file = b.path("../../drivers/net/virtio_net_throughput_parity.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const virtio_net_throughput_parity_root_module = b.createModule(.{
+        .root_source_file = b.path("phase12_virtio_net_throughput_parity.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    virtio_net_throughput_parity_root_module.addImport(
+        "virtio_net_throughput_parity",
+        virtio_net_throughput_parity_module,
+    );
+
+    const phase12_virtio_net_queue_resume_tests = b.addTest(.{
+        .name = "phase12-virtio-net-queue-resume-tests",
+        .root_module = virtio_net_queue_resume_root_module,
+    });
+    const run_virtio_net_queue_resume_tests = b.addRunArtifact(
+        phase12_virtio_net_queue_resume_tests,
+    );
+
+    const phase12_virtio_net_transmit_recycle_tests = b.addTest(.{
+        .name = "phase12-virtio-net-transmit-recycle-tests",
+        .root_module = virtio_net_transmit_recycle_root_module,
+    });
+    const run_virtio_net_transmit_recycle_tests = b.addRunArtifact(
+        phase12_virtio_net_transmit_recycle_tests,
+    );
+
+    const phase12_virtio_net_post_reset_replay_tests = b.addTest(.{
+        .name = "phase12-virtio-net-post-reset-replay-tests",
+        .root_module = virtio_net_post_reset_replay_root_module,
+    });
+    const run_virtio_net_post_reset_replay_tests = b.addRunArtifact(
+        phase12_virtio_net_post_reset_replay_tests,
+    );
+
+    const phase12_virtio_net_throughput_parity_tests = b.addTest(.{
+        .name = "phase12-virtio-net-throughput-parity-tests",
+        .root_module = virtio_net_throughput_parity_root_module,
+    });
+    const run_virtio_net_throughput_parity_tests = b.addRunArtifact(
+        phase12_virtio_net_throughput_parity_tests,
+    );
+
+    const smoke_step = b.step(
+        "smoke",
+        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity smoke tests",
+    );
+    smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);
+    smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
+    smoke_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
+    smoke_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
+
+    const test_step = b.step(
+        "test",
+        "Run the Phase 12 virtio_net queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests",
+    );
+    test_step.dependOn(&run_virtio_net_queue_resume_tests.step);
+    test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);
+    test_step.dependOn(&run_virtio_net_post_reset_replay_tests.step);
+    test_step.dependOn(&run_virtio_net_throughput_parity_tests.step);
+}
+"""
+
+
 def fixture_text(rel_path: str) -> str:
     if rel_path in REQUIRED_MARKERS:
         title = {
             VALIDATOR_PATH: "# Phase 12 Support Validator",
             WORKFLOW_PATH: "name: zigux-bootstrap",
         }.get(rel_path, "# Fixture")
-        if rel_path in {VALIDATOR_PATH, MAKEFILE_PATH, WORKFLOW_PATH, PHASE12_BUILD_PATH}:
+        if rel_path == PHASE12_BUILD_PATH:
+            return minimal_phase12_build()
+        if rel_path in {VALIDATOR_PATH, MAKEFILE_PATH, WORKFLOW_PATH}:
             return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
         return marker_fixture(title, REQUIRED_MARKERS[rel_path])
     if rel_path.endswith(".py"):
@@ -207,6 +347,25 @@ def remove_marker(path: Path, marker: str) -> None:
     updated = text.replace(f"- {marker}\n", "", 1)
     if updated == text:
         updated = text.replace(f"{marker}\n", "", 1)
+    if updated == text:
+        updated = text.replace(marker, "", 1)
+    path.write_text(updated, encoding="utf-8")
+
+
+def corrupt_exact_count(path: Path, marker: str) -> None:
+    text = path.read_text(encoding="utf-8")
+    replacement = {
+        "b.createModule(.{": "b.createExecutable(.{",
+        ".addImport(": ".addAnonymousImport(",
+        "b.addTest(.{": "b.addExecutable(.{",
+        "b.addRunArtifact(": "b.addInstallArtifact(",
+        "smoke_step.dependOn(": "smoke_step.addError(",
+        "test_step.dependOn(": "test_step.addError(",
+        "b.step(": "b.option(",
+    }[marker]
+    updated = text.replace(marker, replacement, 1)
+    if updated == text:
+        raise SystemExit(f"exact-count marker not corruptible: {marker}")
     path.write_text(updated, encoding="utf-8")
 
 
@@ -218,8 +377,7 @@ def run_self_test() -> int:
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
-        missing_file_cases = list(REQUIRED_FILES)
-        for rel_path in missing_file_cases:
+        for rel_path in REQUIRED_FILES:
             write_fixture_tree(base)
             (base / rel_path).unlink()
             expect_failure(base, f"missing_file:{rel_path}")
@@ -234,20 +392,29 @@ def run_self_test() -> int:
             remove_marker(base / rel_path, marker)
             expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
-        forbidden_cases = [
-            (rel_path, marker)
-            for rel_path, markers in FORBIDDEN_MARKERS.items()
-            for marker in markers
-        ]
-        for rel_path, marker in forbidden_cases:
-            write_fixture_tree(base)
-            write_text(
-                base / rel_path,
-                (base / rel_path).read_text(encoding="utf-8") + f"{marker}\n",
-            )
-            expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
+        for rel_path, markers in FORBIDDEN_MARKERS.items():
+            for marker in markers:
+                write_fixture_tree(base)
+                write_text(
+                    base / rel_path,
+                    (base / rel_path).read_text(encoding="utf-8") + f"{marker}\n",
+                )
+                expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
 
-        case_count = len(missing_file_cases) + len(marker_cases) + len(forbidden_cases)
+        for marker, expected in PHASE12_BUILD_EXACT_COUNTS.items():
+            write_fixture_tree(base)
+            corrupt_exact_count(base / PHASE12_BUILD_PATH, marker)
+            expect_failure(
+                base,
+                f"exact_count:{PHASE12_BUILD_PATH}:{marker}:expected={expected}:actual={expected - 1}",
+            )
+
+        case_count = (
+            len(REQUIRED_FILES)
+            + len(marker_cases)
+            + sum(len(markers) for markers in FORBIDDEN_MARKERS.values())
+            + len(PHASE12_BUILD_EXACT_COUNTS)
+        )
         print("PHASE12_BUILD_ONLY_SURFACE_SELF_TEST=pass")
         print(f"PHASE12_BUILD_ONLY_SURFACE_SELF_TEST_CASE_COUNT={case_count}")
         return 0
@@ -287,6 +454,7 @@ def main() -> int:
     print("PHASE12_BUILD_ONLY_SURFACE=pass")
     print(f"PHASE12_BUILD_ONLY_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE12_BUILD_ONLY_REQUIRED_MARKER_COUNT={sum(len(m) for m in REQUIRED_MARKERS.values())}")
+    print(f"PHASE12_BUILD_ONLY_EXACT_COUNT_MARKER_COUNT={len(PHASE12_BUILD_EXACT_COUNTS)}")
     print(f"PHASE12_BUILD_ONLY_FORBIDDEN_MARKER_COUNT={sum(len(m) for m in FORBIDDEN_MARKERS.values())}")
     return 0
 
