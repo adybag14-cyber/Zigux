@@ -138,6 +138,16 @@ BOOTSTRAP_GAP_MARKERS = (
     "Treat older validator-first-only Phase 2 names as separate follow-through work instead of subtracting the returned installer or direct cross-route surfaces from the current packet.",
 )
 
+PHASE2_CLOSURE_MARKERS = (
+    "The current closure-side packet keeps the fixdep governance and parity checker pair explicit through `scripts/zigux/check-phase2-fixdep-gate.py`, `scripts/zigux/check-fixdep-diff.py`, `scripts/zigux/fixdep.zig`, `zigux/tests/fixtures/fixdep/cases.json`, and `make -C zigux phase2-fixdep`, so same-lane follow-through should stay tied to the toolchain, cross-route, kconfig, manifest-guard, genksyms, make-wrapper, fixdep, and validator packet that the repo still ships directly.",
+    "- `python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test`",
+    "- `python3 scripts/zigux/check-phase2-fixdep-gate.py`",
+    "- `python3 scripts/zigux/check-fixdep-diff.py --self-test`",
+    "- `python3 scripts/zigux/check-fixdep-diff.py`",
+    "- `make -C zigux phase2-fixdep`",
+    "`PHASE2_SHARED_MAKE_ROUTES=make -C zigux phase2-toolchain,make -C zigux phase2-tools,make -C zigux phase2-kconfig,make -C zigux phase2-cross,make -C zigux phase2-genksyms,make -C zigux phase2-fixdep,make -C zigux phase2-validate,make -C zigux phase2`",
+)
+
 SCRIPTS_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
@@ -266,11 +276,12 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(BOOTSTRAP_PRESENT_MARKERS)
     + len(BOOTSTRAP_GAP_MARKERS)
+    + len(PHASE2_CLOSURE_MARKERS)
     + len(SCRIPTS_MARKERS)
     + len(REVIEW_MARKERS)
     + len(TESTS_MARKERS)
-    + 5
-    + (len(SURFACE_PATHS) - 4)
+    + 6
+    + (len(SURFACE_PATHS) - 5)
     + 4
     + 1
     + 1
@@ -394,6 +405,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     bootstrap_notes_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
+    phase2_closure_text = read_text(resolve_path(root, PHASE2_CLOSURE))
     scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
     review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
     tests_readme_text = read_text(resolve_path(root, TESTS_README))
@@ -404,6 +416,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues.extend(collect_missing_markers(review_checklist_text, REVIEW_MARKERS, "MISSING_REVIEW_MARKERS"))
     issues.extend(collect_missing_markers(tests_readme_text, TESTS_MARKERS, "MISSING_TESTS_MARKERS"))
     issues.extend(collect_missing_markers(workflow_text, WORKFLOW_SETUP_MARKERS, "MISSING_WORKFLOW_SETUP_MARKERS"))
+    issues.extend(collect_missing_markers(phase2_closure_text, PHASE2_CLOSURE_MARKERS, "MISSING_PHASE2_CLOSURE_MARKERS"))
 
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -450,6 +463,7 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(["# scripts", *SCRIPTS_MARKERS]) + "\n")
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(["# review", *REVIEW_MARKERS]) + "\n")
     write_text(resolve_path(root, TESTS_README), "\n".join(["# tests", *TESTS_MARKERS]) + "\n")
+    write_text(resolve_path(root, PHASE2_CLOSURE), "\n".join(["# Phase 2 Closure", *PHASE2_CLOSURE_MARKERS]) + "\n")
     bootstrap_lines = [
         "# Phase 2 Toolchain Bootstrap Notes",
         "",
@@ -467,7 +481,7 @@ def build_self_test_root(root: Path) -> None:
             write_text(resolve_path(root, path), json.dumps({"phase": EXPECTED_POLICY["phase"], "channel": "0.17.0-dev.87+9b177a7d2", "minimum_version": "0.17.0-dev.87+9b177a7d2", "archive_sha256": {"x86_64-linux": "3" * 64}, "upgrade_policy": {"channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_lockstep"], "archive_target_scope": EXPECTED_POLICY["archive_target_scope"], "required_make_routes": EXPECTED_POLICY["required_make_routes"]}}, indent=2) + "\n")
         elif path == TOOL_MANIFEST_PATH:
             write_text(resolve_path(root, path), json.dumps(EXPECTED_TOOL_MANIFEST, indent=2) + "\n")
-        elif path in (BOOTSTRAP_NOTES, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
+        elif path in (BOOTSTRAP_NOTES, PHASE2_CLOSURE, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
             continue
         else:
             write_text(resolve_path(root, path), "present\n")
@@ -565,7 +579,15 @@ def run_self_test() -> int:
             assert ("MISSING_BOOTSTRAP_GAP_MARKERS", marker) in issues
             checks_run += 1
 
-        for primary_path in (WORKFLOW, BOOTSTRAP_NOTES, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
+        for marker in PHASE2_CLOSURE_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, PHASE2_CLOSURE)
+            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_PHASE2_CLOSURE_MARKERS", marker) in issues
+            checks_run += 1
+
+        for primary_path in (WORKFLOW, BOOTSTRAP_NOTES, PHASE2_CLOSURE, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
             build_self_test_root(root)
             resolve_path(root, primary_path).unlink()
             try:
@@ -578,7 +600,7 @@ def run_self_test() -> int:
             checks_run += 1
 
         for rel_path in SURFACE_PATHS:
-            if rel_path in (BOOTSTRAP_NOTES, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
+            if rel_path in (BOOTSTRAP_NOTES, PHASE2_CLOSURE, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
                 continue
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
