@@ -44,6 +44,20 @@ test "phase 7 cmdline companion replays option decoding, ranges, and malformed-i
     try std.testing.expectEqual(@as(i32, 2), wrapped_validate[0]);
 }
 
+test "phase 7 cmdline companion replays validator-only getOption cursor movement" {
+    var comma_rest: []const u8 = "16,tail";
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&comma_rest, null));
+    try std.testing.expectEqualStrings("tail", comma_rest);
+
+    var range_rest: []const u8 = "7-9";
+    try std.testing.expectEqual(@as(u8, 3), cmdline.getOption(&range_rest, null));
+    try std.testing.expectEqualStrings("-9", range_rest);
+
+    var negative_rest: []const u8 = "-5,rest";
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&negative_rest, null));
+    try std.testing.expectEqualStrings("rest", negative_rest);
+}
+
 test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {
     const parsed = cmdline.nextArg("console=ttyS0,115200 root=\"/dev/sda1 quiet\" panic=-1");
     try std.testing.expectEqualStrings("console", parsed.param);
