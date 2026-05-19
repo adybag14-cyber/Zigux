@@ -99,7 +99,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 75
+EXPECTED_SELF_TEST_CASE_COUNT = 76
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -176,6 +176,7 @@ def collect_branch_manifest_path_issues(
     *,
     missing_code: str,
     unexpected_code: str,
+    non_file_code: str = "",
 ) -> list[tuple[str, str]]:
     if not isinstance(values, list):
         return []
@@ -184,10 +185,18 @@ def collect_branch_manifest_path_issues(
     for value in values:
         if not isinstance(value, str):
             continue
-        exists = resolve_path(root, Path(value)).exists()
-        if exists and unexpected_code:
-            issues.append((unexpected_code, value))
-        elif not exists and missing_code:
+        resolved = resolve_path(root, Path(value))
+        if resolved.is_file():
+            if unexpected_code:
+                issues.append((unexpected_code, value))
+            continue
+        if resolved.exists():
+            if non_file_code:
+                issues.append((non_file_code, value))
+            elif unexpected_code:
+                issues.append((unexpected_code, value))
+            continue
+        if missing_code:
             issues.append((missing_code, value))
     return issues
 
@@ -277,6 +286,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             present_files,
             missing_code="PRESENT_FILE_MISSING_ON_BRANCH",
             unexpected_code="",
+            non_file_code="PRESENT_FILE_NOT_FILE_ON_BRANCH",
         )
     )
     issues.extend(
@@ -372,6 +382,8 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 def write_text(root: Path, path: Path, content: str) -> None:
     resolved = resolve_path(root, path)
     resolved.parent.mkdir(parents=True, exist_ok=True)
+    if resolved.is_dir():
+        resolved.rmdir()
     resolved.write_text(content, encoding="utf-8")
 
 
@@ -598,6 +610,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         resolve_path(root, Path(EXPECTED_PRESENT_FILES[-1])).unlink()
         assert ("PRESENT_FILE_MISSING_ON_BRANCH", EXPECTED_PRESENT_FILES[-1]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        present_dir = resolve_path(root, Path(EXPECTED_PRESENT_FILES[-1]))
+        present_dir.unlink()
+        present_dir.mkdir()
+        assert ("PRESENT_FILE_NOT_FILE_ON_BRANCH", EXPECTED_PRESENT_FILES[-1]) in collect_issues(root)
+        present_dir.rmdir()
         checks_run += 1
 
         build_self_test_root(root)
