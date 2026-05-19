@@ -95,6 +95,7 @@ Keep the remaining shared-summary, validator-first, and direct-companion gaps ex
 - `make -C zigux phase13-validate`
 - `make -C zigux phase13`
 - `scripts/zigux/validate-phase13-release.py`
+- `zigux/tests/phase13_libfs_addressability.zig`
 - `zigux/tests/phase13_devres.zig`
 - `zigux/tests/phase13_devres_reviewability.zig`
 - `zigux/tests/phase13_devres_boundary_evidence.zig`
