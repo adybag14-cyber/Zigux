@@ -16,7 +16,7 @@ This survey records the current direct-readback posture for the bounded `kernel/
 
 ## Why this survey exists
 
-The current workqueue bridge packet is intentionally review-only. The manifest already records the landed audit areas and the blocked live-execution boundary, but the packet also needs a survey note that describes the current reread posture in plain language and keeps the shared Phase 14 smoke packet aligned with the bridge-local handoff.
+The current workqueue bridge packet is intentionally review-only. The manifest already records the landed audit areas and the blocked live-execution boundary, but the packet also needs a survey note that describes the current reread posture in plain language and keeps the bridge-local handoff aligned with the current blocked-maintenance packet.
 
 This survey is a truthfulness surface. It does not reopen the workqueue anchor, claim new runtime ownership, or turn the study packet into a parity statement.
 
@@ -86,7 +86,7 @@ The workqueue-local packet should stay aligned with the shared Phase 14 smoke pa
   * the shared Phase 14 smoke packet should continue naming the workqueue manifest, `zigux/tests/phase14_workqueue_reviewability.zig`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, and the readable current `zigux/Makefile` posture
   * the bridge-local trusted rerun stays limited to the direct Zig test, while broader `phase14_build.zig` and `phase14-*` wrapper commands remain shared packet-local vocabulary until a future reread proves the build layer is directly readable again
   * any future same-lane reminder repair should keep the workqueue packet explicit without presenting a returned `phase14-*` wrapper route as current proof unless a fresh reread shows it
-  * the next broader same-lane step is still packet-local reread and reminder alignment, not live execution work
+  * the next same-lane step stays inside the bridge, dedicated tests, manifest, slice note, and this survey first; only if those lane-local surfaces cannot be made truthful on their own should a future run widen into the shared Phase 14 smoke packet
 
 ## Non-goals
 
@@ -100,4 +100,4 @@ This survey does not claim:
 
 ## Next bounded step
 
-Keep the workqueue anchor in blocked maintenance. If the bridge-local packet drifts again, reread the bridge, dedicated tests, manifest, this survey, the slice note, and the shared Phase 14 smoke packet together before deciding whether the next same-lane follow-up is another truthfulness repair or a separate shared-packet restore.
+Keep the workqueue anchor in blocked maintenance. If the bridge-local packet drifts again, reread the bridge, dedicated tests, manifest, this survey, and the slice note together first. Only widen into the shared Phase 14 smoke packet if those lane-local surfaces cannot be made truthful on their own.
