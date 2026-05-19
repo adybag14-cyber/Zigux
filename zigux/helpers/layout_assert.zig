@@ -108,6 +108,18 @@ pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryL
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummary, "skipped", 8);
 }
 
+pub fn assertPublishedAbiLayouts() LayoutError!void {
+    try assertBoundaryHeaderLayout();
+    try assertExportStatusLayout();
+    try assertInteropPolicyLayout();
+    try assertNotifierBlockLayout();
+    try assertNotifierChainPriorityIncreaseLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
+    try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetSummaryLayout();
+}
+
 pub fn assertInteropPolicyModeValues() void {
     std.debug.assert(abi.PANIC_ABORT == @intFromEnum(abi.PanicMode.abort));
     std.debug.assert(abi.PANIC_BUG == @intFromEnum(abi.PanicMode.bug));
@@ -163,4 +175,8 @@ test "layout assert reports mismatches without widening the call site" {
     try std.testing.expectError(error.SizeMismatch, expectSize(ExportStatus, 12));
     try std.testing.expectError(error.AlignMismatch, expectAlign(ExportStatus, 2));
     try std.testing.expectError(error.OffsetMismatch, expectOffset(ExportStatus, "flags", 4));
+}
+
+test "layout assert aggregates the published chrdev ABI layouts" {
+    try assertPublishedAbiLayouts();
 }
