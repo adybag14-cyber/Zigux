@@ -367,6 +367,13 @@ test "hexToBin accepts digits and both alphabetic cases" {
     try std.testing.expectEqual(@as(i32, -1), hexToBin('/'));
 }
 
+test "hex_to_bin alias stays aligned" {
+    for (0..256) |value| {
+        const ch: u8 = @intCast(value);
+        try std.testing.expectEqual(hexToBin(ch), hex_to_bin(ch));
+    }
+}
+
 test "hex2bin and bin2hex round-trip payloads" {
     const source = "be32db7b0a1893b2";
     var decoded: [8]u8 = undefined;
