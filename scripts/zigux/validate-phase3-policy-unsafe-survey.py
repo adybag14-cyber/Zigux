@@ -51,7 +51,7 @@ REQUIRED_MARKERS = {
     ),
     LOW_LEVEL_WRAPPER_PATH: (
         "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and shared tests-root wiring while the separate catalog-selftest guard stays outside this wrapper packet",
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the adjacent catalog-selftest guard stays outside this wrapper packet",
         "`zigux/helpers/mmio.zig`",
         "`zigux/helpers/unsafe_policy.zig`",
         "`zigux/unsafe/narrow.zig`",
@@ -153,6 +153,10 @@ SELF_TEST_CASES = (
         "`Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, and `zigux/tests/phase3_low_level_wrappers_build.zig` keep the directly coupled MMIO-plus-narrow wrapper packet explicit without implying broader Phase 3 completion.",
     ),
     (POLICY_SLICE_PATH, "zig build phase3-policy-dump --build-file zigux/tests/phase3_policy_dump_build.zig"),
+    (
+        LOW_LEVEL_WRAPPER_PATH,
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the adjacent catalog-selftest guard stays outside this wrapper packet",
+    ),
     (LOW_LEVEL_WRAPPER_PATH, "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`"),
     (LAYOUT_ASSERT_PATH, "pub fn assertNotifierBlockLayout() LayoutError!void {"),
     (LAYOUT_ASSERT_PATH, "pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {"),
