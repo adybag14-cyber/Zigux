@@ -125,6 +125,10 @@ SAMPLES_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events
 SAMPLES_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 SAMPLES_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 SAMPLES_README_BACKLOG_MARKER = "does not currently expose the broader shared runtime-loader packet"
+SAMPLES_README_SURVEY_NOTE_MARKER = "`Documentation/zigux/phase9-runtime-trace-events-survey.md`"
+SAMPLES_README_MODULE_SLICE_MARKER = "`Documentation/zigux/phase9-runtime-trace-events-module-slice.md`"
+SAMPLES_README_MANIFEST_MARKER = "`zigux/tests/runtime_trace_events_manifest.json`"
+SAMPLES_README_SURVEY_GATE_MARKER = "`zigux/tests/runtime_trace_events_survey.zig`"
 SAMPLES_README_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
 SAMPLES_README_REENTRY_GATE_MARKER = "`samples/zigux/runtime_trace_events_registration_reentry_gate.zig`"
 SAMPLES_README_REENTRY_COMPANION_MARKER = "balanced function-thread registration reusable before and after selftest"
@@ -132,6 +136,8 @@ SAMPLES_README_REENTRY_DETAIL_MARKER = "balanced registration re-entry companion
 SAMPLES_README_EXIT_ROLLBACK_GUARD_DETAIL_MARKER = "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig` keeps failed-exit rollback explicit after reusable selftest replay"
 SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejections"
 SAMPLES_README_SUMMARY_STABILITY_MARKER = "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
+SAMPLES_README_BITMAP_RUNTIME_RETURN_MARKER = "`Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/runtime_bitmap_manifest.json`, and `zigux/tests/runtime_bitmap_survey.zig`"
+SAMPLES_README_BITMAP_RUNTIME_BOUNDARY_MARKER = "Keep that returned bitmap packet framed as a separate Phase 9 runtime family rather than as directly readable neighboring proof that the broader shared runtime-loader packet returned or as evidence that a fifth approved Phase 5 sample family landed here."
 
 TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 UNREGISTERED_GATE_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
@@ -282,6 +288,10 @@ SAMPLES_README_REQUIRED_MARKERS = [
     SAMPLES_README_SELFTEST_HOOK_MARKER,
     SAMPLES_README_LIFECYCLE_MARKER,
     SAMPLES_README_BACKLOG_MARKER,
+    SAMPLES_README_SURVEY_NOTE_MARKER,
+    SAMPLES_README_MODULE_SLICE_MARKER,
+    SAMPLES_README_MANIFEST_MARKER,
+    SAMPLES_README_SURVEY_GATE_MARKER,
     SAMPLES_README_UNREGISTERED_GATE_MARKER,
     SAMPLES_README_EXIT_ROLLBACK_GUARD_DETAIL_MARKER,
     SAMPLES_README_POST_EXIT_REJECTION_MARKER,
@@ -289,6 +299,8 @@ SAMPLES_README_REQUIRED_MARKERS = [
     SAMPLES_README_REENTRY_GATE_MARKER,
     SAMPLES_README_REENTRY_COMPANION_MARKER,
     SAMPLES_README_REENTRY_DETAIL_MARKER,
+    SAMPLES_README_BITMAP_RUNTIME_RETURN_MARKER,
+    SAMPLES_README_BITMAP_RUNTIME_BOUNDARY_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
