@@ -25,6 +25,13 @@ pub fn summarizePrepareKick(
     return ring.prepareKick(queue_index);
 }
 
+pub fn summarizeNotificationState(
+    ring: *const virtio_ring.VirtioRingLab,
+    queue_index: u16,
+) !QueueNotificationSummary {
+    return ring.notificationSummary(queue_index);
+}
+
 pub fn summarizeNotificationData(
     ring: *const virtio_ring.VirtioRingLab,
     queue_index: u16,
@@ -148,6 +155,49 @@ test "phase10 virtio ring verify keeps prepare-kick wrapper idempotent and queue
     try std.testing.expectEqual(@as(u16, 1), summary.num_added);
     try std.testing.expectEqual(@as(usize, 2), summary.notification_count);
     try std.testing.expect(summary.needs_kick);
+}
+
+test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(3, 8, .packed_ring, true, true);
+
+    var summary = try summarizeNotificationState(&ring, 3);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", summary.anchor);
+    try std.testing.expectEqual(@as(u16, 3), summary.queue_index);
+    try std.testing.expectEqual(@as(u16, 0), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 0), summary.notification_count);
+    try std.testing.expect(!summary.needs_kick);
+
+    try ring.publishDescriptorChain(3);
+    try ring.publishDescriptorChain(3);
+    summary = try summarizeNotificationState(&ring, 3);
+    try std.testing.expectEqual(@as(u16, 2), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 0), summary.notification_count);
+    try std.testing.expect(summary.needs_kick);
+
+    _ = try summarizePrepareKick(&ring, 3);
+    summary = try summarizeNotificationState(&ring, 3);
+    try std.testing.expectEqual(@as(u16, 2), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 2), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
+    try std.testing.expect(!summary.needs_kick);
+
+    try ring.recordUsedChains(3, 1);
+    summary = try summarizeNotificationState(&ring, 3);
+    try std.testing.expectEqual(@as(u16, 2), summary.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 1), summary.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 1), summary.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), summary.num_added);
+    try std.testing.expectEqual(@as(usize, 1), summary.notification_count);
+    try std.testing.expect(!summary.needs_kick);
 }
 
 test "phase10 virtio ring verify keeps notification-data next-avail state reviewable across split packed and reset replay" {
