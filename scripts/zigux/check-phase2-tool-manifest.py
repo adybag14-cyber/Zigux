@@ -167,8 +167,10 @@ def run_self_test() -> int:
     expected_case_count = (
         1
         + len(REQUIRED_TOP_LEVEL)
+        + 1
         + len(REQUIRED_PRESENT_SURFACES)
         + sum(len(entries) for entries in REQUIRED_PRESENT_SURFACES.values())
+        + 1
         + 1
         + len(REQUIRED_NOTE_MARKERS)
         + 1
@@ -188,6 +190,12 @@ def run_self_test() -> int:
             assert ("TOP_LEVEL_MISMATCH", key) in collect_issues(root)
             checks_run += 1
 
+        manifest = build_self_test_manifest()
+        manifest["present_surfaces"] = []
+        write_manifest(manifest_path, manifest)
+        assert ("MISSING_PRESENT_SURFACES", "present_surfaces") in collect_issues(root)
+        checks_run += 1
+
         for category, entries in REQUIRED_PRESENT_SURFACES.items():
             manifest = build_self_test_manifest()
             del manifest["present_surfaces"][category]
@@ -205,6 +213,12 @@ def run_self_test() -> int:
         manifest["repo_reality_gaps"] = ["unexpected-gap"]
         write_manifest(manifest_path, manifest)
         assert ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps") in collect_issues(root)
+        checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["notes"] = "broken"
+        write_manifest(manifest_path, manifest)
+        assert ("MISSING_NOTES", "notes") in collect_issues(root)
         checks_run += 1
 
         for marker in REQUIRED_NOTE_MARKERS:
