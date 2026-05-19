@@ -25,6 +25,7 @@ MATERIALIZED_FOCUSED_COMPANIONS = (
     "zigux/tests/phase15_architecture_council_review_process_build.zig",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "scripts/zigux/check-phase15-review-process-handoff.py",
     "scripts/zigux/check-phase15-tests-readme-alignment.py",
     "scripts/zigux/check-phase15-handoff-note-alignment.py",
