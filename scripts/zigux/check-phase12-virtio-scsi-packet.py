@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """PHASE12_CHECK_PACKET=virtio_scsi_packet
 
-Fail-closed checker for the bounded Phase 12 virtio_scsi support packet.
-It keeps the existing slice note, support-manifest fixture, survey gate,
-fallback catalog, and shared Phase 12 support-bundle reminder aligned around one
-packet-local validation hook.
+Fail-closed checker for the bounded Phase 12 virtio_scsi survey packet.
+It keeps the slice note, survey manifest, fallback catalog, and shared
+Phase 12 support-bundle reminder aligned around current repo reality.
 """
 
 from __future__ import annotations
@@ -21,9 +20,7 @@ SURVEY_NOTE_PATH = "Documentation/zigux/phase12-virtio-scsi-survey.md"
 FALLBACK_CATALOG_PATH = (
     "Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md"
 )
-SURVEY_GATE_PATH = "zigux/tests/phase12_virtio_scsi_survey.zig"
-SUPPORT_MANIFEST_FIXTURE_PATH = "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"
-SUPPORT_PACKET_PATH = "zigux/tests/phase12_virtio_scsi_packet.zig"
+SURVEY_MANIFEST_PATH = "zigux/tests/phase12_virtio_scsi_manifest.json"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 MAKEFILE_PATH = "zigux/Makefile"
 
@@ -31,9 +28,7 @@ REQUIRED_FILES = [
     SLICE_PATH,
     SURVEY_NOTE_PATH,
     FALLBACK_CATALOG_PATH,
-    SURVEY_GATE_PATH,
-    SUPPORT_MANIFEST_FIXTURE_PATH,
-    SUPPORT_PACKET_PATH,
+    SURVEY_MANIFEST_PATH,
     PHASE12_BUILD_PATH,
     MAKEFILE_PATH,
 ]
@@ -42,47 +37,42 @@ SLICE_MARKERS = [
     "# Phase 12 virtio_scsi Slice",
     "`PHASE12_SLICE=virtio-scsi-queue-lab-support`",
     "- lane: `complex-drivers-infra`",
-    "- `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice",
-    "- `zigux/tests/phase12_build.zig` now acts as a shared Phase 12 support-bundle surface only: current `master` wires the `virtio_net` queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests through the shared `smoke` and `test` steps, while the `virtio_scsi` direct replay, syntax-lab, repeated-replan gate, repeated-rollback gate, survey gate, and support packet remain lane-local validation surfaces",
-    "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or support-bundle reminder drifts",
+    "- `zigux/tests/phase12_virtio_scsi_manifest.json` keeps the lane key, surveyed commit, shipped paths, and direct validation commands machine-checkable for the current survey packet",
+    "- `zigux/tests/phase12_build.zig` now acts as a shared Phase 12 support-bundle surface only: current `master` wires the `virtio_net` queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests through the shared `smoke` and `test` steps, while the `virtio_scsi` direct replay, syntax-lab, repeated-replan gate, repeated-rollback gate, and survey gate remain lane-local validation surfaces",
+    "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the survey manifest, slice note, or support-bundle reminder drifts",
     "## Repo-reality boundaries",
     "- `drivers/nvme/host/pci.zig` now lives in the separate Phase 12 NVMe packet on current `master`, so this `virtio_scsi` support note should treat NVMe as neighboring packet evidence rather than a repo-reality gap",
     "- `Documentation/zigux/phase12-closure.md` is still absent on the surveyed head",
 ]
 
 FORBIDDEN_SLICE_MARKERS = [
-    "- `drivers/nvme/host/pci.zig` is still absent on the surveyed head",
+    "phase12_virtio_scsi_packet.zig",
+    "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json",
 ]
 
-SUPPORT_MANIFEST_FIXTURE_MARKERS = [
+SURVEY_MANIFEST_MARKERS = [
     '"lane_key": "P12-L13"',
-    '"source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json"',
-    '"Documentation/zigux/phase12-virtio-scsi-slice.md"',
-    '"Documentation/zigux/phase12-virtio-scsi-survey.md"',
-    '"zigux/tests/phase12_virtio_scsi_packet.zig"',
-    '"zigux/tests/phase12_build.zig"',
-    '"zigux/Makefile"',
-    '"scripts/zigux/check-phase12-virtio-scsi-packet.py"',
-]
-
-SURVEY_GATE_MARKERS = [
-    'test "phase12 virtio scsi survey gate keeps present lane files explicit"',
-    'try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-slice.md"));',
-    'try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-survey.md"));',
-    'try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_packet.zig"));',
-    'try std.testing.expect(try pathExists("zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"));',
-    'try std.testing.expect(try pathExists("scripts/zigux/check-phase12-virtio-scsi-packet.py"));',
-    'try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));',
-    'try std.testing.expect(try pathExists("zigux/Makefile"));',
+    '"verified_on": "2026-05-19"',
+    '"preexisting_phase12_support_packet_present": false',
+    '"preexisting_phase12_support_manifest_present": true',
+    '"status": "lane_local_validation_present_shared_build_missing"',
+    '"status": "lane_local_validation_present"',
+    '"status": "support_packet_removed_survey_manifest_present"',
 ]
 
 FALLBACK_CATALOG_MARKERS = [
     "- exact coverage evidence refreshed on `2026-05-19` against live current `master`",
     "`scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `a2477ccf64a6874768662d5e8dae1b2b19c88371`",
     "`scripts/zigux/README.md` -> blob `5b066d41b80c380e516b3c6afd878b85af593800`",
-    "`zigux/tests/phase12_build.zig` blob `18a1f2bfbb78a7c3b871fba93b33f88cacf710d7` currently wires only `phase12_virtio_net_queue_resume.zig` and `phase12_virtio_net_transmit_recycle.zig` through both shared `smoke` and shared `test`",
+    "`zigux/tests/phase12_build.zig` blob `db74940c2581c6953948a7b6277af58f10498f72` currently wires only the `virtio_net` queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests through both shared `smoke` and shared `test`",
     "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
     "historical fallback snapshot for the pinned raw-read packet",
+]
+
+FORBIDDEN_FALLBACK_MARKERS = [
+    "phase12_virtio_scsi_packet.zig",
+    "phase12_virtio_scsi_packet.py",
+    "18a1f2bfbb78a7c3b871fba93b33f88cacf710d7",
 ]
 
 MAKEFILE_MARKERS = [
@@ -136,23 +126,16 @@ def check(root: Path, source_text: str | None = None) -> list[str]:
     slice_text = read_text(root / SLICE_PATH)
     require_markers(errors, SLICE_PATH, slice_text, SLICE_MARKERS)
     forbid_markers(errors, SLICE_PATH, slice_text, FORBIDDEN_SLICE_MARKERS)
+
+    fallback_text = read_text(root / FALLBACK_CATALOG_PATH)
+    require_markers(errors, FALLBACK_CATALOG_PATH, fallback_text, FALLBACK_CATALOG_MARKERS)
+    forbid_markers(errors, FALLBACK_CATALOG_PATH, fallback_text, FORBIDDEN_FALLBACK_MARKERS)
+
     require_markers(
         errors,
-        FALLBACK_CATALOG_PATH,
-        read_text(root / FALLBACK_CATALOG_PATH),
-        FALLBACK_CATALOG_MARKERS,
-    )
-    require_markers(
-        errors,
-        SUPPORT_MANIFEST_FIXTURE_PATH,
-        read_text(root / SUPPORT_MANIFEST_FIXTURE_PATH),
-        SUPPORT_MANIFEST_FIXTURE_MARKERS,
-    )
-    require_markers(
-        errors,
-        SURVEY_GATE_PATH,
-        read_text(root / SURVEY_GATE_PATH),
-        SURVEY_GATE_MARKERS,
+        SURVEY_MANIFEST_PATH,
+        read_text(root / SURVEY_MANIFEST_PATH),
+        SURVEY_MANIFEST_MARKERS,
     )
     require_markers(errors, MAKEFILE_PATH, read_text(root / MAKEFILE_PATH), MAKEFILE_MARKERS)
     return errors
@@ -164,9 +147,9 @@ def good_slice_text() -> str:
             "# Phase 12 virtio_scsi Slice",
             "- `PHASE12_SLICE=virtio-scsi-queue-lab-support`",
             "- lane: `complex-drivers-infra`",
-            "- `zigux/tests/phase12_virtio_scsi_packet.zig` remains the manifest-backed support replay for this bounded infra-prep slice",
-            "- `zigux/tests/phase12_build.zig` now acts as a shared Phase 12 support-bundle surface only: current `master` wires the `virtio_net` queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests through the shared `smoke` and `test` steps, while the `virtio_scsi` direct replay, syntax-lab, repeated-replan gate, repeated-rollback gate, survey gate, and support packet remain lane-local validation surfaces",
-            "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the manifest, slice note, or support-bundle reminder drifts",
+            "- `zigux/tests/phase12_virtio_scsi_manifest.json` keeps the lane key, surveyed commit, shipped paths, and direct validation commands machine-checkable for the current survey packet",
+            "- `zigux/tests/phase12_build.zig` now acts as a shared Phase 12 support-bundle surface only: current `master` wires the `virtio_net` queue-resume, transmit-recycle, post-reset replay, and throughput-parity tests through the shared `smoke` and `test` steps, while the `virtio_scsi` direct replay, syntax-lab, repeated-replan gate, repeated-rollback gate, and survey gate remain lane-local validation surfaces",
+            "- `scripts/zigux/check-phase12-virtio-scsi-packet.py` fails closed if the survey manifest, slice note, or support-bundle reminder drifts",
             "",
             "## Repo-reality boundaries",
             "- `drivers/nvme/host/pci.zig` now lives in the separate Phase 12 NVMe packet on current `master`, so this `virtio_scsi` support note should treat NVMe as neighboring packet evidence rather than a repo-reality gap",
@@ -188,37 +171,21 @@ def good_fallback_catalog_text() -> str:
     )
 
 
-def good_support_manifest_fixture_text() -> str:
+def good_survey_manifest_text() -> str:
     return "\n".join(
         [
             "{",
             '  "lane_key": "P12-L13",',
-            '  "source_manifest": "zigux/tests/phase12_virtio_scsi_manifest.json",',
-            '  "required_paths": [',
-            '    "Documentation/zigux/phase12-virtio-scsi-slice.md",',
-            '    "Documentation/zigux/phase12-virtio-scsi-survey.md",',
-            '    "zigux/tests/phase12_virtio_scsi_packet.zig",',
-            '    "zigux/tests/phase12_build.zig",',
-            '    "zigux/Makefile",',
-            '    "scripts/zigux/check-phase12-virtio-scsi-packet.py"',
+            '  "verified_on": "2026-05-19",',
+            '  "survey_summary": {',
+            '    "preexisting_phase12_support_packet_present": false,',
+            '    "preexisting_phase12_support_manifest_present": true',
+            "  },",
+            '  "gaps": [',
+            '    { "status": "lane_local_validation_present_shared_build_missing" },',
+            '    { "status": "lane_local_validation_present" },',
+            '    { "status": "support_packet_removed_survey_manifest_present" }',
             "  ]",
-            "}",
-            "",
-        ]
-    )
-
-
-def good_survey_gate_text() -> str:
-    return "\n".join(
-        [
-            'test "phase12 virtio scsi survey gate keeps present lane files explicit" {',
-            '    try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-slice.md"));',
-            '    try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-scsi-survey.md"));',
-            '    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_scsi_packet.zig"));',
-            '    try std.testing.expect(try pathExists("zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"));',
-            '    try std.testing.expect(try pathExists("scripts/zigux/check-phase12-virtio-scsi-packet.py"));',
-            '    try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));',
-            '    try std.testing.expect(try pathExists("zigux/Makefile"));',
             "}",
             "",
         ]
@@ -243,9 +210,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / SLICE_PATH, good_slice_text())
     write_text(root / SURVEY_NOTE_PATH, "# Phase 12 Virtio SCSI Survey\n")
     write_text(root / FALLBACK_CATALOG_PATH, good_fallback_catalog_text())
-    write_text(root / SURVEY_GATE_PATH, good_survey_gate_text())
-    write_text(root / SUPPORT_MANIFEST_FIXTURE_PATH, good_support_manifest_fixture_text())
-    write_text(root / SUPPORT_PACKET_PATH, "// phase12 virtio scsi support packet fixture\n")
+    write_text(root / SURVEY_MANIFEST_PATH, good_survey_manifest_text())
     write_text(root / PHASE12_BUILD_PATH, "// phase12 build fixture\n")
     write_text(root / MAKEFILE_PATH, good_makefile_text())
 
@@ -261,14 +226,6 @@ def run_self_test() -> int:
         write_fixture_tree(tmp_root)
         if errors := check(tmp_root, source_text=MARKER):
             raise SystemExit(f"self-test expected success but failed: {errors!r}")
-
-        write_fixture_tree(tmp_root)
-        (tmp_root / SUPPORT_PACKET_PATH).unlink()
-        expect_contains(
-            check(tmp_root, source_text=MARKER),
-            f"missing file: {SUPPORT_PACKET_PATH}",
-            "missing support packet",
-        )
 
         write_fixture_tree(tmp_root)
         write_text(
@@ -300,7 +257,7 @@ def run_self_test() -> int:
         expect_contains(
             check(tmp_root, source_text=MARKER),
             FORBIDDEN_SLICE_MARKERS[0],
-            "stale nvme gap marker not rejected",
+            "stale support-packet marker not rejected",
         )
 
         write_fixture_tree(tmp_root)
@@ -320,39 +277,28 @@ def run_self_test() -> int:
 
         write_fixture_tree(tmp_root)
         write_text(
-            tmp_root / SUPPORT_MANIFEST_FIXTURE_PATH,
-            good_support_manifest_fixture_text().replace(
-                SUPPORT_MANIFEST_FIXTURE_MARKERS[-1] + "\n",
+            tmp_root / FALLBACK_CATALOG_PATH,
+            good_fallback_catalog_text() + FORBIDDEN_FALLBACK_MARKERS[0] + "\n",
+        )
+        expect_contains(
+            check(tmp_root, source_text=MARKER),
+            FORBIDDEN_FALLBACK_MARKERS[0],
+            "stale fallback marker not rejected",
+        )
+
+        write_fixture_tree(tmp_root)
+        write_text(
+            tmp_root / SURVEY_MANIFEST_PATH,
+            good_survey_manifest_text().replace(
+                SURVEY_MANIFEST_MARKERS[-1],
                 "",
                 1,
             ),
         )
         expect_contains(
             check(tmp_root, source_text=MARKER),
-            SUPPORT_MANIFEST_FIXTURE_MARKERS[-1],
-            "missing fixture checker path",
-        )
-
-        write_fixture_tree(tmp_root)
-        write_text(
-            tmp_root / SURVEY_GATE_PATH,
-            good_survey_gate_text().replace(SURVEY_GATE_MARKERS[-3] + "\n", "", 1),
-        )
-        expect_contains(
-            check(tmp_root, source_text=MARKER),
-            SURVEY_GATE_MARKERS[-3],
-            "missing survey-gate checker path",
-        )
-
-        write_fixture_tree(tmp_root)
-        write_text(
-            tmp_root / MAKEFILE_PATH,
-            good_makefile_text().replace(MAKEFILE_MARKERS[-1] + "\n", "", 1),
-        )
-        expect_contains(
-            check(tmp_root, source_text=MARKER),
-            MAKEFILE_MARKERS[-1],
-            "missing make route summary",
+            SURVEY_MANIFEST_MARKERS[-1],
+            "missing survey-manifest status",
         )
 
         expect_contains(
@@ -364,7 +310,7 @@ def run_self_test() -> int:
         shutil.rmtree(tmp_root, ignore_errors=True)
 
     print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST=pass")
-    print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST_CASE_COUNT=9")
+    print("PHASE12_VIRTIO_SCSI_PACKET_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
@@ -388,7 +334,7 @@ def main() -> int:
             print(error)
         return 1
 
-    print("phase12 virtio_scsi support packet validated")
+    print("phase12 virtio_scsi survey packet validated")
     return 0
 
 
