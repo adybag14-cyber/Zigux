@@ -80,6 +80,7 @@ pub const DelayedCallbackSummary = struct {
     delayed_event_target_idx: u16,
     pending_used_chain_count: u16,
     should_poll: bool,
+    settled: bool,
 };
 
 pub const BrokenQueueSummary = struct {
@@ -294,6 +295,7 @@ pub const VirtioRingLab = struct {
             .delayed_event_target_idx = slot.last_used_idx +% delay_budget_count,
             .pending_used_chain_count = pending_used_chain_count,
             .should_poll = pending_used_chain_count > delay_budget_count,
+            .settled = pending_used_chain_count == 0,
         };
     }
 
