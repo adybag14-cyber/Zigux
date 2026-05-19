@@ -13,41 +13,52 @@ SURVEY_PATH = Path("Documentation/zigux/phase13-devres-survey.md")
 DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dma_coherent.zig")
 
 HELPER_BLOCKED_MARKERS = [
-    "dmam_alloc_",
+    "dmam_alloc_coherent(",
+    "dmam_free_coherent(",
     "dma_map_",
     "dma_unmap_",
-    "dma_map_sgtable(",
+    "dma_sync_",
+    "dma_mmap_",
+    "dma_map_sgtable()",
     "struct scatterlist",
     "sg_table",
-    "sg_",
+    "sg_init_table(",
 ]
 
 SURVEY_MARKERS = [
-    "helper-only DMA/scatterlist boundary",
-    "helper-source readback on current `master` shows",
-    "live DMA-backed helpers",
-    "live scatterlist ownership",
-    "dmam_alloc_*",
-    "dma_unmap_*",
-    "sg_table",
+    "helper-first scatterlist helper and replay",
+    "helper-source readback shows `lib/devres.zig` still omits",
+    "blocked `phase13-devres-live-scatterlist-ownership`",
+    "blocked `phase13-devres-live-sg-table-lifecycle`",
+    "blocked `phase13-devres-generic-dma-map-family`",
+    "`dmam_alloc_coherent()`",
+    "`dmam_free_coherent()`",
+    "`dma_sync_*`",
+    "`dma_mmap_*`",
+    "`dma_map_sgtable()`",
+    "`sg_table`",
+    "`sg_init_table()`",
 ]
 
 REPLAY_MARKERS = [
-    'test "phase13 devres coherent-dma boundary helper surface exposes no dma or scatterlist ownership markers" {',
-    'const helper = @embedFile("../../lib/devres.zig");',
-    'try requireAbsent(helper, "dmam_alloc_");',
+    'test "phase13 devres dma coherent replay records blocked dma and scatterlist boundaries" {',
+    'test "phase13 devres dma coherent replay proves lib/devres stays planning-only at the boundary" {',
+    'try requireAbsent(helper, "dmam_alloc_coherent(");',
+    'try requireAbsent(helper, "dmam_free_coherent(");',
     'try requireAbsent(helper, "dma_map_");',
     'try requireAbsent(helper, "dma_unmap_");',
-    'try requireAbsent(helper, "dma_map_sgtable(");',
+    'try requireAbsent(helper, "dma_sync_");',
+    'try requireAbsent(helper, "dma_mmap_");',
+    'try requireAbsent(helper, "dma_map_sgtable()");',
     'try requireAbsent(helper, "struct scatterlist");',
     'try requireAbsent(helper, "sg_table");',
-    'try requireAbsent(helper, "sg_");',
-    'try requireContains(survey, "helper-source readback on current `master` shows");',
-    'try requireContains(survey, "live DMA-backed helpers");',
-    'try requireContains(survey, "live scatterlist ownership");',
-    'try requireContains(survey, "dmam_alloc_*");',
-    'try requireContains(survey, "dma_unmap_*");',
-    'try requireContains(survey, "sg_table");',
+    'try requireAbsent(helper, "sg_init_table(");',
+    'try requireContains(survey, "helper-first scatterlist helper and replay");',
+    'try requireContains(survey, "helper-source readback shows `lib/devres.zig` still omits");',
+    'try requireContains(survey, "`dmam_alloc_coherent()`");',
+    'try requireContains(survey, "`dmam_free_coherent()`");',
+    'try requireContains(survey, "`dma_map_sgtable()`");',
+    'try requireContains(survey, "`sg_table`");',
 ]
 
 
@@ -143,12 +154,12 @@ def run_self_test() -> int:
         case_count += 1
 
         seed_fixture_tree(root)
-        write_text(root / HELPER_PATH, 'pub fn bad() void { _ = "dma_map_sgtable("; }\n')
+        write_text(root / HELPER_PATH, 'pub fn bad() void { _ = "dma_map_sgtable()"; }\n')
         assert_only(
             validate(root),
             [
                 "helper:unexpected_marker:dma_map_",
-                "helper:unexpected_marker:dma_map_sgtable(",
+                "helper:unexpected_marker:dma_map_sgtable()",
             ],
             "helper_unexpected_marker_failed",
         )
@@ -166,11 +177,16 @@ def run_self_test() -> int:
         seed_fixture_tree(root)
         write_text(
             root / DMA_REPLAY_PATH,
-            "\n".join(marker for marker in REPLAY_MARKERS if marker != 'try requireAbsent(helper, "sg_table");') + "\n",
+            "\n".join(
+                marker
+                for marker in REPLAY_MARKERS
+                if marker != 'try requireAbsent(helper, "sg_init_table(");'
+            )
+            + "\n",
         )
         assert_only(
             validate(root),
-            ['dma_replay:missing_marker:try requireAbsent(helper, "sg_table");'],
+            ['dma_replay:missing_marker:try requireAbsent(helper, "sg_init_table(");'],
             "dma_replay_missing_marker_failed",
         )
         case_count += 1
