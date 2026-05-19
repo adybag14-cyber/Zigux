@@ -105,8 +105,7 @@
     "zigux/tests/phase6_checksum_c_parity.zig",
     "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "scripts/zigux/check-phase6-base64-c-parity.py",
-    "scripts/zigux/check-phase6-checksum-c-parity.py",
-    "scripts/zigux/check-phase6-hexdump-packet.py"
+    "scripts/zigux/check-phase6-checksum-c-parity.py"
   ],
   "current_shared_replay_inventory": [
     "zig build phase6-base64-test --build-file zigux/tests/phase6_build.zig",
@@ -119,6 +118,7 @@
     "make -C zigux phase6-checksum-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
+    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-review",
