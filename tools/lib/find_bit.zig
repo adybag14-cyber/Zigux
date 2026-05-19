@@ -717,6 +717,19 @@ test "clump8 scans mask tail bits beyond nbits" {
     try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
 }
 
+test "clump8 next scans ignore out-of-range tail bits once the in-range tail bit is behind start" {
+    const nbits = bits_per_long + 5;
+    const bitmap = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 6) };
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(@as(usize, bits_per_long), findNextClump8(&clump, &bitmap, nbits, bits_per_long + 2));
+    try std.testing.expectEqual(@as(u8, 0b0000_1000), clump);
+
+    clump = 0x5a;
+    try std.testing.expectEqual(@as(usize, nbits), findNextClump8(&clump, &bitmap, nbits, bits_per_long + 4));
+    try std.testing.expectEqual(@as(u8, 0x5a), clump);
+}
+
 test "clump8 scans leave the caller byte untouched when no set bit remains" {
     const empty = [_]Word{0};
     var clump: u8 = 0xaa;
