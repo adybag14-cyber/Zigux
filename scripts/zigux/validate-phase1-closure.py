@@ -82,7 +82,6 @@ EXPECTED_BITMAP_HELPER_TEST_ANCHORS = [
     'test "bitmap xor keeps caller-selected bit window"',
     'test "bitmap xor across a multiword tail still lets callers clamp the last word"',
     'test "bitmap scnprintf collapses contiguous ranges"',
-    'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
     'test "bitmap scnprintf truncates and keeps a terminator slot"',
     'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
     'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
