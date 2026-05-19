@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard Lane 17's current Phase 12 workflow tail."""
+"""Guard Lane 17's current Phase 11/12 workflow tail."""
 
 from __future__ import annotations
 
@@ -15,20 +15,25 @@ PHASE12_TAIL_NOTE_LINE = (
     "- `PHASE1_WORKFLOW_PHASE10_PHASE12_TAIL=Self-test current Phase 10 bootstrap route checker,"
     "Check current Phase 10 bootstrap route,Validate Phase 10 checker-backed review packet,"
     "Run Phase 10 helper tests,Self-test current Phase 11 HVC cleanup current-head checker,"
-    "Check current Phase 11 HVC cleanup current-head packet,Self-test current Phase 12 build-only surface checker,"
-    "Check current Phase 12 build-only surface,Self-test current Phase 12 release-readiness packet checker,"
-    "Check current Phase 12 release-readiness packet,Validate current Phase 12 support bundle,"
-    "Run current Phase 12 smoke packet,Run current Phase 12 shared test packet,Self-test current Phase 12 tail guard,"
-    "Check current Phase 12 tail guard,Run current Phase 12 throughput-parity anchor`"
+    "Check current Phase 11 HVC cleanup current-head packet,Run current Phase 11 HVC cleanup packet proof,"
+    "Self-test current Phase 12 build-only surface checker,Check current Phase 12 build-only surface,"
+    "Self-test current Phase 12 release-readiness packet checker,Check current Phase 12 release-readiness packet,"
+    "Validate current Phase 12 support bundle,Run current Phase 12 smoke packet,Run current Phase 12 shared test packet,"
+    "Self-test current Phase 12 tail guard,Check current Phase 12 tail guard,Run current Phase 12 throughput-parity anchor`"
 )
-PHASE12_GUARD_LINE = "- `PHASE1_WORKFLOW_PHASE12_TAIL_GUARD=scripts/zigux/check-phase1-workflow-phase12-tail.py`"
+PHASE12_GUARD_LINE = (
+    "- `PHASE1_WORKFLOW_PHASE12_TAIL_GUARD=scripts/zigux/check-phase1-workflow-phase12-tail.py`"
+)
 PHASE12_ADJACENCY_LINE = (
     "- `PHASE1_WORKFLOW_PHASE12_TAIL_ADJACENCY=Run current Phase 12 shared test packet,"
     "Self-test current Phase 12 tail guard,Check current Phase 12 tail guard,"
     "Run current Phase 12 throughput-parity anchor`"
 )
 
-PHASE12_STEPS = (
+TRACKED_STEPS = (
+    ("Self-test current Phase 11 HVC cleanup current-head checker", "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test"),
+    ("Check current Phase 11 HVC cleanup current-head packet", "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py"),
+    ("Run current Phase 11 HVC cleanup packet proof", "zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig"),
     ("Self-test current Phase 12 build-only surface checker", "python3 scripts/zigux/check-build-only-phase12-surface.py --self-test"),
     ("Check current Phase 12 build-only surface", "python3 scripts/zigux/check-build-only-phase12-surface.py"),
     ("Self-test current Phase 12 release-readiness packet checker", "python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test"),
@@ -41,6 +46,11 @@ PHASE12_STEPS = (
     ("Run current Phase 12 throughput-parity anchor", "zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig"),
 )
 
+PHASE11_TO_PHASE12_CHAIN = (
+    "Check current Phase 11 HVC cleanup current-head packet",
+    "Run current Phase 11 HVC cleanup packet proof",
+    "Self-test current Phase 12 build-only surface checker",
+)
 PHASE12_CHAIN = (
     "Run current Phase 12 shared test packet",
     "Self-test current Phase 12 tail guard",
@@ -83,14 +93,13 @@ def workflow_step_names(workflow_text: str) -> list[str]:
     return [line[len(prefix) :] for line in workflow_text.splitlines() if line.startswith(prefix)]
 
 
-def require_adjacent_chain(workflow_text: str, step_names: tuple[str, ...]) -> list[str]:
+def require_adjacent_chain(workflow_text: str, step_names: tuple[str, ...], label: str) -> list[str]:
     names = workflow_step_names(workflow_text)
-    chain = list(step_names)
-    max_start = len(names) - len(chain) + 1
+    max_start = len(names) - len(step_names) + 1
     for index in range(max_start):
-        if names[index : index + len(chain)] == chain:
+        if names[index : index + len(step_names)] == list(step_names):
             return []
-    return [f"workflow_adjacent_chain:missing:{'->'.join(step_names)}"]
+    return [f"{label}:missing:{'->'.join(step_names)}"]
 
 
 def collect_failures(root: Path) -> list[str]:
@@ -108,10 +117,11 @@ def collect_failures(root: Path) -> list[str]:
     failures.extend(require_once(note_text, "note", PHASE12_GUARD_LINE))
     failures.extend(require_once(note_text, "note", PHASE12_ADJACENCY_LINE))
 
-    for step_name, run_command in PHASE12_STEPS:
+    for step_name, run_command in TRACKED_STEPS:
         failures.extend(require_step(workflow_text, step_name, run_command))
 
-    failures.extend(require_adjacent_chain(workflow_text, PHASE12_CHAIN))
+    failures.extend(require_adjacent_chain(workflow_text, PHASE11_TO_PHASE12_CHAIN, "workflow_phase11_to_phase12"))
+    failures.extend(require_adjacent_chain(workflow_text, PHASE12_CHAIN, "workflow_phase12_tail"))
     return failures
 
 
@@ -136,7 +146,7 @@ def build_workflow_text() -> str:
         "    runs-on: ubuntu-latest",
         "    steps:",
     ]
-    for step_name, run_command in PHASE12_STEPS:
+    for step_name, run_command in TRACKED_STEPS:
         lines.append(f"      - name: {step_name}")
         lines.append(f"        run: {run_command}")
     lines.append("")
@@ -175,10 +185,36 @@ def run_self_test() -> int:
         build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
-        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, "      - name: Run current Phase 12 shared test packet\n"))
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, "      - name: Run current Phase 11 HVC cleanup packet proof\n"))
         failures = collect_failures(root)
-        if "workflow_step:Run current Phase 12 shared test packet:expected=1:actual=0" not in failures:
-            print("self-test:missing_phase12_shared_test")
+        if "workflow_step:Run current Phase 11 HVC cleanup packet proof:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase11_proof_step")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        old = (
+            "      - name: Check current Phase 11 HVC cleanup current-head packet\n"
+            "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py\n"
+            "      - name: Run current Phase 11 HVC cleanup packet proof\n"
+            "        run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig\n"
+            "      - name: Self-test current Phase 12 build-only surface checker\n"
+            "        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test\n"
+        )
+        new = (
+            "      - name: Check current Phase 11 HVC cleanup current-head packet\n"
+            "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py\n"
+            "      - name: Self-test current Phase 12 build-only surface checker\n"
+            "        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test\n"
+            "      - name: Run current Phase 11 HVC cleanup packet proof\n"
+            "        run: zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig\n"
+        )
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
+        failures = collect_failures(root)
+        expected = f"workflow_phase11_to_phase12:missing:{'->'.join(PHASE11_TO_PHASE12_CHAIN)}"
+        if expected not in failures:
+            print("self-test:broken_phase11_to_phase12_chain_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
@@ -198,41 +234,41 @@ def run_self_test() -> int:
         )
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
         failures = collect_failures(root)
-        expected = f"workflow_adjacent_chain:missing:{'->'.join(PHASE12_CHAIN)}"
+        expected = f"workflow_phase12_tail:missing:{'->'.join(PHASE12_CHAIN)}"
         if expected not in failures:
-            print("self-test:phase12_chain_not_detected")
+            print("self-test:broken_phase12_tail_chain_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
-        selftest_block = (
+        duplicate_selftest = (
             "      - name: Self-test current Phase 12 tail guard\n"
             "        run: python3 scripts/zigux/check-phase1-workflow-phase12-tail.py --self-test\n"
         )
-        write_file(root, WORKFLOW_REL, workflow_text + selftest_block)
+        write_file(root, WORKFLOW_REL, workflow_text + duplicate_selftest)
         failures = collect_failures(root)
         if "workflow_step:Self-test current Phase 12 tail guard:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_phase12_selftest_step_not_detected")
+            print("self-test:duplicate_tail_selftest_step_not_detected")
             return 1
         if "workflow_run:Self-test current Phase 12 tail guard:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_phase12_selftest_run_not_detected")
+            print("self-test:duplicate_tail_selftest_run_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
-        check_block = (
+        duplicate_check = (
             "      - name: Check current Phase 12 tail guard\n"
             "        run: python3 scripts/zigux/check-phase1-workflow-phase12-tail.py\n"
         )
-        write_file(root, WORKFLOW_REL, workflow_text + check_block)
+        write_file(root, WORKFLOW_REL, workflow_text + duplicate_check)
         failures = collect_failures(root)
         if "workflow_step:Check current Phase 12 tail guard:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_phase12_check_step_not_detected")
+            print("self-test:duplicate_tail_check_step_not_detected")
             return 1
         if "workflow_run:Check current Phase 12 tail guard:expected=1:actual=2" not in failures:
-            print("self-test:duplicate_phase12_check_run_not_detected")
+            print("self-test:duplicate_tail_check_run_not_detected")
             return 1
         case_count += 1
 
