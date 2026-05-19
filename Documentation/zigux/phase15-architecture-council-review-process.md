@@ -49,6 +49,12 @@ Any freeze-map anchor entering Architecture Council status review must keep all 
 
 If one of those fields cannot be stated honestly, the request stays blocked and the C implementation remains the product source of truth.
 
+## Study-only boundary
+
+Study-only freeze-map anchors stay outside this Architecture Council status-review packet until the freeze map itself changes.
+
+`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`, not candidates for a freeze-in-C status review through this note, unless the freeze map and supporting governance packet are explicitly updated first.
+
 ## Review outcomes
 
 The Architecture Council may close a request only in one of these bounded ways:
