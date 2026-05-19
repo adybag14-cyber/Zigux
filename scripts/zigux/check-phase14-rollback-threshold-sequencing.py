@@ -5,8 +5,9 @@ Fail-closed checker for the current Phase 14 rollback-threshold packet.
 
 This checker stays inside the rollback-automation lane. It validates that the
 shared smoke reminder surfaces still agree on the current study-only rollback
-contract and on the current repo-reality split where the Makefile is readable
-but still does not ship any `phase14-*` wrapper targets.
+contract and on the current repo-reality split where the Makefile is readable,
+ships `phase14-validate`, and still does not ship the broader `phase14-smoke`,
+`phase14-test`, or `phase14` wrapper targets.
 """
 
 from __future__ import annotations
@@ -28,18 +29,19 @@ MAKEFILE_PATH = Path("zigux/Makefile")
 
 ROLLBACK_THRESHOLD_MARKER = (
     "  * rollback threshold: `0` tolerated same-packet drifts across the "
-    "recovered documentation packet, the blob-readable validator path, the "
-    "readable current Makefile body, the directly readable workqueue boundary "
-    "shard, and the still-missing executable packet members"
+    "recovered documentation packet, the directly readable validator path, the "
+    "readable current Makefile body, the directly readable release-boundary "
+    "exact-count guard, the directly readable workqueue boundary shard, and the "
+    "still-missing executable packet members"
 )
 ROLLBACK_FALLBACK_MARKER = (
     "  * fallback path: keep this shared smoke lane aligned with the current "
     "gap notes until the broader shared reminder packet stops treating the "
-    "current Makefile body as if it still shipped the older `phase14-*` "
-    "routes, and until the missing executable packet members above return "
-    "through exact current-`master` contents readback; once they do, rerun the "
-    "packet-local commands below before restoring any stronger validator-first "
-    "claim"
+    "current Makefile body as if it lacked `phase14-validate` or as if it "
+    "still shipped `phase14-smoke`, `phase14-test`, and `phase14`, and until "
+    "the missing executable packet members above return through exact current-"
+    "`master` contents readback; once they do, rerun the packet-local commands "
+    "below before restoring any stronger validator-first claim"
 )
 ROLLBACK_TRIGGER_MARKERS = [
     "    * recovered documentation packet drift",
@@ -49,13 +51,13 @@ ROLLBACK_TRIGGER_MARKERS = [
     "    * anchor-local reminder drift",
     "    * attached-toolchain guidance drift inside the shared smoke note",
 ]
-ATTACHED_TOOLCHAIN_EXAMPLES = [
-    "    * `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`",
-    "    * `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`",
-    "    * `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`",
+HISTORICAL_ROUTE_VOCABULARY_MARKERS = [
+    "`phase14-smoke`",
+    "`phase14-test`",
+    "`phase14`",
 ]
 MAKEFILE_ROUTE_ABSENCE_MARKER = (
-    "`phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets"
+    "`phase14-smoke`, `phase14-test`, or `phase14` targets"
 )
 RETURNED_PHASE4_ROUTE_MARKERS = [
     "`phase4-validate`",
@@ -65,13 +67,14 @@ RETURNED_PHASE4_ROUTE_MARKERS = [
 PRODUCTIZATION_GAP_MARKERS = [
     "Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.",
     "The higher-value same-lane task is reminder-surface truthfulness:",
-    "the blob-readable validator surface",
+    "the directly readable validator surface",
+    "the directly readable release-boundary exact-count guard",
     "the current Makefile posture",
 ]
 CHECKLIST_MARKERS = [
     "if the change touches the shared Phase 14 smoke packet",
-    "keep `zigux/Makefile` framed as a readable non-owner surface",
-    "while still omitting all `phase14-*` targets",
+    "keep `zigux/Makefile` framed as readable current evidence",
+    "`phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
 ]
 MAKEFILE_PRESENT_ROUTE_MARKERS = [
     "phase3-validate:",
@@ -82,9 +85,9 @@ MAKEFILE_PRESENT_ROUTE_MARKERS = [
     "phase8-validate:",
     "phase10-validate:",
     "phase12-smoke:",
+    "phase14-validate:",
 ]
 MAKEFILE_ABSENT_ROUTE_MARKERS = [
-    "phase14-validate:",
     "phase14-smoke:",
     "phase14-test:",
     "phase14: phase14-validate phase14-smoke phase14-test",
@@ -151,10 +154,13 @@ def check(root: Path) -> list[str]:
             ROLLBACK_FALLBACK_MARKER,
             "  * automatic return-to-blocked triggers:",
             *ROLLBACK_TRIGGER_MARKERS,
-            *ATTACHED_TOOLCHAIN_EXAMPLES,
+            "  * packet-local command posture preserved by this note:",
+            "no current attached-toolchain `make -C zigux phase14-smoke`, `make -C zigux phase14-test`, or `make -C zigux phase14` fallback is usable from this note",
+            "keep those older wrapper names recorded only as historical packet vocabulary",
+            *HISTORICAL_ROUTE_VOCABULARY_MARKERS,
             MAKEFILE_ROUTE_ABSENCE_MARKER,
             *RETURNED_PHASE4_ROUTE_MARKERS,
-            "the next honest same-lane follow-through is reminder-surface truthfulness, not a validator-local exact-line sync against `phase14-validate`",
+            "same-lane follow-through should only touch the smallest shared reminder surface that drifts against this returned Makefile split",
         ],
     )
 
@@ -166,6 +172,7 @@ def check(root: Path) -> list[str]:
         [
             MAKEFILE_ROUTE_ABSENCE_MARKER,
             *RETURNED_PHASE4_ROUTE_MARKERS,
+            "- current shared-smoke route: `make -C zigux phase14-validate`",
             "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
             "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
         ],
@@ -202,8 +209,19 @@ def fixture_smoke_note() -> str:
             ROLLBACK_FALLBACK_MARKER,
             "  * automatic return-to-blocked triggers:",
             *ROLLBACK_TRIGGER_MARKERS,
-            "  * attached-toolchain fallback examples for this note's bounded smoke routes:",
-            *ATTACHED_TOOLCHAIN_EXAMPLES,
+            "  * packet-local command posture preserved by this note:",
+            (
+                "    * no current attached-toolchain `make -C zigux phase14-smoke`, "
+                "`make -C zigux phase14-test`, or `make -C zigux phase14` fallback is "
+                "usable from this note, because the readable `zigux/Makefile` body still "
+                "omits those targets even though it now exposes `phase14-validate`"
+            ),
+            (
+                "    * keep those older wrapper names recorded only as historical packet "
+                "vocabulary until the same readback mode restores both the dedicated Phase "
+                "14 build files and the remaining `phase14-*` Makefile targets on current "
+                "`master`"
+            ),
             (
                 "    * `zigux/Makefile` is directly readable again through the current "
                 "contents path, and its live body now exposes the shipped Phase 2 "
@@ -213,10 +231,10 @@ def fixture_smoke_note() -> str:
                 "`phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, "
                 "`phase6-hexdump-test`, `phase6-hexdump-perf`, `phase8-validate`, "
                 "`phase8-test`, `phase8`, `phase10-validate`, `phase10-test`, `phase10`, "
-                "`phase12-smoke`, `phase12-test`, and `phase12`, but no `phase14-validate`, "
-                "`phase14-smoke`, `phase14-test`, or `phase14` targets"
+                "`phase12-smoke`, `phase12-test`, `phase12`, and `phase14-validate`, but "
+                "no `phase14-smoke`, `phase14-test`, or `phase14` targets"
             ),
-            "    * that means the next honest same-lane follow-through is reminder-surface truthfulness, not a validator-local exact-line sync against `phase14-validate`",
+            "    * that means later same-lane follow-through should only touch the smallest shared reminder surface that drifts against this returned Makefile split, not default back to a validator-local exact-line sync or an already-aligned tests-root rewrite",
             "",
         ]
     )
@@ -226,7 +244,8 @@ def fixture_release_boundary() -> str:
     return "\n".join(
         [
             "# Phase 14 Release Boundary Survey",
-            f"- current Makefile posture: `zigux/Makefile` is readable again on current `master`, and its live body now exposes the shipped Phase 2 toolchain and kbuild routes together with the bounded `phase3-validate`, `phase3`, `phase4-validate`, `phase4-test`, `phase4`, `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-test`, `phase6-hexdump-perf`, `phase8-validate`, `phase8-test`, `phase8`, `phase10-validate`, `phase10-test`, and `phase10`, `phase12-smoke`, `phase12-test`, and `phase12` routes, and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
+            "- current Makefile posture: `zigux/Makefile` is readable again on current `master`, and its live body now exposes the shipped Phase 2 toolchain and kbuild routes together with the bounded `phase3-validate`, `phase3`, `phase4-validate`, `phase4-test`, `phase4`, `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-checksum-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-test`, `phase6-hexdump-perf`, `phase8-validate`, `phase8-test`, `phase8`, `phase10-validate`, `phase10-test`, `phase10`, `phase12-smoke`, `phase12-test`, `phase12`, and `phase14-validate` routes, and no `phase14-smoke`, `phase14-test`, or `phase14` targets",
+            "- current shared-smoke route: `make -C zigux phase14-validate`",
             "- `PHASE14_SHARED_SMOKE_GATE_COUNT=1`",
             "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
             "",
@@ -239,7 +258,7 @@ def fixture_productization_gap() -> str:
         [
             "# Phase 14 Productization Gap Survey",
             "Given the roadmap, the correct Phase 14 posture remains study-only and wrapper-first.",
-            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the blob-readable validator surface, the directly readable workqueue reviewability shard, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
+            "The higher-value same-lane task is reminder-surface truthfulness: keep shared notes aligned with the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary exact-count guard, the directly readable workqueue reviewability shard, and the current Makefile posture instead of repeating the older story that the broader shared smoke packet is simply unreadable or that the Makefile still ships the old `phase14-*` routes.",
             "",
         ]
     )
@@ -250,7 +269,7 @@ def fixture_checklist() -> str:
         [
             "# Zigux Review Checklist",
             "if the change touches the shared Phase 14 smoke packet",
-            "keep `zigux/Makefile` framed as a readable non-owner surface whose live body now exposes shipped Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families while still omitting all `phase14-*` targets",
+            "keep `zigux/Makefile` framed as readable current evidence for the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes while `phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
             "",
         ]
     )
@@ -267,6 +286,7 @@ def fixture_makefile() -> str:
             "phase8-validate:",
             "phase10-validate:",
             "phase12-smoke:",
+            "phase14-validate:",
             "",
         ]
     )
@@ -302,10 +322,10 @@ def run_self_test() -> int:
             return 1
 
         write(root, SMOKE_NOTE_PATH, fixture_smoke_note())
-        write(root, MAKEFILE_PATH, fixture_makefile() + "phase14-validate:\n")
-        if not any("unexpected stale marker" in error for error in check(root)):
+        write(root, MAKEFILE_PATH, fixture_makefile().replace("phase14-validate:\n", "", 1))
+        if not any("phase14-validate:" in error for error in check(root)):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
-            print("expected stale phase14 make route to fail")
+            print("expected returned phase14 validate route to fail")
             return 1
 
         write(root, MAKEFILE_PATH, fixture_makefile())
@@ -323,33 +343,41 @@ def run_self_test() -> int:
         write(
             root,
             CHECKLIST_PATH,
-            fixture_checklist().replace("while still omitting all `phase14-*` targets", "", 1),
+            fixture_checklist().replace(
+                "`phase14-validate`, `phase14-smoke`, `phase14-test`, and `phase14` stay packet-local or repo-reality-gap vocabulary",
+                "",
+                1,
+            ),
         )
-        if not any("while still omitting all `phase14-*` targets" in error for error in check(root)):
+        if not any("packet-local or repo-reality-gap vocabulary" in error for error in check(root)):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
-            print("expected checklist route-absence drift to fail")
+            print("expected checklist route-vocabulary drift to fail")
             return 1
 
         write(root, CHECKLIST_PATH, fixture_checklist())
         write(
             root,
-            RELEASE_BOUNDARY_PATH,
-            fixture_release_boundary().replace("`phase4-test`", "missing phase4-test", 1),
+            PRODUCTIZATION_GAP_PATH,
+            fixture_productization_gap().replace(
+                "the directly readable release-boundary exact-count guard",
+                "missing exact-count guard",
+                1,
+            ),
         )
-        if not any("`phase4-test`" in error for error in check(root)):
+        if not any("the directly readable release-boundary exact-count guard" in error for error in check(root)):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
-            print("expected returned Phase 4 route drift in release boundary note to fail")
+            print("expected productization-gap exact-count drift to fail")
             return 1
 
-        write(root, RELEASE_BOUNDARY_PATH, fixture_release_boundary())
+        write(root, PRODUCTIZATION_GAP_PATH, fixture_productization_gap())
         write(
             root,
             MAKEFILE_PATH,
-            fixture_makefile().replace("phase4-test:\n", "", 1),
+            fixture_makefile() + "phase14-smoke:\n",
         )
-        if not any("phase4-test:" in error for error in check(root)):
+        if not any("unexpected stale marker" in error for error in check(root)):
             print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=fail")
-            print("expected returned Phase 4 makefile route drift to fail")
+            print("expected stale phase14 smoke route to fail")
             return 1
 
     print("PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass")
