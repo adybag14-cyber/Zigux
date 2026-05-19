@@ -102,7 +102,7 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
 
     try expectContains(sequencing_note, "- cmdline packet, lane `P7-L10`:");
     try expectContains(sequencing_note, "  - `Documentation/zigux/phase7-cmdline-slice.md`");
-    try expectContains(sequencing_note, "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, and checker now directly materialize on current `master`");
+    try expectContains(sequencing_note, "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`");
     try expectContains(sequencing_note, "`P7-L10` owns only cmdline helper-local parity, survey, manifest, checker, or reminder drift;");
 
     try expectContains(helper, "pub fn parseOptionStr");
