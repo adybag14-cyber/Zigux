@@ -142,3 +142,33 @@ test "zalloc clears fresh allocations after earlier dirty frees" {
     try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0, 0 }, &value.?.bytes);
     try std.testing.expect(value.?.maybe_count == null);
 }
+
+test "zallocValue re-zeroes enum-backed storage after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Value = struct {
+        state: enum(u8) {
+            idle = 0,
+            busy = 1,
+            done = 2,
+        },
+        nested: struct {
+            bytes: [2]u8,
+            maybe_count: ?usize,
+        },
+    };
+
+    var value: ?*Value = try zallocValue(allocator, Value);
+    try std.testing.expect(value != null);
+    value.?.state = .done;
+    value.?.nested.bytes = .{ 0xaa, 0xbb };
+    value.?.nested.maybe_count = 12;
+    zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Value);
+    defer zfreeValue(allocator, Value, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expect(value.?.state == .idle);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0 }, &value.?.nested.bytes);
+    try std.testing.expect(value.?.nested.maybe_count == null);
+}
