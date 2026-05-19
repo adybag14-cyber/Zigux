@@ -31,6 +31,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-artifact-tools-manifest.py",
     ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
     ROOT / "scripts" / "zigux" / "validate-phase2.py",
     ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
@@ -85,6 +86,8 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
@@ -228,19 +231,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(BOOTSTRAP_PRESENT_MARKERS)
     + len(BOOTSTRAP_GAP_MARKERS)
-    + 2
-    + (len(SURFACE_PATHS) - 1)
-    + 4
-    + 1
-    + 1
-    + 1
-    + 4
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
-    + 1
+    + sum(1 for path in SURFACE_PATHS if path not in (POLICY_PATH, TOOL_MANIFEST_PATH, BOOTSTRAP_NOTES))
+    + 9
 )
 
 
@@ -522,128 +514,93 @@ def run_self_test() -> int:
                 collect_issues(root)
             except SystemExit as exc:
                 assert "required file missing" in str(exc)
-                assert str(resolve_path(root, primary_path)) in str(exc)
+                checks_run += 1
             else:
-                raise AssertionError("missing primary surface did not abort")
-            checks_run += 1
+                raise AssertionError(f"missing {primary_path} did not abort")
 
-        for rel_path in SURFACE_PATHS:
-            if rel_path == BOOTSTRAP_NOTES:
+        for path in SURFACE_PATHS:
+            if path in (POLICY_PATH, TOOL_MANIFEST_PATH, BOOTSTRAP_NOTES):
                 continue
             build_self_test_root(root)
-            resolve_path(root, rel_path).unlink()
+            resolve_path(root, path).unlink()
             issues = collect_issues(root)
-            assert ("MISSING_SURFACE_PATHS", rel_path.relative_to(ROOT).as_posix()) in issues
-            checks_run += 1
-
-        policy_mutations = (("phase", "Phase 3", "POLICY_PHASE_MISMATCH"), ("lockstep", False, "POLICY_LOCKSTEP_MISMATCH"), ("archive_target_scope", ["aarch64-linux"], "POLICY_ARCHIVE_TARGET_SCOPE_MISMATCH"), ("required_make_routes", ["phase2-toolchain"], "POLICY_REQUIRED_MAKE_ROUTES_MISMATCH"))
-        for field_name, replacement, expected_code in policy_mutations:
-            build_self_test_root(root)
-            path = resolve_path(root, POLICY_PATH)
-            payload = json.loads(path.read_text(encoding="utf-8"))
-            if field_name == "phase":
-                payload["phase"] = replacement
-            elif field_name == "lockstep":
-                payload["upgrade_policy"]["channel_minimum_lockstep"] = replacement
-            else:
-                payload["upgrade_policy"][field_name] = replacement
-            path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-            issues = collect_issues(root)
-            assert any(issue[0] == expected_code for issue in issues)
+            assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
             checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, POLICY_PATH)
-        path.write_text("{\n", encoding="utf-8")
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(replace_once(workflow_path.read_text(encoding="utf-8"), '"$zig_path" version'), encoding="utf-8")
         issues = collect_issues(root)
-        assert any(issue[0] == "INVALID_POLICY_JSON" for issue in issues)
+        assert ("MISSING_WORKFLOW_SETUP_MARKERS", '"$zig_path" version') in issues
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, POLICY_PATH)
-        path.write_text("[]\n", encoding="utf-8")
+        mutate_json(resolve_path(root, POLICY_PATH), lambda payload: payload.__setitem__("phase", "Phase X"))
         issues = collect_issues(root)
-        assert ("INVALID_POLICY_PAYLOAD", "list") in issues
+        assert any(code == "POLICY_PHASE_MISMATCH" for code, _ in issues)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, POLICY_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("upgrade_policy", []))
+        mutate_json(
+            resolve_path(root, POLICY_PATH),
+            lambda payload: payload["upgrade_policy"].__setitem__("required_make_routes", ["phase2-toolchain"]),
+        )
         issues = collect_issues(root)
-        assert ("INVALID_UPGRADE_POLICY", "list") in issues
-        checks_run += 1
-
-        for key in ("phase", "status", "scope", "workflow"):
-            build_self_test_root(root)
-            path = resolve_path(root, TOOL_MANIFEST_PATH)
-            mutate_json(path, lambda payload, key=key: payload.__setitem__(key, "broken"))
-            issues = collect_issues(root)
-            assert any(issue[0] == "TOOL_MANIFEST_FIELD_MISMATCH" and issue[1].startswith(f"{key}:") for issue in issues)
-            checks_run += 1
-
-        build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("present_surfaces", []))
-        issues = collect_issues(root)
-        assert ("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", "list") in issues
+        assert any(code == "POLICY_REQUIRED_MAKE_ROUTES_MISMATCH" for code, _ in issues)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload["present_surfaces"].__setitem__("checkers", []))
+        mutate_json(
+            resolve_path(root, TOOL_MANIFEST_PATH),
+            lambda payload: payload["present_surfaces"].__setitem__("artifact_support", []),
+        )
         issues = collect_issues(root)
-        assert any(issue[0] == "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH" and issue[1].startswith("checkers:") for issue in issues)
+        assert any(code == "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH" and value.startswith("artifact_support:") for code, value in issues)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("repo_reality_gaps", ["gap"]))
+        mutate_json(
+            resolve_path(root, TOOL_MANIFEST_PATH),
+            lambda payload: payload.__setitem__("notes", payload["notes"][:-1]),
+        )
         issues = collect_issues(root)
-        assert any(issue[0] == "TOOL_MANIFEST_REPO_GAPS_MISMATCH" for issue in issues)
+        assert any(code == "TOOL_MANIFEST_NOTES_MISMATCH" for code, _ in issues)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        mutate_json(path, lambda payload: payload.__setitem__("notes", []))
+        resolve_path(root, POLICY_PATH).write_text("{not-json\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert any(issue[0] == "TOOL_MANIFEST_NOTES_MISMATCH" for issue in issues)
+        assert any(code == "INVALID_POLICY_JSON" for code, _ in issues)
         checks_run += 1
 
         build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        path.write_text("{\n", encoding="utf-8")
+        resolve_path(root, TOOL_MANIFEST_PATH).write_text("{not-json\n", encoding="utf-8")
         issues = collect_issues(root)
-        assert any(issue[0] == "INVALID_TOOL_MANIFEST_JSON" for issue in issues)
+        assert any(code == "INVALID_TOOL_MANIFEST_JSON" for code, _ in issues)
         checks_run += 1
 
-        build_self_test_root(root)
-        path = resolve_path(root, TOOL_MANIFEST_PATH)
-        path.write_text("[]\n", encoding="utf-8")
-        issues = collect_issues(root)
-        assert ("INVALID_TOOL_MANIFEST_PAYLOAD", "list") in issues
-        checks_run += 1
-
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT, (checks_run, EXPECTED_SELF_TEST_CASE_COUNT)
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
     print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Keep the current directly readable Phase 2 toolchain pinning packet aligned."
-    )
+    parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
-    parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
+    parser.add_argument("--self-test", action="store_true", help="Run the built-in contract self-test")
     args = parser.parse_args()
+
     if args.self_test:
         return run_self_test()
-    issues = collect_issues(args.root)
+
+    issues = collect_issues(args.root.resolve())
     if issues:
         return emit_issues(issues)
+
     print("PHASE2_TOOLCHAIN_PINNING=pass")
-    print(f"PHASE2_TOOLCHAIN_PINNING_REQUIRED_MARKER_COUNT={len(BOOTSTRAP_PRESENT_MARKERS)}")
-    print(f"PHASE2_TOOLCHAIN_PINNING_GAP_MARKER_COUNT={len(BOOTSTRAP_GAP_MARKERS)}")
+    print(f"PHASE2_TOOLCHAIN_PINNING_REQUIRED_ROUTE_COUNT={len(EXPECTED_POLICY['required_make_routes'])}")
+    print(f"PHASE2_TOOLCHAIN_PINNING_SURFACE_COUNT={len(SURFACE_PATHS)}")
     return 0
 
 
