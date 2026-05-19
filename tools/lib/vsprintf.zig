@@ -125,3 +125,17 @@ test "vscnprintf and scnprintfPad also clear the first byte on scratch overflow"
     try std.testing.expectEqual(@as(usize, 0), padded_written);
     try std.testing.expectEqual(@as(u8, 0), padded_buffer[0]);
 }
+
+test "scnprintfPad reuses the caller buffer after an earlier scratch overflow" {
+    const oversized = [_]u8{'x'} ** (max_render_bytes + 1);
+    var buffer = [_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
+
+    const failed = scnprintfPad(&buffer, buffer.len - 1, "{s}", .{oversized[0..]});
+    try std.testing.expectEqual(@as(usize, 0), failed);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+
+    const written = scnprintfPad(&buffer, buffer.len - 1, "{s}", .{"id"});
+    try std.testing.expectEqual(@as(usize, buffer.len - 1), written);
+    try std.testing.expectEqualStrings("id   ", buffer[0 .. buffer.len - 1]);
+    try std.testing.expectEqual(@as(u8, 0), buffer[buffer.len - 1]);
+}
