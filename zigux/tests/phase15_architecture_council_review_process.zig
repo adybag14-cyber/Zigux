@@ -214,7 +214,7 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "repo_path = _marker_to_repo_path(marker)");
     try expectContains(checker, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectContains(checker, "PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass");
-    try expectContains(checker, "current-master-readback-2026-05-18");
+    try expectContains(checker, "current-master-readback-2026-05-19");
     try expectContains(review_process, "current-master-readback-2026-05-19");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
