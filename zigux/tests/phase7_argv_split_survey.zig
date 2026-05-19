@@ -102,6 +102,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(fixture_vectors, "copied_storage_whitespace_packet");
     try expectContains(fixture_vectors, "blank_input_reuses_empty_packet");
     try expectContains(fixture_vectors, "whitespace_before_first_nul_reuses_empty_packet");
+    try expectContains(fixture_vectors, "leading_nul_reuses_empty_packet");
     try expectContains(fixture_vectors, "first_nul_truncation_keeps_tail_outside_packet");
     try expectContains(fixture_vectors, "quoted_tokens_stay_whitespace_split");
 
@@ -125,6 +126,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(helper, "pub fn cArgv(self: *const ArgvSplitResult)");
     try expectContains(helper, "fn nextSplitArgSpan");
     try expectContains(helper, "test \"argvSplit treats whitespace before the first NUL as blank input\" {");
+    try expectContains(helper, "test \"argvSplit treats a leading NUL as blank input\" {");
 
     try expectContains(helper_companion, "const argv_split = @import(\"argv_split\");");
     try expectContains(helper_companion, "phase 7 argv split companion replays copied-storage token ownership");
