@@ -37,11 +37,27 @@ pub const ReleaseRecordLifetimePlan = struct {
     should_release_on_detach: bool,
 };
 
+const ReleaseCallPlan = struct {
+    anchor: []const u8,
+    requested_size: u64,
+    releases_from_devres: bool,
+    release_record_consumed: bool,
+};
+
 pub const DevresHelperLab = struct {
     fn requireReleaseRecordAllocated(release_record_allocated: bool) !void {
         if (!release_record_allocated) {
             return error.OutOfMemory;
         }
+    }
+
+    fn planReleaseCall(requested_size: u64) ReleaseCallPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_size = requested_size,
+            .releases_from_devres = true,
+            .release_record_consumed = true,
+        };
     }
 
     pub fn planManagedReleaseRecordLifetime(retain: bool) ReleaseRecordLifetimePlan {
@@ -90,12 +106,14 @@ pub const DevresHelperLab = struct {
     }
 
     pub fn planManagedDmamFreeCoherent(requested_size: u64) ManagedDmamFreeCoherentPlan {
+        const release_call = planReleaseCall(requested_size);
+
         return .{
-            .anchor = descriptor().anchor,
-            .requested_size = requested_size,
+            .anchor = release_call.anchor,
+            .requested_size = release_call.requested_size,
             .frees_allocation = true,
-            .releases_from_devres = true,
-            .release_record_consumed = true,
+            .releases_from_devres = release_call.releases_from_devres,
+            .release_record_consumed = release_call.release_record_consumed,
         };
     }
 };
