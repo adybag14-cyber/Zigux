@@ -420,4 +420,15 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
         perf_buffer_poll.PollError.WaitResultDisagreesWithReadyEventCount,
         resolvePollExecutionResultFromWaitResult(3, ready_execution),
     );
+
+    const failed_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(
+        5,
+        -5,
+        &.{},
+        &.{},
+    );
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.WaitResultDisagreesWithFailureCode,
+        resolvePollExecutionResultFromWaitResult(-9, failed_execution),
+    );
 }
