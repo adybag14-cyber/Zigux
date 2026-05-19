@@ -26,9 +26,8 @@
     "zig build phase3-dump --build-file zigux/tests/build.zig"
   ],
   "repo_reality_gaps": [
-    "zigux/tests/phase3_abi_dump.zig",
-    "zigux/tests/fixtures/phase3_abi/phase3_abi_c_harness.c",
-    "zigux/tests/fixtures/phase3_abi/expected.json"
+    "scripts/zigux/check-phase3-catalog-selftest.py",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md"
   ],
   "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work"
 }
