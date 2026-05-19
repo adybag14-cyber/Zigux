@@ -25,6 +25,7 @@ Treat the directly reviewable current-head matrix packet as:
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
@@ -54,7 +55,7 @@ than current-head direct-readback evidence.
 | starter and companion stack | the current starter remains directly readable through `drivers/tty/hvc/hvc_console.zig`, while the coupled survey, companion, matrix, cleanup-current-head checker, shared build inventory, and proof-backed adjuncts keep the smaller current-head packet explicit | keep the survey, matrix, checker, proof, and inventory aligned with that smaller packet instead of reviving absent deeper anchors | if a future reread restores one deeper HVC helper, replay, manifest, or checker path, refresh the whole current-head packet in one bounded pass | live tty registration, notifier callback execution, khvcd worker execution, live sysrq dispatch, and host-backed teardown |
 | helper-local failure-mode edges | `drivers/tty/hvc/hvc_console.zig` keeps starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable, while `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` keeps the deeper cleanup-trigger, notifier-unregister, targetless-dispatch, and detached remove-handoff history explicit without treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned direct-readback anchor | preserve the starter-backed helper cues in `hvc_console.zig` and the deeper helper-local cleanup, notifier-unregister, targetless-dispatch, and remove-handoff wording in the boundary note without treating the absent verify helper as a current-head file | if `drivers/tty/hvc/hvc_console_verify.zig` returns on a future reread, refresh this matrix and the coupled note together | treating helper-local review history as proof of live notifier or sysrq execution |
 | proof-backed adjuncts | `zigux/tests/fixtures/phase11_build_inventory.json` still records exactly three proof-backed build tests and no dedicated survey replay entries, while the exported-surface proof/build pair, the `hv_ops` proof/build pair, and the cleanup-packet proof/build pair remain directly readable | keep the proof inventory exact and keep the proof-backed adjunct list narrow | if a future reread restores dedicated survey or cleanup replay files, land that expansion together with an inventory refresh | reconstructing a larger replay family from older wording alone |
-| route and checker boundary | `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` remains directly readable, but `scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not | keep the current-head checker explicit and keep the absent dedicated survey checker and route out of the current packet | if the dedicated checker or route returns, refresh the matrix and survey together | reviving route or checker claims from historical wording alone |
+| route and checker boundary | `scripts/zigux/check-phase11-build-inventory.py` and `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` remain directly readable, while `scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not | keep the build-inventory checker and the current-head cleanup checker explicit, with the bootstrap workflow self-testing and running the build-inventory guard before the proof replay, and keep the absent dedicated survey checker and route out of the current packet | if the dedicated survey checker or route returns, refresh the matrix and survey together; if the build-inventory packet expands again, refresh the checker and inventory in one bounded pass | reviving route or checker claims from historical wording alone |
 
 ## Failure-Mode Evidence
 
@@ -70,6 +71,10 @@ than current-head direct-readback evidence.
   notifier-unregister timing, and targetless sysrq fallback explicit without
   treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned current-head
   anchor.
+- `scripts/zigux/check-phase11-build-inventory.py` now stays part of the
+  directly reviewable packet together with the shared build inventory JSON,
+  keeping the workflow-backed proof inventory fail-closed before the current-head
+  cleanup proof replay.
 - the proof-backed adjuncts keep the exported-surface proof/build pair, the
   `hv_ops` proof/build pair, and the current-head cleanup proof/build pair
   explicit without implying a broader replay roster.
@@ -77,7 +82,8 @@ than current-head direct-readback evidence.
 ## Replay Posture
 
 - treat the current matrix packet as the smaller authenticated-readback
-  companion stack listed above
+  companion stack listed above, including the live build-inventory checker and
+  its shared JSON companion
 - do not treat the deeper verify helper, sysrq helper, manifest, teardown note,
   dedicated survey checker, or focused survey and cleanup replays as
   current-head direct-readback evidence
