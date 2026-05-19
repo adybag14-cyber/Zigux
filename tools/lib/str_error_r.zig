@@ -94,3 +94,13 @@ test "strErrorR returns full messages when buffers fit exactly" {
     try std.testing.expectEqualStrings(expected_internal, exact_rendered);
     try std.testing.expectEqual(@as(u8, 0), exact_buffer[exact_rendered.len]);
 }
+
+test "strErrorR returns slices backed by the caller buffer" {
+    var known_buffer: [8]u8 = undefined;
+    const known_rendered = strErrorR(0, &known_buffer);
+    try std.testing.expectEqual(@intFromPtr(&known_buffer[0]), @intFromPtr(known_rendered.ptr));
+
+    var generated_buffer: [48]u8 = undefined;
+    const generated_rendered = strErrorR(4096, &generated_buffer);
+    try std.testing.expectEqual(@intFromPtr(&generated_buffer[0]), @intFromPtr(generated_rendered.ptr));
+}
