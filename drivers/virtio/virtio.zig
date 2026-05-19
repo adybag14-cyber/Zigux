@@ -8,6 +8,8 @@ pub const status_driver_ok: u8 = 0x04;
 pub const status_features_ok: u8 = 0x08;
 pub const status_device_needs_reset: u8 = 0x40;
 pub const status_failed: u8 = 0x80;
+pub const default_vendor_id: u32 = 0x1AF4;
+pub const any_id: u32 = 0xffff_ffff;
 
 pub const DeviceStatusSummary = struct {
     anchor: []const u8,
@@ -93,10 +95,27 @@ pub const DriverModelSummary = struct {
     config_generation: u8,
 };
 
+pub const DriverIdMatchRule = struct {
+    device_id: u32,
+    vendor_id: u32,
+};
+
+pub const DriverIdMatchSummary = struct {
+    anchor: []const u8,
+    device_id: u32,
+    vendor_id: u32,
+    candidate_count: usize,
+    matched: bool,
+    matched_rule_index: ?usize,
+    matched_device_any: bool,
+    matched_vendor_any: bool,
+};
+
 pub const VirtioCoreLab = struct {
     const Self = @This();
 
     device_id: u32,
+    vendor_id: u32 = default_vendor_id,
     queue_count: u16,
     selected_queue: ?u16 = null,
     config_generation: u8 = 0,
@@ -130,6 +149,10 @@ pub const VirtioCoreLab = struct {
     pub fn noteFeaturesNegotiated(self: *Self) void {
         self.features_negotiated = true;
         self.status |= status_features_ok;
+    }
+
+    pub fn setVendorId(self: *Self, vendor_id: u32) void {
+        self.vendor_id = vendor_id;
     }
 
     pub fn selectQueue(self: *Self, queue_index: u16) !QueueBookkeepingSummary {
@@ -287,6 +310,38 @@ pub const VirtioCoreLab = struct {
             .needs_reset = guard.needs_reset,
             .failed = guard.failed,
             .config_generation = guard.config_generation,
+        };
+    }
+
+    pub fn driverIdMatchSummary(self: *const Self, rules: []const DriverIdMatchRule) DriverIdMatchSummary {
+        for (rules, 0..) |rule, index| {
+            const device_matches = rule.device_id == self.device_id or rule.device_id == any_id;
+            if (!device_matches) continue;
+
+            const vendor_matches = rule.vendor_id == self.vendor_id or rule.vendor_id == any_id;
+            if (!vendor_matches) continue;
+
+            return .{
+                .anchor = anchor_path,
+                .device_id = self.device_id,
+                .vendor_id = self.vendor_id,
+                .candidate_count = rules.len,
+                .matched = true,
+                .matched_rule_index = index,
+                .matched_device_any = rule.device_id == any_id,
+                .matched_vendor_any = rule.vendor_id == any_id,
+            };
+        }
+
+        return .{
+            .anchor = anchor_path,
+            .device_id = self.device_id,
+            .vendor_id = self.vendor_id,
+            .candidate_count = rules.len,
+            .matched = false,
+            .matched_rule_index = null,
+            .matched_device_any = false,
+            .matched_vendor_any = false,
         };
     }
 };
@@ -453,4 +508,52 @@ test "phase10 virtio core driver model summary lets reset and failed states over
     try std.testing.expectEqual(DriverModelStage.device_failed, summary.stage);
     try std.testing.expect(summary.failed);
     try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_failed), summary.blocker);
+}
+
+test "phase10 virtio core driver id matching records exact first-match hits" {
+    var core = try VirtioCoreLab.init(0x1040, 2);
+
+    const summary = core.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1000, .vendor_id = default_vendor_id },
+        .{ .device_id = 0x1040, .vendor_id = default_vendor_id },
+        .{ .device_id = any_id, .vendor_id = any_id },
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(@as(u32, 0x1040), summary.device_id);
+    try std.testing.expectEqual(@as(u32, default_vendor_id), summary.vendor_id);
+    try std.testing.expectEqual(@as(usize, 3), summary.candidate_count);
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 1), summary.matched_rule_index);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+}
+
+test "phase10 virtio core driver id matching models wildcard and unmatched paths" {
+    var core = try VirtioCoreLab.init(0x1052, 1);
+    core.setVendorId(0x1AF5);
+
+    var summary = core.driverIdMatchSummary(&.{
+        .{ .device_id = any_id, .vendor_id = 0x1AF5 },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expect(summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
+
+    summary = core.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1052, .vendor_id = any_id },
+    });
+    try std.testing.expect(summary.matched);
+    try std.testing.expectEqual(@as(?usize, 0), summary.matched_rule_index);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(summary.matched_vendor_any);
+
+    summary = core.driverIdMatchSummary(&.{
+        .{ .device_id = 0x1040, .vendor_id = default_vendor_id },
+    });
+    try std.testing.expect(!summary.matched);
+    try std.testing.expectEqual(@as(?usize, null), summary.matched_rule_index);
+    try std.testing.expect(!summary.matched_device_any);
+    try std.testing.expect(!summary.matched_vendor_any);
 }
