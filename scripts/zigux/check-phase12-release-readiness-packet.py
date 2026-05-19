@@ -114,7 +114,7 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
-        "the raw-URL-backed direct replay catalog, the currently missing raw NVMe gap-note handle, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
+        "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.",
     ],
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
