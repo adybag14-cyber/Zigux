@@ -25,6 +25,7 @@ test "phase10 virtio ring survey note keeps the missing broader replay explicit 
     defer allocator.free(verify_file);
 
     try expectContains(survey_note, "PHASE10_STATUS=parked");
+    try expectContains(survey_note, "lane: `P10-L10`");
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
     try expectContains(
@@ -55,7 +56,7 @@ test "phase10 virtio ring survey manifest keeps lane identity and blocked transp
     );
     defer allocator.free(manifest);
 
-    try expectContains(manifest, "\"lane_key\": \"P10-L05\"");
+    try expectContains(manifest, "\"lane_key\": \"P10-L10\"");
     try expectContains(manifest, "\"risky_transport_posture\": \"blocked_on_risky_transport\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-ring-survey-gate\"");
     try expectContains(manifest, "\"id\": \"phase10-queue-reset-helper\"");
@@ -90,6 +91,7 @@ test "phase10 virtio ring freeze-boundary note keeps risky transport work blocke
     );
     defer allocator.free(freeze_note);
 
+    try expectContains(freeze_note, "current packet lane on master: `P10-L10`");
     try expectContains(freeze_note, "transport-backed queue setup or reset parity");
     try expectContains(freeze_note, "IRQ parity");
     try expectContains(freeze_note, "DMA-facing paths");
@@ -99,4 +101,21 @@ test "phase10 virtio ring freeze-boundary note keeps risky transport work blocke
         "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap",
     );
     try expectContains(freeze_note, "zigux/tests/phase10_virtio_ring_survey.zig");
+}
+
+test "phase10 virtio ring lane sequencing keeps P10-L10 queue ownership explicit beside P10-L11" {
+    const allocator = std.testing.allocator;
+
+    const lane_note = try readRepoRelative(
+        allocator,
+        "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    );
+    defer allocator.free(lane_note);
+
+    try expectContains(lane_note, "ring lane `P10-L10` owns the queue-local wrapper packet");
+    try expectContains(lane_note, "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md");
+    try expectContains(
+        lane_note,
+        "queue-local wrapper reviewability does not drift into MMIO-owned blocked transport claims",
+    );
 }
