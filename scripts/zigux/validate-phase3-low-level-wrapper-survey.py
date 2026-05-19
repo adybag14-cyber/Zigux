@@ -20,6 +20,7 @@ WRAPPER_REPLAY_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
 WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
 SHARED_TESTS_README_PATH = Path("zigux/tests/README.md")
 SHARED_TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
+MAKEFILE_PATH = Path("zigux/Makefile")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 WRAPPER_BUILD_COMMAND = "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
 
@@ -36,10 +37,13 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
         "`zigux/tests/phase3_low_level_wrappers.zig`",
         "`zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "`zigux/Makefile`",
         "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "`make -C zigux phase3-low-level-wrappers-test`",
         "The shared tests-root reminder in `zigux/tests/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig` explicit beside the starter, helper, policy, and layout-replay packet, so the low-level-wrapper survey no longer treats shared tests-root coverage as a separate missing follow-through.",
+        "Current `master` also keeps `zigux/Makefile` and `make -C zigux phase3-low-level-wrappers-test` explicit beside the dedicated shared build companion, so the low-level-wrapper packet now has both the direct Zig replay command and the returned shared Makefile replay gate without widening into broader Phase 3 completion claims.",
         "That directly coupled build companion and the live `zigux/helpers/mmio.zig` helper both depend on `zigux/helpers/unsafe_policy.zig`, so the packet reminder needs to keep that helper-local unsafe-policy surface explicit instead of undercounting it as if the MMIO wrapper stood alone.",
-        "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, and one direct replay command are directly readable, while the broader shared Phase 3 catalog-selftest guard remains a separate gap.",
+        "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, one returned shared Makefile replay gate, and one direct replay command are directly readable, while the broader shared Phase 3 catalog-selftest guard remains a separate gap.",
         "Current `master` now separately exposes the adjacent shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py`, the export/UAPI boundary survey note through `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, the packet-local export/UAPI survey validator through `scripts/zigux/validate-phase3-export-uapi-survey.py`, and the focused export/UAPI layout replay through `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig`, while the separate catalog-selftest guard `scripts/zigux/check-phase3-catalog-selftest.py` is still not directly readable here and should stay framed as an adjacent gap rather than as landed same-lane proof.",
     ),
     ABI_SLICE_PATH: (
@@ -124,6 +128,10 @@ REQUIRED_MARKERS = {
         "phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);",
         "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);",
     ),
+    MAKEFILE_PATH: (
+        "phase3-low-level-wrappers-test:",
+        "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    ),
     WORKFLOW_PATH: (
         'name: Self-test current Phase 3 low-level wrapper survey validator',
         'run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test',
@@ -149,6 +157,10 @@ SELF_TEST_CASES = (
     (
         NOTE_PATH,
         "The shared tests-root reminder in `zigux/tests/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig` explicit beside the starter, helper, policy, and layout-replay packet, so the low-level-wrapper survey no longer treats shared tests-root coverage as a separate missing follow-through.",
+    ),
+    (
+        NOTE_PATH,
+        "Current `master` also keeps `zigux/Makefile` and `make -C zigux phase3-low-level-wrappers-test` explicit beside the dedicated shared build companion, so the low-level-wrapper packet now has both the direct Zig replay command and the returned shared Makefile replay gate without widening into broader Phase 3 completion claims.",
     ),
     (
         NOTE_PATH,
@@ -209,6 +221,8 @@ SELF_TEST_CASES = (
     (SHARED_TESTS_BUILD_PATH, '"phase3-test"'),
     (SHARED_TESTS_BUILD_PATH, "phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);"),
     (SHARED_TESTS_BUILD_PATH, "phase3_test_step.dependOn(&phase3_low_level_wrappers.step);"),
+    (MAKEFILE_PATH, "phase3-low-level-wrappers-test:"),
+    (MAKEFILE_PATH, "cd $(ZIGUX_ROOT) && $(ZIG) build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"),
     (WORKFLOW_PATH, 'name: Self-test current Phase 3 low-level wrapper survey validator'),
     (WORKFLOW_PATH, 'run: python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py --self-test'),
     (WORKFLOW_PATH, 'name: Check current Phase 3 low-level wrapper survey packet'),
