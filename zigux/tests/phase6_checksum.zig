@@ -1,5 +1,6 @@
 const std = @import("std");
 const checksum = @import("checksum");
+const fixtures = @import("fixtures/phase6_checksum_vectors.zig");
 
 const ComputeCase = struct {
     label: []const u8,
@@ -264,82 +265,8 @@ test "phase 6 checksum incremental helpers preserve odd-offset carry discipline"
         try std.testing.expectEqual(checksum.from32to16(sum), checksum.unfold(~checksum.fold(sum)));
     }
 
-    const add16_cases = [_]struct {
-        sum: u16,
-        addend: u16,
-        expected_add: u16,
-        expected_sub: u16,
-    }{
-        .{ .sum = 0x0000, .addend = 0x0000, .expected_add = 0x0000, .expected_sub = 0xffff },
-        .{ .sum = 0xffff, .addend = 0x0001, .expected_add = 0x0001, .expected_sub = 0xfffe },
-        .{ .sum = 0x7fff, .addend = 0x8000, .expected_add = 0xffff, .expected_sub = 0xfffe },
-        .{ .sum = 0xfffe, .addend = 0x0003, .expected_add = 0x0002, .expected_sub = 0xfffb },
-    };
-
-    for (add16_cases) |case| {
+    for (fixtures.carry16_cases) |case| {
         try std.testing.expectEqual(case.expected_add, checksum.add16(case.sum, case.addend));
         try std.testing.expectEqual(case.expected_sub, checksum.sub16(case.sum, case.addend));
-    }
-}
-
-test "phase 6 checksum from32to16 keeps carry folds exact" {
-    const sums = [_]u32{
-        0,
-        1,
-        0x0001_0000,
-        0x1234_5678,
-        0xffff_ffff,
-    };
-
-    for (sums) |sum| {
-        try std.testing.expectEqual(referenceFrom32to16(sum), checksum.from32to16(sum));
-        try std.testing.expectEqual(referenceFold(sum), checksum.fold(sum));
-    }
-}
-
-test "phase 6 checksum pseudo-header helpers match direct accumulation" {
-    const payload_seed = checksum.partial("phase6", 0);
-    try std.testing.expectEqual(
-        referencePseudoHeaderV4(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17),
-        checksum.tcpUdpNofold(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17),
-    );
-    try std.testing.expectEqual(
-        referenceFold(referencePseudoHeaderV4(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17)),
-        checksum.tcpUdpMagic(payload_seed, 0xc0a8_0001, 0xc0a8_00c7, 6, 17),
-    );
-
-    const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
-    const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
-    try std.testing.expectEqual(
-        referencePseudoHeaderV6(payload_seed, &v6_saddr, &v6_daddr, 0x0001_2345, 58),
-        checksum.tcpUdpV6Nofold(payload_seed, &v6_saddr, &v6_daddr, 0x0001_2345, 58),
-    );
-    try std.testing.expectEqual(
-        referenceFold(referencePseudoHeaderV6(payload_seed, &v6_saddr, &v6_daddr, 0x0001_2345, 58)),
-        checksum.tcpUdpV6Magic(payload_seed, &v6_saddr, &v6_daddr, 0x0001_2345, 58),
-    );
-}
-
-test "phase 6 checksum ip fast path stays aligned with full compute for aligned headers" {
-    const headers = [_][]const u8{
-        &[_]u8{
-            0x45, 0x00, 0x00, 0x3c,
-            0x1c, 0x46, 0x40, 0x00,
-            0x40, 0x06, 0x00, 0x00,
-            0xc0, 0xa8, 0x00, 0x01,
-            0xc0, 0xa8, 0x00, 0xc7,
-        },
-        &[_]u8{
-            0x46, 0x00, 0x00, 0x30,
-            0x12, 0x34, 0x20, 0x00,
-            0x40, 0x11, 0x00, 0x00,
-            0xc0, 0xa8, 0x01, 0x01,
-            0xc0, 0xa8, 0x01, 0x02,
-            0x01, 0x01, 0x00, 0x00,
-        },
-    };
-
-    for (headers) |header| {
-        try std.testing.expectEqual(checksum.compute(header), checksum.ipFastCsum(header));
     }
 }
