@@ -38,6 +38,20 @@ test "export and uapi version layouts stay aligned" {
     try testing.expect(version.eql(current, export_shim.currentVersion()));
 }
 
+test "export shim encodes starter dev_t numbers without widening the boundary" {
+    const fields = export_shim.makeDevTFields(11, 29);
+    const encoded = export_shim.encodeDeviceNumber(fields) orelse unreachable;
+    const decoded = export_shim.decodeDeviceNumber(encoded);
+
+    try testing.expectEqual(uapi_dev_t.makeDeviceNumber(fields.major, fields.minor), encoded);
+    try testing.expectEqual(dev_t.makeDeviceNumber(fields.major, fields.minor), encoded);
+    try testing.expectEqual(fields.major, decoded.major);
+    try testing.expectEqual(fields.minor, decoded.minor);
+    try testing.expect(export_shim.encodeDeviceNumber(
+        export_shim.makeDevTFields(dev_t.max_major + 1, 0),
+    ) == null);
+}
+
 test "export shim reuses the canonical boundary header contract" {
     const header = export_shim.canonicalHeader(0x41);
 
