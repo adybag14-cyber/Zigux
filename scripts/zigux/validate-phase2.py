@@ -77,7 +77,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 34
+EXPECTED_SELF_TEST_CASE_COUNT = 38
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -93,6 +93,8 @@ def read_text(root: Path, path: Path) -> str:
         return resolved.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {resolved}") from exc
+    except OSError as exc:
+        raise SystemExit(f"required file unreadable: {resolved}: {exc}") from exc
 
 
 def count_exact_lines(text: str, line: str) -> int:
@@ -209,6 +211,8 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 def write_text(root: Path, path: Path, content: str) -> None:
     resolved = resolve_path(root, path)
     resolved.parent.mkdir(parents=True, exist_ok=True)
+    if resolved.is_dir():
+        resolved.rmdir()
     resolved.write_text(content, encoding="utf-8")
 
 
@@ -340,6 +344,14 @@ def run_self_test() -> int:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             assert_system_exit_contains(lambda current_path=path: collect_issues(root), "required file missing:")
+            checks_run += 1
+
+        for path in (SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST, MAKEFILE):
+            build_self_test_root(root)
+            unreadable = resolve_path(root, path)
+            unreadable.unlink()
+            unreadable.mkdir()
+            assert_system_exit_contains(lambda current_path=path: collect_issues(root), "required file unreadable:")
             checks_run += 1
 
         for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
