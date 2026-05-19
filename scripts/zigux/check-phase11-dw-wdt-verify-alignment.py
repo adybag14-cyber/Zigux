@@ -23,6 +23,7 @@ EXPECTED_MANIFEST_LANE = "P11-L05"
 EXPECTED_MANIFEST_PIN = "75f8336c4305beed127d7abfae37d3999b7cc57c"
 VERIFY_DESTINATION = "drivers/watchdog/dw_wdt_verify.zig"
 VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
+VERIFY_STATUS = "starter_landed"
 PM_DESTINATION = "drivers/watchdog/dw_wdt_pm.zig"
 PM_GAP_ID = "phase11-dw-wdt-live-platform-pm"
 NEXT_DESTINATION = "zigux/tests/phase11_dw_wdt.zig"
@@ -139,6 +140,11 @@ def expect_manifest_state(manifest: dict[str, object]) -> None:
                     "manifest teardown-parity destination mismatch: "
                     f"expected {VERIFY_DESTINATION}, got {entry.get('zigux_destination')!r}"
                 )
+            if entry.get("status") != VERIFY_STATUS:
+                raise CheckError(
+                    "manifest teardown-parity status mismatch: "
+                    f"expected {VERIFY_STATUS!r}, got {entry.get('status')!r}"
+                )
             found_verify = True
         if entry.get("id") == PM_GAP_ID:
             if entry.get("zigux_destination") != PM_DESTINATION:
@@ -206,6 +212,7 @@ def build_fixture(root: Path) -> None:
                 "gaps": [
                     {
                         "id": VERIFY_GAP_ID,
+                        "status": VERIFY_STATUS,
                         "zigux_destination": VERIFY_DESTINATION,
                     },
                     {
@@ -274,6 +281,17 @@ def run_self_test() -> None:
         write(manifest_path, json.dumps(data, indent=2) + "\n")
         expect_failure(manifest_pin_case, "manifest surveyed_commit mismatch")
 
+        manifest_verify_status_case = tmpdir / "manifest_verify_status_case"
+        shutil.copytree(fixture, manifest_verify_status_case, dirs_exist_ok=True)
+        manifest_path = manifest_verify_status_case / FILES["manifest"]
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+        data["gaps"][0]["status"] = "ready_next"
+        write(manifest_path, json.dumps(data, indent=2) + "\n")
+        expect_failure(
+            manifest_verify_status_case,
+            "manifest teardown-parity status mismatch",
+        )
+
         manifest_gap_case = tmpdir / "manifest_gap_case"
         shutil.copytree(fixture, manifest_gap_case, dirs_exist_ok=True)
         manifest_path = manifest_gap_case / FILES["manifest"]
@@ -282,7 +300,7 @@ def run_self_test() -> None:
         write(manifest_path, json.dumps(data, indent=2) + "\n")
         expect_failure(manifest_gap_case, "manifest pm status mismatch")
 
-        self_test_case_count = len(marker_cases) + 3
+        self_test_case_count = len(marker_cases) + 4
         print("PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELF_TEST=pass")
         print(
             f"PHASE11_DW_WDT_VERIFY_ALIGNMENT_SELF_TEST_CASE_COUNT={self_test_case_count}"
