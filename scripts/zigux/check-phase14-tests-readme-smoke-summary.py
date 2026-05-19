@@ -16,6 +16,7 @@ SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase14.py")
 RELEASE_BOUNDARY_CHECKER_PATH = Path("scripts/zigux/check-phase14-release-boundary-exact-counts.py")
+TESTS_README_CHECKER_PATH = Path("scripts/zigux/check-phase14-tests-readme-smoke-summary.py")
 MAKEFILE_PATH = Path("zigux/Makefile")
 WORKQUEUE_BRIDGE_PATH = Path("kernel/workqueue_bridge.zig")
 WORKQUEUE_TEST_PATH = Path("zigux/tests/phase14_workqueue_bridge.zig")
@@ -33,6 +34,7 @@ REQUIRED_FILES = (
     REVIEW_CHECKLIST_PATH,
     VALIDATOR_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
+    TESTS_README_CHECKER_PATH,
     MAKEFILE_PATH,
     WORKQUEUE_BRIDGE_PATH,
     WORKQUEUE_TEST_PATH,
@@ -53,8 +55,9 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "`Documentation/zigux/phase14-shared-smoke-current-master-gap.md`",
     "`scripts/zigux/validate-phase14.py`",
     "`scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
+    "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py`",
     "`zigux/tests/phase14_workqueue_reviewability.zig`",
-    "but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
+    "but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families plus `phase14-validate`, while `phase14-smoke`, `phase14-test`, and `phase14` still remain absent",
     "`zigux/tests/phase14_build.zig`",
     "`zigux/tests/phase14_end_to_end_smoke_manifest.json`",
     "`net/core/skbuff_bridge.zig`",
@@ -64,7 +67,7 @@ REQUIRED_SCRIPTS_README_MARKERS = (
     "the current scripts-root shared smoke packet stays reviewable through the recovered study-only documentation packet",
     "`scripts/zigux/validate-phase14.py` and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` keep the recoverable shared-smoke layer visible",
     "`kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, and `zigux/tests/phase14_workqueue_bridge_manifest.json` keep the directly readable workqueue reviewability shard explicit",
-    "there are still no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
+    "current `master` does materialize `zigux/Makefile`, and its live body now exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes together with `phase14-validate`; `phase14-smoke`, `phase14-test`, and `phase14` still do not return",
     "keep same-lane follow-through narrowed to reminder-surface truthfulness",
 )
 
@@ -78,7 +81,6 @@ REQUIRED_CHECKLIST_MARKERS = (
 )
 
 FORBIDDEN_MAKEFILE_MARKERS = (
-    "phase14-validate:",
     "phase14-smoke:",
     "phase14-test:",
     "phase14: phase14-validate phase14-smoke phase14-test",
@@ -188,6 +190,7 @@ def write_fixture_tree(root: Path) -> None:
     )
     write_text(root / VALIDATOR_PATH, "# validator placeholder\n")
     write_text(root / RELEASE_BOUNDARY_CHECKER_PATH, "# release-boundary checker placeholder\n")
+    write_text(root / TESTS_README_CHECKER_PATH, "# tests-readme checker placeholder\n")
     write_text(
         root / MAKEFILE_PATH,
         "\n".join(
@@ -198,6 +201,7 @@ def write_fixture_tree(root: Path) -> None:
                 "phase8-validate:",
                 "phase10-validate:",
                 "phase12-smoke:",
+                "phase14-validate:",
             )
         )
         + "\n",
@@ -275,7 +279,7 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         makefile_path = base / MAKEFILE_PATH
         makefile_path.write_text(
-            makefile_path.read_text(encoding="utf-8") + "phase14-validate:\n",
+            makefile_path.read_text(encoding="utf-8") + "phase14-smoke:\n",
             encoding="utf-8",
         )
         expect_failure(base, "phase14 makefile found forbidden markers")
