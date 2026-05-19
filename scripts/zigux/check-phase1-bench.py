@@ -455,6 +455,20 @@ def capture_bench_command_missing_output(
     return buffer.getvalue().splitlines()
 
 
+def emit_success_packet(expectations: dict[str, object]) -> int:
+    print("PHASE1_BENCH_CHECK=pass")
+    print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}")
+    return 0
+
+
+def capture_success_packet_output(expectations: dict[str, object]) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = emit_success_packet(expectations)
+    assert result == 0
+    return buffer.getvalue().splitlines()
+
+
 def run_self_test() -> None:
     case_count = 0
     expectations = {
@@ -1172,6 +1186,13 @@ def run_self_test() -> None:
     assert payload == reordered_checksums["checksums"]
     case_count += 1
 
+    success_output = capture_success_packet_output(expectations)
+    assert success_output == [
+        "PHASE1_BENCH_CHECK=pass",
+        f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}",
+    ]
+    case_count += 1
+
     print("PHASE1_BENCH_CHECK_SELF_TEST=pass")
     print(f"PHASE1_BENCH_CHECK_SELF_TEST_CASE_COUNT={case_count}")
 
@@ -1215,9 +1236,7 @@ def main() -> int:
     if kind != "pass":
         return emit_validation_failure(kind, payload, EXPECTATIONS)
 
-    print("PHASE1_BENCH_CHECK=pass")
-    print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}")
-    return 0
+    return emit_success_packet(expectations)
 
 
 if __name__ == "__main__":
