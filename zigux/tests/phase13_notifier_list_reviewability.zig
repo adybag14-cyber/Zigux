@@ -53,3 +53,50 @@ test "phase13 notifier checker stays explicit in the focused reviewability gate"
     try requireContains(checker, "zigux/tests/phase13_notifier_list_manifest.json");
     try requireContains(checker, "drivers/tty/hvc/hvc_console.h");
 }
+
+test "phase13 notifier binding keeps the shipped read-only interop foothold explicit" {
+    const binding = try readRepoFile(std.testing.allocator, "zigux/bindings/notifier_abi.zig");
+    defer std.testing.allocator.free(binding);
+
+    try requireContains(binding, "pub const NotifierBlock = extern struct");
+    try requireContains(binding, "pub const ListHead = extern struct");
+    try requireContains(binding, "pub const HListHead = extern struct");
+    try requireContains(binding, "pub fn chainHasNonincreasingPriority");
+    try requireContains(binding, "pub fn listHasConsistentBacklinks");
+    try requireContains(binding, "pub fn hlistHasConsistentPrevLinks");
+}
+
+test "phase13 list and hlist helpers keep the shipped read-only traversal packet explicit" {
+    const list_view = try readRepoFile(std.testing.allocator, "zigux/helpers/list_view.zig");
+    defer std.testing.allocator.free(list_view);
+    try requireContains(list_view, "pub const ListView = struct");
+    try requireContains(list_view, "pub fn hasConsistentBacklinks(self: ListView) bool");
+    try requireContains(list_view, "pub fn firstBrokenBacklink(self: ListView) ?BackLinkBreak");
+
+    const hlist_view = try readRepoFile(std.testing.allocator, "zigux/helpers/hlist_view.zig");
+    defer std.testing.allocator.free(hlist_view);
+    try requireContains(hlist_view, "pub const HListView = struct");
+    try requireContains(hlist_view, "pub fn hasConsistentPrevLinks(self: HListView) bool");
+    try requireContains(hlist_view, "pub fn firstBrokenPrevLink(self: HListView) ?PrevLinkBreak");
+}
+
+test "phase13 exported abi header keeps the C-side list and notifier witnesses explicit" {
+    const abi_header = try readRepoFile(std.testing.allocator, "include/zigux/abi.h");
+    defer std.testing.allocator.free(abi_header);
+
+    try requireContains(abi_header, "struct zigux_notifier_block {");
+    try requireContains(abi_header, "struct zigux_list_head {");
+    try requireContains(abi_header, "struct zigux_hlist_head {");
+    try requireContains(abi_header, "zigux_notifier_first_chain_priority_increase");
+    try requireContains(abi_header, "zigux_list_has_consistent_backlinks");
+    try requireContains(abi_header, "zigux_hlist_has_consistent_prev_links");
+}
+
+test "phase13 hvc header keeps the notifier declarations visible to the adjacent packet" {
+    const hvc_header = try readRepoFile(std.testing.allocator, "drivers/tty/hvc/hvc_console.h");
+    defer std.testing.allocator.free(hvc_header);
+
+    try requireContains(hvc_header, "int notifier_add_irq(struct hvc_struct *hp, int irq);");
+    try requireContains(hvc_header, "void notifier_del_irq(struct hvc_struct *hp, int irq);");
+    try requireContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");
+}
