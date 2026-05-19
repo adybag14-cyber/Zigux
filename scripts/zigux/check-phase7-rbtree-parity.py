@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the current Phase 7 rbtree direct-helper packet."""
+"""Validate the current Phase 7 rbtree helper-local packet."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[3] if len(SELF_PATH.parents) >= 4 else SELF_PATH.parent
 
 REQUIRED_FILES = [
+    "Documentation/zigux/phase7-rbtree-slice.md",
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "tools/lib/rbtree.zig",
@@ -20,12 +21,22 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    "Documentation/zigux/phase7-rbtree-slice.md": [
+        "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`",
+        "`PHASE7_LANE_KEY=P7-L13`",
+        "`tools/lib/rbtree.zig`",
+        "`Documentation/zigux/phase7-rbtree-direct-anchor-note.md`",
+        "`scripts/zigux/check-phase7-rbtree-parity.py`",
+        "`lib/rbtree.zig`",
+        "`zigux/tests/fixtures/phase7_rbtree.json`",
+        "same-lane truthfulness keeps the returned slice note, direct-anchor note, parity checker, replay, survey, and manifest explicit",
+    ],
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md": [
         "`scripts/zigux/check-phase7-rbtree-parity.py`",
-        "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local parity checker on current `master`",
+        "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`",
         "Fresh authenticated GitHub reread in this slot directly returned:",
+        "- `Documentation/zigux/phase7-rbtree-slice.md`",
         "- `scripts/zigux/check-phase7-rbtree-parity.py`",
-        "`Documentation/zigux/phase7-rbtree-slice.md`",
         "`lib/rbtree.zig`",
         "`zigux/tests/fixtures/phase7_rbtree.json`",
         "`zigux/tests/fixtures/phase7_rbtree_c_harness.c`",
@@ -34,6 +45,7 @@ REQUIRED_MARKERS = {
     ],
     "scripts/zigux/check-phase7-rbtree-parity.py": [
         "PHASE7_RBTREE_PARITY_SELF_TEST=pass",
+        '"Documentation/zigux/phase7-rbtree-slice.md",',
         '"tools/lib/rbtree.zig",',
         '"zigux/tests/phase7_rbtree.zig",',
         '"zigux/tests/phase7_rbtree_survey.zig",',
@@ -58,17 +70,18 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase7_rbtree_survey.zig": [
         'const checker = try readRepoFile(allocator, "scripts/zigux/check-phase7-rbtree-parity.py");',
+        'const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-rbtree-slice.md");',
         'try expectContains(checker, "PHASE7_RBTREE_PARITY=pass");',
-        'try expectContains(checker, "PHASE7_RBTREE_PARITY_REQUIRED_FILE_COUNT=");',
-        'try std.testing.expectEqualStrings("direct_helper_checker_test_note_survey_manifest_only", manifest.current_direct_readback_state);',
-        'try expectSliceContains(manifest.visible_paths, "scripts/zigux/check-phase7-rbtree-parity.py");',
-        'try expectSliceNotContains(manifest.missing_paths, "scripts/zigux/check-phase7-rbtree-parity.py");',
-        'try expectContains(direct_anchor_note, "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local parity checker on current `master`");',
+        'try std.testing.expectEqualStrings("direct_helper_slice_checker_test_note_survey_manifest", manifest.current_direct_readback_state);',
+        'try expectSliceContains(manifest.visible_paths, "Documentation/zigux/phase7-rbtree-slice.md");',
+        'try expectSliceNotContains(manifest.missing_paths, "Documentation/zigux/phase7-rbtree-slice.md");',
+        'try expectContains(slice_note, "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`");',
+        'try expectContains(direct_anchor_note, "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`");',
     ],
     "zigux/tests/phase7_rbtree_manifest.json": [
-        '"current_direct_readback_state": "direct_helper_checker_test_note_survey_manifest_only"',
-        '"scripts/zigux/check-phase7-rbtree-parity.py"',
+        '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest"',
         '"Documentation/zigux/phase7-rbtree-slice.md"',
+        '"scripts/zigux/check-phase7-rbtree-parity.py"',
         '"lib/rbtree.zig"',
         '"zigux/tests/fixtures/phase7_rbtree.json"',
         '"zigux/tests/fixtures/phase7_rbtree_c_harness.c"',
@@ -77,7 +90,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 13
 
 
 def read_text(path: Path) -> str:
@@ -133,13 +146,23 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
 
+        slice_path = tmp_root / "Documentation" / "zigux" / "phase7-rbtree-slice.md"
+        slice_marker = "`PHASE7_STATUS=helper_local_slice_note_test_survey_manifest_checker_anchor`"
+        slice_path.write_text(read_text(slice_path).replace(slice_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_slice_status_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-rbtree-slice.md: {slice_marker}",
+        )
+        write_fixture_root(tmp_root)
+
         checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-rbtree-parity.py"
         checker_path.unlink()
         expect_missing_file("missing_checker", tmp_root, "scripts/zigux/check-phase7-rbtree-parity.py")
         write_fixture_root(tmp_root)
 
         note_path = tmp_root / "Documentation" / "zigux" / "phase7-rbtree-direct-anchor-note.md"
-        note_marker = "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local parity checker on current `master`"
+        note_marker = "Current direct-readback Phase 7 rbtree helper packet now rematerializes a dedicated helper-local slice note and parity checker on current `master`"
         note_path.write_text(read_text(note_path).replace(note_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_note_checker_marker",
@@ -174,17 +197,17 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-        survey_marker = 'try expectSliceNotContains(manifest.missing_paths, "scripts/zigux/check-phase7-rbtree-parity.py");'
+        survey_marker = 'try expectSliceNotContains(manifest.missing_paths, "Documentation/zigux/phase7-rbtree-slice.md");'
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_survey_manifest_gap_guard",
+            "missing_survey_slice_gap_guard",
             tmp_root,
             f"zigux/tests/phase7_rbtree_survey.zig: {survey_marker}",
         )
         write_fixture_root(tmp_root)
 
         manifest_path = tmp_root / "zigux" / "tests" / "phase7_rbtree_manifest.json"
-        manifest_marker = '"current_direct_readback_state": "direct_helper_checker_test_note_survey_manifest_only"'
+        manifest_marker = '"current_direct_readback_state": "direct_helper_slice_checker_test_note_survey_manifest"'
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_manifest_state_marker",
@@ -193,10 +216,10 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
-        manifest_marker = '"scripts/zigux/check-phase7-rbtree-parity.py"'
+        manifest_marker = '"Documentation/zigux/phase7-rbtree-slice.md"'
         manifest_path.write_text(read_text(manifest_path).replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_manifest_checker_path",
+            "missing_manifest_slice_path",
             tmp_root,
             f"zigux/tests/phase7_rbtree_manifest.json: {manifest_marker}",
         )
