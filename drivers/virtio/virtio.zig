@@ -67,6 +67,32 @@ pub const LifecycleGuardSummary = struct {
     config_generation: u8,
 };
 
+pub const DriverModelStage = enum {
+    unattached,
+    acknowledged,
+    driver_bound,
+    features_negotiated,
+    queue_selected,
+    queue_registration_ready,
+    driver_ready,
+    device_needs_reset,
+    device_failed,
+};
+
+pub const DriverModelSummary = struct {
+    anchor: []const u8,
+    stage: DriverModelStage,
+    blocker: ?DriverLifecycleBlocker,
+    attached: bool,
+    features_negotiated: bool,
+    queue_selected: bool,
+    queue_selected_valid: bool,
+    driver_ready: bool,
+    needs_reset: bool,
+    failed: bool,
+    config_generation: u8,
+};
+
 pub const VirtioCoreLab = struct {
     const Self = @This();
 
@@ -227,6 +253,42 @@ pub const VirtioCoreLab = struct {
             .config_generation = status.config_generation,
         };
     }
+
+    pub fn driverModelSummary(self: *const Self) DriverModelSummary {
+        const guard = self.lifecycleGuardSummary();
+        const stage: DriverModelStage = if (guard.failed)
+            .device_failed
+        else if (guard.needs_reset)
+            .device_needs_reset
+        else if (guard.driver_ready)
+            .driver_ready
+        else if (guard.queue_registration_ready)
+            .queue_registration_ready
+        else if (guard.queue_selected and guard.queue_selected_valid)
+            .queue_selected
+        else if (guard.features_negotiated)
+            .features_negotiated
+        else if ((self.status & status_driver) != 0)
+            .driver_bound
+        else if (guard.attached)
+            .acknowledged
+        else
+            .unattached;
+
+        return .{
+            .anchor = anchor_path,
+            .stage = stage,
+            .blocker = guard.blocker,
+            .attached = guard.attached,
+            .features_negotiated = guard.features_negotiated,
+            .queue_selected = guard.queue_selected,
+            .queue_selected_valid = guard.queue_selected_valid,
+            .driver_ready = guard.driver_ready,
+            .needs_reset = guard.needs_reset,
+            .failed = guard.failed,
+            .config_generation = guard.config_generation,
+        };
+    }
 };
 
 test "phase10 virtio core status summary keeps lab-only driver readiness bounded to shared status bookkeeping" {
@@ -337,6 +399,58 @@ test "phase10 virtio core lifecycle guard summary blocks ready state when reset 
 
     core.setStatusBits(status_failed);
     summary = core.lifecycleGuardSummary();
+    try std.testing.expect(summary.failed);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_failed), summary.blocker);
+}
+
+test "phase10 virtio core driver model summary exposes wrapper stages for staged readiness" {
+    var core = try VirtioCoreLab.init(73, 2);
+
+    var summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.unattached, summary.stage);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .acknowledge_missing), summary.blocker);
+
+    core.setStatusBits(status_acknowledge);
+    summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.acknowledged, summary.stage);
+    try std.testing.expect(summary.attached);
+
+    core.setStatusBits(status_driver);
+    summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.driver_bound, summary.stage);
+
+    core.noteFeaturesNegotiated();
+    summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.features_negotiated, summary.stage);
+
+    _ = try core.selectQueue(1);
+    summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.queue_registration_ready, summary.stage);
+
+    core.setStatusBits(status_driver_ok);
+    summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.driver_ready, summary.stage);
+    try std.testing.expect(summary.driver_ready);
+}
+
+test "phase10 virtio core driver model summary lets reset and failed states override ready stages" {
+    var core = try VirtioCoreLab.init(74, 1);
+    core.setStatusBits(status_acknowledge | status_driver);
+    core.noteFeaturesNegotiated();
+    _ = try core.selectQueue(0);
+    core.setStatusBits(status_driver_ok);
+
+    var summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.driver_ready, summary.stage);
+
+    core.setStatusBits(status_device_needs_reset);
+    summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.device_needs_reset, summary.stage);
+    try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_needs_reset), summary.blocker);
+
+    core.setStatusBits(status_failed);
+    summary = core.driverModelSummary();
+    try std.testing.expectEqual(DriverModelStage.device_failed, summary.stage);
     try std.testing.expect(summary.failed);
     try std.testing.expectEqual(@as(?DriverLifecycleBlocker, .device_failed), summary.blocker);
 }
