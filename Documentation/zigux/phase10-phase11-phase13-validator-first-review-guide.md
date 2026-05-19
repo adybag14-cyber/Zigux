@@ -62,12 +62,14 @@ Reviewer prompts:
 
 ## Phase 11: Simple-driver packet
 
-Keep the current pre-replay checker stack explicit:
+Keep the current pre-replay checker stack and returned shared validation route explicit:
 
 - `python3 scripts/zigux/check-phase11-build-inventory.py`
 - `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `python3 scripts/zigux/validate-phase11.py`
+- `make -C zigux phase11-validate`
 - `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 
 Keep these evidence surfaces aligned in the same review:
@@ -87,6 +89,8 @@ Keep these evidence surfaces aligned in the same review:
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `scripts/zigux/validate-phase11.py`
+- `zigux/Makefile`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_dw_wdt_manifest.json`
 - `zigux/tests/phase11_dw_wdt.zig`
@@ -97,13 +101,13 @@ Keep these evidence surfaces aligned in the same review:
 
 Keep the current repo-reality gaps explicit too:
 
-- `zigux/Makefile` is present on current `master`, but it still exposes no dedicated `make -C zigux phase11`, `make -C zigux phase11-validate`, or `make -C zigux phase11-contract` routes.
+- `zigux/Makefile` is present on current `master`, and its live body now exposes the shared `make -C zigux phase11-validate` route. `make -C zigux phase11` and `make -C zigux phase11-contract` still remain repo-reality gaps.
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, `Documentation/zigux/phase11-shared-replay-contract.md`, `Documentation/zigux/phase11-closure-note.md`, `scripts/zigux/check-phase11-shared-replay-contract.py`, `scripts/zigux/check-phase11-shared-summary-surfaces.py`, and `zigux/tests/phase11_build.zig` remain repo-reality gaps rather than shipped current-`master` evidence.
 
 Reviewer prompts:
 
 - Do the current Phase 11 checker stack, the current matrix-gap notes, the current HVC cleanup companion, and the current proof-backed HVC cleanup route still describe the same bounded simple-driver packet?
-- Does the guide keep the returned `zigux/Makefile` file distinct from the still-missing dedicated Phase 11 make routes, and keep the older shared replay contract surfaces framed as gaps rather than live evidence?
+- Does the guide keep the returned `zigux/Makefile` file and `make -C zigux phase11-validate` route distinct from the still-missing broader Phase 11 make routes, and keep the older shared replay contract surfaces framed as gaps rather than live evidence?
 
 ## Phase 13: Shared-helper release packet
 
