@@ -114,6 +114,7 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: make -C zigux phase2-toolchain",
+    "run: make -C zigux phase2-tools",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
