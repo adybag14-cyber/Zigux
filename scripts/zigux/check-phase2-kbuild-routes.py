@@ -46,6 +46,7 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: make -C zigux phase2-tools",
 )
 
 README_PRESENT_MARKERS = (
@@ -69,6 +70,7 @@ README_PRESENT_MARKERS = (
     "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/Makefile`",
     "`make -C zigux phase2`",
+    "`make -C zigux phase2-tools`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
 )
@@ -295,7 +297,7 @@ def run_self_test() -> int:
         for marker in README_PRESENT_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, SCRIPTS_README)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(path.read_text(encoding="utf-8").replace(marker, ""), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_README_PRESENT_MARKERS", marker) in issues
             checks_run += 1
