@@ -15,6 +15,12 @@ README = Path("zigux/tests/README.md")
 SELF = Path("scripts/zigux/check-phase4-repo-reality-warning.py")
 PINS = Path("scripts/zigux/check-phase4-reversible-delivery-pins.py")
 PERF_BASELINE_CHECKER = Path("scripts/zigux/check-phase4-perf-baseline-packet.py")
+SEQUENCING_NOTE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
+WORKFLOW_ROUTE_CHECKER = Path("scripts/zigux/check-phase4-workflow-route-counts.py")
+MAKEFILE = Path("zigux/Makefile")
+WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
+ATOMIC64_DIFF = Path("zigux/tests/atomic64_diff.zig")
+RUNTIME_ATOMIC64_DIFF = Path("zigux/tests/runtime_atomic64_diff.zig")
 
 DIRECT_READBACK_PACKET = (
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
@@ -27,8 +33,12 @@ DIRECT_READBACK_PACKET = (
 RECOVERED_NOTE_PACKET = (
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
+    "Documentation/zigux/phase4-validation-lane-sequencing.md",
     "scripts/zigux/check-phase4-gate-evidence.py",
     "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+    "scripts/zigux/check-phase4-workflow-route-counts.py",
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml",
 )
 
 REMAINING_GAP_PACKET = (
@@ -38,9 +48,14 @@ REMAINING_GAP_PACKET = (
     "zigux/tests/phase4_bitmap_live_helper_replay.zig",
 )
 
+ATOMIC64_DIRECT_PACKET = (
+    "zigux/tests/atomic64_diff.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
+)
+
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22
 EXPECTED_PIN_SELF_TEST_CASES = 14
 PERF_CHECKER_MARKER = (
     "Current direct-readback dedicated local-only perf checker: "
@@ -61,7 +76,7 @@ NOTE_REQ = (
     "scripts/zigux/check-phase4-artifact-diff-determinism.py",
     "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here",
     PERF_CHECKER_MARKER,
 )
 
@@ -121,13 +136,18 @@ def require_exact_self_test_count(text: str, label: str, count_label: str, expec
 
 def _require_direct_packet(root: Path) -> None:
     missing_direct = [rel for rel in DIRECT_READBACK_PACKET if not (root / Path(rel)).exists()]
-    if not (root / PERF_BASELINE_CHECKER).exists():
-        missing_direct.append(PERF_BASELINE_CHECKER.as_posix())
     for rel in (
+        PERF_BASELINE_CHECKER,
         Path("zigux/tests/phase4_perf_baseline_manifest.json"),
         Path("zigux/tests/phase4_perf_baseline_survey.zig"),
         Path("Documentation/zigux/phase4-gate-evidence.md"),
         Path("Documentation/zigux/phase4-validation-matrix.md"),
+        SEQUENCING_NOTE,
+        WORKFLOW_ROUTE_CHECKER,
+        MAKEFILE,
+        WORKFLOW,
+        ATOMIC64_DIFF,
+        RUNTIME_ATOMIC64_DIFF,
     ):
         if not (root / rel).exists():
             missing_direct.append(rel.as_posix())
@@ -137,7 +157,11 @@ def _require_direct_packet(root: Path) -> None:
 
 def check(root: Path) -> None:
     note = read(root, NOTE)
-    require(note, NOTE_REQ + DIRECT_READBACK_PACKET + RECOVERED_NOTE_PACKET + REMAINING_GAP_PACKET, "phase4 note")
+    require(
+        note,
+        NOTE_REQ + DIRECT_READBACK_PACKET + RECOVERED_NOTE_PACKET + REMAINING_GAP_PACKET + ATOMIC64_DIRECT_PACKET,
+        "phase4 note",
+    )
     require(read(root, README), README_PHASE4_REQ, "phase4 tests readme")
     require(read(root, CHECKLIST), CHECKLIST_PHASE4_REQ, "phase4 review checklist")
     require_exact_self_test_count(
@@ -165,7 +189,7 @@ def baseline_note() -> str:
         f"Current direct-readback dedicated local-only perf checker: `{PERF_BASELINE_CHECKER.as_posix()}`.",
         "Current direct contents reads in this run also confirmed the roadmap-backed differential-gate pair `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` on current `master`.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state even though the broader validator, build, and bitmap replay companions still remain unreadable in authenticated contents reads for this runtime.",
-        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here.",
+        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here.",
         "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff. Authenticated contents reads in this runtime still flap on `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`, but public raw fallback rereads now return those files on current `master`, matching the broader review packet's recovered note-and-checker companions.",
         "The recovered broader note pair therefore no longer overstates those validator-side and bitmap-side companions as absent current-head evidence. Treat this narrower handoff as the authoritative shared reminder while exact blob recapture for the validator, build, and bitmap replay companions still waits on steadier authenticated contents reads.",
         "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for the review checklist, the tests-root reminder, the repo-reality warning checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the dedicated local-only perf checker plus companion packet; archival anchor pins only for this note's self-reference and the reversible-delivery pin checker self-reference; public-raw current-tree proof that `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for those four companions until exact authenticated blob capture stabilizes.",
@@ -173,7 +197,7 @@ def baseline_note() -> str:
         "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence.",
         "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` should align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, the roadmap-backed `atomic64_diff` pair, and the now-returned validator, build, and bitmap replay companions, while exact blob-pin refresh for those broader companions remains the remaining authenticated-readback gap in this handoff.",
         "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-        "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`",
+        "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
         "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14`",
     ]) + "\n"
 
@@ -210,6 +234,12 @@ def build_baseline_tree(root: Path) -> None:
     write(root, Path("zigux/tests/phase4_perf_baseline_survey.zig"), "// direct-readback perf survey placeholder\n")
     write(root, Path("Documentation/zigux/phase4-gate-evidence.md"), "# gate evidence placeholder\n")
     write(root, Path("Documentation/zigux/phase4-validation-matrix.md"), "# validation matrix placeholder\n")
+    write(root, SEQUENCING_NOTE, "# sequencing note placeholder\n")
+    write(root, WORKFLOW_ROUTE_CHECKER, "# workflow route checker placeholder\n")
+    write(root, MAKEFILE, "# makefile placeholder\n")
+    write(root, WORKFLOW, "# workflow placeholder\n")
+    write(root, ATOMIC64_DIFF, "// atomic64 diff placeholder\n")
+    write(root, RUNTIME_ATOMIC64_DIFF, "// runtime atomic64 diff placeholder\n")
 
 
 def main() -> int:
@@ -258,8 +288,9 @@ def main() -> int:
             note_path = root / NOTE
             note_path.write_text(
                 note_path.read_text(encoding="utf-8").replace(
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`",
-                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=15`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
+                    "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21`",
+                    1,
                 ),
                 encoding="utf-8",
             )
@@ -399,6 +430,66 @@ def main() -> int:
                 cases += 1
             else:
                 raise AssertionError("expected missing validation matrix note to fail")
+
+            build_baseline_tree(root)
+            sequencing_note = root / SEQUENCING_NOTE
+            sequencing_note.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing sequencing note to fail")
+
+            build_baseline_tree(root)
+            workflow_route_checker = root / WORKFLOW_ROUTE_CHECKER
+            workflow_route_checker.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing workflow-route checker to fail")
+
+            build_baseline_tree(root)
+            makefile = root / MAKEFILE
+            makefile.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing makefile to fail")
+
+            build_baseline_tree(root)
+            workflow = root / WORKFLOW
+            workflow.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing workflow to fail")
+
+            build_baseline_tree(root)
+            atomic64_diff = root / ATOMIC64_DIFF
+            atomic64_diff.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing atomic64 diff to fail")
+
+            build_baseline_tree(root)
+            runtime_atomic64_diff = root / RUNTIME_ATOMIC64_DIFF
+            runtime_atomic64_diff.unlink()
+            try:
+                check(root)
+            except RuntimeError:
+                cases += 1
+            else:
+                raise AssertionError("expected missing runtime atomic64 diff to fail")
 
             build_baseline_tree(root)
             tests_readme = root / README
