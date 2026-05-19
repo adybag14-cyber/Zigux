@@ -97,6 +97,22 @@ REQUIRED_NOTE_MARKERS = (
     "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
 )
 
+FORBIDDEN_SURFACE_CATEGORIES = (
+    "fixdep_support",
+)
+
+FORBIDDEN_SURFACE_ENTRIES = (
+    "checkers:scripts/zigux/check-phase2-fixdep-gate.py",
+    "checkers:scripts/zigux/check-fixdep-diff.py",
+    "make_wrappers:make -C zigux phase2-fixdep",
+)
+
+FORBIDDEN_NOTE_MARKERS = (
+    "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
+    "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
+    "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, fixdep helper packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+)
+
 
 def read_manifest(path: Path) -> dict:
     try:
@@ -123,6 +139,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             for entry in required_entries:
                 if entry not in entries:
                     issues.append(("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
+        for category in FORBIDDEN_SURFACE_CATEGORIES:
+            if category in surfaces:
+                issues.append(("FORBIDDEN_SURFACE_CATEGORY", category))
+        for category, entries in surfaces.items():
+            if not isinstance(entries, list):
+                continue
+            for entry in entries:
+                marker = f"{category}:{entry}"
+                if marker in FORBIDDEN_SURFACE_ENTRIES:
+                    issues.append(("FORBIDDEN_SURFACE_ENTRY", marker))
     if manifest.get("repo_reality_gaps") != []:
         issues.append(("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps"))
     notes = manifest.get("notes")
@@ -132,6 +158,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         for marker in REQUIRED_NOTE_MARKERS:
             if marker not in notes:
                 issues.append(("MISSING_NOTE_MARKER", marker))
+        for marker in FORBIDDEN_NOTE_MARKERS:
+            if marker in notes:
+                issues.append(("FORBIDDEN_NOTE_MARKER", marker))
     return issues
 
 
@@ -172,9 +201,12 @@ def run_self_test() -> int:
         + 1
         + len(REQUIRED_PRESENT_SURFACES)
         + sum(len(entries) for entries in REQUIRED_PRESENT_SURFACES.values())
+        + len(FORBIDDEN_SURFACE_CATEGORIES)
+        + len(FORBIDDEN_SURFACE_ENTRIES)
         + 1
         + 1
         + len(REQUIRED_NOTE_MARKERS)
+        + len(FORBIDDEN_NOTE_MARKERS)
         + 1
     )
     checks_run = 0
@@ -211,6 +243,21 @@ def run_self_test() -> int:
                 assert ("MISSING_SURFACE_ENTRY", f"{category}:{entry}") in collect_issues(root)
                 checks_run += 1
 
+        for category in FORBIDDEN_SURFACE_CATEGORIES:
+            manifest = build_self_test_manifest()
+            manifest["present_surfaces"][category] = ["unexpected"]
+            write_manifest(manifest_path, manifest)
+            assert ("FORBIDDEN_SURFACE_CATEGORY", category) in collect_issues(root)
+            checks_run += 1
+
+        for marker in FORBIDDEN_SURFACE_ENTRIES:
+            category, entry = marker.split(":", 1)
+            manifest = build_self_test_manifest()
+            manifest["present_surfaces"].setdefault(category, []).append(entry)
+            write_manifest(manifest_path, manifest)
+            assert ("FORBIDDEN_SURFACE_ENTRY", marker) in collect_issues(root)
+            checks_run += 1
+
         manifest = build_self_test_manifest()
         manifest["repo_reality_gaps"] = ["unexpected-gap"]
         write_manifest(manifest_path, manifest)
@@ -228,6 +275,13 @@ def run_self_test() -> int:
             manifest["notes"].remove(marker)
             write_manifest(manifest_path, manifest)
             assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in FORBIDDEN_NOTE_MARKERS:
+            manifest = build_self_test_manifest()
+            manifest["notes"].append(marker)
+            write_manifest(manifest_path, manifest)
+            assert ("FORBIDDEN_NOTE_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
         manifest_path.unlink()
