@@ -1,7 +1,7 @@
 {
   "packet": "phase6-helper-evidence",
   "phase": "Phase 6",
-  "surveyed_head": "61e026c",
+  "surveyed_head": "9ca34d1",
   "lane_scope": "shared helper-evidence rows and machine-readable manifest only",
   "current_direct_readback_companions": [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
