@@ -187,6 +187,11 @@ pub fn build(b: *std.Build) void {
     const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");
     checksum_test_step.dependOn(&run_checksum_tests.step);
     checksum_test_step.dependOn(&run_checksum_perf_matrix_tests.step);
+    const checksum_perf_matrix_test_step = b.step(
+        "phase6-checksum-perf-matrix-test",
+        "Run Phase 6 checksum perf matrix preflight",
+    );
+    checksum_perf_matrix_test_step.dependOn(&run_checksum_perf_matrix_tests.step);
 
     const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");
     hexdump_test_step.dependOn(&run_hexdump_tests.step);
