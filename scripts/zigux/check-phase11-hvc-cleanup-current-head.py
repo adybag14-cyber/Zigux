@@ -17,6 +17,7 @@ SURVEY_PATH = Path("Documentation/zigux/phase11-hvc-console-survey.md")
 COMPANION_PATH = Path("Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md")
 VERIFY_PATH = Path("Documentation/zigux/phase11-hvc-verify-helper-boundary.md")
 MATRIX_PATH = Path("Documentation/zigux/phase11-hvc-console-validation-matrix.md")
+DRIVER_PATH = Path("drivers/tty/hvc/hvc_console.zig")
 EXPORT_PROOF_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_proof.zig")
 EXPORT_BUILD_PATH = Path("zigux/tests/phase11_hvc_export_surface_layout_build.zig")
 HV_OPS_PROOF_PATH = Path("zigux/tests/phase11_hvc_hv_ops_layout_proof.zig")
@@ -78,6 +79,20 @@ MATRIX_MARKERS = (
     "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and",
     "do not treat the deeper verify helper, sysrq helper, manifest, teardown note,",
     "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
+)
+STARTER_MARKERS = (
+    "pub const RemoveHandoffRequest = struct {",
+    "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {",
+    "pub const CleanupHandoffRequest = struct {",
+    "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {",
+    "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+    "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {",
+    "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {",
+    "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
+    'test "phase11 hvc console keeps remove handoff summary reviewable" {',
+    'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
+    'test "phase11 hvc console keeps notifier irq helper surface reviewable" {',
+    'test "phase11 hvc console keeps modem-control helper surface reviewable" {',
 )
 EXPORT_PROOF_MARKERS = (
     'test "phase11 HVC exported helper proof keeps winsize layout explicit" {',
@@ -276,6 +291,7 @@ def run_check(root: Path) -> None:
     require_markers(root, COMPANION_PATH, "companion", COMPANION_MARKERS)
     require_markers(root, VERIFY_PATH, "verify", VERIFY_MARKERS)
     require_markers(root, MATRIX_PATH, "matrix", MATRIX_MARKERS)
+    require_markers(root, DRIVER_PATH, "starter", STARTER_MARKERS)
     require_markers(root, EXPORT_PROOF_PATH, "export proof", EXPORT_PROOF_MARKERS)
     require_markers(root, EXPORT_BUILD_PATH, "export build", EXPORT_BUILD_MARKERS)
     require_markers(root, HV_OPS_PROOF_PATH, "hv_ops proof", HV_OPS_PROOF_MARKERS)
@@ -372,6 +388,26 @@ def build_fixture(root: Path) -> None:
                 "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and modem-control helper summaries reviewable on current `master`.",
                 "do not treat the deeper verify helper, sysrq helper, manifest, teardown note, dedicated survey checker, or focused survey and cleanup replays as current-head direct-readback evidence",
                 "`scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not",
+                "",
+            ]
+        ),
+    )
+    write(
+        root / DRIVER_PATH,
+        "\n".join(
+            [
+                "pub const RemoveHandoffRequest = struct {",
+                "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {",
+                "pub const CleanupHandoffRequest = struct {",
+                "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {",
+                "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+                "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {",
+                "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {",
+                "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
+                'test "phase11 hvc console keeps remove handoff summary reviewable" {',
+                'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
+                'test "phase11 hvc console keeps notifier irq helper surface reviewable" {',
+                'test "phase11 hvc console keeps modem-control helper surface reviewable" {',
                 "",
             ]
         ),
@@ -647,6 +683,28 @@ def run_self_test() -> int:
         )
         expect_failure(missing_matrix_starter_failure_modes, "starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable")
 
+        missing_starter_remove_handoff = tmpdir / "missing_starter_remove_handoff"
+        shutil.copytree(fixture, missing_starter_remove_handoff, dirs_exist_ok=True)
+        write(
+            missing_starter_remove_handoff / DRIVER_PATH,
+            read_text(missing_starter_remove_handoff / DRIVER_PATH).replace(
+                'test "phase11 hvc console keeps remove handoff summary reviewable" {',
+                "",
+            ),
+        )
+        expect_failure(missing_starter_remove_handoff, 'test "phase11 hvc console keeps remove handoff summary reviewable" {')
+
+        missing_starter_notifier_edge = tmpdir / "missing_starter_notifier_edge"
+        shutil.copytree(fixture, missing_starter_notifier_edge, dirs_exist_ok=True)
+        write(
+            missing_starter_notifier_edge / DRIVER_PATH,
+            read_text(missing_starter_notifier_edge / DRIVER_PATH).replace(
+                "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {",
+                "",
+            ),
+        )
+        expect_failure(missing_starter_notifier_edge, "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {")
+
         missing_export_build_marker = tmpdir / "missing_export_build_marker"
         shutil.copytree(fixture, missing_export_build_marker, dirs_exist_ok=True)
         write(
@@ -690,7 +748,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=20")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=22")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
