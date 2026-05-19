@@ -97,6 +97,22 @@ SELF_TEST_CASES = [
         'test "phase 6 bsearch direct descending bounds wrappers keep duplicate-span and write-through coverage aligned" {',
     ),
     (CATALOG_PATH, "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`", "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf_matrix.zig`"),
+    (
+        LIB_PATH,
+        "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
+        "pub fn bsearchEqualRangeMutableBytes(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
+    ),
+    (
+        LOWER_BOUND_TEST_PATH,
+        'test "phase 6 bsearch raw c abi bounds keep duplicate spans and insertion points aligned" {',
+        'test "phase 6 bsearch raw c abi bounds keep insertion points aligned" {',
+    ),
+    (
+        BUDGET_TEST_PATH,
+        'test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {',
+        'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {',
+    ),
+    (FIXTURES_PATH, "pub const query_count: usize = 16;", "pub const query_count: usize = 15;"),
     (PERF_TEST_PATH, 'avg_compare_calls', 'avg_probe_calls'),
     (BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");', 'const bsearch_perf_step = b.step("phase6-bsearch-scan", "Run Phase 6 bsearch helper perf gate");'),
 ]
