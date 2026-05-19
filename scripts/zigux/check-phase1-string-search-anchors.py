@@ -14,6 +14,7 @@ EXPECTED_SOURCE_SYMBOLS = [
     "pub fn strnlen(buf: []const u8, count: usize) usize {",
     "pub fn strchr(buf: []const u8, needle: u8) ?usize {",
     "pub fn strrchr(buf: []const u8, needle: u8) ?usize {",
+    "pub fn strpbrk(buf: []const u8, accept: []const u8) ?usize {",
     "pub fn strchrNul(buf: []const u8, needle: u8) usize {",
     "pub fn strchrnul(buf: []const u8, needle: u8) usize {",
 ]
@@ -21,6 +22,7 @@ EXPECTED_SOURCE_SYMBOLS = [
 EXPECTED_TEST_ANCHORS = [
     'test "strchr mirrors full-length C-string searches"',
     'test "strrchr finds the last in-range match with C-string semantics"',
+    'test "strpbrk finds the first accepted byte with C-string semantics"',
     'test "strnlen honors count and C-string boundaries"',
     'test "strnchrNul returns the first match, NUL, or count boundary"',
 ]
