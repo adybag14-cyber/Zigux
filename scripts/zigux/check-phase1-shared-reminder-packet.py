@@ -126,6 +126,10 @@ MARKERS = {
         'try std.testing.expect(@hasDecl(zalloc, "zallocBytes"));',
     ),
     ".github/workflows/zigux-bootstrap.yml": (
+        "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test",
+        "run: python3 scripts/zigux/check-phase1-direct-owner-markers.py",
+        "run: python3 scripts/zigux/check-phase1-string-review-packet.py --self-test",
+        "run: python3 scripts/zigux/check-phase1-string-review-packet.py",
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test",
         "run: python3 scripts/zigux/check-phase1-shared-reminder-packet.py",
