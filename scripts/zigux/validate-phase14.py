@@ -109,7 +109,7 @@ REQUIRED_MARKERS = {
         "Keep the current bounded Phase 14 reminder packet explicit",
         "keep the blob-readable `scripts/zigux/validate-phase14.py` plus the directly readable workqueue reviewability shard explicit",
         "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes",
-        "Current `master` still does not materialize `scripts/zigux/check-phase14-release-boundary-exact-counts.py`",
+        "Documentation/zigux/phase14-release-boundary-survey.md",
     ],
     MAKEFILE_PATH: [
         "phase3-validate:",
