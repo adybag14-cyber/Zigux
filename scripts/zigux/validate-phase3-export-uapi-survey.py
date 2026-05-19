@@ -14,7 +14,7 @@ EXPORT_SHIM_PATH = Path("zigux/kernel/export_shim.zig")
 UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 LINUX_HEADER_PATH = Path("include/linux/zigux.h")
-LINUX_HEADER_GOVERNANCE_PATH = Path(
+LINUX_HEADER_GOVERNANCE_GAP_PATH = (
     "Documentation/zigux/phase3-linux-zigux-header-governance.md"
 )
 DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
@@ -25,7 +25,10 @@ LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
 CATALOG_SELFTEST_GAP_PATH = "scripts/zigux/check-phase3-catalog-selftest.py"
 
-MISSING_GAP_PATHS = (CATALOG_SELFTEST_GAP_PATH,)
+MISSING_GAP_PATHS = (
+    LINUX_HEADER_GOVERNANCE_GAP_PATH,
+    CATALOG_SELFTEST_GAP_PATH,
+)
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
@@ -36,7 +39,7 @@ REQUIRED_MARKERS = {
         "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
         "PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
-        "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_PATH=Documentation/zigux/phase3-linux-zigux-header-governance.md",
+        "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_GAP=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
         "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
         "PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig",
@@ -45,14 +48,14 @@ REQUIRED_MARKERS = {
         "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
         "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py",
         "The packet-local validator is now present and should stay aligned with this survey rather than being tracked as a missing companion.",
-        "Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, and it now also directly serves `Documentation/zigux/phase3-linux-zigux-header-governance.md` and `zigux/tests/fixtures/phase3_abi_manifest.json` as same-family companions for this starter boundary packet.",
-        "The remaining repo-reality gap for this packet is now only the separate catalog-selftest guard:",
-        "This survey should keep the returned linux-header governance note and manifest-backed ABI inventory explicit as shipped same-family companions while continuing to treat the absent catalog-selftest guard as the only active packet-local gap.",
+        "Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper and `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, but repeated current-head reads still return missing for `Documentation/zigux/phase3-linux-zigux-header-governance.md`.",
+        "The remaining repo-reality gap for this packet is now the absent linux-header governance companion plus the separate catalog-selftest guard:",
+        "This survey should keep the manifest-backed ABI inventory explicit as a shipped same-family companion while continuing to treat the absent linux-header governance note and absent catalog-selftest guard as the active packet-local gaps.",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
         'SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
-        'LINUX_HEADER_GOVERNANCE_PATH = Path(',
+        'LINUX_HEADER_GOVERNANCE_GAP_PATH = (',
         'MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
         'CATALOG_SELFTEST_GAP_PATH = "scripts/zigux/check-phase3-catalog-selftest.py"',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
@@ -85,11 +88,6 @@ REQUIRED_MARKERS = {
         "static inline zigux_boundary_header zigux_uapi_boundary_header_current(uint16_t flags)",
         "static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
     ),
-    LINUX_HEADER_GOVERNANCE_PATH: (
-        "PHASE3_ZIGUX_H_PATH=include/linux/zigux.h",
-        "PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
-        "packet-local export and UAPI starter wording stays in `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
-    ),
     DEV_T_HEADER_PATH: (
         "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
         "#define ZIGUX_DEV_MINOR_BITS 20u",
@@ -105,7 +103,6 @@ REQUIRED_MARKERS = {
     MANIFEST_PATH: (
         '"phase": "Phase 3"',
         '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
-        '"Documentation/zigux/phase3-linux-zigux-header-governance.md"',
         '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
     ),
     LAYOUT_TEST_PATH: (
@@ -200,6 +197,11 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_GAP=Documentation/zigux/phase3-linux-zigux-header-governance.md",
+            "expected missing survey linux-header governance gap marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py",
             "expected missing catalog-selftest gap marker was not reported",
         ),
@@ -229,11 +231,6 @@ def run_self_test() -> int:
             "expected missing linux header validator marker was not reported",
         ),
         (
-            LINUX_HEADER_GOVERNANCE_PATH,
-            "PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
-            "expected missing linux-header governance manifest marker was not reported",
-        ),
-        (
             DEV_T_HEADER_PATH,
             "static inline int zigux_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
             "expected missing dev_t header validator marker was not reported",
@@ -245,8 +242,8 @@ def run_self_test() -> int:
         ),
         (
             MANIFEST_PATH,
-            '"Documentation/zigux/phase3-linux-zigux-header-governance.md"',
-            "expected missing manifest governance marker was not reported",
+            '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
+            "expected missing manifest survey validator marker was not reported",
         ),
         (
             LAYOUT_TEST_PATH,
@@ -280,20 +277,21 @@ def run_self_test() -> int:
             if _expect_missing_marker(root, relative_path, marker, message) != 0:
                 return 1
 
-        if (
-            _expect_returned_gap(
-                root,
-                MISSING_GAP_PATHS[0],
-                "expected returned-gap guard was not reported",
-            )
-            != 0
-        ):
-            return 1
+        for gap_path in MISSING_GAP_PATHS:
+            if (
+                _expect_returned_gap(
+                    root,
+                    gap_path,
+                    f"expected returned-gap guard was not reported for {gap_path}",
+                )
+                != 0
+            ):
+                return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     print(
         "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES="
-        f"{1 + len(marker_cases) + 1}"
+        f"{1 + len(marker_cases) + len(MISSING_GAP_PATHS)}"
     )
     return 0
 
