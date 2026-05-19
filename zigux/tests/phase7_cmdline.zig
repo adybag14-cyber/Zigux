@@ -44,6 +44,18 @@ test "phase 7 cmdline companion replays option decoding, ranges, and malformed-i
     try std.testing.expectEqual(@as(i32, 2), wrapped_validate[0]);
 }
 
+test "phase 7 cmdline companion replays negative range expansion and negative upper-bound posture" {
+    var negative_values = [_]i32{ 0, 0, 0, 0, 0 };
+    const negative_rest = cmdline.getOptions("-2-1", negative_values.len, &negative_values);
+    try std.testing.expectEqualStrings("", negative_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, -2, -1, 0, 1 }, &negative_values);
+
+    var negative_upper_values = [_]i32{ 0, 0, 0, 0 };
+    const negative_upper_rest = cmdline.get_options("-3--1", negative_upper_values.len, &negative_upper_values);
+    try std.testing.expectEqualStrings("", negative_upper_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 3, -3, -2, -1 }, &negative_upper_values);
+}
+
 test "phase 7 cmdline companion replays validator-only getOption cursor movement" {
     var comma_rest: []const u8 = "16,tail";
     try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&comma_rest, null));
