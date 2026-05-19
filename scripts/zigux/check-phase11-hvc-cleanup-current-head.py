@@ -61,9 +61,11 @@ VERIFY_MARKERS = (
     "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
     "`CleanupTrigger.hangup_only` and `CleanupTrigger.final_close_and_hangup` keep the hangup-only and combined cleanup trigger split explicit beside the earlier final-close-only path.",
     "Current direct contents reads on `master` still do not rematerialize `drivers/tty/hvc/hvc_console_verify.zig`, so keep this note as the current-head reminder surface for those landed helper edges rather than treating the helper file itself as returned direct-readback evidence.",
+    "`error.NotifierDispatchRequiresTtyRegistration` keeps notifier prerequisite failures explicit instead of implying sysrq-triggered notifier dispatch can occur before tty registration.",
     "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
     "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable without claiming that notifier teardown has become live runtime behavior.",
     "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
+    "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.",
     "do not treat this note as proof that `drivers/tty/hvc/hvc_console_verify.zig` has returned to direct current-head readback",
 )
 MATRIX_MARKERS = (
@@ -341,9 +343,11 @@ def build_fixture(root: Path) -> None:
                 "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
                 "`CleanupTrigger.hangup_only` and `CleanupTrigger.final_close_and_hangup` keep the hangup-only and combined cleanup trigger split explicit beside the earlier final-close-only path.",
                 "Current direct contents reads on `master` still do not rematerialize `drivers/tty/hvc/hvc_console_verify.zig`, so keep this note as the current-head reminder surface for those landed helper edges rather than treating the helper file itself as returned direct-readback evidence.",
+                "`error.NotifierDispatchRequiresTtyRegistration` keeps notifier prerequisite failures explicit instead of implying sysrq-triggered notifier dispatch can occur before tty registration.",
                 "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
                 "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable without claiming that notifier teardown has become live runtime behavior.",
                 "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
+                "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.",
                 "do not treat this note as proof that `drivers/tty/hvc/hvc_console_verify.zig` has returned to direct current-head readback",
                 "",
             ]
@@ -552,6 +556,28 @@ def run_self_test() -> int:
         )
         expect_failure(missing_verify_targetless_dispatch, "`targetless_dispatch_without_notifier`")
 
+        missing_verify_notifier_prereq = tmpdir / "missing_verify_notifier_prereq"
+        shutil.copytree(fixture, missing_verify_notifier_prereq, dirs_exist_ok=True)
+        write(
+            missing_verify_notifier_prereq / VERIFY_PATH,
+            read_text(missing_verify_notifier_prereq / VERIFY_PATH).replace(
+                "`error.NotifierDispatchRequiresTtyRegistration` keeps notifier prerequisite failures explicit instead of implying sysrq-triggered notifier dispatch can occur before tty registration.",
+                "",
+            ),
+        )
+        expect_failure(missing_verify_notifier_prereq, "`error.NotifierDispatchRequiresTtyRegistration`")
+
+        missing_verify_literal_fallback = tmpdir / "missing_verify_literal_fallback"
+        shutil.copytree(fixture, missing_verify_literal_fallback, dirs_exist_ok=True)
+        write(
+            missing_verify_literal_fallback / VERIFY_PATH,
+            read_text(missing_verify_literal_fallback / VERIFY_PATH).replace(
+                "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.",
+                "",
+            ),
+        )
+        expect_failure(missing_verify_literal_fallback, "the literal-fallback helpers keep both the sanitized targetless sysrq path")
+
         missing_matrix = tmpdir / "missing_matrix"
         shutil.copytree(fixture, missing_matrix, dirs_exist_ok=True)
         write(
@@ -617,7 +643,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=15")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=17")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
