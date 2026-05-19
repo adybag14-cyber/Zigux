@@ -94,12 +94,9 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
-- `scripts/zigux/check-phase13-shared-summary-surfaces.py`
-- `scripts/zigux/check-phase13-tests-readme-alignment.py`
-- `scripts/zigux/check-phase13-notifier-packet.py`
 - `Documentation/zigux/phase13-notifier-list-survey.md`
-- `zigux/tests/phase13_notifier_list_manifest.json`
-- `zigux/tests/phase13_notifier_list_reviewability.zig`
+- `zigux/helpers/list_view.zig`
+- `zigux/helpers/hlist_view.zig`
 - `zigux/bindings/notifier_abi.zig`
 - `include/zigux/abi.h`
 - `drivers/tty/hvc/hvc_console.h`
@@ -112,14 +109,16 @@ Current `master` still does not materialize `zigux/tests/phase13_devres.zig`, `z
 
 Current `master` does materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that guard explicit as shipped shared-summary evidence aligned with the contributor workflow guide and roadmap-traceability note instead of repeating it as a missing tests-root gap.
 
-Current `master` also materializes the adjacent notifier survey, the focused notifier packet through `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, and `zigux/tests/phase13_notifier_list_reviewability.zig`, plus the direct-evidence shards `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, so keep that narrower adjacent notifier packet explicit as shipped support evidence without counting it as an extra shared replay step or a fifth helper family.
+Current `master` also materializes `scripts/zigux/check-phase13-tests-readme-alignment.py`, so keep that companion explicit as shipped tests-root evidence aligned with the contributor workflow guide, shared-helper sequencing note, release-coordination matrix, and compact review companion instead of leaving it implicit inside the broader tests-root prose.
+
+Current `master` also materializes the adjacent notifier survey plus the direct-evidence shards `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, so keep those six paths explicit as shipped adjacent evidence without counting them as extra shared replay steps.
 
 Current `master` does materialize `zigux/Makefile`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.
 
 Keep `zigux/helpers/notifier_chain_view.zig` framed as an adjacent repo-reality gap rather than a shipped shared surface.
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 13 reminder keep the stable contributor-facing handle, the shipped tests-root alignment companion `scripts/zigux/check-phase13-tests-readme-alignment.py`, the shipped helper-local `libfs`, `devres`, and Landlock anchors, the shared-summary guard, the focused adjacent notifier packet through `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, and `zigux/tests/phase13_notifier_list_reviewability.zig`, the returned-but-still-non-owner `zigux/Makefile` file, and the still-missing Phase 13 build-route, validator-first, deeper devres replay, notifier-priority, and Landlock syscall replay surfaces aligned without promoting repo-reality gaps back into shipped tests-root proof?
+- Does the bounded Phase 13 reminder keep the stable contributor-facing handle, the shipped tests-root alignment companion `scripts/zigux/check-phase13-tests-readme-alignment.py`, the shipped helper-local `libfs`, `devres`, and Landlock anchors, the shared-summary guard, the adjacent notifier evidence, the returned-but-still-non-owner `zigux/Makefile` file, and the still-missing Phase 13 build-route, validator-first, deeper devres replay, notifier-priority, and Landlock syscall replay surfaces aligned without promoting repo-reality gaps back into shipped tests-root proof?
 
 ## Phase 14 shared smoke packet
 
