@@ -518,6 +518,7 @@ test "non-ELF input exits with stderr" {
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(not_elf_text, stderr.list.items);
 }
+
 test "non-ELF input with trailing bytes exits with stderr" {
     var stdout = try Capture.init(std.testing.allocator);
     defer stdout.deinit();
@@ -1251,4 +1252,23 @@ test "split-read later read error one byte before full header still exits with t
     try std.testing.expectEqual(@as(usize, 3), reader.call_count);
     try std.testing.expectEqualStrings("", stdout.list.items);
     try std.testing.expectEqualStrings(truncated_text, stderr.list.items);
+}
+
+test "readHeader keeps fifteen bytes when a later read fails one byte before the full header" {
+    var reader = FailingReader{
+        .bytes = &[_]u8{
+            0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+            0,    0,   0,   0,   0,          0, 0,
+        },
+        .chunk_sizes = &[_]usize{ 7, 8, 8 },
+        .fail_on_call = 3,
+    };
+
+    const header = try readHeaderFromReader(&reader);
+    try std.testing.expectEqual(@as(usize, 15), header.len);
+    try std.testing.expectEqual(@as(usize, 3), reader.call_count);
+    try std.testing.expectEqualSlices(u8, &[_]u8{
+        0x7f, 'E', 'L', 'F', elfclass64, 1, 1, 0,
+        0,    0,   0,   0,   0,          0, 0,
+    }, header.bytes[0..header.len]);
 }
