@@ -111,6 +111,8 @@ Keep the non-runtime Phase 5 boundary explicit:
 Keep the no-extra-sample helper-family boundaries explicit too:
 
 - current `master` does ship one bounded `*string*` companion through `samples/zigux/trace_events_string_formatting_sample.zig`, but keep it tied to the non-runtime `trace_events` anchor instead of treating it as a standalone helper packet
+- there is no standalone `samples/zigux/*kasprintf*` Phase 5 reference sample on current `master`
+- there is no standalone `samples/zigux/*strarray*` Phase 5 reference sample on current `master`
 - there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`
 - there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`
 - there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`
