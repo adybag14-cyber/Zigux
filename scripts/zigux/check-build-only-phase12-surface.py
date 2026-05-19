@@ -151,6 +151,7 @@ REQUIRED_MARKERS = {
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
         "current `zigux/Makefile` now ships `phase12-smoke`, `phase12-test`, and `phase12` again, while `phase12-validate` is still absent, so only `make -C zigux phase12-validate` stays reminder vocabulary while `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` are current wrapper proof on `master`.",
         "The directly readable rerun and support surfaces in this lane are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, while only `make -C zigux phase12-validate` stays documented as shared reminder text until that wrapper returns on current `master`.",
+        "Keep the current partial direct-read bridge explicit too: `Documentation/zigux/phase12-raw-github-coverage-survey.md` now records that `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/README.md`, and `zigux/Makefile` are directly readable on current `master`, while `zigux/tests/phase12_build.zig` still fails through the same bridge, and the readable Makefile now exposes `phase12-smoke`, `phase12-test`, and `phase12` even though `phase12-validate` is still missing, so that checker-plus-workflow-plus-scripts-plus-Makefile set stays split support evidence only rather than proof for the larger shared packet.",
         "keep those two `virtio_net` follow-ups framed as bounded transmit-disposition and queue-resume reviewability inside the shared packet rather than as live DMA-safe receive ownership, queue restart parity, transport-backed queue flow, or completion-path parity",
         "keep those `virtio_scsi` files framed as one directly readable bounded driver-local packet, but leave exact survey-packet lane-key and verified-on realignment to the packet-local survey follow-through in `P12-L09` rather than reopening broader shared PMO wording or driver-local code from this anti-overlap note alone",
     ],
@@ -183,8 +184,8 @@ REQUIRED_MARKERS = {
         "phase12: phase12-smoke phase12-test",
     ],
     PHASE12_BUILD_PATH: [
-        "\"phase12_virtio_net_transmit_recycle.zig\"",
-        "\"phase12_virtio_net_queue_resume.zig\"",
+        '"phase12_virtio_net_transmit_recycle.zig"',
+        '"phase12_virtio_net_queue_resume.zig"',
         "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
         "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
@@ -353,6 +354,7 @@ def run_self_test() -> int:
             (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][1]),
             (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][2]),
             (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][3]),
+            (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][4]),
             (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][0]),
             (RELEASE_CLOSURE_CHECKLIST_PATH, REQUIRED_MARKERS[RELEASE_CLOSURE_CHECKLIST_PATH][1]),
             (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][0]),
