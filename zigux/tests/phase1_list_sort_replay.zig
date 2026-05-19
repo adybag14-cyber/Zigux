@@ -109,6 +109,58 @@ test "phase1 list_sort replay matches committed parity fixture" {
     try std.testing.expectEqualSlices(usize, fixture.list_sort.bool_sorted_ordinals, bool_ordinals[0..bool_count]);
 }
 
+test "phase1 list_sort replay honors plain comparator context" {
+    const SortMode = enum { ascending, descending };
+
+    const tri_ctx_cmp = struct {
+        fn compare(priv: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const mode: *const SortMode = @ptrCast(@alignCast(priv.?));
+            const lhs: *const Entry = @fieldParentPtr("node", a);
+            const rhs: *const Entry = @fieldParentPtr("node", b);
+
+            if (lhs.key == rhs.key) return 0;
+            const ascending = lhs.key < rhs.key;
+            return if (mode.* == .ascending)
+                (if (ascending) -1 else 1)
+            else
+                (if (ascending) 1 else -1);
+        }
+    }.compare;
+
+    var head: list_sort.ListHead = .{};
+    head.init();
+    var entries = [_]Entry{
+        .{ .key = 2, .ordinal = 0 },
+        .{ .key = 1, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 1, .ordinal = 3 },
+        .{ .key = 3, .ordinal = 4 },
+    };
+    for (&entries) |*entry| {
+        list_sort.listAddTail(&entry.node, &head);
+    }
+
+    var mode = SortMode.descending;
+    list_sort.listSort(&mode, &head, tri_ctx_cmp);
+
+    var keys: [5]i32 = undefined;
+    var ordinals: [5]usize = undefined;
+    const count = try collectSorted(&head, &keys, &ordinals);
+    try std.testing.expectEqual(@as(usize, entries.len), count);
+    try std.testing.expectEqualSlices(i32, &.{ 3, 3, 2, 1, 1 }, keys[0..count]);
+    try std.testing.expectEqualSlices(usize, &.{ 2, 4, 0, 1, 3 }, ordinals[0..count]);
+    try std.testing.expect(head.next == &entries[2].node);
+    try std.testing.expect(head.prev == &entries[3].node);
+    try std.testing.expect(entries[2].node.prev == &head);
+    try std.testing.expect(entries[3].node.next == &head);
+
+    var current = head.next;
+    while (current != &head) : (current = current.?.next) {
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+    }
+}
+
 test "phase1 list_sort replay covers signed subtractive ordering with intact links" {
     const signed_cmp = struct {
         fn compare(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
