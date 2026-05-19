@@ -225,6 +225,12 @@
     ],
     "zigux/tests/phase10_virtio_input_teardown_observation.zig": [
       "phase10 input teardown-observation replay"
+    ],
+    "zigux/tests/phase10_virtio_mmio.zig": [
+      "phase10 mmio lab replay"
+    ],
+    "zigux/tests/phase10_virtio_mmio_survey.zig": [
+      "phase10 mmio survey replay"
     ]
   },
   "blocked_transport_gaps": {
