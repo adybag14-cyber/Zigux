@@ -52,6 +52,9 @@ test "phase 7 rbtree survey keeps the rematerialized direct-helper packet honest
     const direct_anchor_note = try readRepoFile(allocator, "Documentation/zigux/phase7-rbtree-direct-anchor-note.md");
     defer allocator.free(direct_anchor_note);
 
+    const helper = try readRepoFile(allocator, "tools/lib/rbtree.zig");
+    defer allocator.free(helper);
+
     const parsed = try std.json.parseFromSlice(RbtreeManifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -70,6 +73,14 @@ test "phase 7 rbtree survey keeps the rematerialized direct-helper packet honest
     try expectSliceNotContains(manifest.visible_paths, "Documentation/zigux/phase7-rbtree-slice.md");
     try expectSliceNotContains(manifest.visible_paths, "lib/rbtree.zig");
     try expectSliceNotContains(manifest.visible_paths, "zigux/tests/phase7_rbtree.zig");
+
+    try expectContains(helper, "pub const Node = struct {");
+    try expectContains(helper, "pub const RootCached = struct {");
+    try expectContains(helper, "pub fn clearNode");
+    try expectContains(helper, "pub fn linkNode");
+    try expectContains(helper, "pub fn add");
+    try expectContains(helper, "pub fn findAdd");
+    try expectContains(helper, "pub fn rb_find_add_cached");
 
     try expectSliceContains(manifest.readable_non_owner_paths, "zigux/Makefile");
     try expectSliceContains(manifest.readable_non_owner_paths, ".github/workflows/zigux-bootstrap.yml");
