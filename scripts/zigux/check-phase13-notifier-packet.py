@@ -14,6 +14,8 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-notifier-packet.py`",
         "`zigux/tests/phase13_notifier_list_manifest.json`",
         "`zigux/tests/phase13_notifier_list_reviewability.zig`",
+        "`zigux/helpers/list_view.zig`",
+        "`zigux/helpers/hlist_view.zig`",
         "`zigux/helpers/notifier_chain_view.zig`",
         "`make -C zigux phase13-validate`",
         "focused checker",
@@ -22,6 +24,8 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase13-notifier-packet.py`",
         "`zigux/tests/phase13_notifier_list_manifest.json`",
         "`zigux/tests/phase13_notifier_list_reviewability.zig`",
+        "`zigux/helpers/list_view.zig`",
+        "`zigux/helpers/hlist_view.zig`",
         "`zigux/helpers/notifier_chain_view.zig`",
         "`make -C zigux phase13-validate`",
     ),
@@ -31,6 +35,10 @@ REQUIRED_MARKERS = {
         "\"current_notifier_packet_checker_present\": true",
         "\"current_phase13_notifier_list_manifest_present\": true",
         "\"current_phase13_notifier_list_reviewability_present\": true",
+        "\"current_list_view_present\": true",
+        "\"current_hlist_view_present\": true",
+        "\"id\": \"phase13-notifier-list-view-helper\"",
+        "\"id\": \"phase13-notifier-hlist-view-helper\"",
         "\"id\": \"phase13-notifier-focused-packet-checker\"",
         "\"id\": \"phase13-notifier-chain-helper-gap\"",
         "\"id\": \"phase13-build-route-gap\"",
@@ -153,7 +161,7 @@ def run_self_test() -> int:
         survey_path = tempdir / "Documentation/zigux/phase13-notifier-list-survey.md"
         survey_path.write_text(
             survey_path.read_text(encoding="utf-8").replace(
-                "`scripts/zigux/check-phase13-notifier-packet.py`\n",
+                "`zigux/helpers/hlist_view.zig`\n",
                 "",
                 1,
             ),
@@ -161,7 +169,7 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:`scripts/zigux/check-phase13-notifier-packet.py`"
+            "missing_marker:Documentation/zigux/phase13-notifier-list-survey.md:`zigux/helpers/hlist_view.zig`"
             in issues
         )
         populate_repo(tempdir)
@@ -170,7 +178,7 @@ def run_self_test() -> int:
         manifest_path = tempdir / "zigux/tests/phase13_notifier_list_manifest.json"
         manifest_path.write_text(
             manifest_path.read_text(encoding="utf-8").replace(
-                '"id": "phase13-notifier-focused-packet-checker"\n',
+                '"id": "phase13-notifier-hlist-view-helper"\n',
                 "",
                 1,
             ),
@@ -178,7 +186,7 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:"id": "phase13-notifier-focused-packet-checker"'
+            'missing_marker:zigux/tests/phase13_notifier_list_manifest.json:"id": "phase13-notifier-hlist-view-helper"'
             in issues
         )
         populate_repo(tempdir)
