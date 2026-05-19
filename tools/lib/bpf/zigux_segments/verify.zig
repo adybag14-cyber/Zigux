@@ -359,6 +359,10 @@ test "materialized tools/lib/bpf Zigux segments keep stable logging helper outpu
         logging.ParsedLogLevel{ .min_level = .info, .recognized = false },
         logging.parseLogLevelSetting("chatty"),
     );
+    try std.testing.expectEqualDeep(
+        logging.ParsedLogLevel{ .min_level = .info, .recognized = true },
+        logging.parseLogLevelSetting(null),
+    );
     try std.testing.expect(logging.shouldLogWithEnv(.debug, "debug"));
     try std.testing.expect(!logging.shouldLogWithEnv(.debug, null));
 
@@ -383,8 +387,19 @@ test "materialized tools/lib/bpf Zigux segments keep stable logging helper outpu
         logging.libbpfErrorMessage(-@intFromEnum(logging.LibbpfErrno.verify)).?,
     );
     try std.testing.expectEqualStrings(
+        "Kernel verifier blocks program loading",
+        try logging.formatLibbpfError(
+            error_buffer[0..],
+            -@as(i32, @intFromEnum(logging.LibbpfErrno.verify)),
+        ),
+    );
+    try std.testing.expectEqualStrings(
         "Unknown libbpf error 4999",
         try logging.formatLibbpfError(error_buffer[0..], -4999),
+    );
+    try std.testing.expectEqualStrings(
+        "Unknown libbpf error 2147483648",
+        try logging.formatLibbpfError(error_buffer[0..], std.math.minInt(i32)),
     );
 }
 
@@ -429,6 +444,7 @@ test "materialized tools/lib/bpf Zigux segments keep stable cpu-mask helper outp
     try std.testing.expect(!cpu_mask.isOnlineCpuEligible(parsed.values, 3));
     try std.testing.expectEqual(@as(usize, 4), summary.deriveAutoCpuCount(0));
     try std.testing.expectEqual(@as(usize, 2), cpu_mask.derivePerfBufferAutoCpuCount(summary.possible_cpu_count, 2));
+    try std.testing.expectEqual(@as(usize, 4), cpu_mask.derivePerfBufferAutoCpuCount(summary.possible_cpu_count, 99));
 
     var scratch: [3]u8 = undefined;
     var reader_context = CpuMaskReaderContext{ .input = "1,3-4\n" };
@@ -440,6 +456,12 @@ test "materialized tools/lib/bpf Zigux segments keep stable cpu-mask helper outp
     try std.testing.expectEqual(@as(usize, 5), reader_summary.mask_bit_len);
     try std.testing.expectEqual(@as(usize, 3), reader_summary.possible_cpu_count);
     try std.testing.expectEqual(@as(?usize, 4), reader_summary.highest_cpu_index);
+
+    const empty_summary = cpu_mask.summarizePossibleCpus(&.{});
+    try std.testing.expectEqual(@as(usize, 0), empty_summary.mask_bit_len);
+    try std.testing.expectEqual(@as(usize, 0), empty_summary.possible_cpu_count);
+    try std.testing.expectEqual(@as(?usize, null), empty_summary.highest_cpu_index);
+    try std.testing.expectEqual(@as(usize, 0), empty_summary.deriveAutoCpuCount(3));
 
     var auto_context = CpuMaskReaderContext{ .input = "0-1,4\n" };
     const auto_reader = cpu_mask.ChunkReader{
