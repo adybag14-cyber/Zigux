@@ -51,7 +51,7 @@ That is enough to keep the workqueue anchor reviewable as a bounded boundary-stu
 
 ## Reviewability contract
 
-Keep the following facts aligned across the bridge, manifest, reviewability test, and shared Phase 14 smoke packet:
+Keep the following facts aligned across the bridge packet, manifest, reviewability test, and the directly coupled slice and survey notes:
 
   * the workqueue packet remains in blocked maintenance
   * the current slice id remains `phase14-workqueue-scheduler-visible-worker-state-refinement`
@@ -73,4 +73,4 @@ This slice does not claim:
 
 ## Next bounded step
 
-Keep the packet in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, and the shared Phase 14 smoke packet together before widening scope.
+Keep the packet in blocked maintenance and reread `kernel/workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_bridge.zig`, `zigux/tests/phase14_workqueue_reviewability.zig`, `zigux/tests/phase14_workqueue_bridge_manifest.json`, `Documentation/zigux/phase14-workqueue-bridge-slice.md`, and `Documentation/zigux/phase14-workqueue-bridge-survey.md` together first when a workqueue-local truthfulness drift appears. Only widen into the shared Phase 14 smoke packet if those lane-local surfaces cannot be made truthful on their own.
