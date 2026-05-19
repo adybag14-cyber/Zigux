@@ -129,6 +129,7 @@ test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidan
         "phase5_build.zig` route",
         "StorageBacking.embedded_fixed_buffer",
         "reviewContract().focus",
+        "keep remaining-capacity, rollover, occupancy, and queue-shape cues explicit through `runRemainingCapacityReplay()`, `occupancySummary()`, `visibleSpanSummary()`, `writableSpanSummary()`, and `usesWrappedStorageWindow()`",
         "draining `\"hello\"` into a three-byte buffer yields `\"hel\"`",
         "authenticated GitHub contents reads in this environment still do not recover `zigux/tests/phase5_build.zig`",
         "current `master` still has no standalone `samples/zigux/*bitmap*` Phase 5 reference sample",
