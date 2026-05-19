@@ -14,17 +14,18 @@ EXPORT_SHIM_PATH = Path("zigux/kernel/export_shim.zig")
 UAPI_VERSION_PATH = Path("zigux/uapi/version.zig")
 UAPI_DEV_T_PATH = Path("zigux/uapi/dev_t.zig")
 LINUX_HEADER_PATH = Path("include/linux/zigux.h")
+LINUX_HEADER_GOVERNANCE_PATH = Path(
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md"
+)
 DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
+MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
 CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
+CATALOG_SELFTEST_GAP_PATH = "scripts/zigux/check-phase3-catalog-selftest.py"
 
-MISSING_GAP_PATHS = (
-    "scripts/zigux/check-phase3-catalog-selftest.py",
-    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
-    "zigux/tests/fixtures/phase3_abi_manifest.json",
-)
+MISSING_GAP_PATHS = (CATALOG_SELFTEST_GAP_PATH,)
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
@@ -35,22 +36,25 @@ REQUIRED_MARKERS = {
         "PHASE3_UAPI_VERSION_PATH=zigux/uapi/version.zig",
         "PHASE3_UAPI_DEV_T_PATH=zigux/uapi/dev_t.zig",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
+        "PHASE3_LINUX_ZIGUX_H_GOVERNANCE_PATH=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
+        "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
         "PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig",
         "PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig",
         "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
         "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
         "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py",
-        "PHASE3_EXPORT_UAPI_ACTIVE_GAP=Documentation/zigux/phase3-linux-zigux-header-governance.md",
-        "PHASE3_EXPORT_UAPI_ACTIVE_GAP=zigux/tests/fixtures/phase3_abi_manifest.json",
         "The packet-local validator is now present and should stay aligned with this survey rather than being tracked as a missing companion.",
-        "Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, but that one helper should not be used to imply that the separate catalog-selftest guard or manifest-backed ABI inventory have returned.",
+        "Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, and it now also directly serves `Documentation/zigux/phase3-linux-zigux-header-governance.md` and `zigux/tests/fixtures/phase3_abi_manifest.json` as same-family companions for this starter boundary packet.",
+        "The remaining repo-reality gap for this packet is now only the separate catalog-selftest guard:",
+        "This survey should keep the returned linux-header governance note and manifest-backed ABI inventory explicit as shipped same-family companions while continuing to treat the absent catalog-selftest guard as the only active packet-local gap.",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
         'SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
-        'LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")',
-        'CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")',
+        'LINUX_HEADER_GOVERNANCE_PATH = Path(',
+        'MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")',
+        'CATALOG_SELFTEST_GAP_PATH = "scripts/zigux/check-phase3-catalog-selftest.py"',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
     ),
@@ -81,6 +85,11 @@ REQUIRED_MARKERS = {
         "static inline zigux_boundary_header zigux_uapi_boundary_header_current(uint16_t flags)",
         "static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
     ),
+    LINUX_HEADER_GOVERNANCE_PATH: (
+        "PHASE3_ZIGUX_H_PATH=include/linux/zigux.h",
+        "PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
+        "packet-local export and UAPI starter wording stays in `Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+    ),
     DEV_T_HEADER_PATH: (
         "#define ZIGUX_DEV_T_FIELDS_ABI_VERSION 1u",
         "#define ZIGUX_DEV_MINOR_BITS 20u",
@@ -92,6 +101,12 @@ REQUIRED_MARKERS = {
         "typedef struct zigux_boundary_header {",
         "struct zigux_export_status {",
         "struct zigux_interop_policy {",
+    ),
+    MANIFEST_PATH: (
+        '"phase": "Phase 3"',
+        '"Documentation/zigux/phase3-export-uapi-boundary-survey.md"',
+        '"Documentation/zigux/phase3-linux-zigux-header-governance.md"',
+        '"scripts/zigux/validate-phase3-export-uapi-survey.py"',
     ),
     LAYOUT_TEST_PATH: (
         'test "export and uapi dev_t layouts stay aligned" {',
@@ -180,13 +195,8 @@ def run_self_test() -> int:
     marker_cases = (
         (
             SURVEY_PATH,
-            "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-            "expected missing survey layout gate marker was not reported",
-        ),
-        (
-            SURVEY_PATH,
-            "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
-            "expected missing catalog helper marker was not reported",
+            "PHASE3_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
+            "expected missing survey manifest marker was not reported",
         ),
         (
             SURVEY_PATH,
@@ -219,6 +229,11 @@ def run_self_test() -> int:
             "expected missing linux header validator marker was not reported",
         ),
         (
+            LINUX_HEADER_GOVERNANCE_PATH,
+            "PHASE3_ZIGUX_H_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
+            "expected missing linux-header governance manifest marker was not reported",
+        ),
+        (
             DEV_T_HEADER_PATH,
             "static inline int zigux_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
             "expected missing dev_t header validator marker was not reported",
@@ -227,6 +242,11 @@ def run_self_test() -> int:
             ABI_HEADER_PATH,
             "struct zigux_interop_policy {",
             "expected missing abi header interop policy marker was not reported",
+        ),
+        (
+            MANIFEST_PATH,
+            '"Documentation/zigux/phase3-linux-zigux-header-governance.md"',
+            "expected missing manifest governance marker was not reported",
         ),
         (
             LAYOUT_TEST_PATH,
@@ -242,20 +262,6 @@ def run_self_test() -> int:
             CATALOG_HELPER_PATH,
             'print("PHASE3_CATALOG_SELF_TEST=pass")',
             "expected missing catalog helper marker was not reported",
-        ),
-    )
-    gap_cases = (
-        (
-            MISSING_GAP_PATHS[0],
-            "expected returned catalog-selftest gap was not reported",
-        ),
-        (
-            MISSING_GAP_PATHS[1],
-            "expected returned linux-header-governance gap was not reported",
-        ),
-        (
-            MISSING_GAP_PATHS[2],
-            "expected returned manifest-backed inventory gap was not reported",
         ),
     )
 
@@ -274,14 +280,20 @@ def run_self_test() -> int:
             if _expect_missing_marker(root, relative_path, marker, message) != 0:
                 return 1
 
-        for gap_path, message in gap_cases:
-            if _expect_returned_gap(root, gap_path, message) != 0:
-                return 1
+        if (
+            _expect_returned_gap(
+                root,
+                MISSING_GAP_PATHS[0],
+                "expected returned-gap guard was not reported",
+            )
+            != 0
+        ):
+            return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     print(
         "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES="
-        f"{1 + len(marker_cases) + len(gap_cases)}"
+        f"{1 + len(marker_cases) + 1}"
     )
     return 0
 
