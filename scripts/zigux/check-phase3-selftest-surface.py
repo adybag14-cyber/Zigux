@@ -154,7 +154,7 @@ VALIDATOR_SUPPORT_MARKERS = (
     "Current `master` also directly serves `Documentation/zigux/phase3-linux-zigux-header-governance.md` as the bounded Linux-facing ownership note for `include/linux/zigux.h`, but that returned ownership surface should not be used here to imply that the broader export/UAPI header-family survey packet has returned.",
     "Documentation/zigux/phase3-shared-reminder-gap.md",
     "scripts/zigux/validate-phase3-validator-support-surface.py",
-    "Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py`, but that single entrypoint should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.",
+    "Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and it also directly serves `scripts/zigux/phase3_catalog.py` together with `zigux/tests/fixtures/phase3_abi_manifest.json`, but those shared validation, catalog, and manifest surfaces should not be used here to imply that the broader validator-support, export/UAPI header-family survey, or shared replay packet has returned.",
     "`zigux/tests/README.md` now keeps the returned packet-local export/UAPI survey note and validator explicit beside the starter, helper, policy, and layout-replay packet, so keep any broader shared-summary follow-through parked unless a fresh reread reopens same-packet drift on current `master`.",
     "`Documentation/zigux/phase3-shared-reminder-gap.md` now records the aligned docs-root and tests-root reminders together while keeping scripts-root inventory work separate.",
     "broader validator, export/UAPI layout, catalog, or shared Phase 3 replay packet",
@@ -390,7 +390,7 @@ def run_self_test() -> int:
         ),
         (
             VALIDATOR_SUPPORT_PATH,
-            "Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py`, but that single entrypoint should not be used here to imply that the broader validator-support, export/UAPI survey, catalog, or shared replay packet has returned.",
+            "Current `master` does still ship the separately readable shared validator entrypoint through `scripts/zigux/validate-phase3.py` together with the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, and it also directly serves `scripts/zigux/phase3_catalog.py` together with `zigux/tests/fixtures/phase3_abi_manifest.json`, but those shared validation, catalog, and manifest surfaces should not be used here to imply that the broader validator-support, export/UAPI header-family survey, or shared replay packet has returned.",
             "validator-support note",
         ),
         (
@@ -461,6 +461,11 @@ def run_self_test() -> int:
         ),
         (
             SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
             "selftest driver",
         ),
@@ -472,11 +477,6 @@ def run_self_test() -> int:
         (
             SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
-            "selftest driver",
-        ),
-        (
-            SELFTEST_DRIVER_PATH,
-            'Path("scripts/zigux/check-phase3-catalog-selftest.py")',
             "selftest driver",
         ),
         (SELFTEST_DRIVER_PATH, 'Path("scripts/zigux/run-phase3-checks.py")', "selftest driver"),
