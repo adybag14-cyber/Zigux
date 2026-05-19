@@ -8,14 +8,14 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_SLICE=argv-split-runtime-leaf`
 - `PHASE7_LANE_KEY=P7-L09`
 - lane-key note: `P7-L09` keeps the dedicated argv-split packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
-- scope: keep the Phase 7 argv-split lane limited to the current helper-local slice anchor, dedicated replay, and the no-standalone-argv-sample boundary
-- lane state: current `master` directly carries `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice. Keep `zigux/tests/fixtures/phase7_argv_split_vectors.zig` explicit as the remaining same-lane follow-on until a fresh reread proves it returned on current `master`.
+- scope: keep the Phase 7 argv-split lane limited to the current helper-local slice anchor, dedicated replay, dedicated fixture vectors, and the no-standalone-argv-sample boundary
+- lane state: current `master` directly carries `Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.
 
 ## Why This Slice Exists
 
 Phase 7 is where Zigux starts carrying reusable runtime helper families in product-facing locations.
 
-The current `argv_split` state on `master` now carries a bounded helper-local packet around argument counting, copied-storage tokenization, sentinel-terminated argv views, empty-input sentinel reuse, teardown ownership, allocator-failure cleanup, and overflow rejection while the broader dedicated fixture follow-on remains explicit backlog inside the same helper family.
+The current `argv_split` state on `master` now carries a bounded helper-local packet around argument counting, copied-storage tokenization, sentinel-terminated argv views, empty-input sentinel reuse, teardown ownership, allocator-failure cleanup, overflow rejection, and fixture-backed packet reviewability while keeping broader shared-control follow-ons outside this same helper family.
 
 This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `master` still ships no standalone `samples/zigux/*argv*` reference sample, so the dedicated boundary reminder should keep that separation explicit while the Phase 7 argv-split helper stays reviewable through helper-local surfaces only.
 
@@ -29,15 +29,13 @@ This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `mas
 - `zigux/tests/phase7_argv_split.zig`
 - `zigux/tests/phase7_argv_split_survey.zig`
 - `zigux/tests/phase7_argv_split_manifest.json`
+- `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
 - `scripts/zigux/check-phase7-argv-split-packet.py`
 
 3. keep the no-standalone-argv-sample boundary explicit
 - `samples/zigux/README.md`
 
-4. keep the remaining same-lane follow-on explicit until it actually returns
-- `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
-
-5. keep adjacent Phase 7 families and shared-control surfaces out of this packet unless a fresh reread says otherwise
+4. keep adjacent Phase 7 families and shared-control surfaces out of this packet unless a fresh reread says otherwise
 - do not count `Documentation/zigux/phase7-string-helpers-slice.md`
 - do not count `Documentation/zigux/phase7-cmdline-slice.md`
 - do not count `Documentation/zigux/phase7-rbtree-slice.md`
@@ -61,7 +59,7 @@ The current helper-local replay keeps these proofs explicit:
 - blank-input handling that keeps empty storage and sentinel argv views explicit
 - first-NUL truncation that keeps ignored tails outside the owned storage copy and sentinel-terminated argv view
 - caller-owned teardown, idempotent release behavior, and argc-preservation on allocation failure
-- dedicated helper-local replay, survey, and checker coverage rooted at `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `scripts/zigux/check-phase7-argv-split-packet.py`
+- dedicated helper-local replay, fixture-vector, survey, and checker coverage rooted at `zigux/tests/phase7_argv_split.zig`, `zigux/tests/fixtures/phase7_argv_split_vectors.zig`, `zigux/tests/phase7_argv_split_survey.zig`, and `scripts/zigux/check-phase7-argv-split-packet.py`
 
 The current helper-local replay also keeps these ownership and boundary rules explicit:
 
@@ -75,12 +73,12 @@ The current helper-local replay also keeps these ownership and boundary rules ex
 
 This helper-local Phase 7 argv-split slice does not yet claim:
 
-- the still-missing dedicated fixture vectors `zigux/tests/fixtures/phase7_argv_split_vectors.zig`
 - any standalone `samples/zigux/*argv*` sample-root delivery
 - the separate `cmdline`, `string_helpers`, or `rbtree` helper families
 - shared validator, Makefile, workflow, or tests-root reminder ownership
+- widened shell-style quoting or escape semantics beyond the current whitespace-delimited helper packet
 
 ## Next Bounded Step
 
-Keep the dedicated argv_split replay, survey, manifest, checker, and no-standalone-argv-sample boundary fail-closed on this returned helper-local packet, and then reopen the same lane only when `zigux/tests/fixtures/phase7_argv_split_vectors.zig` returns on current `master` or one of the existing helper-local reminder surfaces drifts.
+Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.
 Route shared validator, Makefile, workflow, tests-root, and broader docs-root follow-through to the separate Phase 7 shared-control lanes.
