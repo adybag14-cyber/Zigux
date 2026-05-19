@@ -23,6 +23,12 @@ MAKEFILE_LINES = (
 
 EXPECTED_FIXTURE_PHASE = "Phase 2"
 EXPECTED_FIXTURE_STATUS = "active"
+EXPECTED_FIXTURE_FIELDS = frozenset(
+    {"phase", "status", "route", "archive_target_scope", "cross_targets"}
+)
+EXPECTED_CROSS_TARGET_FIELDS = frozenset(
+    {"target", "review_status", "validation_mode", "route"}
+)
 EXPECTED_CROSS_TARGETS = {
     "x86_64-linux": {
         "review_status": "pinned bootstrap archive",
@@ -36,7 +42,7 @@ EXPECTED_CROSS_TARGETS = {
 EXPECTED_CROSS_TARGET_ORDER = tuple(EXPECTED_CROSS_TARGETS)
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 21
+EXPECTED_SELF_TEST_CASE_COUNT = 23
 
 
 def read_text(path: Path) -> str:
@@ -163,6 +169,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("INVALID_FIXTURE_SHAPE", "root"))
         return issues
 
+    for field in sorted(set(fixture) - EXPECTED_FIXTURE_FIELDS):
+        issues.append(("UNEXPECTED_FIXTURE_FIELD", field))
+
     if fixture.get("phase") != EXPECTED_FIXTURE_PHASE:
         issues.append(("INVALID_FIXTURE_FIELD", "phase"))
     if fixture.get("status") != EXPECTED_FIXTURE_STATUS:
@@ -190,7 +199,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if not isinstance(entry, dict):
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"index={index}"))
             continue
-        target = entry.get("target")
+        raw_target = entry.get("target")
+        entry_label = raw_target.strip() if isinstance(raw_target, str) and raw_target.strip() else f"index={index}"
+        for field in sorted(set(entry) - EXPECTED_CROSS_TARGET_FIELDS):
+            issues.append(("UNEXPECTED_CROSS_TARGET_FIELD", f"{entry_label}:{field}"))
+
+        target = raw_target
         review_status = entry.get("review_status")
         validation_mode = entry.get("validation_mode")
         route = entry.get("route")
@@ -364,6 +378,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["unexpected"] = True
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("UNEXPECTED_FIXTURE_FIELD", "unexpected") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("DUPLICATE_FIXTURE_ARCHIVE_SCOPE", "x86_64-linux") in collect_issues(root)
@@ -393,6 +415,14 @@ def run_self_test() -> int:
         fixture["cross_targets"][1]["review_status"] = "fresh archive"
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_REVIEW_STATUS", "aarch64-linux:fresh archive") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["unexpected"] = True
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("UNEXPECTED_CROSS_TARGET_FIELD", "aarch64-linux:unexpected") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
