@@ -90,7 +90,7 @@ fn runPerfCase(case: fixtures.PerfCase, io: std.Io) !PerfResult {
     var expected_hits: [fixtures.query_count]bool = undefined;
     fixtures.seedDeterministicQueries(case.len, values, &queries, &expected_hits);
 
-    const witness_result = try runWitnessCases(&values[0..case.len], &queries, &expected_hits);
+    const witness_result = try runWitnessCases(values, &queries, &expected_hits);
     try std.testing.expect(witness_result.max_compare_calls <= max_compare_budget);
 
     var total_compare_calls: usize = 0;
