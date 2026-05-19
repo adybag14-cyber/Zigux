@@ -9,12 +9,14 @@ from pathlib import Path
 
 SEQUENCING_NOTE_PATH = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
 STRING_HELPERS_SLICE_PATH = Path("Documentation/zigux/phase7-string-helpers-slice.md")
+REVIEW_CHECKPOINT_PATH = Path("Documentation/zigux/phase7-shared-control-review-checkpoint.md")
 BUILD_WIRING_CHECKER_PATH = Path("scripts/zigux/check-phase7-build-wiring.py")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 
 DIRECT_PACKET = [
     "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-string-helpers-slice.md",
+    "Documentation/zigux/phase7-shared-control-review-checkpoint.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "samples/zigux/README.md",
@@ -71,7 +73,9 @@ REQUIRED_WORKFLOW_LINES = [
 
 SEQUENCING_REQUIRED_SNIPPETS = [
     "- shared control-surface packet, lane `P7-Y05`:",
+    "- `Documentation/zigux/phase7-shared-control-review-checkpoint.md`",
     "- the shared control packet is also only partly recoverable in this slot. `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` remain directly readable, but fresh authenticated contents reads still returned missing for `scripts/zigux/validate-phase7.py` and `zigux/tests/phase7_build.zig`, so `P7-Y05` should treat the shared wrapper stack as parked reminder vocabulary until those files rematerialize.",
+    "- If the drift is the shared docs-root Phase 7 checkpoint, route it to `P7-Y05` and keep the change inside `Documentation/zigux/phase7-shared-control-review-checkpoint.md` only.",
     "- If the drift is the shared tests-root or scripts-root Phase 7 tranche summary, route it to `P7-Y05` and keep the change inside `zigux/tests/README.md` or `scripts/zigux/README.md` only.",
 ]
 
@@ -80,6 +84,13 @@ STRING_HELPERS_SLICE_REQUIRED_SNIPPETS = [
     "Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.",
     "- do not count `scripts/zigux/validate-phase7.py`",
     "unless a fresh same-family reread proves those broader shared-control reminders are directly readable again on current `master`.",
+]
+
+REVIEW_CHECKPOINT_REQUIRED_SNIPPETS = [
+    "# Phase 7 Shared Control Review Checkpoint",
+    "- The current shared-control reminder packet is carried by `Documentation/zigux/phase7-helper-lane-sequencing.md`, `Documentation/zigux/phase7-shared-control-review-checkpoint.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `samples/zigux/README.md`, `scripts/zigux/check-phase7-build-wiring.py`, `scripts/zigux/check-phase7-shared-control-gap.py`, `scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py`, `.github/workflows/zigux-bootstrap.yml`, and the readable non-owner `zigux/Makefile`.",
+    "- Keep `scripts/zigux/check-phase7-make-wrapper.py`, `scripts/zigux/validate-phase7.py`, and `zigux/tests/phase7_build.zig` framed as parked reminder vocabulary until a fresh current-`master` reread proves those paths returned.",
+    "- Keep `phase7-validate`, `phase7-test`, and `phase7` framed as absent wrapper-route vocabulary while the readable `zigux/Makefile` still omits those routes on current `master`.",
 ]
 
 BUILD_WIRING_REQUIRED_SNIPPETS = [
@@ -94,13 +105,14 @@ BUILD_WIRING_REQUIRED_SNIPPETS = [
 SELF_TEST_CASE_COUNT = (
     len(SEQUENCING_REQUIRED_SNIPPETS)
     + len(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
+    + len(REVIEW_CHECKPOINT_REQUIRED_SNIPPETS)
     + len(BUILD_WIRING_REQUIRED_SNIPPETS)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(PARKED_SHARED_CONTROL_PATHS)
-    + len(DIRECT_PACKET[2:])
+    + len(DIRECT_PACKET[3:])
     + len(READABLE_NON_OWNER_FILES)
     + sum(len(markers) for markers in ABSENT_SHARED_CONTROL_ROUTE_MARKERS.values())
-    + 2
+    + 3
 )
 
 
@@ -171,6 +183,7 @@ def require_repo_reality(repo_root: Path) -> None:
 def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SEQUENCING_NOTE_PATH, SEQUENCING_REQUIRED_SNIPPETS)
     require_snippets(repo_root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
+    require_snippets(repo_root / REVIEW_CHECKPOINT_PATH, REVIEW_CHECKPOINT_REQUIRED_SNIPPETS)
     require_snippets(repo_root / BUILD_WIRING_CHECKER_PATH, BUILD_WIRING_REQUIRED_SNIPPETS)
     require_exact_lines(repo_root / WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES)
     require_repo_reality(repo_root)
@@ -184,8 +197,9 @@ def write(path: Path, content: str) -> None:
 def scaffold_repo(root: Path) -> None:
     write(root / SEQUENCING_NOTE_PATH, "\n".join(SEQUENCING_REQUIRED_SNIPPETS) + "\n")
     write(root / STRING_HELPERS_SLICE_PATH, "\n".join(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS) + "\n")
+    write(root / REVIEW_CHECKPOINT_PATH, "\n".join(REVIEW_CHECKPOINT_REQUIRED_SNIPPETS) + "\n")
     write(root / BUILD_WIRING_CHECKER_PATH, "\n".join(BUILD_WIRING_REQUIRED_SNIPPETS) + "\n")
-    for rel in DIRECT_PACKET[2:]:
+    for rel in DIRECT_PACKET[3:]:
         if rel == BUILD_WIRING_CHECKER_PATH.as_posix():
             continue
         write(root / Path(rel), "# direct phase7 shared-control packet file\n")
@@ -236,6 +250,7 @@ def run_self_test() -> None:
         for path, snippets in (
             (root / SEQUENCING_NOTE_PATH, SEQUENCING_REQUIRED_SNIPPETS),
             (root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS),
+            (root / REVIEW_CHECKPOINT_PATH, REVIEW_CHECKPOINT_REQUIRED_SNIPPETS),
             (root / BUILD_WIRING_CHECKER_PATH, BUILD_WIRING_REQUIRED_SNIPPETS),
             (root / WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES),
         ):
@@ -252,7 +267,7 @@ def run_self_test() -> None:
                 parked_path.unlink()
             cases_run += 1
 
-        for rel in DIRECT_PACKET[2:]:
+        for rel in DIRECT_PACKET[3:]:
             direct_path = root / Path(rel)
             direct_path.unlink()
             try:
@@ -288,6 +303,11 @@ def run_self_test() -> None:
         scaffold_repo(root)
         (root / STRING_HELPERS_SLICE_PATH).unlink()
         expect_validation_error(root, str(STRING_HELPERS_SLICE_PATH))
+        cases_run += 1
+
+        scaffold_repo(root)
+        (root / REVIEW_CHECKPOINT_PATH).unlink()
+        expect_validation_error(root, str(REVIEW_CHECKPOINT_PATH))
         cases_run += 1
 
         if cases_run != SELF_TEST_CASE_COUNT:
