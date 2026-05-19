@@ -468,6 +468,11 @@ test "materialized tools/lib/bpf Zigux segments keep stable cpu-mask helper outp
     try std.testing.expectEqual(@as(usize, 3), reader_summary.possible_cpu_count);
     try std.testing.expectEqual(@as(?usize, 4), reader_summary.highest_cpu_index);
 
+    var spaced_plus = try cpu_mask.parseCpuMaskString(allocator, " +0, 2- 3\n");
+    defer spaced_plus.deinit(allocator);
+    try std.testing.expectEqualSlices(bool, &[_]bool{ true, false, true, true }, spaced_plus.values);
+    try std.testing.expectEqual(@as(usize, 3), cpu_mask.countPossibleCpus(spaced_plus.values));
+
     const empty_summary = cpu_mask.summarizePossibleCpus(&.{});
     try std.testing.expectEqual(@as(usize, 0), empty_summary.mask_bit_len);
     try std.testing.expectEqual(@as(usize, 0), empty_summary.possible_cpu_count);
@@ -482,6 +487,16 @@ test "materialized tools/lib/bpf Zigux segments keep stable cpu-mask helper outp
     try std.testing.expectEqual(
         @as(usize, 3),
         try cpu_mask.derivePerfBufferAutoCpuCountFromReader(allocator, scratch[0..], auto_reader, 0),
+    );
+
+    var clamped_auto_context = CpuMaskReaderContext{ .input = "2-4\n" };
+    const clamped_auto_reader = cpu_mask.ChunkReader{
+        .context = &clamped_auto_context,
+        .readFn = readCpuMaskChunks,
+    };
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        try cpu_mask.derivePerfBufferAutoCpuCountFromReader(allocator, scratch[0..], clamped_auto_reader, 9),
     );
 
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(allocator, "4-2"));
