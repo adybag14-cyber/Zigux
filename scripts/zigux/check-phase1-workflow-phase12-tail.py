@@ -281,7 +281,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase10_validate_step_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE10_HELPER_STEP[0]}\n"))
@@ -290,7 +290,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase10_helper_step_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"))
@@ -299,7 +299,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_selftest")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_CHECK_STEP[0]}\n"))
@@ -308,7 +308,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_check")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
@@ -358,7 +358,103 @@ def run_self_test() -> int:
             print("self-test:phase12_full_chain_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        phase10_selftest_block = (
+            f"      - name: {PHASE10_SELFTEST_STEP[0]}\n"
+            f"        run: {PHASE10_SELFTEST_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + phase10_selftest_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE10_SELFTEST_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase10_selftest_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE10_SELFTEST_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase10_selftest_run_not_detected")
+            return 1
+        case_count += 1
+        build_sampleRepo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        phase10_check_block = (
+            f"      - name: {PHASE10_CHECK_STEP[0]}\n"
+            f"        run: {PHASE10_CHECK_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + phase10_check_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE10_CHECK_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase10_check_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE10_CHECK_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase10_check_run_not_detected")
+            return 1
+        case_count += 1
+        build_sampleRepo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        phase10_validate_block = (
+            f"      - name: {PHASE10_VALIDATE_STEP[0]}\n"
+            f"        run: {PHASE10_VALIDATE_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + phase10_validate_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE10_VALIDATE_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase10_validate_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE10_VALIDATE_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase10_validate_run_not_detected")
+            return 1
+        case_count += 1
+        build_sampleRepo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        phase10_helper_block = (
+            f"      - name: {PHASE10_HELPER_STEP[0]}\n"
+            f"        run: {PHASE10_HELPER_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + phase10_helper_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE10_HELPER_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase10_helper_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE10_HELPER_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase10_helper_run_not_detected")
+            return 1
+        case_count += 1
+        build_sampleRepo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        phase11_selftest_block = (
+            f"      - name: {PHASE11_SELFTEST_STEP[0]}\n"
+            f"        run: {PHASE11_SELFTEST_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + phase11_selftest_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE11_SELFTEST_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase11_selftest_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE11_SELFTEST_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase11_selftest_run_not_detected")
+            return 1
+        case_count += 1
+        build_sampleRepo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        phase11_check_block = (
+            f"      - name: {PHASE11_CHECK_STEP[0]}\n"
+            f"        run: {PHASE11_CHECK_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + phase11_check_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE11_CHECK_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase11_check_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE11_CHECK_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase11_check_run_not_detected")
+            return 1
+        case_count += 1
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         selftest_block = (
@@ -374,7 +470,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase12_selftest_run_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         check_block = (
@@ -390,7 +486,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase12_check_run_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         anchor_block = (
