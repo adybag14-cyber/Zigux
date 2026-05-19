@@ -80,6 +80,23 @@ pub fn assertNotifierChainPriorityIncreaseLayout() LayoutError!void {
     );
 }
 
+pub fn assertListHeadLayout() LayoutError!void {
+    try expectLayout(abi.ListHead, @sizeOf(usize) * 2, @alignOf(usize));
+    try expectFieldLayout(abi.ListHead, "next", 0);
+    try expectFieldLayout(abi.ListHead, "prev", @sizeOf(usize));
+}
+
+pub fn assertHListHeadLayout() LayoutError!void {
+    try expectLayout(abi.HListHead, @sizeOf(usize), @alignOf(usize));
+    try expectFieldLayout(abi.HListHead, "first", 0);
+}
+
+pub fn assertHListNodeLayout() LayoutError!void {
+    try expectLayout(abi.HListNode, @sizeOf(usize) * 2, @alignOf(usize));
+    try expectFieldLayout(abi.HListNode, "next", 0);
+    try expectFieldLayout(abi.HListNode, "pprev", @sizeOf(usize));
+}
+
 pub fn assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout() LayoutError!void {
     try expectLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, 12, 4);
     try expectFieldLayout(abi.ChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowView, "ack_window", 0);
@@ -114,6 +131,9 @@ pub fn assertPublishedAbiLayouts() LayoutError!void {
     try assertInteropPolicyLayout();
     try assertNotifierBlockLayout();
     try assertNotifierChainPriorityIncreaseLayout();
+    try assertListHeadLayout();
+    try assertHListHeadLayout();
+    try assertHListNodeLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowViewLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowSummaryLayout();
     try assertChrdevNotifyAckWindowPolicyBudgetWindowDeliveryWindowBudgetViewLayout();
@@ -177,6 +197,6 @@ test "layout assert reports mismatches without widening the call site" {
     try std.testing.expectError(error.OffsetMismatch, expectOffset(ExportStatus, "flags", 4));
 }
 
-test "layout assert aggregates the published chrdev ABI layouts" {
+test "layout assert aggregates the published ABI layouts" {
     try assertPublishedAbiLayouts();
 }
