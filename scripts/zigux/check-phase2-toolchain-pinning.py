@@ -123,6 +123,8 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/check-fixdep-diff.py`",
     "`scripts/zigux/fixdep.zig`",
     "`zigux/tests/fixtures/fixdep/cases.json`",
+    "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
+    "`scripts/zigux/check-phase2-artifact-tools-manifest.py` is directly readable on current `master` and keeps the fixture-backed artifact-support packet explicit beside `scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`.",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
