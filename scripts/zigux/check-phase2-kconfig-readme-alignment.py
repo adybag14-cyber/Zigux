@@ -153,6 +153,14 @@ FORBIDDEN_SNIPPETS = (
 )
 
 
+def resolve_readme_path(*, root: Path | None, readme: Path | None) -> Path:
+    if readme is not None:
+        return readme
+    if root is not None:
+        return root / "scripts" / "zigux" / "README.md"
+    return README
+
+
 def read_text(path: Path) -> str:
     try:
         return path.read_text(encoding="utf-8")
@@ -223,12 +231,19 @@ def run_self_test() -> int:
         checks_run += 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_kconfig_readme_alignment_") as tmp_dir:
-        readme_path = Path(tmp_dir) / "README.md"
+        root = Path(tmp_dir)
+        readme_path = root / "scripts" / "zigux" / "README.md"
+        readme_path.parent.mkdir(parents=True, exist_ok=True)
         readme_path.write_text(base_text, encoding="utf-8")
-        assert collect_issues(read_text(readme_path)) == []
+        assert collect_issues(read_text(resolve_readme_path(root=root, readme=None))) == []
         checks_run += 1
 
-    expected_case_count = 2 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
+        explicit_readme = root / "README.explicit.md"
+        explicit_readme.write_text(base_text, encoding="utf-8")
+        assert collect_issues(read_text(resolve_readme_path(root=root, readme=explicit_readme))) == []
+        checks_run += 1
+
+    expected_case_count = 3 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
     if checks_run != expected_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
@@ -244,20 +259,22 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Check the Phase 2 scripts README stays aligned with the current branch-safe kconfig bridge packet."
     )
-    parser.add_argument("--readme", type=Path, default=README, help="Override README path")
+    parser.add_argument("--root", type=Path, help="Repository root to inspect")
+    parser.add_argument("--readme", type=Path, help="Override README path")
     parser.add_argument("--self-test", action="store_true", help="Run built-in checker coverage")
     args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
 
-    issues = collect_issues(read_text(args.readme))
+    readme_path = resolve_readme_path(root=args.root, readme=args.readme)
+    issues = collect_issues(read_text(readme_path))
     if issues:
         emit_issues(issues)
         return 1
 
     print("PHASE2_KCONFIG_README_ALIGNMENT=pass")
-    print(f"README={args.readme}")
+    print(f"README={readme_path}")
     return 0
 
 
