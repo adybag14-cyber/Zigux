@@ -19,11 +19,7 @@ pub const ArgvSplitResult = struct {
         if (self.storage.ptr != empty_storage_view.ptr) {
             allocator.free(self.storage);
         }
-        self.* = .{
-            .storage = empty_storage_view,
-            .argv = &.{},
-            .argv_null_terminated = empty_argv_null_terminated,
-        };
+        self.* = emptyResult();
     }
 
     pub fn cArgv(self: *const ArgvSplitResult) [*:null]const ?[*:0]const u8 {
@@ -32,6 +28,14 @@ pub const ArgvSplitResult = struct {
         return self.argv_null_terminated[0..self.argv.len :null].ptr;
     }
 };
+
+fn emptyResult() ArgvSplitResult {
+    return .{
+        .storage = empty_storage_view,
+        .argv = &.{},
+        .argv_null_terminated = empty_argv_null_terminated,
+    };
+}
 
 const ArgSpan = struct {
     start: usize,
@@ -65,11 +69,7 @@ pub fn argvSplitWithArgc(
         if (argcp) |count_out| {
             count_out.* = 0;
         }
-        return .{
-            .storage = empty_storage_view,
-            .argv = &.{},
-            .argv_null_terminated = empty_argv_null_terminated,
-        };
+        return emptyResult();
     }
 
     var storage = try allocator.dupeZ(u8, current);
@@ -536,6 +536,27 @@ test "argvFree mirrors argv_free release ownership and stays safe after teardown
     try std.testing.expectEqual(@as(usize, 0), split.argv.len);
     try std.testing.expectEqual(@as(usize, 1), split.argv_null_terminated.len);
     try std.testing.expectEqual(@as(?[*:0]const u8, null), split.cArgv()[0]);
+}
+
+test "argvFree resets released non-blank results to the shared empty exported views" {
+    var released = try argvSplit(std.testing.allocator, "alpha beta");
+    var blank = try argvSplitWithArgc(std.testing.allocator, "", null);
+    defer blank.deinit(std.testing.allocator);
+
+    try std.testing.expect(released.storage.ptr != blank.storage.ptr);
+    try std.testing.expect(released.argv_null_terminated.ptr != blank.argv_null_terminated.ptr);
+    try std.testing.expect(released.cArgv() != blank.cArgv());
+
+    argvFree(std.testing.allocator, &released);
+
+    try std.testing.expectEqual(@as(usize, 0), released.storage.len);
+    try std.testing.expectEqual(@as(u8, 0), released.storage[released.storage.len]);
+    try std.testing.expectEqual(@as(usize, 0), released.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), released.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), released.cArgv()[0]);
+    try std.testing.expect(released.storage.ptr == blank.storage.ptr);
+    try std.testing.expect(released.argv_null_terminated.ptr == blank.argv_null_terminated.ptr);
+    try std.testing.expect(released.cArgv() == blank.cArgv());
 }
 
 test "non-blank argvSplit results keep caller-owned teardown isolated across siblings" {
