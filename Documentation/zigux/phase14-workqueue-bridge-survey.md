@@ -74,10 +74,12 @@ The packet is still blocked from claiming:
 
   * live worker-pool execution
   * callback dispatch ownership
-  * delayed-work control ownership
+  * flush, drain, and cancellation completion ownership
+  * delayed-work requeue control ownership
   * runtime `max_active` retuning ownership
-  * scheduler parity
-  * hotplug-driven migration ownership
+  * scheduler-visible worker-state parity
+  * rescuer execution ownership
+  * hotplug-driven migration and topology-rebinding ownership
 
 ## Shared-packet alignment
 
