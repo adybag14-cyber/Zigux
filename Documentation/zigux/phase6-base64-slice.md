@@ -39,9 +39,14 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 The current base64 helper surface exercised by this slice covers:
 
 - generic `chars`, `bytes`, `encode`, and `decode`
+- generic `encodeSlice`, `encodeAlloc`, `decodeSlice`, and `decodeAlloc`
 - variant-pinned `bytesStd`, `bytesUrlsafe`, and `bytesImap`
 - variant-pinned `encodeStd`, `encodeUrlsafe`, and `encodeImap`
+- variant-pinned `encodeStdSlice`, `encodeUrlsafeSlice`, and `encodeImapSlice`
+- variant-pinned `encodeStdAlloc`, `encodeUrlsafeAlloc`, and `encodeImapAlloc`
 - variant-pinned `decodeStd`, `decodeUrlsafe`, and `decodeImap`
+- variant-pinned `decodeStdSlice`, `decodeUrlsafeSlice`, and `decodeImapSlice`
+- variant-pinned `decodeStdAlloc`, `decodeUrlsafeAlloc`, and `decodeImapAlloc`
 - `Variant.std`
 - `Variant.urlsafe`
 - `Variant.imap`
@@ -77,4 +82,4 @@ This slice does not yet claim:
 
 ## Next bounded step
 
-Leave this helper parked unless fresh repo inspection shows a concrete parity, portability, or helper-surface truthfulness drift in the current generic, variant-pinned, or exact-fit buffer packet. If the base64 family reopens for review-surface follow-through, keep it to one small truthfulness step inside this slice note or to one fresh direct-read recovery pass for the direct C parity companions, instead of widening into broader Phase 6 shared-note churn.
+Leave this helper parked unless fresh repo inspection shows a concrete parity, portability, or helper-surface truthfulness drift in the current generic, variant-pinned, slice, alloc, or exact-fit buffer packet. If the base64 family reopens for review-surface follow-through, keep it to one small truthfulness step inside this slice note or to one fresh direct-read recovery pass for the direct C parity companions, instead of widening into broader Phase 6 shared-note churn.
