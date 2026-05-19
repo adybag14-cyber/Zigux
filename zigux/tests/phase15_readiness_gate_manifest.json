@@ -1,6 +1,6 @@
 {
   "surveyed_commit_mode": "dated_master_readback",
-  "surveyed_commit": "current-master-readback-2026-05-18",
+  "surveyed_commit": "current-master-readback-2026-05-19",
   "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
   "direct_packet_paths": [
     "Documentation/zigux/freeze-map.md",
