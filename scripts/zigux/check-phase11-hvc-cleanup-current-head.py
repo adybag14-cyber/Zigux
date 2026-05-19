@@ -156,6 +156,11 @@ EXPECTED_SHARED_ADJUNCT_REPLAYS = [
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
 ]
+EXPECTED_SHARED_ADJUNCT_BUILD_REPLAYS = [
+    "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+]
 EXPECTED_REPLAY_MARKERS: set[tuple[str, str]] = set()
 
 
@@ -313,6 +318,7 @@ def run_check(root: Path) -> None:
     expect_list(payload, "dedicated_survey_replays", [])
     expect_list(payload, "shared_split_replays", EXPECTED_SHARED_SPLIT_REPLAYS)
     expect_list(payload, "shared_adjunct_replays", EXPECTED_SHARED_ADJUNCT_REPLAYS)
+    expect_list(payload, "shared_adjunct_build_replays", EXPECTED_SHARED_ADJUNCT_BUILD_REPLAYS)
     expect_mapping(payload, "module_root_source_files", EXPECTED_MODULES, "module", "path")
     expect_mapping(payload, "test_root_modules", EXPECTED_ROOT_MODULES, "test", "root_module")
     expect_replay_markers(payload)
@@ -490,7 +496,12 @@ def build_fixture(root: Path) -> None:
         root / INVENTORY_PATH,
         json.dumps(
             {
-                **REQUIRED_PROOF_ROUTE,
+                "proof_build_file": REQUIRED_PROOF_ROUTE["proof_build_file"],
+                "proof_replay_command": REQUIRED_PROOF_ROUTE["proof_replay_command"],
+                "proof_step_name": REQUIRED_PROOF_ROUTE["proof_step_name"],
+                "proof_step_description": REQUIRED_PROOF_ROUTE["proof_step_description"],
+                "proof_test_artifact_name": REQUIRED_PROOF_ROUTE["proof_test_artifact_name"],
+                "proof_root_source_file": REQUIRED_PROOF_ROUTE["proof_root_source_file"],
                 "exact_current_checks": EXACT_CURRENT_CHECKS,
                 "build_test_names": EXPECTED_BUILD_TESTS,
                 "shared_test_depend_steps": EXPECTED_DEPEND_STEPS,
@@ -500,6 +511,7 @@ def build_fixture(root: Path) -> None:
                 "dedicated_survey_replays": [],
                 "shared_split_replays": EXPECTED_SHARED_SPLIT_REPLAYS,
                 "shared_adjunct_replays": EXPECTED_SHARED_ADJUNCT_REPLAYS,
+                "shared_adjunct_build_replays": EXPECTED_SHARED_ADJUNCT_BUILD_REPLAYS,
                 "shared_replay_markers": [],
             },
             indent=2,
@@ -880,6 +892,13 @@ def run_self_test() -> int:
         write(wrong_adjunct / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
         expect_failure(wrong_adjunct, "shared_adjunct_replays does not match the current-head HVC packet")
 
+        wrong_adjunct_build = tmpdir / "wrong_adjunct_build"
+        shutil.copytree(fixture, wrong_adjunct_build, dirs_exist_ok=True)
+        payload = read_inventory(wrong_adjunct_build)
+        payload["shared_adjunct_build_replays"] = []
+        write(wrong_adjunct_build / INVENTORY_PATH, json.dumps(payload, indent=2) + "\n")
+        expect_failure(wrong_adjunct_build, "shared_adjunct_build_replays does not match the current-head HVC packet")
+
         wrong_proof_command = tmpdir / "wrong_proof_command"
         shutil.copytree(fixture, wrong_proof_command, dirs_exist_ok=True)
         payload = read_inventory(wrong_proof_command)
@@ -893,7 +912,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=34")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=35")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
