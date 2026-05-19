@@ -5,6 +5,7 @@ const uapi_dev_t = @import("uapi_dev_t");
 const uapi_version = @import("uapi_version");
 const dev_t = @import("dev_t_binding");
 const version = @import("version_binding");
+const header_family = @import("header_family_binding");
 const export_shim = @import("export_shim");
 
 test "export and uapi dev_t layouts stay aligned" {
@@ -36,6 +37,39 @@ test "export and uapi version layouts stay aligned" {
     try testing.expectEqual(uapi_version.header_family_revision_offset, version.header_family_revision_offset);
     try testing.expect(version.eql(current, uapi_current));
     try testing.expect(version.eql(current, export_shim.currentVersion()));
+}
+
+test "header-family binding keeps the bounded relay surface explicit" {
+    const current = header_family.currentVersion();
+    const canonical = header_family.currentBoundaryHeader(0x31);
+    const expanded = header_family.compatibleBoundaryHeader(
+        @sizeOf(header_family.BoundaryHeader) + 8,
+        0x31,
+    );
+    const fields = header_family.initDevTFields(11, 29);
+    const encoded = header_family.makeDeviceNumber(fields.major, fields.minor);
+    const uapi_current = uapi_version.current();
+
+    try testing.expectEqual(version.current(), current);
+    try testing.expectEqual(uapi_current.abi_major, current.abi_major);
+    try testing.expectEqual(uapi_current.abi_minor, current.abi_minor);
+    try testing.expectEqual(uapi_current.header_family_revision, current.header_family_revision);
+    try testing.expectEqual(@as(usize, 12), header_family.version_size);
+    try testing.expectEqual(@as(usize, 8), header_family.header_size);
+    try testing.expectEqual(@as(usize, 8), header_family.fields_size);
+    try testing.expect(header_family.boundaryHeaderIsCanonical(canonical));
+    try testing.expect(header_family.boundaryHeaderIsCompatible(expanded));
+    try testing.expect(header_family.boundaryHeaderExtendsBoundary(expanded));
+    try testing.expectEqual(@as(u32, 8), header_family.boundaryHeaderRequestedExtraBytes(expanded));
+    try testing.expectEqual(uapi_dev_t.makeDeviceNumber(11, 29), encoded);
+    try testing.expectEqual(dev_t.makeDeviceNumber(11, 29), encoded);
+    try testing.expectEqual(@as(u32, 11), header_family.majorFromDeviceNumber(encoded));
+    try testing.expectEqual(@as(u32, 29), header_family.minorFromDeviceNumber(encoded));
+    try testing.expect(header_family.validateDevTFields(fields));
+    try testing.expect(header_family.validateDevTRange(
+        header_family.initDevTFields(11, 28),
+        fields,
+    ));
 }
 
 test "export shim relays version compatibility without widening the boundary" {
