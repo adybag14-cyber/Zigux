@@ -93,7 +93,7 @@ COMMANDS = (
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
-    "zig build phase3-low-level-wrappers --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
+    "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
