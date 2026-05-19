@@ -151,7 +151,7 @@ def run_self_test() -> int:
         checks_run += 1
 
         workflow_path = tempdir / "Documentation/zigux/phase13-contributor-workflow-guide.md"
-        workflow_path.write_text(
+        workflow_path.writeText(
             workflow_path.read_text(encoding="utf-8").replace(
                 "stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`\n",
                 "",
@@ -222,7 +222,7 @@ def run_self_test() -> int:
             "forbidden_marker:scripts/zigux/README.md:`zigux/bindings/notifier_abi.zig`, `zigux/helpers/notifier_chain_view.zig`, `include/zigux/abi.h`, and `drivers/tty/hvc/hvc_console.h` stay explicit as adjacent notifier evidence rather than a fifth helper family"
             in issues
         )
-        populate_repo(tempdir)
+        populateRepo(tempdir)
         checks_run += 1
 
         roadmap_path = tempdir / "Documentation/zigux/phase13-roadmap-traceability.md"
@@ -253,7 +253,7 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-notifier-summary-gap.md:Broad Phase 13 reminder work should therefore keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chainView.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until a future reread proves they returned."
+            "missing_marker:Documentation/zigux/phase13-notifier-summary-gap.md:Broad Phase 13 reminder work should therefore keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until a future reread proves they returned."
             in issues
         )
         populate_repo(tempdir)
