@@ -25,12 +25,13 @@ VERIFY_GAP_ID = "phase11-dw-wdt-teardown-parity"
 
 NOTE_MARKERS = [
     "# Phase 11 DesignWare Verify Alignment Gap",
-    "- lane: `P11-L11`",
-    "- current `master` no longer has a matrix-versus-manifest continuity split for the DesignWare verify packet: both `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` and `zigux/tests/phase11_dw_wdt_manifest.json` now record continuity `P11-L05` with surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
-    "- `drivers/watchdog/dw_wdt_verify.zig` currently keeps stop-teardown ownership, inactive-versus-missing-`drvdata` teardown branching, and restart failure-mode coverage explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, PM behavior, or live MMIO validation",
+    "- lane: `P11-L10`",
+    "- current `master` no longer has a matrix-versus-manifest continuity split for the DesignWare verify packet: both `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` and `zigux/tests/phase11_dw_wdt_manifest.json` record continuity `P11-L05` with surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
+    "- `drivers/watchdog/dw_wdt_verify.zig` currently keeps registration-blocking failure paths, MMIO-blocked registration handoff, imported-running shared-clock fallback, and teardown and failure-mode parity explicit without claiming platform registration execution, clock or reset acquisition, IRQ ownership, PM behavior, or live MMIO validation",
     "This note now exists as a closed-gap companion: it records that the shared validation matrix and manifest agree again, and it keeps a small fail-closed checker in place so future lane or surveyed-head drift reopens immediately instead of hiding inside Phase 11 reminder surfaces.",
     "- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` describes the active continuity as `P11-L05` with surveyed pin `75f8336c4305beed127d7abfae37d3999b7cc57c`",
     "- `zigux/tests/phase11_dw_wdt_manifest.json` matches that same lane key and surveyed commit while still routing `phase11-dw-wdt-teardown-parity` to `drivers/watchdog/dw_wdt_verify.zig`",
+    "- `drivers/watchdog/dw_wdt_verify.zig` keeps `test \"phase11 dw_wdt verify keeps registration-blocking failure paths explicit\"`, `test \"phase11 dw_wdt verify keeps mmio-blocked registration handoff explicit\"`, `test \"phase11 dw_wdt verify keeps imported-running handoff and shared-clock fallback explicit\"`, `test \"phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit\"`, `test \"phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct\"`, and `test \"phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit\"` reviewable on current `master`",
     "- `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py` now keeps the resolved matrix-versus-manifest alignment and the current verify-helper scope fail-closed",
     "- the next substantive non-doc move should remain one platform-backed acquisition scaffold only",
 ]
@@ -43,18 +44,20 @@ MATRIX_MARKERS = [
 ]
 
 VERIFY_MARKERS = [
-    "pub fn summarizeStopTeardown(request: StopTeardownRequest) StopTeardownSummary",
-    "pub fn summarizeRestartFailureMode(request: RestartFailureModeRequest) RestartFailureModeSummary",
-    "pub fn summarizeRemoveTeardown(request: RemoveTeardownRequest) RemoveTeardownSummary",
-    'test "phase11 dw_wdt verify keeps stop teardown ownership explicit"',
-    'test "phase11 dw_wdt verify keeps inactive and missing-drvdata teardown paths distinct"',
-    'test "phase11 dw_wdt verify keeps inactive registered teardown hooks explicit"',
-    'test "phase11 dw_wdt verify keeps unregistered teardown hooks distinct from watchdog unregister"',
-    'test "phase11 dw_wdt verify keeps restart failure modes explicit"',
-    'test "phase11 dw_wdt verify keeps missing-drvdata restart failures explicit"',
-    'test "phase11 dw_wdt verify keeps remove teardown heartbeat continuation explicit"',
-    'test "phase11 dw_wdt verify keeps remove teardown reset-backed shutdown explicit"',
-    'test "phase11 dw_wdt verify keeps idle remove distinct from running teardown"',
+    'const dw_wdt = @import("dw_wdt.zig");',
+    'test "phase11 dw_wdt verify keeps registration-blocking failure paths explicit" {',
+    "try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_drvdata, missing_drvdata.state);",
+    "try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_missing_timer_clock, missing_timer_clock.state);",
+    'test "phase11 dw_wdt verify keeps mmio-blocked registration handoff explicit" {',
+    "try testing.expectEqual(dw_wdt.RegistrationScaffoldState.blocked_on_live_mmio, blocked_handoff.state);",
+    'test "phase11 dw_wdt verify keeps imported-running handoff and shared-clock fallback explicit" {',
+    "try testing.expectEqual(dw_wdt.RegistrationScaffoldState.import_running_state_then_register, handoff.state);",
+    'test "phase11 dw_wdt verify keeps continued-heartbeat teardown and remove failure modes explicit" {',
+    "try testing.expectEqual(dw_wdt.TeardownOutcome.continued_heartbeat, stop_summary.outcome);",
+    'test "phase11 dw_wdt verify keeps reset-backed teardown and remove cleanup distinct" {',
+    "try testing.expectEqual(dw_wdt.TeardownOutcome.reset_control_stop, stop_summary.outcome);",
+    'test "phase11 dw_wdt verify keeps idle no-op teardown and remove paths explicit" {',
+    "try testing.expectEqual(dw_wdt.TeardownOutcome.idle_noop, stop_summary.outcome);",
 ]
 
 
@@ -176,13 +179,11 @@ def run_self_test() -> None:
         build_fixture(fixture)
         run_check(fixture)
 
-        marker_cases = [
-            ("note", marker) for marker in NOTE_MARKERS
-        ] + [
-            ("matrix", marker) for marker in MATRIX_MARKERS
-        ] + [
-            ("verify", marker) for marker in VERIFY_MARKERS
-        ]
+        marker_cases = (
+            [("note", marker) for marker in NOTE_MARKERS]
+            + [("matrix", marker) for marker in MATRIX_MARKERS]
+            + [("verify", marker) for marker in VERIFY_MARKERS]
+        )
         for idx, (label, marker) in enumerate(marker_cases, start=1):
             case_root = tmpdir / f"marker_{idx}"
             shutil.copytree(fixture, case_root, dirs_exist_ok=True)
