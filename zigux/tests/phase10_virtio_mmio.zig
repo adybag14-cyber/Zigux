@@ -30,29 +30,34 @@ test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory re
     var summary = try device.selectedQueueReadinessSummary();
     try std.testing.expectEqualStrings(virtio_mmio.anchor_path, summary.anchor);
     try std.testing.expectEqual(@as(u16, 1), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 16), summary.advertised_queue_size);
+    try std.testing.expectEqual(@as(u16, 0), summary.programmed_queue_size);
     try std.testing.expect(!summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_size_matches_advertised);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 8);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 16), summary.advertised_queue_size);
+    try std.testing.expectEqual(@as(u16, 8), summary.programmed_queue_size);
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_size_matches_advertised);
     try std.testing.expect(!summary.queue_ready_for_handoff);
 
     _ = try device.writeRegister(.queue_num, 16);
-    summary = try device.selectedQueueReadinessSummary();
-    try std.testing.expect(summary.queue_size_programmed);
-    try std.testing.expect(!summary.queue_ready_for_handoff);
-
     _ = try device.writeRegister(.queue_ready, 1);
     summary = try device.selectedQueueReadinessSummary();
     try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(summary.queue_size_matches_advertised);
     try std.testing.expect(summary.queue_ready_for_handoff);
 
     _ = try device.writeRegister(.queue_sel, 0);
     summary = try device.selectedQueueReadinessSummary();
     try std.testing.expectEqual(@as(u16, 0), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 8), summary.advertised_queue_size);
+    try std.testing.expectEqual(@as(u16, 0), summary.programmed_queue_size);
     try std.testing.expect(!summary.queue_size_programmed);
-    try std.testing.expect(!summary.queue_ready_for_handoff);
-
-    _ = try device.writeRegister(.queue_sel, 1);
-    _ = try device.writeRegister(.queue_ready, 0);
-    summary = try device.selectedQueueReadinessSummary();
-    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_size_matches_advertised);
     try std.testing.expect(!summary.queue_ready_for_handoff);
 
     try std.testing.expectError(error.QueueSelectionOutOfRange, device.writeRegister(.queue_sel, 2));
