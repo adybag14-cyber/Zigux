@@ -102,6 +102,20 @@ test "last rejected xa_value lands on the top tagged err_ptr raw" {
     try testing.expectEqual(xa_value.value_tag_mask, aliased_raw & xa_value.value_tag_mask);
 }
 
+test "next rejected xa_value wraps past err_ptr into tagged low space" {
+    const tagged_err_count = (err_ptr.max_errno + 1) / 2;
+    const next_rejected = xa_value.safe_inline_limit + tagged_err_count + 1;
+    const top_err_raw = err_ptr.fromErrorCode(-1);
+    const wrapped_raw = (next_rejected << 1) | xa_value.value_tag_mask;
+
+    try testing.expectError(error.ValueWouldOverlapErrPtr, xa_value.makeValue(next_rejected));
+    try testing.expectEqual(top_err_raw +% 2, wrapped_raw);
+    try testing.expectEqual(xa_value.value_tag_mask, wrapped_raw);
+    try testing.expect(!err_ptr.isErrValue(wrapped_raw));
+    try testing.expect(xa_value.isValue(wrapped_raw));
+    try testing.expectEqual(@as(usize, 0), xa_value.toValue(wrapped_raw));
+}
+
 test "top of err_ptr band stays contiguous and never reenters xa_value lane" {
     const next_to_top_raw = err_ptr.fromErrorCode(-2);
     const top_raw = err_ptr.fromErrorCode(-1);
