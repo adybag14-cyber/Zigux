@@ -9,21 +9,25 @@ from pathlib import Path
 SLICE_PATH = Path("Documentation/zigux/phase13-devres-slice.md")
 SURVEY_PATH = Path("Documentation/zigux/phase13-devres-survey.md")
 PLANNER_NOTE_PATH = Path("Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md")
+SCATTERLIST_SLICE_PATH = Path("Documentation/zigux/phase13-devres-scatterlist-slice.md")
 PLANNER_MANIFEST_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json")
 PLANNER_REPLAY_PATH = Path("zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig")
 DMA_REPLAY_PATH = Path("zigux/tests/phase13_devres_dma_coherent.zig")
 SCATTERLIST_HELPER_PATH = Path("lib/devres_scatterlist.zig")
 SCATTERLIST_REPLAY_PATH = Path("zigux/tests/phase13_devres_scatterlist.zig")
+SCATTERLIST_BUILD_PATH = Path("zigux/tests/phase13_devres_scatterlist_build.zig")
 
 REQUIRED_FILES = [
     SLICE_PATH,
     SURVEY_PATH,
     PLANNER_NOTE_PATH,
+    SCATTERLIST_SLICE_PATH,
     PLANNER_MANIFEST_PATH,
     PLANNER_REPLAY_PATH,
     DMA_REPLAY_PATH,
     SCATTERLIST_HELPER_PATH,
     SCATTERLIST_REPLAY_PATH,
+    SCATTERLIST_BUILD_PATH,
 ]
 
 SLICE_MARKERS = [
@@ -65,6 +69,19 @@ PLANNER_NOTE_MARKERS = [
     "sg_*",
 ]
 
+SCATTERLIST_SLICE_MARKERS = [
+    "# Phase 13 devres scatterlist helper slice",
+    "This slice adds one helper-first scatterlist planner beside the existing `lib/devres.zig` and `lib/devres_dma_coherent.zig` packet.",
+    "- Zigux helper: `lib/devres_scatterlist.zig`",
+    "- focused replay: `zigux/tests/phase13_devres_scatterlist.zig`",
+    "keep one reviewable scatterlist bookkeeping foothold without widening into live DMA-backed execution or live `sg_*` traversal",
+    "`DevresScatterlistHelper.descriptor()` names the same `lib/devres.c` anchor while keeping `touches_live_dma = false` and `touches_live_scatterlist = false`",
+    "`planManagedScatterlistMap()` models a helper-first retained-record decision around original segment count, mapped segment count, and detach-time unmap readiness",
+    "`planManagedScatterlistUnmap()` keeps the release match exact across original and mapped segment counts so the detach bookkeeping surface stays reviewable",
+    "no live `dma_map_sgtable()` or `dma_unmap_sgtable()` execution",
+    "no `struct scatterlist`, `sg_table`, or `sg_*` iteration helpers",
+]
+
 PLANNER_MANIFEST_MARKERS = [
     '"lane_key": "P13-L08"',
     '"phase": "Phase 13"',
@@ -83,7 +100,7 @@ PLANNER_MANIFEST_MARKERS = [
 PLANNER_REPLAY_MARKERS = [
     'test "phase13 devres descriptor records helper-first dmam_alloc_coherent planning" {',
     'test "phase13 devres dmam_alloc_coherent planner manifest records the landed helper-first dma scope" {',
-    'try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");',
+    'try requireContains(manifest, "\\\"status\\\": \\\"starter_landed\\\"");',
     'try requireContains(manifest, "planManagedReleaseRecordLifetime");',
 ]
 
@@ -110,6 +127,16 @@ SCATTERLIST_REPLAY_MARKERS = [
     'test "phase13 devres scatterlist release matching stays exact across original and mapped counts" {',
 ]
 
+SCATTERLIST_BUILD_MARKERS = [
+    'const devres_scatterlist_module = b.createModule(.{',
+    '.root_source_file = b.path("../../lib/devres_scatterlist.zig"),',
+    'const phase13_devres_scatterlist_module = b.createModule(.{',
+    '.root_source_file = b.path("phase13_devres_scatterlist.zig"),',
+    'phase13_devres_scatterlist_module.addImport("devres_scatterlist", devres_scatterlist_module);',
+    '.name = "phase13-devres-scatterlist-tests",',
+    'const test_step = b.step("test", "Run Phase 13 devres scatterlist helper tests");',
+]
+
 
 def read_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -133,11 +160,13 @@ def validate(root: Path) -> list[str]:
         (SLICE_PATH, SLICE_MARKERS, "slice"),
         (SURVEY_PATH, SURVEY_MARKERS, "survey"),
         (PLANNER_NOTE_PATH, PLANNER_NOTE_MARKERS, "planner_note"),
+        (SCATTERLIST_SLICE_PATH, SCATTERLIST_SLICE_MARKERS, "scatterlist_slice"),
         (PLANNER_MANIFEST_PATH, PLANNER_MANIFEST_MARKERS, "planner_manifest"),
         (PLANNER_REPLAY_PATH, PLANNER_REPLAY_MARKERS, "planner_replay"),
         (DMA_REPLAY_PATH, DMA_REPLAY_MARKERS, "dma_replay"),
         (SCATTERLIST_HELPER_PATH, SCATTERLIST_HELPER_MARKERS, "scatterlist_helper"),
         (SCATTERLIST_REPLAY_PATH, SCATTERLIST_REPLAY_MARKERS, "scatterlist_replay"),
+        (SCATTERLIST_BUILD_PATH, SCATTERLIST_BUILD_MARKERS, "scatterlist_build"),
     ]
 
     for rel, markers, prefix in checks:
@@ -150,11 +179,13 @@ def seed_fixture_tree(root: Path) -> None:
         SLICE_PATH: "\n".join(SLICE_MARKERS) + "\n",
         SURVEY_PATH: "\n".join(SURVEY_MARKERS) + "\n",
         PLANNER_NOTE_PATH: "\n".join(PLANNER_NOTE_MARKERS) + "\n",
+        SCATTERLIST_SLICE_PATH: "\n".join(SCATTERLIST_SLICE_MARKERS) + "\n",
         PLANNER_MANIFEST_PATH: "\n".join(PLANNER_MANIFEST_MARKERS) + "\n",
         PLANNER_REPLAY_PATH: "\n".join(PLANNER_REPLAY_MARKERS) + "\n",
         DMA_REPLAY_PATH: "\n".join(DMA_REPLAY_MARKERS) + "\n",
         SCATTERLIST_HELPER_PATH: "\n".join(SCATTERLIST_HELPER_MARKERS) + "\n",
         SCATTERLIST_REPLAY_PATH: "\n".join(SCATTERLIST_REPLAY_MARKERS) + "\n",
+        SCATTERLIST_BUILD_PATH: "\n".join(SCATTERLIST_BUILD_MARKERS) + "\n",
     }
     for rel, text in writes.items():
         write_text(root / rel, text)
@@ -241,6 +272,23 @@ def run_self_test() -> int:
 
         seed_fixture_tree(root)
         write_text(
+            root / SCATTERLIST_SLICE_PATH,
+            "\n".join(
+                marker
+                for marker in SCATTERLIST_SLICE_MARKERS
+                if marker != "- Zigux helper: `lib/devres_scatterlist.zig`"
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["scatterlist_slice:missing_marker:- Zigux helper: `lib/devres_scatterlist.zig`"],
+            "scatterlist_slice_missing_helper_anchor_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
             root / PLANNER_MANIFEST_PATH,
             "\n".join(
                 marker
@@ -262,14 +310,14 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in PLANNER_REPLAY_MARKERS
-                if marker != 'try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");'
+                if marker != 'try requireContains(manifest, "\\\"status\\\": \\\"starter_landed\\\"");'
             )
             + "\n",
         )
         assert_only(
             validate(root),
             [
-                'planner_replay:missing_marker:try requireContains(manifest, "\\"status\\": \\"starter_landed\\"");'
+                'planner_replay:missing_marker:try requireContains(manifest, "\\\"status\\\": \\\"starter_landed\\\"");'
             ],
             "planner_replay_missing_status_assertion_failed",
         )
@@ -312,6 +360,25 @@ def run_self_test() -> int:
         )
         case_count += 1
 
+        seed_fixture_tree(root)
+        write_text(
+            root / SCATTERLIST_BUILD_PATH,
+            "\n".join(
+                marker
+                for marker in SCATTERLIST_BUILD_MARKERS
+                if marker != 'const test_step = b.step("test", "Run Phase 13 devres scatterlist helper tests");'
+            )
+            + "\n",
+        )
+        assert_only(
+            validate(root),
+            [
+                'scatterlist_build:missing_marker:const test_step = b.step("test", "Run Phase 13 devres scatterlist helper tests");'
+            ],
+            "scatterlist_build_missing_test_step_failed",
+        )
+        case_count += 1
+
     print("PHASE13_DEVRES_MMIO_PACKET_SELF_TEST=pass")
     print(f"PHASE13_DEVRES_MMIO_PACKET_SELF_TEST_CASES={case_count}")
     return 0
@@ -343,11 +410,13 @@ def main() -> int:
             len(SLICE_MARKERS)
             + len(SURVEY_MARKERS)
             + len(PLANNER_NOTE_MARKERS)
+            + len(SCATTERLIST_SLICE_MARKERS)
             + len(PLANNER_MANIFEST_MARKERS)
             + len(PLANNER_REPLAY_MARKERS)
             + len(DMA_REPLAY_MARKERS)
             + len(SCATTERLIST_HELPER_MARKERS)
             + len(SCATTERLIST_REPLAY_MARKERS)
+            + len(SCATTERLIST_BUILD_MARKERS)
         )
     )
     return 0
