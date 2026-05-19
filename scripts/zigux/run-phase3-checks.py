@@ -88,7 +88,10 @@ CHECK_COMMANDS = (
     (
         Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
         (),
-        ("validated Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",),
+        (
+            "validated Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",
+            "PHASE3_LOW_LEVEL_WRAPPER_SURVEY=pass",
+        ),
     ),
     (
         Path("scripts/zigux/check-phase3-selftest-surface.py"),
@@ -243,10 +246,21 @@ def run_self_test() -> int:
             print("expected missing readme-inventory output marker to fail the runner")
             return 1
 
+        low_level_wrapper_path = root / CHECK_COMMANDS[12][0]
+        populate_repo()
+        _write_synthetic_script(
+            low_level_wrapper_path,
+            (CHECK_COMMANDS[12][2][0],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing low-level-wrapper pass marker to fail the runner")
+            return 1
+
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 4}"
+            f"{len(SELF_TEST_MISSING_CASES) + 5}"
         )
         return 0
 
