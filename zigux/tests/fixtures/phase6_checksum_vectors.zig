@@ -49,9 +49,28 @@ pub const ip_fast_csum_ipv4_24b = [_]u8{
     0x01, 0x01, 0x00, 0x00,
 };
 
+pub const ip_fast_csum_ipv4_60b = [_]u8{
+    0x4f, 0x00, 0x00, 0x3c,
+    0xbe, 0xef, 0x40, 0x00,
+    0x40, 0x11, 0x00, 0x00,
+    0xc0, 0x00, 0x02, 0x01,
+    0xc6, 0x33, 0x64, 0x07,
+    0x01, 0x01, 0x94, 0x04,
+    0xde, 0xad, 0xbe, 0xef,
+    0xca, 0xfe, 0xba, 0xbe,
+    0x11, 0x22, 0x33, 0x44,
+    0x55, 0x66, 0x77, 0x88,
+    0x99, 0xaa, 0xbb, 0xcc,
+    0xdd, 0xee, 0xf0, 0x0d,
+    0x10, 0x20, 0x30, 0x40,
+    0x50, 0x60, 0x70, 0x80,
+    0x90, 0xa0, 0xb0, 0xc0,
+};
+
 pub const fast_path_cases = [_]FastPathCase{
     .{ .label = "IPV4_20B", .header = &ip_fast_csum_ipv4_20b, .iterations = 600_000, .max_slowdown_pct = 100 },
     .{ .label = "IPV4_24B", .header = &ip_fast_csum_ipv4_24b, .iterations = 500_000, .max_slowdown_pct = 100 },
+    .{ .label = "IPV4_60B", .header = &ip_fast_csum_ipv4_60b, .iterations = 250_000, .max_slowdown_pct = 100 },
 };
 
 fn perfPayloadFingerprint(bytes: []const u8) u64 {
@@ -90,6 +109,7 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
     }{
         .{ .label = "IPV4_20B", .len = 20, .iterations = 600_000, .max_slowdown_pct = 100, .fingerprint = 0x0682_5249_d059_7d1a },
         .{ .label = "IPV4_24B", .len = 24, .iterations = 500_000, .max_slowdown_pct = 100, .fingerprint = 0x5eb5_c436_a23c_5f85 },
+        .{ .label = "IPV4_60B", .len = 60, .iterations = 250_000, .max_slowdown_pct = 100, .fingerprint = 0xdf35_6721_260f_0ddd },
     };
 
     try std.testing.expectEqual(expected.len, perf_cases.len);
