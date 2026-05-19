@@ -115,6 +115,7 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "planManagedReleaseRecordLifetime");
     try requireContains(manifest, "planManagedDmamFreeCoherent");
     try requireContains(manifest, "release_record_consumed");
+    try requireContains(manifest, "releases_from_devres");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-dmam-alloc-side-effects\"");
     try requireContains(manifest, "\"status\": \"blocked_on_dma_state\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
@@ -130,6 +131,7 @@ test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma
     try requireContains(note, "accepts already-decided allocation inputs");
     try requireContains(note, "retains detach-time cleanup ownership on success");
     try requireContains(note, "turns that successful allocation plan into explicit detach cleanup planning through `planManagedDmamFreeCoherent(...)`");
+    try requireContains(note, "records whether that planned coherent free consumes the retained release record and releases the allocation from devres");
     try requireContains(note, "failed allocation frees the release record");
     try requireContains(note, "Fixture governance stays helper-local:");
     try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, freed-release-record, missing-release-record, and detach-cleanup fixture coverage");
