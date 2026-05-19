@@ -96,6 +96,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",");
     try expectContains(checker, "\"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass\",");
     try expectContains(checker, "phase7_argv_split_vectors = [_]ArgvSplitVector{");
+    try expectContains(checker, 'test \"phase 7 argv split companion replays repeated blank-result sentinel reuse\" {');
 
     try expectContains(fixture_vectors, "pub const ArgvSplitVector = struct {");
     try expectContains(fixture_vectors, "pub const phase7_argv_split_vectors = [_]ArgvSplitVector{");
@@ -131,6 +132,7 @@ test "phase 7 argv split survey keeps the returned fixture-backed helper-local p
     try expectContains(helper_companion, "const argv_split = @import(\"argv_split\");");
     try expectContains(helper_companion, "phase 7 argv split companion replays copied-storage token ownership");
     try expectContains(helper_companion, "phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation");
+    try expectContains(helper_companion, "phase 7 argv split companion replays repeated blank-result sentinel reuse");
     try expectContains(helper_companion, "phase 7 argv split companion replays caller-owned teardown and failure boundaries");
 
     try expectStringSliceContains(manifest.ownership_focus, "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage");
