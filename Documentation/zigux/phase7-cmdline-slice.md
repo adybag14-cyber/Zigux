@@ -9,13 +9,13 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=helper-local`
 - lane-key note: `helper-local` keeps the dedicated cmdline packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate shared-control follow-ons
 - scope: keep the Phase 7 cmdline lane limited to the current helper-local packet and the no-standalone-cmdline-sample boundary
-- lane state: current `master` directly carries `lib/cmdline.zig`, and this helper-local packet keeps `Documentation/zigux/phase7-cmdline-slice.md`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_sample_boundary.zig`, `zigux/tests/phase7_cmdline_manifest.json`, and `samples/zigux/README.md` aligned around the bounded cmdline helper family without widening into the separate `argv_split`, `string_helpers`, or `rbtree` packets
+- lane state: current `master` directly carries `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and this helper-local packet keeps `Documentation/zigux/phase7-cmdline-slice.md`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_sample_boundary.zig`, `zigux/tests/phase7_cmdline_manifest.json`, and `samples/zigux/README.md` aligned around the bounded cmdline helper family without widening into the separate `argv_split`, `string_helpers`, or `rbtree` packets
 
 ## Why This Slice Exists
 
 Phase 7 is where Zigux starts carrying reusable runtime helper families in product-facing locations.
 
-The current `cmdline` state on `master` now carries a bounded helper-local packet around option matching, integer option decoding, next-argument parsing, and memory-size parsing while keeping the broader token-splitting, string-helper, and tree-helper follow-ons in their own Phase 7 families.
+The current `cmdline` state on `master` now carries a bounded helper-local packet around option matching, integer option decoding, next-argument parsing, and memory-size parsing, plus a dedicated helper-local replay in `zigux/tests/phase7_cmdline.zig`, while keeping the broader token-splitting, string-helper, and tree-helper follow-ons in their own Phase 7 families.
 
 This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `master` still ships no standalone `samples/zigux/*cmdline*` reference sample, so the dedicated boundary replay should keep that separation explicit while the Phase 7 cmdline helper stays reviewable through helper-local surfaces only.
 
@@ -24,7 +24,8 @@ This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `mas
 1. keep the helper-local implementation explicit
 - `lib/cmdline.zig`
 
-2. keep the dedicated review packet explicit
+2. keep the dedicated helper-local replay and review packet explicit
+- `zigux/tests/phase7_cmdline.zig`
 - `Documentation/zigux/phase7-cmdline-slice.md`
 - `zigux/tests/phase7_cmdline_survey.zig`
 - `zigux/tests/phase7_cmdline_manifest.json`
@@ -59,6 +60,7 @@ The current helper-local replay keeps these proofs explicit:
 - decimal, hexadecimal, octal, and suffix-aware `memparse()` decoding
 - signed-clamp and unchanged-rest behavior when no parse is possible
 - `nextArg()` handling for bare tokens, key-value pairs, quoted values, quoted bare tokens, empty values, leading whitespace, leading equals signs, and first-NUL boundaries
+- dedicated helper-local replay coverage rooted at `zigux/tests/phase7_cmdline.zig`
 
 The current helper-local replay also keeps these ownership and boundary rules explicit:
 
@@ -79,5 +81,5 @@ This helper-local Phase 7 cmdline slice does not yet claim:
 
 ## Next Bounded Step
 
-Keep the dedicated cmdline survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet, and reopen only if those same-lane reminder surfaces drift or a fresh reread proves the missing dedicated test or fixture companions returned on current `master`.
+Keep the dedicated cmdline helper replay, survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet, and reopen only if those same-lane reminder surfaces drift or a fresh reread proves a matching dedicated fixture companion returned on current `master`.
 Route adjacent `argv_split`, `string_helpers`, and `rbtree` follow-through to their own Phase 7 helper-local packets.
