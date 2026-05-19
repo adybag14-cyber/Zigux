@@ -64,6 +64,7 @@ This note records the current bounded Phase 3 shared-reminder status on `master`
 
 - `scripts/zigux/validate-phase3-abi-header-family-survey.py`
 - `Documentation/zigux/phase3-abi-header-family-survey.md`
+- `Documentation/zigux/phase3-abi-h-boundary-next-step.md`
 
 ## Current Gap
 
