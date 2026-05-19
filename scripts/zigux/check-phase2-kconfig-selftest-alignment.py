@@ -53,6 +53,14 @@ SCRIPTS_README_MARKERS = (
     "scripts/zigux/check-phase2-toolchain-pinning.py",
 )
 
+SCRIPTS_README_FORBIDDEN_MARKERS = (
+    "still return missing for `scripts/zigux/check-kconfig-bridge.py`",
+    "still return missing for `scripts/zigux/kconfig/conf_bridge.zig`",
+    "still return missing for `scripts/zigux/kconfig/confdata_bridge.zig`",
+    "still return missing for `zigux/tests/fixtures/kconfig_bridge/cases.json`",
+    "`scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` stay framed as historical packet members rather than shipped current-`master` evidence",
+)
+
 TESTS_README_MARKERS = (
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
@@ -62,11 +70,28 @@ TESTS_README_MARKERS = (
     "make -C zigux phase2-kconfig",
 )
 
+TESTS_README_FORBIDDEN_MARKERS = (
+    "still return missing for `scripts/zigux/check-kconfig-bridge.py`",
+    "still return missing for `scripts/zigux/kconfig/conf_bridge.zig`",
+    "still return missing for `scripts/zigux/kconfig/confdata_bridge.zig`",
+    "still return missing for `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
+    "still return missing for `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
+    "`scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json` stay framed as historical packet members rather than shipped current-`master` evidence",
+)
+
 REVIEW_CHECKLIST_MARKERS = (
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "make -C zigux phase2-kconfig",
+)
+
+REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
+    "still return missing for `scripts/zigux/check-kconfig-bridge.py`",
+    "still return missing for `scripts/zigux/kconfig/conf_bridge.zig`",
+    "still return missing for `scripts/zigux/kconfig/confdata_bridge.zig`",
+    "still return missing for `zigux/tests/fixtures/kconfig_bridge/cases.json`",
+    "`scripts/zigux/check-kconfig-bridge.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` stay framed as historical packet members rather than shipped current-`master` evidence",
 )
 
 EXPECTED_SELF_TEST_CASE_COUNT = (
@@ -78,8 +103,11 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(MAKEFILE_LINES)
     + len(MAKEFILE_LINES)
     + len(SCRIPTS_README_MARKERS)
+    + len(SCRIPTS_README_FORBIDDEN_MARKERS)
     + len(TESTS_README_MARKERS)
+    + len(TESTS_README_FORBIDDEN_MARKERS)
     + len(REVIEW_CHECKLIST_MARKERS)
+    + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS)
     + len(KCONFIG_BRIDGE_SURFACE_PATHS)
     + 5
 )
@@ -105,6 +133,10 @@ def count_exact_lines(text: str, marker: str) -> int:
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -137,9 +169,30 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("DUPLICATE_MAKEFILE_HOOKS", f"{marker}:count={count}"))
 
     issues.extend(collect_missing_markers(scripts_readme_text, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"))
+    issues.extend(
+        collect_forbidden_markers(
+            scripts_readme_text,
+            SCRIPTS_README_FORBIDDEN_MARKERS,
+            "FORBIDDEN_SCRIPTS_README_MARKERS",
+        )
+    )
     issues.extend(collect_missing_markers(tests_readme_text, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"))
     issues.extend(
+        collect_forbidden_markers(
+            tests_readme_text,
+            TESTS_README_FORBIDDEN_MARKERS,
+            "FORBIDDEN_TESTS_README_MARKERS",
+        )
+    )
+    issues.extend(
         collect_missing_markers(review_checklist_text, REVIEW_CHECKLIST_MARKERS, "MISSING_REVIEW_CHECKLIST_MARKERS")
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            review_checklist_text,
+            REVIEW_CHECKLIST_FORBIDDEN_MARKERS,
+            "FORBIDDEN_REVIEW_CHECKLIST_MARKERS",
+        )
     )
 
     for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
@@ -273,6 +326,14 @@ def run_self_test() -> int:
             assert ("MISSING_SCRIPTS_README_MARKERS", marker) in issues
             checks_run += 1
 
+        for marker in SCRIPTS_README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, SCRIPTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_SCRIPTS_README_MARKERS", marker) in issues
+            checks_run += 1
+
         for marker in TESTS_README_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, TESTS_README)
@@ -281,12 +342,28 @@ def run_self_test() -> int:
             assert ("MISSING_TESTS_README_MARKERS", marker) in issues
             checks_run += 1
 
+        for marker in TESTS_README_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, TESTS_README)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_TESTS_README_MARKERS", marker) in issues
+            checks_run += 1
+
         for marker in REVIEW_CHECKLIST_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, REVIEW_CHECKLIST)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker, ""), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_REVIEW_CHECKLIST_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in REVIEW_CHECKLIST_FORBIDDEN_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, REVIEW_CHECKLIST)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("FORBIDDEN_REVIEW_CHECKLIST_MARKERS", marker) in issues
             checks_run += 1
 
         for bridge_path in KCONFIG_BRIDGE_SURFACE_PATHS:
