@@ -35,8 +35,9 @@ It is not Architecture Council approval and does not request a status change by 
 ## Stay-In-C Posture
 
 - retained `freeze_in_c` decision: `the anchor remains in C as the current product source of truth`
+- the current blocker: `blocked_no_bounded_allocator_seam`
 - automatic return-to-blocked trigger: `stale, contradictory, or broadened evidence immediately returns the anchor to blocked posture`
-- retained discussion state: `retired_from_active_discussion` for the current maintenance-only stay-in-C posture
+- `retired_from_active_discussion` state: `retired_from_active_discussion` for the current maintenance-only stay-in-C posture
 - reopen triggers:
   - `narrower_followup_answers_blocker`
   - `evidence_packet_stale_or_contradictory`
