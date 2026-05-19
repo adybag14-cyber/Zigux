@@ -62,12 +62,13 @@ Keep helper-local ownership explicit instead of flattening the packet into a sin
 ### `libfs`
 
 - `Documentation/zigux/phase13-libfs-survey.md`
+- `Documentation/zigux/phase13-libfs-slice.md`
 - `fs/libfs.zig`
 - `zigux/tests/phase13_libfs.zig`
 - `zigux/tests/phase13_libfs_reviewability.zig`
 - `zigux/tests/phase13_libfs_manifest.json`
 
-Keep `Documentation/zigux/phase13-libfs-slice.md`, `zigux/tests/phase13_libfs_addressability.zig`, and `zigux/tests/phase13_build.zig` recorded as repo-reality gaps until they rematerialize on current `master`.
+Keep `zigux/tests/phase13_libfs_addressability.zig` and `zigux/tests/phase13_build.zig` recorded as repo-reality gaps until they rematerialize on current `master`, while `Documentation/zigux/phase13-libfs-slice.md` stays explicit as the bounded helper-scope note for the live `libfs` packet.
 
 ### `devres`
 
