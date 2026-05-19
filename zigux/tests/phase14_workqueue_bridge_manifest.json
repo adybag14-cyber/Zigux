@@ -158,7 +158,7 @@
       "status": "blocked_on_live_concurrency",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase14_workqueue_bridge.zig",
-      "why_now": "Live worker_pool execution, scheduler parity, rescuer ownership, delayed-work requeue control, runtime max_active retuning, and hotplug-driven migration remain blocked under the existing C implementation because the roadmap and freeze map still keep kernel/workqueue.c in a study-only boundary posture."
+      "why_now": "Live worker_pool execution, callback dispatch ownership, delayed-work requeue control, flush, drain, and cancellation completion ownership, runtime max_active retuning, scheduler-visible worker-state parity, rescuer execution ownership, and hotplug-driven worker migration or topology rebinding remain blocked under the existing C implementation because the roadmap and freeze map still keep kernel/workqueue.c in a study-only boundary posture."
     }
   ]
 }
