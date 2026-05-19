@@ -520,6 +520,37 @@ fn addPhase3LowLevelWrappers(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3ListHlistHelperBoundaries(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const list_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/list_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hlist_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/hlist_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_list_hlist_helper_boundaries.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("list_view", list_view);
+    root_module.addImport("hlist_view", hlist_view);
+
+    const tests = b.addTest(.{
+        .name = "phase3-list-hlist-helper-boundaries",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3AbiDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -606,6 +637,11 @@ pub fn build(b: *std.Build) void {
     const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);
     const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);
     const phase3_low_level_wrappers = addPhase3LowLevelWrappers(b, target, optimize);
+    const phase3_list_hlist_helper_boundaries = addPhase3ListHlistHelperBoundaries(
+        b,
+        target,
+        optimize,
+    );
     const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);
     const phase11_gpio_wdt_verify = addPhase11GpioWatchdogVerify(b, target, optimize);
     const phase12_virtio_net_throughput_parity = addPhase12VirtioNetThroughputParity(
@@ -682,6 +718,12 @@ pub fn build(b: *std.Build) void {
         "Run the shared Phase 3 low-level wrapper packet from zigux/tests",
     );
     phase3_low_level_wrapper_step.dependOn(&phase3_low_level_wrappers.step);
+
+    const phase3_list_hlist_helper_boundaries_step = b.step(
+        "phase3-list-hlist-helper-boundaries",
+        "Run the shared Phase 3 list/hlist helper-boundary replay from zigux/tests",
+    );
+    phase3_list_hlist_helper_boundaries_step.dependOn(&phase3_list_hlist_helper_boundaries.step);
 
     const phase3_test_step = b.step(
         "phase3-test",
