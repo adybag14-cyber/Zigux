@@ -102,3 +102,42 @@ test "constructor helpers build explicit xarray slot lanes" {
     try testing.expectEqual(@as(usize, 0x1000), pointer_slot.rawValue());
     try testing.expectEqual(@as(?usize, 0x1000), pointer_slot.pointerValue());
 }
+
+test "low boundary raws stay ordered as null, tagged value, then pointer-like gap" {
+    const null_slot = xarray_slot_view.fromRaw(0);
+    const inline_zero_raw = try xa_value.makeValue(0);
+    const inline_zero_slot = xarray_slot_view.fromRaw(inline_zero_raw);
+    const low_gap_raw = inline_zero_raw + 1;
+    const low_gap_slot = xarray_slot_view.fromRaw(low_gap_raw);
+
+    try testing.expect(null_slot.isNull());
+    try testing.expectEqual(@as(?usize, null), null_slot.value());
+
+    try testing.expectEqual(@as(usize, 1), inline_zero_raw);
+    try testing.expect(inline_zero_slot.isValue());
+    try testing.expectEqual(@as(?usize, 0), inline_zero_slot.value());
+
+    try testing.expect(!xarray_slot_view.isTaggedInternalEntry(low_gap_raw));
+    try testing.expect(low_gap_slot.isPointer());
+    try testing.expectEqual(@as(?usize, low_gap_raw), low_gap_slot.pointerValue());
+}
+
+test "high boundary raws stay ordered as tagged value, pointer-like gap, then err_ptr" {
+    const inline_limit_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
+    const inline_limit_slot = xarray_slot_view.fromRaw(inline_limit_raw);
+    const high_gap_raw = inline_limit_raw + 1;
+    const high_gap_slot = xarray_slot_view.fromRaw(high_gap_raw);
+    const err_floor_slot = xarray_slot_view.fromRaw(err_ptr.err_floor);
+
+    try testing.expectEqual(err_ptr.err_floor - 2, inline_limit_raw);
+    try testing.expect(inline_limit_slot.isValue());
+    try testing.expectEqual(@as(?usize, xa_value.safe_inline_limit), inline_limit_slot.value());
+
+    try testing.expectEqual(err_ptr.err_floor - 1, high_gap_raw);
+    try testing.expect(!xarray_slot_view.isTaggedInternalEntry(high_gap_raw));
+    try testing.expect(high_gap_slot.isPointer());
+    try testing.expectEqual(@as(?usize, high_gap_raw), high_gap_slot.pointerValue());
+
+    try testing.expect(err_floor_slot.isErr());
+    try testing.expectEqual(@as(?isize, -4095), err_floor_slot.errorCode());
+}
