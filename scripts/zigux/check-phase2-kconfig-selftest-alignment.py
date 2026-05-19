@@ -35,6 +35,7 @@ MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py --self-test",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
 )
 
@@ -64,7 +65,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "make -C zigux phase2-kconfig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 51
+EXPECTED_SELF_TEST_CASE_COUNT = 53
 
 
 def read_text(path: Path) -> str:
