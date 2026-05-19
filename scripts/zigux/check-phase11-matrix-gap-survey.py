@@ -144,7 +144,15 @@ def run_self_test() -> None:
         build_fixture(fixture)
         run_check(fixture)
 
-        for index, marker in enumerate(REQUIRED_MARKERS[:9], start=1):
+        required_self_test_markers = (
+            REQUIRED_MARKERS[:9]
+            + [
+                REQUIRED_MARKERS[15],
+                REQUIRED_MARKERS[18],
+                REQUIRED_MARKERS[23],
+            ]
+        )
+        for index, marker in enumerate(required_self_test_markers, start=1):
             case_root = tmpdir / f"missing_marker_{index}"
             shutil.copytree(fixture, case_root, dirs_exist_ok=True)
             survey_path = case_root / SURVEY_PATH
@@ -168,7 +176,7 @@ def run_self_test() -> None:
         expect_failure(missing_file_root, SURVEY_PATH)
 
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=19")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=22")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
