@@ -5,7 +5,7 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 ## Status
 
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L08`
+- `PHASE15_LANE_KEY=P15-L07`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
@@ -21,7 +21,7 @@ The older handoff target that treated the docs root as the next automatic Phase 
 
 The handoff continuity packet itself now has two dedicated machine-readable companions: the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`. Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.
 
-This refresh closes that dedicated handoff replay gap. Reviewers can now read this note against the current 2026-05-19 governance packet instead of reconciling it against an older handoff note by hand.
+This refresh closes that dedicated handoff replay gap and keeps the handoff-local lane identity aligned with the current Phase 15 next-bound survey lane. Reviewers can now read this note against the current 2026-05-19 governance packet instead of reconciling it against an older handoff note by hand.
 
 ## Current handed-off packet on current master
 
@@ -87,7 +87,7 @@ These are handoff and reminder-surface gaps, not missing ownership of the roadma
 
 ## Handoff rules
 
-- if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused tests-readme checker, the checker-backed shared-gap packet, the focused handoff-specific replay, and the focused handoff-note checker instead of carrying stale future-target language
+- if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused tests-readme checker, the checker-backed shared-gap packet, the focused handoff-note checker, and the focused handoff-specific replay instead of carrying stale future-target language
 - if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here
 - if the freeze-map anchor set or any blocker disposition changes, reopen `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-parity-scorecard.md` before widening this note
 
