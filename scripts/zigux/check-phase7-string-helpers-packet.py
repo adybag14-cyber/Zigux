@@ -106,7 +106,7 @@ FORBIDDEN_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 13
 
 
 def read_text(path: Path) -> str:
@@ -192,6 +192,11 @@ def run_self_test() -> None:
         expect_missing_marker("missing_slice_checker_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_marker}")
         write_fixture_root(tmp_root)
 
+        slice_follow_on_marker = "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
+        slice_path.write_text(read_text(slice_path).replace(slice_follow_on_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_slice_devm_follow_on_marker", tmp_root, f"Documentation/zigux/phase7-string-helpers-slice.md: {slice_follow_on_marker}")
+        write_fixture_root(tmp_root)
+
         helper_path = tmp_root / "lib" / "string_helpers.zig"
         helper_marker = "pub fn kstrdupQuotableCmdline("
         helper_path.write_text(read_text(helper_path).replace(helper_marker + "\n", "", 1), encoding="utf-8")
@@ -214,6 +219,17 @@ def run_self_test() -> None:
         survey_marker = 'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");'
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_checker_selftest_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_follow_on_marker = 'try expectContains(sample_boundary, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");'
+        survey_path.write_text(read_text(survey_path).replace(survey_follow_on_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_follow_on_marker}")
+        write_fixture_root(tmp_root)
+
+        boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
+        boundary_marker = "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on"
+        boundary_path.write_text(read_text(boundary_path).replace(boundary_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_boundary_devm_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_sample_boundary.zig: {boundary_marker}")
         write_fixture_root(tmp_root)
 
         samples_path = tmp_root / "samples" / "zigux" / "README.md"
