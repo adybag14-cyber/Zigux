@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-Y06",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-18",
+  "surveyed_commit": "current-master-readback-2026-05-19",
   "sequencing_note": "Documentation/zigux/phase15-governance-lane-sequencing.md",
   "readiness_manifest": "zigux/tests/phase15_readiness_gate_manifest.json",
   "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
@@ -19,11 +19,13 @@
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/tests/phase15_governance_lane_sequencing_manifest.json",
-    "zigux/tests/phase15_governance_lane_sequencing.zig"
+    "zigux/tests/phase15_governance_lane_sequencing.zig",
+    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "scripts/zigux/check-phase15-handoff-note-alignment.py"
   ],
   "still_missing_broader_paths": [
     "scripts/zigux/validate-phase15.py",
-    "zigux/tests/phase15_handoff_next_steps_manifest.json",
+    "zigux/tests/phase15_handoff_next_steps.zig",
     "zigux/tests/phase15_build.zig",
     "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
   ],
@@ -33,6 +35,7 @@
     "python3 scripts/zigux/check-phase15-tests-readme-alignment.py",
     "python3 scripts/zigux/check-phase15-review-process-handoff.py",
     "python3 scripts/zigux/check-phase15-shared-summary-gap.py",
+    "python3 scripts/zigux/check-phase15-handoff-note-alignment.py",
     "zig test zigux/tests/phase15_governance_lane_sequencing.zig"
   ]
 }
