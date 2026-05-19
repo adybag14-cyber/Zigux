@@ -69,7 +69,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 8
 
 
 def read_text(path: Path) -> str:
@@ -134,6 +134,20 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        sequencing_path = tmp_root / "Documentation" / "zigux" / "phase7-helper-lane-sequencing.md"
+        sequencing_text = read_text(sequencing_path)
+        sequencing_marker = "`P7-L10` owns only cmdline helper-local parity, survey, manifest, checker, or reminder drift;"
+        sequencing_path.write_text(
+            sequencing_text.replace(sequencing_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_sequencing_owner_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
+        )
+        write_fixture_root(tmp_root)
+
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-cmdline-slice.md"
         slice_text = read_text(slice_path)
         slice_marker = "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof."
@@ -142,6 +156,28 @@ def run_self_test() -> None:
             "missing_slice_next_step_marker",
             tmp_root,
             f"Documentation/zigux/phase7-cmdline-slice.md: {slice_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-cmdline-packet.py"
+        checker_text = read_text(checker_path)
+        checker_marker = "PHASE7_CMDLINE_PACKET_SELF_TEST=pass"
+        checker_path.write_text(checker_text.replace(checker_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_checker_selftest_pass_marker",
+            tmp_root,
+            f"scripts/zigux/check-phase7-cmdline-packet.py: {checker_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        helper_path = tmp_root / "lib" / "cmdline.zig"
+        helper_text = read_text(helper_path)
+        helper_marker = "pub fn nextArg"
+        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_helper_nextarg_marker",
+            tmp_root,
+            f"lib/cmdline.zig: {helper_marker}",
         )
         write_fixture_root(tmp_root)
 
@@ -164,6 +200,17 @@ def run_self_test() -> None:
             "missing_survey_checker_reader",
             tmp_root,
             f"zigux/tests/phase7_cmdline_survey.zig: {survey_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        samples_path = tmp_root / "samples" / "zigux" / "README.md"
+        samples_text = read_text(samples_path)
+        samples_marker = "* `*cmdline*`"
+        samples_path.write_text(samples_text.replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_samples_cmdline_boundary",
+            tmp_root,
+            f"samples/zigux/README.md: {samples_marker}",
         )
         write_fixture_root(tmp_root)
 
