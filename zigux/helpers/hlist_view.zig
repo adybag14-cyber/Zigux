@@ -284,6 +284,31 @@ test "hlist view last returns the tail across a longer chain" {
     try std.testing.expect(view.tailNextIsNull());
 }
 
+test "hlist view reports a broken head prev-link witness without losing tail access" {
+    var head = HListHead{ .first = 0 };
+    var node = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&node);
+    node.next = 0;
+    node.pprev = @intFromPtr(&node.next);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 1), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &node), view.last());
+    try std.testing.expect(!view.firstPprevMatchesHead());
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&node.next)), breakage.actual_pprev);
+    try std.testing.expect(view.tailNextIsNull());
+}
+
 test "hlist view reports a cycle witness and fails tail checks closed" {
     var head = HListHead{ .first = 0 };
     var first = HListNode{ .next = 0, .pprev = 0 };
