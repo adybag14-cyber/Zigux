@@ -36,24 +36,41 @@ EXPECTED_PUBLIC_TREE_BACKED_SHARED_COMPANIONS = [
 ]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
+EXPECTED_CHECKSUM_PAYLOAD_CASES = ["64B", "1501B"]
+EXPECTED_CHECKSUM_FAST_PATH_CASES = ["IPV4_20B", "IPV4_24B", "IPV4_60B"]
+EXPECTED_CHECKSUM_RERUN_ROUTES = [
+    "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf-matrix-test",
+    "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf",
+    "make -C zigux phase6-perf",
+]
 REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback warning",
     "Current public raw readback rematerializes `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep those broader parity and perf notes as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime.",
     "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`",
+    "the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_24B`, `IPV4_60B`)",
     "## Current shared replay inventory",
     "- `make -C zigux phase6-bsearch-perf`",
+    "- `make -C zigux phase6-checksum-perf`",
 ]
 REQUIRED_BUILD_SNIPPETS = [
     'const bsearch_perf_root_module = b.createModule(.{',
     'const bsearch_perf = b.addExecutable(.{',
     'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");',
+    'const checksum_perf_matrix_test_step = b.step(',
+    'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
 ]
 REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-bsearch-perf:",
     "$(ZIG) build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig --summary all",
+    "phase6-checksum-perf-matrix-test:",
+    "$(ZIG) build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
+    "phase6-checksum-perf:",
+    "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
 SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
-SELF_TEST_CASE_COUNT = 5
+SELF_TEST_CASE_COUNT = 8
 
 
 class ValidationError(RuntimeError):
@@ -120,6 +137,17 @@ def validate(repo_root: Path) -> None:
     if bsearch.get("dedicated_slowdown_replay") != "zigux/tests/phase6_bsearch_perf.zig":
         raise ValidationError("phase6 bsearch perf replay mismatch")
 
+    checksum = next(helper for helper in helpers if helper.get("key") == "checksum")
+    checksum_perf = checksum.get("current_perf_evidence")
+    if not isinstance(checksum_perf, dict):
+        raise ValidationError("phase6 checksum perf evidence missing")
+    if checksum_perf.get("payload_case_labels") != EXPECTED_CHECKSUM_PAYLOAD_CASES:
+        raise ValidationError("phase6 checksum payload perf cases mismatch")
+    if checksum_perf.get("ipv4_fast_path_case_labels") != EXPECTED_CHECKSUM_FAST_PATH_CASES:
+        raise ValidationError("phase6 checksum ipv4 fast-path cases mismatch")
+    if checksum_perf.get("linux_style_rerun_routes") != EXPECTED_CHECKSUM_RERUN_ROUTES:
+        raise ValidationError("phase6 checksum perf rerun routes mismatch")
+
 
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -157,7 +185,14 @@ def scaffold_repo(root: Path) -> None:
                         "checker_surfaces": [EXPECTED_BSEARCH_CHECKER],
                         "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
                     },
-                    {"key": "checksum"},
+                    {
+                        "key": "checksum",
+                        "current_perf_evidence": {
+                            "payload_case_labels": EXPECTED_CHECKSUM_PAYLOAD_CASES,
+                            "ipv4_fast_path_case_labels": EXPECTED_CHECKSUM_FAST_PATH_CASES,
+                            "linux_style_rerun_routes": EXPECTED_CHECKSUM_RERUN_ROUTES,
+                        },
+                    },
                     {"key": "hexdump"},
                 ],
             },
@@ -190,10 +225,13 @@ def run_self_test() -> None:
         cases_run = 0
         for path, snippet in [
             (root / CATALOG_PATH, "Current public raw readback rematerializes `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep those broader parity and perf notes as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime."),
+            (root / CATALOG_PATH, "the `checksum.ipFastCsum` IPv4 fast-path matrix (`IPV4_20B`, `IPV4_24B`, `IPV4_60B`)"),
             (root / CATALOG_PATH, "- `make -C zigux phase6-bsearch-perf`"),
-            (root / BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");'),
-            (root / MAKEFILE_PATH, "phase6-bsearch-perf:"),
+            (root / BUILD_PATH, 'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");'),
+            (root / MAKEFILE_PATH, "phase6-checksum-perf:"),
             (root / MANIFEST_PATH, '"public_tree_backed_shared_companions"'),
+            (root / MANIFEST_PATH, '"ipv4_fast_path_case_labels"'),
+            (root / MANIFEST_PATH, '"make -C zigux phase6-checksum-perf"'),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
