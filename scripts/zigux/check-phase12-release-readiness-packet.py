@@ -74,6 +74,10 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the docs root while current `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, and `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns on current `master`.",
         "keep the degraded rerun order honest here too: rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile` before attached-Zig rerun vocabulary, and if that local fallback is absent keep `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` framed only as last-resort rerun vocabulary while `make -C zigux phase12-validate` remains reminder-only text.",
     ],
+    FREEZE_MAP_PATH: [
+        "the shared Phase 12 PMO release packet also stays release-planning-only beside `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/phase12-complex-driver-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, `Documentation/zigux/phase12-libbpf-verify-shard-note.md`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, `scripts/zigux/validate-phase12.py`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`",
+        "queueing, throughput, rollback, and recovery wording there, in the shipped validator-first `make -C zigux phase12-validate` support bundle, and in the smoke-first shared replay packet must stay bounded to driver-local review evidence, lab-only reversible-delivery scaffolding, and shared anti-overlap notes without implying active delivery against `net/core/skbuff.c`, `kernel/workqueue.c`, or `kernel/trace/ring_buffer.c`",
+    ],
     REVIEW_CHECKLIST_PATH: [
         "still agree that current `zigux/Makefile` ships `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while `make -C zigux phase12-validate` remains reminder-only vocabulary",
         "keep the repo-local `.zig-toolchain` fallback before the attached-Zig degraded rerun order explicit",
@@ -213,6 +217,7 @@ def fixture_text(rel_path: str) -> str:
     if rel_path in REQUIRED_MARKERS:
         title = {
             DOCS_README_PATH: "# Zigux Documentation",
+            FREEZE_MAP_PATH: "# Zigux Freeze Map",
             REVIEW_CHECKLIST_PATH: "# Zigux Review Checklist",
             RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
             RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
