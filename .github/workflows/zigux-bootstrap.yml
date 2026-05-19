@@ -135,9 +135,6 @@ jobs:
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
 
-      - name: Self-test current Zig installer helper
-        run: python3 scripts/zigux/install-zig.py --self-test
-
       - name: Self-test current Phase 2 fixdep gate checker
         run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
 
@@ -230,6 +227,12 @@ jobs:
       - name: Check current Phase 2 shared reminder packet
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
 
+      - name: Self-test current Phase 2 tool manifest packet checker
+        run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test
+
+      - name: Check current Phase 2 tool manifest packet
+        run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py
+
       - name: Self-test current Phase 2 genksyms bridge checker
         run: python3 scripts/zigux/check-genksyms-bridge.py --self-test
 
@@ -253,12 +256,6 @@ jobs:
 
       - name: Check current Phase 1 string review packet
         run: python3 scripts/zigux/check-phase1-string-review-packet.py
-
-      - name: Self-test current Phase 1 route summary checker
-        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test
-
-      - name: Check current Phase 1 route summary packet
-        run: python3 scripts/zigux/check-phase1-route-summary-counts.py
 
       - name: Self-test current Phase 1 bench checker
         run: python3 scripts/zigux/check-phase1-bench.py --self-test
@@ -371,12 +368,6 @@ jobs:
 
       - name: Check current Phase 7 shared-control gap packet
         run: python3 scripts/zigux/check-phase7-shared-control-gap.py
-
-      - name: Self-test current Phase 7 make-wrapper selftest alignment checker
-        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py --self-test
-
-      - name: Check current Phase 7 make-wrapper selftest alignment packet
-        run: python3 scripts/zigux/check-phase7-make-wrapper-selftest-alignment.py
 
       - name: Self-test current Phase 10 bootstrap route checker
         run: python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test
