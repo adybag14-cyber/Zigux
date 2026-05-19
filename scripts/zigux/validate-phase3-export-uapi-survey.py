@@ -244,6 +244,20 @@ def run_self_test() -> int:
             "expected missing catalog helper marker was not reported",
         ),
     )
+    gap_cases = (
+        (
+            MISSING_GAP_PATHS[0],
+            "expected returned catalog-selftest gap was not reported",
+        ),
+        (
+            MISSING_GAP_PATHS[1],
+            "expected returned linux-header-governance gap was not reported",
+        ),
+        (
+            MISSING_GAP_PATHS[2],
+            "expected returned manifest-backed inventory gap was not reported",
+        ),
+    )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_") as temp_dir:
         root = Path(temp_dir)
@@ -260,20 +274,14 @@ def run_self_test() -> int:
             if _expect_missing_marker(root, relative_path, marker, message) != 0:
                 return 1
 
-        if (
-            _expect_returned_gap(
-                root,
-                MISSING_GAP_PATHS[0],
-                "expected returned-gap guard was not reported",
-            )
-            != 0
-        ):
-            return 1
+        for gap_path, message in gap_cases:
+            if _expect_returned_gap(root, gap_path, message) != 0:
+                return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
     print(
         "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES="
-        f"{1 + len(marker_cases) + 1}"
+        f"{1 + len(marker_cases) + len(gap_cases)}"
     )
     return 0
 
