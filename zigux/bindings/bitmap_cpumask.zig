@@ -128,3 +128,19 @@ test "binding cpumask projection keeps the bitmap-facing fields intact" {
     try std.testing.expectEqual(cpumask.nbits, bitmap.nbits);
     try std.testing.expectEqual(cpumask.word_count, bitmap.word_count);
 }
+
+test "binding cpumask projection keeps a drifted all-clear window explicit" {
+    var cpumask = initCpumaskView(0x2468, 16, 1, 15);
+    cpumask.reserved = 1;
+    const bitmap = asBitmap(cpumask);
+    const empty = initBitmapView(1, 0, 0);
+
+    try std.testing.expectEqual(cpumask.words_addr, bitmap.words_addr);
+    try std.testing.expectEqual(cpumask.nbits, bitmap.nbits);
+    try std.testing.expectEqual(cpumask.word_count, bitmap.word_count);
+    try std.testing.expectEqual(@as(usize, 0x2468), bitmap.words_addr);
+    try std.testing.expectEqual(@as(u32, 16), bitmap.nbits);
+    try std.testing.expectEqual(@as(u32, 1), bitmap.word_count);
+    try std.testing.expect(bitmap.nbits != empty.nbits);
+    try std.testing.expect(bitmap.word_count != empty.word_count);
+}
