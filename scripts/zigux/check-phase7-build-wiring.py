@@ -5,46 +5,66 @@ import argparse
 import tempfile
 from pathlib import Path
 
-SEQUENCING_PATH = Path("Documentation/zigux/phase7-helper-lane-sequencing.md")
+VALIDATOR_PATH = Path("scripts/zigux/validate-phase7.py")
+BUILD_PATH = Path("zigux/tests/phase7_build.zig")
 MAKEFILE_PATH = Path("zigux/Makefile")
 
-SEQUENCING_MARKERS = [
-    "shared control-surface packet, lane `P7-Y05`:",
-    "`samples/zigux/README.md`",
-    "`scripts/zigux/README.md`",
-    "`zigux/tests/README.md`",
-    "`zigux/Makefile`",
-    "`zigux/tests/phase7_build.zig`",
-    "`scripts/zigux/validate-phase7.py`",
-    "`P7-Y05` owns only shared validator, scripts-root, sample-root, tests-root, make-wrapper, and build-route truthfulness.",
-    "`scripts/zigux/validate-phase7.py` and `zigux/tests/phase7_build.zig`, so `P7-Y05` should treat the shared wrapper stack as parked reminder vocabulary until those files rematerialize.",
+BUILD_MARKERS = [
+    '"phase7-string-helpers-test"',
+    '"phase7-string-helpers-survey"',
+    '"phase7-string-helpers-sample-boundary"',
+    '"phase7-cmdline-test"',
+    '"phase7-cmdline-survey"',
+    '"phase7-argv-split-test"',
+    '"phase7-argv-split-survey"',
+    '"phase7-rbtree-test"',
+    '"phase7-rbtree-survey"',
+    'b.step("test", "Run Phase 7 runtime helper tests")',
 ]
 
 FORBIDDEN_MAKEFILE_MARKERS = [
-    "phase7-validate",
-    "phase7-string-helpers-test",
-    "phase7-string-helpers-survey",
-    "phase7-string-helpers-sample-boundary",
-    "phase7-cmdline-test",
-    "phase7-cmdline-survey",
-    "phase7-argv-split-test",
-    "phase7-argv-split-survey",
-    "phase7-rbtree-test",
-    "phase7-rbtree-survey",
-    "phase7-test",
+    "phase7-validate:",
+    "phase7-string-helpers-test:",
+    "phase7-string-helpers-survey:",
+    "phase7-string-helpers-sample-boundary:",
+    "phase7-cmdline-test:",
+    "phase7-cmdline-survey:",
+    "phase7-argv-split-test:",
+    "phase7-argv-split-survey:",
+    "phase7-rbtree-test:",
+    "phase7-rbtree-survey:",
+    "phase7-test:",
     "phase7:",
 ]
 
-REQUIRED_FILES = (SEQUENCING_PATH, MAKEFILE_PATH)
+REQUIRED_FILES = (VALIDATOR_PATH, BUILD_PATH, MAKEFILE_PATH)
 REQUIRED_PRESENT_MARKERS = {
-    SEQUENCING_PATH: SEQUENCING_MARKERS,
+    BUILD_PATH: BUILD_MARKERS,
 }
 FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: FORBIDDEN_MAKEFILE_MARKERS,
 }
 
 FIXTURE_TEXTS = {
-    SEQUENCING_PATH: "\n".join(SEQUENCING_MARKERS) + "\n",
+    VALIDATOR_PATH: "#!/usr/bin/env python3\nprint('PHASE7_VALIDATE=pass')\n",
+    BUILD_PATH: "\n".join(
+        [
+            'const std = @import("std");',
+            'pub fn build(b: *std.Build) void {',
+            '    _ = b.step("phase7-string-helpers-test", "Run the Phase 7 string helpers tests");',
+            '    _ = b.step("phase7-string-helpers-survey", "Run the Phase 7 string helpers survey replay");',
+            '    _ = b.step("phase7-string-helpers-sample-boundary", "Run the Phase 7 string helpers sample-boundary replay");',
+            '    _ = b.step("phase7-cmdline-test", "Run the Phase 7 cmdline helper tests");',
+            '    _ = b.step("phase7-cmdline-survey", "Run the Phase 7 cmdline survey replay");',
+            '    _ = b.step("phase7-argv-split-test", "Run the Phase 7 argv split helper tests");',
+            '    _ = b.step("phase7-argv-split-survey", "Run the Phase 7 argv split survey replay");',
+            '    _ = b.step("phase7-rbtree-test", "Run the Phase 7 rbtree helper tests");',
+            '    _ = b.step("phase7-rbtree-survey", "Run the Phase 7 rbtree survey replay");',
+            '    _ = b.step("test", "Run Phase 7 runtime helper tests");',
+            '}',
+        ]
+    )
+    + "\n",
     MAKEFILE_PATH: "\n".join(
         [
             "PYTHON ?= python3",
@@ -117,22 +137,22 @@ def run_self_test() -> None:
     missing_file_cases = [(f"missing_{rel.name}", rel) for rel in REQUIRED_FILES]
     marker_cases = [
         (
-            "lane_heading_drift",
-            SEQUENCING_PATH,
-            "shared control-surface packet, lane `P7-Y05`:",
-            "shared control-surface packet, lane `P7-Y06`:",
+            "missing_cmdline_survey_marker",
+            BUILD_PATH,
+            '"phase7-cmdline-survey"',
+            '"phase7-cmdline-replay"',
         ),
         (
-            "shared_truthfulness_scope_drift",
-            SEQUENCING_PATH,
-            "`P7-Y05` owns only shared validator, scripts-root, sample-root, tests-root, make-wrapper, and build-route truthfulness.",
-            "`P7-Y05` owns helper-local cmdline proof and shared build truthfulness.",
+            "missing_rbtree_test_marker",
+            BUILD_PATH,
+            '"phase7-rbtree-test"',
+            '"phase7-rbtree-replay"',
         ),
         (
-            "missing_route_posture_drift",
-            SEQUENCING_PATH,
-            "`scripts/zigux/validate-phase7.py` and `zigux/tests/phase7_build.zig`, so `P7-Y05` should treat the shared wrapper stack as parked reminder vocabulary until those files rematerialize.",
-            "`scripts/zigux/validate-phase7.py` and `zigux/tests/phase7_build.zig`, so `P7-Y05` can now treat the shared wrapper stack as landed build proof.",
+            "missing_bundle_test_marker",
+            BUILD_PATH,
+            'b.step("test", "Run Phase 7 runtime helper tests")',
+            'b.step("phase7", "Run Phase 7 runtime helper tests")',
         ),
     ]
     unexpected_marker_cases = [
@@ -175,8 +195,8 @@ def run_self_test() -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that the shipped Phase 7 shared control packet stays parked on "
-            "current repo reality until Phase 7 build routes rematerialize."
+            "Check that the shipped Phase 7 build graph stays returned through "
+            "validate-phase7.py and phase7_build.zig while Makefile wrappers remain parked."
         )
     )
     parser.add_argument(
