@@ -66,6 +66,7 @@ EXPECTED_SMOKE_LINES = (
     'const str_error_r = @import("str_error_r");',
     'const vsprintf = @import("vsprintf");',
     'const zalloc = @import("zalloc");',
+    'fn returnedSerial(node: ?*rbtree.Node) i32 {',
     'test "phase1 host-tools smoke imports the live helper modules" {',
     'try std.testing.expect(@hasDecl(argv_split, "argvSplit"));',
     'try std.testing.expect(@hasDecl(cmdline, "memparse"));',
@@ -97,7 +98,16 @@ EXPECTED_SMOKE_LINES = (
     'const bitmap_rendered_len = bitmap.scnprintf(&map, nbits, &rendered);',
     'try std.testing.expectEqual(@as(?usize, 1), string.sysfsMatchString(&sysfs, "auto"));',
     'var iter = rbtree.matchIterator(&duplicate_key, &tree_root, RbtreeSmokeEntry.cmp);',
-    'try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[1].node), rbtree.addCached(&cached_entries[1].node, &cached_root));',
+    'var cached_leftmost_entries = [_]RbtreeSmokeEntry{',
+    'var cached_leftmost_return_serials: [4]i32 = undefined;',
+    'cached_leftmost_return_serials[0] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[0].node, &cached_leftmost_root, RbtreeSmokeEntry.less));',
+    'cached_leftmost_return_serials[1] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[1].node, &cached_leftmost_root, RbtreeSmokeEntry.less));',
+    'cached_leftmost_return_serials[2] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[2].node, &cached_leftmost_root, RbtreeSmokeEntry.less));',
+    'cached_leftmost_return_serials[3] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[3].node, &cached_leftmost_root, RbtreeSmokeEntry.less));',
+    'try std.testing.expectEqualSlices(i32, &.{ 0, -1, 2, -1 }, &cached_leftmost_return_serials);',
+    'try std.testing.expectEqual(@as(?*rbtree.Node, &cached_leftmost_entries[2].node), rbtree.firstCached(&cached_leftmost_root));',
+    'try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[1].node), rbtree.addCached(&cached_entries[1].node, &cached_root, RbtreeSmokeEntry.less));',
+    'try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.eraseCached(&cached_entries[1].node, &cached_root));',
 )
 
 
