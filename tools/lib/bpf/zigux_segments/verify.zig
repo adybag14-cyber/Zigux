@@ -80,6 +80,10 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(online_cpu_routing, "advanceOnlineCpuCursor");
     try expectHasDecl(online_cpu_routing, "summarizeNextOnlineCpuRoute");
     try expectHasDecl(online_cpu_routing, "summarizeOnlineCpuRouting");
+    try expectHasDecl(online_cpu_routing, "resolveNextOnlineCpuRouteBufferFd");
+    try expectHasDecl(online_cpu_routing, "resolveNextOnlineCpuRouteBufferFdAtIndex");
+    try expectHasDecl(online_cpu_routing, "resolveNextOnlineCpuRouteBufferFdReturn");
+    try expectHasDecl(online_cpu_routing, "resolveNextOnlineCpuRouteBufferFdReturnAtIndex");
 
     try expectHasDecl(perf_buffer_poll, "classifyObservedWaitResult");
     try expectHasDecl(perf_buffer_poll, "classifyWaitClass");
@@ -428,6 +432,122 @@ test "materialized tools/lib/bpf Zigux segments keep stable online-CPU routing h
             &online_cpu_mask,
             0,
             &.{ 11, 17 },
+        ),
+    );
+}
+
+test "materialized tools/lib/bpf Zigux segments keep stable online-CPU route-fd wrappers explicit" {
+    const online_cpu_mask = [_]bool{ false, true, false, true, true };
+
+    const routed = online_cpu_routing.summarizeNextOnlineCpuRoute(
+        &online_cpu_mask,
+        0,
+        &.{ 11, 17, 29 },
+        0,
+    );
+    try std.testing.expectEqual(@as(i32, 11), try online_cpu_routing.resolveNextOnlineCpuRouteBufferFd(routed));
+    try std.testing.expectEqual(@as(i32, 11), online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturn(routed));
+
+    const missing_fd = online_cpu_routing.summarizeNextOnlineCpuRoute(
+        &online_cpu_mask,
+        2,
+        &.{ 11, null, 29 },
+        1,
+    );
+    try std.testing.expectError(
+        error.MissingBufferFd,
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFd(missing_fd),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturn(missing_fd),
+    );
+
+    const missing_slot = online_cpu_routing.summarizeNextOnlineCpuRoute(
+        &online_cpu_mask,
+        4,
+        &.{ 11, 17 },
+        2,
+    );
+    try std.testing.expectError(
+        error.MissingBufferSlot,
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFd(missing_slot),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturn(missing_slot),
+    );
+
+    try std.testing.expectEqual(
+        @as(i32, 11),
+        try online_cpu_routing.resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &online_cpu_mask,
+            0,
+            &.{ 11, 17, 29 },
+            0,
+        ),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 11),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &online_cpu_mask,
+            0,
+            &.{ 11, 17, 29 },
+            0,
+        ),
+    );
+    try std.testing.expectError(
+        error.MissingBufferFd,
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &online_cpu_mask,
+            2,
+            &.{ 11, null, 29 },
+            1,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &online_cpu_mask,
+            2,
+            &.{ 11, null, 29 },
+            1,
+        ),
+    );
+    try std.testing.expectError(
+        error.MissingBufferSlot,
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &online_cpu_mask,
+            4,
+            &.{ 11, 17 },
+            2,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &online_cpu_mask,
+            4,
+            &.{ 11, 17 },
+            2,
+        ),
+    );
+    try std.testing.expectError(
+        error.NoMoreOnlineCpu,
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdAtIndex(
+            &online_cpu_mask,
+            online_cpu_mask.len,
+            &.{ 11, 17, 29 },
+            3,
+        ),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        online_cpu_routing.resolveNextOnlineCpuRouteBufferFdReturnAtIndex(
+            &online_cpu_mask,
+            online_cpu_mask.len,
+            &.{ 11, 17, 29 },
+            3,
         ),
     );
 }
