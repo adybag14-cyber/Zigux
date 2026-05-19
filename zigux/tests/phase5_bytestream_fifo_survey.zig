@@ -131,6 +131,8 @@ test "phase 5 bytestream fifo survey note records the exact current check split"
         "`initial_string_copy_count = 5`, `first_drain_count = 5`, `second_drain_count = 2`, and `requeue_count = 2`",
         "`runPreviewBoundaryReplay()` at snapshot prefix `{ 2, 3, 4, 5 }`",
         "wrapped `{ 28, 4 }` visible-span split",
+        "`occupancySummary()` keeps that preview state explicit at `queue_len = 10`, `available = 22`, and `wrapped = false`",
+        "`writableSpanSummary()` keeps the same preview boundary explicit at `tail_index = 17`, `writable_count = 22`, `first_window_len = 15`, `second_window_len = 7`, and `wraps = true`",
         "`runRemainingCapacityReplay()` with `available_after_hello = 27` and `available_after_partial_drain = 8`",
         "short-drain `\"hel\"` / `\"lo\"` helper boundary",
         "invalid post-exit replay rejection",
