@@ -55,10 +55,12 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(cpu_mask, "parseCpuMaskString");
     try expectHasDecl(cpu_mask, "parseCpuMaskFromReader");
     try expectHasDecl(cpu_mask, "summarizePossibleCpus");
+    try expectHasDecl(cpu_mask, "summarizePossibleCpusFromString");
     try expectHasDecl(cpu_mask, "summarizePossibleCpusFromReader");
     try expectHasDecl(cpu_mask, "countPossibleCpus");
     try expectHasDecl(cpu_mask, "isOnlineCpuEligible");
     try expectHasDecl(cpu_mask, "derivePerfBufferAutoCpuCount");
+    try expectHasDecl(cpu_mask, "derivePerfBufferAutoCpuCountFromString");
     try expectHasDecl(cpu_mask, "derivePerfBufferAutoCpuCountFromReader");
 
     try expectHasDecl(logging, "parseLogLevelSetting");
@@ -107,6 +109,8 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(perf_buffer_poll, "resolveBufferFd");
     try expectHasDecl(perf_buffer_poll, "resolveBufferFdLookupReturn");
     try expectHasDecl(perf_buffer_poll, "resolveBufferFdLookupReturnAtIndex");
+    try expectHasDecl(perf_buffer_poll, "resolveReadyBufferFdAtAttempt");
+    try expectHasDecl(perf_buffer_poll, "resolveReadyBufferFdLookupReturnAtAttempt");
     try expectHasDecl(perf_buffer_poll, "summarizeBufferWindowLookup");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowMappedSizeAtIndex");
     try expectHasDecl(perf_buffer_poll, "resolveBufferWindowMappedSize");
@@ -159,6 +163,32 @@ test "materialized tools/lib/bpf Zigux segments keep direct return helpers expli
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         perf_buffer_poll.resolveBufferFdLookupReturnAtIndex(&buffer_fds, 4),
+    );
+
+    const ready_buffer_fds = [_]?i32{ null, 9, null, 21 };
+    try std.testing.expectEqual(
+        @as(i32, 9),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &ready_buffer_fds, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 21),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &ready_buffer_fds, 1),
+    );
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &ready_buffer_fds, 2),
+    );
+
+    const short_fds = [_]?i32{ null, 9 };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &short_fds, 1),
+    );
+
+    const missing_ready_fd = [_]?i32{ null, 9, null, null };
+    try std.testing.expectEqual(
+        -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
+        perf_buffer_poll.resolveReadyBufferFdLookupReturnAtAttempt(&buffers, &missing_ready_fd, 1),
     );
 
     const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
@@ -622,6 +652,32 @@ test "materialized tools/lib/bpf Zigux segments keep typed direct and summary lo
         ),
     );
 
+    const ready_buffer_fds = [_]?i32{ null, 9, null, 21 };
+    try std.testing.expectEqual(
+        @as(i32, 9),
+        try perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &ready_buffer_fds, 0),
+    );
+    try std.testing.expectEqual(
+        @as(i32, 21),
+        try perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &ready_buffer_fds, 1),
+    );
+    try std.testing.expectError(
+        error.MissingReadyBuffer,
+        perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &ready_buffer_fds, 2),
+    );
+
+    const short_fds = [_]?i32{ null, 9 };
+    try std.testing.expectError(
+        error.InvalidIndex,
+        perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &short_fds, 1),
+    );
+
+    const missing_ready_fd = [_]?i32{ null, 9, null, null };
+    try std.testing.expectError(
+        error.MissingFd,
+        perf_buffer_poll.resolveReadyBufferFdAtAttempt(&buffers, &missing_ready_fd, 1),
+    );
+
     const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
         .{ .mapped_size = 4096 },
         null,
@@ -761,6 +817,19 @@ test "materialized tools/lib/bpf Zigux segments keep stable cpu-mask helper outp
     try std.testing.expectEqual(@as(usize, 2), cpu_mask.derivePerfBufferAutoCpuCount(summary.possible_cpu_count, 2));
     try std.testing.expectEqual(@as(usize, 4), cpu_mask.derivePerfBufferAutoCpuCount(summary.possible_cpu_count, 99));
 
+    const string_summary = try cpu_mask.summarizePossibleCpusFromString(allocator, "1-2, 5\n");
+    try std.testing.expectEqual(@as(usize, 6), string_summary.mask_bit_len);
+    try std.testing.expectEqual(@as(usize, 3), string_summary.possible_cpu_count);
+    try std.testing.expectEqual(@as(?usize, 5), string_summary.highest_cpu_index);
+    try std.testing.expectEqual(
+        @as(usize, 2),
+        try cpu_mask.derivePerfBufferAutoCpuCountFromString(allocator, "1-2, 5\n", 2),
+    );
+    try std.testing.expectEqual(
+        @as(usize, 3),
+        try cpu_mask.derivePerfBufferAutoCpuCountFromString(allocator, "1-2, 5\n", 9),
+    );
+
     var scratch: [3]u8 = undefined;
     var reader_context = CpuMaskReaderContext{ .input = "1,3-4\n" };
     const reader = cpu_mask.ChunkReader{
@@ -804,6 +873,10 @@ test "materialized tools/lib/bpf Zigux segments keep stable cpu-mask helper outp
     );
 
     try std.testing.expectError(error.InvalidCpuRange, cpu_mask.parseCpuMaskString(allocator, "4-2"));
+    try std.testing.expectError(
+        error.InvalidCpuRange,
+        cpu_mask.derivePerfBufferAutoCpuCountFromString(allocator, "0,+\n", 1),
+    );
 
     const empty_reader = cpu_mask.ChunkReader{
         .context = null,
