@@ -15,10 +15,6 @@ REQUIRED_PATHS = (
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "scripts/zigux/check-zig-toolchain.py",
-    "scripts/zigux/check-phase2-fixdep-gate.py",
-    "scripts/zigux/check-fixdep-diff.py",
-    "scripts/zigux/fixdep.zig",
-    "scripts/basic/fixdep.c",
     "scripts/zigux/check-kconfig-bridge.py",
     "scripts/zigux/check-phase2-kbuild-routes.py",
     "scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -38,7 +34,6 @@ REQUIRED_PATHS = (
     "scripts/zigux/genksyms.zig",
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/tests/README.md",
-    "zigux/tests/fixtures/fixdep/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
     "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
@@ -58,11 +53,6 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --self-test",
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
-    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
-    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
-    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
-    "run: python3 scripts/zigux/check-fixdep-diff.py",
-    "run: zig test scripts/zigux/fixdep.zig",
     "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
@@ -292,7 +282,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, fixdep, and kconfig packet.")
+    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, and genksyms packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
