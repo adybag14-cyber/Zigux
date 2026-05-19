@@ -14,7 +14,7 @@ BENCH_CHECKER_REL = 'scripts/zigux/check-phase1-bench.py'
 REQUIRED_MARKERS = (
     'def emit_success_packet(expectations: dict[str, object]) -> int:',
     'def capture_success_packet_output(expectations: dict[str, object]) -> list[str]:',
-    "print('PHASE1_BENCH_CHECK=pass')",
+    'print("PHASE1_BENCH_CHECK=pass")',
     "print(f\"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}\")",
     'success_output = capture_success_packet_output(expectations)',
     'assert success_output == [',
@@ -23,10 +23,26 @@ REQUIRED_MARKERS = (
     'return emit_success_packet(expectations)',
 )
 
+SUCCESS_ASSERT_BLOCK = (
+    'assert success_output == [',
+    '"PHASE1_BENCH_CHECK=pass",',
+    'f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations[\'checksums\'])}",',
+    ']',
+)
+
 FORBIDDEN_FRAGMENTS = (
-    "print(f'PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}')",
     "print(f'PHASE1_BENCH_SOURCE={PHASE1_BENCH}')",
     "print(f'PHASE1_BENCH_ZIG={zig}')",
+)
+
+FORBIDDEN_SUCCESS_BLOCK_FRAGMENTS = (
+    'PHASE1_BENCH_CHECK_REASON=',
+    'PHASE1_BENCH_EXPECTATIONS=',
+    'BENCH_COMMAND_EXIT=',
+    'BENCH_COMMAND_MISSING=',
+    'EXPECTATIONS_JSON_ERROR=',
+    'EXPECTATIONS_JSON_LINE=',
+    'EXPECTATIONS_JSON_COLUMN=',
 )
 
 
@@ -56,6 +72,19 @@ def collect_issues(root: Path) -> list[str]:
         if count != 0:
             issues.append(f'forbidden:{fragment}:actual={count}')
 
+    if all(text.count(marker) == 1 for marker in SUCCESS_ASSERT_BLOCK[:-1]):
+        success_block = extract_success_assert_block(text)
+        joined_block = '\n'.join(success_block)
+        block_forbidden = []
+        for fragment in FORBIDDEN_SUCCESS_BLOCK_FRAGMENTS:
+            count = joined_block.count(fragment)
+            if count != 0:
+                block_forbidden.append(f'success_block_forbidden:{fragment}:actual={count}')
+        if block_forbidden:
+            issues.extend(block_forbidden)
+        elif success_block != list(SUCCESS_ASSERT_BLOCK):
+            issues.append(f'success_assert_block:{success_block!r}')
+
     return issues
 
 
@@ -66,7 +95,36 @@ def write_checker(root: Path, content: str) -> None:
 
 
 def build_sample_checker() -> str:
-    return '\n'.join((*REQUIRED_MARKERS, '')) + '\n'
+    lines = [
+        'def emit_success_packet(expectations: dict[str, object]) -> int:',
+        'def capture_success_packet_output(expectations: dict[str, object]) -> list[str]:',
+        'print("PHASE1_BENCH_CHECK=pass")',
+        "print(f\"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}\")",
+        'success_output = capture_success_packet_output(expectations)',
+        'assert success_output == [',
+        '"PHASE1_BENCH_CHECK=pass",',
+        'f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations[\'checksums\'])}",',
+        ']',
+        'return emit_success_packet(expectations)',
+        '',
+    ]
+    return '\n'.join(lines) + '\n'
+
+
+def extract_success_assert_block(text: str) -> list[str]:
+    block: list[str] = []
+    capturing = False
+    for raw_line in text.splitlines():
+        line = raw_line.strip()
+        if not capturing:
+            if line == SUCCESS_ASSERT_BLOCK[0]:
+                capturing = True
+                block.append(line)
+            continue
+        block.append(line)
+        if line == SUCCESS_ASSERT_BLOCK[-1]:
+            return block
+    return block
 
 
 def expected_issue(needle: str | None, operation: str) -> str:
@@ -80,6 +138,8 @@ def expected_issue(needle: str | None, operation: str) -> str:
         return f'marker_count:{needle}:expected=1:actual=2'
     assert operation == 'append'
     assert needle is not None
+    if needle in FORBIDDEN_SUCCESS_BLOCK_FRAGMENTS:
+        return f'success_block_forbidden:{needle}:actual=1'
     return f'forbidden:{needle}:actual=1'
 
 
@@ -100,6 +160,8 @@ def run_self_test() -> int:
         cases.append((f'duplicate:{marker}', marker, 'duplicate'))
     for fragment in FORBIDDEN_FRAGMENTS:
         cases.append((f'forbidden:{fragment}', fragment, 'append'))
+    for fragment in FORBIDDEN_SUCCESS_BLOCK_FRAGMENTS:
+        cases.append((f'success-block-forbidden:{fragment}', fragment, 'append'))
 
     for label, needle, operation in cases:
         with tempfile.TemporaryDirectory(prefix='phase1-bench-success-packet-case-') as tmpdir:
@@ -123,7 +185,12 @@ def run_self_test() -> int:
                 )
             else:
                 assert needle is not None
-                path.write_text(path.read_text(encoding='utf-8') + needle + '\n', encoding='utf-8')
+                text = path.read_text(encoding='utf-8')
+                if needle in FORBIDDEN_SUCCESS_BLOCK_FRAGMENTS:
+                    text = text.replace(']\n', f'"{needle}",\n]\n', 1)
+                else:
+                    text = text + needle + '\n'
+                path.write_text(text, encoding='utf-8')
 
             issues = collect_issues(root)
             if issues != [expected_issue(needle, operation)]:
