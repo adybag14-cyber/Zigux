@@ -734,6 +734,35 @@ test "bitmap or across a multiword tail still lets callers clamp the last word" 
     try std.testing.expectEqualSlices(Word, &[_]Word{ 0b11_1101, 0b01_0111 }, &[_]Word{ dst[0], dst[1] & lastWordMask(nbits) });
 }
 
+test "bitmap weighted or and xor clamp counts to the declared tail window" {
+    const nbits = bits_per_long + 5;
+    const or_lhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 8) };
+    const or_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 9) };
+    var direct_or = [_]Word{ 0, 0 };
+    var alias_or = [_]Word{ 0, 0 };
+
+    const direct_or_weight = weightedOr(&direct_or, &or_lhs, &or_rhs, nbits);
+    const alias_or_weight = bitmap_weighted_or(&alias_or, &or_lhs, &or_rhs, nbits);
+    try std.testing.expectEqual(@as(usize, 2), direct_or_weight);
+    try std.testing.expectEqual(direct_or_weight, alias_or_weight);
+    try std.testing.expectEqualSlices(Word, &direct_or, &alias_or);
+    try std.testing.expectEqual(@as(Word, (@as(Word, 1) << 1) | (@as(Word, 1) << 3) | (@as(Word, 1) << 8) | (@as(Word, 1) << 9)), direct_or[1]);
+    try std.testing.expectEqual(@as(usize, 2), weight(&direct_or, nbits));
+
+    const xor_lhs = [_]Word{ 0, (@as(Word, 1) << 1) | (@as(Word, 1) << 3) | (@as(Word, 1) << 8) };
+    const xor_rhs = [_]Word{ 0, (@as(Word, 1) << 3) | (@as(Word, 1) << 4) | (@as(Word, 1) << 9) };
+    var direct_xor = [_]Word{ 0, 0 };
+    var alias_xor = [_]Word{ 0, 0 };
+
+    const direct_xor_weight = weightedXor(&direct_xor, &xor_lhs, &xor_rhs, nbits);
+    const alias_xor_weight = bitmap_weighted_xor(&alias_xor, &xor_lhs, &xor_rhs, nbits);
+    try std.testing.expectEqual(@as(usize, 2), direct_xor_weight);
+    try std.testing.expectEqual(direct_xor_weight, alias_xor_weight);
+    try std.testing.expectEqualSlices(Word, &direct_xor, &alias_xor);
+    try std.testing.expectEqual(@as(Word, (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 8) | (@as(Word, 1) << 9)), direct_xor[1]);
+    try std.testing.expectEqual(@as(usize, 2), weight(&direct_xor, nbits));
+}
+
 test "bitmap scnprintf collapses contiguous ranges" {
     var map = [_]Word{ 0, 0 };
     setRange(&map, 1, 3);
