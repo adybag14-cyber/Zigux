@@ -14,6 +14,14 @@ pub const FastPathCase = struct {
     max_slowdown_pct: u64,
 };
 
+pub const Carry16Case = struct {
+    label: []const u8,
+    sum: u16,
+    addend: u16,
+    expected_add: u16,
+    expected_sub: u16,
+};
+
 fn makePerfPayload(comptime len: usize, comptime seed: u8) [len]u8 {
     @setEvalBranchQuota(len * 4);
     var bytes: [len]u8 = undefined;
@@ -30,6 +38,13 @@ pub const perf_payload_1501b = makePerfPayload(1501, 0x6c);
 pub const perf_cases = [_]PerfCase{
     .{ .label = "64B", .bytes = &perf_payload_64b, .iterations = 200_000, .max_slowdown_pct = 150 },
     .{ .label = "1501B", .bytes = &perf_payload_1501b, .iterations = 12_000, .max_slowdown_pct = 150 },
+};
+
+pub const carry16_cases = [_]Carry16Case{
+    .{ .label = "zero-plus-zero", .sum = 0x0000, .addend = 0x0000, .expected_add = 0x0000, .expected_sub = 0xffff },
+    .{ .label = "saturated-plus-one", .sum = 0xffff, .addend = 0x0001, .expected_add = 0x0001, .expected_sub = 0xfffe },
+    .{ .label = "halfword-wrap", .sum = 0x7fff, .addend = 0x8000, .expected_add = 0xffff, .expected_sub = 0xfffe },
+    .{ .label = "near-wrap-plus-three", .sum = 0xfffe, .addend = 0x0003, .expected_add = 0x0002, .expected_sub = 0xfffb },
 };
 
 pub const ip_fast_csum_ipv4_20b = [_]u8{
@@ -100,6 +115,18 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
         .{ .label = "64B", .len = 64, .iterations = 200_000, .max_slowdown_pct = 150, .fingerprint = 0xb498_d304_d0ee_aea5 },
         .{ .label = "1501B", .len = 1501, .iterations = 12_000, .max_slowdown_pct = 150, .fingerprint = 0xc457_3e1a_cc20_3461 },
     };
+    const carry16_expected = [_]struct {
+        label: []const u8,
+        sum: u16,
+        addend: u16,
+        expected_add: u16,
+        expected_sub: u16,
+    }{
+        .{ .label = "zero-plus-zero", .sum = 0x0000, .addend = 0x0000, .expected_add = 0x0000, .expected_sub = 0xffff },
+        .{ .label = "saturated-plus-one", .sum = 0xffff, .addend = 0x0001, .expected_add = 0x0001, .expected_sub = 0xfffe },
+        .{ .label = "halfword-wrap", .sum = 0x7fff, .addend = 0x8000, .expected_add = 0xffff, .expected_sub = 0xfffe },
+        .{ .label = "near-wrap-plus-three", .sum = 0xfffe, .addend = 0x0003, .expected_add = 0x0002, .expected_sub = 0xfffb },
+    };
     const fast_path_expected = [_]struct {
         label: []const u8,
         len: usize,
@@ -113,6 +140,7 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
     };
 
     try std.testing.expectEqual(expected.len, perf_cases.len);
+    try std.testing.expectEqual(carry16_expected.len, carry16_cases.len);
     try std.testing.expectEqual(fast_path_expected.len, fast_path_cases.len);
 
     for (expected, 0..) |want, idx| {
@@ -122,6 +150,15 @@ test "phase 6 checksum perf fixture packet stays bounded to the documented matri
         try std.testing.expectEqual(want.iterations, actual.iterations);
         try std.testing.expectEqual(want.max_slowdown_pct, actual.max_slowdown_pct);
         try std.testing.expectEqual(want.fingerprint, perfPayloadFingerprint(actual.bytes));
+    }
+
+    for (carry16_expected, 0..) |want, idx| {
+        const actual = carry16_cases[idx];
+        try std.testing.expectEqualStrings(want.label, actual.label);
+        try std.testing.expectEqual(want.sum, actual.sum);
+        try std.testing.expectEqual(want.addend, actual.addend);
+        try std.testing.expectEqual(want.expected_add, actual.expected_add);
+        try std.testing.expectEqual(want.expected_sub, actual.expected_sub);
     }
 
     for (fast_path_expected, 0..) |want, idx| {
