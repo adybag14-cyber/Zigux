@@ -74,6 +74,8 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-base64-perf:",
     "phase6-bsearch-test:",
     "phase6-checksum-test:",
+    "phase6-checksum-perf-matrix-test:",
+    "$(ZIG) build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
     "phase6-checksum-perf:",
     "phase6-hexdump-review:",
     "phase6-hexdump-perf-matrix-test:",
@@ -87,6 +89,8 @@ REQUIRED_BUILD_SNIPPETS = [
     'const base64_perf_step = b.step("phase6-base64-perf", "Run Phase 6 base64 helper perf gate");',
     'const bsearch_test_step = b.step("phase6-bsearch-test", "Run Phase 6 bsearch helper tests");',
     'const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");',
+    'const checksum_perf_matrix_test_step = b.step(',
+    '"phase6-checksum-perf-matrix-test",',
     'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
     'const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");',
     '"phase6-hexdump-perf-matrix-test",',
@@ -107,7 +111,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf-matrix-test`",
 ]
 
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 6
 
 
 class ValidationError(RuntimeError):
@@ -331,6 +335,24 @@ def run_self_test() -> None:
         write(makefile_path, original_makefile.replace("phase6-hexdump-perf-matrix-test:\n", "", 1))
         expect_failure(lambda: validate(root), "phase6-hexdump-perf-matrix-test:")
         write(makefile_path, original_makefile)
+        cases_run += 1
+
+        write(
+            makefile_path,
+            original_makefile.replace("phase6-checksum-perf-matrix-test:\n", "", 1),
+        )
+        expect_failure(lambda: validate(root), "phase6-checksum-perf-matrix-test:")
+        write(makefile_path, original_makefile)
+        cases_run += 1
+
+        build_path = root / PHASE6_BUILD
+        original_build = build_path.read_text(encoding="utf-8")
+        write(
+            build_path,
+            original_build.replace('"phase6-checksum-perf-matrix-test",\n', "", 1),
+        )
+        expect_failure(lambda: validate(root), '"phase6-checksum-perf-matrix-test",')
+        write(build_path, original_build)
         cases_run += 1
 
         checker_path = root / SHARED_SURFACE_CHECKER
