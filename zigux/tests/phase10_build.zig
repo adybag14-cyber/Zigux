@@ -133,7 +133,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_teardown_observation_module.addImport("virtio_input", virtio_input_module);
     virtio_input_verify_module.addImport(
         "virtio_input_teardown_observation",
-        virtio_input_teardown_observation_module,
+        phase10_virtio_input_teardown_observation_module,
     );
 
     const phase10_virtio_input_survey_module = b.createModule(.{
