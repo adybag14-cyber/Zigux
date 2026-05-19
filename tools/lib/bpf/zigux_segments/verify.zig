@@ -265,6 +265,65 @@ test "materialized tools/lib/bpf Zigux segments keep stable perf-buffer summary 
     );
 }
 
+test "materialized tools/lib/bpf Zigux segments keep stable perf-buffer wait and cursor helpers explicit" {
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.WaitObservation.timed_out,
+        perf_buffer_poll.classifyObservedWaitResult(0),
+    );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.WaitObservation.interrupted,
+        perf_buffer_poll.classifyObservedWaitResult(-@as(i32, @intFromEnum(std.os.linux.E.INTR))),
+    );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.WaitObservation{ .ready_events = 3 },
+        perf_buffer_poll.classifyObservedWaitResult(3),
+    );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.WaitObservation{ .failed = -22 },
+        perf_buffer_poll.classifyObservedWaitResult(-22),
+    );
+
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.nonblocking, try perf_buffer_poll.classifyWaitClass(0));
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.bounded, try perf_buffer_poll.classifyWaitClass(12));
+    try std.testing.expectEqual(perf_buffer_poll.WaitClass.indefinite, try perf_buffer_poll.classifyWaitClass(-1));
+    try std.testing.expectError(error.InvalidTimeout, perf_buffer_poll.classifyWaitClass(-2));
+
+    const buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.ReadyBufferCursor{
+            .start_index = 0,
+            .next_scan_index = 3,
+            .ready_index = 2,
+            .skipped_nonready_count = 2,
+        },
+        perf_buffer_poll.advanceReadyBufferCursor(&buffers, 0),
+    );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.ReadyBufferCursor{
+            .start_index = 3,
+            .next_scan_index = 5,
+            .ready_index = 4,
+            .skipped_nonready_count = 1,
+        },
+        perf_buffer_poll.advanceReadyBufferCursor(&buffers, 3),
+    );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.ReadyBufferCursor{
+            .start_index = 6,
+            .next_scan_index = buffers.len,
+            .ready_index = null,
+            .skipped_nonready_count = 0,
+        },
+        perf_buffer_poll.advanceReadyBufferCursor(&buffers, 6),
+    );
+}
+
 test "materialized tools/lib/bpf Zigux segments keep typed direct lookup helpers explicit and stable" {
     const buffers = [_]perf_buffer_poll.BufferObservation{
         .{},
