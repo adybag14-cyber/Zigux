@@ -18,6 +18,7 @@ REQUIRED_FILES = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-shared-reminder-packet.py",
     "scripts/zigux/check-phase1-string-review-packet.py",
     "scripts/zigux/validate-phase1-closure.py",
     "zigux/tests/README.md",
@@ -56,6 +57,11 @@ MARKERS = {
     "scripts/zigux/check-phase1-direct-owner-markers.py": (
         'EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [',
         'print("phase1-direct-owner-markers:ok")',
+    ),
+    "scripts/zigux/check-phase1-shared-reminder-packet.py": (
+        '"""Guard the current shared Phase 1 reminder packet across docs, tests, scripts, and workflow."""',
+        'print("PHASE1_SHARED_REMINDER_PACKET=pass")',
+        'print("PHASE1_SHARED_REMINDER_PACKET_SELF_TEST=pass")',
     ),
     "scripts/zigux/check-phase1-string-review-packet.py": (
         "STRING_REVIEW_RULE_LINE = (",
@@ -373,6 +379,34 @@ def run_self_test() -> int:
                 root,
                 "scripts/zigux/check-phase1-direct-owner-markers.py",
                 MARKERS["scripts/zigux/check-phase1-direct-owner-markers.py"][1],
+            ),
+        ),
+        (
+            "missing_shared_reminder_checker_file",
+            lambda root: (root / "scripts/zigux/check-phase1-shared-reminder-packet.py").unlink(),
+        ),
+        (
+            "missing_shared_reminder_checker_docstring",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-shared-reminder-packet.py",
+                MARKERS["scripts/zigux/check-phase1-shared-reminder-packet.py"][0],
+            ),
+        ),
+        (
+            "missing_shared_reminder_checker_pass_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-shared-reminder-packet.py",
+                MARKERS["scripts/zigux/check-phase1-shared-reminder-packet.py"][1],
+            ),
+        ),
+        (
+            "missing_shared_reminder_checker_self_test_pass_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-shared-reminder-packet.py",
+                MARKERS["scripts/zigux/check-phase1-shared-reminder-packet.py"][2],
             ),
         ),
         (
