@@ -78,7 +78,7 @@ REQUIRED_ALIGNMENT_MARKERS = (
     "shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`",
     "Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c`",
     "workflow-backed bootstrap route",
-    "Treat `scripts/zigux/README.md` as a neighboring shared reminder surface until a fresh same-lane reread rematerializes a dedicated Phase 10 scripts-root packet on current `master`.",
+    "Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.",
 )
 
 REQUIRED_WRAPPER_SPLIT_MARKERS = (
@@ -162,7 +162,7 @@ The returned shared build gate now runs through `zigux/Makefile`, `make -C zigux
 
 Current `master` does materialize `zigux/Makefile`, and its live body now exposes the dedicated `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` routes, so keep the returned file and those returned Phase 10 route names explicit as the shared build gate instead of treating them as repo-reality gaps.
 
-Treat `scripts/zigux/README.md` as a neighboring shared reminder surface until a fresh same-lane reread rematerializes a dedicated Phase 10 scripts-root packet on current `master`.
+Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.
 
 Tests-root reviewer prompt:
 - Do the docs-root notes, scripts-root guards, tests-root packet, the workflow-backed bootstrap route through `scripts/zigux/check-phase10-bootstrap-route.py` and `.github/workflows/zigux-bootstrap.yml`, the shared closure note, the lane-sequencing note, the returned closure validator and closure manifest, the returned core survey note, the ring survey and slice notes, the direct ring helper packet through `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_manifest.json`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the shared `zigux/tests/phase10_build.zig` gate, the input slice, input module slice, input survey, direct input helpers, queue-callback-preflight, registration-preflight, teardown-observation, and status-drain replays, the helper-local MMIO survey plus `Documentation/zigux/phase10-virtio-mmio-slice.md`, `drivers/virtio/virtio_mmio.zig`, `drivers/virtio/virtio_mmio_verify.zig`, `zigux/tests/phase10_virtio_mmio_manifest.json`, `zigux/tests/phase10_virtio_mmio.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`, the blocked risky-transport posture, the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate, the allowed `drivers/virtio/*.zig` plus justified `zigux/kernel/` or `zigux/helpers/` destination family, the shared closure-packet vocabulary around `zigux/tests/phase10_closure_manifest.json`, and the Phase 14 study-only ownership of `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay aligned on the same bounded virtio story while keeping `scripts/zigux/validate-phase10.py` and the missing core-side packet companions framed as last-known packet members or repo-reality gaps instead of direct current-head evidence?
@@ -251,11 +251,11 @@ Tests-root reviewer prompt:
         ),
         (
             good_companion.replace(
-                "Treat `scripts/zigux/README.md` as a neighboring shared reminder surface until a fresh same-lane reread rematerializes a dedicated Phase 10 scripts-root packet on current `master`.",
+                "Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.",
                 "Treat `scripts/zigux/README.md` as an active shared Phase 10 packet on current `master`.",
                 1,
             ),
-            "Treat `scripts/zigux/README.md` as a neighboring shared reminder surface until a fresh same-lane reread rematerializes a dedicated Phase 10 scripts-root packet on current `master`.",
+            "Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root packet on current `master` and keep it aligned with the shared closure note, lane-sequencing note, review checklist, and tests-root reminder instead of leaving it in neighboring-surface wording.",
         ),
         (
             good_tests_root_readme.replace(
