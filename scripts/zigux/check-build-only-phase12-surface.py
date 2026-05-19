@@ -64,9 +64,9 @@ RAW_GITHUB_COVERAGE_SURVEY_PATH = (
     "Documentation/zigux/phase12-raw-github-coverage-survey.md"
 )
 RAW_GITHUB_COVERAGE_MARKER = (
-    "the raw-URL-backed direct replay catalog, the currently missing raw NVMe gap-note "
-    "handle, and the contents-bridge-backed shared support bundle are distinct evidence "
-    "states in this runtime"
+    "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, "
+    "the contents-bridge-backed build-only anchor pair, and the contents-bridge-backed "
+    "shared support bundle are distinct evidence states in this runtime"
 )
 
 REQUIRED_FILES = [
