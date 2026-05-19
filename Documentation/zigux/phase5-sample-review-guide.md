@@ -65,6 +65,7 @@ Keep the missing-companion boundary explicit too:
 * `zigux/tests/phase5_build.zig`
 
 Those paths remain public-tree-backed companion, repo-reality-gap, or historical support references on `master` until a fresh authenticated reread proves they returned directly.
+Fresh public current-`master` fallback on 2026-05-19 also keeps the broader non-runtime trace-events sample packet visible through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, so same-lane guidance should treat authenticated-contents `404` results there as connector-local readback flakiness instead of repo absence while keeping `zigux/tests/phase5_build.zig` framed as companion evidence only.
 
 For the shared tracing and probe lane, ground reviewer guidance in the restored direct kretprobe packet plus the narrower trace-events packet above and these shared reminder surfaces:
 
@@ -138,6 +139,7 @@ The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in thi
 * `zigux/tests/phase5_build.zig`
 
 Keep shared contributor guidance honest about that split instead of restating the older kobject packet as direct authenticated proof or flattening it into a pure missing-packet story.
+Fresh public current-`master` fallback on 2026-05-19 also reconfirmed `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` as present companion evidence on current `master`, so same-lane guidance should treat connector-local authenticated-contents `404` results there as readback flakiness instead of repo absence while keeping the packet split explicit.
 
 Use the shared docs to preserve these bounded cues until a fresh reread restores direct authenticated proof for the whole packet:
 
