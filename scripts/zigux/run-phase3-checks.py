@@ -102,7 +102,9 @@ CHECK_COMMANDS = (
 
 SELF_TEST_MISSING_CASES = (
     (0, "expected missing leading script was not reported"),
+    (1, "expected errptr-xarray script omission was not reported"),
     (2, "expected xarray-slot script omission was not reported"),
+    (3, "expected policy starter script omission was not reported"),
     (4, "expected shared ABI validator omission was not reported"),
     (5, "expected shared ABI checker omission was not reported"),
     (6, "expected shared-tests-routes script omission was not reported"),
