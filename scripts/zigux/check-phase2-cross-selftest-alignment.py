@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 KBUILD_ROUTES = ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py"
-TOOLCHAIN_PINNING = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py"
+TOOLCHAIN_PINNING = ROOT / "scripts" / "check-phase2-toolchain-pinning.py"
 TESTS_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
 PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
@@ -57,6 +57,8 @@ CHECKER_OUTPUT_MARKERS = (
     'print("PHASE2_DIRECT_CROSS_ROUTE=pass")',
     'print(f"PHASE2_DIRECT_CROSS_ROUTE_TARGET_COUNT={len(cross_targets)}")',
     'print(f"PHASE2_DIRECT_CROSS_ROUTE_ARCHIVE_SCOPE_COUNT={len(load_archive_target_scope(args.root.resolve()))}")',
+    'print("PHASE2_DIRECT_CROSS_ROUTE_SELF_TEST=pass")',
+    'print(f"PHASE2_DIRECT_CROSS_ROUTE_SELF_TEST_CASE_COUNT={checks_run}")',
 )
 
 CHECKER_ISSUE_CODE_LINES = (
