@@ -99,7 +99,7 @@ EXPECTED_MANIFEST_FIELDS = {
 }
 
 EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES: list[str] = []
-EXPECTED_SELF_TEST_CASE_COUNT = 61
+EXPECTED_SELF_TEST_CASE_COUNT = 64
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -233,6 +233,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     issues.extend(collect_duplicate_manifest_entries(present_files, "DUPLICATE_PRESENT_FILE_ENTRY"))
     issues.extend(collect_duplicate_manifest_entries(missing_files, "DUPLICATE_MISSING_FILE_ENTRY"))
+    issues.extend(
+        collect_duplicate_manifest_entries(
+            master_present_branch_missing_files,
+            "DUPLICATE_MASTER_PRESENT_BRANCH_MISSING_FILE_ENTRY",
+        )
+    )
     if isinstance(present_files, list) and isinstance(missing_files, list):
         present_set = {value for value in present_files if isinstance(value, str)}
         missing_set = {value for value in missing_files if isinstance(value, str)}
@@ -240,6 +246,18 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", value)
             for value in sorted(present_set & missing_set)
         )
+        if isinstance(master_present_branch_missing_files, list):
+            master_present_set = {
+                value for value in master_present_branch_missing_files if isinstance(value, str)
+            }
+            issues.extend(
+                ("MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT", value)
+                for value in sorted(master_present_set & present_set)
+            )
+            issues.extend(
+                ("MASTER_PRESENT_BRANCH_PATH_NOT_MARKED_MISSING", value)
+                for value in sorted(master_present_set - missing_set)
+            )
 
     if manifest.get("packet") != "phase2_tool_manifest":
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
@@ -470,6 +488,33 @@ def run_self_test() -> int:
         bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_MISSING_FILES[0]]
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("DUPLICATE_MISSING_FILE_ENTRY", f"{EXPECTED_MISSING_FILES[0]}:count=2") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["master_present_branch_missing_files"] = ["scripts/zigux/install-zig.py", "scripts/zigux/install-zig.py"]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert (
+            "DUPLICATE_MASTER_PRESENT_BRANCH_MISSING_FILE_ENTRY",
+            "scripts/zigux/install-zig.py:count=2",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["master_present_branch_missing_files"] = [EXPECTED_PRESENT_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["master_present_branch_missing_files"] = ["scripts/zigux/not-in-missing.py"]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert (
+            "MASTER_PRESENT_BRANCH_PATH_NOT_MARKED_MISSING",
+            "scripts/zigux/not-in-missing.py",
+        ) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
