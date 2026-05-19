@@ -42,6 +42,12 @@ const RbtreeSmokeEntry = struct {
     }
 };
 
+fn returnedSerial(node: ?*rbtree.Node) i32 {
+    const current = node orelse return -1;
+    const entry: *const RbtreeSmokeEntry = @fieldParentPtr("node", current);
+    return @as(i32, @intCast(entry.serial));
+}
+
 test "phase1 host-tools smoke imports the live helper modules" {
     try std.testing.expect(@hasDecl(argv_split, "argvSplit"));
     try std.testing.expect(@hasDecl(cmdline, "memparse"));
@@ -251,6 +257,21 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     }
     try std.testing.expectEqual(@as(usize, 3), duplicate_count);
     try std.testing.expectEqualSlices(usize, &[_]usize{ 0, 2, 4 }, duplicate_serials[0..duplicate_count]);
+
+    var cached_leftmost_entries = [_]RbtreeSmokeEntry{
+        .{ .key = 10, .serial = 0 },
+        .{ .key = 12, .serial = 1 },
+        .{ .key = 5, .serial = 2 },
+        .{ .key = 5, .serial = 3 },
+    };
+    var cached_leftmost_root = rbtree.RootCached.init();
+    var cached_leftmost_return_serials: [4]i32 = undefined;
+    cached_leftmost_return_serials[0] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[0].node, &cached_leftmost_root, RbtreeSmokeEntry.less));
+    cached_leftmost_return_serials[1] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[1].node, &cached_leftmost_root, RbtreeSmokeEntry.less));
+    cached_leftmost_return_serials[2] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[2].node, &cached_leftmost_root, RbtreeSmokeEntry.less));
+    cached_leftmost_return_serials[3] = returnedSerial(rbtree.addCached(&cached_leftmost_entries[3].node, &cached_leftmost_root, RbtreeSmokeEntry.less));
+    try std.testing.expectEqualSlices(i32, &.{ 0, -1, 2, -1 }, &cached_leftmost_return_serials);
+    try std.testing.expectEqual(@as(?*rbtree.Node, &cached_leftmost_entries[2].node), rbtree.firstCached(&cached_leftmost_root));
 
     var cached_entries = [_]RbtreeSmokeEntry{
         .{ .key = 10, .serial = 0 },
