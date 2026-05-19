@@ -98,7 +98,7 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/check-zig-toolchain.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
-    "`.github/workflows/zigux-bootstrap.yml`",
+    ".github/workflows/zigux-bootstrap.yml",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
@@ -119,17 +119,22 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
+    "`scripts/zigux/check-phase2-fixdep-gate.py`",
+    "`scripts/zigux/check-fixdep-diff.py`",
+    "`scripts/zigux/fixdep.zig`",
+    "`zigux/tests/fixtures/fixdep/cases.json`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2-genksyms`",
+    "`make -C zigux phase2-fixdep`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
 )
 
 BOOTSTRAP_GAP_MARKERS = (
-    "No current repo-reality gaps remain inside the bounded toolchain, installer, and direct cross-route packet on current `master`.",
+    "No current repo-reality gaps remain inside the bounded toolchain, installer, direct cross-route, or returned fixdep packet on current `master`.",
     "Treat older validator-first-only Phase 2 names as separate follow-through work instead of subtracting the returned installer or direct cross-route surfaces from the current packet.",
 )
 
@@ -214,6 +219,7 @@ EXPECTED_TOOL_MANIFEST = {
             "make -C zigux phase2-kconfig",
             "make -C zigux phase2-cross",
             "make -C zigux phase2-genksyms",
+            "make -C zigux phase2-fixdep",
             "make -C zigux phase2-validate",
             "make -C zigux phase2",
         ],
@@ -247,7 +253,7 @@ EXPECTED_TOOL_MANIFEST = {
     "notes": [
         "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, the shipped toolchain-pinning and pin-scope guards, the returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, the fixdep governance and parity checker pair, and the restored tranche-closure note.",
         "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
-        "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
+        "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-fixdep, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the dedicated manifest guards explicit through scripts/zigux/check-phase2-tool-manifest.py and scripts/zigux/check-phase2-artifact-tools-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
         "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, fixdep helper packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
     ],
