@@ -186,6 +186,7 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
 
     const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_readme);
+    try expectContains(samples_readme, "## No-extra-sample reminders");
     try expectContains(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:");
     try expectContainsCount(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:", 1);
     try expectContains(samples_readme, "* `*string*`");
@@ -200,6 +201,8 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContainsCount(samples_readme, "* `*kasprintf*`", 1);
     try expectContains(samples_readme, "* `*strarray*`");
     try expectContainsCount(samples_readme, "* `*strarray*`", 1);
+    try expectContains(samples_readme, "Keep broader helper and formatting review surfaces in their existing helper, closure, or later-phase packets");
+    try expectContains(samples_readme, "instead of treating this directory as proof that dedicated string, cmdline, argv, rbtree, kasprintf, strarray");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
