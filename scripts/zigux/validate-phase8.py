@@ -36,7 +36,6 @@ REQUIRED_FILES = (
 )
 
 ROUTE_FILES = (
-    Path("zigux/tests/phase8_exec_cmd_only_build.zig"),
     Path("zigux/tests/phase8_help_only_build.zig"),
     Path("zigux/tests/phase8_help_kallsyms_only_build.zig"),
     Path("zigux/tests/phase8_kallsyms_only_build.zig"),
@@ -46,9 +45,12 @@ ROUTE_FILES = (
     Path("zigux/tests/phase8_build.zig"),
 )
 
-EXEC_CMD_NOTE_CANDIDATES = (
+EXPECTED_MISSING_EXEC_CMD_PACKET_MEMBERS = (
     Path("Documentation/zigux/phase8-exec-cmd-slice.md"),
     Path("Documentation/zigux/phase8-exec-cmd-repo-reality-note.md"),
+    Path("scripts/zigux/check-phase8-exec-cmd-packet.py"),
+    Path("tools/lib/subcmd/exec-cmd.zig"),
+    Path("zigux/tests/phase8_exec_cmd_only_build.zig"),
 )
 
 FILE_MARKERS: dict[Path, tuple[str, ...]] = {
@@ -140,7 +142,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "make -C zigux phase8-perf-buffer-poll-test",
     ),
     Path("zigux/tests/phase8_exec_cmd.zig"): (
-        "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit",
+        "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit",
         "Documentation/zigux/review-checklist.md",
         "make -C zigux phase8-exec-cmd-test",
         "make -C zigux phase8-validate",
@@ -159,7 +161,7 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
 class ValidationResult:
     missing_files: list[str]
     missing_markers: list[str]
-    exec_cmd_note: str | None
+    unexpected_present_files: list[str]
     help_kallsyms_checker_output: list[str]
 
 
@@ -170,13 +172,6 @@ def _read(path: Path) -> str:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
-
-def _find_exec_cmd_note(root: Path) -> str | None:
-    for candidate in EXEC_CMD_NOTE_CANDIDATES:
-        if (root / candidate).exists():
-            return candidate.as_posix()
-    return None
 
 
 def _collect_missing_markers(root: Path) -> list[str]:
@@ -190,6 +185,14 @@ def _collect_missing_markers(root: Path) -> list[str]:
             if marker not in text:
                 missing_markers.append(f"{relative_path}:{marker}")
     return missing_markers
+
+
+def _collect_unexpected_present_files(root: Path) -> list[str]:
+    return [
+        path.as_posix()
+        for path in EXPECTED_MISSING_EXEC_CMD_PACKET_MEMBERS
+        if (root / path).exists()
+    ]
 
 
 def _run_help_kallsyms_checker(root: Path) -> list[str]:
@@ -213,25 +216,22 @@ def validate_root(root: Path) -> ValidationResult:
         if not (root / path).exists()
     ]
 
-    exec_cmd_note = _find_exec_cmd_note(root)
-    if exec_cmd_note is None:
-        missing_files.append("Documentation/zigux/phase8-exec-cmd-slice.md|Documentation/zigux/phase8-exec-cmd-repo-reality-note.md")
-
     missing_markers = _collect_missing_markers(root)
+    unexpected_present_files = _collect_unexpected_present_files(root)
     help_kallsyms_checker_output: list[str] = []
-    if not missing_files and not missing_markers:
+    if not missing_files and not missing_markers and not unexpected_present_files:
         help_kallsyms_checker_output = _run_help_kallsyms_checker(root)
 
     return ValidationResult(
         missing_files=missing_files,
         missing_markers=missing_markers,
-        exec_cmd_note=exec_cmd_note,
+        unexpected_present_files=unexpected_present_files,
         help_kallsyms_checker_output=help_kallsyms_checker_output,
     )
 
 
 def emit_result(result: ValidationResult) -> int:
-    if result.missing_files or result.missing_markers or result.help_kallsyms_checker_output:
+    if result.missing_files or result.missing_markers or result.unexpected_present_files or result.help_kallsyms_checker_output:
         print("PHASE8_VALIDATION=fail")
         if result.missing_files:
             print("PHASE8_MISSING_FILES_START")
@@ -243,6 +243,11 @@ def emit_result(result: ValidationResult) -> int:
             for item in result.missing_markers:
                 print(item)
             print("PHASE8_MISSING_MARKERS_END")
+        if result.unexpected_present_files:
+            print("PHASE8_UNEXPECTED_PRESENT_FILES_START")
+            for item in result.unexpected_present_files:
+                print(item)
+            print("PHASE8_UNEXPECTED_PRESENT_FILES_END")
         if result.help_kallsyms_checker_output:
             print("PHASE8_HELP_KALLSYMS_PACKET_CHECK_START")
             for line in result.help_kallsyms_checker_output:
@@ -251,9 +256,8 @@ def emit_result(result: ValidationResult) -> int:
         return 1
 
     print("PHASE8_VALIDATION=pass")
-    print(f"PHASE8_SHARED_FILE_COUNT={len(REQUIRED_FILES) + len(ROUTE_FILES) + 1}")
+    print(f"PHASE8_SHARED_FILE_COUNT={len(REQUIRED_FILES) + len(ROUTE_FILES)}")
     print(f"PHASE8_MARKER_COUNT={sum(len(markers) for markers in FILE_MARKERS.values())}")
-    print(f"PHASE8_EXEC_CMD_NOTE={result.exec_cmd_note}")
     return 0
 
 
@@ -371,10 +375,6 @@ def _passing_fixture(root: Path) -> None:
         ),
     )
     _write(
-        root / "Documentation/zigux/phase8-exec-cmd-repo-reality-note.md",
-        "current parked deferred-exec repo-reality note",
-    )
-    _write(
         root / "scripts/zigux/README.md",
         "\n".join(
             (
@@ -412,7 +412,7 @@ def _passing_fixture(root: Path) -> None:
         root / "zigux/tests/phase8_exec_cmd.zig",
         "\n".join(
             (
-                "phase 8 exec-cmd checklist hook keeps the parked deferred-exec packet explicit",
+                "phase 8 exec-cmd review witness keeps the surviving shared reminder surfaces explicit",
                 "Documentation/zigux/review-checklist.md",
                 "make -C zigux phase8-exec-cmd-test",
                 "make -C zigux phase8-validate",
@@ -439,7 +439,6 @@ def _passing_fixture(root: Path) -> None:
             )
         ),
     )
-    _write(root / "zigux/tests/phase8_exec_cmd_only_build.zig", "exec cmd build shard")
     _write(root / "zigux/tests/phase8_help_only_build.zig", "help build shard")
     _write(root / "zigux/tests/phase8_help_kallsyms_only_build.zig", "help and kallsyms build shard")
     _write(root / "zigux/tests/phase8_kallsyms_only_build.zig", "kallsyms build shard")
@@ -453,7 +452,7 @@ def _passing_fixture(root: Path) -> None:
 
 
 def _self_test_case_count() -> int:
-    return 19
+    return 21
 
 
 def run_self_test() -> int:
@@ -465,6 +464,7 @@ def run_self_test() -> int:
         if (
             passing.missing_files
             or passing.missing_markers
+            or passing.unexpected_present_files
             or passing.help_kallsyms_checker_output
         ):
             raise AssertionError("expected passing fixture to validate")
@@ -492,13 +492,19 @@ def run_self_test() -> int:
             raise AssertionError("expected missing scripts-root validator marker to be reported")
         scripts_readme.write_text(original_scripts_readme, encoding="utf-8")
 
+        exec_build = root / "zigux/tests/phase8_exec_cmd_only_build.zig"
+        _write(exec_build, "stale exec-cmd build shard")
+        unexpected_exec_build = validate_root(root)
+        if "zigux/tests/phase8_exec_cmd_only_build.zig" not in unexpected_exec_build.unexpected_present_files:
+            raise AssertionError("expected stale exec-cmd build shard to be reported")
+        exec_build.unlink()
+
         exec_note = root / "Documentation/zigux/phase8-exec-cmd-repo-reality-note.md"
+        _write(exec_note, "stale exec-cmd repo-reality note")
+        unexpected_exec_note = validate_root(root)
+        if "Documentation/zigux/phase8-exec-cmd-repo-reality-note.md" not in unexpected_exec_note.unexpected_present_files:
+            raise AssertionError("expected stale exec-cmd repo-reality note to be reported")
         exec_note.unlink()
-        missing_note = validate_root(root)
-        expected_note = "Documentation/zigux/phase8-exec-cmd-slice.md|Documentation/zigux/phase8-exec-cmd-repo-reality-note.md"
-        if expected_note not in missing_note.missing_files:
-            raise AssertionError("expected missing exec-cmd note candidate to be reported")
-        _write(exec_note, "current parked deferred-exec repo-reality note")
 
         makefile = root / "zigux/Makefile"
         original_makefile = _read(makefile)
