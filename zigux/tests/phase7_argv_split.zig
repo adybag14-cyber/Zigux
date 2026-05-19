@@ -47,6 +47,29 @@ test "phase 7 argv split companion replays blank-input sentinel reuse and first-
     try std.testing.expectEqual(@as(?[*:0]const u8, null), truncated.cArgv()[2]);
 }
 
+test "phase 7 argv split companion replays repeated blank-result sentinel reuse" {
+    var first_argc: usize = std.math.maxInt(usize);
+    var first = try argv_split.argvSplitWithArgc(std.testing.allocator, " \t\n", &first_argc);
+    defer first.deinit(std.testing.allocator);
+
+    var second_argc: usize = std.math.maxInt(usize);
+    var second = try argv_split.argvSplitWithArgc(std.testing.allocator, "", &second_argc);
+    defer second.deinit(std.testing.allocator);
+
+    try std.testing.expectEqual(@as(usize, 0), first_argc);
+    try std.testing.expectEqual(@as(usize, 0), second_argc);
+    try std.testing.expectEqual(@as(usize, 0), first.argv.len);
+    try std.testing.expectEqual(@as(usize, 0), second.argv.len);
+    try std.testing.expectEqual(@as(usize, 1), first.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(usize, 1), second.argv_null_terminated.len);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), first.cArgv()[0]);
+    try std.testing.expectEqual(@as(?[*:0]const u8, null), second.cArgv()[0]);
+    try std.testing.expectEqual(first.storage.ptr, second.storage.ptr);
+    try std.testing.expectEqual(first.argv.ptr, second.argv.ptr);
+    try std.testing.expectEqual(first.argv_null_terminated.ptr, second.argv_null_terminated.ptr);
+    try std.testing.expectEqual(first.cArgv(), second.cArgv());
+}
+
 test "phase 7 argv split companion replays caller-owned teardown and failure boundaries" {
     var split = try argv_split.argvSplit(std.testing.allocator, "console=ttyS0 root=/dev/vda");
     argv_split.argvFree(std.testing.allocator, &split);
