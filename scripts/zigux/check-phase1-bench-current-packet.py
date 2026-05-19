@@ -50,6 +50,8 @@ MARKERS = {
         'print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))',
         'print(f"BENCH_COMMAND_EXIT={result.returncode}")',
         'print(f"PHASE1_BENCH_ZIG={zig}")',
+        'print("PHASE1_BENCH_CHECK=pass")',
+        'print(f"PHASE1_BENCH_EXPECTATIONS={EXPECTATIONS}")',
         'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
     ),
 }
