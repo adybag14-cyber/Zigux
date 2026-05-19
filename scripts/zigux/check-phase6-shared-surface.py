@@ -51,6 +51,8 @@ REQUIRED_EVIDENCE_MANIFEST_SNIPPETS = [
     '"current_review_posture": "direct-readback-limited"',
     '"Documentation/zigux/phase6-helper-parity-catalog.md"',
     '"Documentation/zigux/phase6-perf-gate-survey.md"',
+    '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
+    '"scripts/zigux/check-phase6-checksum-c-parity.py"',
     '"scripts/zigux/check-phase6-hexdump-packet.py"',
     '"make -C zigux phase6-hexdump-perf"',
 ]
@@ -71,7 +73,7 @@ REQUIRED_PARITY_MANIFEST_SNIPPETS = [
     '"Documentation/zigux/phase6-perf-gate-survey.md"',
 ]
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 18
 
 
 class ValidationError(RuntimeError):
@@ -166,7 +168,15 @@ def run_self_test() -> None:
             ),
             (
                 root / HELPER_EVIDENCE_CATALOG_PATH,
+                '- `scripts/zigux/check-phase6-checksum-c-parity.py`',
+            ),
+            (
+                root / HELPER_EVIDENCE_CATALOG_PATH,
                 "## Current shared replay inventory",
+            ),
+            (
+                root / HELPER_EVIDENCE_CATALOG_PATH,
+                "- `make -C zigux phase6-hexdump-perf`",
             ),
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
@@ -178,7 +188,19 @@ def run_self_test() -> None:
             ),
             (
                 root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-bsearch-corpus-evidence.py"',
+            ),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"scripts/zigux/check-phase6-checksum-c-parity.py"',
+            ),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
                 '"key": "hexdump"',
+            ),
+            (
+                root / HELPER_EVIDENCE_MANIFEST_PATH,
+                '"make -C zigux phase6-hexdump-perf"',
             ),
             (
                 root / HELPER_PARITY_MANIFEST_PATH,
@@ -187,6 +209,10 @@ def run_self_test() -> None:
             (
                 root / HELPER_PARITY_MANIFEST_PATH,
                 '"scripts/zigux/check-phase6-shared-surface.py"',
+            ),
+            (
+                root / HELPER_PARITY_MANIFEST_PATH,
+                '"key": "checksum"',
             ),
             (
                 root / HELPER_PARITY_MANIFEST_PATH,
