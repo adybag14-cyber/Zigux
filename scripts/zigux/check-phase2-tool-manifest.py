@@ -44,6 +44,7 @@ REQUIRED_PRESENT_SURFACES = {
         "scripts/zigux/check-phase2-required-make-routes.py",
         "scripts/zigux/check-phase2-docs-shared-reminder.py",
         "scripts/zigux/check-phase2-tool-manifest.py",
+        "scripts/zigux/check-phase2-artifact-tools-manifest.py",
         "scripts/zigux/check-genksyms-bridge.py",
     ),
     "bootstrap_helpers": (
@@ -72,6 +73,7 @@ REQUIRED_PRESENT_SURFACES = {
         "zigux/tests/fixtures/phase2_cross_targets.json",
     ),
     "artifact_support": (
+        "scripts/zigux/check-phase2-artifact-tools-manifest.py",
         "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     ),
     "fixture_roster": (
@@ -91,8 +93,8 @@ REQUIRED_NOTE_MARKERS = (
     "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, cross-selftest checker, and the restored tranche-closure note.",
     "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
-    "Keep the dedicated manifest guard explicit through scripts/zigux/check-phase2-tool-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
-    "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, and bounded genksyms fixture packet explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+    "Keep the dedicated manifest guards explicit through scripts/zigux/check-phase2-tool-manifest.py and scripts/zigux/check-phase2-artifact-tools-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
+    "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
 )
 
 
