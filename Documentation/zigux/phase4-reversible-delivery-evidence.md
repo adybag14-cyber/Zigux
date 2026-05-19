@@ -8,11 +8,13 @@ This note records the smallest shared Phase 4 evidence packet that keeps the alr
   * `PHASE4_REVERSIBLE_DELIVERY_EVIDENCE_DATE=2026-05-19`
   * `PHASE4_REVERSIBLE_DELIVERY_MODE=github_connector_readback`
   * `PHASE4_REVERSIBLE_DELIVERY_EXACT_READBACK_REF=master`
-  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_NOTE_BLOB_SHA=9c32cfdc6d3c8d449a10ede6b3380ef84ef8aad6`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_NOTE_BLOB_SHA=53fec0ed6190e94af07826f720deb1fe59e2c67b`
   * `PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=0baa7e7a3c454efc1bd5d7838457930a1438ce66`
-  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_BLOB_SHA=f0c5da9f7920e23df0a40f2df3c1e8e63abc8f13`
-  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=45c7e3519319e2bdadc19d373f76459a14a17395`
-  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=78744dc8530a5412511e266581643cc2301c1054`
+  * `PHASE4_REVERSIBLE_DELIVERY_LAST_ARCHIVED_PIN_CHECKER_BLOB_SHA=31f1d2ba21c371180593c9ad6de45b1fba0e04be`
+  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=4314fcc44d0d993f7b970dbe5bb1d44ca947dc54`
+  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=38ab2ac8028bf8e3fb2494676a0f348c81ff2296`
+  * `PHASE4_REVERSIBLE_DELIVERY_DOCS_README_BLOB_SHA=c9c869614cbcb77cd175d8fbcb3074f25dc1f53c`
+  * `PHASE4_REVERSIBLE_DELIVERY_SCRIPTS_README_BLOB_SHA=36badae94628e86e88079952152ec83459393a7a`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=5953384f874afa357b1da24bb0490d681da45252`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=44955f39e37b9389b3b97e7d710c25b1841aedf3`
   * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=7388f3faf59a7decbda49f35a7532faaa7abbf40`
@@ -57,7 +59,7 @@ The broader Phase 4 validator, build, and bitmap replay companions are no longer
 
 The recovered broader note pair therefore no longer overstates those validator-side and bitmap-side companions as absent current-head evidence. Treat this narrower handoff as the authoritative shared reminder while exact blob recapture for the validator, build, and bitmap replay companions still waits on steadier authenticated contents reads.
 
-The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for the review checklist, the tests-root reminder, the repo-reality warning checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the dedicated local-only perf checker plus companion packet; archival anchor pins only for this note's self-reference and the reversible-delivery pin checker self-reference; public-raw current-tree proof that `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for those four companions until exact authenticated blob capture stabilizes.
+The Phase 4 blob-pin lines therefore remain mixed provenance in this handoff: current-head proof for the docs-root reminder, the scripts-root reminder, the review checklist, the tests-root reminder, the repo-reality warning checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the dedicated local-only perf checker plus companion packet; archival anchor pins only for this note's self-reference and the reversible-delivery pin checker self-reference; public-raw current-tree proof that `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for those four companions until exact authenticated blob capture stabilizes.
 
 Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`, so the shared repo-reality warning should keep those contract anchors explicit even while the exact broader checker-and-build packet remains only partially recovered here.
 
