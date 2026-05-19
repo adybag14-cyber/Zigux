@@ -385,8 +385,8 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
         const arg = args[index];
         if (std.mem.eql(u8, arg, "--")) {
             saw_non_version_request_input = true;
-            try rendered_args.append(allocator, arg);
             try rendered_args.appendSlice(allocator, positional_args.items);
+            try rendered_args.append(allocator, arg);
             if (index + 1 < args.len) {
                 try rendered_args.appendSlice(allocator, args[index + 1 ..]);
             }
@@ -902,11 +902,13 @@ test "genksyms bridge treats lone dash as positional passthrough" {
     }
 }
 
-test "genksyms bridge accepts explicit option terminator" {
+test "genksyms bridge keeps explicit option terminator in original position" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
 
     const args = [_][]const u8{
+        "-d",
+        "leftover.c",
         "--",
         "--leftover",
         "positional",
@@ -915,10 +917,13 @@ test "genksyms bridge accepts explicit option terminator" {
     switch (outcome) {
         .command => |command| switch (command) {
             .request => |request| {
-                try testing.expectEqual(@as(usize, 3), request.rendered_args.len);
-                try testing.expectEqualStrings("--", request.rendered_args[0]);
-                try testing.expectEqualStrings("--leftover", request.rendered_args[1]);
-                try testing.expectEqualStrings("positional", request.rendered_args[2]);
+                try testing.expectEqual(@as(usize, 1), request.debug_level);
+                try testing.expectEqual(@as(usize, 5), request.rendered_args.len);
+                try testing.expectEqualStrings("-d", request.rendered_args[0]);
+                try testing.expectEqualStrings("leftover.c", request.rendered_args[1]);
+                try testing.expectEqualStrings("--", request.rendered_args[2]);
+                try testing.expectEqualStrings("--leftover", request.rendered_args[3]);
+                try testing.expectEqualStrings("positional", request.rendered_args[4]);
             },
             else => return error.ExpectedRequestCommand,
         },
