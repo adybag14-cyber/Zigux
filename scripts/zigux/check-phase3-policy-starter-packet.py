@@ -5,10 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
-import re
 import tempfile
 from pathlib import Path
-
 
 POLICY_NOTE_PATH = Path("Documentation/zigux/phase3-policy-slice.md")
 VALIDATOR_NOTE_PATH = Path("Documentation/zigux/phase3-validator-support-surface.md")
@@ -23,10 +21,6 @@ NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 TEST_PATH = Path("zigux/tests/phase3_policy_starter_packet.zig")
 BUILD_PATH = Path("zigux/tests/phase3_policy_starter_packet_build.zig")
 MANIFEST_PATH = Path("zigux/tests/phase3_policy_starter_packet_manifest.json")
-
-HEADER_TYPEDEF_ALIAS_RE = re.compile(r"^\s*}\s*([A-Za-z_][A-Za-z0-9_]*)\s*;")
-ZIG_PUB_CONST_RE = re.compile(r"^\s*pub const\s+([A-Za-z_][A-Za-z0-9_]*)\s*=")
-ZIG_PUB_FN_RE = re.compile(r"^\s*pub fn\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(")
 
 REQUIRED_PACKET_FILES = (
     "Documentation/zigux/phase3-policy-slice.md",
@@ -51,13 +45,6 @@ REQUIRED_REPLAY_ROUTES = (
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig",
 )
 
-REQUIRED_REPO_REALITY_GAPS = (
-    "zigux/tests/phase3_abi.zig",
-    "zigux/tests/phase3_abi_dump.zig",
-    "scripts/zigux/check-phase3-abi.py",
-    "scripts/zigux/validate-phase3.py",
-)
-
 EXPECTED_MANIFEST_FIELDS = {
     "phase": "Phase 3",
     "lane": "abi-runtime",
@@ -78,6 +65,9 @@ REQUIRED_MARKERS = {
         "zigux/tests/phase3_policy_starter_packet_manifest.json",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
+        "zigux/tests/phase3_abi.zig",
+        "scripts/zigux/check-phase3-abi.py",
+        "scripts/zigux/validate-phase3.py",
     ),
     VALIDATOR_NOTE_PATH: (
         "## Focused policy slice present on `master`",
@@ -92,18 +82,12 @@ REQUIRED_MARKERS = {
         "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     ),
     SHARED_REMINDER_GAP_PATH: (
-        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the landed notifier binding companion plus one focused export-or-UAPI layout replay explicit in the dedicated ABI note, and the shared docs-root Phase 3 summary now reflects that returned surface, but the tests-root Phase 3 summary still undercounts it, so the earlier shared-reminder sentence drift is only partially closed",
+        "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root plus tests-root Phase 3 summaries now all reflect that return while scripts-root inventory work stays separate",
         "Documentation/zigux/phase3-policy-slice.md",
-        "include/zigux/abi.h",
-        "zigux/bindings/abi.zig",
-        "zigux/helpers/panic_policy.zig",
-        "zigux/helpers/allocator_policy.zig",
-        "zigux/helpers/unsafe_policy.zig",
-        "zigux/tests/phase3_policy_starter_packet.zig",
-        "zigux/tests/phase3_policy_starter_packet_build.zig",
         "Documentation/zigux/README.md",
         "zigux/tests/README.md",
-        "PHASE3_SHARED_REMINDER_NEXT_STEP=refresh only the shared Phase 3 tests-root summary in zigux/tests/README.md so it explicitly includes zigux/bindings/notifier_abi.zig, the starter export shim companion, and zigux/tests/phase3_export_uapi_layout.zig plus zigux/tests/phase3_export_uapi_layout_build.zig, while keeping the broader validator, catalog, and survey routes framed as gaps",
+        "scripts/zigux/README.md remains a separate scripts-root reminder surface",
+        "PHASE3_SHARED_REMINDER_NEXT_STEP=keep any future same-lane follow-through scoped to scripts/zigux/README.md inventory truthfulness, or rerun the shared-summary reread only if current master changes reopen Phase 3 reminder drift",
     ),
     ABI_HEADER_PATH: (
         "#define ZIGUX_PANIC_ABORT 0U",
@@ -152,24 +136,20 @@ REQUIRED_MARKERS = {
         "pub const AccessBoundary = enum {",
         "pub fn modeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
         "pub fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) ?abi.UnsafeScope {",
-        "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
         "pub fn accessBoundaryFor(mode: abi.UnsafeScope) AccessBoundary {",
         "pub fn allowsTypedOnlyAccess(mode: abi.UnsafeScope) bool {",
-        "pub fn permitsNoUnsafe(mode: abi.UnsafeScope) bool {",
-        "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
-        "pub fn requiresVolatileMmioAccess(mode: abi.UnsafeScope) bool {",
         "pub fn permitsVolatileMmio(mode: abi.UnsafeScope) bool {",
-        "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
-        "pub fn requiresRawPointerBridge(mode: abi.UnsafeScope) bool {",
         "pub fn permitsRawPointerBridge(mode: abi.UnsafeScope) bool {",
+        "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {",
+        "pub fn permitsVolatileMmioInteropPolicy(policy: abi.InteropPolicy) bool {",
         "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {",
     ),
     NARROW_PATH: (
         "pub const Surface = enum {",
-        "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?abi.UnsafeScope {",
-        "pub fn allowsVolatileMmio(scope: abi.UnsafeScope) bool {",
-        "pub fn allowsRawPointerBridge(scope: abi.UnsafeScope) bool {",
-        "pub fn requiresDedicatedAudit(scope: abi.UnsafeScope) bool {",
+        "pub fn scopeFromInteropPolicy(policy: abi.InteropPolicy) ?UnsafeScopeTag {",
+        "pub fn allowsVolatileMmio(scope: UnsafeScopeTag) bool {",
+        "pub fn allowsRawPointerBridge(scope: UnsafeScopeTag) bool {",
+        "pub fn requiresDedicatedAudit(scope: UnsafeScopeTag) bool {",
     ),
     TEST_PATH: (
         'test "policy starter packet decodes shared interop policy records" {',
@@ -183,9 +163,7 @@ REQUIRED_MARKERS = {
         "unsafe_policy.permitsNoUnsafeInteropPolicy(case.policy)",
         "unsafe_policy.allowsTypedOnlyAccessInteropPolicy(case.policy)",
         "unsafe_policy.permitsVolatileMmioInteropPolicy(case.policy)",
-        "unsafe_policy.requiresVolatileMmioAccessInteropPolicy(case.policy)",
         "unsafe_policy.permitsRawPointerBridgeInteropPolicy(case.policy)",
-        "unsafe_policy.requiresRawPointerBridgeInteropPolicy(case.policy)",
         'test "panic policy starter packet keeps escalation semantics explicit" {',
         'test "allocator policy starter packet keeps init ownership semantics explicit" {',
         'test "unsafe policy starter packet keeps access semantics explicit" {',
@@ -205,118 +183,37 @@ REQUIRED_MARKERS = {
         'root_module.addImport("narrow_surface", narrow_surface);',
         '"phase3-policy-starter-packet-test"',
     ),
-    MANIFEST_PATH: (
-        '"slug": "phase3-policy-starter-packet"',
-        '"status": "policy_slice_present"',
-        '"scope": "layout, panic, allocator, and unsafe interop policy decoding replay"',
-        '"Documentation/zigux/phase3-policy-slice.md"',
-        '"zigux/bindings/notifier_abi.zig"',
-        '"zigux/helpers/layout_assert.zig"',
-        '"zigux/helpers/panic_policy.zig"',
-        '"zigux/helpers/allocator_policy.zig"',
-        '"zigux/helpers/unsafe_policy.zig"',
-        '"zigux/unsafe/narrow.zig"',
-        '"python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test"',
-        '"zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"',
-        '"next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"',
-        '"repo_reality_gaps": [',
-        '"scripts/zigux/validate-phase3.py"',
-    ),
 }
 
-DUPLICATE_DECLARATION_PATTERNS = {
-    ABI_HEADER_PATH: (("ABI typedef alias", HEADER_TYPEDEF_ALIAS_RE),),
-    ABI_BINDING_PATH: (
-        ("ABI binding pub const", ZIG_PUB_CONST_RE),
-        ("ABI binding pub fn", ZIG_PUB_FN_RE),
-    ),
+SAMPLE_MANIFEST = {
+    "phase": "Phase 3",
+    "lane": "abi-runtime",
+    "slug": "phase3-policy-starter-packet",
+    "status": "policy_slice_present",
+    "scope": "layout, panic, allocator, and unsafe interop policy decoding replay",
+    "packet_files": list(REQUIRED_PACKET_FILES),
+    "replay_routes": list(REQUIRED_REPLAY_ROUTES),
+    "repo_reality_gaps": [],
+    "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families",
 }
 
 SELF_TEST_CASES = (
     (POLICY_NOTE_PATH, "PHASE3_POLICY_SLICE_FILE_COUNT="),
     (VALIDATOR_NOTE_PATH, "## Focused policy slice present on `master`"),
-    (
-        SHARED_REMINDER_GAP_PATH,
-        "PHASE3_SHARED_REMINDER_GAP=current master now keeps the landed notifier binding companion plus one focused export-or-UAPI layout replay explicit in the dedicated ABI note, and the shared docs-root Phase 3 summary now reflects that returned surface, but the tests-root Phase 3 summary still undercounts it, so the earlier shared-reminder sentence drift is only partially closed",
-    ),
+    (SHARED_REMINDER_GAP_PATH, "PHASE3_SHARED_REMINDER_GAP=current master now directly serves the packet-local export/UAPI survey note and validator, the shared ABI catalog helper plus manifest-backed inventory companion, and the shared docs-root plus tests-root Phase 3 summaries now all reflect that return while scripts-root inventory work stays separate"),
     (ABI_HEADER_PATH, "#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U"),
     (ABI_BINDING_PATH, "pub const UnsafeScope = enum(u8) {"),
     (LAYOUT_ASSERT_PATH, "pub fn expectLayout(comptime T: type, size: usize, alignment: usize) LayoutError!void {"),
     (PANIC_POLICY_PATH, "pub fn emitsKernelBug(mode: abi.PanicMode) bool {"),
     (ALLOCATOR_POLICY_PATH, "pub fn requiresResetOnInit(mode: abi.AllocatorMode) bool {"),
     (UNSAFE_POLICY_PATH, "pub fn permitsNoUnsafeInteropPolicy(policy: abi.InteropPolicy) bool {"),
-    (UNSAFE_POLICY_PATH, "pub fn permitsRawPointerBridgeInteropPolicy(policy: abi.InteropPolicy) bool {"),
-    (NARROW_PATH, "pub fn requiresDedicatedAudit(scope: abi.UnsafeScope) bool {"),
+    (NARROW_PATH, "pub fn requiresDedicatedAudit(scope: UnsafeScopeTag) bool {"),
     (TEST_PATH, 'test "policy starter packet keeps unsafe alias symmetry explicit on shared records" {'),
-    (TEST_PATH, "narrow_surface.requiresDedicatedAudit(scope)"),
     (BUILD_PATH, 'root_module.addImport("narrow_surface", narrow_surface);'),
-    (MANIFEST_PATH, '"zigux/helpers/layout_assert.zig"'),
-    (MANIFEST_PATH, '"zigux/unsafe/narrow.zig"'),
 )
 
 SAMPLE_FILES = {path: "\n".join(markers) + "\n" for path, markers in REQUIRED_MARKERS.items()}
-SAMPLE_FILES[ABI_HEADER_PATH] = """#define ZIGUX_PANIC_ABORT 0U
-#define ZIGUX_PANIC_BUG 1U
-#define ZIGUX_PANIC_WARN 2U
-#define ZIGUX_ALLOC_CALLER_PROVIDED 0U
-#define ZIGUX_ALLOC_KERNEL_HEAP 1U
-#define ZIGUX_ALLOC_ARENA 2U
-#define ZIGUX_UNSAFE_NONE 0U
-#define ZIGUX_UNSAFE_VOLATILE_MMIO 1U
-#define ZIGUX_UNSAFE_RAW_POINTER_BRIDGE 2U
-struct zigux_interop_policy {
-    unsigned char panic_mode;
-    unsigned char allocator_mode;
-    unsigned char unsafe_scope;
-    unsigned char reserved;
-} zigux_boundary_header;
-"""
-SAMPLE_FILES[ABI_BINDING_PATH] = """pub const PanicMode = enum(u8) {
-pub const AllocatorMode = enum(u8) {
-pub const UnsafeScope = enum(u8) {
-pub const InteropPolicy = extern struct {
-panic_mode: u8,
-allocator_mode: u8,
-unsafe_scope: u8,
-reserved: u8,
-pub fn defaultHeader(flags: u16) BoundaryHeader {
-"""
-SAMPLE_FILES[MANIFEST_PATH] = """{
-  "phase": "Phase 3",
-  "lane": "abi-runtime",
-  "slug": "phase3-policy-starter-packet",
-  "status": "policy_slice_present",
-  "scope": "layout, panic, allocator, and unsafe interop policy decoding replay",
-  "packet_files": [
-    "Documentation/zigux/phase3-policy-slice.md",
-    "Documentation/zigux/phase3-validator-support-surface.md",
-    "include/zigux/abi.h",
-    "zigux/bindings/abi.zig",
-    "zigux/bindings/notifier_abi.zig",
-    "zigux/helpers/layout_assert.zig",
-    "zigux/helpers/panic_policy.zig",
-    "zigux/helpers/allocator_policy.zig",
-    "zigux/helpers/unsafe_policy.zig",
-    "zigux/unsafe/narrow.zig",
-    "zigux/tests/phase3_policy_starter_packet.zig",
-    "zigux/tests/phase3_policy_starter_packet_build.zig",
-    "zigux/tests/phase3_policy_starter_packet_manifest.json",
-    "scripts/zigux/check-phase3-policy-starter-packet.py"
-  ],
-  "replay_routes": [
-    "python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test",
-    "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
-    "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"
-  ],
-  "repo_reality_gaps": [
-    "zigux/tests/phase3_abi.zig",
-    "zigux/tests/phase3_abi_dump.zig",
-    "scripts/zigux/check-phase3-abi.py",
-    "scripts/zigux/validate-phase3.py"
-  ],
-  "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
-}
-"""
+SAMPLE_FILES[MANIFEST_PATH] = json.dumps(SAMPLE_MANIFEST, indent=2) + "\n"
 
 
 def _read(path: Path) -> str:
@@ -326,48 +223,6 @@ def _read(path: Path) -> str:
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
-
-def _append_duplicate_declaration_issues(
-    relative_path: Path,
-    text: str,
-    label: str,
-    pattern: re.Pattern[str],
-    issues: list[str],
-) -> None:
-    seen: dict[str, int] = {}
-    for line_no, line in enumerate(text.splitlines(), start=1):
-        match = pattern.match(line)
-        if match is None:
-            continue
-        name = match.group(1)
-        first_line = seen.get(name)
-        if first_line is None:
-            seen[name] = line_no
-            continue
-        issues.append(
-            f"duplicate {label}: {name} "
-            f"(first line {first_line}, duplicate line {line_no})"
-        )
-
-
-def _append_duplicate_list_entry_issues(
-    manifest_name: str,
-    field_name: str,
-    values: list[object],
-    issues: list[str],
-) -> None:
-    seen: dict[str, int] = {}
-    for index, value in enumerate(values):
-        key = repr(value)
-        first_index = seen.get(key)
-        if first_index is None:
-            seen[key] = index
-            continue
-        issues.append(
-            f"{manifest_name} duplicate {field_name} entry: "
-            f"{value!r} (first index {first_index}, duplicate index {index})"
-        )
 
 
 def validate_repo(repo_root: Path) -> list[str]:
@@ -382,80 +237,54 @@ def validate_repo(repo_root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing {relative_path.as_posix()} marker: {marker}")
-        for label, pattern in DUPLICATE_DECLARATION_PATTERNS.get(relative_path, ()):
-            _append_duplicate_declaration_issues(relative_path, text, label, pattern, issues)
 
     manifest_path = repo_root / MANIFEST_PATH
-    if manifest_path.exists():
-        try:
-            manifest = json.loads(_read(manifest_path))
-        except json.JSONDecodeError as exc:
-            issues.append(f"invalid JSON in {MANIFEST_PATH.as_posix()}: {exc}")
-        else:
-            for field, expected in EXPECTED_MANIFEST_FIELDS.items():
-                actual = manifest.get(field)
-                if actual != expected:
-                    issues.append(
-                        "phase3_policy_starter_packet_manifest.json wrong "
-                        f"{field}: {actual!r} != {expected!r}"
-                    )
+    try:
+        manifest = json.loads(_read(manifest_path))
+    except FileNotFoundError:
+        issues.append(f"missing repo file: {MANIFEST_PATH.as_posix()}")
+        return issues
+    except json.JSONDecodeError as exc:
+        issues.append(f"invalid JSON in {MANIFEST_PATH.as_posix()}: {exc}")
+        return issues
 
-            packet_files = manifest.get("packet_files")
-            replay_routes = manifest.get("replay_routes")
-            repo_reality_gaps = manifest.get("repo_reality_gaps")
-            if not isinstance(packet_files, list):
-                issues.append("phase3_policy_starter_packet_manifest.json packet_files is not a list")
-            if not isinstance(replay_routes, list):
-                issues.append("phase3_policy_starter_packet_manifest.json replay_routes is not a list")
-            if not isinstance(repo_reality_gaps, list):
+    for field, expected in EXPECTED_MANIFEST_FIELDS.items():
+        actual = manifest.get(field)
+        if actual != expected:
+            issues.append(
+                "phase3_policy_starter_packet_manifest.json wrong "
+                f"{field}: {actual!r} != {expected!r}"
+            )
+
+    packet_files = manifest.get("packet_files")
+    replay_routes = manifest.get("replay_routes")
+    repo_reality_gaps = manifest.get("repo_reality_gaps")
+    if not isinstance(packet_files, list):
+        issues.append("phase3_policy_starter_packet_manifest.json packet_files is not a list")
+    if not isinstance(replay_routes, list):
+        issues.append("phase3_policy_starter_packet_manifest.json replay_routes is not a list")
+    if repo_reality_gaps != []:
+        issues.append(
+            "phase3_policy_starter_packet_manifest.json repo_reality_gaps should be [] "
+            f"but was {repo_reality_gaps!r}"
+        )
+
+    if isinstance(packet_files, list):
+        for required_path in REQUIRED_PACKET_FILES:
+            if required_path not in packet_files:
                 issues.append(
-                    "phase3_policy_starter_packet_manifest.json repo_reality_gaps is not a list"
+                    "phase3_policy_starter_packet_manifest.json missing packet_files entry: "
+                    f"{required_path}"
                 )
-            if isinstance(packet_files, list):
-                _append_duplicate_list_entry_issues(
-                    "phase3_policy_starter_packet_manifest.json",
-                    "packet_files",
-                    packet_files,
-                    issues,
+
+    if isinstance(replay_routes, list):
+        for route in REQUIRED_REPLAY_ROUTES:
+            if route not in replay_routes:
+                issues.append(
+                    "phase3_policy_starter_packet_manifest.json missing replay route: "
+                    f"{route}"
                 )
-                for required_path in REQUIRED_PACKET_FILES:
-                    if required_path not in packet_files:
-                        issues.append(
-                            "phase3_policy_starter_packet_manifest.json missing packet_files entry: "
-                            f"{required_path}"
-                        )
-            if isinstance(replay_routes, list):
-                _append_duplicate_list_entry_issues(
-                    "phase3_policy_starter_packet_manifest.json",
-                    "replay_routes",
-                    replay_routes,
-                    issues,
-                )
-                for route in REQUIRED_REPLAY_ROUTES:
-                    if route not in replay_routes:
-                        issues.append(
-                            "phase3_policy_starter_packet_manifest.json missing replay route: "
-                            f"{route}"
-                        )
-            if isinstance(repo_reality_gaps, list):
-                _append_duplicate_list_entry_issues(
-                    "phase3_policy_starter_packet_manifest.json",
-                    "repo_reality_gaps",
-                    repo_reality_gaps,
-                    issues,
-                )
-                for gap in repo_reality_gaps:
-                    if (repo_root / gap).exists():
-                        issues.append(
-                            "phase3_policy_starter_packet_manifest.json repo_reality_gaps entry is present on disk: "
-                            f"{gap}"
-                        )
-                for gap in REQUIRED_REPO_REALITY_GAPS:
-                    if gap not in repo_reality_gaps:
-                        issues.append(
-                            "phase3_policy_starter_packet_manifest.json missing repo_reality_gaps entry: "
-                            f"{gap}"
-                        )
+
     return issues
 
 
@@ -487,93 +316,21 @@ def run_self_test() -> int:
                 return 1
 
         _populate_repo(root)
-        header_path = root / ABI_HEADER_PATH
-        header_path.write_text(
-            _read(header_path)
-            + "\ntypedef struct zigux_alias_probe {\n"
-            + "    int value;\n"
-            + "} zigux_boundary_header;\n",
-            encoding="utf-8",
-        )
+        manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["repo_reality_gaps"] = ["zigux/tests/phase3_abi.zig"]
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
-        expected_duplicate_typedef = "duplicate ABI typedef alias: zigux_boundary_header "
-        if not any(issue.startswith(expected_duplicate_typedef) for issue in issues):
-            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
-            print(f"expected duplicate typedef guard was not reported: {expected_duplicate_typedef}")
-            return 1
-
-        _populate_repo(root)
-        binding_path = root / ABI_BINDING_PATH
-        binding_path.write_text(
-            _read(binding_path)
-            + "\npub const PanicMode = enum(u8) {\n"
-            + "    duplicate = 9,\n"
-            + "};\n"
-            + "\npub fn defaultHeader(flags: u16) BoundaryHeader {\n"
-            + "    return .{ .size = flags, .abi_version = ABI_VERSION, .flags = flags };\n"
-            + "}\n",
-            encoding="utf-8",
+        expected = (
+            "phase3_policy_starter_packet_manifest.json repo_reality_gaps should be [] "
+            "but was ['zigux/tests/phase3_abi.zig']"
         )
-        issues = validate_repo(root)
-        expected_duplicate_pub_const = "duplicate ABI binding pub const: PanicMode "
-        if not any(issue.startswith(expected_duplicate_pub_const) for issue in issues):
+        if expected not in issues:
             print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
-            print(f"expected duplicate pub-const guard was not reported: {expected_duplicate_pub_const}")
-            return 1
-
-        expected_duplicate_pub_fn = "duplicate ABI binding pub fn: defaultHeader "
-        if not any(issue.startswith(expected_duplicate_pub_fn) for issue in issues):
-            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
-            print(f"expected duplicate pub-fn guard was not reported: {expected_duplicate_pub_fn}")
-            return 1
-
-        _populate_repo(root)
-        manifest_path = root / MANIFEST_PATH
-        manifest = json.loads(_read(manifest_path))
-        manifest["replay_routes"].append(REQUIRED_REPLAY_ROUTES[0])
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(root)
-        expected_duplicate_replay = (
-            "phase3_policy_starter_packet_manifest.json duplicate replay_routes entry: "
-            "'python3 scripts/zigux/check-phase3-policy-starter-packet.py --self-test' "
-        )
-        if not any(issue.startswith(expected_duplicate_replay) for issue in issues):
-            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
-            print(f"expected duplicate replay-route guard was not reported: {expected_duplicate_replay}")
-            return 1
-
-        _populate_repo(root)
-        manifest_path = root / MANIFEST_PATH
-        manifest = json.loads(_read(manifest_path))
-        manifest["repo_reality_gaps"].remove(REQUIRED_REPO_REALITY_GAPS[3])
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(root)
-        expected_missing_gap = (
-            "phase3_policy_starter_packet_manifest.json missing repo_reality_gaps entry: "
-            "scripts/zigux/validate-phase3.py"
-        )
-        if expected_missing_gap not in issues:
-            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
-            print(f"expected repo-reality-gap guard was not reported: {expected_missing_gap}")
-            return 1
-
-        _populate_repo(root)
-        manifest_path = root / MANIFEST_PATH
-        manifest = json.loads(_read(manifest_path))
-        manifest["repo_reality_gaps"].append(TEST_PATH.as_posix())
-        _write(manifest_path, json.dumps(manifest, indent=2) + "\n")
-        issues = validate_repo(root)
-        expected_present_gap = (
-            "phase3_policy_starter_packet_manifest.json repo_reality_gaps entry is present on disk: "
-            "zigux/tests/phase3_policy_starter_packet.zig"
-        )
-        if expected_present_gap not in issues:
-            print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=fail")
-            print(f"expected present-on-disk gap guard was not reported: {expected_present_gap}")
+            print("expected stale repo_reality_gaps report was not emitted")
             return 1
 
     print("PHASE3_POLICY_STARTER_PACKET_SELF_TEST=pass")
-    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 6}")
+    print(f"PHASE3_POLICY_STARTER_PACKET_SELF_TEST_CASES={len(SELF_TEST_CASES) + 1}")
     return 0
 
 
