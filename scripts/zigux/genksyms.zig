@@ -999,6 +999,24 @@ test "genksyms bridge keeps abbreviated long version side effect before short he
     }
 }
 
+test "genksyms bridge preserves long version side effect before unexpected long option arguments" {
+    const args = [_][]const u8{
+        "--version",
+        "--help=extra",
+    };
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try testing.expectEqual(@as(usize, 1), failure.version_count);
+            switch (failure.reason) {
+                .unexpected_option_argument => |option| try testing.expectEqualStrings("--help", option),
+                else => return error.UnexpectedParseFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "genksyms bridge canonicalizes unexpected long option argument failures" {
     const args = [_][]const u8{"--help=extra"};
     const outcome = try parseArgs(testing.allocator, &args);
