@@ -535,6 +535,7 @@ def expect_json_missing_marker(root: Path, rel_path: str, mutate, expected: str)
 
 def expect_missing_file(root: Path, rel_path: str) -> None:
     path = root / rel_path
+    original = path.read_text(encoding="utf-8")
     path.unlink()
     missing_files, missing_markers = validate(root)
     if missing_markers:
@@ -542,6 +543,7 @@ def expect_missing_file(root: Path, rel_path: str) -> None:
     if rel_path not in missing_files:
         actual = ",".join(missing_files) if missing_files else "none"
         raise SystemExit(f"expected={rel_path}:actual={actual}")
+    path.write_text(original, encoding="utf-8")
 
 
 def run_self_test() -> int:
@@ -647,10 +649,11 @@ def run_self_test() -> int:
             "closure_manifest:lab_only_driver_validation:scripts/zigux/check-phase10-input-packet.py",
         )
 
+        expect_missing_file(root, "Documentation/zigux/phase10-virtio-input-survey.md")
         expect_missing_file(root, "zigux/tests/phase10_virtio_input_survey.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
