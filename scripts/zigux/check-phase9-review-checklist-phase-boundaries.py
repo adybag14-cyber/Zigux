@@ -62,6 +62,7 @@ REVIEW_CHECKLIST_BITMAP_HELPER_BOUNDARY_MARKER = "direct bitmap helper reviewabi
 REVIEW_CHECKLIST_BITMAP_RUNTIME_BACKLOG_MARKER = "the returned separate runtime bitmap family stays explicit in `samples/zigux/README.md`, `Documentation/zigux/README.md`, and `Documentation/zigux/review-checklist.md` through"
 REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER = "`Documentation/zigux/phase9-runtime-bitmap-survey.md`, `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, `samples/zigux/runtime_bitmap_top_bit_contract.zig`, `zigux/tests/runtime_bitmap_module.zig`, `zigux/tests/runtime_bitmap_diff.zig`, `zigux/tests/runtime_bitmap_manifest.json`, and `zigux/tests/runtime_bitmap_survey.zig`"
 REVIEW_CHECKLIST_TRACE_EVENTS_ONLY_MARKER = "keep that bitmap packet framed as a separate bounded Phase 9 runtime family rather than proof that the broader shared runtime-loader packet returned or extra Phase 5 evidence landed"
+REVIEW_CHECKLIST_HISTORICAL_METADATA_MARKER = "older blocked module-metadata and depmod-publication vocabulary such as `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, `modules.order`, `modules.builtin`, module install-root, and depmod script or manifest state stays historical blocked-boundary vocabulary until a fresh repo reread restores a current shared owner surface for that packet"
 
 LANE_SEQUENCING_SAMPLE_MARKER = "surviving direct runtime-module sample: `samples/zigux/runtime_trace_events.zig`"
 LANE_SEQUENCING_SELFTEST_MARKER = "`.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking"
@@ -72,6 +73,7 @@ LANE_SEQUENCING_BACKLOG_MARKER = "does not currently expose the broader shared r
 LANE_SEQUENCING_FREEZE_BOUNDARY_MARKER = "keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness"
 LANE_SEQUENCING_HISTORICAL_SURVEY_TRIO_MARKER = "the older wider-family reminder-survey trio `Documentation/zigux/phase9-runtime-loader-gap-survey.md`, `zigux/tests/runtime_loader_gap_manifest.json`, and `zigux/tests/runtime_loader_gap_survey.zig`"
 LANE_SEQUENCING_HISTORICAL_VOCABULARY_MARKER = "may still preserve blocked `.modinfo`, `MODULE_ALIAS()`, `modules.alias`, and depmod-publication vocabulary"
+LANE_SEQUENCING_RETIRED_VOCABULARY_MARKER = "keep `modules.order`, `modules.builtin`, and module install-root wording framed as retired wider-family vocabulary too unless those exact reminder paths return later"
 LANE_SEQUENCING_NOT_OWNER_EVIDENCE_MARKER = "they no longer count as current shared-owner evidence for this narrow packet unless a fresh repo reread proves the broader loader family returned"
 LANE_SEQUENCING_STALE_OVERCLAIM_BLOCKER_MARKER = "Treat stale reminder overclaim as the active blocker before reopening checker-local or runtime-behavior work."
 
@@ -179,6 +181,7 @@ CHECKLIST_REQUIRED_MARKERS = [
     REVIEW_CHECKLIST_BITMAP_RUNTIME_BACKLOG_MARKER,
     REVIEW_CHECKLIST_BITMAP_RUNTIME_RETURN_MARKER,
     REVIEW_CHECKLIST_TRACE_EVENTS_ONLY_MARKER,
+    REVIEW_CHECKLIST_HISTORICAL_METADATA_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
     PHASE2_CONFDATA_BRIDGE_MARKER,
     PHASE3_EXPORTS_MARKER,
@@ -198,6 +201,7 @@ LANE_SEQUENCING_REQUIRED_MARKERS = [
     LANE_SEQUENCING_FREEZE_BOUNDARY_MARKER,
     LANE_SEQUENCING_HISTORICAL_SURVEY_TRIO_MARKER,
     LANE_SEQUENCING_HISTORICAL_VOCABULARY_MARKER,
+    LANE_SEQUENCING_RETIRED_VOCABULARY_MARKER,
     LANE_SEQUENCING_NOT_OWNER_EVIDENCE_MARKER,
     LANE_SEQUENCING_STALE_OVERCLAIM_BLOCKER_MARKER,
 ]
@@ -434,7 +438,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, returned trace-events family-local survey witness, backlog posture, older runtime-loader-survey historical-only status, older Phase 2 versus Phase 3 non-owner boundaries, and the no-Phase-9-make-route policy explicit."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, returned trace-events family-local survey witness, backlog posture, older runtime-loader-survey historical-only status, older Phase 2 versus Phase 3 non-owner boundaries, retired metadata and depmod vocabulary, and the no-Phase-9-make-route policy explicit."
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test and exit")
