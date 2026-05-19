@@ -66,6 +66,7 @@ Keep the missing-companion boundary explicit too:
 
 Those paths remain public-tree-backed companion, repo-reality-gap, or historical support references on `master` until a fresh authenticated reread proves they returned directly.
 Fresh public current-`master` fallback on 2026-05-19 also keeps the broader non-runtime trace-events sample packet visible through `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, and `zigux/tests/phase5_trace_events_sample_survey.zig`, so same-lane guidance should treat authenticated-contents `404` results there as connector-local readback flakiness instead of repo absence while keeping `zigux/tests/phase5_build.zig` framed as companion evidence only.
+When contributors refresh a shared trace-events reminder, keep those five broader sample-local companions listed as current-master-visible companion evidence rather than collapsing them into a pure missing-packet story; the only shared trace-events route that should stay companion-only here is `zigux/tests/phase5_build.zig`.
 
 For the shared tracing and probe lane, ground reviewer guidance in the restored direct kretprobe packet plus the narrower trace-events packet above and these shared reminder surfaces:
 
