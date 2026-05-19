@@ -112,8 +112,9 @@ REQUIRED_MARKERS = {
     ],
     SKBUFF_SURVEY_PATH: [
         "`PHASE14_LANE_KEY=P14-L11`",
-        "`PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing`",
-        "there is therefore no honest skbuff-local compile route to claim today",
+        "`PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker`",
+        "current `master` ships the bounded skbuff anchor packet again through `net/core/skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_skbuff_bridge_manifest.json`, and `zigux/tests/phase14_build.zig`",
+        "`zigux/tests/phase14_build.zig` wires `../../net/core/skbuff_bridge.zig` and `phase14_skbuff_bridge.zig` into the dedicated Phase 14 build shard, so there is now a live skbuff-local review route on current `master`",
     ],
     STUDY_ONLY_ACCOUNTING_PATH: [
         "`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only",
