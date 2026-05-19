@@ -6,7 +6,7 @@ This note records the current-master verification result for the bounded Phase 1
 
 - `PHASE12_STATUS=split-helper-packet-present-shared-build-quartet`
 - `PHASE12_SLICE=virtio-net-survey`
-- lane owner: `P12-L02`
+- lane owner: `P12-L04`
 - scope: keep the bounded queue-resume, transmit-recycle, post-reset replay, and throughput-parity review packet truthful without reopening live runtime data-path work
 - verified head: `6c941cb561420120b8e1d5a07e8a44e1c918a5f2`
 - repo-truth boundary:
@@ -63,13 +63,13 @@ The truthful current boundary is still intentionally narrow:
 
 ## Ownership and overlap
 
-`P12-L02` owns one bounded complex-driver or segmented-helper step inside this queueing and throughput review packet.
+`P12-L04` owns one bounded compile-smoke or syntax-lab cleanup step inside this queueing and throughput review packet.
 
 That means this lane may:
 
 1. restate the truthful current-master packet boundary
 2. keep the bounded direct test, survey gate, and manifest packet aligned
-3. land one more exact reviewability helper when it stays below runtime queue execution
+3. fix one packet-local stale scaffold, expected-output drift, or exact reviewability refresh when it stays below runtime queue execution
 
 That also means this lane does not own broader runtime queue execution, DMA completion behavior, NAPI, XDP, XSK, control-virtqueue command traffic, RSS table programming, or full `net_device` lifecycle work.
 
