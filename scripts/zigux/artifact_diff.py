@@ -39,6 +39,11 @@ INVALID_MODE_ERROR_TEMPLATE = (
     "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
     "choice: {value!r} (choose from text, json, bytes)"
 )
+TOO_MANY_ARGUMENTS_ERROR = (
+    "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] "
+    "[expected] [actual] artifact_diff.py: error: expected exactly two positional "
+    "arguments"
+)
 SELF_TEST_CASES = [
     "text_pass",
     "text_mismatch",
@@ -60,6 +65,7 @@ SELF_TEST_CASES = [
     "bytes_missing_both",
     "legacy_sha256_alias",
     "invalid_mode_rejected",
+    "extra_positional_rejected",
 ]
 
 
@@ -317,6 +323,16 @@ def run_self_test() -> int:
         assert_case(invalid_mode.returncode == 2, "invalid_mode_rejected")
         covered.append("invalid_mode_rejected")
 
+        extra_positional = run_parser_probe(
+            ["--mode", "text", str(expected), str(actual), str(missing)]
+        )
+        assert_case(extra_positional.returncode == 2, "extra_positional_rejected")
+        assert_case(
+            " ".join(extra_positional.stderr.split()) == TOO_MANY_ARGUMENTS_ERROR,
+            "extra_positional_rejected",
+        )
+        covered.append("extra_positional_rejected")
+
     assert_case(covered == SELF_TEST_CASES, "self_test_case_order")
     print("ARTIFACT_DIFF_SELF_TEST=pass")
     print(f"ARTIFACT_DIFF_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
@@ -358,6 +374,9 @@ def parse_args(argv: list[str]) -> tuple[bool, str | None, str | None, str | Non
 
     expected = positionals[0] if len(positionals) >= 1 else None
     actual = positionals[1] if len(positionals) >= 2 else None
+    if len(positionals) > 2:
+        print(TOO_MANY_ARGUMENTS_ERROR, file=sys.stderr)
+        return 2
     return self_test, mode, expected, actual
 
 
