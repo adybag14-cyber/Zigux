@@ -494,7 +494,7 @@ def run_self_test() -> int:
             raise AssertionError("invalid manifest json did not abort")
 
         build_self_test_root(root)
-        resolve_path(root, MANIFEST).writeText("[]\n", encoding="utf-8")
+        resolve_path(root, MANIFEST).write_text("[]\n", encoding="utf-8")
         try:
             collect_issues(root)
         except SystemExit as exc:
