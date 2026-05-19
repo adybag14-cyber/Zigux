@@ -12,13 +12,15 @@ Authenticated sample-root readback still directly exposes this bounded non-runti
 
 - `samples/zigux/trace_events_string_formatting_sample.zig`
 
-Fresh shared-packet reread on 2026-05-19 reconfirmed that the broader non-runtime trace-events sample-local companions still need fresh reread proof before they can be treated as returned direct current-`master` evidence:
+Fresh mixed reread on 2026-05-19 keeps the broader non-runtime trace-events sample-local companions in a split state rather than a missing state:
 
 - `Documentation/zigux/phase5-trace-events-sample-survey.md`
 - `samples/zigux/trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample.zig`
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
+
+Those paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-19.
 
 The shared `zigux/tests/phase5_build.zig` route remains useful support material too, but keep it framed as current public-tree-backed companion evidence until authenticated contents reread returns that path directly again.
 
@@ -34,7 +36,7 @@ Keep the approved formatting idiom bounded to the current landed reminder packet
 - `scripts/zigux/check-phase5-review-guide-surface.py`
 - `zigux/tests/README.md`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the older non-runtime trace-events sample-local companions stay in the repo-reality-gap or public-tree-backed companion bucket until a fresh reread proves they returned directly on `master`, the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
 
 ## Exact checks run on 2026-05-19
 
@@ -77,4 +79,4 @@ Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/v
 
 ## Next bounded step
 
-Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still treats the narrower formatting companion as a returned full trace-events packet, loses the selected-string plus `iter=%d` cue, stops naming the shipped guide-surface guard, or stops framing `zigux/tests/phase5_build.zig` and the older sample-local companions as public-tree-backed companion evidence or repo-reality gaps while authenticated contents reread still misses those paths.
+Leave this note parked unless a fresh reread shows that another shared trace-events reminder surface still collapses the current split by treating the broader sample-local packet as fully missing, or by promoting it to fully returned authenticated proof before the contents route actually does so, or by losing the selected-string plus `iter=%d` cue or the shipped guide-surface guard.
