@@ -18,9 +18,10 @@ DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 LAYOUT_TEST_PATH = Path("zigux/tests/phase3_export_uapi_layout.zig")
 LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")
+CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")
 
 MISSING_GAP_PATHS = (
-    "scripts/zigux/phase3_catalog.py",
+    "scripts/zigux/check-phase3-catalog-selftest.py",
     "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
 )
@@ -38,15 +39,18 @@ REQUIRED_MARKERS = {
         "PHASE3_LAYOUT_REPLAY_PATH=zigux/tests/phase3_export_uapi_layout.zig",
         "PHASE3_LAYOUT_BUILD_PATH=zigux/tests/phase3_export_uapi_layout_build.zig",
         "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
-        "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/phase3_catalog.py",
+        "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
+        "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py",
         "PHASE3_EXPORT_UAPI_ACTIVE_GAP=Documentation/zigux/phase3-linux-zigux-header-governance.md",
         "PHASE3_EXPORT_UAPI_ACTIVE_GAP=zigux/tests/fixtures/phase3_abi_manifest.json",
         "The packet-local validator is now present and should stay aligned with this survey rather than being tracked as a missing companion.",
+        "Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper, but that one helper should not be used to imply that the separate catalog-selftest guard or manifest-backed ABI inventory have returned.",
     ),
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 export/UAPI boundary survey packet."""',
         'SURVEY_PATH = Path("Documentation/zigux/phase3-export-uapi-boundary-survey.md")',
         'LAYOUT_BUILD_PATH = Path("zigux/tests/phase3_export_uapi_layout_build.zig")',
+        'CATALOG_HELPER_PATH = Path("scripts/zigux/phase3_catalog.py")',
         'print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
     ),
@@ -102,6 +106,11 @@ REQUIRED_MARKERS = {
         '.root_source_file = b.path("../kernel/export_shim.zig"),',
         '.root_source_file = b.path("phase3_export_uapi_layout.zig"),',
         '"phase3-export-uapi-layout-test"',
+    ),
+    CATALOG_HELPER_PATH: (
+        'PHASE3_CATALOG_SCOPE = "abi-runtime"',
+        'Path("scripts/zigux/phase3_catalog.py")',
+        'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
 }
 
@@ -175,6 +184,16 @@ def run_self_test() -> int:
             "expected missing survey layout gate marker was not reported",
         ),
         (
+            SURVEY_PATH,
+            "PHASE3_EXPORT_UAPI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
+            "expected missing catalog helper marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_EXPORT_UAPI_ACTIVE_GAP=scripts/zigux/check-phase3-catalog-selftest.py",
+            "expected missing catalog-selftest gap marker was not reported",
+        ),
+        (
             VALIDATOR_PATH,
             'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
             "expected missing validator pass marker was not reported",
@@ -219,6 +238,11 @@ def run_self_test() -> int:
             '"phase3-export-uapi-layout-test"',
             "expected missing layout build target marker was not reported",
         ),
+        (
+            CATALOG_HELPER_PATH,
+            'print("PHASE3_CATALOG_SELF_TEST=pass")',
+            "expected missing catalog helper marker was not reported",
+        ),
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_") as temp_dir:
@@ -256,7 +280,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current Phase 3 export/UAPI boundary survey packet."
+        description="Validate the current Phase 3 export/UAPI packet."
     )
     parser.add_argument(
         "--repo-root",
