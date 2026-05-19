@@ -54,13 +54,13 @@ MARKERS = {
         "def run_self_test() -> None:",
     ),
     "scripts/zigux/check-phase1-direct-owner-markers.py": (
-        "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
-        "print(\"phase1-direct-owner-markers:ok\")",
+        'EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [',
+        'print("phase1-direct-owner-markers:ok")',
     ),
     "scripts/zigux/check-phase1-string-review-packet.py": (
         "STRING_REVIEW_RULE_LINE = (",
         "COUNTED_SEARCH_REVIEW_RULE_LINE = (",
-        "print(\"phase1-string-review-packet:ok\")",
+        'print("phase1-string-review-packet:ok")',
     ),
     "scripts/zigux/validate-phase1-closure.py": (
         "PHASE1_CLOSURE_VALIDATION=pass",
@@ -71,33 +71,33 @@ MARKERS = {
         "`zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
     "zigux/tests/build.zig": (
-        "root_source_file = b.path(\"phase1_host_tools_smoke.zig\"),",
-        "const slab_module = b.createModule(.{",
-        "const str_error_r_module = b.createModule(.{",
-        "const vsprintf_module = b.createModule(.{",
-        "const zalloc_module = b.createModule(.{",
-        "root_module.addImport(\"slab\", slab_module);",
-        "root_module.addImport(\"str_error_r\", str_error_r_module);",
-        "root_module.addImport(\"vsprintf\", vsprintf_module);",
-        "root_module.addImport(\"zalloc\", zalloc_module);",
-        ".name = \"phase1-host-tools-smoke\",",
+        'root_source_file = b.path("phase1_host_tools_smoke.zig"),',
+        'const slab_module = b.createModule(.{',
+        'const str_error_r_module = b.createModule(.{',
+        'const vsprintf_module = b.createModule(.{',
+        'const zalloc_module = b.createModule(.{',
+        'root_module.addImport("slab", slab_module);',
+        'root_module.addImport("str_error_r", str_error_r_module);',
+        'root_module.addImport("vsprintf", vsprintf_module);',
+        'root_module.addImport("zalloc", zalloc_module);',
+        '.name = "phase1-host-tools-smoke",',
     ),
     "zigux/tests/fixtures/phase1_helper_manifest.json": (
-        "\"lane_sequencing\": {",
-        "\"direct_anchor_followup_helpers\": [",
-        "\"rule_summary\": \"Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master.\"",
+        '"lane_sequencing": {',
+        '"direct_anchor_followup_helpers": [',
+        '"rule_summary": "Phase 1 helper follow-up stays parked on shared replay for the nine helpers above, while bitmap, find_bit, rbtree, and string keep the only bounded direct helper-local follow-up anchors on current master."',
     ),
     "zigux/tests/phase1_host_tools_smoke.zig": (
-        "const argv_split = @import(\"argv_split\");",
-        "const slab = @import(\"slab\");",
-        "const str_error_r = @import(\"str_error_r\");",
-        "const vsprintf = @import(\"vsprintf\");",
-        "const zalloc = @import(\"zalloc\");",
-        "try std.testing.expect(@hasDecl(bitmap, \"setRange\"));",
-        "try std.testing.expect(@hasDecl(slab, \"kmallocBytes\"));",
-        "try std.testing.expect(@hasDecl(str_error_r, \"strErrorR\"));",
-        "try std.testing.expect(@hasDecl(vsprintf, \"scnprintf\"));",
-        "try std.testing.expect(@hasDecl(zalloc, \"zallocBytes\"));",
+        'const argv_split = @import("argv_split");',
+        'const slab = @import("slab");',
+        'const str_error_r = @import("str_error_r");',
+        'const vsprintf = @import("vsprintf");',
+        'const zalloc = @import("zalloc");',
+        'try std.testing.expect(@hasDecl(bitmap, "setRange"));',
+        'try std.testing.expect(@hasDecl(slab, "kmallocBytes"));',
+        'try std.testing.expect(@hasDecl(str_error_r, "strErrorR"));',
+        'try std.testing.expect(@hasDecl(vsprintf, "scnprintf"));',
+        'try std.testing.expect(@hasDecl(zalloc, "zallocBytes"));',
     ),
     ".github/workflows/zigux-bootstrap.yml": (
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
@@ -244,6 +244,14 @@ def run_self_test() -> int:
             ),
         ),
         (
+            "duplicate_closure_shared_tests_route",
+            lambda root: mutate_duplicate_marker(
+                root,
+                "Documentation/zigux/phase1-closure.md",
+                MARKERS["Documentation/zigux/phase1-closure.md"][1],
+            ),
+        ),
+        (
             "missing_lane_note_marker",
             lambda root: mutate_remove_marker(
                 root,
@@ -254,6 +262,14 @@ def run_self_test() -> int:
         (
             "missing_lane_active_packet_marker",
             lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
+                MARKERS["Documentation/zigux/phase1-host-helper-lane-sequencing.md"][1],
+            ),
+        ),
+        (
+            "duplicate_lane_active_packet_marker",
+            lambda root: mutate_duplicate_marker(
                 root,
                 "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
                 MARKERS["Documentation/zigux/phase1-host-helper-lane-sequencing.md"][1],
@@ -660,7 +676,7 @@ def run_self_test() -> int:
     for name, mutate in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-shared-reminder-{name}-") as tmpdir:
             root = Path(tmpdir)
-            build_sample_repo(root)
+            build_sampleRepo(root)
             mutate(root)
             issues = collect_missing_markers(root)
             if not issues:
