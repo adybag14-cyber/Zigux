@@ -51,10 +51,11 @@ driver-plus-docs packet below:
 The returned driver and companion notes keep the bounded
 `platformDriverIdentitySummary()`, `watchdogMetadataSummary()`,
 `descriptorRequestSummary()`, `platformDrvdataCheckpointSummary()`,
-`watchdogDrvdataCheckpointSummary()`, `nowayoutPolicySummary()`,
-`registrationHandoffSummary()`, `registrationPlanSummary()`,
-`registerDeviceCallSummary()`, `registerDeviceFailureSummary()`, `requestStop()`,
-and `summarizeTeardown()` checkpoint names reviewable as the current packet.
+`watchdogDrvdataCheckpointSummary()`, `rebootGlueCheckpointSummary()`,
+`nowayoutPolicySummary()`, `registrationHandoffSummary()`,
+`registrationPlanSummary()`, `registerDeviceCallSummary()`,
+`registerDeviceFailureSummary()`, `requestStop()`, and `summarizeTeardown()`
+checkpoint names reviewable as the current packet.
 
 ## Still-Bounded Gaps
 
@@ -68,6 +69,7 @@ prove a dedicated `make -C zigux phase11-gpio-wdt` route.
 
 Keep the lane below live GPIO descriptor execution, `platform_set_drvdata()`
 execution, `watchdog_set_drvdata()` execution,
+`watchdog_stop_on_reboot()` execution,
 `devm_watchdog_register_device()` execution, platform-driver registration,
 watchdog-core registration, remove-hook parity, reboot-backed teardown, and
 hardware-backed validation.
@@ -78,9 +80,10 @@ Current authenticated contents reads keep a narrower gpio watchdog continuity
 packet directly reviewable on `master` through the returned driver plus the
 survey note, module slice, teardown note, and validation matrix.
 
-That current packet now also makes the watchdog-drvdata ownership handoff
-explicit beside the existing platform-drvdata and register-device summaries
-without overstating live registration behavior.
+That current packet now also makes the watchdog-drvdata ownership handoff and
+its bounded reboot-glue checkpoint explicit beside the existing platform-drvdata
+and register-device summaries without overstating live registration or shutdown
+behavior.
 
 ## Bounded Meaning
 
@@ -95,4 +98,4 @@ If a future reread rematerializes the deeper gpio replay, manifest, or checker
 anchors, refresh this survey together with the validation matrix and the
 smallest directly coupled gpio reminder surface in one bounded pass. If the
 current smaller packet needs one more driver-local follow-up first, keep it to a
-reboot-glue checkpoint or another equally small truthfulness repair.
+remove-hook checkpoint or another equally small truthfulness repair.
