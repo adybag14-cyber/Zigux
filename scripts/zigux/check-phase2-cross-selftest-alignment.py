@@ -279,7 +279,7 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
-        + 4
+        + 13
         + 6
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
@@ -342,9 +342,73 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
         payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["status"] = "blocked"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "status") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["route"] = "make -C zigux phase2-toolchain"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "route") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
         payload["archive_target_scope"] = ["aarch64-linux"]
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"] = "broken"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "cross_targets") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"] = []
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "cross_targets") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0] = "broken"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "str") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["target"] = ""
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "target") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][1]["validation_mode"] = ""
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "aarch64-linux:validation_mode") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["route"] = "make -C zigux phase2-toolchain"
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ROUTE", "x86_64-linux") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -363,6 +427,12 @@ def run_self_test() -> int:
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("DUPLICATE_CROSS_TARGET_ENTRY", "x86_64-linux") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        path.write_text("[]\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_FIXTURE", "list") in collect_issues(root)
         checks_run += 1
 
         for path in (
