@@ -80,6 +80,7 @@ REQUIRED_MARKERS = {
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "The route story on current `master` is split rather than absent: the directly readable scripts-side support packet is still present through `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `.github/workflows/zigux-bootstrap.yml`, and current `zigux/Makefile` now provides shared `phase12-smoke`, `phase12-test`, and `phase12` wrapper routes again, but it still does not provide `phase12-validate`.",
         "That means the PMO release notes can treat `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` as shipped current-`master` evidence again, while `make -C zigux phase12-validate` must stay reminder-only text until same-lane work rematerializes that wrapper.",
+        "`.github/workflows/zigux-bootstrap.yml` now also runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that throughput-parity anchor still belongs to the adjacent bounded `virtio_net` packet rather than to the shared PMO release route.",
     ],
     RELEASE_SEQUENCING_PATH: [
         "build-only contract checker: `scripts/zigux/check-build-only-phase12-surface.py`",
@@ -143,6 +144,8 @@ REQUIRED_MARKERS = {
         "run: make -C zigux phase12-smoke",
         "- name: Run current Phase 12 shared test packet",
         "run: make -C zigux phase12-test",
+        "- name: Run current Phase 12 throughput-parity anchor",
+        "run: zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
     ],
 }
 
