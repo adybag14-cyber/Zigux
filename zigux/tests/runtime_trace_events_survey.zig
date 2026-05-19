@@ -312,5 +312,9 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(reentry_file, "test \"phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest\" {");
     try expectContains(reentry_file, "try std.testing.expectEqual(ModuleStage.initialized, before_exit.stage);");
     try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.selftest_runs);");
+    try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);");
+    try expectContains(reentry_file, "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);");
+    try expectContains(reentry_file, "try std.testing.expectEqual(before_exit.total_events, after_exit.total_events);");
+    try expectContains(reentry_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());");
     try expectContains(reentry_file, "try std.testing.expect(std.meta.eql(after_exit, after_rejected_lifecycle));");
 }
