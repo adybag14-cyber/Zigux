@@ -495,21 +495,21 @@ def run_self_test() -> int:
         path = resolve_path(root, TOOLCHAIN_POLICY)
         path.write_text(
             """{
-  \"phase\": \"Phase 2\",
-  \"phase\": \"Phase 2\",
-  \"channel\": \"0.17.0-dev.87+9b177a7d2\",
-  \"minimum_version\": \"0.17.0-dev.87+9b177a7d2\",
-  \"archive_sha256\": {
-    \"x86_64-linux\": \"3333333333333333333333333333333333333333333333333333333333333333\"
+  "phase": "Phase 2",
+  "phase": "Phase 2",
+  "channel": "0.17.0-dev.87+9b177a7d2",
+  "minimum_version": "0.17.0-dev.87+9b177a7d2",
+  "archive_sha256": {
+    "x86_64-linux": "3333333333333333333333333333333333333333333333333333333333333333"
   },
-  \"upgrade_policy\": {
-    \"channel_minimum_lockstep\": true,
-    \"archive_target_scope\": [
-      \"x86_64-linux\"
+  "upgrade_policy": {
+    "channel_minimum_lockstep": true,
+    "archive_target_scope": [
+      "x86_64-linux"
     ],
-    \"required_make_routes\": [
-      \"phase2-toolchain\",
-      \"phase2-validate\"
+    "required_make_routes": [
+      "phase2-toolchain",
+      "phase2-validate"
     ]
   }
 }
@@ -634,25 +634,25 @@ def run_self_test() -> int:
         path = resolve_path(root, FIXTURE)
         path.write_text(
             """{
-  \"phase\": \"Phase 2\",
-  \"status\": \"active\",
-  \"route\": \"make -C zigux phase2-cross\",
-  \"archive_target_scope\": [
-    \"x86_64-linux\"
+  "phase": "Phase 2",
+  "status": "active",
+  "route": "make -C zigux phase2-cross",
+  "archive_target_scope": [
+    "x86_64-linux"
   ],
-  \"cross_targets\": [
+  "cross_targets": [
     {
-      \"target\": \"x86_64-linux\",
-      \"review_status\": \"pinned bootstrap archive\",
-      \"validation_mode\": \"archive_required\",
-      \"validation_mode\": \"archive_required\",
-      \"route\": \"make -C zigux phase2-cross\"
+      "target": "x86_64-linux",
+      "review_status": "pinned bootstrap archive",
+      "validation_mode": "archive_required",
+      "validation_mode": "archive_required",
+      "route": "make -C zigux phase2-cross"
     },
     {
-      \"target\": \"aarch64-linux\",
-      \"review_status\": \"route contract only\",
-      \"validation_mode\": \"route_contract_only\",
-      \"route\": \"make -C zigux phase2-cross\"
+      "target": "aarch64-linux",
+      "review_status": "route contract only",
+      "validation_mode": "route_contract_only",
+      "route": "make -C zigux phase2-cross"
     }
   ]
 }
