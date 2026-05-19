@@ -43,6 +43,18 @@ test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory re
     try std.testing.expect(summary.queue_size_programmed);
     try std.testing.expect(summary.queue_ready_for_handoff);
 
+    _ = try device.writeRegister(.queue_sel, 0);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 0), summary.selected_queue);
+    try std.testing.expect(!summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_sel, 1);
+    _ = try device.writeRegister(.queue_ready, 0);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
     try std.testing.expectError(error.QueueSelectionOutOfRange, device.writeRegister(.queue_sel, 2));
     try std.testing.expectError(error.QueueSizeExceedsAdvertised, device.writeRegister(.queue_num, 32));
 }
