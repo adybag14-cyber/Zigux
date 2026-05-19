@@ -45,7 +45,7 @@ fn writeCase(writer: anytype, name: []const u8, raw: usize, trailing_comma: bool
     const decoded_value: ?usize = if (is_value) xa_value.toValue(raw) else null;
 
     try writer.print(
-        "    {{\n" ++
+        "    {\n" ++
             "      \"name\": \"{s}\",\n" ++
             "      \"kind\": \"{s}\",\n" ++
             "      \"raw_hex\": \"{s}\",\n" ++
@@ -81,7 +81,7 @@ pub fn main(init: std.process.Init) !void {
     const inline_limit_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
 
     try writer.print(
-        "{{\n" ++
+        "{\n" ++
             "  \"word_bits\": {},\n" ++
             "  \"safe_inline_limit\": {},\n" ++
             "  \"safe_inline_limit_raw_hex\": \"0x{x}\",\n" ++
@@ -98,8 +98,9 @@ pub fn main(init: std.process.Init) !void {
     try writeCase(writer, "inline_small", try xa_value.makeValue(29), true);
     try writeCase(writer, "inline_limit", inline_limit_raw, true);
     try writeCase(writer, "gap_before_err_floor", err_ptr.err_floor - 1, true);
-    try writeCase(writer, "err_enomem", err_ptr.fromErrorCode(-12), true);
-    try writeCase(writer, "err_max", err_ptr.fromErrorCode(-4095), false);
+    try writeCase(writer, "err_max", err_ptr.fromErrorCode(-4095), true);
+    try writeCase(writer, "err_floor_plus_one", err_ptr.err_floor + 1, true);
+    try writeCase(writer, "err_enomem", err_ptr.fromErrorCode(-12), false);
 
     try writer.writeAll("  ]\n}\n");
     try stdout_writer.interface.flush();
