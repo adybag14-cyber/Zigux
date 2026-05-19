@@ -15,7 +15,7 @@ KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
 TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 8
+EXPECTED_SELF_TEST_CASE_COUNT = 10
 
 MATRIX_MARKERS = (
     "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
@@ -349,6 +349,27 @@ def run_self_test() -> int:
                 print(f"missing expected failure prefix: {expected_prefix}")
                 return 1
             cases += 1
+
+        write_fixture_tree(root)
+        (root / KPROBE_NOTE).unlink()
+        if not expect_failure(root, f"file:{KPROBE_NOTE.as_posix()}"):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("missing kprobe note case did not fail closed")
+            return 1
+        cases += 1
+
+        write_fixture_tree(root)
+        (root / PERF_MANIFEST).unlink()
+        if not expect_failure(root, f"file:{PERF_MANIFEST.as_posix()}"):
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print("missing perf manifest case did not fail closed")
+            return 1
+        cases += 1
+
+        if cases != EXPECTED_SELF_TEST_CASE_COUNT:
+            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
+            print(f"expected {EXPECTED_SELF_TEST_CASE_COUNT} self-test cases, saw {cases}")
+            return 1
 
         print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass")
         print(f"PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT={cases}")
