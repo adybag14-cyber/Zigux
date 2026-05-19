@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L09",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-18T20:19:50Z",
+  "verified_on_utc": "2026-05-19T01:44:00Z",
   "anchor": "lib/argv_split.c",
   "current_master_state": "helper_survey_manifest_anchor",
   "review_surfaces": [
@@ -23,9 +23,7 @@
   "missing_paths": [
     "Documentation/zigux/phase7-argv-split-slice.md",
     "zigux/tests/phase7_argv_split.zig",
-    "zigux/tests/fixtures/phase7_argv_split_vectors.zig",
-    "zigux/tests/phase7_build.zig",
-    "scripts/zigux/validate-phase7.py"
+    "zigux/tests/fixtures/phase7_argv_split_vectors.zig"
   ],
   "ownership_focus": [
     "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage",
@@ -34,5 +32,5 @@
     "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet",
     "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders"
   ],
-  "next_bounded_step": "Keep same-lane follow-through limited to helper-local survey-manifest-checker or sample-boundary truthfulness while the dedicated checker remains returned on current master and the dedicated argv_split test file, fixture vectors, slice note, and shared Phase 7 build or validation routes still read missing."
+  "next_bounded_step": "Keep same-lane follow-through limited to helper-local survey-manifest-checker or sample-boundary truthfulness while the dedicated checker remains returned on current master, the shared Phase 7 build and validation routes stay directly readable as non-owner evidence, and the dedicated argv_split test file, fixture vectors, and slice note still read missing."
 }
