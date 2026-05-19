@@ -8,11 +8,7 @@ const panic_policy = @import("panic_policy");
 const unsafe_policy = @import("unsafe_policy");
 
 test "phase3 abi keeps shared layout assertions wired into the replay" {
-    try layout_assert.assertBoundaryHeaderLayout();
-    try layout_assert.assertExportStatusLayout();
-    try layout_assert.assertInteropPolicyLayout();
-    try layout_assert.assertNotifierBlockLayout();
-    try layout_assert.assertNotifierChainPriorityIncreaseLayout();
+    try layout_assert.assertPublishedAbiLayouts();
     layout_assert.assertInteropPolicyModeValues();
     layout_assert.assertNotifierResultValues();
 }
