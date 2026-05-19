@@ -60,6 +60,15 @@ pub fn makeDevTFields(major: u32, minor: u32) DevTFields {
     return dev_t.init(major, minor);
 }
 
+pub fn encodeDeviceNumber(fields: DevTFields) ?u32 {
+    if (!dev_t.validate(fields)) return null;
+    return dev_t.makeDeviceNumber(fields.major, fields.minor);
+}
+
+pub fn decodeDeviceNumber(device_number: u32) DevTFields {
+    return dev_t.fieldsFromDeviceNumber(device_number);
+}
+
 pub fn okStatus(facility: Facility) ExportStatus {
     return .{
         .code = 0,
@@ -199,6 +208,17 @@ test "export shim forwards starter dev_t fields without changing layout semantic
     try testing.expectEqual(@as(u32, 29), fields.minor);
     try testing.expect(dev_t.eql(fields, same));
     try testing.expect(!dev_t.eql(fields, different));
+}
+
+test "export shim keeps validated dev_t encoding explicit" {
+    const fields = makeDevTFields(11, 29);
+    const encoded = encodeDeviceNumber(fields) orelse unreachable;
+    const decoded = decodeDeviceNumber(encoded);
+    const invalid = makeDevTFields(dev_t.max_major + 1, 0);
+
+    try testing.expectEqual(dev_t.makeDeviceNumber(fields.major, fields.minor), encoded);
+    try testing.expect(dev_t.eql(fields, decoded));
+    try testing.expect(encodeDeviceNumber(invalid) == null);
 }
 
 test "export shim relays bounded dev_t validation through status helpers" {
