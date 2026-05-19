@@ -2,9 +2,8 @@
 from __future__ import annotations
 
 import argparse
-from pathlib import Path
 import tempfile
-
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
@@ -70,7 +69,20 @@ REVIEW_CHECKLIST_MARKERS = (
     "make -C zigux phase2-kconfig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 57
+EXPECTED_SELF_TEST_CASE_COUNT = (
+    1
+    + len(WORKFLOW_LINES)
+    + len(WORKFLOW_LINES)
+    + len(WORKFLOW_PATH_LINES)
+    + len(WORKFLOW_PATH_LINES)
+    + len(MAKEFILE_LINES)
+    + len(MAKEFILE_LINES)
+    + len(SCRIPTS_README_MARKERS)
+    + len(TESTS_README_MARKERS)
+    + len(REVIEW_CHECKLIST_MARKERS)
+    + len(KCONFIG_BRIDGE_SURFACE_PATHS)
+    + 5
+)
 
 
 def read_text(path: Path) -> str:
