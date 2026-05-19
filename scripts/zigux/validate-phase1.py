@@ -154,6 +154,14 @@ OPTIONAL_CHECKS = (
         ),
     ),
     CheckSpec(
+        name="phase1-c-harness-blockers",
+        script_rel="scripts/zigux/check-phase1-c-harness-blockers.py",
+        self_test_args=("--self-test",),
+        live_args=("--root", "{root}"),
+        required=False,
+        requires=(str(PHASE1_REPLAY_BLOCKERS_REL),),
+    ),
+    CheckSpec(
         name="phase1-readme-replay-blockers",
         script_rel="scripts/zigux/check-phase1-readme-replay-blockers.py",
         self_test_args=("--self-test",),
@@ -492,8 +500,20 @@ def run_self_test() -> int:
         assert summary.optional_skip_count == 0, summary
         case_count += 1
 
+        optional_c_harness_blockers_live_root = base / "optional_c_harness_blockers_live"
+        build_sample_repo(optional_c_harness_blockers_live_root)
+        build_stub_script(
+            optional_c_harness_blockers_live_root / "scripts/zigux/check-phase1-c-harness-blockers.py",
+            live_exit=1,
+        )
+        issues, _, summary = collect_issues(optional_c_harness_blockers_live_root)
+        assert "optional_live_failed:phase1-c-harness-blockers:exit=1" in issues, issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
+        case_count += 1
+
         optional_readme_replay_blockers_live_root = base / "optional_readme_replay_blockers_live"
-        build_sample_repo(optional_readme_replay_blockers_live_root)
+        build_sampleRepo(optional_readme_replay_blockers_live_root)
         build_stub_script(
             optional_readme_replay_blockers_live_root / "scripts/zigux/check-phase1-readme-replay-blockers.py",
             live_exit=1,
@@ -515,7 +535,7 @@ def run_self_test() -> int:
         case_count += 1
 
         bench_self_test_skip_root = base / "bench_self_test_skip"
-        build_sample_repo(bench_self_test_skip_root)
+        build_sampleRepo(bench_self_test_skip_root)
         build_stub_script(
             bench_self_test_skip_root / "scripts/zigux/check-phase1-bench.py",
             self_test_exit=1,
@@ -529,7 +549,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_skip_root = base / "optional_skip"
-        build_sample_repo(optional_skip_root)
+        build_sampleRepo(optional_skip_root)
         (optional_skip_root / "scripts/zigux/check-phase1-direct-anchor-manifest-gate.py").unlink()
         issues, notes, summary = collect_issues(optional_skip_root)
         assert issues == [], issues
@@ -539,7 +559,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_skip_required_path_root = base / "optional_skip_required_path"
-        build_sample_repo(optional_skip_required_path_root)
+        build_sampleRepo(optional_skip_required_path_root)
         (optional_skip_required_path_root / PHASE1_REPLAY_BLOCKERS_REL).unlink()
         issues, notes, summary = collect_issues(optional_skip_required_path_root)
         assert issues == [], issues
@@ -560,11 +580,15 @@ def run_self_test() -> int:
             in notes
         ), notes
         assert (
+            f"skipped_optional:phase1-c-harness-blockers:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}"
+            in notes
+        ), notes
+        assert (
             f"skipped_optional:phase1-readme-replay-blockers:missing_required_path:{PHASE1_REPLAY_BLOCKERS_REL}"
             in notes
         ), notes
-        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 5, summary
-        assert summary.optional_skip_count == 5, summary
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 6, summary
+        assert summary.optional_skip_count == 6, summary
         case_count += 1
 
     print("PHASE1_VALIDATE_SELF_TEST=pass")
