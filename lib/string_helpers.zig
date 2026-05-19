@@ -896,6 +896,12 @@ test "stringGetSize reports rounded units and truncates destination buffers safe
     try std.testing.expectEqual(@as(u8, 0), truncated[4]);
 }
 
+test "stringGetSize reports the rendered length even when the caller provides no writable storage" {
+    const empty = [_]u8{};
+    const rendered_len = stringGetSize(1536, 1, STRING_UNITS_2, empty[0..], 0);
+    try std.testing.expectEqual(@as(usize, 8), rendered_len);
+}
+
 test "string escape and unescape preserve bounded output and invalid escape fallbacks" {
     var escaped = [_]u8{0} ** 16;
     const escaped_len = stringEscapeMem("A\n\x1b", escaped[0..], 0, ESCAPE_SPACE | ESCAPE_SPECIAL, null);
@@ -912,6 +918,36 @@ test "string escape and unescape preserve bounded output and invalid escape fall
     const invalid_len = stringUnescape("\\q", invalid[0..], invalid.len, UNESCAPE_ALL_MASK);
     try std.testing.expectEqual(@as(usize, 1), invalid_len);
     try std.testing.expectEqualStrings("\\", invalid[0..cStringLen(invalid[0..])]);
+}
+
+test "string escape and unescape keep exact-fit, truncated, and zero-capacity buffer edges explicit" {
+    var exact_fit_escape = [_]u8{ '!', '!', '!', '!' };
+    const exact_fit_escape_len = stringEscapeMem(&[_]u8{'\n'}, exact_fit_escape[0..], exact_fit_escape.len, ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 4), exact_fit_escape_len);
+    try std.testing.expectEqualSlices(u8, "\\x0A", exact_fit_escape[0..]);
+
+    var truncated_escape = [_]u8{ '!', '!', '!' };
+    const truncated_escape_len = stringEscapeMem(&[_]u8{'\n'}, truncated_escape[0..], 2, ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 4), truncated_escape_len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\\', 'x', '!' }, truncated_escape[0..]);
+
+    const zero_capacity_escape = [_]u8{};
+    const zero_capacity_escape_len = stringEscapeMem(&[_]u8{'\n'}, zero_capacity_escape[0..], 0, ESCAPE_HEX, null);
+    try std.testing.expectEqual(@as(usize, 4), zero_capacity_escape_len);
+
+    var exact_fit_unescape = [_]u8{ '!', '!', '!' };
+    const exact_fit_unescape_len = stringUnescape("\\n\\r", exact_fit_unescape[0..], exact_fit_unescape.len, UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 2), exact_fit_unescape_len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ '\n', '\r', 0 }, exact_fit_unescape[0 .. exact_fit_unescape_len + 1]);
+
+    var terminator_only_unescape = [_]u8{ '!', '!' };
+    const terminator_only_unescape_len = stringUnescape("\\n\\r", terminator_only_unescape[0..], 1, UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 0), terminator_only_unescape_len);
+    try std.testing.expectEqualSlices(u8, &[_]u8{ 0, '!' }, terminator_only_unescape[0..]);
+
+    const zero_capacity_unescape = [_]u8{};
+    const zero_capacity_unescape_len = stringUnescape("\\n", zero_capacity_unescape[0..], 0, UNESCAPE_SPACE);
+    try std.testing.expectEqual(@as(usize, 0), zero_capacity_unescape_len);
 }
 
 test "kstrdupAndReplace duplicates only the exported c-string prefix" {
