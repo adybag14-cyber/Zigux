@@ -1,7 +1,7 @@
 {
   "lane_key": "P15-L08",
   "phase": "Phase 15",
-  "surveyed_commit": "current-master-readback-2026-05-18",
+  "surveyed_commit": "current-master-readback-2026-05-19",
   "review_process_note": "Documentation/zigux/phase15-architecture-council-review-process.md",
   "decision_record_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
   "indefinite_c_policy_note": "Documentation/zigux/phase15-indefinite-c-policy.md",
