@@ -102,6 +102,8 @@ EXPECTED_ASSERT_BLOCKS = {
             '"PHASE1_BENCH_CHECK_REASON=expectations_json_error",',
             'f"PHASE1_BENCH_EXPECTATIONS={invalid_expectations_path}",',
             '"EXPECTATIONS_JSON_ERROR=Expecting property name enclosed in double quotes",',
+            '"EXPECTATIONS_JSON_LINE=1",',
+            '"EXPECTATIONS_JSON_COLUMN=2",',
             "]",
         ),
         (
@@ -109,6 +111,7 @@ EXPECTED_ASSERT_BLOCKS = {
             '"PHASE1_BENCH_CHECK=fail",',
             '"PHASE1_BENCH_CHECK_REASON=expectations_status",',
             'f"PHASE1_BENCH_EXPECTATIONS={status_mismatch_path}",',
+            '"fail",',
             "]",
         ),
         (
@@ -116,6 +119,7 @@ EXPECTED_ASSERT_BLOCKS = {
             '"PHASE1_BENCH_CHECK=fail",',
             '"PHASE1_BENCH_CHECK_REASON=status",',
             'f"PHASE1_BENCH_EXPECTATIONS={bench_status_drift_path}",',
+            '"(\'pass\', \'fail\')",',
             "]",
         ),
         (
@@ -124,6 +128,10 @@ EXPECTED_ASSERT_BLOCKS = {
             '"PHASE1_BENCH_CHECK_REASON=bench_command_exit",',
             'f"PHASE1_BENCH_EXPECTATIONS={command_failure_path}",',
             '"BENCH_COMMAND_EXIT=7",',
+            '"stdout-line-1",',
+            '"stdout-line-2",',
+            '"stderr-line-1",',
+            '"stderr-line-2",',
             "]",
         ),
         (
@@ -139,6 +147,7 @@ EXPECTED_ASSERT_BLOCKS = {
             '"PHASE1_BENCH_CHECK=fail",',
             '"PHASE1_BENCH_CHECK_REASON=exact_checksum_mismatch",',
             'f"PHASE1_BENCH_EXPECTATIONS={checksum_drift_path}",',
+            '"(\'PHASE1_BENCH_RBTREE_CACHED_CHECKSUM\', 12, 120)",',
             "]",
         ),
     ),
@@ -237,13 +246,7 @@ def write_text(root: Path, relative_path: str, content: str) -> None:
 
 
 def build_sample_file(relative_path: str) -> str:
-    if relative_path == BENCH_FAILURE_CHECKER_REL:
-        block_lines = {line for block in EXPECTED_ASSERT_BLOCKS[relative_path] for line in block}
-        lines = [line for line in MARKERS[relative_path] if line not in block_lines]
-        for block in EXPECTED_ASSERT_BLOCKS[relative_path]:
-            lines.extend(block)
-        return "\n".join(lines) + "\n"
-    if relative_path == BENCH_SUCCESS_CHECKER_REL:
+    if relative_path in (BENCH_FAILURE_CHECKER_REL, BENCH_SUCCESS_CHECKER_REL):
         block_lines = {line for block in EXPECTED_ASSERT_BLOCKS[relative_path] for line in block}
         lines = [line for line in MARKERS[relative_path] if line not in block_lines]
         for block in EXPECTED_ASSERT_BLOCKS[relative_path]:
