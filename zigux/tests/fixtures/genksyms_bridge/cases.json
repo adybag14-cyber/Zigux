@@ -1,0 +1,40 @@
+[
+  {
+    "name": "minimal",
+    "args": [],
+    "expected_file": "minimal_expected.json"
+  },
+  {
+    "name": "debug_reference_types",
+    "args": [
+      "-d",
+      "-r",
+      "ref.symvers",
+      "-T",
+      "types.symtypes"
+    ],
+    "expected_file": "debug_reference_types_expected.json"
+  },
+  {
+    "name": "long_options",
+    "args": [
+      "--debug",
+      "--dump",
+      "--reference=foo.symref",
+      "--dump-types",
+      "types.symtypes",
+      "--preserve"
+    ],
+    "expected_file": "long_options_expected.json"
+  },
+  {
+    "name": "quiet_overrides_warning",
+    "args": [
+      "--warnings",
+      "--quiet",
+      "--reference",
+      "bar.symref"
+    ],
+    "expected_file": "quiet_overrides_warning_expected.json"
+  }
+]
