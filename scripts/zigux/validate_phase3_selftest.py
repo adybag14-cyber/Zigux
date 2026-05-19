@@ -295,10 +295,34 @@ def run_self_test() -> int:
             print("expected missing count marker to fail the packet")
             return 1
 
+        _populate_repo(root)
+        missing_export_uapi_pass_path = root / SELFTEST_COMMANDS[10][0]
+        _write_synthetic_script(
+            missing_export_uapi_pass_path,
+            None,
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing export-uapi pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_export_uapi_count_path = root / SELFTEST_COMMANDS[10][0]
+        _write_synthetic_script(
+            missing_export_uapi_count_path,
+            "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing export-uapi count marker to fail the packet")
+            return 1
+
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 4}"
+        f"{len(missing_cases) + 6}"
     )
     return 0
 
