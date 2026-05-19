@@ -339,7 +339,7 @@ def build_stub_script(path: Path, *, self_test_exit: int = 0, live_exit: int = 0
                 "args = parser.parse_args()",
                 f"SELF_TEST_EXIT = {self_test_exit}",
                 f"LIVE_EXIT = {live_exit}",
-                "if args.self_test:",
+                "if args.self-test:",
                 "    print('SELF_TEST=pass' if SELF_TEST_EXIT == 0 else 'SELF_TEST=fail')",
                 "    raise SystemExit(SELF_TEST_EXIT)",
                 "print('LIVE=pass' if LIVE_EXIT == 0 else 'LIVE=fail')",
@@ -556,6 +556,40 @@ def run_self_test() -> int:
         assert "skipped_optional:phase1-direct-anchor-manifest-gate:missing_script" in notes, notes
         assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 1, summary
         assert summary.optional_skip_count == 1, summary
+        case_count += 1
+
+        artifact_diff_helper_skip_root = base / "artifact_diff_helper_skip"
+        build_sample_repo(artifact_diff_helper_skip_root)
+        (artifact_diff_helper_skip_root / ARTIFACT_DIFF_HELPER_REL).unlink()
+        issues, notes, summary = collect_issues(artifact_diff_helper_skip_root)
+        assert issues == [], issues
+        assert (
+            f"skipped_optional:artifact-diff-contract:missing_required_path:{ARTIFACT_DIFF_HELPER_REL}"
+            in notes
+        ), notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 1, summary
+        assert summary.optional_skip_count == 1, summary
+        case_count += 1
+
+        shared_fixture_skip_root = base / "shared_fixture_skip"
+        build_sample_repo(shared_fixture_skip_root)
+        (shared_fixture_skip_root / PHASE1_HELPERS_FIXTURE_REL).unlink()
+        issues, notes, summary = collect_issues(shared_fixture_skip_root)
+        assert issues == [], issues
+        assert (
+            f"skipped_optional:phase1-shared-fixture-gate:missing_required_path:{PHASE1_HELPERS_FIXTURE_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-shared-replay-roster:missing_required_path:{PHASE1_HELPERS_FIXTURE_REL}"
+            in notes
+        ), notes
+        assert (
+            f"skipped_optional:phase1-fixture-manifest-alignment:missing_required_path:{PHASE1_HELPERS_FIXTURE_REL}"
+            in notes
+        ), notes
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS) - 3, summary
+        assert summary.optional_skip_count == 3, summary
         case_count += 1
 
         optional_skip_required_path_root = base / "optional_skip_required_path"
