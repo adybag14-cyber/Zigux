@@ -115,6 +115,36 @@ test "software hweight helpers agree across zero-extended widths" {
     }
 }
 
+test "software hweight helpers preserve bit-reversal symmetry within helper width" {
+    const cases8 = [_]u8{ 0x00, 0x01, 0x3c, 0xa5, 0xff };
+    for (cases8) |value| {
+        try std.testing.expectEqual(swHweight8(value), swHweight8(@bitReverse(value)));
+    }
+
+    const cases16 = [_]u16{ 0x0000, 0x0001, 0x00f0, 0x9345, 0xffff };
+    for (cases16) |value| {
+        try std.testing.expectEqual(swHweight16(value), swHweight16(@bitReverse(value)));
+    }
+
+    const cases32 = [_]u32{ 0x0000_0000, 0x0000_0001, 0x0000_f0f0, 0x89ab_cdef, 0xffff_ffff };
+    for (cases32) |value| {
+        try std.testing.expectEqual(swHweight32(value), swHweight32(@bitReverse(value)));
+    }
+
+    const cases64 = [_]u64{ 0x0000_0000_0000_0000, 0x0000_0000_0000_0001, 0x0000_0000_f0f0_0f0f, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (cases64) |value| {
+        try std.testing.expectEqual(swHweight64(value), swHweight64(@bitReverse(value)));
+    }
+
+    const cases_long = if (@sizeOf(usize) == 4)
+        [_]usize{ 0x0000_0000, 0x0000_0001, 0x0f0f_f0f0, 0x89ab_cdef, 0xffff_ffff }
+    else
+        [_]usize{ 0x0000_0000_0000_0000, 0x0000_0000_0000_0001, 0x0f0f_f0f0_00ff_ff00, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (cases_long) |value| {
+        try std.testing.expectEqual(hweightLong(value), hweightLong(@bitReverse(value)));
+    }
+}
+
 test "Linux-style hweight aliases mirror the primary helper surface" {
     try std.testing.expectEqual(swHweight8(0xf0), __sw_hweight8(0xf0));
     try std.testing.expectEqual(swHweight16(0xf0f0), __sw_hweight16(0xf0f0));
