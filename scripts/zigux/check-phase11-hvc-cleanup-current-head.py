@@ -91,6 +91,7 @@ STARTER_MARKERS = (
     "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
     'test "phase11 hvc console keeps remove handoff summary reviewable" {',
     'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
+    'test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {',
     'test "phase11 hvc console keeps notifier irq helper surface reviewable" {',
     'test "phase11 hvc console keeps modem-control helper surface reviewable" {',
 )
@@ -794,6 +795,17 @@ def run_self_test() -> int:
         )
         expect_failure(missing_starter_kick_wakeup_cue, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {")
 
+        missing_starter_kick_wakeup_cue_test = tmpdir / "missing_starter_kick_wakeup_cue_test"
+        shutil.copytree(fixture, missing_starter_kick_wakeup_cue_test, dirs_exist_ok=True)
+        write(
+            missing_starter_kick_wakeup_cue_test / DRIVER_PATH,
+            read_text(missing_starter_kick_wakeup_cue_test / DRIVER_PATH).replace(
+                'test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {',
+                "",
+            ),
+        )
+        expect_failure(missing_starter_kick_wakeup_cue_test, 'test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {')
+
         missing_starter_notifier_irq_helper = tmpdir / "missing_starter_notifier_irq_helper"
         shutil.copytree(fixture, missing_starter_notifier_irq_helper, dirs_exist_ok=True)
         write(
@@ -881,7 +893,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=33")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=34")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
