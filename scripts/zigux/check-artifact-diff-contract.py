@@ -36,6 +36,11 @@ INVALID_MODE_ERROR = (
     "[expected] [actual] artifact_diff.py: error: argument --mode: invalid "
     "choice: 'yaml' (choose from text, json, bytes)"
 )
+TOO_MANY_ARGUMENTS_ERROR = (
+    "usage: artifact_diff.py [-h] [--mode {text,json,bytes}] [--self-test] "
+    "[expected] [actual] artifact_diff.py: error: expected exactly two positional "
+    "arguments"
+)
 HELPER_SELF_TEST_CASES = [
     "text_pass",
     "text_mismatch",
@@ -57,6 +62,7 @@ HELPER_SELF_TEST_CASES = [
     "bytes_missing_both",
     "legacy_sha256_alias",
     "invalid_mode_rejected",
+    "extra_positional_rejected",
 ]
 HELPER_SELF_TEST_LINES = [
     "ARTIFACT_DIFF_SELF_TEST=pass",
@@ -70,6 +76,7 @@ BASE_CONTRACT_CASES = [
     "cli_missing_required_args",
     "cli_missing_actual_operand",
     "cli_invalid_mode",
+    "cli_extra_positional_args",
     "text_pass",
     "text_mismatch",
     "text_missing_expected",
@@ -83,18 +90,19 @@ BASE_CONTRACT_CASES = [
     "json_invalid_expected",
     "json_invalid_actual",
     "json_invalid_both",
-    "sha256_pass",
-    "sha256_missing_expected",
-    "sha256_missing_actual",
-    "sha256_missing_both",
-    "sha256_drift",
+    "bytes_pass",
+    "bytes_missing_expected",
+    "bytes_missing_actual",
+    "bytes_missing_both",
+    "bytes_drift",
+    "legacy_sha256_alias",
 ]
 REPEAT_CONTRACT_CASES = [
     "helper_self_test_repeat",
     "cli_help_output_repeat",
     "text_pass_repeat",
     "json_mismatch_repeat",
-    "sha256_drift_repeat",
+    "bytes_drift_repeat",
 ]
 ALL_CONTRACT_CASES = BASE_CONTRACT_CASES + REPEAT_CONTRACT_CASES
 REVIEW_NOTE_MARKERS = [
@@ -113,6 +121,8 @@ SELF_TEST_CASES = [
     "cli_missing_argument_parser_stderr_drift",
     "cli_invalid_mode_parser_round_trip",
     "cli_invalid_mode_parser_stderr_drift",
+    "cli_extra_positional_parser_round_trip",
+    "cli_extra_positional_parser_stderr_drift",
     "helper_summary_round_trip",
     "contract_summary_round_trip",
     "helper_summary_status_drift",
@@ -327,6 +337,14 @@ def run_check(root: Path) -> int:
             expected_stderr=INVALID_MODE_ERROR,
             repeat_count=2,
         )
+        run_error_case(
+            root,
+            ["--mode", "text", str(expected), str(actual), str(missing)],
+            expected_exit=2,
+            expected_stdout=[],
+            expected_stderr=TOO_MANY_ARGUMENTS_ERROR,
+            repeat_count=2,
+        )
 
         blob_a.write_bytes(b"zigux-artifact-diff")
         blob_b.write_bytes(b"zigux-artifact-diff")
@@ -505,7 +523,7 @@ def run_check(root: Path) -> int:
 
         run_case(
             root,
-            ["--mode", "sha256", str(blob_a), str(blob_b)],
+            ["--mode", "bytes", str(blob_a), str(blob_b)],
             expected_exit=0,
             expected_lines=[
                 "ARTIFACT_DIFF=pass",
@@ -517,7 +535,7 @@ def run_check(root: Path) -> int:
         )
         run_case(
             root,
-            ["--mode", "sha256", str(missing), str(blob_b)],
+            ["--mode", "bytes", str(missing), str(blob_b)],
             expected_exit=1,
             expected_lines=[
                 "ARTIFACT_DIFF=fail",
@@ -530,7 +548,7 @@ def run_check(root: Path) -> int:
         )
         run_case(
             root,
-            ["--mode", "sha256", str(blob_a), str(missing)],
+            ["--mode", "bytes", str(blob_a), str(missing)],
             expected_exit=1,
             expected_lines=[
                 "ARTIFACT_DIFF=fail",
@@ -543,7 +561,7 @@ def run_check(root: Path) -> int:
         )
         run_case(
             root,
-            ["--mode", "sha256", str(missing), str(other_missing)],
+            ["--mode", "bytes", str(missing), str(other_missing)],
             expected_exit=1,
             expected_lines=[
                 "ARTIFACT_DIFF=fail",
@@ -558,7 +576,7 @@ def run_check(root: Path) -> int:
         blob_b.write_bytes(b"zigux-artifact-DRIFT")
         run_case(
             root,
-            ["--mode", "sha256", str(blob_a), str(blob_b)],
+            ["--mode", "bytes", str(blob_a), str(blob_b)],
             expected_exit=1,
             expected_lines=[
                 "ARTIFACT_DIFF=fail",
@@ -569,6 +587,18 @@ def run_check(root: Path) -> int:
                 "ACTUAL_SHA256=bfc83f8f1f4369ce3cfabfdff0699ae3bf7a15b89f1702b690e56c6f35f1ee94",
             ],
             repeat_count=2,
+        )
+        run_case(
+            root,
+            ["--mode", "sha256", str(blob_a), str(blob_a)],
+            expected_exit=0,
+            expected_lines=[
+                "ARTIFACT_DIFF=pass",
+                "MODE=bytes",
+                f"EXPECTED={blob_a}",
+                f"ACTUAL={blob_a}",
+                "SHA256=0051a1ffdd63accde60d9c9893094b287388cecb4fcc734a204ea5a36a5c3576",
+            ],
         )
 
     for line in expected_contract_lines():
@@ -649,6 +679,21 @@ def run_self_test() -> int:
     )
     covered.append("cli_invalid_mode_parser_stderr_drift")
 
+    if "expected exactly two positional arguments" not in TOO_MANY_ARGUMENTS_ERROR:
+        raise AssertionError("extra-positional parser contract drifted")
+    covered.append("cli_extra_positional_parser_round_trip")
+
+    expect_assertion(
+        "cli_extra_positional_parser_stderr_drift",
+        lambda: (
+            None
+            if TOO_MANY_ARGUMENTS_ERROR
+            == TOO_MANY_ARGUMENTS_ERROR.replace("exactly two", "two")
+            else (_ for _ in ()).throw(AssertionError("stderr drift"))
+        ),
+    )
+    covered.append("cli_extra_positional_parser_stderr_drift")
+
     assert_helper_self_test_output(HELPER_SELF_TEST_LINES)
     covered.append("helper_summary_round_trip")
 
@@ -661,7 +706,7 @@ def run_self_test() -> int:
     covered.append("helper_summary_status_drift")
 
     bad_count = list(HELPER_SELF_TEST_LINES)
-    bad_count[1] = "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=19"
+    bad_count[1] = "ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=20"
     expect_assertion("helper_summary_count_drift", lambda: assert_helper_self_test_output(bad_count))
     covered.append("helper_summary_count_drift")
 
@@ -698,7 +743,7 @@ def run_self_test() -> int:
     covered.append("contract_summary_status_drift")
 
     bad_base_count = expected_contract_lines()
-    bad_base_count[1] = "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=22"
+    bad_base_count[1] = "ARTIFACT_DIFF_CONTRACT_BASE_CASE_COUNT=24"
     expect_assertion("contract_summary_base_count_drift", lambda: assert_contract_output(bad_base_count))
     covered.append("contract_summary_base_count_drift")
 
@@ -720,7 +765,7 @@ def run_self_test() -> int:
     covered.append("contract_summary_repeat_case_order_drift")
 
     bad_case_count = expected_contract_lines()
-    bad_case_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=27"
+    bad_case_count[5] = "ARTIFACT_DIFF_CONTRACT_CASE_COUNT=29"
     expect_assertion("contract_summary_case_count_drift", lambda: assert_contract_output(bad_case_count))
     covered.append("contract_summary_case_count_drift")
 
