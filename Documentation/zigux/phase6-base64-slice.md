@@ -60,7 +60,7 @@ The current tests check:
 - one-byte and two-byte URL-safe and IMAP tail parity with and without padding
 - output-length accounting through `chars`
 - preflight decoded-length accounting through `bytes`
-- helper-local convenience parity between the generic and variant-pinned size, encode, and decode entrypoints
+- helper-local convenience parity between the generic and variant-pinned size, direct, slice, and allocator encode/decode entrypoints
 - destination-bounds failures before partial writes
 - exact-fit encode and decode buffers across the shared standard and variant fixture surface, plus one-byte-short rejection before writes
 - shared kernel-derived encode, decode, and invalid-input fixtures stored in `zigux/tests/fixtures/phase6_base64_vectors.zig` and consumed directly by `zigux/tests/phase6_base64.zig`
