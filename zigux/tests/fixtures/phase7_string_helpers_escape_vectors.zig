@@ -58,6 +58,13 @@ pub const unescape_cases = [_]UnescapeCase{
         .expected_len = 5,
         .expected = "line\n",
     },
+    .{
+        .name = "sample replay exact-fit newline",
+        .input = "\\n",
+        .flags = 1 << 0,
+        .expected_len = 1,
+        .expected = "\n",
+    },
 };
 
 pub const escape_cases = [_]EscapeCase{
