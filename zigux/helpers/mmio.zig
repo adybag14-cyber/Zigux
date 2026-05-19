@@ -15,10 +15,40 @@ fn scopeFromInteropPolicyBytes(scope: u8, reserved: u8) PolicyError!abi.UnsafeSc
     return unsafe_policy.scopeFromInteropPolicyBytes(scope, reserved) orelse error.InvalidInteropPolicy;
 }
 
-fn requireVolatileMmioScope(scope: abi.UnsafeScope) PolicyError!void {
-    if (!unsafe_policy.permitsVolatileMmio(scope)) {
+pub fn allowsVolatileMmioScope(scope: abi.UnsafeScope) bool {
+    return unsafe_policy.permitsVolatileMmio(scope);
+}
+
+pub fn allowsInteropPolicy(policy: abi.InteropPolicy) bool {
+    const scope = scopeFromInteropPolicy(policy) catch return false;
+    return allowsVolatileMmioScope(scope);
+}
+
+pub fn allowsInteropPolicyBytes(unsafe_scope: u8, reserved: u8) bool {
+    const scope = scopeFromInteropPolicyBytes(unsafe_scope, reserved) catch return false;
+    return allowsVolatileMmioScope(scope);
+}
+
+pub fn allowsInteropPolicyByte(unsafe_scope: u8) bool {
+    return allowsInteropPolicyBytes(unsafe_scope, 0);
+}
+
+pub fn requireVolatileMmioScope(scope: abi.UnsafeScope) PolicyError!void {
+    if (!allowsVolatileMmioScope(scope)) {
         return error.UnsafeScopeDenied;
     }
+}
+
+pub fn requireInteropPolicy(policy: abi.InteropPolicy) PolicyError!void {
+    try requireVolatileMmioScope(try scopeFromInteropPolicy(policy));
+}
+
+pub fn requireInteropPolicyBytes(unsafe_scope: u8, reserved: u8) PolicyError!void {
+    try requireVolatileMmioScope(try scopeFromInteropPolicyBytes(unsafe_scope, reserved));
+}
+
+pub fn requireInteropPolicyByte(unsafe_scope: u8) PolicyError!void {
+    try requireInteropPolicyBytes(unsafe_scope, 0);
 }
 
 pub fn read(comptime T: type, ptr: *const volatile T) T {
@@ -69,17 +99,17 @@ pub fn writeMaskedScoped(
 }
 
 pub fn readInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *const volatile T) PolicyError!T {
-    try requireVolatileMmioScope(try scopeFromInteropPolicy(policy));
+    try requireInteropPolicy(policy);
     return read(T, ptr);
 }
 
 pub fn writeInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *volatile T, value: T) PolicyError!void {
-    try requireVolatileMmioScope(try scopeFromInteropPolicy(policy));
+    try requireInteropPolicy(policy);
     write(T, ptr, value);
 }
 
 pub fn exchangeInteropPolicy(comptime T: type, policy: abi.InteropPolicy, ptr: *volatile T, value: T) PolicyError!T {
-    try requireVolatileMmioScope(try scopeFromInteropPolicy(policy));
+    try requireInteropPolicy(policy);
     return exchange(T, ptr, value);
 }
 
@@ -90,7 +120,7 @@ pub fn writeMaskedInteropPolicy(
     clear_mask: T,
     set_mask: T,
 ) PolicyError!T {
-    try requireVolatileMmioScope(try scopeFromInteropPolicy(policy));
+    try requireInteropPolicy(policy);
     return writeMasked(T, ptr, clear_mask, set_mask);
 }
 
@@ -100,7 +130,7 @@ pub fn readInteropPolicyBytes(
     reserved: u8,
     ptr: *const volatile T,
 ) PolicyError!T {
-    try requireVolatileMmioScope(try scopeFromInteropPolicyBytes(unsafe_scope, reserved));
+    try requireInteropPolicyBytes(unsafe_scope, reserved);
     return read(T, ptr);
 }
 
@@ -111,7 +141,7 @@ pub fn writeInteropPolicyBytes(
     ptr: *volatile T,
     value: T,
 ) PolicyError!void {
-    try requireVolatileMmioScope(try scopeFromInteropPolicyBytes(unsafe_scope, reserved));
+    try requireInteropPolicyBytes(unsafe_scope, reserved);
     write(T, ptr, value);
 }
 
@@ -122,7 +152,7 @@ pub fn exchangeInteropPolicyBytes(
     ptr: *volatile T,
     value: T,
 ) PolicyError!T {
-    try requireVolatileMmioScope(try scopeFromInteropPolicyBytes(unsafe_scope, reserved));
+    try requireInteropPolicyBytes(unsafe_scope, reserved);
     return exchange(T, ptr, value);
 }
 
@@ -134,7 +164,7 @@ pub fn writeMaskedInteropPolicyBytes(
     clear_mask: T,
     set_mask: T,
 ) PolicyError!T {
-    try requireVolatileMmioScope(try scopeFromInteropPolicyBytes(unsafe_scope, reserved));
+    try requireInteropPolicyBytes(unsafe_scope, reserved);
     return writeMasked(T, ptr, clear_mask, set_mask);
 }
 
@@ -164,6 +194,113 @@ test "phase3 mmio helper keeps masked register updates reviewable" {
         writeMasked(u8, register_ptr, 0b0011_0001, 0b0001_0010),
     );
     try std.testing.expectEqual(@as(u8, 0b1001_0110), register);
+}
+
+test "phase3 mmio helper keeps policy allowance predicates explicit" {
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const no_unsafe_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const raw_pointer_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 1,
+    };
+
+    try std.testing.expect(allowsVolatileMmioScope(.volatile_mmio));
+    try std.testing.expect(!allowsVolatileMmioScope(.none));
+    try std.testing.expect(!allowsVolatileMmioScope(.raw_pointer_bridge));
+
+    try std.testing.expect(allowsInteropPolicy(mmio_policy));
+    try std.testing.expect(!allowsInteropPolicy(no_unsafe_policy));
+    try std.testing.expect(!allowsInteropPolicy(raw_pointer_policy));
+    try std.testing.expect(!allowsInteropPolicy(reserved_policy));
+
+    try std.testing.expect(allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0));
+    try std.testing.expect(!allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.none), 0));
+    try std.testing.expect(!allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 0));
+    try std.testing.expect(!allowsInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 1));
+
+    try std.testing.expect(allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio)));
+    try std.testing.expect(!allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.none)));
+    try std.testing.expect(!allowsInteropPolicyByte(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)));
+}
+
+test "phase3 mmio helper keeps policy require helpers explicit" {
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const no_unsafe_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const raw_pointer_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 1,
+    };
+
+    try requireInteropPolicy(mmio_policy);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireInteropPolicy(no_unsafe_policy));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireInteropPolicy(raw_pointer_policy));
+    try std.testing.expectError(error.InvalidInteropPolicy, requireInteropPolicy(reserved_policy));
+
+    try requireInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 0);
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        requireInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.none), 0),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        requireInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge), 0),
+    );
+    try std.testing.expectError(
+        error.InvalidInteropPolicy,
+        requireInteropPolicyBytes(@intFromEnum(abi.UnsafeScope.volatile_mmio), 1),
+    );
+
+    try requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.volatile_mmio));
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.none)),
+    );
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        requireInteropPolicyByte(@intFromEnum(abi.UnsafeScope.raw_pointer_bridge)),
+    );
+}
+
+test "phase3 mmio helper keeps typed scope require gate explicit" {
+    try requireVolatileMmioScope(.volatile_mmio);
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioScope(.none));
+    try std.testing.expectError(error.UnsafeScopeDenied, requireVolatileMmioScope(.raw_pointer_bridge));
 }
 
 test "phase3 mmio helper keeps 64-bit const reads and masked updates reviewable" {
@@ -299,4 +436,41 @@ test "phase3 mmio helper keeps scoped masked writes and byte-policy exchanges ex
         try writeMaskedInteropPolicy(u16, mmio_policy, register_ptr, 0x0F00, 0x00A0),
     );
     try std.testing.expectEqual(@as(u16, 0x50A0), register);
+}
+
+test "phase3 mmio helper keeps interop-policy reads and writes routed through require helpers" {
+    const mmio_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 0,
+    };
+    const reserved_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 0,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        .reserved = 1,
+    };
+
+    var register: u16 = 0x0F00;
+    const register_ptr: *volatile u16 = @ptrCast(&register);
+    const const_register_ptr: *const volatile u16 = @ptrCast(&register);
+
+    try std.testing.expectEqual(@as(u16, 0x0F00), try readInteropPolicy(u16, mmio_policy, const_register_ptr));
+    try writeInteropPolicy(u16, mmio_policy, register_ptr, 0x00F0);
+    try std.testing.expectEqual(@as(u16, 0x00F0), register);
+    try std.testing.expectEqual(@as(u16, 0x00F0), try exchangeInteropPolicyBytes(
+        u16,
+        @intFromEnum(abi.UnsafeScope.volatile_mmio),
+        0,
+        register_ptr,
+        0xF000,
+    ));
+    try std.testing.expectEqual(@as(u16, 0xF000), register);
+
+    try std.testing.expectError(error.InvalidInteropPolicy, readInteropPolicy(u16, reserved_policy, const_register_ptr));
+    try std.testing.expectError(
+        error.UnsafeScopeDenied,
+        writeInteropPolicyBytes(u16, @intFromEnum(abi.UnsafeScope.none), 0, register_ptr, 0xAAAA),
+    );
 }
