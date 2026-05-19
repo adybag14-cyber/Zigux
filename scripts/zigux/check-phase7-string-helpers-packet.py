@@ -56,6 +56,8 @@ REQUIRED_MARKERS = {
         'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");',
         'try expectContains(manifest, "\\\"scripts/zigux/check-phase7-string-helpers-packet.py\\\"");',
         'try expectContains(manifest, "dedicated helper-local checker-backed packet reviewability");',
+        'try expectContains(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
+        'try expectContains(sample_boundary, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");',
     ],
     "zigux/tests/phase7_string_helpers_sample_boundary.zig": [
         "phase 7 string helper boundary keeps the no-string-sample policy lane-local",
@@ -70,7 +72,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 14
+SELF_TEST_CASE_COUNT = 16
 
 
 def read_text(path: Path) -> str:
@@ -169,6 +171,16 @@ def run_self_test() -> None:
         survey_marker = 'try expectContains(checker, "PHASE7_STRING_HELPERS_PACKET_SELF_TEST=pass");'
         survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_survey_checker_selftest_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectContains(manifest, "\\\"next_bounded_step\\\": \\\"Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_manifest_next_step_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
+        write_fixture_root(tmp_root)
+
+        survey_marker = 'try expectContains(sample_boundary, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");'
+        survey_path.write_text(read_text(survey_path).replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_survey_boundary_follow_on_marker", tmp_root, f"zigux/tests/phase7_string_helpers_survey.zig: {survey_marker}")
         write_fixture_root(tmp_root)
 
         boundary_path = tmp_root / "zigux" / "tests" / "phase7_string_helpers_sample_boundary.zig"
