@@ -120,7 +120,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "shared no-sample boundary and helper-local reviewability");
     try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
     try expectContainsCount(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
-    try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`");
+    try expectNotContains(manifest, "\"next_bounded_step\": \"Sync `zigux/tests/phase7_string_helpers_survey.zig` and `zigux/tests/phase7_string_helpers_sample_boundary.zig`\"");
     try expectNotContains(manifest, "validator-backed reviewability");
     try expectNotContains(manifest, "missing_review_surfaces");
     try expectNotContains(manifest, "missing_on_master");
@@ -180,6 +180,16 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper, "pub fn kstrdup_quotable_file");
     try expectNotContains(helper, "pub fn devmKasprintfStrarray");
     try expectNotContains(helper, "pub fn devm_kasprintf_strarray");
+
+    const helper_tests = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers.zig");
+    defer allocator.free(helper_tests);
+    try expectContains(helper_tests, "phase 7 string helpers starter reuses the blank string-array sentinel when no names are requested");
+    try expectContains(helper_tests, "phase 7 string helpers starter mirrors kfree_strarray teardown and stays idempotent");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports empty parse-int-array input as no entry");
+    try expectContains(helper_tests, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
+    try expectContains(helper_tests, "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit");
+    try expectNotContains(helper_tests, "devmKasprintfStrarray");
+    try expectNotContains(helper_tests, "devm_kasprintf_strarray");
 
     const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_readme);
