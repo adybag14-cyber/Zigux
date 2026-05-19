@@ -46,8 +46,8 @@ def write_text(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def is_non_empty_string(value: object) -> bool:
-    return isinstance(value, str) and bool(value.strip())
+def is_strict_non_empty_string(value: object) -> bool:
+    return isinstance(value, str) and bool(value) and value == value.strip()
 
 
 def resolve_zig(override: str | None) -> str | None:
@@ -74,9 +74,9 @@ def load_archive_target_scope(root: Path) -> list[str]:
 
     normalized: list[str] = []
     for value in archive_target_scope:
-        if not is_non_empty_string(value):
+        if not is_strict_non_empty_string(value):
             raise SystemExit(f"invalid archive_target_scope entry in required file: {root / POLICY}")
-        normalized.append(value.strip())
+        normalized.append(value)
     return normalized
 
 
@@ -116,10 +116,9 @@ def collect_fixture_issues(root: Path) -> list[str]:
         validation_mode = entry.get("validation_mode")
         route = entry.get("route")
 
-        if not is_non_empty_string(target):
+        if not is_strict_non_empty_string(target):
             issues.append(f"fixture:cross_target_target:{index}:{target!r}")
             continue
-        target = target.strip()
 
         if target in seen_targets:
             issues.append(f"fixture:duplicate_target:{target}")
@@ -127,7 +126,7 @@ def collect_fixture_issues(root: Path) -> list[str]:
 
         if route != EXPECTED_ROUTE:
             issues.append(f"fixture:cross_target_route:{target}:{route!r}")
-        if not is_non_empty_string(review_status):
+        if not is_strict_non_empty_string(review_status):
             issues.append(f"fixture:cross_target_review_status:{target}:{review_status!r}")
         if validation_mode not in ALLOWED_VALIDATION_MODES:
             issues.append(f"fixture:cross_target_validation_mode:{target}:{validation_mode!r}")
@@ -158,9 +157,9 @@ def load_targets(root: Path) -> list[str]:
 
     targets: list[str] = []
     for entry in cross_targets:
-        if not isinstance(entry, dict) or not is_non_empty_string(entry.get("target")):
+        if not isinstance(entry, dict) or not is_strict_non_empty_string(entry.get("target")):
             raise SystemExit(f"invalid cross target entry in required file: {root / FIXTURE}")
-        targets.append(entry["target"].strip())
+        targets.append(entry["target"])
     return targets
 
 
@@ -336,6 +335,35 @@ def run_self_test() -> int:
         payload["cross_targets"].append(dict(payload["cross_targets"][0]))
         fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert "fixture:duplicate_target:x86_64-linux" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0]["target"] = " x86_64-linux "
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert "fixture:cross_target_target:0:' x86_64-linux '" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["cross_targets"][1]["review_status"] = " route contract only "
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "fixture:cross_target_review_status:aarch64-linux:' route contract only '"
+            in collect_fixture_issues(root)
+        )
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(policy_path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = [" x86_64-linux "]
+        policy_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_fixture_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_target_scope entry" in str(exc)
+        else:
+            raise AssertionError("expected whitespace-padded archive_target_scope entry to fail closed")
         checks_run += 1
 
         build_self_test_root(root)
