@@ -226,14 +226,29 @@ def run_self_test() -> int:
         left = tmp_dir / "left.json"
         equivalent = tmp_dir / "equivalent.json"
         mismatch = tmp_dir / "mismatch.json"
-        left.write_text('{"cases":[{"crc_hex":"0x1451dab1","input":"int"}]}\n', encoding="utf-8")
-        equivalent.write_text('{\n  "cases": [ { "input": "int", "crc_hex": "0x1451dab1" } ]\n}\n', encoding="utf-8")
+        reordered = tmp_dir / "reordered.json"
+        left.write_text(
+            '{"cases":[{"crc_hex":"0x1451dab1","input":"int"},{"crc_hex":"0x8cdc1683","input":"x"}]}\n',
+            encoding="utf-8",
+        )
+        equivalent.write_text(
+            '{\n  "cases": [ { "input": "int", "crc_hex": "0x1451dab1" }, { "input": "x", "crc_hex": "0x8cdc1683" } ]\n}\n',
+            encoding="utf-8",
+        )
         mismatch.write_text('{"cases":[{"crc_hex":"0x8cdc1683","input":"x"}]}\n', encoding="utf-8")
+        reordered.write_text(
+            '{"cases":[{"crc_hex":"0x8cdc1683","input":"x"},{"crc_hex":"0x1451dab1","input":"int"}]}\n',
+            encoding="utf-8",
+        )
         compare_json("selftest-equal", left, equivalent)
         expect_system_exit_contains(lambda: compare_json("selftest-mismatch", left, mismatch), "selftest-mismatch mismatch")
+        expect_system_exit_contains(
+            lambda: compare_json("selftest-order-sensitive", left, reordered),
+            "selftest-order-sensitive mismatch",
+        )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=14")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
