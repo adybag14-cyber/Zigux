@@ -75,7 +75,7 @@ DISALLOWED_MAKEFILE_LINES = (
     "phase2: phase2-validate",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 28
+EXPECTED_SELF_TEST_CASE_COUNT = 32
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -229,6 +229,15 @@ def duplicate_once(text: str, marker: str) -> str:
     return text.replace(marker, f"{marker}\n{marker}", 1)
 
 
+def assert_system_exit_contains(callback, expected_fragment: str) -> None:
+    try:
+        callback()
+    except SystemExit as exc:
+        assert expected_fragment in str(exc), str(exc)
+        return
+    raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validator_selftest_") as tmp_dir:
@@ -278,6 +287,12 @@ def run_self_test() -> int:
                 )
                 assert (duplicate_code, f"{marker}:count=2") in collect_issues(root)
                 checks_run += 1
+
+        for path in (SCRIPTS_README, TESTS_README, REVIEW_CHECKLIST, MAKEFILE):
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            assert_system_exit_contains(lambda current_path=path: collect_issues(root), "required file missing:")
+            checks_run += 1
 
         for path in (CLOSURE_DOC, CLOSURE_VALIDATOR, WORKFLOW, FIXDEP, CONF_BRIDGE, PHASE2_CROSS_TARGETS):
             build_self_test_root(root)
