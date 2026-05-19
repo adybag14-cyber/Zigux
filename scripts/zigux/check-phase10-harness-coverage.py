@@ -12,6 +12,13 @@ import sys
 SELF_PATH = Path(__file__).resolve()
 ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
+PHASE10_SCRIPTS_ROOT_PHRASE = (
+    "Treat `scripts/zigux/README.md` as the current dedicated Phase 10 scripts-root "
+    "packet on current `master` and keep it aligned with the shared closure note, "
+    "lane-sequencing note, review checklist, and tests-root reminder instead of "
+    "leaving it in neighboring-surface wording."
+)
+
 REQUIRED_MARKERS = {
     "Documentation/zigux/review-checklist.md": [
         "scripts/zigux/check-phase10-harness-coverage.py",
@@ -99,6 +106,21 @@ REQUIRED_MARKERS = {
         "test \"phase10 virtio ring verify keeps notification-data next-avail state reviewable across split packed and reset replay\" {",
         "test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
         "test \"phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay\" {",
+    ],
+    "scripts/zigux/README.md": [
+        "## Phase 10",
+        "scripts/zigux/check-phase10-bootstrap-route.py",
+        "scripts/zigux/check-phase10-harness-coverage.py",
+        "scripts/zigux/check-phase10-tests-readme-core-surfaces.py",
+        "scripts/zigux/validate-phase10.py",
+        "scripts/zigux/validate-phase10-closure.py",
+        "zigux/tests/phase10_closure_manifest.json",
+        "make -C zigux phase10-validate",
+        "make -C zigux phase10-test",
+        "make -C zigux phase10",
+        "current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`",
+        "keep risky transport parked",
+        PHASE10_SCRIPTS_ROOT_PHRASE,
     ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
         "test \"phase10 virtio ring repeated prepareKick stays idle until new descriptors are published\" {",
@@ -391,6 +413,18 @@ def run_self_test() -> int:
                 "drivers/virtio/virtio_ring_verify.zig:test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
             ),
             (
+                "scripts/zigux/README.md",
+                "## Phase 10",
+                "## Phase 10 Missing",
+                "scripts/zigux/README.md:## Phase 10",
+            ),
+            (
+                "scripts/zigux/README.md",
+                PHASE10_SCRIPTS_ROOT_PHRASE,
+                "Treat `scripts/zigux/README.md` as a neighboring shared reminder surface.",
+                f"scripts/zigux/README.md:{PHASE10_SCRIPTS_ROOT_PHRASE}",
+            ),
+            (
                 "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
                 "test \"phase10 virtio ring repeated prepareKick stays idle until new descriptors are published\" {",
                 "test \"phase10 virtio ring prepareKick drift\" {",
@@ -481,9 +515,10 @@ def run_self_test() -> int:
 
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
         expect_missing_file(root, "drivers/virtio/virtio_ring_verify.zig")
+        expect_missing_file(root, "scripts/zigux/README.md")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=38")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=41")
     return 0
 
 
