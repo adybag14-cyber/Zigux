@@ -149,7 +149,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view 
     uint32_t delivery_window;
     uint32_t status;
 };
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
     uint32_t applied;
     uint32_t skipped;
     uint32_t delivered;
