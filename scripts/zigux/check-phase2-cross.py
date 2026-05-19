@@ -70,7 +70,7 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 44
+EXPECTED_SELF_TEST_CASE_COUNT = 45
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -842,6 +842,49 @@ def run_self_test() -> int:
             "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
             "expected=x86_64-linux;actual=x86_64-linux",
         ) not in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = ["aarch64-linux", "x86_64-linux"]
+        payload["archive_sha256"] = {
+            "aarch64-linux": "4" * 64,
+            "x86_64-linux": "3" * 64,
+        }
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        fixture_path = resolve_path(root, FIXTURE)
+        fixture = json.loads(fixture_path.read_text(encoding="utf-8"))
+        fixture["archive_target_scope"] = ["aarch64-linux", "x86_64-linux"]
+        fixture["cross_targets"] = [
+            {
+                "target": "x86_64-linux",
+                "review_status": "pinned bootstrap archive",
+                "validation_mode": "archive_required",
+                "route": ROUTE,
+            },
+            {
+                "target": "aarch64-linux",
+                "review_status": "route contract only",
+                "validation_mode": "archive_required",
+                "route": ROUTE,
+            },
+        ]
+        fixture_path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("INVALID_CROSS_TARGET_EXPECTED_MODE", "aarch64-linux") in issues
+        assert (
+            "CROSS_TARGET_ORDER_MISMATCH",
+            "expected=x86_64-linux,aarch64-linux;actual=x86_64-linux,aarch64-linux",
+        ) not in issues
+        assert (
+            "ARCHIVE_REQUIRED_TARGET_SET_MISMATCH",
+            "expected=aarch64-linux,x86_64-linux;actual=x86_64-linux,aarch64-linux",
+        ) not in issues
+        assert (
+            "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
+            "expected=aarch64-linux,x86_64-linux;actual=x86_64-linux,aarch64-linux",
+        ) in issues
         checks_run += 1
 
         build_self_test_root(root)
