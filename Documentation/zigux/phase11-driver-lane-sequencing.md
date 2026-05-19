@@ -46,15 +46,25 @@ Keep the current lane split explicit:
   `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed as historical or
   repo-reality-gap vocabulary until a future reread proves it returned on
   current `master`
-- HVC archival lane `P11-L16` currently keeps the directly readable
+- HVC continuity lane `P11-L16` currently keeps the directly readable
   `Documentation/zigux/phase11-hvc-console-survey.md`,
   `drivers/tty/hvc/hvc_console.zig`,
-  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and
-  `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` authoritative for
-  the current-head continuity packet and helper-local teardown or failure-mode
-  evidence; keep the deeper replay, manifest, dedicated survey-checker, and
-  teardown-note anchors framed as archival or repo-reality-gap vocabulary until
-  a fresh reread proves they returned
+  `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,
+  `Documentation/zigux/phase11-hvc-console-validation-matrix.md`,
+  `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
+  `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
+  `zigux/tests/fixtures/phase11_build_inventory.json`,
+  `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
+  `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
+  `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`,
+  `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
+  `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and
+  `zigux/tests/phase11_hvc_cleanup_packet_build.zig` authoritative for the
+  current-head continuity packet and helper-local teardown or failure-mode
+  evidence while the broader starter-depth archival landing remains `P11-L13`;
+  keep the deeper verify helper, sysrq helper, focused survey replay, manifest,
+  dedicated survey-checker, and teardown-note anchors framed as archival or
+  repo-reality-gap vocabulary until a fresh reread proves they returned
 - contributor-note lane `P11-L18` owns broad cross-phase reminder wording in
   `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`,
   `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`,
@@ -91,15 +101,25 @@ Treat the current shared Phase 11 packet as the reminder surfaces that were
 - `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`
 - `Documentation/zigux/phase11-hvc-console-survey.md`
 - `drivers/tty/hvc/hvc_console.zig`
+- `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
+- `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
+- `zigux/tests/fixtures/phase11_build_inventory.json`
+- `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
+- `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
+- `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+- `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 
 Current rereads in this run rematerialized the returned DesignWare helper,
 replay, reminder-note, validation-matrix, and checker packet alongside the
-narrower HVC current-head continuity packet. Keep only the older DesignWare
-packet-checker handle `scripts/zigux/check-phase11-dw-wdt-packet.py` framed as
-historical or repo-reality-gap vocabulary until a future reread proves it
-returned.
+narrower HVC current-head continuity packet plus its cleanup companion,
+current-head checker, build inventory, and proof-backed adjunct stack. Keep
+only the older DesignWare packet-checker handle
+`scripts/zigux/check-phase11-dw-wdt-packet.py` framed as historical or
+repo-reality-gap vocabulary until a future reread proves it returned.
 
 HVC still has the smaller current-head continuity packet rather than the deeper
 starter-depth replay or manifest stack. bcm2835 and gpio reminder follow-through
@@ -115,9 +135,12 @@ Use this note to keep the bounded work order honest:
 2. Keep the shared-versus-dedicated split explicit: the shared sequencing lane
    owns reminder-surface truthfulness, not driver-local execution claims.
 3. Keep the current readback boundary honest: today that means the HVC
-   current-head continuity packet plus the returned DesignWare helper-backed
-   owner stack of notes, helpers, replays, manifest, registration scaffold,
-   validation matrix, and paired teardown and verify checkers.
+   current-head continuity packet with its cleanup companion,
+   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`, shared build
+   inventory anchor, and proof-backed adjunct stack plus the returned
+   DesignWare helper-backed owner stack of notes, helpers, replays, manifest,
+   registration scaffold, validation matrix, and paired teardown and verify
+   checkers.
 4. Keep the DesignWare follow-through parked on bounded starter, scaffold, and
    reminder-surface truthfulness; do not widen that returned owner stack into
    live watchdog-core execution, PM plumbing, reset execution, IRQ execution,
@@ -125,18 +148,28 @@ Use this note to keep the bounded work order honest:
 5. Keep HVC current-head continuity and helper-local teardown or failure-mode
    evidence routed through `Documentation/zigux/phase11-hvc-console-survey.md`,
    `drivers/tty/hvc/hvc_console.zig`,
-   `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and
-   `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`; do not widen
-   that packet into tty registration, notifier execution, khvcd execution, sysrq
-   dispatch, or host-backed teardown.
+   `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`,
+   `Documentation/zigux/phase11-hvc-console-validation-matrix.md`,
+   `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`,
+   `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`,
+   `zigux/tests/fixtures/phase11_build_inventory.json`,
+   `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`,
+   `zigux/tests/phase11_hvc_export_surface_layout_build.zig`,
+   `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`,
+   `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`,
+   `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`, and
+   `zigux/tests/phase11_hvc_cleanup_packet_build.zig`; do not widen that packet
+   into tty registration, notifier execution, khvcd execution, sysrq dispatch,
+   or host-backed teardown.
 6. Do not imply broader platform registration, PM plumbing, reset execution, IRQ
    execution, MMIO validation, notifier execution, sysrq execution, khvcd
    execution, or hardware-backed closure beyond the helper, replay, manifest,
    scaffold, note, and checker surfaces that were directly reread in this run.
 7. When contributor-facing summaries reopen, keep them aligned with the returned
    DesignWare helper-backed packet and the narrower HVC current-head continuity
-   packet instead of reviving missing shared-contract surfaces or overstating the
-   HVC archival stack.
+   packet plus its cleanup companion, current-head checker, shared build
+   inventory, and proof-backed adjunct stack instead of reviving missing
+   shared-contract surfaces or overstating the HVC archival stack.
 8. Keep the next bounded shared follow-through inside the smallest
    reminder-surface truthfulness repair unless a later reread restores or
    removes another directly readable Phase 11 packet surface.
