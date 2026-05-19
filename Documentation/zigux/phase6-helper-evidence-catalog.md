@@ -6,7 +6,7 @@ This note records the current helper-evidence survey for the bounded Phase 6 lea
 - lane scope: shared helper-evidence rows and machine-readable manifest only
 - shared scripts-root reminder: `scripts/zigux/README.md`
 - shared tests-root reminder: `zigux/tests/README.md`
-- shared docs-root follow-through gap: `Documentation/zigux/README.md`
+- shared docs-root reminder: `Documentation/zigux/README.md`
 - directly readable shared build foothold: `zigux/tests/phase6_build.zig`
 - directly readable shared Makefile wrapper surface: `zigux/Makefile`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`
@@ -38,9 +38,9 @@ Fresh direct GitHub contents reads on current `master` still return missing for 
 
 Current public raw readback rematerializes `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep those broader parity and perf notes as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime.
 
-Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `scripts/zigux/README.md`, `zigux/tests/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-present-entrypoints.py`.
+Treat the remaining paths above as last-known Phase 6 packet members that require fresh reread or re-materialization before they are presented as current shipped direct evidence again. The directly readable shared packet in this environment is therefore this helper-evidence catalog together with `scripts/zigux/README.md`, `zigux/tests/README.md`, `Documentation/zigux/README.md`, `zigux/Makefile`, `zigux/tests/phase6_build.zig`, `zigux/tests/phase6_helper_evidence_manifest.json`, `zigux/tests/phase6_helper_parity_manifest.json`, and `scripts/zigux/check-phase6-present-entrypoints.py`.
 
-The docs-root README still lacks a dedicated Phase 6 helper-evidence stanza on surveyed head `9ca34d1`, so keep `Documentation/zigux/README.md` in follow-through vocabulary rather than the current direct-readback packet until a later shared-note lane restores that docs-root reminder explicitly.
+The docs-root README now keeps a dedicated Phase 6 helper-evidence stanza aligned with surveyed head `9ca34d1`, so keep `Documentation/zigux/README.md` inside the current direct-readback packet rather than treating it as a remaining shared-note follow-through gap.
 
 The broader shared perf survey is publicly readable again but still sits outside the direct authenticated shared packet in this runtime, so the remaining shared perf-note risk stays note-local rather than helper-local: the directly readable helper-evidence packet already materializes `zigux/Makefile` with the current `phase6-base64-test`, `phase6-base64-perf`, `phase6-bsearch-test`, `phase6-bsearch-perf`, `phase6-checksum-test`, `phase6-checksum-perf-matrix-test`, `phase6-checksum-perf`, `phase6-hexdump-review`, `phase6-hexdump-perf-matrix-test`, `phase6-hexdump-test`, and `phase6-hexdump-perf` wrapper targets, it keeps the narrower helper-parity companion `zigux/tests/phase6_helper_parity_manifest.json`, and it keeps the bounded measurement posture reconstructible from the directly readable helper-local replays plus wrapper routes above without presenting `Documentation/zigux/phase6-perf-gate-survey.md` as returned authenticated current-head evidence.
 
