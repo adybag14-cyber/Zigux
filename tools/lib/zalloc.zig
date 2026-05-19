@@ -199,3 +199,30 @@ test "zallocValue re-zeroes pointer-like fields after earlier dirty frees" {
     try std.testing.expect(value.?.maybe_ptr == null);
     try std.testing.expect(value.?.nested.maybe_count == null);
 }
+
+test "zallocValue re-zeroes optional slices after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Payload = struct {
+        active: bool,
+        view: ?[]const u8,
+        nested: struct {
+            maybe_count: ?usize,
+        },
+    };
+
+    var sentinel = [_]u8{ 0xaa, 0xbb, 0xcc };
+    var value: ?*Payload = try zallocValue(allocator, Payload);
+    try std.testing.expect(value != null);
+    value.?.active = true;
+    value.?.view = sentinel[0..];
+    value.?.nested.maybe_count = 11;
+    zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Payload);
+    defer zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expect(!value.?.active);
+    try std.testing.expect(value.?.view == null);
+    try std.testing.expect(value.?.nested.maybe_count == null);
+}
