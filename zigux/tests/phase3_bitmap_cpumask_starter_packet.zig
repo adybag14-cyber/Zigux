@@ -282,6 +282,43 @@ test "cpumask starter helpers cover cross-word windows and tail masking" {
     try testing.expectEqual(@as(u32, 5), summary.weight);
 }
 
+test "cpumask starter helpers keep bitmap projection parity explicit on bounded windows" {
+    var backing = [_]usize{
+        (@as(usize, 1) << 5) | (@as(usize, 1) << (bitmap_view.bits_per_word - 1)),
+        (@as(usize, 1) << 1) | (@as(usize, 1) << 6) | (@as(usize, 1) << 10),
+    };
+    const view = cpumask_view.viewFromWords(backing[0..], bitmap_view.bits_per_word + 11);
+    const projected = binding.asBitmap(view);
+    const cpumask_summary = cpumask_view.summarize(view);
+    const bitmap_summary = bitmap_view.summarize(projected);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expect(bitmap_view.isValid(projected));
+    try testing.expectEqual(view.words_addr, projected.words_addr);
+    try testing.expectEqual(view.nbits, projected.nbits);
+    try testing.expectEqual(view.word_count, projected.word_count);
+    try testing.expectEqual(cpumask_view.cpuIsSet(view, 5), bitmap_view.testBit(projected, 5));
+    try testing.expectEqual(
+        cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word - 1),
+        bitmap_view.testBit(projected, bitmap_view.bits_per_word - 1),
+    );
+    try testing.expectEqual(
+        cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 10),
+        bitmap_view.testBit(projected, bitmap_view.bits_per_word + 10),
+    );
+    try testing.expectEqual(
+        cpumask_view.cpuIsSet(view, bitmap_view.bits_per_word + 11),
+        bitmap_view.testBit(projected, bitmap_view.bits_per_word + 11),
+    );
+    try testing.expectEqual(cpumask_view.firstCpu(view), bitmap_view.firstSet(projected));
+    try testing.expectEqual(cpumask_view.firstAbsentCpu(view), bitmap_view.firstZero(projected));
+    try testing.expectEqual(cpumask_view.weight(view), bitmap_view.weight(projected));
+    try testing.expectEqual(cpumask_summary.first_set, bitmap_summary.first_set);
+    try testing.expectEqual(cpumask_summary.first_zero, bitmap_summary.first_zero);
+    try testing.expectEqual(cpumask_summary.weight, bitmap_summary.weight);
+    try testing.expectEqual(cpumask_summary.reserved, bitmap_summary.reserved);
+}
+
 test "cpumask starter helpers keep a full bounded mask from leaking tail zeros" {
     var backing = [_]usize{
         ~@as(usize, 0),
