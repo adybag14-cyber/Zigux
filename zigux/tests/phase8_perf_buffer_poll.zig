@@ -167,6 +167,10 @@ test "phase 8 perf-buffer poll helper keeps the final return-path bookkeeping be
         @as(?usize, 1),
         processing_failure.execution.first_process_error_index,
     );
+    try std.testing.expectEqual(
+        @as(?usize, 1),
+        processing_failure.execution.first_process_error_ready_index,
+    );
 }
 
 test "phase 8 perf-buffer poll helper rejects ready waits without processing attempts" {
@@ -180,6 +184,23 @@ test "phase 8 perf-buffer poll helper rejects ready waits without processing att
                 .{ .ready = true },
             },
             &.{},
+        ),
+    );
+}
+
+test "phase 8 perf-buffer poll helper rejects successful waits that stop before every ready buffer is processed" {
+    try std.testing.expectError(
+        perf_buffer_poll.PollError.ReadyBufferProcessingFallsShortOfReadyCount,
+        perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
+            12,
+            2,
+            &.{
+                .{ .ready = true },
+                .{ .ready = true },
+            },
+            &.{
+                .{ .records_processed = 4 },
+            },
         ),
     );
 }
