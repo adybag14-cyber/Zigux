@@ -36,6 +36,9 @@ STUDY_ONLY_ACCOUNTING_PATH = "Documentation/zigux/phase15-study-only-anchor-acco
 SCRIPTS_README_PATH = "scripts/zigux/README.md"
 SHARED_SMOKE_ROUTE_CHECKER_PATH = "scripts/zigux/check-phase14-shared-smoke-route.py"
 RELEASE_BOUNDARY_CHECKER_PATH = "scripts/zigux/check-phase14-release-boundary-exact-counts.py"
+ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH = (
+    "scripts/zigux/check-phase14-rollback-threshold-sequencing.py"
+)
 RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH = "scripts/zigux/check-phase14-rcu-rollback-guardrail.py"
 TESTS_README_CHECKER_PATH = "scripts/zigux/check-phase14-tests-readme-smoke-summary.py"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -64,6 +67,7 @@ REQUIRED_FILES = [
     SCRIPTS_README_PATH,
     SHARED_SMOKE_ROUTE_CHECKER_PATH,
     RELEASE_BOUNDARY_CHECKER_PATH,
+    ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
     TESTS_README_CHECKER_PATH,
     TESTS_README_PATH,
@@ -150,6 +154,11 @@ REQUIRED_MARKERS = {
     RELEASE_BOUNDARY_CHECKER_PATH: [
         "PHASE14_CHECK_PACKET=release_boundary_exact_counts",
         "PHASE14_RELEASE_BOUNDARY_EXACT_COUNTS_SELF_TEST=pass",
+    ],
+    ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH: [
+        "PHASE14_CHECK_PACKET=rollback_threshold_sequencing",
+        "PHASE14_ROLLBACK_THRESHOLD_SEQUENCING_SELF_TEST=pass",
+        "phase14 rollback-threshold sequencing packet validated",
     ],
     RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH: [
         "PHASE14_RCU_ROLLBACK_GUARDRAIL_SELF_TEST=pass",
@@ -302,6 +311,7 @@ def run_self_test() -> int:
         missing_file_cases = [
             SHARED_SMOKE_ROUTE_CHECKER_PATH,
             RELEASE_BOUNDARY_CHECKER_PATH,
+            ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
             RCU_TREE_SURVEY_PATH,
             RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH,
             TESTS_README_CHECKER_PATH,
@@ -317,6 +327,10 @@ def run_self_test() -> int:
             (MAKEFILE_PATH, REQUIRED_MARKERS[MAKEFILE_PATH][0]),
             (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][2]),
             (RELEASE_BOUNDARY_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_PATH][1]),
+            (
+                ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH,
+                REQUIRED_MARKERS[ROLLBACK_THRESHOLD_SEQUENCING_CHECKER_PATH][0],
+            ),
             (RCU_TREE_SURVEY_PATH, REQUIRED_MARKERS[RCU_TREE_SURVEY_PATH][4]),
             (RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH, REQUIRED_MARKERS[RCU_ROLLBACK_GUARDRAIL_CHECKER_PATH][0]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][0]),
@@ -340,8 +354,8 @@ def main() -> int:
         description=(
             "Validate the current bounded Phase 14 shared smoke packet around the live "
             "`phase14-validate` route, the shared route checker, the release-boundary "
-            "exact-count guard, the dedicated RCU rollback guardrail, and the returned "
-            "workqueue reviewability shard."
+            "exact-count guard, the dedicated rollback-threshold sequencing checker, the "
+            "dedicated RCU rollback guardrail, and the returned workqueue reviewability shard."
         )
     )
     parser.add_argument(
