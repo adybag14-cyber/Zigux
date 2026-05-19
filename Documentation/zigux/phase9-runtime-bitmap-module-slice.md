@@ -7,7 +7,7 @@ This document tracks the current bounded runtime bitmap starter packet.
 - `PHASE9_SLICE=runtime-bitmap-module-starter`
 - `PHASE9_LANE_KEY=P9-L08`
 - `PHASE9_SURVEYED_COMMIT=66e60700501fc8bb08d645b081064c4698562427`
-- scope: sample starter, diff gate, loader scaffold, top-bit companion replay, module gate, survey gate, manifest-backed ownership packet, and shared loader handoff plus shared build routes only
+- scope: sample starter, diff gate, loader scaffold, top-bit companion replay, module gate, survey gate, manifest-backed ownership packet, explicit empty shared-command-name rejection, and shared loader handoff plus shared build routes only
 
 ## Product Boundary
 - `samples/zigux/runtime_bitmap.zig`
@@ -29,7 +29,7 @@ The direct `samples/zigux/runtime_bitmap.zig` starter now also keeps repeat-init
 
 The `zigux/tests/runtime_bitmap_diff.zig` gate owns the bounded `lib/test_bitmap.c` replay plus the selftest-complete and exit lifecycle guards, so those checks stay bitmap-local review proof instead of borrowing coverage from the shared loader packet.
 
-The `samples/zigux/runtime_bitmap_loader.zig` scaffold now also keeps the prepared shared-request plan drift guard explicit before `requestSharedRuntimeLoad()` advances the bitmap-local loader to `waiting_on_runtime_substrate`, so approved-family anchor and symbol drift, selftest-hook drift, allocator drift, and init-flow drift fail closed inside the same bitmap-local ownership packet instead of being deferred to the broader shared loader lane.
+The `samples/zigux/runtime_bitmap_loader.zig` scaffold now also keeps the prepared shared-request plan drift guard explicit before `requestSharedRuntimeLoad()` advances the bitmap-local loader to `waiting_on_runtime_substrate`, rejects empty explicit shared command names before preparation, so approved-family anchor and symbol drift, selftest-hook drift, allocator drift, init-flow drift, and empty-command-name drift fail closed inside the same bitmap-local ownership packet instead of being deferred to the broader shared loader lane.
 
 The focused `samples/zigux/runtime_bitmap_top_bit_contract.zig` companion replay plus the dedicated `phase9-runtime-bitmap-top-bit-tests` route keep the highest-valid-bit boundary contract explicit inside the same bitmap-local packet instead of letting that boundary disappear into the broader shared loader bundle.
 
@@ -51,4 +51,4 @@ The live runtime substrate is still missing, so this slice must stay review-only
 
 ## Next Bounded Step
 
-Leave the runtime bitmap packet parked unless a smaller same-lane lifecycle, repeat-init, diff, top-bit boundary, prepared-plan handoff, or selftest-hook reviewability gap appears before the blocked shared runtime substrate work moves again.
+Leave the runtime bitmap packet parked unless a smaller same-lane lifecycle, repeat-init, diff, top-bit boundary, empty-command-name, prepared-plan handoff, or selftest-hook reviewability gap appears before the blocked shared runtime substrate work moves again.
