@@ -139,6 +139,7 @@ REQUIRED_MARKERS = {
     RELEASE_SEQUENCING_PATH: [
         "Current repo-reality override: `zigux/Makefile` still omits `phase12-validate` on current `master`, but it now exposes shared `phase12-smoke`, `phase12-test`, and `phase12` wrappers again.",
         "the directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.",
+        "`zigux/tests/phase12_build.zig` also wires `zigux/tests/phase12_virtio_net_transmit_recycle.zig` and `zigux/tests/phase12_virtio_net_queue_resume.zig` through both `smoke` and `test`",
     ],
     RELEASE_COORDINATION_MATRIX_PATH: [
         "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
@@ -305,6 +306,7 @@ def run_self_test() -> int:
             (RELEASE_READINESS_SURVEY_PATH, REQUIRED_MARKERS[RELEASE_READINESS_SURVEY_PATH][2]),
             (RELEASE_SEQUENCING_PATH, REQUIRED_MARKERS[RELEASE_SEQUENCING_PATH][0]),
             (RELEASE_SEQUENCING_PATH, REQUIRED_MARKERS[RELEASE_SEQUENCING_PATH][1]),
+            (RELEASE_SEQUENCING_PATH, REQUIRED_MARKERS[RELEASE_SEQUENCING_PATH][2]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][0]),
             (RELEASE_COORDINATION_MATRIX_PATH, REQUIRED_MARKERS[RELEASE_COORDINATION_MATRIX_PATH][1]),
             (PHASE12_COMPLEX_DRIVER_LANE_PATH, REQUIRED_MARKERS[PHASE12_COMPLEX_DRIVER_LANE_PATH][0]),
