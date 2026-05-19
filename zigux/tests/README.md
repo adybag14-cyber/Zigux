@@ -115,6 +115,7 @@ Keep the current contributor-facing Phase 13 packet explicit through these shipp
 - `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-libfs-survey.md`
+- `Documentation/zigux/phase13-libfs-slice.md`
 - `Documentation/zigux/phase13-devres-slice.md`
 - `Documentation/zigux/phase13-devres-survey.md`
 - `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`
