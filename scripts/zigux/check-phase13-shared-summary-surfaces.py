@@ -111,7 +111,7 @@ def collect_issues(root: Path) -> list[str]:
         for marker in markers:
             if marker not in text:
                 issues.append(f"missing_marker:{relpath}:{marker}")
-        for marker in FORBIDDEN_MARKERS.items() if False else FORBIDDEN_MARKERS:
+        for marker in FORBIDDEN_MARKERS:
             if marker in text:
                 issues.append(f"forbidden_marker:{relpath}:{marker}")
 
