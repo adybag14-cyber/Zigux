@@ -122,7 +122,7 @@ fn missingModeArgumentMessage(mode: Mode) []const u8 {
 
 fn modeUsesAllConfigSentinel(mode: Mode) bool {
     return switch (mode) {
-        .allnoconfig, .allyesconfig, .alldefconfig => true,
+        .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig => true,
         else => false,
     };
 }
@@ -527,7 +527,7 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
     });
 
     try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"mode\":\"allmodconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"KCONFIG_ALLCONFIG\"") == null);
+    try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 
     var explicit_capture = try TestCapture.init(std.testing.allocator, 160);
     defer explicit_capture.deinit();
