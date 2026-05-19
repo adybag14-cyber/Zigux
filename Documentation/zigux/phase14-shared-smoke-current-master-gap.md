@@ -52,8 +52,8 @@ Those readable notes and paths keep the current narrow posture visible:
 - `zigux/Makefile` is directly readable again through the contents path, and its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes plus the returned `phase14-validate` route, while still omitting the broader `phase14-smoke`, `phase14-test`, and `phase14` targets
 - that means the next same-lane follow-through should keep the visible post-Phase-2 Makefile route families, the returned `phase14-validate` gate, and the readable non-owner posture explicit instead of reviving the missing broader `phase14-*` routes as current proof
 - `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` should stay aligned around the broadened study-only Phase 14 packet, the returned `phase14-validate` route, and the continued absence of the broader `phase14-smoke`, `phase14-test`, and `phase14` wrappers on current `master`
-- the skbuff survey now keeps `phase14-skbuff-anchor-packet-missing` explicit as the current repo-readback gap layered on top of the unchanged freeze-in-C ownership boundary
-- the skbuff note now treats the earlier `full_bundle_only` compile path as archival-only vocabulary and explicitly says there is no honest skbuff-local compile route on current `master`
+- the skbuff survey now keeps the returned skbuff anchor packet explicit on current `master` while preserving the unchanged freeze-in-C ownership boundary
+- the skbuff note now names the returned skbuff-local review route through `zigux/tests/phase14_build.zig` as anchor-local packet evidence while still keeping that route out of this lane's exact contents-readback proof
 - the Phase 15 companion still keeps `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` explicit as study-only anchors rather than active port claims
 
 ## Remaining Shared-Smoke Readback Gap
