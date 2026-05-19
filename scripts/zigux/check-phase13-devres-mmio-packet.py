@@ -22,20 +22,22 @@ REQUIRED_FILES = [
 
 SLICE_MARKERS = [
     "# Phase 13 devres Slice",
-    "`Documentation/zigux/phase13-devres-survey.md`, `lib/devres.zig`, `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, and `zigux/tests/phase13_devres_manifest.json` remain repo-reality gaps rather than described here as shipped current-`master` evidence",
+    "Current repo reality for this lane stays intentionally narrow:",
+    "`Documentation/zigux/phase13-devres-survey.md` now records the current DMA and scatterlist boundary",
+    "`lib/devres.zig` and `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` now provide one pure helper-first `dmam_alloc_coherent()` planning surface",
     "`scripts/zigux/check-phase13-devres-packet-alignment.py` stays in the same repo-reality gaps bucket",
-    "older `scripts/zigux/check-phase13-devres-packet.py` wording should stay treated as stale history rather than as the active checker label",
-    "`zigux/tests/phase13_devres_dma_coherent.zig` now materializes one direct replay surface for the planning-only DMA and scatterlist boundary",
-    "bounded current evidence is the direct DMA-boundary replay plus the planner note",
+    "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only",
+    "The bounded current evidence is the survey note, the planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the helper-first scatterlist helper plus replay",
 ]
 
 PLANNER_NOTE_MARKERS = [
     "# Phase 13 devres dmam_alloc_coherent Planner",
-    "pure `dmam_alloc_coherent()` planning surface",
-    "detach-time cleanup intent",
-    "`zigux/tests/phase13_devres_dma_coherent.zig` materialized on current `master`",
-    "`lib/devres.zig` itself remains an explicit repo-reality gap",
-    "does not treat the replay as proof",
+    "lands one pure `dmam_alloc_coherent()` planning surface in `lib/devres.zig`",
+    "routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)`",
+    "accepts already-decided allocation inputs",
+    "retains detach-time cleanup ownership on success",
+    "failed allocation frees the release record",
+    "does not claim live DMA allocation side effects",
     "dma_map_*",
     "dma_unmap_*",
     "dma_sync_*",
@@ -44,62 +46,62 @@ PLANNER_NOTE_MARKERS = [
     "struct scatterlist",
     "sg_table",
     "sg_*",
-    "zig test zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig",
+    "zig test --dep devres -Mroot=zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig -Mdevres=lib/devres.zig",
     "zig test zigux/tests/phase13_devres_dma_coherent.zig",
 ]
 
 DMA_REPLAY_MARKERS = [
     'test "phase13 devres dma coherent replay records blocked dma and scatterlist boundaries" {',
-    'phase13-devres-dmam-alloc-coherent-planner',
-    'phase13-devres-live-dmam-alloc-side-effects',
-    'blocked_on_dma_state',
-    'phase13-devres-live-scatterlist-ownership',
-    'blocked_on_scatterlist_state',
+    'try requireContains(manifest, "\\\"id\\\": \\\"phase13-devres-live-dmam-alloc-side-effects\\\"");',
+    'try requireContains(manifest, "\\\"id\\\": \\\"phase13-devres-live-scatterlist-ownership\\\"");',
     'test "phase13 devres dma coherent replay anchors the current slice reality" {',
-    'try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` now materializes one direct replay surface");',
-    'try requireContains(slice, "`lib/devres.zig`");',
-    'try requireContains(slice, "repo-reality gaps");',
+    'try requireContains(slice, "`zigux/tests/phase13_devres_dma_coherent.zig` plus `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `lib/devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist.zig` keep the current packet helper-first and planning-only");',
     'test "phase13 devres dma coherent replay keeps missing checker surfaces framed as gaps" {',
-    'try requireContains(slice, "`scripts/zigux/check-phase13-devres-packet-alignment.py`");',
-    'try requireContains(slice, "paired survey, helper, manifest, and broader direct replay packet");',
-    'test "phase13 devres dma coherent replay keeps the planner note helper-first" {',
-    'try requireContains(note, "pure `dmam_alloc_coherent()` planning surface");',
-    'try requireContains(note, "`lib/devres.zig` itself remains an explicit repo-reality gap");',
-    'try requireContains(note, "does not treat the replay as proof");',
+    'try requireContains(slice, "the older direct devres replay, reviewability gate, manifest-backed packet, and packet-alignment checker remain repo-reality gaps");',
+    'try requireContains(slice, "the broader direct helper packet stays an explicit repo-reality gap");',
+    'test "phase13 devres dma coherent replay anchors the survey-side scatterlist boundary" {',
+    'try requireContains(survey, "helper-first scatterlist helper and replay");',
+    'try requireContains(survey, "blocked `phase13-devres-live-scatterlist-ownership`");',
+    'try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");',
+    'test "phase13 devres dma coherent replay keeps scatterlist helper evidence helper-first" {',
+    'try requireContains(helper, ".provides_scatterlist_lifetime_planning = true");',
+    'try requireContains(helper, "pub fn planManagedScatterlistMap");',
+    'try requireContains(replay, "phase13 devres scatterlist release matching stays exact across original and mapped counts");',
 ]
 
 PLANNER_REPLAY_MARKERS = [
-    'test "phase13 devres dmam_alloc_coherent planner manifest records planning-only dma scope" {',
-    'P13-L08',
-    'phase13-devres-dmam-alloc-coherent-planner',
-    'planning_only',
-    'try requireContains(manifest, "Documentation/zigux/phase13-devres-slice.md");',
-    'try requireContains(manifest, "Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md");',
-    'try requireContains(manifest, "zigux/tests/phase13_devres_dma_coherent.zig");',
-    'test "phase13 devres dmam_alloc_coherent planner note keeps the slice helper-first and bounded" {',
-    'try requireContains(note, "detach-time cleanup intent");',
-    'try requireContains(note, "dma_map_sgtable()");',
-    'try requireContains(note, "struct scatterlist");',
+    'test "phase13 devres descriptor records helper-first dmam_alloc_coherent planning" {',
+    'test "phase13 devres exposes shared release-record lifetime planning" {',
+    'test "phase13 devres retains detach-time cleanup ownership when planned coherent allocation succeeds" {',
+    'test "phase13 devres drops detach-time cleanup ownership when planned coherent allocation fails" {',
+    'test "phase13 devres rejects coherent planning when the release record cannot be allocated" {',
+    'test "phase13 devres dmam_alloc_coherent planner manifest records the landed helper-first dma scope" {',
+    'try requireContains(manifest, "\\\"lane_key\\\": \\\"P13-L08\\\"");',
+    'try requireContains(manifest, "\\\"status\\\": \\\"starter_landed\\\"");',
+    'try requireContains(manifest, "planManagedReleaseRecordLifetime");',
+    'test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma slice bounded" {',
     'test "phase13 devres dmam_alloc_coherent planner note preserves standalone replay handles" {',
-    'try requireContains(note, "zig test zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig");',
-    'try requireContains(note, "zig test zigux/tests/phase13_devres_dma_coherent.zig");',
+    'test "phase13 devres slice note records the narrow landed dmam planner without claiming the broader packet" {',
+    'test "phase13 devres survey records the landed dmam planner and keeps the blocked dma boundaries explicit" {',
 ]
 
 PLANNER_MANIFEST_MARKERS = [
     '"lane_key": "P13-L08"',
     '"phase": "Phase 13"',
-    '"surveyed_commit": "master-readback-2026-05-17"',
     '"anchor": "lib/devres.c"',
     '"packet": "phase13-devres-dmam-alloc-coherent-planner"',
-    '"status": "planning_only"',
+    '"status": "starter_landed"',
     '"adjacent_evidence": [',
-    '"Documentation/zigux/phase13-devres-slice.md"',
+    '"lib/devres.zig"',
     '"Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md"',
+    '"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig"',
     '"zigux/tests/phase13_devres_dma_coherent.zig"',
     '"required_markers": [',
     '"pure `dmam_alloc_coherent()` planning surface"',
-    '"detach-time cleanup intent"',
-    '"avoid retaining detach-time cleanup ownership"',
+    '"planManagedDmamAllocCoherent"',
+    '"planManagedReleaseRecordLifetime"',
+    '"detach-time cleanup ownership on success"',
+    '"failed allocation frees the release record"',
     '"dma_map_*"',
     '"dma_unmap_*"',
     '"dma_sync_*"',
@@ -190,13 +192,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in SLICE_MARKERS
-                if marker != "bounded current evidence is the direct DMA-boundary replay plus the planner note"
+                if marker
+                != "The bounded current evidence is the survey note, the planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the helper-first scatterlist helper plus replay"
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ["slice:missing_marker:bounded current evidence is the direct DMA-boundary replay plus the planner note"],
+            [
+                "slice:missing_marker:The bounded current evidence is the survey note, the planner note and manifest, the new pure `dmam_alloc_coherent()` helper plus replay, the direct DMA-boundary replay, and the helper-first scatterlist helper plus replay"
+            ],
             "slice_missing_current_evidence_failed",
         )
         case_count += 1
@@ -207,14 +212,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in PLANNER_NOTE_MARKERS
-                if marker != "`lib/devres.zig` itself remains an explicit repo-reality gap"
+                if marker != "routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)`"
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ["planner_note:missing_marker:`lib/devres.zig` itself remains an explicit repo-reality gap"],
-            "planner_note_missing_gap_failed",
+            [
+                "planner_note:missing_marker:routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)`"
+            ],
+            "planner_note_missing_release_record_route_failed",
         )
         case_count += 1
 
@@ -224,14 +231,16 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in DMA_REPLAY_MARKERS
-                if marker != 'try requireContains(slice, "`scripts/zigux/check-phase13-devres-packet-alignment.py`");'
+                if marker != 'try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");'
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ['dma_replay:missing_marker:try requireContains(slice, "`scripts/zigux/check-phase13-devres-packet-alignment.py`");'],
-            "dma_replay_missing_gap_marker_failed",
+            [
+                'dma_replay:missing_marker:try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");'
+            ],
+            "dma_replay_missing_sg_table_boundary_failed",
         )
         case_count += 1
 
@@ -241,13 +250,13 @@ def run_self_test() -> int:
             "\n".join(
                 marker
                 for marker in PLANNER_REPLAY_MARKERS
-                if marker != "planning_only"
+                if marker != 'try requireContains(manifest, "\\\"status\\\": \\\"starter_landed\\\"");'
             )
             + "\n",
         )
         assert_only(
             validate(root),
-            ["planner_replay:missing_marker:planning_only"],
+            ['planner_replay:missing_marker:try requireContains(manifest, "\\\"status\\\": \\\"starter_landed\\\"");'],
             "planner_replay_missing_status_failed",
         )
         case_count += 1
