@@ -19,11 +19,17 @@ PACKET_FILES = {
         'try expectContains(hvc_header, "(*dtr_rts)");',
     ],
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig": [
+        'const hvc_console = @import("../../drivers/tty/hvc/hvc_console.zig");',
         'layout_assert.assertSize(HvOpsLayout, 72);',
         'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
         'assertExactType(',
         '@FieldType(HvOpsLayout, "get_chars")',
         '@FieldType(HvcExportSurface, "hvc_alloc")',
+        'test "phase11 HVC exported helper proof keeps exported HVC constants exact" {',
+        'try std.testing.expectEqual(@as(u32, 16), hvc_console.MAX_NR_HVC_CONSOLES);',
+        'try std.testing.expectEqual(@as(u32, 0x01), hvc_console.HVC_ALLOC_TTY_ADAPTERS);',
+        'try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES 16");',
+        'try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS 1");',
         'try expectContains(hvc_header, "int hvc_instantiate(uint32_t vtermno, int index, const struct hv_ops *ops);");',
         'try expectContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");',
     ],
@@ -120,8 +126,8 @@ def run_self_test() -> int:
         broken_path = broken_root / "zigux/tests/phase11_hvc_export_surface_layout_proof.zig"
         broken_text = broken_path.read_text(encoding="utf-8")
         broken_text = broken_text.replace(
-            '@FieldType(HvcExportSurface, "hvc_alloc")',
-            '@FieldType(HvcExportSurface, "hvc_remove")',
+            'try std.testing.expectEqual(@as(u32, 16), hvc_console.MAX_NR_HVC_CONSOLES);',
+            'try std.testing.expectEqual(@as(u32, 17), hvc_console.MAX_NR_HVC_CONSOLES);',
             1,
         )
         broken_path.write_text(broken_text, encoding="utf-8")
@@ -129,8 +135,8 @@ def run_self_test() -> int:
         missing, _ = check_root(broken_root)
         case_count += 1
         expect(
-            any('@FieldType(HvcExportSurface, "hvc_alloc")' in item for item in missing),
-            "expected exported-surface signature drift to fail",
+            any('try std.testing.expectEqual(@as(u32, 16), hvc_console.MAX_NR_HVC_CONSOLES);' in item for item in missing),
+            "expected exported constant drift to fail",
         )
 
         absent_root = tempdir / "absent"
