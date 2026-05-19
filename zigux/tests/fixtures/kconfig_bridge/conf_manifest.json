@@ -63,5 +63,35 @@
   ],
   "randconfig_env_packet": [
     "randconfig_expected.json"
+  ],
+  "helper_local_anchors": [
+    "conf bridge mode surface stays aligned with conf.c long options",
+    "conf bridge emits olddefconfig argv and env",
+    "conf bridge emits syncconfig auto files",
+    "conf bridge emits syncconfig nosilentupdate when present",
+    "conf bridge omits empty syncconfig nosilentupdate",
+    "conf bridge emits silent flag before mode flag",
+    "conf bridge emits alldefconfig argv and env",
+    "conf bridge emits explicit empty allconfig override for allmodconfig",
+    "conf bridge emits randconfig tunables when present",
+    "conf bridge emits explicit randconfig allconfig override when present",
+    "conf bridge omits randconfig allconfig sentinel without explicit override",
+    "conf bridge emits yes2modconfig argv and env",
+    "conf bridge emits defconfig mode argument before kconfig",
+    "conf bridge emits savedefconfig mode argument before kconfig",
+    "conf bridge escapes low control bytes in JSON strings",
+    "mode argument validation rejects bridge option shaped defconfig payload",
+    "mode argument validation accepts defconfig path that only starts with silent",
+    "mode argument validation still accepts ordinary path text with equals",
+    "bridge options parser accepts explicit allconfig override for allmodconfig",
+    "bridge options parser accepts syncconfig nosilentupdate",
+    "bridge options parser keeps empty syncconfig nosilentupdate unset",
+    "bridge options parser accepts generic silent flag",
+    "bridge options parser accepts silent alongside randconfig options",
+    "bridge options parser rejects duplicate silent flag",
+    "bridge options parser rejects duplicate randconfig probability",
+    "bridge options parser rejects unexpected options for mode",
+    "bridge options parser keeps empty randconfig tunables unset",
+    "bridge options parser rejects duplicate mode specific options"
   ]
 }
