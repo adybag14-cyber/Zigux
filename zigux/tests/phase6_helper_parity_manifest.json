@@ -15,6 +15,11 @@
     "scripts/zigux/check-phase6-shared-surface.py",
     "scripts/zigux/check-phase6-present-entrypoints.py"
   ],
+  "public_tree_backed_shared_companions": [
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md"
+  ],
+  "perf_evidence_readback_note": "Verified the current Phase 6 perf packet on 2026-05-19 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, zigux/tests/phase6_build.zig, and zigux/Makefile.",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -39,7 +44,24 @@
         "zigux/tests/phase6_base64_c_casegen.zig",
         "zigux/tests/fixtures/phase6_base64_c_harness.c",
         "scripts/zigux/check-phase6-base64-c-parity.py"
-      ]
+      ],
+      "current_perf_evidence": {
+        "case_labels": [
+          "STD_PAD",
+          "STD_NO_PAD",
+          "URLSAFE_PAD",
+          "URLSAFE_NO_PAD",
+          "IMAP_PAD",
+          "IMAP_NO_PAD"
+        ],
+        "iterations": 12000,
+        "max_encode_slowdown_pct": 150,
+        "max_decode_slowdown_pct": 325,
+        "linux_style_rerun_routes": [
+          "zig build phase6-base64-perf --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-base64-perf"
+        ]
+      }
     },
     {
       "key": "bsearch",
@@ -55,7 +77,22 @@
       ],
       "slice_note": "Documentation/zigux/phase6-bsearch-slice.md",
       "current_review_posture": "direct-helper-readback-restored",
-      "still_missing_direct_companions": []
+      "still_missing_direct_companions": [],
+      "current_perf_evidence": {
+        "budget_model": "comparison_budget",
+        "typed_lookup_budget_max_compare_calls": 4,
+        "raw_lookup_budget_max_compare_calls": 4,
+        "representative_lookup_count": 5,
+        "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
+        "runtime_selected_c_abi_replays": [
+          "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
+          "zigux/tests/phase6_bsearch_c_abi_budget.zig"
+        ],
+        "linux_style_rerun_routes": [
+          "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-bsearch-test"
+        ]
+      }
     },
     {
       "key": "checksum",
@@ -72,7 +109,26 @@
         "zigux/tests/phase6_checksum_c_parity.zig",
         "zigux/tests/fixtures/phase6_checksum_c_harness.c",
         "scripts/zigux/check-phase6-checksum-c-parity.py"
-      ]
+      ],
+      "current_perf_evidence": {
+        "cases": [
+          {
+            "label": "64B",
+            "iterations": 200000,
+            "max_slowdown_pct": 150
+          },
+          {
+            "label": "1501B",
+            "iterations": 12000,
+            "max_slowdown_pct": 150
+          }
+        ],
+        "linux_style_rerun_routes": [
+          "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-checksum-perf",
+          "make -C zigux phase6-perf"
+        ]
+      }
     },
     {
       "key": "hexdump",
@@ -88,12 +144,39 @@
       "still_missing_direct_companions": [
         "Documentation/zigux/phase6-hexdump-slice.md",
         "Documentation/zigux/phase6-hexdump-perf-refresh.md"
-      ]
+      ],
+      "current_perf_evidence": {
+        "cases": [
+          {
+            "label": "16B-plain-g1",
+            "reps": 40000,
+            "max_slowdown_pct": 175
+          },
+          {
+            "label": "32B-ascii-g2",
+            "reps": 10000,
+            "max_slowdown_pct": 550
+          },
+          {
+            "label": "16B-ascii-g4",
+            "reps": 20000,
+            "max_slowdown_pct": 550
+          },
+          {
+            "label": "16B-ascii-g8",
+            "reps": 20000,
+            "max_slowdown_pct": 600
+          }
+        ],
+        "linux_style_rerun_routes": [
+          "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-hexdump-perf",
+          "make -C zigux phase6-perf"
+        ]
+      }
     }
   ],
   "shared_follow_through_gaps": [
-    "Documentation/zigux/README.md",
-    "Documentation/zigux/phase6-helper-parity-catalog.md",
-    "Documentation/zigux/phase6-perf-gate-survey.md"
+    "Documentation/zigux/README.md"
   ]
 }
