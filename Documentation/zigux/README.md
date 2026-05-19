@@ -115,6 +115,7 @@ Phase 5 notes
 - `Documentation/zigux/phase5-sample-lane-sequencing.md`
 - `Documentation/zigux/phase5-kfifo-sample-survey.md`
 - `Documentation/zigux/phase5-kretprobe-sample-survey.md`
+- `Documentation/zigux/phase5-kobject-sample-survey.md`
 - `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 - `Documentation/zigux/review-checklist.md`
 - `samples/zigux/README.md`
@@ -126,6 +127,7 @@ keep the current four-anchor non-runtime sample packet explicit from the docs ro
   * keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit here as the shipped shared guard for the direct bytestream and kretprobe proof markers, the bounded trace-events companion wording, and the no-extra-sample boundary instead of treating the docs-root Phase 5 packet as guide-only prose.
   * keep the no-extra-sample boundary explicit here too: there is no standalone `samples/zigux/*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, or broad `*format*` Phase 5 reference sample on current `master`; keep those helper families tied to their existing helper or later-phase packets instead of treating the sample root as proof they landed here.
   * keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof, and keep the `kobject` anchor in roadmap-backed shared-reminder or repo-reality-gap wording until a fresh reread restores its older sample-root and tests-root packet as direct authenticated proof.
+  * keep the current `kobject` ownership-and-lifetime split explicit too: `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` are current direct reminder or packet evidence again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` stay public-tree-backed companion evidence until a fresh reread restores direct authenticated proof for those two routes.
 Phase 9 notes
 - Phase 9 notes - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`
 - `Documentation/zigux/review-checklist.md`
