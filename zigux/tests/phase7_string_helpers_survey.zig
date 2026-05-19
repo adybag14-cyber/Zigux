@@ -185,4 +185,12 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     defer allocator.free(samples_readme);
     try expectContains(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:");
     try expectContains(samples_readme, "* `*string*`");
+
+    try expectContains(slice_note, "do not count `scripts/zigux/validate-phase7.py`");
+    try expectContains(slice_note, "do not count `zigux/tests/phase7_build.zig`");
+
+    const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
+    defer allocator.free(sample_boundary);
+    try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-string-sample policy lane-local");
+    try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
 }
