@@ -102,7 +102,7 @@ When the lane reopens, sequence same-lane work in this order:
 Keep the non-runtime Phase 5 boundary explicit:
 
 - do not widen Phase 5 work into runtime-loader or runtime-pilot behavior
-- keep `samples/zigux/runtime_*.zig` and `*_loader.zig` families in the separate Phase 9 lane
+- keep the surviving `samples/zigux/runtime_trace_events*.zig` family in the separate Phase 9 lane, and keep the older runtime bitmap names `samples/zigux/runtime_bitmap.zig`, `samples/zigux/runtime_bitmap_loader.zig`, and `samples/zigux/runtime_bitmap_top_bit_contract.zig` framed as backlog-only Phase 9 support material until a fresh repo reread proves they returned on current `master`
 - do not widen toward freeze-in-C anchors such as `kernel/sched/core.c`, `mm/page_alloc.c`, `kernel/rcu/tree.c`, or `net/core/skbuff.c`
 - do not pull study-only `kernel/workqueue.c` or `kernel/trace/ring_buffer.c` into this lane
 
