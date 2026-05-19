@@ -1,29 +1,31 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-19T01:28:00Z",
+  "verified_on_utc": "2026-05-19T12:02:01Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
   ],
-  "current_direct_readback_state": "public_fallback_packet_with_shared_build_and_validator",
+  "current_direct_readback_state": "direct_anchor_note_survey_manifest_only",
   "visible_paths": [
+    "Documentation/zigux/phase7-rbtree-direct-anchor-note.md",
+    "zigux/tests/phase7_rbtree_survey.zig",
+    "zigux/tests/phase7_rbtree_manifest.json"
+  ],
+  "readable_non_owner_paths": [
+    "zigux/Makefile",
+    ".github/workflows/zigux-bootstrap.yml"
+  ],
+  "missing_paths": [
     "Documentation/zigux/phase7-rbtree-slice.md",
     "lib/rbtree.zig",
     "zigux/tests/phase7_rbtree.zig",
-    "zigux/tests/phase7_rbtree_survey.zig",
-    "zigux/tests/phase7_rbtree_manifest.json",
     "zigux/tests/fixtures/phase7_rbtree.json",
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
     "scripts/zigux/check-phase7-rbtree-parity.py",
     "zigux/tests/phase7_build.zig",
     "scripts/zigux/validate-phase7.py"
   ],
-  "readable_non_owner_paths": [
-    "zigux/Makefile",
-    ".github/workflows/zigux-bootstrap.yml"
-  ],
-  "missing_paths": [],
   "absent_makefile_markers": [
     "phase7-validate:",
     "phase7-rbtree-test:",
@@ -38,10 +40,10 @@
     "make -C zigux phase7-test"
   ],
   "ownership_focus": [
-    "the current public-fallback-visible rbtree packet now includes the slice note, helper, dedicated test, survey, manifest, fixture pair, parity checker, shared build file, and shared validator, so same-lane truthfulness must stop presenting those returned surfaces as missing on current master",
-    "same-lane follow-through can now use the restored helper-local rbtree packet or the returned shared build-and-validator evidence, but it still must not claim that the Phase 7 make-wrapper routes or workflow steps have returned on current master",
+    "the currently readable rbtree same-lane packet is limited to the direct-anchor note, survey, and manifest, so same-lane truthfulness must stop presenting the helper, dedicated test, fixture pair, parity checker, shared build file, and shared validator as returned on current master",
+    "same-lane follow-through can keep this reminder packet fail-closed on the missing helper-local and shared-build surfaces, but it still must not claim that the Phase 7 make-wrapper routes or workflow steps have returned on current master",
     "cross-helper truthfulness must keep the landed string_helpers packet explicit while keeping the cmdline, argv_split, and rbtree packets distinct instead of collapsing them into one shared reminder claim",
-    "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/tests/phase7_build.zig` and `scripts/zigux/validate-phase7.py` are directly readable again, while `zigux/Makefile` still lacks dedicated `phase7-*` wrapper routes and `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps"
+    "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` are readable, while the dedicated rbtree helper, parity checker, shared build file, and shared validator still do not directly materialize on current master"
   ],
-  "next_bounded_step": "Keep same-lane follow-through inside the restored rbtree helper-test-fixture-checker-build-validator packet, preferably by adding one bounded helper-local proof or one packet-truthfulness guard without widening into shared make-wrapper or workflow lanes."
+  "next_bounded_step": "Keep same-lane follow-through inside this direct-anchor-note, survey, and manifest truthfulness packet until one concrete rbtree helper-local surface rematerializes on current `master`, and do not widen into make-wrapper or workflow lanes before that happens."
 }
