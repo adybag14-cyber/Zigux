@@ -68,6 +68,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
     "`make -C zigux phase2`",
     "`scripts/zigux/install-zig.py`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
