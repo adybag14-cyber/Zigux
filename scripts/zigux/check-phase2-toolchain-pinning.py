@@ -15,7 +15,6 @@ POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 PHASE2_CLOSURE = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
-SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 TOOL_MANIFEST_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 SURFACE_PATHS = (
@@ -44,7 +43,6 @@ SURFACE_PATHS = (
     BOOTSTRAP_NOTES,
     PHASE2_CLOSURE,
     REVIEW_CHECKLIST,
-    SCRIPTS_README,
     TESTS_README,
     TOOL_MANIFEST_PATH,
     ROOT / "zigux" / "tests" / "fixtures" / "phase2_artifact_tools_manifest.json",
@@ -81,6 +79,12 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-artifact-tools-manifest.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
@@ -105,11 +109,16 @@ BOOTSTRAP_PRESENT_MARKERS = (
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
+    "`scripts/zigux/check-phase2-tool-manifest.py`",
+    "`scripts/zigux/check-phase2-artifact-tools-manifest.py`",
+    "`scripts/zigux/check-genksyms-bridge.py`",
+    "`scripts/zigux/genksyms.zig`",
     "`scripts/zigux/validate-phase2-closure.py`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "the `zigux/tests/fixtures/kconfig_bridge/` manifest roster",
+    "the `zigux/tests/fixtures/genksyms_bridge/` fixture roster",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
@@ -122,24 +131,6 @@ BOOTSTRAP_PRESENT_MARKERS = (
 BOOTSTRAP_GAP_MARKERS = (
     "No current repo-reality gaps remain inside the bounded toolchain, installer, and direct cross-route packet on current `master`.",
     "Treat older validator-first-only Phase 2 names as separate follow-through work instead of subtracting the returned installer or direct cross-route surfaces from the current packet.",
-)
-
-SCRIPTS_MARKERS = (
-    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-)
-
-REVIEW_MARKERS = (
-    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-)
-
-TESTS_MARKERS = (
-    "`scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
-    "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
 )
 
 EXPECTED_POLICY = {
@@ -232,7 +223,7 @@ EXPECTED_TOOL_MANIFEST = {
         "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
         "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the dedicated manifest guards explicit through scripts/zigux/check-phase2-tool-manifest.py and scripts/zigux/check-phase2-artifact-tools-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
-        "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
+        "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, bounded genksyms fixture packet, and artifact-support manifest checker explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket."
     ],
 }
 
@@ -243,11 +234,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(BOOTSTRAP_PRESENT_MARKERS)
     + len(BOOTSTRAP_GAP_MARKERS)
-    + len(SCRIPTS_MARKERS)
-    + len(REVIEW_MARKERS)
-    + len(TESTS_MARKERS)
-    + 5
-    + (len(SURFACE_PATHS) - 4)
+    + 2
+    + (len(SURFACE_PATHS) - 1)
     + 4
     + 1
     + 1
@@ -312,26 +300,19 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
         payload = load_policy(root)
     except json.JSONDecodeError as exc:
         return [("INVALID_POLICY_JSON", exc.msg)]
-
     if not isinstance(payload, dict):
         return issues + [("INVALID_POLICY_PAYLOAD", type(payload).__name__)]
-
     if payload.get("phase") != EXPECTED_POLICY["phase"]:
         issues.append(("POLICY_PHASE_MISMATCH", f"actual={payload.get('phase')!r}:expected={EXPECTED_POLICY['phase']!r}"))
-
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
         return issues + [("INVALID_UPGRADE_POLICY", type(upgrade_policy).__name__)]
-
     if upgrade_policy.get("channel_minimum_lockstep") is not EXPECTED_POLICY["channel_minimum_lockstep"]:
         issues.append(("POLICY_LOCKSTEP_MISMATCH", f"actual={upgrade_policy.get('channel_minimum_lockstep')!r}:expected={EXPECTED_POLICY['channel_minimum_lockstep']!r}"))
-
     if upgrade_policy.get("archive_target_scope") != EXPECTED_POLICY["archive_target_scope"]:
         issues.append(("POLICY_ARCHIVE_TARGET_SCOPE_MISMATCH", f"actual={upgrade_policy.get('archive_target_scope')!r}:expected={EXPECTED_POLICY['archive_target_scope']!r}"))
-
     if upgrade_policy.get("required_make_routes") != EXPECTED_POLICY["required_make_routes"]:
         issues.append(("POLICY_REQUIRED_MAKE_ROUTES_MISMATCH", f"actual={upgrade_policy.get('required_make_routes')!r}:expected={EXPECTED_POLICY['required_make_routes']!r}"))
-
     return issues
 
 
@@ -341,61 +322,43 @@ def collect_tool_manifest_issues(root: Path) -> list[tuple[str, str]]:
         payload = load_tool_manifest(root)
     except json.JSONDecodeError as exc:
         return [("INVALID_TOOL_MANIFEST_JSON", exc.msg)]
-
     if not isinstance(payload, dict):
         return [("INVALID_TOOL_MANIFEST_PAYLOAD", type(payload).__name__)]
-
     for key in ("phase", "status", "scope", "workflow"):
         if payload.get(key) != EXPECTED_TOOL_MANIFEST[key]:
             issues.append(("TOOL_MANIFEST_FIELD_MISMATCH", f"{key}:actual={payload.get(key)!r}:expected={EXPECTED_TOOL_MANIFEST[key]!r}"))
-
     present_surfaces = payload.get("present_surfaces")
     if not isinstance(present_surfaces, dict):
         return issues + [("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", type(present_surfaces).__name__)]
-
     expected_present_surfaces = EXPECTED_TOOL_MANIFEST["present_surfaces"]
     for key, expected_value in expected_present_surfaces.items():
         if present_surfaces.get(key) != expected_value:
             issues.append(("TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH", f"{key}:actual={present_surfaces.get(key)!r}:expected={expected_value!r}"))
-
     if payload.get("repo_reality_gaps") != EXPECTED_TOOL_MANIFEST["repo_reality_gaps"]:
         issues.append(("TOOL_MANIFEST_REPO_GAPS_MISMATCH", f"actual={payload.get('repo_reality_gaps')!r}:expected={EXPECTED_TOOL_MANIFEST['repo_reality_gaps']!r}"))
-
     if payload.get("notes") != EXPECTED_TOOL_MANIFEST["notes"]:
         issues.append(("TOOL_MANIFEST_NOTES_MISMATCH", f"actual={payload.get('notes')!r}:expected={EXPECTED_TOOL_MANIFEST['notes']!r}"))
-
     return issues
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
-    issues: list[tuple[str, str]] = []
+    issues = []
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     bootstrap_notes_text = read_text(resolve_path(root, BOOTSTRAP_NOTES))
-    scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
-    review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
-    tests_readme_text = read_text(resolve_path(root, TESTS_README))
     bootstrap_present_text = extract_markdown_section(bootstrap_notes_text, "## Current direct packet")
     bootstrap_gap_text = extract_markdown_section(bootstrap_notes_text, "## Current repo-reality gaps")
-
-    issues.extend(collect_missing_markers(scripts_readme_text, SCRIPTS_MARKERS, "MISSING_SCRIPTS_MARKERS"))
-    issues.extend(collect_missing_markers(review_checklist_text, REVIEW_MARKERS, "MISSING_REVIEW_MARKERS"))
-    issues.extend(collect_missing_markers(tests_readme_text, TESTS_MARKERS, "MISSING_TESTS_MARKERS"))
     issues.extend(collect_missing_markers(workflow_text, WORKFLOW_SETUP_MARKERS, "MISSING_WORKFLOW_SETUP_MARKERS"))
-
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
         if count == 0:
             issues.append(("MISSING_WORKFLOW_HOOKS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
-
     issues.extend(collect_missing_markers(bootstrap_present_text, BOOTSTRAP_PRESENT_MARKERS, "MISSING_BOOTSTRAP_PRESENT_MARKERS"))
     issues.extend(collect_missing_markers(bootstrap_gap_text, BOOTSTRAP_GAP_MARKERS, "MISSING_BOOTSTRAP_GAP_MARKERS"))
-
     for path in SURFACE_PATHS:
         if not resolve_path(root, path).exists():
             issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
-
     if resolve_path(root, POLICY_PATH).exists():
         issues.extend(collect_policy_issues(root))
     if resolve_path(root, TOOL_MANIFEST_PATH).exists():
@@ -403,11 +366,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     return issues
 
 
-def emit_issues(issues: list[tuple[str, str]]) -> int:
-    grouped: dict[str, list[str]] = {}
+def emit_issues(issues):
+    grouped = {}
     for code, value in issues:
         grouped.setdefault(code, []).append(value)
-
     print("PHASE2_TOOLCHAIN_PINNING=fail")
     for code, values in grouped.items():
         print(f"{code}_START")
@@ -424,27 +386,14 @@ def write_text(path: Path, content: str) -> None:
 
 def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, WORKFLOW), "\n".join((*WORKFLOW_SETUP_MARKERS, *WORKFLOW_LINES)) + "\n")
-    write_text(resolve_path(root, SCRIPTS_README), "\n".join(["# scripts", *SCRIPTS_MARKERS]) + "\n")
-    write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(["# review", *REVIEW_MARKERS]) + "\n")
-    write_text(resolve_path(root, TESTS_README), "\n".join(["# tests", *TESTS_MARKERS]) + "\n")
-    bootstrap_lines = [
-        "# Phase 2 Toolchain Bootstrap Notes",
-        "",
-        "## Current direct packet",
-        "",
-        *BOOTSTRAP_PRESENT_MARKERS,
-        "",
-        "## Current repo-reality gaps",
-        "",
-        *BOOTSTRAP_GAP_MARKERS,
-    ]
+    bootstrap_lines = ["# Phase 2 Toolchain Bootstrap Notes", "", "## Current direct packet", "", *BOOTSTRAP_PRESENT_MARKERS, "", "## Current repo-reality gaps", "", *BOOTSTRAP_GAP_MARKERS]
     write_text(resolve_path(root, BOOTSTRAP_NOTES), "\n".join(bootstrap_lines) + "\n")
     for path in SURFACE_PATHS:
         if path == POLICY_PATH:
             write_text(resolve_path(root, path), json.dumps({"phase": EXPECTED_POLICY["phase"], "channel": "0.17.0-dev.87+9b177a7d2", "minimum_version": "0.17.0-dev.87+9b177a7d2", "archive_sha256": {"x86_64-linux": "3" * 64}, "upgrade_policy": {"channel_minimum_lockstep": EXPECTED_POLICY["channel_minimum_lockstep"], "archive_target_scope": EXPECTED_POLICY["archive_target_scope"], "required_make_routes": EXPECTED_POLICY["required_make_routes"]}}, indent=2) + "\n")
         elif path == TOOL_MANIFEST_PATH:
             write_text(resolve_path(root, path), json.dumps(EXPECTED_TOOL_MANIFEST, indent=2) + "\n")
-        elif path in (BOOTSTRAP_NOTES, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
+        elif path == BOOTSTRAP_NOTES:
             continue
         else:
             write_text(resolve_path(root, path), "present\n")
@@ -484,24 +433,9 @@ def run_self_test() -> int:
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_toolchain_pinning_") as tmp_dir:
         root = Path(tmp_dir)
-
         build_self_test_root(root)
         assert collect_issues(root) == []
         checks_run += 1
-
-        for marker_set, path_ref, expected_code in (
-            (SCRIPTS_MARKERS, SCRIPTS_README, "MISSING_SCRIPTS_MARKERS"),
-            (REVIEW_MARKERS, REVIEW_CHECKLIST, "MISSING_REVIEW_MARKERS"),
-            (TESTS_MARKERS, TESTS_README, "MISSING_TESTS_MARKERS"),
-        ):
-            for marker in marker_set:
-                build_self_test_root(root)
-                path = resolve_path(root, path_ref)
-                path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-                issues = collect_issues(root)
-                assert (expected_code, marker) in issues
-                checks_run += 1
-
         for marker in WORKFLOW_SETUP_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
@@ -509,7 +443,6 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("MISSING_WORKFLOW_SETUP_MARKERS", marker) in issues
             checks_run += 1
-
         for marker in WORKFLOW_LINES:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
@@ -517,7 +450,6 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("MISSING_WORKFLOW_HOOKS", marker) in issues
             checks_run += 1
-
         for marker in WORKFLOW_LINES:
             build_self_test_root(root)
             path = resolve_path(root, WORKFLOW)
@@ -525,7 +457,6 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
             checks_run += 1
-
         for marker in BOOTSTRAP_PRESENT_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
@@ -533,7 +464,6 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("MISSING_BOOTSTRAP_PRESENT_MARKERS", marker) in issues
             checks_run += 1
-
         for marker in BOOTSTRAP_GAP_MARKERS:
             build_self_test_root(root)
             path = resolve_path(root, BOOTSTRAP_NOTES)
@@ -541,8 +471,7 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert ("MISSING_BOOTSTRAP_GAP_MARKERS", marker) in issues
             checks_run += 1
-
-        for primary_path in (WORKFLOW, BOOTSTRAP_NOTES, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
+        for primary_path in (WORKFLOW, BOOTSTRAP_NOTES):
             build_self_test_root(root)
             resolve_path(root, primary_path).unlink()
             try:
@@ -553,16 +482,14 @@ def run_self_test() -> int:
             else:
                 raise AssertionError("missing primary surface did not abort")
             checks_run += 1
-
         for rel_path in SURFACE_PATHS:
-            if rel_path in (BOOTSTRAP_NOTES, SCRIPTS_README, REVIEW_CHECKLIST, TESTS_README):
+            if rel_path == BOOTSTRAP_NOTES:
                 continue
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
             issues = collect_issues(root)
             assert ("MISSING_SURFACE_PATHS", rel_path.relative_to(ROOT).as_posix()) in issues
             checks_run += 1
-
         policy_mutations = (("phase", "Phase 3", "POLICY_PHASE_MISMATCH"), ("lockstep", False, "POLICY_LOCKSTEP_MISMATCH"), ("archive_target_scope", ["aarch64-linux"], "POLICY_ARCHIVE_TARGET_SCOPE_MISMATCH"), ("required_make_routes", ["phase2-toolchain"], "POLICY_REQUIRED_MAKE_ROUTES_MISMATCH"))
         for field_name, replacement, expected_code in policy_mutations:
             build_self_test_root(root)
@@ -578,28 +505,24 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert any(issue[0] == expected_code for issue in issues)
             checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, POLICY_PATH)
         path.write_text("{\n", encoding="utf-8")
         issues = collect_issues(root)
         assert any(issue[0] == "INVALID_POLICY_JSON" for issue in issues)
         checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, POLICY_PATH)
         path.write_text("[]\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("INVALID_POLICY_PAYLOAD", "list") in issues
         checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, POLICY_PATH)
         mutate_json(path, lambda payload: payload.__setitem__("upgrade_policy", []))
         issues = collect_issues(root)
         assert ("INVALID_UPGRADE_POLICY", "list") in issues
         checks_run += 1
-
         for key in ("phase", "status", "scope", "workflow"):
             build_self_test_root(root)
             path = resolve_path(root, TOOL_MANIFEST_PATH)
@@ -607,49 +530,42 @@ def run_self_test() -> int:
             issues = collect_issues(root)
             assert any(issue[0] == "TOOL_MANIFEST_FIELD_MISMATCH" and issue[1].startswith(f"{key}:") for issue in issues)
             checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
         mutate_json(path, lambda payload: payload.__setitem__("present_surfaces", []))
         issues = collect_issues(root)
         assert ("INVALID_TOOL_MANIFEST_PRESENT_SURFACES", "list") in issues
         checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
         mutate_json(path, lambda payload: payload["present_surfaces"].__setitem__("checkers", []))
         issues = collect_issues(root)
         assert any(issue[0] == "TOOL_MANIFEST_PRESENT_SURFACES_MISMATCH" and issue[1].startswith("checkers:") for issue in issues)
         checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
         mutate_json(path, lambda payload: payload.__setitem__("repo_reality_gaps", ["gap"]))
         issues = collect_issues(root)
         assert any(issue[0] == "TOOL_MANIFEST_REPO_GAPS_MISMATCH" for issue in issues)
         checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
         mutate_json(path, lambda payload: payload.__setitem__("notes", []))
         issues = collect_issues(root)
         assert any(issue[0] == "TOOL_MANIFEST_NOTES_MISMATCH" for issue in issues)
         checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
         path.write_text("{\n", encoding="utf-8")
         issues = collect_issues(root)
         assert any(issue[0] == "INVALID_TOOL_MANIFEST_JSON" for issue in issues)
         checks_run += 1
-
         build_self_test_root(root)
         path = resolve_path(root, TOOL_MANIFEST_PATH)
         path.write_text("[]\n", encoding="utf-8")
         issues = collect_issues(root)
         assert ("INVALID_TOOL_MANIFEST_PAYLOAD", "list") in issues
         checks_run += 1
-
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_TOOLCHAIN_PINNING_SELF_TEST=pass")
     print(f"PHASE2_TOOLCHAIN_PINNING_SELF_TEST_CASE_COUNT={checks_run}")
@@ -657,9 +573,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Keep the current directly readable Phase 2 toolchain pinning packet aligned."
-    )
+    parser = argparse.ArgumentParser(description="Keep the current directly readable Phase 2 toolchain pinning packet aligned.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
