@@ -104,3 +104,17 @@ test "strErrorR returns slices backed by the caller buffer" {
     const generated_rendered = strErrorR(4096, &generated_buffer);
     try std.testing.expectEqual(@intFromPtr(&generated_buffer[0]), @intFromPtr(generated_rendered.ptr));
 }
+
+test "strErrorR reuses caller buffers cleanly after longer messages" {
+    var buffer = [_]u8{0xaa} ** 64;
+    const long_rendered = strErrorR(4096, &buffer);
+    try std.testing.expectEqualStrings("INTERNAL ERROR: strerror_r(4096, [buf], 64)=22", long_rendered);
+
+    const success_rendered = strErrorR(0, &buffer);
+    try std.testing.expectEqualStrings("Success", success_rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[success_rendered.len]);
+
+    const permission_rendered = strErrorR(13, &buffer);
+    try std.testing.expectEqualStrings("Permission denied", permission_rendered);
+    try std.testing.expectEqual(@as(u8, 0), buffer[permission_rendered.len]);
+}
