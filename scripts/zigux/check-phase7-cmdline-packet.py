@@ -25,7 +25,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "- cmdline packet, lane `P7-L10`:",
         "  - `Documentation/zigux/phase7-cmdline-slice.md`",
-        "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, and checker now directly materialize on current `master`",
+        "  - `samples/zigux/README.md`",
+        "Fresh helper-local reread for this slot confirmed the dedicated cmdline slice, companion replay, survey, manifest, checker, and no-sample boundary now directly materialize on current `master`",
         "`P7-L10` owns only cmdline helper-local parity, survey, manifest, checker, or reminder drift;",
     ],
     "Documentation/zigux/phase7-cmdline-slice.md": [
@@ -74,7 +75,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 10
+SELF_TEST_CASE_COUNT = 11
 
 
 def read_text(path: Path) -> str:
@@ -150,6 +151,19 @@ def run_self_test() -> None:
             "missing_sequencing_owner_marker",
             tmp_root,
             f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        sequencing_text = read_text(sequencing_path)
+        sequencing_samples_marker = "  - `samples/zigux/README.md`"
+        sequencing_path.write_text(
+            sequencing_text.replace(sequencing_samples_marker + "\n", "", 1),
+            encoding="utf-8",
+        )
+        expect_missing_marker(
+            "missing_sequencing_samples_boundary_marker",
+            tmp_root,
+            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_samples_marker}",
         )
         write_fixture_root(tmp_root)
 
