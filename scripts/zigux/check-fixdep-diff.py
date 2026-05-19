@@ -493,12 +493,28 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample_comment_only:expected_exit_code_type=bool,expected=int",
     )
 
+    mismatched_depfile_cases = copy_valid_cases(valid_cases)
+    find_case(mismatched_depfile_cases, "sample")["depfile"] = "sample-wrong.d"
+    counted_expect_failure(
+        "mismatched_depfile_field",
+        lambda: validate_cases(mismatched_depfile_cases),
+        f"{CASES_PATH}:sample:depfile='sample-wrong.d',expected='sample.d'",
+    )
+
     mismatched_target_cases = copy_valid_cases(valid_cases)
     find_case(mismatched_target_cases, "sample")["target"] = "sample-wrong.o"
     counted_expect_failure(
         "mismatched_target_field",
         lambda: validate_cases(mismatched_target_cases),
         f"{CASES_PATH}:sample:target='sample-wrong.o',expected='sample.o'",
+    )
+
+    mismatched_cmdline_cases = copy_valid_cases(valid_cases)
+    find_case(mismatched_cmdline_cases, "sample")["cmdline"] = "clang -c sample.c -o sample.o"
+    counted_expect_failure(
+        "mismatched_cmdline_field",
+        lambda: validate_cases(mismatched_cmdline_cases),
+        f"{CASES_PATH}:sample:cmdline='clang -c sample.c -o sample.o',expected='clang -Iinclude -DZIGUX_SAMPLE -c zigux/tests/fixtures/fixdep/sample.c -o sample.o'",
     )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_output_fixture_") as tmp_dir:
