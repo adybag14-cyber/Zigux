@@ -43,7 +43,7 @@ test "phase10 virtio ring survey note keeps the missing broader replay explicit 
         "test \"phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay\" {",
     );
     try expectContains(build_file, "phase10_virtio_ring_survey_module");
-    try expectContains(build_file, "\\\"phase10-virtio-ring-survey-tests\\\"");
+    try expectContains(build_file, "\"phase10-virtio-ring-survey-tests\"");
     try expectContains(build_file, "run_phase10_virtio_ring_survey_tests.step");
 }
 
