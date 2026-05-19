@@ -15,27 +15,32 @@
   - `scripts/zigux/check-phase11-header-boundary-packet.py`
   - `Documentation/zigux/phase11-shared-replay-contract.md`
   - `zigux/tests/phase11_build.zig`
-- current machine-checked HVC header-boundary evidence instead lives in the newer focused proof packet:
-  - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
-  - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
-  - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
-  - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
-  - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+- current machine-checked HVC header-boundary evidence instead lives in the newer focused proof packet and its current-head companion stack:
+  - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+  - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
+  - `scripts/zigux/check-phase11-build-inventory.py`
+  - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
   - `zigux/tests/fixtures/phase11_build_inventory.json`
+  - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
+  - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
+  - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+  - `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
+  - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
+  - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
   - `drivers/tty/hvc/hvc_console.h`
 
 ## Roadmap Fit
 - Phase 11 still treats bounded watchdog and HVC public surfaces as the simple-production-driver anchors.
 - Phase 11 still requires reviewable validation and honest failure-mode evidence before expansion.
-- Because the older shared header-survey companions are gone from current `master`, this note is truthful only if it records that the live repo now proves the HVC-side header boundary through focused proof shards and cleanup-packet evidence rather than a restored shared replay route.
+- Because the older shared header-survey companions are gone from current `master`, this note is truthful only if it records that the live repo now proves the HVC-side header boundary through focused proof shards, their build files, and the current-head inventory/checker companion stack rather than a restored shared replay route.
 - The roadmap still keeps watchdog and HVC surfaces in scope, so this note should not imply that the old shared `watchdog_info` replay remains live when the current accessible packet is narrower and HVC-centered.
 
 ## Current-Head Boundary
-- `phase11-hvc-hv-ops-layout-proof-tests`: `zigux/tests/phase11_hvc_hv_ops_layout_build.zig` still proves `struct hv_ops` at size 72, alignment 8, with callback-table offsets 0 through 64, and ties each callback marker back to `drivers/tty/hvc/hvc_console.h`.
-- `phase11-hvc-export-surface-layout-proof-tests`: the same focused build keeps `struct winsize` explicit at size 8, alignment 2, with offsets 0, 2, 4, and 6, and keeps the exported HVC helper declarations machine-checked through `notifier_hangup_irq`.
+- `phase11-hvc-hv-ops-layout-proof-tests`: `zigux/tests/phase11_hvc_hv_ops_layout_build.zig` still materializes the focused header-proof route, and `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig` still proves `struct hv_ops` at size 72, alignment 8, with callback-table offsets 0 through 64 while tying each callback marker back to `drivers/tty/hvc/hvc_console.h`.
+- `phase11-hvc-export-surface-layout-proof-tests`: the same focused proof/build pair keeps `struct winsize` explicit at size 8, alignment 2, with offsets 0, 2, 4, and 6, and keeps the exported HVC helper declarations machine-checked through `notifier_hangup_irq`.
 - `phase11-hvc-console-header-constant-assert`: `drivers/tty/hvc/hvc_console.h` still exposes `MAX_NR_HVC_CONSOLES` and `HVC_ALLOC_TTY_ADAPTERS` beside the `hv_ops` callback table and exported helper declarations.
-- `phase11-build-inventory-adjunct`: `zigux/tests/fixtures/phase11_build_inventory.json` now points at `zigux/tests/phase11_hvc_cleanup_packet_build.zig` and lists the two header-proof modules plus the cleanup packet proof instead of a shared `zigux/tests/phase11_build.zig` route.
-- `phase11-hvc-cleanup-packet-proof`: `zigux/tests/phase11_hvc_cleanup_packet_proof.zig` keeps the current-head HVC cleanup packet aligned with the survey, cleanup companion, validation matrix, verify-helper boundary note, and `drivers/tty/hvc/hvc_console.zig` helper summaries without pretending that the removed shared header packet still exists.
+- `phase11-build-inventory-adjunct`: `zigux/tests/fixtures/phase11_build_inventory.json` now points at `zigux/tests/phase11_hvc_cleanup_packet_build.zig`, lists the two header-proof modules plus the cleanup-packet proof module, records the exact `check-phase11-build-inventory.py` and `check-phase11-hvc-cleanup-current-head.py` readback commands, and keeps both dedicated survey replays and shared split replays empty instead of pretending the removed shared `zigux/tests/phase11_build.zig` route is still live.
+- `phase11-hvc-cleanup-packet-proof`: `zigux/tests/phase11_hvc_cleanup_packet_proof.zig` and `zigux/tests/phase11_hvc_cleanup_packet_build.zig` keep the current-head HVC cleanup packet aligned with the survey, the companion note, the validation matrix, the verify-helper boundary note, and `drivers/tty/hvc/hvc_console.zig` helper summaries without pretending that the removed shared header packet still exists.
 
 ## Why This Stays Bounded
 
