@@ -270,9 +270,20 @@ test "cpumask validity rejects non-zero reserved bytes and closes helpers" {
     invalid.reserved = 1;
     const projected = binding.asBitmap(invalid);
     const summary = summarize(invalid);
+    const bitmap_summary = bitmap.summarize(projected);
 
+    try std.testing.expectEqual(invalid.words_addr, projected.words_addr);
+    try std.testing.expectEqual(invalid.nbits, projected.nbits);
+    try std.testing.expectEqual(invalid.word_count, projected.word_count);
     try std.testing.expect(bitmap.isValid(projected));
     try std.testing.expect(bitmap.testBit(projected, 3));
+    try std.testing.expectEqual(@as(u32, 3), bitmap.firstSet(projected));
+    try std.testing.expectEqual(@as(u32, 0), bitmap.firstZero(projected));
+    try std.testing.expectEqual(@as(u32, 1), bitmap.weight(projected));
+    try std.testing.expectEqual(@as(u32, 3), bitmap_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), bitmap_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 1), bitmap_summary.weight);
+    try std.testing.expectEqual(@as(u32, 0), bitmap_summary.reserved);
     try std.testing.expect(!isValid(invalid));
     try std.testing.expect(!cpuIsSet(invalid, 3));
     try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
@@ -360,9 +371,20 @@ test "cpumask validity requires nr_cpu_ids to match the bounded bit count" {
     invalid.nr_cpu_ids = 7;
     const projected = binding.asBitmap(invalid);
     const summary = summarize(invalid);
+    const bitmap_summary = bitmap.summarize(projected);
 
+    try std.testing.expectEqual(invalid.words_addr, projected.words_addr);
+    try std.testing.expectEqual(invalid.nbits, projected.nbits);
+    try std.testing.expectEqual(invalid.word_count, projected.word_count);
     try std.testing.expect(bitmap.isValid(projected));
     try std.testing.expect(bitmap.testBit(projected, 4));
+    try std.testing.expectEqual(@as(u32, 4), bitmap.firstSet(projected));
+    try std.testing.expectEqual(@as(u32, 0), bitmap.firstZero(projected));
+    try std.testing.expectEqual(@as(u32, 1), bitmap.weight(projected));
+    try std.testing.expectEqual(@as(u32, 4), bitmap_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), bitmap_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 1), bitmap_summary.weight);
+    try std.testing.expectEqual(@as(u32, 0), bitmap_summary.reserved);
     try std.testing.expect(!isValid(invalid));
     try std.testing.expect(!cpuIsSet(invalid, 4));
     try std.testing.expectEqual(@as(u32, 0), firstCpu(invalid));
