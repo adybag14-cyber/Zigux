@@ -19,7 +19,7 @@
     "Documentation/zigux/phase6-helper-parity-catalog.md",
     "Documentation/zigux/phase6-perf-gate-survey.md"
   ],
-  "perf_evidence_readback_note": "Verified the current Phase 6 perf packet on 2026-05-19 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, zigux/tests/phase6_build.zig, and zigux/Makefile.",
+  "perf_evidence_readback_note": "Verified the current Phase 6 perf packet on 2026-05-19 from direct current-master readback of zigux/tests/phase6_base64_perf.zig, zigux/tests/fixtures/phase6_base64_vectors.zig, zigux/tests/phase6_bsearch.zig, zigux/tests/phase6_bsearch_perf.zig, zigux/tests/phase6_bsearch_lower_bound_c_abi.zig, zigux/tests/phase6_bsearch_c_abi_budget.zig, zigux/tests/fixtures/phase6_bsearch_vectors.zig, zigux/tests/phase6_checksum_perf.zig, zigux/tests/fixtures/phase6_checksum_vectors.zig, zigux/tests/phase6_hexdump_perf.zig, zigux/tests/fixtures/phase6_hexdump_vectors.zig, zigux/tests/phase6_build.zig, and zigux/Makefile.",
   "roadmap_anchors": [
     "lib/base64.c",
     "lib/bsearch.c",
@@ -68,6 +68,7 @@
       "roadmap_anchor": "lib/bsearch.c",
       "zig_helper": "lib/bsearch.zig",
       "focused_helper_replay": "zigux/tests/phase6_bsearch.zig",
+      "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
       "focused_c_abi_replays": [
         "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
         "zigux/tests/phase6_bsearch_c_abi_budget.zig"
@@ -80,9 +81,12 @@
       "still_missing_direct_companions": [],
       "current_perf_evidence": {
         "budget_model": "comparison_budget",
-        "typed_lookup_budget_max_compare_calls": 4,
-        "raw_lookup_budget_max_compare_calls": 4,
-        "representative_lookup_count": 5,
+        "case_labels": [
+          "len15",
+          "len64",
+          "len1024"
+        ],
+        "query_count": 16,
         "bound_budget_formula": "std.math.log2_int_ceil(len) + 1",
         "runtime_selected_c_abi_replays": [
           "zigux/tests/phase6_bsearch_lower_bound_c_abi.zig",
@@ -90,7 +94,9 @@
         ],
         "linux_style_rerun_routes": [
           "zig build phase6-bsearch-test --build-file zigux/tests/phase6_build.zig",
-          "make -C zigux phase6-bsearch-test"
+          "make -C zigux phase6-bsearch-test",
+          "zig build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-bsearch-perf"
         ]
       }
     },
