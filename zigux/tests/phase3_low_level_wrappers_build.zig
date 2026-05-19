@@ -25,6 +25,12 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     unsafe_policy.addImport("abi_bindings", abi_bindings);
+    const narrow = b.createModule(.{
+        .root_source_file = b.path("../unsafe/narrow.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    narrow.addImport("abi_bindings", abi_bindings);
     const mmio = b.createModule(.{
         .root_source_file = b.path("../helpers/mmio.zig"),
         .target = target,
@@ -41,6 +47,8 @@ pub fn build(b: *std.Build) void {
     root_module.addImport("atomic", atomic);
     root_module.addImport("barrier", barrier);
     root_module.addImport("mmio", mmio);
+    root_module.addImport("unsafe_policy", unsafe_policy);
+    root_module.addImport("narrow", narrow);
 
     const unit_tests = b.addTest(.{
         .root_module = root_module,
