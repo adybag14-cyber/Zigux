@@ -212,9 +212,9 @@ REQUIRED_MARKERS = {
         "const header_is_canonical = abi.headerIsCanonical(default_header);",
         "abi.STATUS_FLAG_ERROR,",
         "abi.NOTIFIER_DONE,",
-        '@offsetOf(abi.NotifierBlock, \"priority\"),',
+        '@offsetOf(abi.NotifierBlock, "priority"),',
         '"  \\\"abi_version\\\": {},\\n"',
-        '"  \\\"notifier\\\": {{\\n',
+        '"  \\\"notifier\\\": {\\n"',
     ),
     MANIFEST_PATH: (
         '"phase": "Phase 3"',
@@ -286,6 +286,7 @@ REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
+    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
 )
 
 REQUIRED_REPO_REALITY_GAPS = (
@@ -305,18 +306,23 @@ SAMPLE_MANIFEST = {
     "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work",
 }
 
+
 def _read(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
 
 def _write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8", newline="\n")
 
+
 def _header_names(text: str) -> set[str]:
     return set(HEADER_DEFINE_RE.findall(text))
 
+
 def _binding_names(text: str) -> set[str]:
     return set(BINDING_CONST_RE.findall(text))
+
 
 def _append_duplicate_list_entry_issues(
     manifest_name: str,
@@ -335,6 +341,7 @@ def _append_duplicate_list_entry_issues(
             f"{manifest_name} duplicate {field_name} entry: "
             f"{value!r} (first index {first_index}, duplicate index {index})"
         )
+
 
 def validate_repo(repo_root: Path) -> list[str]:
     issues: list[str] = []
@@ -445,6 +452,7 @@ def validate_repo(repo_root: Path) -> list[str]:
 
     return issues
 
+
 def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_abi_check_") as temp_dir:
         root = Path(temp_dir)
@@ -491,6 +499,22 @@ def run_self_test() -> int:
             _write(root / populate_path, "\n".join(markers) + "\n")
         _write(root / MANIFEST_PATH, json.dumps(SAMPLE_MANIFEST, indent=2) + "\n")
         manifest = json.loads(_read(root / MANIFEST_PATH))
+        manifest["replay_routes"].remove(REQUIRED_REPLAY_ROUTES[-1])
+        _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        issues = validate_repo(root)
+        expected_missing_route = (
+            "phase3_abi_manifest.json missing replay route: "
+            f"{REQUIRED_REPLAY_ROUTES[-1]}"
+        )
+        if expected_missing_route not in issues:
+            print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+            print("expected missing export/uapi layout replay route was not reported")
+            return 1
+
+        for populate_path, markers in REQUIRED_MARKERS.items():
+            _write(root / populate_path, "\n".join(markers) + "\n")
+        _write(root / MANIFEST_PATH, json.dumps(SAMPLE_MANIFEST, indent=2) + "\n")
+        manifest = json.loads(_read(root / MANIFEST_PATH))
         manifest["repo_reality_gaps"].append(BINDING_ABI.as_posix())
         _write(root / MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
         issues = validate_repo(root)
@@ -504,8 +528,9 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 3}")
+    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 4}")
     return 0
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(
@@ -533,6 +558,7 @@ def main() -> int:
     print("PHASE3_ABI_CHECK=pass")
     print("PHASE3_ABI_SCOPE=shared-abi-packet")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
