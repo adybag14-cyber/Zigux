@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -26,6 +27,7 @@ MARKERS = {
         "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
         "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
+        "Current Repo Reality - `Documentation/zigux/phase11-validation-matrix-gap-survey.md` - `Documentation/zigux/phase11-driver-lane-sequencing.md` - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
         "Current repo rereads in this run rematerialize the gpio watchdog, HVC, and DesignWare matrix notes",
         "do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
         "The reread driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
@@ -43,6 +45,7 @@ FORBIDDEN_MARKERS = {
     "matrix_gap_note": [
         "`PHASE11_MATRIX_GAP_STATUS=gpio_and_hvc_matrices_direct_readback_only`",
         "do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+        "Current Repo Reality - `Documentation/zigux/phase11-validation-matrix-gap-survey.md` - `Documentation/zigux/phase11-driver-lane-sequencing.md` - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
         "The directly readable driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` and `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "does not stand in for a whole-Phase-11 replay roster while the current direct-readback expansion is limited to the gpio and HVC matrix notes plus the existing HVC continuity packet",
         "`PHASE11_MATRIX_GAP_STATUS=all_phase11_driver_matrices_direct_readback_only`",
@@ -206,6 +209,9 @@ def build_self_test_fixture(root: Path) -> None:
 
 - `PHASE11_MATRIX_GAP_STATUS=gpio_hvc_and_dw_reread_with_bcm_gap`
 - lane: `P11-L03`
+- Current Repo Reality
+- `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
@@ -248,6 +254,14 @@ def expect_failure(root: Path, expected_fragment: str) -> None:
     raise AssertionError(f"expected failure containing {expected_fragment!r}")
 
 
+def remove_marker(text: str, marker: str) -> str:
+    pattern = r"\s+".join(re.escape(part) for part in marker.split())
+    updated_text, count = re.subn(pattern, "", text, flags=re.MULTILINE)
+    if count < 1:
+        raise AssertionError(f"expected to remove marker from fixture: {marker!r}")
+    return updated_text
+
+
 def run_self_test() -> None:
     tmpdir = Path(tempfile.mkdtemp(prefix="phase11_matrix_gap_validation_"))
     try:
@@ -257,6 +271,10 @@ def run_self_test() -> None:
 
         required_cases = [
             ("matrix_gap_note", "`PHASE11_MATRIX_GAP_STATUS=gpio_hvc_and_dw_reread_with_bcm_gap`"),
+            (
+                "matrix_gap_note",
+                "Current Repo Reality - `Documentation/zigux/phase11-validation-matrix-gap-survey.md` - `Documentation/zigux/phase11-driver-lane-sequencing.md` - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+            ),
             (
                 "matrix_gap_note",
                 "The reread driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, `Documentation/zigux/phase11-hvc-console-validation-matrix.md`, and `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
@@ -271,7 +289,7 @@ def run_self_test() -> None:
             shutil.copytree(fixture_root, case_root, dirs_exist_ok=True)
             path = case_root / FILES[label]
             path.write_text(
-                path.read_text(encoding="utf-8").replace(marker + "\n", "", 1).replace(marker, "", 1),
+                remove_marker(path.read_text(encoding="utf-8"), marker),
                 encoding="utf-8",
             )
             expect_failure(case_root, marker)
@@ -281,12 +299,12 @@ def run_self_test() -> None:
         path = forbidden_root / FILES["matrix_gap_note"]
         path.write_text(
             path.read_text(encoding="utf-8")
-            + "`PHASE11_MATRIX_GAP_STATUS=gpio_and_hvc_matrices_direct_readback_only`\n",
+            + "Current Repo Reality - `Documentation/zigux/phase11-validation-matrix-gap-survey.md` - `Documentation/zigux/phase11-driver-lane-sequencing.md` - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`\n",
             encoding="utf-8",
         )
         expect_failure(
             forbidden_root,
-            "`PHASE11_MATRIX_GAP_STATUS=gpio_and_hvc_matrices_direct_readback_only`",
+            "Current Repo Reality - `Documentation/zigux/phase11-validation-matrix-gap-survey.md` - `Documentation/zigux/phase11-driver-lane-sequencing.md` - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
         )
 
         wrong_count_root = tmpdir / "wrong_count"
@@ -311,7 +329,7 @@ def run_self_test() -> None:
         expect_failure(wrong_test_root_root, "test_root_modules does not match")
 
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=7")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=8")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
