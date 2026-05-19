@@ -286,6 +286,20 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try expectContains(sample_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
 
     try expectContains(fail_closed_file, "phase9 trace-events sample keeps unregistered function-thread failures fail-closed");
+
     try expectContains(exit_guard_file, "phase9 trace-events sample keeps exit rollback explicit after reusable selftest replay");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);");
+    try expectContains(exit_guard_file, "try std.testing.expectError(error.OutstandingRegistration, module.exit());");
+    try expectContains(exit_guard_file, "try expectSummaryStable(before_failed_exit, after_failed_exit);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.selftest_complete, before_exit.stage);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 0), before_exit.registration_depth);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);");
+    try expectContains(exit_guard_file, "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);");
+    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());");
+    try expectContains(exit_guard_file, "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(17));");
+    try expectContains(exit_guard_file, "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);");
+
     try expectContains(reentry_file, "phase9 trace-events sample keeps registration reentry reusable across initialized and selftest_complete stages");
 }
