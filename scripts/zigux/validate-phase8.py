@@ -57,11 +57,11 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "scripts/zigux/validate-phase8.py",
     ),
     Path("Documentation/zigux/review-checklist.md"): (
-        "if the change touches the parked Phase 8 `exec-cmd` packet",
-        "`zigux/tests/phase8_exec_cmd.zig`",
-        "`make -C zigux phase8-exec-cmd-test`",
-        "`make -C zigux phase8-validate`",
-        "separate `kernel/workqueue.c` Phase 14 boundary-study target",
+        "if the change touches the shared Phase 8 userspace-adjacent tooling packet",
+        "`scripts/zigux/check-phase8-libbpf-shard-routes.py`",
+        "`zigux/tests/phase8_perf_buffer_poll.zig`",
+        "`zigux/tests/phase8_libbpf_segments.zig`",
+        "`make -C zigux phase8-perf-buffer-poll-test`",
     ),
     Path("scripts/zigux/README.md"): (
         "## Phase 8",
