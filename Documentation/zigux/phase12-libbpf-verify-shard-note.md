@@ -23,7 +23,7 @@ It keeps a bounded verify-shard boundary visible without turning the shared rele
 
 - `tools/lib/bpf/zigux_segments/verify.zig` is directly readable on current `master`, but it stays a bounded compile-together shard for the currently readable helper subset rather than proof that the shared release packet adopted a focused libbpf replay route
 - the direct `phase12_libbpf_*` replay files plus `tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig` stay recorded only through shared survey, parked, or anti-overlap notes until they land again on current `master`
-- the current verify shard keeps only the currently readable helper subset explicit: `logging.zig`, `perf_buffer_poll.zig`, `pin_path.zig`, and `type_names.zig`
+- the current verify shard keeps only the currently readable helper subset explicit: `cpu_mask.zig`, `logging.zig`, `online_cpu_routing.zig`, `perf_buffer_poll.zig`, `pin_path.zig`, and `type_names.zig`
 - the older `tools/lib/bpf/zigux_segments/manifest.json` helper catalog remains historical packet context for the parked libbpf packet rather than a directly readable current-master artifact or proof of a shipped shared replay route
 - the snapshot anchor remains the truthful bounded signal here while those direct replay files stay absent from the shipped checkout
 - the snapshot checker keeps that parked note-owned packet fail-closed around `Documentation/zigux/phase12-libbpf-segment-survey.md`, this verify-shard note, `Documentation/zigux/phase12-libbpf-heavy-consumer-lane-sequencing.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md` without promoting the parked replay files into the shipped smoke-first route
