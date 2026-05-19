@@ -19,21 +19,23 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 TOOL_MANIFEST_PATH = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-zig-toolchain.py",
-    ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "install-zig.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py",
     ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pin-scope.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py",
+    ROOT / "scripts" / "zigux" / "check-kconfig-bridge.py",
     ROOT / "scripts" / "zigux" / "check-phase2-kconfig-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
+    ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
     ROOT / "scripts" / "zigux" / "validate-phase2.py",
     ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
     ROOT / "scripts" / "zigux" / "kconfig" / "conf_bridge.zig",
     ROOT / "scripts" / "zigux" / "kconfig" / "confdata_bridge.zig",
+    ROOT / "scripts" / "zigux" / "genksyms.zig",
     ROOT / "zigux" / "Makefile",
     POLICY_PATH,
     BOOTSTRAP_NOTES,
@@ -46,6 +48,12 @@ SURFACE_PATHS = (
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "cases.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
     ROOT / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "cases.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "help_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "minimal_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "debug_reference_types_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "long_options_expected.json",
+    ROOT / "zigux" / "tests" / "fixtures" / "genksyms_bridge" / "quiet_overrides_warning_expected.json",
 )
 
 WORKFLOW_SETUP_MARKERS = (
@@ -115,7 +123,7 @@ EXPECTED_POLICY = {
 EXPECTED_TOOL_MANIFEST = {
     "phase": "Phase 2",
     "status": "active",
-    "scope": "current directly readable scripts-root toolchain, installer, direct cross-route, kbuild, kconfig, make-wrapper, and tranche-closure reminder packet",
+    "scope": "current directly readable scripts-root toolchain, installer, direct cross-route, kbuild, kconfig, genksyms, make-wrapper, and tranche-closure reminder packet",
     "workflow": ".github/workflows/zigux-bootstrap.yml",
     "present_surfaces": {
         "review_surfaces": [
@@ -140,6 +148,7 @@ EXPECTED_TOOL_MANIFEST = {
             "scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "scripts/zigux/check-phase2-required-make-routes.py",
             "scripts/zigux/check-phase2-docs-shared-reminder.py",
+            "scripts/zigux/check-genksyms-bridge.py",
         ],
         "bootstrap_helpers": [
             "scripts/zigux/install-zig.py",
@@ -147,6 +156,7 @@ EXPECTED_TOOL_MANIFEST = {
         "bridge_helpers": [
             "scripts/zigux/kconfig/conf_bridge.zig",
             "scripts/zigux/kconfig/confdata_bridge.zig",
+            "scripts/zigux/genksyms.zig",
         ],
         "policy": [
             "scripts/zigux/zig-toolchain-policy.json",
@@ -157,6 +167,7 @@ EXPECTED_TOOL_MANIFEST = {
             "make -C zigux phase2-tools",
             "make -C zigux phase2-kconfig",
             "make -C zigux phase2-cross",
+            "make -C zigux phase2-genksyms",
             "make -C zigux phase2-validate",
             "make -C zigux phase2",
         ],
@@ -171,15 +182,21 @@ EXPECTED_TOOL_MANIFEST = {
             "zigux/tests/fixtures/kconfig_bridge/cases.json",
             "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
             "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+            "zigux/tests/fixtures/genksyms_bridge/cases.json",
+            "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
         ],
     },
     "repo_reality_gaps": [],
     "notes": [
-        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, cross-selftest checker, and the restored tranche-closure note.",
+        "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, cross-selftest checker, and the restored tranche-closure note.",
         "Keep scripts/zigux/validate-phase2-closure.py out of the repo-reality-gap list because the closure validator is directly readable on current master and the closure-side packet depends on it as a live validation surface.",
-        "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
+        "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
         "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
-        "Keep the returned installer helper, direct cross-route checker, and phase2_cross_targets fixture explicit through the bounded toolchain packet instead of leaving them in the repo-reality-gap bucket.",
+        "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, and bounded genksyms fixture packet explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
     ],
 }
 
