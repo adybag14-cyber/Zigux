@@ -23,6 +23,10 @@ pub fn init(major: u32, minor: u32) Fields {
     };
 }
 
+pub fn eql(left: Fields, right: Fields) bool {
+    return left.major == right.major and left.minor == right.minor;
+}
+
 pub fn makeDeviceNumber(major: u32, minor: u32) u32 {
     return (major << minor_bits) | (minor & max_minor);
 }
@@ -87,4 +91,19 @@ test "dev_t packing stays aligned with the starter boundary" {
     try std.testing.expectEqual(fields.minor, roundtrip.minor);
     try std.testing.expectEqual(max_major, majorFromDeviceNumber(max_encoded));
     try std.testing.expectEqual(max_minor, minorFromDeviceNumber(max_encoded));
+}
+
+test "dev_t equality stays field-wise across direct and packed values" {
+    const original = init(11, 29);
+    const same = init(11, 29);
+    const different_major = init(12, 29);
+    const different_minor = init(11, 30);
+    const roundtrip = fieldsFromDeviceNumber(makeDeviceNumber(original.major, original.minor));
+    const max_roundtrip = fieldsFromDeviceNumber(makeDeviceNumber(max_major, max_minor));
+
+    try std.testing.expect(eql(original, same));
+    try std.testing.expect(eql(original, roundtrip));
+    try std.testing.expect(!eql(original, different_major));
+    try std.testing.expect(!eql(original, different_minor));
+    try std.testing.expect(eql(init(max_major, max_minor), max_roundtrip));
 }
