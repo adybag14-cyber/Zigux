@@ -71,13 +71,21 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "zigux/tests/phase8_perf_buffer_poll.zig",
     ),
     Path("Documentation/zigux/phase8-libbpf-segment-survey.md"): (
-        "make -C zigux phase8-libbpf-segments-test",
-        "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
-        "make -C zigux phase8-perf-buffer-poll-test",
-        "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
-        "make -C zigux phase8-test",
-        "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
-        "scripts/zigux/validate-phase8.py",
+        "survey checkpoint: refreshed against current `master` readback on",
+        "tools/lib/bpf/zigux_segments/verify.zig",
+        "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+        "tools/lib/bpf/zigux_segments/logging.zig",
+        "tools/lib/bpf/zigux_segments/type_names.zig",
+        "tools/lib/bpf/zigux_segments/pin_path.zig",
+        "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+        "tools/lib/bpf/zigux_segments/manifest.json",
+        "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+        "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+        "zigux/tests/phase8_build.zig",
+        "zigux/tests/phase8_libbpf_segments.zig",
+        "verify.zig` now directly imports `cpu_mask.zig`, `logging.zig`, `perf_buffer_poll.zig`, `pin_path.zig`, and `type_names.zig`",
+        "the roadmap still calls for segmented libbpf delivery under `tools/lib/bpf/zigux_segments/`",
+        "the shared bridge-boundary note, review checklist, and tests-root guide remain useful reminder surfaces",
     ),
     Path("Documentation/zigux/review-checklist.md"): (
         "if the change touches the parked Phase 8 `exec-cmd` packet",
@@ -249,13 +257,21 @@ def _passing_fixture(root: Path) -> None:
         root / "Documentation/zigux/phase8-libbpf-segment-survey.md",
         "\n".join(
             (
-                "scripts/zigux/validate-phase8.py",
-                "make -C zigux phase8-libbpf-segments-test",
-                "zig build test --build-file zigux/tests/phase8_libbpf_segments_only_build.zig --summary all",
-                "make -C zigux phase8-perf-buffer-poll-test",
-                "zig build test --build-file zigux/tests/phase8_perf_buffer_poll_only_build.zig --summary all",
-                "make -C zigux phase8-test",
-                "zig build test --build-file zigux/tests/phase8_build.zig --summary all",
+                "survey checkpoint: refreshed against current `master` readback on 2026-05-19",
+                "tools/lib/bpf/zigux_segments/verify.zig",
+                "tools/lib/bpf/zigux_segments/cpu_mask.zig",
+                "tools/lib/bpf/zigux_segments/logging.zig",
+                "tools/lib/bpf/zigux_segments/type_names.zig",
+                "tools/lib/bpf/zigux_segments/pin_path.zig",
+                "tools/lib/bpf/zigux_segments/perf_buffer_poll.zig",
+                "tools/lib/bpf/zigux_segments/manifest.json",
+                "tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig",
+                "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+                "zigux/tests/phase8_build.zig",
+                "zigux/tests/phase8_libbpf_segments.zig",
+                "verify.zig` now directly imports `cpu_mask.zig`, `logging.zig`, `perf_buffer_poll.zig`, `pin_path.zig`, and `type_names.zig`",
+                "the roadmap still calls for segmented libbpf delivery under `tools/lib/bpf/zigux_segments/`",
+                "the shared bridge-boundary note, review checklist, and tests-root guide remain useful reminder surfaces",
             )
         ),
     )
@@ -403,19 +419,19 @@ def run_self_test() -> int:
         original_survey = _read(survey)
         survey.write_text(
             original_survey.replace(
-                "make -C zigux phase8-libbpf-segments-test",
-                "make -C zigux phase8-libbpf-survey-test",
+                "tools/lib/bpf/zigux_segments/online_cpu_routing.zig",
+                "tools/lib/bpf/zigux_segments/offline_cpu_routing.zig",
                 1,
             ),
             encoding="utf-8",
         )
-        missing_survey_route = validate_root(root)
-        expected_survey_route = (
+        missing_survey_marker = validate_root(root)
+        expected_survey_marker = (
             "Documentation/zigux/phase8-libbpf-segment-survey.md:"
-            "make -C zigux phase8-libbpf-segments-test"
+            "tools/lib/bpf/zigux_segments/online_cpu_routing.zig"
         )
-        if expected_survey_route not in missing_survey_route.missing_markers:
-            raise AssertionError("expected missing libbpf survey route marker to be reported")
+        if expected_survey_marker not in missing_survey_marker.missing_markers:
+            raise AssertionError("expected missing libbpf survey marker to be reported")
         survey.write_text(original_survey, encoding="utf-8")
 
         bridge_test = root / "zigux/tests/phase8_file_path_handle_bridge.zig"
