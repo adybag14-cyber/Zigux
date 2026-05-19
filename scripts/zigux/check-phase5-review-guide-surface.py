@@ -54,7 +54,22 @@ REQUIRED_TEXT = (
     "The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback still did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited, while public-tree fallback still exposes the bounded packet below:",
     "Keep shared contributor guidance honest about that split instead of restating the older kobject packet as direct authenticated proof or flattening it into a pure missing-packet story.",
     "Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in the public-tree-backed-companion-plus-authenticated-gap bucket, same-lane follow-through should stay inside these bounded categories:",
+    "Keep the current ten-cue review contract explicit in shared contributor guidance when a bytestream reminder surface is refreshed:",
+    "Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.",
     "Respect the freeze map too.",
+)
+
+BYTESTREAM_CONTRACT_MARKERS = (
+    "`bounded_fifo_order`",
+    "`wraparound_requeue`",
+    "`peek_and_skip`",
+    "`non_destructive_snapshot`",
+    "`preview_truncation`",
+    "`remaining_capacity`",
+    "`queue_shape_boundaries`",
+    "`helper_boundaries`",
+    "`reset_and_replay`",
+    "`ownership_and_lifetime`",
 )
 
 NO_EXTRA_SAMPLE_MARKERS = (
@@ -93,6 +108,10 @@ def collect_failures(root: Path) -> list[str]:
         if marker not in guide:
             failures.append(f"guide:missing_text:{marker}")
 
+    for marker in BYTESTREAM_CONTRACT_MARKERS:
+        if marker not in guide:
+            failures.append(f"guide:missing_bytestream_contract:{marker}")
+
     for marker in NO_EXTRA_SAMPLE_MARKERS:
         if marker not in guide:
             failures.append(f"guide:missing_boundary:{marker}")
@@ -130,6 +149,7 @@ def _sample_guide() -> str:
     )
     public_tree = "\n".join(f"* `{rel}`" for rel in PUBLIC_TREE_PACKET_PATHS)
     trace_gaps = "\n".join(f"* `{rel}`" for rel in TRACE_EVENTS_COMPANION_GAP_PATHS)
+    bytestream_contract = "\n".join(f"* {marker}" for marker in BYTESTREAM_CONTRACT_MARKERS)
     no_extra = "\n".join(f"* {marker}" for marker in NO_EXTRA_SAMPLE_MARKERS)
     return f"""# Phase 5 Sample Review Guide
 
@@ -167,6 +187,12 @@ For the shared tracing and probe lane, ground reviewer guidance in the restored 
 * `scripts/zigux/check-phase5-review-guide-surface.py`
 * `zigux/tests/README.md`
 
+Keep the current ten-cue review contract explicit in shared contributor guidance when a bytestream reminder surface is refreshed:
+
+{bytestream_contract}
+
+Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
+
 The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback still did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited, while public-tree fallback still exposes the bounded packet below:
 
 {public_tree}
@@ -199,7 +225,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 7
+    expected_case_count = 8
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -239,6 +265,18 @@ def run_self_test() -> int:
         expected = ["repo:missing_public_tree_path:zigux/tests/phase5_build.zig"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-public-tree-file failure: {failures}")
+        checks_run += 1
+
+        missing_bytestream_contract_root = root / "missing_bytestream_contract"
+        _seed(missing_bytestream_contract_root)
+        _write(
+            missing_bytestream_contract_root / GUIDE_PATH,
+            _sample_guide().replace(BYTESTREAM_CONTRACT_MARKERS[6], "", 1),
+        )
+        failures = collect_failures(missing_bytestream_contract_root)
+        expected = [f"guide:missing_bytestream_contract:{BYTESTREAM_CONTRACT_MARKERS[6]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-bytestream-contract failure: {failures}")
         checks_run += 1
 
         missing_boundary_root = root / "missing_boundary"
@@ -301,6 +339,7 @@ def main() -> int:
     print("PHASE5_REVIEW_GUIDE_SURFACE=pass")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DIRECT_PACKET_COUNT={len(DIRECT_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_PACKET_COUNT={len(PUBLIC_TREE_PACKET_PATHS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_BYTESTREAM_CONTRACT_COUNT={len(BYTESTREAM_CONTRACT_MARKERS)}")
     return 0
 
 
