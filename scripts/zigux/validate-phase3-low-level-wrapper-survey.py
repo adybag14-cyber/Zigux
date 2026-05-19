@@ -18,6 +18,7 @@ UNSAFE_POLICY_PATH = Path("zigux/helpers/unsafe_policy.zig")
 NARROW_PATH = Path("zigux/unsafe/narrow.zig")
 WRAPPER_REPLAY_PATH = Path("zigux/tests/phase3_low_level_wrappers.zig")
 WRAPPER_BUILD_PATH = Path("zigux/tests/phase3_low_level_wrappers_build.zig")
+SHARED_TESTS_README_PATH = Path("zigux/tests/README.md")
 SHARED_TESTS_BUILD_PATH = Path("zigux/tests/build.zig")
 WORKFLOW_PATH = Path(".github/workflows/zigux-bootstrap.yml")
 WRAPPER_BUILD_COMMAND = "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig"
@@ -26,7 +27,7 @@ REQUIRED_MARKERS = {
     NOTE_PATH: (
         "PHASE3_LOW_LEVEL_WRAPPER_SCOPE=the roadmap and bootstrap ledger still reserve a bounded Phase 3 low-level wrapper family for approved atomic, barrier, and MMIO wrappers, and current master now directly exposes one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, one shared narrow-unsafe decoder, this dedicated survey note, a dedicated survey validator, one focused low-level-wrapper replay shard, and one dedicated shared build companion",
         "PHASE3_LOW_LEVEL_WRAPPER_GAP=direct current-head readback on 2026-05-19 reaches Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md, zigux/helpers/atomic.zig, zigux/helpers/barrier.zig, zigux/helpers/mmio.zig, zigux/helpers/unsafe_policy.zig, zigux/unsafe/narrow.zig, scripts/zigux/validate-phase3-low-level-wrapper-survey.py, zigux/tests/phase3_low_level_wrappers.zig, and zigux/tests/phase3_low_level_wrappers_build.zig; adjacent shared Phase 3 validator, shared ABI checker, shared ABI catalog helper, and export/UAPI survey-validator surfaces now read separately on current master, while the separate catalog-selftest guard remains an adjacent broader gap",
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and shared tests-root wiring while the separate catalog-selftest guard stays outside this wrapper packet",
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the separate catalog-selftest guard stays outside this wrapper packet",
         "`zigux/helpers/atomic.zig`",
         "`zigux/helpers/barrier.zig`",
         "`zigux/helpers/mmio.zig`",
@@ -36,6 +37,7 @@ REQUIRED_MARKERS = {
         "`zigux/tests/phase3_low_level_wrappers.zig`",
         "`zigux/tests/phase3_low_level_wrappers_build.zig`",
         "`zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "The shared tests-root reminder in `zigux/tests/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig` explicit beside the starter, helper, policy, and layout-replay packet, so the low-level-wrapper survey no longer treats shared tests-root coverage as a separate missing follow-through.",
         "That directly coupled build companion and the live `zigux/helpers/mmio.zig` helper both depend on `zigux/helpers/unsafe_policy.zig`, so the packet reminder needs to keep that helper-local unsafe-policy surface explicit instead of undercounting it as if the MMIO wrapper stood alone.",
         "Reviewers should treat the low-level wrapper family as materially landed as a bounded packet on current `master`: one atomic helper shard, one barrier helper companion, one MMIO helper companion, one directly readable unsafe-policy companion, the shared narrow-unsafe decoder, the dedicated survey validator, one focused low-level-wrapper replay shard, one dedicated shared build companion, and one direct replay command are directly readable, while the broader shared Phase 3 catalog-selftest guard remains a separate gap.",
         "Current `master` now separately exposes the adjacent shared Phase 3 validator entrypoint through `scripts/zigux/validate-phase3.py`, the shared ABI checker through `scripts/zigux/check-phase3-abi.py`, the shared ABI catalog helper through `scripts/zigux/phase3_catalog.py`, the export/UAPI boundary survey note through `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, the packet-local export/UAPI survey validator through `scripts/zigux/validate-phase3-export-uapi-survey.py`, and the focused export/UAPI layout replay through `zigux/tests/phase3_export_uapi_layout.zig` plus `zigux/tests/phase3_export_uapi_layout_build.zig`, while the separate catalog-selftest guard `scripts/zigux/check-phase3-catalog-selftest.py` is still not directly readable here and should stay framed as an adjacent gap rather than as landed same-lane proof.",
@@ -98,6 +100,18 @@ REQUIRED_MARKERS = {
         'mmio.addImport("unsafe_policy", unsafe_policy);',
         '"phase3-low-level-wrappers-test"',
     ),
+    SHARED_TESTS_README_PATH: (
+        "## Phase 3 shared substrate packet",
+        "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`",
+        "`scripts/zigux/validate-phase3-export-uapi-survey.py`",
+        "`Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`",
+        "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`",
+        "`zigux/tests/phase3_low_level_wrappers.zig`",
+        "`zigux/tests/phase3_low_level_wrappers_build.zig`",
+        "`zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`",
+        "`zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig`",
+        "`zig build phase3-test --build-file zigux/tests/build.zig`",
+    ),
     SHARED_TESTS_BUILD_PATH: (
         "fn addPhase3LowLevelWrappers(",
         '.root_source_file = b.path("../helpers/atomic.zig"),',
@@ -128,7 +142,11 @@ SELF_TEST_CASES = (
     ),
     (
         NOTE_PATH,
-        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and shared tests-root wiring while the separate catalog-selftest guard stays outside this wrapper packet",
+        "PHASE3_LOW_LEVEL_WRAPPER_NEXT_STEP=keep low-level wrapper follow-through bounded to shared validation truthfulness around the directly coupled unsafe-policy companion, the dedicated build companion, the direct zig build phase3-low-level-wrappers-test replay route, and the shared tests-root reminder while the separate catalog-selftest guard stays outside this wrapper packet",
+    ),
+    (
+        NOTE_PATH,
+        "The shared tests-root reminder in `zigux/tests/README.md` now keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.md`, `scripts/zigux/validate-phase3-export-uapi-survey.py`, `Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`, `scripts/zigux/validate-phase3-low-level-wrapper-survey.py`, `zigux/tests/phase3_low_level_wrappers.zig`, `zigux/tests/phase3_low_level_wrappers_build.zig`, and `zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig` explicit beside the starter, helper, policy, and layout-replay packet, so the low-level-wrapper survey no longer treats shared tests-root coverage as a separate missing follow-through.",
     ),
     (
         NOTE_PATH,
@@ -146,10 +164,7 @@ SELF_TEST_CASES = (
         CHECKER_PATH,
         'print("PHASE3_ABI_CHECK=pass")',
     ),
-    (
-        ATOMIC_PATH,
-        "pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {",
-    ),
+    (ATOMIC_PATH, "pub fn compareExchangeFailureOrderAllowed(success: Ordering, failure: Ordering) bool {"),
     (BARRIER_PATH, "pub fn compiler() void {"),
     (BARRIER_PATH, "pub fn acquire() void {"),
     (BARRIER_PATH, "pub fn full() void {"),
@@ -175,6 +190,16 @@ SELF_TEST_CASES = (
     (WRAPPER_BUILD_PATH, 'mmio.addImport("abi_bindings", abi_bindings);'),
     (WRAPPER_BUILD_PATH, 'mmio.addImport("unsafe_policy", unsafe_policy);'),
     (WRAPPER_BUILD_PATH, '"phase3-low-level-wrappers-test"'),
+    (SHARED_TESTS_README_PATH, "## Phase 3 shared substrate packet"),
+    (SHARED_TESTS_README_PATH, "`Documentation/zigux/phase3-export-uapi-boundary-survey.md`"),
+    (SHARED_TESTS_README_PATH, "`scripts/zigux/validate-phase3-export-uapi-survey.py`"),
+    (SHARED_TESTS_README_PATH, "`Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md`"),
+    (SHARED_TESTS_README_PATH, "`scripts/zigux/validate-phase3-low-level-wrapper-survey.py`"),
+    (SHARED_TESTS_README_PATH, "`zigux/tests/phase3_low_level_wrappers.zig`"),
+    (SHARED_TESTS_README_PATH, "`zigux/tests/phase3_low_level_wrappers_build.zig`"),
+    (SHARED_TESTS_README_PATH, "`zig build phase3-export-uapi-layout --build-file zigux/tests/build.zig`"),
+    (SHARED_TESTS_README_PATH, "`zig build phase3-low-level-wrappers --build-file zigux/tests/build.zig`"),
+    (SHARED_TESTS_README_PATH, "`zig build phase3-test --build-file zigux/tests/build.zig`"),
     (SHARED_TESTS_BUILD_PATH, "fn addPhase3LowLevelWrappers("),
     (SHARED_TESTS_BUILD_PATH, '"phase3-low-level-wrappers"'),
     (SHARED_TESTS_BUILD_PATH, '"phase3-test"'),
