@@ -67,3 +67,54 @@ test "phase10 virtio ring broken queues reject used accounting so clearBroken ca
     try std.testing.expectEqual(@as(u16, 1), readiness.outstanding_chain_count);
     try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
 }
+
+test "phase10 virtio ring clearBroken exposes the next reset blocker across unpublished outstanding and unpolled debt" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(4, 8, .split, true, false);
+    try ring.defineQueue(5, 8, .packed_ring, true, false);
+    try ring.defineQueue(6, 8, .split, true, false);
+
+    try ring.publishDescriptorChain(4);
+    try ring.publishDescriptorChain(4);
+    _ = try ring.markBroken(4);
+    const cleared_unpublished = try ring.clearBroken(4);
+    try std.testing.expect(!cleared_unpublished.broken);
+    try std.testing.expectEqual(@as(u16, 2), cleared_unpublished.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), cleared_unpublished.outstanding_chain_count);
+    var readiness = try ring.queueResetReadinessSummary(4);
+    try std.testing.expect(!readiness.reset_ready);
+    try std.testing.expectEqualStrings("unpublished_chains", @tagName(readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 2), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 2), readiness.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
+
+    try ring.publishDescriptorChain(5);
+    _ = try ring.prepareKick(5);
+    _ = try ring.markBroken(5);
+    const cleared_outstanding = try ring.clearBroken(5);
+    try std.testing.expect(!cleared_outstanding.broken);
+    try std.testing.expectEqual(@as(u16, 0), cleared_outstanding.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), cleared_outstanding.outstanding_chain_count);
+    readiness = try ring.queueResetReadinessSummary(5);
+    try std.testing.expect(!readiness.reset_ready);
+    try std.testing.expectEqualStrings("outstanding_chains", @tagName(readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 0), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), readiness.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.pending_used_chain_count);
+
+    try ring.publishDescriptorChain(6);
+    _ = try ring.prepareKick(6);
+    try ring.recordUsedChains(6, 1);
+    _ = try ring.markBroken(6);
+    const cleared_unpolled = try ring.clearBroken(6);
+    try std.testing.expect(!cleared_unpolled.broken);
+    try std.testing.expectEqual(@as(u16, 0), cleared_unpolled.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), cleared_unpolled.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), cleared_unpolled.pending_used_chain_count);
+    readiness = try ring.queueResetReadinessSummary(6);
+    try std.testing.expect(!readiness.reset_ready);
+    try std.testing.expectEqualStrings("unpolled_used_chains", @tagName(readiness.blocker.?));
+    try std.testing.expectEqual(@as(u16, 0), readiness.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), readiness.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 1), readiness.pending_used_chain_count);
+}
