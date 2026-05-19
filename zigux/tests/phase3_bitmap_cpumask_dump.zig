@@ -29,7 +29,7 @@ fn writeCase(
     trailing_comma: bool,
 ) !void {
     try writer.print(
-        "    {{\n" ++
+        "    {\n" ++
             "      \"name\": \"{s}\",\n" ++
             "      \"kind\": \"{s}\",\n" ++
             "      \"nbits\": {},\n" ++
@@ -84,6 +84,8 @@ pub fn main(init: std.process.Init) !void {
     var cpumask_clear_words = [_]usize{0};
     const cpumask_clear = cpumask_view.viewFromWords(cpumask_clear_words[0..], 16);
     const cpumask_clear_summary = cpumask_view.summarize(cpumask_clear);
+    const cpumask_clear_projected = binding.asBitmap(cpumask_clear);
+    const cpumask_clear_projected_summary = bitmap_view.summarize(cpumask_clear_projected);
 
     var cpumask_cross_words = [_]usize{
         (@as(usize, 1) << 5) | (@as(usize, 1) << (bitmap_view.bits_per_word - 1)),
@@ -100,7 +102,7 @@ pub fn main(init: std.process.Init) !void {
     const cpumask_full_summary = cpumask_view.summarize(cpumask_full);
 
     try writer.print(
-        "{{\n" ++
+        "{\n" ++
             "  \"word_bits\": {},\n" ++
             "  \"bitmap_view_abi_version\": {},\n" ++
             "  \"cpumask_view_abi_version\": {},\n" ++
@@ -158,6 +160,22 @@ pub fn main(init: std.process.Init) !void {
         cpumask_view.cpuIsSet(cpumask_clear, 0),
         15,
         cpumask_view.cpuIsSet(cpumask_clear, 15),
+        true,
+    );
+    try writeCase(
+        writer,
+        "cpumask_all_clear_projected_bitmap",
+        "bitmap",
+        cpumask_clear_projected.nbits,
+        null,
+        cpumask_clear_projected.word_count,
+        cpumask_clear_projected_summary.first_set,
+        cpumask_clear_projected_summary.first_zero,
+        cpumask_clear_projected_summary.weight,
+        0,
+        bitmap_view.testBit(cpumask_clear_projected, 0),
+        15,
+        bitmap_view.testBit(cpumask_clear_projected, 15),
         true,
     );
     try writeCase(
