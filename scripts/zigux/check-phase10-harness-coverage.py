@@ -320,7 +320,7 @@ def run_self_test() -> int:
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
                 "drivers/virtio/virtio_input_queue_callback_preflight.zig",
                 "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
-                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:drivers/virtio/virtio_input_queue_CALLBACK_preflight.zig",
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:drivers/virtio/virtio_input_queue_callback_preflight.zig",
             ),
             (
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
@@ -344,7 +344,7 @@ def run_self_test() -> int:
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
                 "Current `master` also rematerializes `zigux/tests/phase10_virtio_ring_survey.zig`, so keep that dedicated ring survey gate explicit with `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and the shared `zigux/tests/phase10_build.zig` route instead of framing the survey gate as a direct-readback gap.",
                 "Authenticated contents reads still fail for `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the broader validator-first `scripts/zigux/validate-phase10.py` route through the direct readback available in this lane.",
-                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:forbidden:Authenticated contents reads still fail for `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the broader validator-first `scripts/zigux/validate-phase10.py` route through the direct readback available in this lane.",
+                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:forbidden:Authenticated contents reads still fail for `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_CORE_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the broader validator-first `scripts/zigux/validate-phase10.py` route through the direct readback available in this lane.",
             ),
             (
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -410,7 +410,7 @@ def run_self_test() -> int:
                 "drivers/virtio/virtio_ring_verify.zig",
                 "test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
                 "test \"phase10 virtio ring verify drift\" {",
-                "drivers/virtio/virtio_ring_verify.zig:test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
+                "drivers/virtio/virtio_RING_verify.zig:test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
             ),
             (
                 "scripts/zigux/README.md",
