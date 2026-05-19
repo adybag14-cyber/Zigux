@@ -317,6 +317,27 @@ test "phase 6 bsearch typed c abi runtime-selected comparator pointers keep the 
     }
 }
 
+test "phase 6 bsearch typed c abi runtime-selected bound and equal-range comparator pointers keep the budget contract" {
+    const cases = [_]struct {
+        items: []const u32,
+        target: u32,
+        expected: bsearch.IndexRange,
+        compare: bsearch.CComparator(CountedTypedKey, u32),
+    }{
+        .{ .items = fixtures.representative_duplicate_values[0..], .target = 21, .expected = .{ .lower = 4, .upper = 7 }, .compare = compareCountedTypedInt },
+        .{ .items = fixtures.representative_duplicate_values[0..], .target = 20, .expected = .{ .lower = 4, .upper = 4 }, .compare = compareCountedTypedInt },
+        .{ .items = fixtures.representative_descending_duplicate_values[0..], .target = 21, .expected = .{ .lower = 3, .upper = 6 }, .compare = compareCountedTypedDescendingInt },
+        .{ .items = fixtures.representative_descending_duplicate_values[0..], .target = 20, .expected = .{ .lower = 6, .upper = 6 }, .compare = compareCountedTypedDescendingInt },
+    };
+
+    for (cases) |case| {
+        const budget = maxBinarySearchComparisons(case.items.len);
+        try std.testing.expect((try expectTypedLowerBoundBudget(case.items, case.target, case.expected.lower, case.compare)) <= budget);
+        try std.testing.expect((try expectTypedUpperBoundBudget(case.items, case.target, case.expected.upper, case.compare)) <= budget);
+        try std.testing.expect((try expectTypedRangeBudget(case.items, case.target, case.expected, case.compare)) <= (2 * budget));
+    }
+}
+
 test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {
     const cases = [_]struct {
         items: []const u32,
@@ -333,5 +354,26 @@ test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the bu
     for (cases) |case| {
         const comparisons = try expectSearchBudget(case.items, case.target, case.expect_hit, case.compare);
         try std.testing.expect(comparisons <= maxBinarySearchComparisons(case.items.len));
+    }
+}
+
+test "phase 6 bsearch runtime-selected raw c abi bound and equal-range comparator pointers keep the budget contract" {
+    const cases = [_]struct {
+        items: []const u32,
+        target: u32,
+        expected: bsearch.IndexRange,
+        compare: bsearch.CRawComparator,
+    }{
+        .{ .items = fixtures.representative_duplicate_values[0..], .target = 21, .expected = .{ .lower = 4, .upper = 7 }, .compare = compareCountedOpaqueInt },
+        .{ .items = fixtures.representative_duplicate_values[0..], .target = 20, .expected = .{ .lower = 4, .upper = 4 }, .compare = compareCountedOpaqueInt },
+        .{ .items = fixtures.representative_descending_duplicate_values[0..], .target = 21, .expected = .{ .lower = 3, .upper = 6 }, .compare = compareCountedOpaqueDescendingInt },
+        .{ .items = fixtures.representative_descending_duplicate_values[0..], .target = 20, .expected = .{ .lower = 6, .upper = 6 }, .compare = compareCountedOpaqueDescendingInt },
+    };
+
+    for (cases) |case| {
+        const budget = maxBinarySearchComparisons(case.items.len);
+        try std.testing.expect((try expectRawLowerBoundBudget(case.items, case.target, case.expected.lower, case.compare)) <= budget);
+        try std.testing.expect((try expectRawUpperBoundBudget(case.items, case.target, case.expected.upper, case.compare)) <= budget);
+        try std.testing.expect((try expectRangeBudget(case.items, case.target, case.expected, case.compare)) <= (2 * budget));
     }
 }
