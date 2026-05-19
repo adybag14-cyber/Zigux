@@ -31,6 +31,14 @@ fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !
     try std.testing.expect(false);
 }
 
+fn expectStringSliceNotContains(haystack: []const []const u8, needle: []const u8) !void {
+    for (haystack) |item| {
+        if (std.mem.eql(u8, item, needle)) {
+            try std.testing.expect(false);
+        }
+    }
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
@@ -58,9 +66,25 @@ test "phase 7 rbtree survey keeps the fallback truthfulness packet honest" {
     try expectStringSliceContains(manifest.visible_paths, "Documentation/zigux/phase7-rbtree-direct-anchor-note.md");
     try expectStringSliceContains(manifest.visible_paths, "zigux/tests/phase7_rbtree_survey.zig");
     try expectStringSliceContains(manifest.visible_paths, "zigux/tests/phase7_rbtree_manifest.json");
+    try expectStringSliceNotContains(manifest.visible_paths, "Documentation/zigux/phase7-rbtree-slice.md");
+    try expectStringSliceNotContains(manifest.visible_paths, "lib/rbtree.zig");
+    try expectStringSliceNotContains(manifest.visible_paths, "zigux/tests/phase7_rbtree.zig");
+    try expectStringSliceNotContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectStringSliceNotContains(manifest.visible_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectStringSliceNotContains(manifest.visible_paths, "scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectStringSliceNotContains(manifest.visible_paths, "zigux/tests/phase7_build.zig");
+    try expectStringSliceNotContains(manifest.visible_paths, "scripts/zigux/validate-phase7.py");
 
     try expectStringSliceContains(manifest.readable_non_owner_paths, "zigux/Makefile");
     try expectStringSliceContains(manifest.readable_non_owner_paths, ".github/workflows/zigux-bootstrap.yml");
+    try expectStringSliceNotContains(manifest.readable_non_owner_paths, "Documentation/zigux/phase7-rbtree-slice.md");
+    try expectStringSliceNotContains(manifest.readable_non_owner_paths, "lib/rbtree.zig");
+    try expectStringSliceNotContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_rbtree.zig");
+    try expectStringSliceNotContains(manifest.readable_non_owner_paths, "zigux/tests/fixtures/phase7_rbtree.json");
+    try expectStringSliceNotContains(manifest.readable_non_owner_paths, "zigux/tests/fixtures/phase7_rbtree_c_harness.c");
+    try expectStringSliceNotContains(manifest.readable_non_owner_paths, "scripts/zigux/check-phase7-rbtree-parity.py");
+    try expectStringSliceNotContains(manifest.readable_non_owner_paths, "zigux/tests/phase7_build.zig");
+    try expectStringSliceNotContains(manifest.readable_non_owner_paths, "scripts/zigux/validate-phase7.py");
 
     try expectStringSliceContains(manifest.missing_paths, "Documentation/zigux/phase7-rbtree-slice.md");
     try expectStringSliceContains(manifest.missing_paths, "lib/rbtree.zig");
