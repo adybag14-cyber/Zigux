@@ -85,7 +85,7 @@ def validate_fixture(root: Path) -> list[str]:
         issues.append(f"fixture:targets:{targets!r}")
 
     target_count = payload.get("target_count")
-    if not isinstance(target_count, int):
+    if type(target_count) is not int:
         issues.append(f"fixture:target_count_not_int:{target_count!r}")
     elif target_count != len(EXPECTED_TARGETS):
         issues.append(f"fixture:target_count:{target_count!r}")
@@ -243,6 +243,21 @@ def run_self_test() -> int:
             root,
             {
                 "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": true,
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:target_count_not_int:True" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
                 "status": "open",
                 "target_count": len(EXPECTED_TARGETS),
                 "targets": EXPECTED_TARGETS,
@@ -382,7 +397,7 @@ def run_self_test() -> int:
                 "target_count": len(EXPECTED_TARGETS),
                 "targets": EXPECTED_TARGETS,
                 "zig_test_files": EXPECTED_ZIG_TEST_FILES,
-                "unexpected": True,
+                "unexpected": true,
             },
         )
         issues = validate_fixture(root)
