@@ -30,6 +30,11 @@ REQUIRED_MARKERS = {
         "drivers/virtio/virtio_input_teardown_observation.zig",
         "drivers/virtio/virtio_input_verify.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+        "drivers/virtio/virtio_ring_verify.zig",
+        "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+        "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+        "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
+        "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
         "zigux/tests/phase10_virtio_mmio_manifest.json",
         "make -C zigux phase10-validate",
         "make -C zigux phase10-test",
@@ -87,6 +92,35 @@ REQUIRED_MARKERS = {
         "test \"phase10 virtio input verify keeps wrapper prerequisites ahead of registration claims\" {",
         "test \"phase10 virtio input verify keeps teardown wrapper parity explicit across reset\" {",
     ],
+    "drivers/virtio/virtio_ring_verify.zig": [
+        "pub fn summarizeNotificationData(",
+        "pub fn summarizeDelayedCallback(",
+        "pub fn summarizeResetReadiness(",
+        "test \"phase10 virtio ring verify keeps notification-data next-avail state reviewable across split packed and reset replay\" {",
+        "test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
+        "test \"phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay\" {",
+    ],
+    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
+        "test \"phase10 virtio ring repeated prepareKick stays idle until new descriptors are published\" {",
+        "kick_summary = try ring.prepareKick(1);",
+        "try std.testing.expect(!kick_summary.needs_kick);",
+    ],
+    "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
+        "test \"phase10 virtio ring reset reuse stays blocked until queue-local reset prerequisites clear and then replays from a clean queue state\" {",
+        "const reset = try ring.resetQueue(2);",
+        "const kick_after_reset = try ring.prepareKick(2);",
+    ],
+    "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig": [
+        "test \"phase10 virtio ring broken-queue coverage kicks published work before used accounting and keeps notification history visible\" {",
+        "try std.testing.expectError(error.QueueResetWhileBroken, ring.resetQueue(3));",
+        "const cleared_summary = try ring.clearBroken(3);",
+    ],
+    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig": [
+        "test \"phase10 virtio ring delayed callback budget stays bounded to queue-local replay state\" {",
+        "try std.testing.expectEqual(@as(u16, 1), summary.delay_budget_count);",
+        "try std.testing.expect(summary.should_poll);",
+        "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
+    ],
     "zigux/tests/phase10_build.zig": [
         "\"phase10-virtio-core-tests\"",
         "\"phase10-virtio-input-queue-callback-preflight-tests\"",
@@ -94,6 +128,10 @@ REQUIRED_MARKERS = {
         "\"phase10-virtio-input-survey-tests\"",
         "\"phase10-virtio-input-verify-tests\"",
         "\"phase10-virtio-ring-verify-tests\"",
+        "\"phase10-virtio-ring-prepare-kick-idempotent-tests\"",
+        "\"phase10-virtio-ring-reset-reuse-tests\"",
+        "\"phase10-virtio-ring-broken-queue-queue-discipline-tests\"",
+        "\"phase10-virtio-ring-delayed-callback-budget-tests\"",
         "\"phase10-virtio-ring-survey-tests\"",
         "\"phase10-virtio-mmio-verify-tests\"",
         "\"phase10-virtio-mmio-survey-tests\"",
@@ -300,6 +338,18 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+                "drivers/virtio/virtio_ring_verify.zig",
+                "drivers/virtio/virtio_ring_verify_missing.zig",
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:drivers/virtio/virtio_ring_verify.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+                "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+                "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent_missing.zig",
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
                 "returned shared closure packet anchors: `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `zigux/tests/phase10_closure_manifest.json`",
                 "returned shared closure packet anchors: `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `zigux/tests/phase10_closure_manifest.json`",
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:returned shared closure packet anchors: `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `zigux/tests/phase10_closure_manifest.json`",
@@ -335,6 +385,36 @@ def run_self_test() -> int:
                 "drivers/virtio/virtio_input_verify.zig:test \"phase10 virtio input verify keeps teardown wrapper parity explicit across reset\" {",
             ),
             (
+                "drivers/virtio/virtio_ring_verify.zig",
+                "test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
+                "test \"phase10 virtio ring verify drift\" {",
+                "drivers/virtio/virtio_ring_verify.zig:test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
+                "test \"phase10 virtio ring repeated prepareKick stays idle until new descriptors are published\" {",
+                "test \"phase10 virtio ring prepareKick drift\" {",
+                "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig:test \"phase10 virtio ring repeated prepareKick stays idle until new descriptors are published\" {",
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                "const reset = try ring.resetQueue(2);",
+                "const reset = try ring.resetQueue(7);",
+                "zigux/tests/phase10_virtio_ring_reset_reuse.zig:const reset = try ring.resetQueue(2);",
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
+                "const cleared_summary = try ring.clearBroken(3);",
+                "const cleared_summary = try ring.clearBroken(7);",
+                "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig:const cleared_summary = try ring.clearBroken(3);",
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
+                "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
+                "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(5));",
+                "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig:try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
+            ),
+            (
                 "zigux/tests/phase10_build.zig",
                 "\"phase10-virtio-input-survey-tests\"",
                 "\"phase10-virtio-input-survey-tests-missing\"",
@@ -345,6 +425,18 @@ def run_self_test() -> int:
                 "\"phase10-virtio-input-verify-tests\"",
                 "\"phase10-virtio-input-verify-tests-missing\"",
                 "zigux/tests/phase10_build.zig:\"phase10-virtio-input-verify-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-ring-prepare-kick-idempotent-tests\"",
+                "\"phase10-virtio-ring-prepare-kick-idempotent-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-ring-prepare-kick-idempotent-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-ring-broken-queue-queue-discipline-tests\"",
+                "\"phase10-virtio-ring-broken-queue-queue-discipline-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-ring-broken-queue-queue-discipline-tests\"",
             ),
             (
                 "zigux/tests/phase10_build.zig",
@@ -388,9 +480,10 @@ def run_self_test() -> int:
             expect_missing_marker(root, rel_path, old, new, expected)
 
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
+        expect_missing_file(root, "drivers/virtio/virtio_ring_verify.zig")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=31")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=38")
     return 0
 
 
