@@ -122,7 +122,7 @@ fn missingModeArgumentMessage(mode: Mode) []const u8 {
 
 fn modeUsesAllConfigSentinel(mode: Mode) bool {
     return switch (mode) {
-        .allnoconfig, .allyesconfig, .allmodconfig, .alldefconfig => true,
+        .allnoconfig, .allyesconfig, .alldefconfig => true,
         else => false,
     };
 }
