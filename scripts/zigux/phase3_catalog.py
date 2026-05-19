@@ -63,6 +63,7 @@ VALIDATOR_PATHS = (
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
+    Path("scripts/zigux/check-phase3-catalog-selftest.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
 )
@@ -89,6 +90,8 @@ COMMANDS = (
     "python3 scripts/zigux/check-phase3-shared-tests-routes.py --self-test",
     "python3 scripts/zigux/validate_phase3_selftest.py",
     "python3 scripts/zigux/validate-phase3.py",
+    "python3 scripts/zigux/check-phase3-catalog-selftest.py --self-test",
+    "python3 scripts/zigux/check-phase3-catalog-selftest.py",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
