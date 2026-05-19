@@ -6,6 +6,12 @@ fn requireContains(text: []const u8, needle: []const u8) !void {
     }
 }
 
+fn requireAbsent(text: []const u8, needle: []const u8) !void {
+    if (std.mem.indexOf(u8, text, needle) != null) {
+        return error.UnexpectedMarker;
+    }
+}
+
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(1 << 20));
 }
@@ -20,6 +26,27 @@ test "phase13 devres dma coherent replay records blocked dma and scatterlist bou
     try requireContains(manifest, "\"status\": \"blocked_on_dma_state\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
     try requireContains(manifest, "\"status\": \"blocked_on_scatterlist_state\"");
+}
+
+test "phase13 devres dma coherent replay proves lib/devres stays planning-only at the boundary" {
+    const helper = try readRepoFile(std.testing.allocator, "lib/devres.zig");
+    defer std.testing.allocator.free(helper);
+
+    try requireContains(helper, ".provides_dmam_alloc_coherent_planning = true");
+    try requireContains(helper, ".touches_live_dma = false");
+    try requireContains(helper, ".touches_live_scatterlist = false");
+    try requireContains(helper, "planManagedDmamAllocCoherent");
+    try requireContains(helper, "planManagedDmamFreeCoherent");
+    try requireAbsent(helper, "dmam_alloc_coherent(");
+    try requireAbsent(helper, "dmam_free_coherent(");
+    try requireAbsent(helper, "dma_map_");
+    try requireAbsent(helper, "dma_unmap_");
+    try requireAbsent(helper, "dma_sync_");
+    try requireAbsent(helper, "dma_mmap_");
+    try requireAbsent(helper, "dma_map_sgtable()");
+    try requireAbsent(helper, "struct scatterlist");
+    try requireAbsent(helper, "sg_table");
+    try requireAbsent(helper, "sg_init_table(");
 }
 
 test "phase13 devres dma coherent replay anchors the current slice reality" {
@@ -68,6 +95,11 @@ test "phase13 devres dma coherent replay anchors the survey-side scatterlist bou
     try requireContains(survey, "blocked `phase13-devres-live-scatterlist-ownership`");
     try requireContains(survey, "blocked `phase13-devres-live-sg-table-lifecycle`");
     try requireContains(survey, "blocked `phase13-devres-generic-dma-map-family`");
+    try requireContains(survey, "helper-source readback shows `lib/devres.zig` still omits");
+    try requireContains(survey, "`dmam_alloc_coherent()`");
+    try requireContains(survey, "`dmam_free_coherent()`");
+    try requireContains(survey, "`dma_map_sgtable()`");
+    try requireContains(survey, "`sg_table`");
 }
 
 test "phase13 devres dma coherent replay keeps scatterlist helper evidence helper-first" {
