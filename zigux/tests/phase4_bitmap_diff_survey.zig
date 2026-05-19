@@ -191,11 +191,11 @@ test "phase 4 bitmap survey keeps the broader gate-evidence handoff explicit" {
 
     try expectContains(gate_evidence_source, "PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19");
 
-    try expectContains(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42");
+    try expectContains(gate_evidence_source, "PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43");
 
     try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19");
 
-    try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42");
+    try expectContains(gate_evidence_source, "PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=43");
 
     try expectContains(gate_evidence_source, "Documentation/zigux/phase4-reversible-delivery-evidence.md");
 
