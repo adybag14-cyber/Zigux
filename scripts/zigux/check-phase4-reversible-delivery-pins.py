@@ -67,7 +67,7 @@ ATOMIC64_DIRECT_MARKERS = (
 )
 
 FOLLOW_UP_MARKER = (
-    "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md` now aligns with `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` on the recovered note pair, the recovered gate-evidence and remaining-gap checkers, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the scripts-root reminder still needs the same narrower repo-reality warning refresh and the validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff"
+    "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff"
 )
 
 MIXED_PROVENANCE_MARKER = (
