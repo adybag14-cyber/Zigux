@@ -70,17 +70,13 @@ NOTE_FOLLOW_UP_MARKER = (
     "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` should align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, the roadmap-backed `atomic64_diff` pair, and the now-returned validator, build, and bitmap replay companions, while exact blob-pin refresh for those broader companions remains the remaining authenticated-readback gap in this handoff"
 )
 
-WARNING_FOLLOW_UP_MARKER = (
-    "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff"
-)
+WARNING_FOLLOW_UP_MARKER = NOTE_FOLLOW_UP_MARKER
 
 NOTE_MIXED_PROVENANCE_MARKER = (
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for the review checklist, the tests-root reminder, the repo-reality warning checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the dedicated local-only perf checker plus companion packet; archival anchor pins only for this note's self-reference and the reversible-delivery pin checker self-reference; public-raw current-tree proof that `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for those four companions until exact authenticated blob capture stabilizes."
 )
 
-WARNING_MIXED_PROVENANCE_MARKER = (
-    "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for the review checklist, the tests-root reminder, the repo-reality warning checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the dedicated local-only perf checker plus companion packet; archival anchor pins only for this note's self-reference and the reversible-delivery pin checker self-reference; and historical provenance only for the still-missing validator, build, and bitmap replay companions."
-)
+WARNING_MIXED_PROVENANCE_MARKER = NOTE_MIXED_PROVENANCE_MARKER
 
 NOTE_MARKERS = (
     STATUS_MARKERS
@@ -102,7 +98,7 @@ WARNING_MARKERS = (
     "\"scripts/zigux/check-phase4-reversible-delivery-pins.py\",",
     "\"scripts/zigux/check-phase4-perf-baseline-packet.py\",",
     "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`",
-    "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff",
     WARNING_MIXED_PROVENANCE_MARKER,
     'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16",
@@ -231,7 +227,7 @@ def baseline_warning() -> str:
             '"scripts/zigux/check-phase4-reversible-delivery-pins.py",',
             '"scripts/zigux/check-phase4-perf-baseline-packet.py",',
             "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`",
-            "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
+            "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff",
             WARNING_MIXED_PROVENANCE_MARKER,
             WARNING_FOLLOW_UP_MARKER + '.",',
         ]
@@ -296,6 +292,7 @@ def main() -> int:
     args = parse_args()
     if args.self_test:
         return run_self_test()
+
     try:
         check(args.root.resolve())
     except RuntimeError as exc:
