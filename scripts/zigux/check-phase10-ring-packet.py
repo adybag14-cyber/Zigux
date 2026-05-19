@@ -45,9 +45,11 @@ REQUIRED_MARKERS = {
         "pub fn queueResetReadinessSummary(self: *const Self, queue_index: u16) !QueueResetReadinessSummary {",
     ],
     "drivers/virtio/virtio_ring_verify.zig": [
+        "pub fn summarizeNotificationState(",
         "pub fn summarizeNotificationData(",
         "pub fn summarizeDelayedCallback(",
         "pub fn summarizeResetReadiness(",
+        'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {',
         'test "phase10 virtio ring verify keeps notification-data next-avail state reviewable across split packed and reset replay" {',
         'test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {',
     ],
@@ -236,7 +238,11 @@ def run_self_test() -> int:
             ),
             (
                 "drivers/virtio/virtio_ring_verify.zig",
-                'test "phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay" {',
+                "pub fn summarizeNotificationState(",
+            ),
+            (
+                "drivers/virtio/virtio_ring_verify.zig",
+                'test "phase10 virtio ring verify keeps notification-state wrapper explicit across publish kick and used replay" {',
             ),
             (
                 "zigux/tests/phase10_build.zig",
@@ -279,7 +285,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
