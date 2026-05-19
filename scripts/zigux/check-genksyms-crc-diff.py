@@ -27,6 +27,12 @@ def fixture_paths(root: Path) -> tuple[Path, Path, Path, Path]:
     )
 
 
+def ensure_required_files_exist(paths: tuple[Path, ...]) -> None:
+    for path in paths:
+        if not path.exists():
+            raise SystemExit(f"missing required file: {path}")
+
+
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
@@ -124,6 +130,20 @@ def run_self_test() -> int:
     if fixture_paths(derived_root) != expected_paths:
         raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
 
+    with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_required_files_") as required_files_tmp_dir_str:
+        required_files_root = Path(required_files_tmp_dir_str) / "repo"
+        required_paths = fixture_paths(required_files_root)
+        for path in required_paths[:-1]:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("", encoding="utf-8", newline="\n")
+        expect_system_exit_contains(
+            lambda: ensure_required_files_exist(required_paths),
+            f"missing required file: {required_paths[-1]}",
+        )
+        required_paths[-1].parent.mkdir(parents=True, exist_ok=True)
+        required_paths[-1].write_text("{}\n", encoding="utf-8", newline="\n")
+        ensure_required_files_exist(required_paths)
+
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_tools_") as tool_tmp_dir_str:
         tool_tmp_dir = Path(tool_tmp_dir_str)
         tool_bin = tool_tmp_dir / "bin"
@@ -213,7 +233,7 @@ def run_self_test() -> int:
         expect_system_exit_contains(lambda: compare_json("selftest-mismatch", left, mismatch), "selftest-mismatch mismatch")
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=13")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=14")
     return 0
 
 
@@ -231,9 +251,7 @@ def main() -> int:
 
     root = repo_root_from(Path(__file__), args.repo_root)
     zig_tool, harness, inputs, expected = fixture_paths(root)
-    for path in (zig_tool, harness, inputs, expected):
-        if not path.exists():
-            raise SystemExit(f"missing required file: {path}")
+    ensure_required_files_exist((zig_tool, harness, inputs, expected))
 
     compiler = find_compiler(args.cc)
     zig = find_zig(args.zig, root)
