@@ -10,7 +10,7 @@ DOCS_ROOT_README = ROOT / "Documentation" / "zigux" / "README.md"
 TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 REQUIRED_TESTS_README_MARKERS = (
     "Phase 2 review packet",
-    "current direct-readback Phase 2 kconfig bridge packet:",
+    "current direct-readback Phase 2 kconfig and genksyms bridge packet:",
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
     "`Documentation/zigux/phase2-closure.md`",
     "`Documentation/zigux/review-checklist.md`",
@@ -27,6 +27,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
@@ -37,6 +38,7 @@ REQUIRED_TESTS_README_MARKERS = (
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`scripts/zigux/kconfig/conf_bridge.zig`",
     "`scripts/zigux/kconfig/confdata_bridge.zig`",
+    "`scripts/zigux/genksyms.zig`",
     "`scripts/zigux/zig-toolchain-policy.json`",
     "`zigux/Makefile`",
     "current `master` does materialize `zigux/Makefile` again, and its live body now exposes the shipped Phase 2 toolchain and kbuild wrappers together with the bounded `phase3-validate` and `phase3` routes plus the later Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families, so treat the returned file as current repo evidence while the older Phase 1 wrapper names remain historical packet members rather than active tests-root proof",
@@ -49,13 +51,21 @@ REQUIRED_TESTS_README_MARKERS = (
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
     "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "`zigux/tests/fixtures/genksyms_bridge/cases.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/help_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, required-make-route, toolchain reminder, and genksyms bridge set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
     "keep `scripts/zigux/zig-toolchain-policy.json`, the pinned `x86_64-linux` bootstrap archive note, the live `python3 scripts/zigux/check-zig-toolchain.py --policy-only` plus `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` replays, and the repo-local `.zig-toolchain` fallback reused by the surviving `scripts/zigux/check-zig-toolchain.py` and pin-scope guards explicit in this tests-root packet",
     "current `master` now directly materializes `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, and `zigux/tests/fixtures/phase2_cross_targets.json`, so keep that returned installer, direct cross-route, and cross-target fixture packet explicit here instead of leaving it in the historical-gap bucket",
-    "keep the fixture-backed tool-manifest, artifact-tools, cross-target, and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
+    "current `master` also directly materializes `scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, `make -C zigux phase2-genksyms`, and the `zigux/tests/fixtures/genksyms_bridge/` packet, so keep that returned checker, bridge helper, wrapper, and fixture roster explicit here instead of leaving it outside the tests-root reminder",
+    "keep the fixture-backed tool-manifest, artifact-tools, cross-target, kconfig bridge, and genksyms bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
 FORBIDDEN_TESTS_README_MARKERS = (
     "`scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`",
@@ -67,7 +77,7 @@ FORBIDDEN_TESTS_README_MARKERS = (
     "repeated authenticated reads on current `master` still return missing for `Documentation/zigux/phase2-closure.md`",
     "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, and `zigux/Makefile`",
     "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2`",
-    "the current directly readable Phase 2 packet is the scripts-root kbuild, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
+    "the current directly readable Phase 2 packet is the scripts-root kbuild, installer, direct cross-route, cross-selftest, docs-shared-reminder, required-make-route, and toolchain reminder set plus the live kconfig bridge helpers, the restored closure-side note, validator entrypoint, and closure validator, the shipped `zigux/Makefile` wrappers, and their fixture roster",
     "keep the fixture-backed tool-manifest and kconfig bridge packet visible in the tests root without reviving missing validator-first or make-wrapper proof text",
 )
 REQUIRED_DOCS_ROOT_MARKERS = (
