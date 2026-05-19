@@ -10,7 +10,7 @@ This note keeps the roadmap-required Phase 15 stay-in-C policy surface explicit 
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
 - current repo reality: the roadmap-required stay-in-C policy packet is landed and remains maintenance-only under the same blocked deep-core posture
-- scope: keep the dedicated indefinite-C policy note and its direct policy vocabulary truthful without widening into neighboring Phase 15 packets
+- scope: keep the dedicated indefinite-C policy note, its direct policy vocabulary, and its lane-owner alignment companion truthful without widening into neighboring Phase 15 packets
 
 ## Why this slice exists
 
@@ -87,11 +87,12 @@ The bounded reopen-trigger catalog for this packet is:
 - current lane posture: `maintenance_mode`
 - replay before trusting this parked handoff:
   - `zig test zigux/tests/phase15_indefinite_c_policy.zig`
+  - `zig test zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - reopen only when one of the packet-local conditions below becomes true:
   - the freeze-in-C blocker posture changes
   - the review-process packet changes its required field inventory for a stay-in-C closeout
   - the parity scorecard changes the blocked-posture accounting that this policy references
-- next future target: keep this lane parked unless one of those packet-local conditions fires; if it does, reread `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/review-checklist.md` together, then keep the repair inside this policy packet and its direct companions only
+- next future target: keep this lane parked unless one of those packet-local conditions fires; if it does, reread `Documentation/zigux/phase15-indefinite-c-policy.md`, `zigux/tests/phase15_indefinite_c_policy.json`, `zigux/tests/phase15_indefinite_c_policy.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, `Documentation/zigux/phase15-architecture-council-review-process.md`, `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-parity-scorecard.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/review-checklist.md` together, then keep the repair inside this policy packet and its direct companions only
 
 ## Recorded gaps
 
@@ -103,6 +104,7 @@ The current lane state is:
 - landed `phase15-indefinite-c-roadmap-gap-restoration`
 - landed `phase15-indefinite-c-review-process-companion-sync`
 - landed `phase15-indefinite-c-ownership-template-sync`
+- landed `phase15-indefinite-c-lane-owner-companion-sync`
 - blocked_on_stay_in_c_evidence `phase15-deep-core-status-change-blocker`
 
 ## Next bounded step
