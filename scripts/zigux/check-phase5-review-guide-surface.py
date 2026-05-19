@@ -8,6 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 GUIDE_PATH = Path("Documentation/zigux/phase5-sample-review-guide.md")
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
+APPROVED_IDIOM_PATH = Path("Documentation/zigux/phase5-trace-events-approved-idiom-gap.md")
 
 DIRECT_PACKET_PATHS = (
     "Documentation/zigux/phase5-kfifo-sample-survey.md",
@@ -68,6 +69,29 @@ DOCS_ROOT_REQUIRED_TEXT = (
     "keep `samples/zigux/runtime_*.zig` framed as separate Phase 9 runtime-pilot evidence rather than extra Phase 5 proof, and keep the `kobject` anchor in roadmap-backed shared-reminder or repo-reality-gap wording until a fresh reread restores its older sample-root and tests-root packet as direct authenticated proof.",
 )
 
+APPROVED_IDIOM_REQUIRED_TEXT = (
+    "The roadmap-backed Phase 5 trace-events anchor is still:",
+    "Authenticated sample-root readback still directly exposes this bounded non-runtime formatting companion:",
+    "Fresh mixed reread on 2026-05-19 keeps the broader non-runtime trace-events sample-local companions in a split state rather than a missing state:",
+    "The shared `zigux/tests/phase5_build.zig` route remains useful support material too, but keep it framed as current public-tree-backed companion evidence until authenticated contents reread returns that path directly again.",
+    "Keep the approved formatting idiom bounded to the current landed reminder packet:",
+    "That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split:",
+    "Current `master` also still ships no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.",
+    "Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, keep `cmdline`, `argv_split`, and `rbtree` evidence under the bounded Phase 7 helper packet, keep direct bitmap helper reviewability under the closed Phase 1 plus bounded Phase 4 reminder packet, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.",
+)
+
+APPROVED_IDIOM_REQUIRED_PATHS = (
+    "samples/trace_events/trace-events-sample.c",
+    "samples/zigux/trace_events_string_formatting_sample.zig",
+    "Documentation/zigux/phase5-trace-events-sample-survey.md",
+    "samples/zigux/trace_events_sample.zig",
+    "zigux/tests/phase5_trace_events_sample.zig",
+    "zigux/tests/phase5_trace_events_sample_manifest.json",
+    "zigux/tests/phase5_trace_events_sample_survey.zig",
+    "zigux/tests/phase5_build.zig",
+    "scripts/zigux/check-phase5-review-guide-surface.py",
+)
+
 BYTESTREAM_CONTRACT_MARKERS = (
     "`bounded_fifo_order`",
     "`wraparound_requeue`",
@@ -115,6 +139,7 @@ def _write(path: Path, text: str) -> None:
 def collect_failures(root: Path) -> list[str]:
     guide = _read(root / GUIDE_PATH)
     docs_root = _read(root / DOCS_ROOT_PATH)
+    approved_idiom = _read(root / APPROVED_IDIOM_PATH)
     failures: list[str] = []
 
     for marker in REQUIRED_TEXT:
@@ -124,6 +149,10 @@ def collect_failures(root: Path) -> list[str]:
     for marker in DOCS_ROOT_REQUIRED_TEXT:
         if marker not in docs_root:
             failures.append(f"docs_root:missing_text:{marker}")
+
+    for marker in APPROVED_IDIOM_REQUIRED_TEXT:
+        if marker not in approved_idiom:
+            failures.append(f"approved_idiom:missing_text:{marker}")
 
     for marker in BYTESTREAM_CONTRACT_MARKERS:
         if marker not in guide:
@@ -148,6 +177,10 @@ def collect_failures(root: Path) -> list[str]:
     for rel in TRACE_EVENTS_COMPANION_GAP_PATHS:
         if f"`{rel}`" not in guide:
             failures.append(f"guide:missing_trace_events_gap_path:`{rel}`")
+
+    for rel in APPROVED_IDIOM_REQUIRED_PATHS:
+        if f"`{rel}`" not in approved_idiom:
+            failures.append(f"approved_idiom:missing_path:`{rel}`")
 
     for text in FORBIDDEN_TEXT:
         if text in guide:
@@ -260,10 +293,64 @@ keep the current four-anchor non-runtime sample packet explicit from the docs ro
 """
 
 
+def _sample_approved_idiom_gap() -> str:
+    return """# Phase 5 Trace-Events Approved Idiom Gap
+
+This note keeps the roadmap-backed Phase 5 trace-events packet truthful when shared reviewer surfaces need to mention the bounded formatting idiom that current `master` still approves.
+
+## Current approved cue on `master`
+
+The roadmap-backed Phase 5 trace-events anchor is still:
+
+- `samples/trace_events/trace-events-sample.c`
+
+Authenticated sample-root readback still directly exposes this bounded non-runtime formatting companion:
+
+- `samples/zigux/trace_events_string_formatting_sample.zig`
+
+Fresh mixed reread on 2026-05-19 keeps the broader non-runtime trace-events sample-local companions in a split state rather than a missing state:
+
+- `Documentation/zigux/phase5-trace-events-sample-survey.md`
+- `samples/zigux/trace_events_sample.zig`
+- `zigux/tests/phase5_trace_events_sample.zig`
+- `zigux/tests/phase5_trace_events_sample_manifest.json`
+- `zigux/tests/phase5_trace_events_sample_survey.zig`
+
+The shared `zigux/tests/phase5_build.zig` route remains useful support material too, but keep it framed as current public-tree-backed companion evidence until authenticated contents reread returns that path directly again.
+
+Keep the approved formatting idiom bounded to the current landed reminder packet:
+
+- `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
+- `Documentation/zigux/phase5-sample-review-guide.md`
+- `Documentation/zigux/phase5-sample-lane-sequencing.md`
+- `Documentation/zigux/review-checklist.md`
+- `samples/zigux/README.md`
+- `samples/zigux/trace_events_string_formatting_sample.zig`
+- `scripts/zigux/README.md`
+- `scripts/zigux/check-phase5-review-guide-surface.py`
+- `zigux/tests/README.md`
+
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split:
+
+- the bounded formatting companion remains directly readable through the authenticated sample-root route
+- the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane
+- the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof
+
+## Review boundary
+
+Current `master` also still ships no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.
+
+Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, keep `cmdline`, `argv_split`, and `rbtree` evidence under the bounded Phase 7 helper packet, keep direct bitmap helper reviewability under the closed Phase 1 plus bounded Phase 4 reminder packet, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.
+"""
+
+
 def _seed(root: Path) -> None:
     _write(root / GUIDE_PATH, _sample_guide())
     _write(root / DOCS_ROOT_PATH, _sample_docs_root())
+    _write(root / APPROVED_IDIOM_PATH, _sample_approved_idiom_gap())
     for rel in DIRECT_PACKET_PATHS:
+        if Path(rel) == APPROVED_IDIOM_PATH:
+            continue
         _write(root / rel, "present\n")
     for rel in PUBLIC_TREE_PACKET_PATHS:
         _write(root / rel, "present\n")
@@ -271,7 +358,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 10
+    expected_case_count = 14
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -361,6 +448,30 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected missing-docs-root-marker failure: {failures}")
         checks_run += 1
 
+        missing_approved_idiom_marker_root = root / "missing_approved_idiom_marker"
+        _seed(missing_approved_idiom_marker_root)
+        _write(
+            missing_approved_idiom_marker_root / APPROVED_IDIOM_PATH,
+            _sample_approved_idiom_gap().replace(APPROVED_IDIOM_REQUIRED_TEXT[5], "", 1),
+        )
+        failures = collect_failures(missing_approved_idiom_marker_root)
+        expected = [f"approved_idiom:missing_text:{APPROVED_IDIOM_REQUIRED_TEXT[5]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-approved-idiom-marker failure: {failures}")
+        checks_run += 1
+
+        missing_approved_idiom_path_root = root / "missing_approved_idiom_path"
+        _seed(missing_approved_idiom_path_root)
+        _write(
+            missing_approved_idiom_path_root / APPROVED_IDIOM_PATH,
+            _sample_approved_idiom_gap().replace("`scripts/zigux/check-phase5-review-guide-surface.py`", "", 1),
+        )
+        failures = collect_failures(missing_approved_idiom_path_root)
+        expected = ["approved_idiom:missing_path:`scripts/zigux/check-phase5-review-guide-surface.py`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-approved-idiom-path failure: {failures}")
+        checks_run += 1
+
         missing_guide_root = root / "missing_guide"
         _seed(missing_guide_root)
         (missing_guide_root / GUIDE_PATH).unlink()
@@ -397,6 +508,18 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected missing-docs-root-boundary failure: {failures}")
         checks_run += 1
 
+        missing_approved_idiom_file = root / "missing_approved_idiom_file"
+        _seed(missing_approved_idiom_file)
+        (missing_approved_idiom_file / APPROVED_IDIOM_PATH).unlink()
+        try:
+            collect_failures(missing_approved_idiom_file)
+        except SystemExit as exc:
+            if "required file missing" not in str(exc):
+                raise AssertionError(f"unexpected missing-approved-idiom abort: {exc}") from exc
+        else:
+            raise AssertionError("missing approved idiom note did not abort")
+        checks_run += 1
+
     if checks_run != expected_case_count:
         raise AssertionError(f"expected {expected_case_count} checks, ran {checks_run}")
     print("PHASE5_REVIEW_GUIDE_SURFACE_SELF_TEST=pass")
@@ -423,6 +546,8 @@ def main() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_PACKET_COUNT={len(PUBLIC_TREE_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_BYTESTREAM_CONTRACT_COUNT={len(BYTESTREAM_CONTRACT_MARKERS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DOCS_ROOT_REQUIRED_TEXT_COUNT={len(DOCS_ROOT_REQUIRED_TEXT)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_APPROVED_IDIOM_REQUIRED_TEXT_COUNT={len(APPROVED_IDIOM_REQUIRED_TEXT)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_APPROVED_IDIOM_REQUIRED_PATH_COUNT={len(APPROVED_IDIOM_REQUIRED_PATHS)}")
     return 0
 
 
