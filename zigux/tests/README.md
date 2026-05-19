@@ -147,7 +147,7 @@ Tests-root reviewer prompt:
 
 ## Phase 4 rollback-readiness packet
 
-Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.
+Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.
 
 Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py` so the tests-root summary records the narrower current-head repo-reality packet instead of leaving those returned checker surfaces in the missing bucket.
 
@@ -268,10 +268,7 @@ Keep `scripts/zigux/check-phase14-release-boundary-exact-counts.py` explicit as 
 
 Current `master` does materialize `zigux/Makefile`, but its live body currently exposes the Phase 2 toolchain and kbuild routes together with the bounded Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 route families and no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets, so keep the returned file framed as current repo evidence without promoting the older Phase 14 route names into shipped tests-root proof.
 
-Keep the attached-toolchain fallback explicit as packet-local rerun vocabulary rather than current build-backed evidence:
-- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`
-- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`
-- `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`
+Keep the attached-toolchain boundary explicit only as historical packet-local vocabulary rather than current build-backed evidence while the readable `zigux/Makefile` still omits the matching `phase14-*` targets. Older examples such as `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-smoke`, `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`, and `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14` should stay traceability cues only until the same exact readback mode restores both the dedicated Phase 14 build-side files and the `phase14-*` Makefile routes.
 
 Keep the directly readable `scripts/zigux/validate-phase14.py` explicit as the current shared-smoke validator surface for this packet, and treat checker-local Phase 14 follow-through as separate review-path work rather than missing executable-layer proof.
 
@@ -280,7 +277,7 @@ Current `master` still does not materialize `scripts/zigux/check-phase14-tests-r
 Keep the four roadmap-owned anchors explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain study-only anchors, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors unless a later Architecture Council packet records a status change.
 
 Tests-root reviewer prompt:
-- Does the bounded Phase 14 reminder keep the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary truthfulness guard, the directly readable workqueue reviewability shard, the attached-toolchain rerun vocabulary, the readable current `zigux/Makefile` surface that now exposes shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes while still omitting all `phase14-*` targets, and the still-missing executable-layer gaps aligned without reviving the older `phase14-*` Makefile routes as shipped current-`master` evidence?
+- Does the bounded Phase 14 reminder keep the recovered documentation packet, the directly readable validator surface, the directly readable release-boundary truthfulness guard, the directly readable workqueue reviewability shard, the historical attached-toolchain wrapper vocabulary, the readable current `zigux/Makefile` surface that now exposes shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes while still omitting all `phase14-*` targets, and the still-missing executable-layer gaps aligned without reviving the older `phase14-*` Makefile routes as shipped current-`master` evidence?
 
 ## Phase 15 shared governance packet
 
