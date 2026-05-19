@@ -165,10 +165,8 @@ const Processor = struct {
         }
     }
 
-    fn readDependencyFile(self: *Processor, path: []const u8) ![]const u8 {
-        const file = Io.Dir.cwd().openFile(self.io, path, .{
-            .allow_directory = if (builtin.os.tag == .windows) false else true,
-        }) catch |err| switch (err) {
+    fn captureOpenDependencyFileError(self: *Processor, path: []const u8, err: anyerror) !bool {
+        switch (err) {
             error.FileNotFound,
             error.AccessDenied,
             error.IsDir,
@@ -181,12 +179,24 @@ const Processor = struct {
             error.DeviceBusy,
             error.NoDevice,
             error.FileTooBig,
+            error.InputOutput,
             => {
                 self.last_file_error_path = try self.arena.allocator().dupe(u8, path);
                 self.last_file_error = err;
-                return error.OpenDependencyFile;
+                return true;
             },
-            else => return err,
+            else => return false,
+        }
+    }
+
+    fn readDependencyFile(self: *Processor, path: []const u8) ![]const u8 {
+        const file = Io.Dir.cwd().openFile(self.io, path, .{
+            .allow_directory = if (builtin.os.tag == .windows) false else true,
+        }) catch |err| {
+            if (try self.captureOpenDependencyFileError(path, err)) {
+                return error.OpenDependencyFile;
+            }
+            return err;
         };
         defer file.close(self.io);
 
@@ -717,6 +727,24 @@ test "ignored and no-parse file classification matches fixdep rules" {
 test "file read errors map to C-style messages" {
     try std.testing.expectEqualStrings("No such file or directory", describeFileReadError(error.FileNotFound));
     try std.testing.expectEqualStrings("Permission denied", describeFileReadError(error.AccessDenied));
+}
+
+test "open dependency file classification keeps input-output failures on the C-style path" {
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    try std.testing.expect(try processor.captureOpenDependencyFileError("broken.d", error.InputOutput));
+    try std.testing.expectEqualStrings("broken.d", processor.last_file_error_path);
+    try std.testing.expectEqual(error.InputOutput, processor.last_file_error.?);
+}
+
+test "open dependency file classification preserves unrelated open failures" {
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    try std.testing.expect(!(try processor.captureOpenDependencyFileError("broken.d", error.OutOfMemory)));
+    try std.testing.expectEqualStrings("", processor.last_file_error_path);
+    try std.testing.expect(processor.last_file_error == null);
 }
 
 test "read failure wording matches C perror prefix" {
