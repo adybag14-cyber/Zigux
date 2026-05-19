@@ -28,6 +28,7 @@ REQUIRED_MARKERS = {
         "drivers/virtio/virtio_input_queue_callback_preflight.zig",
         "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
         "drivers/virtio/virtio_input_teardown_observation.zig",
+        "drivers/virtio/virtio_input_verify.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
         "zigux/tests/phase10_virtio_mmio_manifest.json",
         "make -C zigux phase10-validate",
@@ -91,6 +92,7 @@ REQUIRED_MARKERS = {
         "\"phase10-virtio-input-queue-callback-preflight-tests\"",
         "\"phase10-virtio-input-teardown-observation-tests\"",
         "\"phase10-virtio-input-survey-tests\"",
+        "\"phase10-virtio-input-verify-tests\"",
         "\"phase10-virtio-ring-verify-tests\"",
         "\"phase10-virtio-ring-survey-tests\"",
         "\"phase10-virtio-mmio-verify-tests\"",
@@ -292,6 +294,12 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+                "drivers/virtio/virtio_input_verify.zig",
+                "drivers/virtio/virtio_input_verify_missing.zig",
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:drivers/virtio/virtio_input_verify.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
                 "returned shared closure packet anchors: `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `zigux/tests/phase10_closure_manifest.json`",
                 "returned shared closure packet anchors: `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `zigux/tests/phase10_closure_manifest.json`",
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:returned shared closure packet anchors: `scripts/zigux/validate-phase10.py`, `scripts/zigux/validate-phase10-closure.py`, `Documentation/zigux/phase10-virtio-core-survey.md`, and `zigux/tests/phase10_closure_manifest.json`",
@@ -331,6 +339,12 @@ def run_self_test() -> int:
                 "\"phase10-virtio-input-survey-tests\"",
                 "\"phase10-virtio-input-survey-tests-missing\"",
                 "zigux/tests/phase10_build.zig:\"phase10-virtio-input-survey-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-input-verify-tests\"",
+                "\"phase10-virtio-input-verify-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-input-verify-tests\"",
             ),
             (
                 "zigux/tests/phase10_build.zig",
@@ -376,7 +390,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=29")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=31")
     return 0
 
 
