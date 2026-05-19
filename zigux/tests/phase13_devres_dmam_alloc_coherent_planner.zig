@@ -108,10 +108,13 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "lib/devres.zig");
     try requireContains(manifest, "zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig");
     try requireContains(manifest, "\"release_record_lifetime_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
+    try requireContains(manifest, "\"detach_cleanup_owner\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig\"");
     try requireContains(manifest, "\"owner_map\": \"zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json\"");
     try requireContains(manifest, "\"adjacent_boundary_evidence_only\": [");
     try requireContains(manifest, "zigux/tests/phase13_devres_dma_coherent.zig");
     try requireContains(manifest, "planManagedReleaseRecordLifetime");
+    try requireContains(manifest, "planManagedDmamFreeCoherent");
+    try requireContains(manifest, "release_record_consumed");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-dmam-alloc-side-effects\"");
     try requireContains(manifest, "\"status\": \"blocked_on_dma_state\"");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-scatterlist-ownership\"");
@@ -126,9 +129,10 @@ test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma
     try requireContains(note, "routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)`");
     try requireContains(note, "accepts already-decided allocation inputs");
     try requireContains(note, "retains detach-time cleanup ownership on success");
+    try requireContains(note, "turns that successful allocation plan into explicit detach cleanup planning through `planManagedDmamFreeCoherent(...)`");
     try requireContains(note, "failed allocation frees the release record");
     try requireContains(note, "Fixture governance stays helper-local:");
-    try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, freed-release-record, and missing-release-record fixture coverage");
+    try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig` owns the retained-release-record, freed-release-record, missing-release-record, and detach-cleanup fixture coverage");
     try requireContains(note, "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` is the packet-local owner map");
     try requireContains(note, "`zigux/tests/phase13_devres_dma_coherent.zig` remains adjacent boundary evidence only");
     try requireContains(note, "does not claim live DMA allocation side effects");
