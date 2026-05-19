@@ -19,6 +19,7 @@ on:
       - 'scripts/kconfig/conf.c'
       - 'scripts/kconfig/confdata.c'
       - 'scripts/zigux/**'
+      - 'third_party/**'
       - 'tools/lib/*.zig'
       - 'tools/lib/**/*.zig'
       - 'tools/lib/subcmd/exec-cmd.c'
