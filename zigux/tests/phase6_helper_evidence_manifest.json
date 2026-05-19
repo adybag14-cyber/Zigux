@@ -138,6 +138,8 @@
     "make -C zigux phase6-bsearch-perf",
     "zig build phase6-checksum-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-test",
+    "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-checksum-perf-matrix-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
     "python3 scripts/zigux/check-phase6-hexdump-packet.py",
