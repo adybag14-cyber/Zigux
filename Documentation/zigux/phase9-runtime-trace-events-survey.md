@@ -30,6 +30,7 @@ The direct sample also now keeps initialized-stage clean exit explicit: `test "t
 The fail-closed companion still keeps unregistered function-thread failures fail-closed.
 The exit-rollback companion still keeps failed-exit rollback explicit after reusable selftest replay, including the `error.OutstandingRegistration` guard plus the later post-exit invalid-lifecycle rejections that leave the summary unchanged.
 The registration-reentry companion still keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
+Its paired initialized direct-activity proof in `test "phase9 trace-events sample preserves initialized direct-activity summary across exit without selftest"` keeps one direct main replay plus one function-thread replay explicit, preserves that initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.
 
 ## Gap Versus Roadmap
 
