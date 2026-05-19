@@ -1,6 +1,6 @@
 # Phase 7 String Helpers Slice
 
-This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux around `lib/string_helpers.c`.
+This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux around the historical `lib/string_helpers.c` roadmap anchor and the directly readable current-`master` helper packet rooted at `lib/string_helpers.zig`.
 
 ## Status
 
@@ -9,7 +9,7 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 - `PHASE7_LANE_KEY=helper-local`
 - lane-key note: `helper-local` keeps the expanded string-helpers starter packet separate from the Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate shared-control lanes
 - scope: keep the Phase 7 string-helpers lane limited to the expanded starter packet and the no-sample review boundary
-- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
+- lane state: current `master` directly carries `lib/string_helpers.zig`, `zigux/tests/phase7_string_helpers.zig`, `zigux/tests/phase7_string_helpers_survey.zig`, `zigux/tests/phase7_string_helpers_manifest.json`, `zigux/tests/phase7_string_helpers_sample_boundary.zig`, and `samples/zigux/README.md`. Treat those helper-local files as the direct review packet for this slice. Treat `lib/string_helpers.c` and `include/linux/string_helpers.h` as roadmap provenance only unless a fresh reread proves they are directly readable again on current `master`. Shared validator, Makefile, workflow, and shared-build-route reminders remain separate Phase 7 shared-control follow-up and should not be counted here as direct helper-local proof unless a fresh reread materializes them again on current `master`.
 
 ## Why This Slice Exists
 
