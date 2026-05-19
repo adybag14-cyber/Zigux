@@ -10,6 +10,9 @@ import tempfile
 SELF_PATH = Path(__file__).resolve()
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 STUDY_ONLY_ACCOUNTING_PATH = "Documentation/zigux/phase15-study-only-anchor-accounting.md"
+LANE_SEQUENCING_PATH = "Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md"
+SCRIPTS_README_PATH = "scripts/zigux/README.md"
+SAMPLES_README_PATH = "samples/zigux/README.md"
 
 
 def infer_repo_root() -> Path:
@@ -64,6 +67,19 @@ STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS = [
     "any future status-bucket change for either anchor must update the freeze map, the Phase 15 governance note, the parity scorecard, and this study-only accounting note together",
 ]
 
+LANE_SEQUENCING_REQUIRED_MARKERS = [
+    "keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness",
+    "Keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` framed as freeze-map study-only anchors, and route that shared anchor inventory back through `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+]
+
+SCRIPTS_README_REQUIRED_MARKERS = [
+    "keep the freeze-map boundary explicit too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues",
+]
+
+SAMPLES_README_REQUIRED_MARKERS = [
+    "Do not widen this lane into runtime-loader, module-registration, procfs, sysfs, user-copy, workqueue, ring-buffer, or other runtime-substrate claims.",
+]
+
 
 def read_text(root: Path, rel_path: str) -> str:
     return (root / rel_path).read_text(encoding="utf-8")
@@ -76,7 +92,13 @@ def write_text(path: Path, content: str) -> None:
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
-    for rel_path in [FREEZE_MAP_PATH, STUDY_ONLY_ACCOUNTING_PATH]:
+    for rel_path in [
+        FREEZE_MAP_PATH,
+        STUDY_ONLY_ACCOUNTING_PATH,
+        LANE_SEQUENCING_PATH,
+        SCRIPTS_README_PATH,
+        SAMPLES_README_PATH,
+    ]:
         if not (root / rel_path).exists():
             failures.append(f"missing_file:{rel_path}")
     if failures:
@@ -91,6 +113,21 @@ def validate(root: Path) -> list[str]:
     for marker in STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS:
         if marker not in study_only_accounting:
             failures.append(f"missing_marker:{STUDY_ONLY_ACCOUNTING_PATH}:{marker}")
+
+    lane_sequencing = read_text(root, LANE_SEQUENCING_PATH)
+    for marker in LANE_SEQUENCING_REQUIRED_MARKERS:
+        if marker not in lane_sequencing:
+            failures.append(f"missing_marker:{LANE_SEQUENCING_PATH}:{marker}")
+
+    scripts_readme = read_text(root, SCRIPTS_README_PATH)
+    for marker in SCRIPTS_README_REQUIRED_MARKERS:
+        if marker not in scripts_readme:
+            failures.append(f"missing_marker:{SCRIPTS_README_PATH}:{marker}")
+
+    samples_readme = read_text(root, SAMPLES_README_PATH)
+    for marker in SAMPLES_README_REQUIRED_MARKERS:
+        if marker not in samples_readme:
+            failures.append(f"missing_marker:{SAMPLES_README_PATH}:{marker}")
 
     return failures
 
@@ -132,9 +169,34 @@ def build_study_only_accounting_fixture_text() -> str:
 """
 
 
+def build_lane_sequencing_fixture_text() -> str:
+    return """# Phase 9 Runtime Pilot Lane Sequencing
+
+- keep the freeze-map study-only anchors explicit through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain cautionary non-owner context rather than proof of runtime-substrate or bridge readiness
+- Keep `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` framed as freeze-map study-only anchors, and route that shared anchor inventory back through `Documentation/zigux/phase15-study-only-anchor-accounting.md`
+"""
+
+
+def build_scripts_readme_fixture_text() -> str:
+    return """# scripts/zigux
+
+- keep the freeze-map boundary explicit too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay study-only anchors through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` rather than Phase 9 runtime-substrate readiness cues
+"""
+
+
+def build_samples_readme_fixture_text() -> str:
+    return """# samples/zigux
+
+- Do not widen this lane into runtime-loader, module-registration, procfs, sysfs, user-copy, workqueue, ring-buffer, or other runtime-substrate claims.
+"""
+
+
 def seed_fixture_tree(base: Path) -> None:
     write_text(base / FREEZE_MAP_PATH, build_freeze_map_fixture_text())
     write_text(base / STUDY_ONLY_ACCOUNTING_PATH, build_study_only_accounting_fixture_text())
+    write_text(base / LANE_SEQUENCING_PATH, build_lane_sequencing_fixture_text())
+    write_text(base / SCRIPTS_README_PATH, build_scripts_readme_fixture_text())
+    write_text(base / SAMPLES_README_PATH, build_samples_readme_fixture_text())
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -167,7 +229,37 @@ def run_self_test() -> int:
             write_text(base / STUDY_ONLY_ACCOUNTING_PATH, current.replace(marker, "", 1))
             expect_failure(base, f"missing_marker:{STUDY_ONLY_ACCOUNTING_PATH}:{marker}")
 
-        for rel_path in [FREEZE_MAP_PATH, STUDY_ONLY_ACCOUNTING_PATH]:
+        for marker in LANE_SEQUENCING_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            current = build_lane_sequencing_fixture_text()
+            if current.count(marker) != 1:
+                continue
+            write_text(base / LANE_SEQUENCING_PATH, current.replace(marker, "", 1))
+            expect_failure(base, f"missing_marker:{LANE_SEQUENCING_PATH}:{marker}")
+
+        for marker in SCRIPTS_README_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            current = build_scripts_readme_fixture_text()
+            if current.count(marker) != 1:
+                continue
+            write_text(base / SCRIPTS_README_PATH, current.replace(marker, "", 1))
+            expect_failure(base, f"missing_marker:{SCRIPTS_README_PATH}:{marker}")
+
+        for marker in SAMPLES_README_REQUIRED_MARKERS:
+            seed_fixture_tree(base)
+            current = build_samples_readme_fixture_text()
+            if current.count(marker) != 1:
+                continue
+            write_text(base / SAMPLES_README_PATH, current.replace(marker, "", 1))
+            expect_failure(base, f"missing_marker:{SAMPLES_README_PATH}:{marker}")
+
+        for rel_path in [
+            FREEZE_MAP_PATH,
+            STUDY_ONLY_ACCOUNTING_PATH,
+            LANE_SEQUENCING_PATH,
+            SCRIPTS_README_PATH,
+            SAMPLES_README_PATH,
+        ]:
             seed_fixture_tree(base)
             (base / rel_path).unlink()
             expect_failure(base, f"missing_file:{rel_path}")
@@ -177,6 +269,9 @@ def run_self_test() -> int:
     print("PHASE9_FREEZE_MAP_STUDY_BOUNDARIES_SELF_TEST=pass")
     print(f"PHASE9_FREEZE_MAP_MARKER_COUNT={len(FREEZE_MAP_REQUIRED_MARKERS)}")
     print(f"PHASE15_STUDY_ONLY_ACCOUNTING_MARKER_COUNT={len(STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS)}")
+    print(f"PHASE9_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
+    print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     return 0
 
 
@@ -203,6 +298,9 @@ def main() -> int:
 
     print(f"PHASE9_FREEZE_MAP_MARKER_COUNT={len(FREEZE_MAP_REQUIRED_MARKERS)}")
     print(f"PHASE15_STUDY_ONLY_ACCOUNTING_MARKER_COUNT={len(STUDY_ONLY_ACCOUNTING_REQUIRED_MARKERS)}")
+    print(f"PHASE9_LANE_SEQUENCING_MARKER_COUNT={len(LANE_SEQUENCING_REQUIRED_MARKERS)}")
+    print(f"PHASE9_SCRIPTS_README_MARKER_COUNT={len(SCRIPTS_README_REQUIRED_MARKERS)}")
+    print(f"PHASE9_SAMPLES_README_MARKER_COUNT={len(SAMPLES_README_REQUIRED_MARKERS)}")
     print("PHASE9_FREEZE_MAP_STUDY_BOUNDARIES=pass")
     return 0
 
