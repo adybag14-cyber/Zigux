@@ -115,7 +115,8 @@ SCRIPTS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited li
 SCRIPTS_README_FAIL_CLOSED_MARKER = "unregistered function-thread failures fail-closed"
 SCRIPTS_README_EXIT_ROLLBACK_COMPANION_MARKER = "failed-exit rollback explicit after reusable selftest replay together with later post-exit invalid-lifecycle rejections"
 SCRIPTS_README_REENTRY_COMPANION_MARKER = "keeps balanced function-thread registration reusable before and after selftest"
-SCRIPTS_README_BACKLOG_MARKER = "current `master` still does not materialize `zigux/tests/phase9_build.zig`"
+SCRIPTS_README_BACKLOG_MARKER = "current `master` still does not materialize the broader shared `zigux/tests/runtime_*` replay family beyond the returned trace-events survey witness, `zigux/kernel/runtime_loader.zig`, or `zigux/kernel/runtime_loader_contract.zig`"
+SCRIPTS_README_PHASE9_BUILD_BUNDLE_MARKER = "while the returned `zigux/tests/phase9_build.zig` bundle and `samples/zigux/runtime_bitmap_loader.zig` stay explicit only as bounded bitmap-family evidence rather than proof that the broader shared runtime-loader packet returned"
 SCRIPTS_README_BOUNDARY_SELF_TEST_MARKER = "`python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py --self-test`"
 SCRIPTS_README_PACKET_SELF_TEST_MARKER = "`python3 scripts/zigux/check-phase9-trace-events-runtime-packet.py --self-test`"
 SCRIPTS_README_BOUNDARY_LIVE_MARKER = "`python3 scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`"
@@ -275,6 +276,7 @@ SCRIPTS_README_REQUIRED_MARKERS = [
     SCRIPTS_README_EXIT_ROLLBACK_COMPANION_MARKER,
     SCRIPTS_README_REENTRY_COMPANION_MARKER,
     SCRIPTS_README_BACKLOG_MARKER,
+    SCRIPTS_README_PHASE9_BUILD_BUNDLE_MARKER,
     SCRIPTS_README_MAKEFILE_BOUNDARY_MARKER,
     SCRIPTS_README_FREEZE_BOUNDARY_MARKER,
     PHASE2_CONF_BRIDGE_MARKER,
@@ -438,7 +440,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, returned trace-events family-local survey witness, backlog posture, older runtime-loader-survey historical-only status, older Phase 2 versus Phase 3 non-owner boundaries, retired metadata and depmod vocabulary, and the no-Phase-9-make-route policy explicit."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, returned trace-events family-local survey witness, returned bounded `phase9_build` bitmap-family build bundle, backlog posture, older runtime-loader-survey historical-only status, older Phase 2 versus Phase 3 non-owner boundaries, retired metadata and depmod vocabulary, and the no-Phase-9-make-route policy explicit."
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test and exit")
