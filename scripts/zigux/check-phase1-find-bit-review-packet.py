@@ -118,6 +118,9 @@ EXPECTED_FIXTURE_VALUES = {
     "tail_and_clamped_next": 69,
     "tail_clamped_last": 67,
     "tail_clamped_empty_last": 69,
+    "tail_inclusive_boundary_next": 68,
+    "tail_inclusive_boundary_zero": 68,
+    "tail_inclusive_boundary_and": 68,
 }
 
 
@@ -221,6 +224,7 @@ def run_self_test() -> int:
         ("missing_anchor", "helper_anchor:test \"clump8 scans mask tail bits beyond nbits\":expected=1:actual=0"),
         ("manifest_drift", "manifest:review_packet_summary:expected_current_packet"),
         ("fixture_drift", "fixture:tail_clamped_last:expected_current_packet"),
+        ("tail_boundary_fixture_drift", "fixture:tail_inclusive_boundary_and:expected_current_packet"),
         ("duplicate_anchor", "helper_anchor:test \"clump8 scans mask tail bits beyond nbits\":expected=1:actual=2"),
     ]
 
@@ -250,30 +254,38 @@ def run_self_test() -> int:
         if cases[3][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:missing_anchor")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(tmp_root)
         manifest = load_json(tmp_root, MANIFEST_REL)
         manifest["review_anchors"]["tools/lib/find_bit.zig"]["review_packet_summary"] = "drift"
         write_text(tmp_root, MANIFEST_REL, json.dumps(manifest, indent=2) + "\n")
         if cases[4][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:manifest_drift")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo(tmp_root)
         fixture = load_json(tmp_root, FIXTURE_REL)
         fixture["find_bit"]["tail_clamped_last"] = 0
         write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
         if cases[5][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:fixture_drift")
 
-        build_sample_repo(tmp_root)
+        build_sampleRepo(tmp_root)
+        fixture = load_json(tmp_root, FIXTURE_REL)
+        fixture["find_bit"]["tail_inclusive_boundary_and"] = 0
+        write_text(tmp_root, FIXTURE_REL, json.dumps(fixture, indent=2) + "\n")
+        if cases[6][1] not in collect_failures(tmp_root):
+            raise SystemExit("phase1-find-bit-review:self-test:tail_boundary_fixture_drift")
+
+        build_sampleRepo(tmp_root)
         helper_text = load_text(tmp_root, HELPER_REL)
         duplicated = EXPECTED_HELPER_TEST_ANCHORS[17]
         helper_text = helper_text.replace(duplicated + "\n", duplicated + "\n" + duplicated + "\n", 1)
         write_text(tmp_root, HELPER_REL, helper_text)
-        if cases[6][1] not in collect_failures(tmp_root):
+        if cases[7][1] not in collect_failures(tmp_root):
             raise SystemExit("phase1-find-bit-review:self-test:duplicate_anchor")
 
     print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST=pass")
-    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=7")
+    print("PHASE1_FIND_BIT_REVIEW_PACKET_SELF_TEST_CASE_COUNT=8")
     return 0
 
 
