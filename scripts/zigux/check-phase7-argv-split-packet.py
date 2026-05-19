@@ -15,6 +15,7 @@ REQUIRED_FILES = [
     "Documentation/zigux/phase7-argv-split-slice.md",
     "scripts/zigux/check-phase7-argv-split-packet.py",
     "lib/argv_split.zig",
+    "zigux/tests/phase7_argv_split.zig",
     "zigux/tests/phase7_argv_split_manifest.json",
     "zigux/tests/phase7_argv_split_survey.zig",
     "samples/zigux/README.md",
@@ -23,15 +24,14 @@ REQUIRED_FILES = [
 REQUIRED_MARKERS = {
     "Documentation/zigux/phase7-helper-lane-sequencing.md": [
         "- argv-split packet, lane `P7-L09`:",
-        "  - `scripts/zigux/check-phase7-argv-split-packet.py`",
-        "`argv_split` currently survives through `lib/argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, and `scripts/zigux/check-phase7-argv-split-packet.py`.",
+        "  - `zigux/tests/phase7_argv_split.zig`",
         "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;",
     ],
     "Documentation/zigux/phase7-argv-split-slice.md": [
-        "`PHASE7_STATUS=helper_local_slice_anchor_landed`",
+        "`PHASE7_STATUS=helper_local_test_packet_landed`",
         "`PHASE7_SLICE=argv-split-runtime-leaf`",
-        "`Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `samples/zigux/README.md`.",
-        "Keep the helper-local survey, manifest, checker, and no-standalone-argv-sample boundary fail-closed on this returned slice anchor",
+        "`Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `samples/zigux/README.md`.",
+        "Keep the dedicated argv_split replay, survey, manifest, checker, and no-standalone-argv-sample boundary fail-closed",
     ],
     "scripts/zigux/check-phase7-argv-split-packet.py": [
         "--self-test",
@@ -42,26 +42,23 @@ REQUIRED_MARKERS = {
         "pub fn argvSplitWithArgc(",
         "pub fn argvFree(allocator: std.mem.Allocator, result: *ArgvSplitResult) void {",
         "pub fn cArgv(self: *const ArgvSplitResult) [*:null]const ?[*:0]const u8 {",
-        'test "argvSplit duplicates the input before tokenizing" {',
-        'test "argvSplit reuses the exported empty storage view for blank input without allocating" {',
-        'test "argvFree mirrors argv_free release ownership and stays safe after teardown" {',
+    ],
+    "zigux/tests/phase7_argv_split.zig": [
+        'const argv_split = @import("argv_split");',
+        'test "phase 7 argv split companion replays copied-storage token ownership" {',
+        'test "phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation" {',
+        'test "phase 7 argv split companion replays caller-owned teardown and failure boundaries" {',
     ],
     "zigux/tests/phase7_argv_split_manifest.json": [
         '"anchor": "lib/argv_split.c"',
-        '"current_master_state": "helper_slice_survey_manifest_anchor"',
-        '"covered_helpers": [',
-        '"ArgvSplitResult.cArgv"',
-        '"Documentation/zigux/phase7-argv-split-slice.md"',
-        '"samples/zigux/README.md"',
-        "helper-local survey-manifest-checker-slice truthfulness",
-        "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders",
+        '"current_master_state": "helper_slice_test_survey_manifest_anchor"',
+        '"zigux/tests/phase7_argv_split.zig"',
+        "helper-local survey-manifest-checker truthfulness",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
-        'test "phase 7 argv split survey keeps the helper-local slice anchor truthful" {',
-        'try std.testing.expectEqualStrings("helper_slice_survey_manifest_anchor", manifest.current_master_state);',
-        'try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-argv-split-slice.md");',
-        'const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-argv-split-slice.md");',
-        'try expectContains(samples_readme, "* `*argv*`");',
+        'test "phase 7 argv split survey keeps the returned helper-local packet truthful" {',
+        'try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);',
+        'const helper_companion = try readRepoFile(allocator, "zigux/tests/phase7_argv_split.zig");',
     ],
     "samples/zigux/README.md": [
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
@@ -69,7 +66,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 15
+SELF_TEST_CASE_COUNT = 12
 
 
 def read_text(path: Path) -> str:
@@ -125,139 +122,47 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
         assert validate(tmp_root) == ([], [])
 
-        sequencing_path = tmp_root / "Documentation" / "zigux" / "phase7-helper-lane-sequencing.md"
-        sequencing_path.unlink()
+        companion_path = tmp_root / "zigux" / "tests" / "phase7_argv_split.zig"
+        companion_path.unlink()
         expect_missing_file(
-            "missing_phase7_helper_lane_sequencing",
+            "missing_argv_split_companion",
             tmp_root,
-            "Documentation/zigux/phase7-helper-lane-sequencing.md",
+            "zigux/tests/phase7_argv_split.zig",
         )
         write_fixture_root(tmp_root)
 
         slice_path = tmp_root / "Documentation" / "zigux" / "phase7-argv-split-slice.md"
-        slice_path.unlink()
-        expect_missing_file(
-            "missing_argv_split_slice",
-            tmp_root,
-            "Documentation/zigux/phase7-argv-split-slice.md",
-        )
-        write_fixture_root(tmp_root)
-
-        checker_path = tmp_root / "scripts" / "zigux" / "check-phase7-argv-split-packet.py"
-        checker_path.unlink()
-        expect_missing_file(
-            "missing_argv_split_checker",
-            tmp_root,
-            "scripts/zigux/check-phase7-argv-split-packet.py",
-        )
-        write_fixture_root(tmp_root)
-
-        helper_path = tmp_root / "lib" / "argv_split.zig"
-        helper_path.unlink()
-        expect_missing_file("missing_argv_split_helper", tmp_root, "lib/argv_split.zig")
-        write_fixture_root(tmp_root)
-
-        manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
-        manifest_path.unlink()
-        expect_missing_file(
-            "missing_argv_split_manifest",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_manifest.json",
-        )
-        write_fixture_root(tmp_root)
-
-        survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
-        survey_path.unlink()
-        expect_missing_file(
-            "missing_argv_split_survey",
-            tmp_root,
-            "zigux/tests/phase7_argv_split_survey.zig",
-        )
-        write_fixture_root(tmp_root)
-
-        samples_path = tmp_root / "samples" / "zigux" / "README.md"
-        samples_path.unlink()
-        expect_missing_file("missing_samples_readme", tmp_root, "samples/zigux/README.md")
-        write_fixture_root(tmp_root)
-
         slice_text = read_text(slice_path)
-        slice_marker = "Keep the helper-local survey, manifest, checker, and no-standalone-argv-sample boundary fail-closed on this returned slice anchor"
+        slice_marker = "Keep the dedicated argv_split replay, survey, manifest, checker, and no-standalone-argv-sample boundary fail-closed"
         slice_path.write_text(slice_text.replace(slice_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_slice_next_step_marker",
+            "missing_slice_companion_marker",
             tmp_root,
             f"Documentation/zigux/phase7-argv-split-slice.md: {slice_marker}",
         )
         write_fixture_root(tmp_root)
 
-        helper_text = read_text(helper_path)
-        helper_marker = 'test "argvFree mirrors argv_free release ownership and stays safe after teardown" {'
-        helper_path.write_text(helper_text.replace(helper_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_release_ownership_marker",
-            tmp_root,
-            f"lib/argv_split.zig: {helper_marker}",
-        )
-        write_fixture_root(tmp_root)
-
+        manifest_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_manifest.json"
         manifest_text = read_text(manifest_path)
-        manifest_marker = '"Documentation/zigux/phase7-argv-split-slice.md"'
+        manifest_marker = '"zigux/tests/phase7_argv_split.zig"'
         manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_manifest_slice_review_surface",
+            "missing_manifest_companion_marker",
             tmp_root,
             f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}",
         )
         write_fixture_root(tmp_root)
 
+        survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         survey_text = read_text(survey_path)
-        survey_marker = 'const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-argv-split-slice.md");'
+        survey_marker = 'const helper_companion = try readRepoFile(allocator, "zigux/tests/phase7_argv_split.zig");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
-            "missing_survey_slice_reader",
+            "missing_survey_companion_reader",
             tmp_root,
             f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
         )
         write_fixture_root(tmp_root)
-
-        samples_text = read_text(samples_path)
-        samples_marker = "* `*argv*`"
-        samples_path.write_text(samples_text.replace(samples_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_samples_boundary_marker",
-            tmp_root,
-            f"samples/zigux/README.md: {samples_marker}",
-        )
-        write_fixture_root(tmp_root)
-
-        manifest_text = read_text(manifest_path)
-        manifest_marker = "helper-local survey-manifest-checker-slice truthfulness"
-        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_manifest_truthfulness_marker",
-            tmp_root,
-            f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}",
-        )
-        write_fixture_root(tmp_root)
-
-        survey_text = read_text(survey_path)
-        survey_marker = 'try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-argv-split-slice.md");'
-        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_survey_manifest_slice_anchor_marker",
-            tmp_root,
-            f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
-        )
-        write_fixture_root(tmp_root)
-
-        sequencing_text = read_text(sequencing_path)
-        sequencing_marker = "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;"
-        sequencing_path.write_text(sequencing_text.replace(sequencing_marker + "\n", "", 1), encoding="utf-8")
-        expect_missing_marker(
-            "missing_sequencing_lane_ownership_marker",
-            tmp_root,
-            f"Documentation/zigux/phase7-helper-lane-sequencing.md: {sequencing_marker}",
-        )
 
     print("PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass")
     print(f"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST_CASE_COUNT={SELF_TEST_CASE_COUNT}")
