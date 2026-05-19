@@ -309,7 +309,7 @@ Tests-root reviewer prompt:
             raise AssertionError(f"expected failure for {expected}")
 
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
