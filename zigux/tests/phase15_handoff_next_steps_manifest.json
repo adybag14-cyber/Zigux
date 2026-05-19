@@ -18,6 +18,7 @@
     "Documentation/zigux/phase15-study-only-anchor-accounting.md",
     "Documentation/zigux/phase15-shared-summary-gap.md",
     "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+    "zigux/tests/phase15_architecture_council_review_process.zig",
     "zigux/tests/phase15_architecture_council_review_process_build.zig",
     "zigux/tests/phase15_readiness_gate_manifest.json",
     "zigux/tests/phase15_handoff_next_steps_manifest.json",
