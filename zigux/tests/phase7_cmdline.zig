@@ -115,6 +115,20 @@ test "phase 7 cmdline companion replays quoted bare-token grouping without fabri
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
 
+test "phase 7 cmdline companion replays quoted leading-equals and unterminated-value boundaries" {
+    const quoted_equals = cmdline.nextArg("\"=ttyS0\" tail");
+    try std.testing.expectEqualStrings("=ttyS0", quoted_equals.param);
+    try std.testing.expect(quoted_equals.value == null);
+    try std.testing.expectEqualStrings("tail", quoted_equals.rest);
+    try std.testing.expectEqualStrings("tail", quoted_equals.remaining);
+
+    const unterminated = cmdline.nextArg("console=\"ttyS0,115200 root=/dev/vda");
+    try std.testing.expectEqualStrings("console", unterminated.param);
+    try std.testing.expectEqualStrings("ttyS0,115200 root=/dev/vda", unterminated.value.?);
+    try std.testing.expectEqualStrings("", unterminated.rest);
+    try std.testing.expectEqualStrings("", unterminated.remaining);
+}
+
 test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {
     var empty_token = [_]u8{ '"', '"', ' ', 'n', 'e', 'x', 't', 0 };
     const parsed = cmdline.nextArg(&empty_token);
