@@ -109,6 +109,24 @@
     "expected": "unexpected_long_option_argument_expected.json"
   },
   {
+    "name": "long_version_before_unexpected_long_option_argument",
+    "argv": [
+      "--version",
+      "--help=extra"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_unexpected_long_option_argument_expected.json"
+  },
+  {
+    "name": "abbreviated_long_version_before_unexpected_long_option_argument",
+    "argv": [
+      "--ver",
+      "--help=extra"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_unexpected_long_option_argument_expected.json"
+  },
+  {
     "name": "version_before_invalid_short_option",
     "argv": [
       "-Vx"
