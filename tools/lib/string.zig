@@ -897,6 +897,25 @@ pub fn strchr(buf: []const u8, needle: u8) ?usize {
     return strnchr(buf, buf.len, needle);
 }
 
+pub fn strrchr(buf: []const u8, needle: u8) ?usize {
+    const string_len = cStringLen(buf);
+    if (needle == 0) {
+        if (string_len < buf.len) {
+            return string_len;
+        }
+        return null;
+    }
+
+    var idx = string_len;
+    while (idx > 0) {
+        idx -= 1;
+        if (buf[idx] == needle) {
+            return idx;
+        }
+    }
+    return null;
+}
+
 test "strchr mirrors full-length C-string searches" {
     try std.testing.expectEqual(@as(?usize, 1), strchr("abcd", 'b'));
     try std.testing.expectEqual(@as(?usize, null), strchr("abcd", 'z'));
@@ -905,6 +924,21 @@ test "strchr mirrors full-length C-string searches" {
     try std.testing.expectEqual(@as(?usize, 1), strchr(&cstr, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strchr(&cstr, 'c'));
     try std.testing.expectEqual(@as(?usize, 2), strchr(&cstr, 0));
+}
+
+test "strrchr finds the last in-range match with C-string semantics" {
+    try std.testing.expectEqual(@as(?usize, 3), strrchr("abca", 'a'));
+    try std.testing.expectEqual(@as(?usize, 1), strrchr("abcd", 'b'));
+    try std.testing.expectEqual(@as(?usize, null), strrchr("abcd", 'z'));
+    try std.testing.expectEqual(@as(?usize, null), strrchr("abcd", 0));
+
+    const cstr = [_]u8{ 'a', 'b', 'a', 0, 'c', 'a' };
+    try std.testing.expectEqual(@as(?usize, 2), strrchr(&cstr, 'a'));
+    try std.testing.expectEqual(@as(?usize, 3), strrchr(&cstr, 0));
+
+    const past_nul = [_]u8{ 'a', 0, 'b', 'a' };
+    try std.testing.expectEqual(@as(?usize, 0), strrchr(&past_nul, 'a'));
+    try std.testing.expectEqual(@as(?usize, null), strrchr(&past_nul, 'b'));
 }
 
 test "strnchr honors count and C-string boundaries" {
