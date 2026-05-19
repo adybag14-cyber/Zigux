@@ -53,6 +53,9 @@ test "phase1 host-tools smoke imports the live helper modules" {
     try std.testing.expect(@hasDecl(rbtree, "find"));
     try std.testing.expect(@hasDecl(rbtree, "matchIterator"));
     try std.testing.expect(@hasDecl(string, "strtobool"));
+    try std.testing.expect(@hasDecl(string, "matchString"));
+    try std.testing.expect(@hasDecl(string, "strnchr"));
+    try std.testing.expect(@hasDecl(string, "strnchrNul"));
     try std.testing.expect(@hasDecl(slab, "kmallocBytes"));
     try std.testing.expect(@hasDecl(str_error_r, "strErrorR"));
     try std.testing.expect(@hasDecl(vsprintf, "scnprintf"));
@@ -213,6 +216,17 @@ test "phase1 host-tools smoke exercises live helper behavior" {
 
     const sysfs = [_][]const u8{ "disabled", "auto\n", "manual" };
     try std.testing.expectEqual(@as(?usize, 1), string.sysfsMatchString(&sysfs, "auto"));
+
+    const lookup = [_][]const u8{ "disabled", "manual", "manual", "auto" };
+    const lookup_cstr = [_]u8{ 'a', 'u', 't', 'o', 0, 'x' };
+    try std.testing.expectEqual(@as(?usize, 1), string.matchString(&lookup, "manual"));
+    try std.testing.expectEqual(@as(?usize, 3), string.match_string(&lookup, &lookup_cstr));
+
+    const counted = [_]u8{ 'a', 'b', 0, 'c', 'd' };
+    try std.testing.expectEqual(@as(?usize, 1), string.strnchr(&counted, counted.len, 'b'));
+    try std.testing.expectEqual(@as(?usize, null), string.strnchr(&counted, counted.len, 'c'));
+    try std.testing.expectEqual(@as(usize, 2), string.strnchrNul(&counted, counted.len, 'z'));
+    try std.testing.expectEqual(@as(usize, 1), string.strnchrnul(&counted, counted.len, 'b'));
 
     var tree_entries = [_]RbtreeSmokeEntry{
         .{ .key = 10, .serial = 0 },
