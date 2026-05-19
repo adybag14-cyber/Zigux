@@ -24,7 +24,10 @@ EXPECTED_LOCAL_ONLY_POSTURE_NOTE = (
     "approved local-only acceptable limits explicit while shared CI perf promotion "
     "remains intentionally pending."
 )
-EXPECTED_SELF_TEST_CASES = 16
+EXPECTED_BOOTSTRAP_CI_POSTURE = (
+    "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"
+)
+EXPECTED_SELF_TEST_CASES = 20
 
 MANIFEST_MARKERS = (
     '"lane_key": "P4-L20"',
@@ -33,6 +36,10 @@ MANIFEST_MARKERS = (
     '"rollback_owner": "Validation and Perf Team"',
     '"decision_owner": "Validation and Perf Team"',
     '"shared_ci_perf_promotion_status": "pending"',
+    '"dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"',
+    '"dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey"',
+    '"validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"',
+    '"bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"',
     '"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"',
     '"benchmark_command": "zig build phase4-bitmap-diff --build-file zigux/tests/phase4_build.zig"',
     '"linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey"',
@@ -135,6 +142,10 @@ def validate_manifest_json(manifest_data: dict[str, object], missing: list[str])
         (("coordination_owners",), EXPECTED_COORDINATION_OWNERS),
         (("shared_ci_perf_promotion_status",), "pending"),
         (("local_only_posture_note",), EXPECTED_LOCAL_ONLY_POSTURE_NOTE),
+        (("dedicated_local_survey_wrapper",), "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"),
+        (("dedicated_linux_style_survey_wrapper",), "make -C zigux phase4-perf-baseline-survey"),
+        (("validation_entrypoint",), "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"),
+        (("bootstrap_ci_posture",), EXPECTED_BOOTSTRAP_CI_POSTURE),
         (("atomic64", "benchmark_command"), "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"),
         (("atomic64", "acceptable_limit_max_elapsed_ns"), 8192),
         (("atomic64", "evidence", 1, "runs", 0, "checksum"), 3626254113632800175),
@@ -212,6 +223,10 @@ def build_fixture_tree(root: Path) -> None:
   ],
   "shared_ci_perf_promotion_status": "pending",
   "local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.",
+  "dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+  "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey",
+  "validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+  "bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
   "atomic64": {
     "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
@@ -349,7 +364,11 @@ def run_self_test() -> int:
                 '  "coordination_owners": [\n    "ABI and Replay Team",\n    "Shared Subsystems Pod"\n  ],',
                 'manifest_json:coordination_owners:',
             ),
-            (MANIFEST, '"coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]', '"coordination_owners": ["ABI and Replay Team", "Shared Subsystems Pod"]', 'manifest_json:promotion_decision.coordination_owners:'),
+            (MANIFEST, '"coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"]', '"coordination_owners": ["ABI and Replay Team", "Shared Subsystems Pod"]', "manifest_json:promotion_decision.coordination_owners:"),
+            (MANIFEST, '"dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"', '"dedicated_local_survey_wrapper": "zig build phase4-local-baseline-survey --build-file zigux/tests/phase4_build.zig"', "manifest_json:dedicated_local_survey_wrapper:"),
+            (MANIFEST, '"dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey"', '"dedicated_linux_style_survey_wrapper": "make -C zigux phase4-local-baseline-survey"', "manifest_json:dedicated_linux_style_survey_wrapper:"),
+            (MANIFEST, '"validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"', '"validation_entrypoint": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"', "manifest_json:validation_entrypoint:"),
+            (MANIFEST, '"bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"', '"bootstrap_ci_posture": "approved_for_shared_phase4_test_and_bootstrap_workflow"', "manifest_json:bootstrap_ci_posture:"),
             (MANIFEST, '"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"', '"benchmark_command": "zig build phase4-runtime-atomic64-bench --build-file zigux/tests/phase4_build.zig"', 'manifest_marker:"benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig"'),
             (SURVEY, 'try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");', 'try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"approved\\\\\\\\\\\\\\\"");', 'survey_marker:try requireMarker("\\\\\\\"shared_ci_perf_promotion_status\\\\\\\": \\\\\\\\\\\\\\\"pending\\\\\\\\\\\\\\\"");'),
             (MATRIX, "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands and acceptable limits are pending review today", "matrix_marker:local-only benchmark commands and acceptable limits are approved today"),
