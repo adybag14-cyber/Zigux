@@ -421,6 +421,42 @@ test "materialized tools/lib/bpf Zigux segments keep stable online-CPU routing h
             .online_cpu_count = 3,
             .requested_cpu_count = 0,
             .selected_cpu_count = 3,
+            .buffer_slot_count = 3,
+            .routed_cpu_count = 3,
+            .first_routed_cpu_index = 1,
+            .next_online_cpu_index = null,
+            .missing_buffer_index = null,
+            .disposition = .complete,
+        },
+        online_cpu_routing.summarizeOnlineCpuRouting(
+            &online_cpu_mask,
+            0,
+            &.{ 11, 17, 29 },
+        ),
+    );
+    try std.testing.expectEqualDeep(
+        online_cpu_routing.OnlineCpuRoutingSummary{
+            .online_cpu_count = 0,
+            .requested_cpu_count = 3,
+            .selected_cpu_count = 0,
+            .buffer_slot_count = 0,
+            .routed_cpu_count = 0,
+            .first_routed_cpu_index = null,
+            .next_online_cpu_index = null,
+            .missing_buffer_index = null,
+            .disposition = .no_online_cpu,
+        },
+        online_cpu_routing.summarizeOnlineCpuRouting(
+            &[_]bool{ false, false },
+            3,
+            &[_]?i32{},
+        ),
+    );
+    try std.testing.expectEqualDeep(
+        online_cpu_routing.OnlineCpuRoutingSummary{
+            .online_cpu_count = 3,
+            .requested_cpu_count = 0,
+            .selected_cpu_count = 3,
             .buffer_slot_count = 2,
             .routed_cpu_count = 2,
             .first_routed_cpu_index = 1,
