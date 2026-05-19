@@ -65,3 +65,82 @@ test "Linux-style hweight aliases mirror the primary helper surface" {
     );
     try std.testing.expectEqual(hweightLong(0xf0f0), hweight_long(0xf0f0));
 }
+
+test "software hweight helpers stay aligned with direct popcount across sampled widths" {
+    var byte_value: u16 = 0;
+    while (byte_value <= std.math.maxInt(u8)) : (byte_value += 1) {
+        const narrowed: u8 = @intCast(byte_value);
+        try std.testing.expectEqual(@as(u32, @popCount(narrowed)), swHweight8(byte_value));
+    }
+
+    const values16 = [_]u16{
+        0x0000,
+        0x0001,
+        0x00ff,
+        0x0f0f,
+        0x5555,
+        0x8001,
+        0xaaaa,
+        0xff00,
+        0xffff,
+    };
+    for (values16) |value| {
+        try std.testing.expectEqual(@as(u32, @popCount(value)), swHweight16(value));
+    }
+
+    const values32 = [_]u32{
+        0x0000_0000,
+        0x0000_0001,
+        0x00ff_00ff,
+        0x0f0f_f0f0,
+        0x1357_9bdf,
+        0x8000_0001,
+        0xaaaa_5555,
+        0xff00_ff00,
+        0xffff_ffff,
+    };
+    for (values32) |value| {
+        try std.testing.expectEqual(@as(u32, @popCount(value)), swHweight32(value));
+    }
+
+    const values64 = [_]u64{
+        0x0000_0000_0000_0000,
+        0x0000_0000_0000_0001,
+        0x00ff_00ff_00ff_00ff,
+        0x0f0f_f0f0_0f0f_f0f0,
+        0x0123_4567_89ab_cdef,
+        0x8000_0000_0000_0001,
+        0xaaaa_5555_3333_cccc,
+        0xff00_ff00_00ff_00ff,
+        0xffff_ffff_ffff_ffff,
+    };
+    for (values64) |value| {
+        try std.testing.expectEqual(@as(u64, @popCount(value)), swHweight64(value));
+    }
+}
+
+test "hweightLong stays aligned with direct popcount on native-word samples" {
+    const native_values = if (@sizeOf(usize) == 4)
+        [_]usize{
+            0x0000_0000,
+            0x0000_0001,
+            0x00ff_00ff,
+            0x0f0f_f0f0,
+            0x8000_0001,
+            0xffff_ffff,
+        }
+    else
+        [_]usize{
+            0x0000_0000_0000_0000,
+            0x0000_0000_0000_0001,
+            0x00ff_00ff_00ff_00ff,
+            0x0f0f_f0f0_0f0f_f0f0,
+            0x8000_0000_0000_0001,
+            0xffff_ffff_ffff_ffff,
+        };
+
+    for (native_values) |value| {
+        try std.testing.expectEqual(@popCount(value), hweightLong(value));
+        try std.testing.expectEqual(hweightLong(value), hweight_long(value));
+    }
+}
