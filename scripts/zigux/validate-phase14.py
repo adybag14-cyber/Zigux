@@ -110,7 +110,7 @@ REQUIRED_MARKERS = {
         "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md",
     ],
     ATTACHED_TOOLCHAIN_GUIDANCE_PATH: [
-        "the shared smoke note now treats those same wrapper names as historical packet-local vocabulary instead of current fallback guidance",
+        "the shared smoke note and release-boundary note now treat those same wrapper names as historical packet-local vocabulary instead of current fallback guidance",
         "scripts/zigux/check-phase14-release-boundary-exact-counts.py` is directly readable again through the current contents path",
         "`zigux/Makefile` is readable again, and its live body currently exposes the shipped Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
         "`zigux/tests/phase14_workqueue_reviewability.zig`",
