@@ -294,7 +294,7 @@ def run_self_test() -> int:
         + len(MAKEFILE_LINES)
         + len(TOOLCHAIN_PINNING_MARKERS)
         + len(TESTS_ALIGNMENT_MARKERS)
-        + 12
+        + 13
         + 7
     )
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_cross_alignment_") as tmp_dir:
@@ -384,6 +384,17 @@ def run_self_test() -> int:
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("INVALID_CROSS_TARGET_FIXTURE_FIELD", "archive_target_scope") in collect_issues(root)
         checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, CROSS_TARGETS)
+        path.write_text("{\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid json in required file" in str(exc)
+            checks_run += 1
+        else:
+            raise AssertionError("invalid json fixture did not abort")
 
         build_self_test_root(root)
         path = resolve_path(root, CROSS_TARGETS)
