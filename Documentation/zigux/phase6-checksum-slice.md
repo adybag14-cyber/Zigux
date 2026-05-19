@@ -26,7 +26,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 ## Gates
 
 1. run the focused helper replay
-- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, fold, replacement, pseudo-header, and aligned fast-path packet reviewable
+- `zigux/tests/phase6_checksum.zig` keeps the compute, partial, fold, replacement, folded and unfolded pseudo-header helpers, and aligned fast-path packet reviewable
 
 2. run the bounded perf replay
 - `zigux/tests/phase6_checksum_perf.zig` keeps the helper-vs-reference slowdown gate explicit through the committed `64B` and `1501B` payload matrix in `zigux/tests/fixtures/phase6_checksum_vectors.zig`
@@ -39,13 +39,13 @@ The current checksum helper surface exercised by this slice covers:
 - `add`, `sub`, `shift`, `blockAdd`, and `blockSub`
 - `replace`, `replaceByDiff`, `replace2`, and `replace4`
 - `from32to16`, `fold`, and `compute`
-- `tcpUdpNofold`, `tcpUdpV6Nofold`, and `ipFastCsum`
+- `tcpUdpNofold`, `tcpUdpMagic`, `tcpUdpV6Nofold`, `tcpUdpV6Magic`, and `ipFastCsum`
 
 The current tests and fixtures check:
 
 - empty, odd-length, even-length, and seeded partial accumulation
 - replacement and header-edit parity for payload words, IPv4 length edits, and IPv4 address edits
-- pseudo-header accumulation parity for IPv4 and IPv6
+- folded and unfolded pseudo-header accumulation parity for IPv4 and IPv6
 - aligned fast-path parity for minimal, updated, and option-bearing IPv4 headers
 - perf-matrix stability for the committed `64B` and `1501B` fixture payloads with explicit slowdown thresholds
 - aligned-header fast-path perf stability for the committed `IPV4_20B` and `IPV4_24B` fixture headers with explicit slowdown thresholds against `compute()`
