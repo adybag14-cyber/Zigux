@@ -277,6 +277,7 @@ test "phase9 trace-events sample keeps registration reentry reusable across init
     try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(15));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());
     try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());
 }
 
