@@ -64,6 +64,8 @@ REQUIRED_MARKERS = {
         '"current_master_state": "helper_slice_test_survey_manifest_anchor"',
         '"scripts/zigux/check-phase7-cmdline-packet.py"',
         "helper-local survey-manifest-checker truthfulness packet",
+        "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
+        "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
     ],
     "zigux/tests/phase7_cmdline_survey.zig": [
         'test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {',
@@ -76,7 +78,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 12
+SELF_TEST_CASE_COUNT = 14
 
 
 def read_text(path: Path) -> str:
@@ -220,6 +222,26 @@ def run_self_test() -> None:
         manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_manifest_checker_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        manifest_text = read_text(manifest_path)
+        manifest_marker = "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary"
+        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_nextarg_ownership_marker",
+            tmp_root,
+            f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        manifest_text = read_text(manifest_path)
+        manifest_marker = "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership"
+        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_memparse_ownership_marker",
             tmp_root,
             f"zigux/tests/phase7_cmdline_manifest.json: {manifest_marker}",
         )
