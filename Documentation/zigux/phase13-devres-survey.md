@@ -1,6 +1,6 @@
 # Phase 13 devres DMA and scatterlist Boundary Survey
 
-This document records the bounded `P13-L05` survey lane around the current DMA and scatterlist boundary evidence for `lib/devres.c`.
+This document records the bounded `P13-L07` survey lane around the current DMA and scatterlist boundary evidence for `lib/devres.c`.
 
 ## Status
 
