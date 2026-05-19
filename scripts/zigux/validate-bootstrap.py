@@ -21,6 +21,7 @@ PINNING_CHECKER = "scripts/zigux/check-phase2-toolchain-pinning.py"
 PIN_SCOPE_CHECKER = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 REQUIRED_MAKE_ROUTES_CHECKER = "scripts/zigux/check-phase2-required-make-routes.py"
 SHARED_REMINDER_CHECKER = "scripts/zigux/check-phase2-docs-shared-reminder.py"
+GENKSYMS_BRIDGE_CHECKER = "scripts/zigux/check-genksyms-bridge.py"
 GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
 PHASE2_VALIDATOR = "scripts/zigux/validate-phase2.py"
 TOOLCHAIN_POLICY = "scripts/zigux/zig-toolchain-policy.json"
@@ -60,6 +61,7 @@ REQUIRED_PATHS = (
     PIN_SCOPE_CHECKER,
     REQUIRED_MAKE_ROUTES_CHECKER,
     SHARED_REMINDER_CHECKER,
+    GENKSYMS_BRIDGE_CHECKER,
     GENKSYMS_ZIG,
     PHASE2_VALIDATOR,
     TOOLCHAIN_POLICY,
@@ -119,6 +121,8 @@ WORKFLOW_LINE_MARKERS = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
@@ -305,7 +309,8 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     else:
         if isinstance(archive_sha256, DuplicateTrackingDict) and archive_sha256.duplicate_keys:
             issues.append(
-                ("INVALID_POLICY", f"duplicate_archive_sha256_keys={archive_sha256.duplicate_keys!r}"))
+                ("INVALID_POLICY", f"duplicate_archive_sha256_keys={archive_sha256.duplicate_keys!r}")
+            )
         if list(archive_sha256.keys()) != EXPECTED_POLICY["archive_target_scope"]:
             issues.append(("INVALID_POLICY", f"archive_sha256_keys={list(archive_sha256.keys())!r}"))
         for target, digest in archive_sha256.items():
@@ -439,6 +444,7 @@ def build_self_test_root(root: Path) -> None:
         PIN_SCOPE_CHECKER,
         REQUIRED_MAKE_ROUTES_CHECKER,
         SHARED_REMINDER_CHECKER,
+        GENKSYMS_BRIDGE_CHECKER,
         GENKSYMS_ZIG,
         PHASE2_VALIDATOR,
     ):
