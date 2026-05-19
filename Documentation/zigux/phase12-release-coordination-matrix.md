@@ -53,9 +53,10 @@ Current repo-reality override: `zigux/Makefile` now exposes `phase12-smoke`, `ph
 4. shipped wrapper evidence on current `master`: `make -C zigux phase12-test`
 5. shipped wrapper evidence on current `master`: `make -C zigux phase12`
 
-Keep the degraded-workflow validation trio explicit beside that same order too:
+Keep the degraded-workflow support quartet explicit beside that same order too:
 - `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`
 - `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`
+- `scripts/zigux/validate-phase12.py`
 - reminder-only wrapper name until the route returns: `make -C zigux phase12-validate`
 - Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.
 
