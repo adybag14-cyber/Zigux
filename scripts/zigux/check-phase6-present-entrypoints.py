@@ -30,9 +30,15 @@ EXPECTED_DIRECT_COMPANIONS = [
     "zigux/tests/phase6_helper_parity_manifest.json",
     "scripts/zigux/check-phase6-present-entrypoints.py",
 ]
+EXPECTED_PUBLIC_TREE_BACKED_SHARED_COMPANIONS = [
+    "Documentation/zigux/phase6-helper-parity-catalog.md",
+    "Documentation/zigux/phase6-perf-gate-survey.md",
+]
 EXPECTED_ROADMAP_ANCHORS = ["lib/base64.c", "lib/bsearch.c", "lib/checksum.c", "lib/hexdump.c"]
 EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
 REQUIRED_CATALOG_SNIPPETS = [
+    "## Current direct-readback warning",
+    "Current public raw readback rematerializes `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep those broader parity and perf notes as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime.",
     "- dedicated slowdown replay: `zigux/tests/phase6_bsearch_perf.zig`",
     "## Current shared replay inventory",
     "- `make -C zigux phase6-bsearch-perf`",
@@ -47,7 +53,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "$(ZIG) build phase6-bsearch-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
 SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
-SELF_TEST_CASE_COUNT = 4
+SELF_TEST_CASE_COUNT = 5
 
 
 class ValidationError(RuntimeError):
@@ -97,6 +103,8 @@ def validate(repo_root: Path) -> None:
         raise ValidationError("phase6 helper-evidence surveyed-head mismatch")
     if manifest.get("current_direct_readback_companions") != EXPECTED_DIRECT_COMPANIONS:
         raise ValidationError("phase6 direct-readback companions mismatch")
+    if manifest.get("public_tree_backed_shared_companions") != EXPECTED_PUBLIC_TREE_BACKED_SHARED_COMPANIONS:
+        raise ValidationError("phase6 public-tree-backed shared companions mismatch")
     if manifest.get("roadmap_anchors") != EXPECTED_ROADMAP_ANCHORS:
         raise ValidationError("phase6 roadmap anchor packet mismatch")
 
@@ -119,23 +127,54 @@ def write(path: Path, content: str) -> None:
 
 
 def scaffold_repo(root: Path) -> None:
-    write(root / CATALOG_PATH, "\n".join(["- surveyed head: `61e026c`", *REQUIRED_CATALOG_SNIPPETS]) + "\n")
+    write(
+        root / CATALOG_PATH,
+        "\n".join(
+            [
+                "- surveyed head: `61e026c`",
+                *REQUIRED_CATALOG_SNIPPETS,
+            ]
+        )
+        + "\n",
+    )
     write(root / BUILD_PATH, "\n".join(REQUIRED_BUILD_SNIPPETS) + "\n")
     write(root / MAKEFILE_PATH, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
-    write(root / MANIFEST_PATH, json.dumps({
-        "packet": EXPECTED_PACKET,
-        "phase": EXPECTED_PHASE,
-        "surveyed_head": "61e026c",
-        "lane_scope": EXPECTED_LANE_SCOPE,
-        "current_direct_readback_companions": EXPECTED_DIRECT_COMPANIONS,
-        "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
-        "helpers": [{"key": "base64"}, {"key": "bsearch", "checker_surfaces": [EXPECTED_BSEARCH_CHECKER], "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"}, {"key": "checksum"}, {"key": "hexdump"}],
-    }, indent=2) + "\n")
+    write(
+        root / MANIFEST_PATH,
+        json.dumps(
+            {
+                "packet": EXPECTED_PACKET,
+                "phase": EXPECTED_PHASE,
+                "surveyed_head": "61e026c",
+                "lane_scope": EXPECTED_LANE_SCOPE,
+                "current_direct_readback_companions": EXPECTED_DIRECT_COMPANIONS,
+                "public_tree_backed_shared_companions": EXPECTED_PUBLIC_TREE_BACKED_SHARED_COMPANIONS,
+                "roadmap_anchors": EXPECTED_ROADMAP_ANCHORS,
+                "helpers": [
+                    {"key": "base64"},
+                    {
+                        "key": "bsearch",
+                        "checker_surfaces": [EXPECTED_BSEARCH_CHECKER],
+                        "dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig",
+                    },
+                    {"key": "checksum"},
+                    {"key": "hexdump"},
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+    )
 
 
 def expect_failure(root: Path, path: Path, snippet: str) -> None:
     original = read_text(path)
-    write(path, original.replace(snippet + "\n", "", 1))
+    if path == root / MANIFEST_PATH and snippet == '"public_tree_backed_shared_companions"':
+        data = json.loads(original)
+        data.pop("public_tree_backed_shared_companions", None)
+        write(path, json.dumps(data, indent=2) + "\n")
+    else:
+        write(path, original.replace(snippet + "\n", "", 1))
     try:
         validate(root)
     except ValidationError:
@@ -150,10 +189,11 @@ def run_self_test() -> None:
         validate(root)
         cases_run = 0
         for path, snippet in [
+            (root / CATALOG_PATH, "Current public raw readback rematerializes `Documentation/zigux/phase6-helper-parity-catalog.md` and `Documentation/zigux/phase6-perf-gate-survey.md`, so keep those broader parity and perf notes as public-tree-backed companion evidence rather than as direct authenticated shared-packet proof in this runtime."),
             (root / CATALOG_PATH, "- `make -C zigux phase6-bsearch-perf`"),
             (root / BUILD_PATH, 'const bsearch_perf_step = b.step("phase6-bsearch-perf", "Run Phase 6 bsearch helper perf gate");'),
             (root / MAKEFILE_PATH, "phase6-bsearch-perf:"),
-            (root / MANIFEST_PATH, '"dedicated_slowdown_replay": "zigux/tests/phase6_bsearch_perf.zig"'),
+            (root / MANIFEST_PATH, '"public_tree_backed_shared_companions"'),
         ]:
             expect_failure(root, path, snippet)
             cases_run += 1
