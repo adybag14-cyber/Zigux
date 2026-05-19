@@ -15,7 +15,7 @@
   "shared_matrix_blob_sha": "44955f39e37b9389b3b97e7d710c25b1841aedf3",
   "shared_gate_evidence_path": "Documentation/zigux/phase4-gate-evidence.md",
   "gate_evidence_path": "Documentation/zigux/phase4-gate-evidence.md",
-  "gate_evidence_blob_sha": "4255a28c318c180b2772caf2211e16a91a0c8032",
+  "gate_evidence_blob_sha": "fc5728aa0ea4e46d1cebecd42fafc22b30746b38",
   "phase4_build_present": true,
   "phase4_build_uses_bitmap_diff": true,
   "phase4_build_uses_bitmap_diff_survey": true,
