@@ -17,6 +17,7 @@ REQUIRED_PATHS = (
     "Documentation/zigux/freeze-map.md",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+    "Documentation/zigux/phase10-phase11-phase13-validator-first-review-guide.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/check-phase10-bootstrap-route.py",
