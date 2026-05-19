@@ -318,3 +318,15 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     try std.testing.expectEqualStrings("fast path", parsed.value.?);
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
+
+test "nextArg keeps empty and unterminated quoted values aligned" {
+    const empty = nextArg("root=\"\" quiet") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("root", empty.param);
+    try std.testing.expectEqualStrings("", empty.value.?);
+    try std.testing.expectEqualStrings("quiet", empty.remaining);
+
+    const unterminated = nextArg("mode=\"fast boot") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("mode", unterminated.param);
+    try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
+    try std.testing.expectEqualStrings("", unterminated.remaining);
+}
