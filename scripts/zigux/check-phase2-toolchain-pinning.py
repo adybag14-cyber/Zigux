@@ -9,7 +9,7 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 POLICY_PATH = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
@@ -30,6 +30,7 @@ SURFACE_PATHS = (
     ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py",
     ROOT / "scripts" / "zigux" / "check-phase2-required-make-routes.py",
     ROOT / "scripts" / "zigux" / "check-phase2-docs-shared-reminder.py",
+    ROOT / "scripts" / "zigux" / "check-phase2-tool-manifest.py",
     ROOT / "scripts" / "zigux" / "check-genksyms-bridge.py",
     ROOT / "scripts" / "zigux" / "validate-phase2.py",
     ROOT / "scripts" / "zigux" / "validate-phase2-closure.py",
@@ -139,6 +140,10 @@ EXPECTED_TOOL_MANIFEST = {
             "Documentation/zigux/phase2-closure.md",
             "Documentation/zigux/phase2-toolchain-bootstrap-notes.md",
         ],
+        "validators": [
+            "scripts/zigux/validate-phase2.py",
+            "scripts/zigux/validate-phase2-closure.py",
+        ],
         "checkers": [
             "scripts/zigux/check-zig-toolchain.py",
             "scripts/zigux/check-kconfig-bridge.py",
@@ -151,6 +156,7 @@ EXPECTED_TOOL_MANIFEST = {
             "scripts/zigux/check-phase2-toolchain-pin-scope.py",
             "scripts/zigux/check-phase2-required-make-routes.py",
             "scripts/zigux/check-phase2-docs-shared-reminder.py",
+            "scripts/zigux/check-phase2-tool-manifest.py",
             "scripts/zigux/check-genksyms-bridge.py",
         ],
         "bootstrap_helpers": [
@@ -196,9 +202,9 @@ EXPECTED_TOOL_MANIFEST = {
     "repo_reality_gaps": [],
     "notes": [
         "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, returned installer helper, direct cross-route checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, the live kconfig bridge checker and fixture roster, the bounded genksyms bridge checker and fixture packet, cross-selftest checker, and the restored tranche-closure note.",
-        "Keep scripts/zigux/validate-phase2-closure.py out of the repo-reality-gap list because the closure validator is directly readable on current master and the closure-side packet depends on it as a live validation surface.",
+        "Keep the directly readable validator pair explicit through scripts/zigux/validate-phase2.py and scripts/zigux/validate-phase2-closure.py instead of leaving the closure-side replay packet implied only in prose.",
         "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-genksyms, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
-        "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
+        "Keep the dedicated manifest guard explicit through scripts/zigux/check-phase2-tool-manifest.py so Phase 2 packet drift fails closed beside the other reminder checkers.",
         "Keep the returned installer helper, direct cross-route checker, phase2_cross_targets fixture, and bounded genksyms fixture packet explicit through the current Phase 2 tool packet instead of leaving them in the repo-reality-gap bucket.",
     ],
 }
