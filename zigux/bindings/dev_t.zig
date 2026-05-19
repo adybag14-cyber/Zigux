@@ -68,3 +68,32 @@ test "dev_t binding keeps packing helpers aligned with the UAPI packet" {
     try std.testing.expectEqual(@as(u32, 29), minorFromDeviceNumber(encoded));
     try std.testing.expect(eql(fields, roundtrip));
 }
+
+test "dev_t binding keeps validation and range edges aligned with the UAPI packet" {
+    const valid = init(max_major, max_minor);
+    const invalid_major = init(max_major + 1, 0);
+    const invalid_minor = init(0, max_minor + 1);
+    const same = init(max_major, max_minor);
+    const later_major = init(max_major, max_minor);
+    const earlier_minor = init(max_major, max_minor - 1);
+    const encoded = makeDeviceNumber(max_major, max_minor);
+    const decoded = fieldsFromDeviceNumber(encoded);
+
+    try std.testing.expectEqual(uapi.validate(valid), validate(valid));
+    try std.testing.expect(validate(valid));
+    try std.testing.expectEqual(uapi.validate(invalid_major), validate(invalid_major));
+    try std.testing.expect(!validate(invalid_major));
+    try std.testing.expectEqual(uapi.validate(invalid_minor), validate(invalid_minor));
+    try std.testing.expect(!validate(invalid_minor));
+
+    try std.testing.expectEqual(uapi.validateRange(valid, same), validateRange(valid, same));
+    try std.testing.expect(validateRange(valid, same));
+    try std.testing.expectEqual(uapi.validateRange(earlier_minor, later_major), validateRange(earlier_minor, later_major));
+    try std.testing.expect(validateRange(earlier_minor, later_major));
+    try std.testing.expectEqual(uapi.validateRange(valid, earlier_minor), validateRange(valid, earlier_minor));
+    try std.testing.expect(!validateRange(valid, earlier_minor));
+    try std.testing.expectEqual(uapi.validateRange(valid, invalid_minor), validateRange(valid, invalid_minor));
+    try std.testing.expect(!validateRange(valid, invalid_minor));
+
+    try std.testing.expect(eql(valid, decoded));
+}
