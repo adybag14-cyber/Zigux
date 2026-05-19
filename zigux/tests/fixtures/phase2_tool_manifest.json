@@ -56,11 +56,21 @@
     "scripts/zigux/check-phase2-cross.py",
     "zigux/tests/fixtures/phase2_cross_targets.json"
   ],
+  "returned_direct_readback_packet": {
+    "status": "present_on_current_master_but_still_listed_in_repo_reality_gaps_until_shared_closure_surfaces_reconcile",
+    "evidence_anchor": "zigux/tests/README.md",
+    "paths": [
+      "scripts/zigux/install-zig.py",
+      "scripts/zigux/check-phase2-cross.py",
+      "zigux/tests/fixtures/phase2_cross_targets.json"
+    ]
+  },
   "notes": [
     "Current Phase 2 repo-tooling evidence is anchored in the shipped toolchain checker, docs-shared-reminder checker, required make-route guard, kbuild routes checker, cross-selftest checker, kconfig bridge fixture roster, and the restored tranche-closure note.",
     "Keep scripts/zigux/validate-phase2-closure.py out of the repo-reality-gap list because the closure validator is directly readable on current master and the closure-side packet depends on it as a live validation surface.",
     "Keep the shipped zigux/Makefile entrypoints explicit through the phase2-toolchain, phase2-tools, phase2-kconfig, phase2-cross, phase2-validate, and phase2 make wrappers instead of treating them as repo-reality gaps.",
     "Keep the fixture-backed artifact-diff support packet explicit through zigux/tests/fixtures/phase2_artifact_tools_manifest.json instead of treating it as a repo-reality gap.",
-    "Do not treat missing validator-first, installer, and direct cross-route names as directly readable current-master evidence until they are republished."
+    "Current master already directly materializes scripts/zigux/install-zig.py, scripts/zigux/check-phase2-cross.py, and zigux/tests/fixtures/phase2_cross_targets.json through the tests-root packet, so keep that returned direct-readback trio explicit here even while the older shared closure-side vocabulary still lists it in repo_reality_gaps.",
+    "Do not drop the installer and direct cross-route trio from repo_reality_gaps until the shared closure-side and reminder-owner packets reconcile to the returned direct-readback story."
   ]
 }
