@@ -28,6 +28,7 @@ Treat the directly reviewable current-head matrix packet as:
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
+- `zigux/tests/phase11_hvc_export_surface_layout_build.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_proof.zig`
 - `zigux/tests/phase11_hvc_hv_ops_layout_build.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
@@ -52,7 +53,7 @@ than current-head direct-readback evidence.
 | --- | --- | --- | --- | --- |
 | starter and companion stack | the current starter remains directly readable through `drivers/tty/hvc/hvc_console.zig`, while the coupled survey, companion, matrix, cleanup-current-head checker, shared build inventory, and proof-backed adjuncts keep the smaller current-head packet explicit | keep the survey, matrix, checker, proof, and inventory aligned with that smaller packet instead of reviving absent deeper anchors | if a future reread restores one deeper HVC helper, replay, manifest, or checker path, refresh the whole current-head packet in one bounded pass | live tty registration, notifier callback execution, khvcd worker execution, live sysrq dispatch, and host-backed teardown |
 | helper-local failure-mode edges | `drivers/tty/hvc/hvc_console.zig` keeps starter-backed targetless notifier, wakeup-cue, notifier-irq, and modem-control helper surfaces reviewable, while `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` keeps the deeper cleanup-trigger, notifier-unregister, targetless-dispatch, and detached remove-handoff history explicit without treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned direct-readback anchor | preserve the starter-backed helper cues in `hvc_console.zig` and the deeper helper-local cleanup, notifier-unregister, targetless-dispatch, and remove-handoff wording in the boundary note without treating the absent verify helper as a current-head file | if `drivers/tty/hvc/hvc_console_verify.zig` returns on a future reread, refresh this matrix and the coupled note together | treating helper-local review history as proof of live notifier or sysrq execution |
-| proof-backed adjuncts | `zigux/tests/fixtures/phase11_build_inventory.json` still records exactly three proof-backed build tests and no dedicated survey replay entries, while the exported-surface, hv-ops, and cleanup-packet proof files remain directly readable | keep the proof inventory exact and keep the proof-backed adjunct list narrow | if a future reread restores dedicated survey or cleanup replay files, land that expansion together with an inventory refresh | reconstructing a larger replay family from older wording alone |
+| proof-backed adjuncts | `zigux/tests/fixtures/phase11_build_inventory.json` still records exactly three proof-backed build tests and no dedicated survey replay entries, while the exported-surface proof/build pair, the `hv_ops` proof/build pair, and the cleanup-packet proof/build pair remain directly readable | keep the proof inventory exact and keep the proof-backed adjunct list narrow | if a future reread restores dedicated survey or cleanup replay files, land that expansion together with an inventory refresh | reconstructing a larger replay family from older wording alone |
 | route and checker boundary | `scripts/zigux/check-phase11-hvc-cleanup-current-head.py` remains directly readable, but `scripts/zigux/check-phase11-hvc-survey-packet.py` and a dedicated `make -C zigux phase11-hvc-survey` route do not | keep the current-head checker explicit and keep the absent dedicated survey checker and route out of the current packet | if the dedicated checker or route returns, refresh the matrix and survey together | reviving route or checker claims from historical wording alone |
 
 ## Failure-Mode Evidence
@@ -69,8 +70,9 @@ than current-head direct-readback evidence.
   notifier-unregister timing, and targetless sysrq fallback explicit without
   treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned current-head
   anchor.
-- the proof-backed adjuncts keep the exported surface, `hv_ops` layout, and the
-  current-head cleanup packet explicit without implying a broader replay roster.
+- the proof-backed adjuncts keep the exported-surface proof/build pair, the
+  `hv_ops` proof/build pair, and the current-head cleanup proof/build pair
+  explicit without implying a broader replay roster.
 
 ## Replay Posture
 
