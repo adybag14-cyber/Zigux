@@ -170,6 +170,7 @@ REQUIRED_MARKERS = {
         "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes",
         "Documentation/zigux/phase14-release-boundary-survey.md",
         "zigux/tests/phase14_workqueue_bridge_manifest.json",
+        "Keep the attached-toolchain boundary explicit only as historical packet-local vocabulary rather than current build-backed evidence while the readable `zigux/Makefile` still omits the matching `phase14-*` targets.",
     ],
     MAKEFILE_PATH: [
         "phase3-validate:",
@@ -348,6 +349,7 @@ def run_self_test() -> int:
             (ROLLBACK_CHECKER_PATH, REQUIRED_MARKERS[ROLLBACK_CHECKER_PATH][0]),
             (RELEASE_BOUNDARY_CHECKER_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_CHECKER_PATH][0]),
             (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][5]),
+            (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][6]),
             (WORKQUEUE_BRIDGE_TEST_PATH, REQUIRED_MARKERS[WORKQUEUE_BRIDGE_TEST_PATH][0]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][1]),
             (WORKQUEUE_REVIEWABILITY_PATH, REQUIRED_MARKERS[WORKQUEUE_REVIEWABILITY_PATH][0]),
