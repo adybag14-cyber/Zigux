@@ -227,6 +227,12 @@ jobs:
       - name: Check current Phase 2 shared reminder packet
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
 
+      - name: Self-test current Phase 2 tool manifest packet checker
+        run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py --self-test
+
+      - name: Check current Phase 2 tool manifest packet
+        run: python3 scripts/zigux/check-phase2-tool-manifest-packets.py
+
       - name: Self-test current Phase 2 genksyms bridge checker
         run: python3 scripts/zigux/check-genksyms-bridge.py --self-test
 
