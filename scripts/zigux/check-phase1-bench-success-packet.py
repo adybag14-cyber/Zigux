@@ -13,8 +13,13 @@ BENCH_CHECKER_REL = 'scripts/zigux/check-phase1-bench.py'
 
 REQUIRED_MARKERS = (
     'def emit_success_packet(expectations: dict[str, object]) -> int:',
+    'def capture_success_packet_output(expectations: dict[str, object]) -> list[str]:',
     "print('PHASE1_BENCH_CHECK=pass')",
-    'print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations[\'checksums\'])}")',
+    "print(f\"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}\")",
+    'success_output = capture_success_packet_output(expectations)',
+    'assert success_output == [',
+    '"PHASE1_BENCH_CHECK=pass",',
+    'f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations[\'checksums\'])}",',
     'return emit_success_packet(expectations)',
 )
 
@@ -106,7 +111,10 @@ def run_self_test() -> int:
                 path.unlink()
             elif operation == 'remove':
                 assert needle is not None
-                path.write_text(path.read_text(encoding='utf-8').replace(needle + '\n', '', 1), encoding='utf-8')
+                path.write_text(
+                    path.read_text(encoding='utf-8').replace(needle + '\n', '', 1),
+                    encoding='utf-8',
+                )
             elif operation == 'duplicate':
                 assert needle is not None
                 path.write_text(
