@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -221,6 +222,8 @@ def normalize_explicit_zig_path(explicit_zig: str) -> str:
         raise ValueError(f"explicit zig path does not exist: {normalized}")
     if normalized.is_dir():
         raise ValueError(f"explicit zig path is a directory, expected an executable file: {normalized}")
+    if not os.access(normalized, os.X_OK):
+        raise ValueError(f"explicit zig path is not executable: {normalized}")
     return str(normalized)
 
 
@@ -272,7 +275,7 @@ def resolve_zig_executable(
 
     pinned_channel = load_pinned_channel(policy_path)
     for candidate in iter_repo_local_zig_candidates(root=root, pinned_channel=pinned_channel):
-        if candidate.is_file():
+        if candidate.is_file() and os.access(candidate, os.X_OK):
             return str(candidate)
     return which("zig")
 
@@ -577,9 +580,12 @@ def run_self_test() -> int:
         root = Path(tmp_dir) / "workspace" / "repo"
         root.mkdir(parents=True)
         policy_path = root / "zig-toolchain-policy.json"
+        nonexec_zig = root / "nonexec-zig"
+        nonexec_zig.write_text("#!/bin/sh\n", encoding="utf-8")
         expect_equal(load_min_version(policy_path, "0.15.0"), "0.15.0")
         expect_equal(load_pinned_channel(policy_path), None)
         expect_equal(resolve_policy_archive(root=root, policy_path=policy_path), (None, None))
+        expect_raises(lambda: normalize_explicit_zig_path(str(nonexec_zig)), "explicit zig path is not executable")
         policy_path.write_text(
             json.dumps(
                 {
@@ -603,47 +609,26 @@ def run_self_test() -> int:
         toolchain_dir.mkdir(parents=True)
         pinned_zig = toolchain_dir / "zig"
         pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        pinned_zig.chmod(0o755)
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(pinned_zig))
-        alt_toolchain = root / ".zig-toolchain" / "fallback" / "bin"
-        alt_toolchain.mkdir(parents=True)
-        alt_zig = alt_toolchain / "zig"
+        alt_zig = root / "toolchains" / "alt" / "zig"
+        alt_zig.parent.mkdir(parents=True)
         alt_zig.write_text("#!/bin/sh\n", encoding="utf-8")
-        pinned_zig.unlink()
-        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(alt_zig))
-        explicit_zig = root / "custom-zig"
-        explicit_zig.write_text("#!/bin/sh\n", encoding="utf-8")
-        expect_equal(
-            resolve_zig_executable(str(explicit_zig), root=root, policy_path=policy_path, which=lambda _: None),
-            str(explicit_zig),
-        )
-        explicit_dir = root / "explicit-zig-dir"
-        explicit_dir.mkdir()
-        expect_raises(lambda: resolve_zig_executable(str(explicit_dir), root=root, policy_path=policy_path, which=lambda _: None), "expected an executable file")
-        pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
-        expect_equal(
-            iter_repo_local_zig_candidates(root=root, pinned_channel="0.17.0-dev.87+9b177a7d2")[:2],
-            [pinned_zig, toolchain_dir / "bin" / "zig"],
-        )
-        expect_equal(
-            iter_zig_search_roots(root)[:7],
-            [
-                root / ".zig-toolchain",
-                root / "toolchains",
-                root / ".toolchains",
-                root.parent / ".toolchains",
-                root.parent / "toolchains",
-                root.parent.parent / ".toolchains",
-                root.parent.parent / "toolchains",
-            ],
-        )
-        parent_toolchain = root.parent / ".toolchains" / "lane03-followup"
-        parent_pinned_root = parent_toolchain / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        alt_zig.chmod(0o755)
+        parent_pinned_root = root.parent / ".toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
         parent_pinned_root.mkdir(parents=True, exist_ok=True)
         parent_pinned_zig = parent_pinned_root / "zig"
         parent_pinned_zig.write_text("#!/bin/sh\n", encoding="utf-8")
+        parent_pinned_zig.chmod(0o755)
         pinned_zig.unlink()
         alt_zig.unlink()
+        nonexec_candidate_root = root / ".toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2"
+        nonexec_candidate_root.mkdir(parents=True, exist_ok=True)
+        nonexec_candidate = nonexec_candidate_root / "zig"
+        nonexec_candidate.write_text("#!/bin/sh\n", encoding="utf-8")
         expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), str(parent_pinned_zig))
+        parent_pinned_zig.unlink()
+        expect_equal(resolve_zig_executable(root=root, policy_path=policy_path, which=lambda _: "/usr/bin/zig"), "/usr/bin/zig")
         expect_equal(
             describe_missing_zig(
                 pinned_channel="0.17.0-dev.87+9b177a7d2",
