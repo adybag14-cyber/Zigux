@@ -256,6 +256,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub fn strreplace") != null);
     try std.testing.expect(std.mem.indexOf(u8, helper_source, "pub fn memcpyAndPad") != null);
     try expectExactCount(fixture_source, "sample replay newline hex escape", 1);
+    try expectExactCount(fixture_source, "sample replay exact-fit newline", 1);
     try expectExactCount(build_source, "phase7-string-helpers-sample-tests", 1);
     try expectExactCount(build_source, "string_helpers_sample_survey_root_module.addImport(\"string_helpers_sample\", string_helpers_sample_module);", 1);
     try expectExactCount(slice_note, "`samples/zigux/string_helpers_sample.zig`", 2);
@@ -263,6 +264,7 @@ test "phase 7 string helper sample survey manifest records the bounded sample-ba
 
 test "phase 7 string helper sample survey replays the shared fixture-backed outputs directly" {
     const newline_suffix = try findUniqueUnescapeCase("sample replay newline suffix");
+    const exact_fit_newline = try findUniqueUnescapeCase("sample replay exact-fit newline");
     const newline_hex_escape = try findUniqueEscapeCase("sample replay newline hex escape");
     const selected_newline_escape = try findUniqueEscapeCase("dictionary-limited space escaping");
     const append_newline_hex_escape = try findUniqueEscapeCase("append dictionary entries with hex escaping");
@@ -279,6 +281,8 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
 
     try std.testing.expectEqualStrings("line\\n", newline_suffix.input);
     try std.testing.expectEqual(string_helpers.UNESCAPE_SPACE, newline_suffix.flags);
+    try std.testing.expectEqualSlices(u8, "\\n", exact_fit_newline.input);
+    try std.testing.expectEqual(string_helpers.UNESCAPE_SPACE, exact_fit_newline.flags);
     try std.testing.expectEqualSlices(u8, "\n", newline_hex_escape.input);
     try std.testing.expectEqual(string_helpers.ESCAPE_HEX, newline_hex_escape.flags);
     try std.testing.expect(newline_hex_escape.only == null);
@@ -315,8 +319,8 @@ test "phase 7 string helper sample survey replays the shared fixture-backed outp
     try std.testing.expectEqualSlices(u8, "help", replay.lower_text.bytes[0..replay.lower_text.len]);
     try std.testing.expectEqual(newline_suffix.expected_len, replay.unescaped_text.len);
     try std.testing.expectEqualSlices(u8, newline_suffix.expected, replay.unescaped_text.bytes[0..replay.unescaped_text.len]);
-    try std.testing.expectEqual(@as(usize, 1), replay.exact_unescape_text.len);
-    try std.testing.expectEqualSlices(u8, "\n", replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);
+    try std.testing.expectEqual(exact_fit_newline.expected_len, replay.exact_unescape_text.len);
+    try std.testing.expectEqualSlices(u8, exact_fit_newline.expected, replay.exact_unescape_text.bytes[0..replay.exact_unescape_text.len]);
     try std.testing.expectEqual(@as(u8, 0), replay.exact_unescape_text.bytes[replay.exact_unescape_text.len]);
     try std.testing.expectEqual(newline_hex_escape.expected_len, replay.escaped_text.len);
     try std.testing.expectEqualSlices(u8, newline_hex_escape.expected, replay.escaped_text.bytes[0..replay.escaped_text.len]);
