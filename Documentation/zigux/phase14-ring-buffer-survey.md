@@ -4,14 +4,14 @@ This document records the bounded Phase 14 survey lane around `kernel/trace/ring
 ## Status
 - `PHASE14_STATUS=study_only`
 - `PHASE14_SLICE=ring-buffer-survey-gap`
-- scope: the dedicated Phase 14 ring-buffer survey gate, its direct replay command, the shared Phase 14 build wiring, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
+- scope: the surviving Phase 14 ring-buffer survey note-plus-manifest packet, its historical replay vocabulary, and this lane note that keeps the roadmap gap explicit without shipping a Zig bridge
 - survey provenance refreshed against verified `master` head `99cd3249c4bab05b74227ed7ca3869284e818588`
 - product boundary:
-  - `zigux/tests/phase14_ring_buffer_survey.zig`
   - `zigux/tests/phase14_ring_buffer_manifest.json`
-  - `zigux/tests/phase14_build.zig`
   - `Documentation/zigux/phase14-ring-buffer-survey.md`
   - `Documentation/zigux/freeze-map.md`
+  - `Documentation/zigux/phase14-end-to-end-smoke-survey.md`
+  - `Documentation/zigux/phase14-core-boundary-traceability.md`
 
 ## Why this slice exists
 The Phase 14 roadmap explicitly names `kernel/trace/ring_buffer.c` as a boundary-study target first, not a rewrite target.
@@ -24,8 +24,8 @@ The honest Phase 14 move here is therefore not to start a `ring_buffer.zig` file
 - `Documentation/trace/ring-buffer-design.rst` is present at 983 lines and documents the reserve, commit, reader, overwrite, and nested writer model in detail.
 - `Documentation/trace/ring-buffer-map.rst` is present at 106 lines and adds mmap-facing reader, sub-buffer, and tracefs limitation behavior that would be easy to understate in a premature Zig wrapper.
 - `kernel/trace/simple_ring_buffer.c` exists as a much smaller 517-line companion, which reinforces that the full tracing ring buffer is the complex path and should not be treated like a straightforward helper port.
-- the live repo again exposes `zigux/tests/phase14_ring_buffer_survey.zig` and `zigux/tests/phase14_build.zig`, so the highest-value non-overlapping ring-buffer step is to keep the dedicated survey gate and the shared full-bundle route truthful rather than to imply a new ownership seam
-- the dedicated direct replay command `zig test zigux/tests/phase14_ring_buffer_survey.zig` is the narrowest honest compile-side route for this parked packet, so the note keeps that focused survey replay explicit instead of forcing every follow-up through the heavier shared Phase 14 build bundle
+- current contents-path and raw-file readback still leave `zigux/tests/phase14_ring_buffer_survey.zig` and `zigux/tests/phase14_build.zig` absent, so the highest-value non-overlapping ring-buffer step is to keep the surviving survey note-plus-manifest packet truthful rather than to imply a new ownership seam or a currently recovered replay path
+- the older direct replay command `zig test zigux/tests/phase14_ring_buffer_survey.zig` and the shared build route `zig build test --build-file zigux/tests/phase14_build.zig --summary all` now survive only as historical packet vocabulary, so the note must not treat them as live compile-side evidence again until the same readback mode restores both companions on current `master`
 - the survey manifest now records a landed decision checklist around reserve or commit publication, head-page and reader-page handoff, remote-reader metadata, wakeup or mmap-facing publication, tracefs mapping limitations, and reader-page consume boundaries, and the current packet now also lands a read-page extraction audit around `ring_buffer_alloc_read_page()`, `ring_buffer_read_page()`, partial-copy versus page-swap behavior, the `resize_disabled` handoff, and a tracefs reader-serialization audit around `trace_access_lock()`, `tracing_buffers_read()`, `tracing_buffers_splice_read()`, and the read-versus-splice consumed-page lifetime split so later runs do not reinvent `kernel/trace/ring_buffer.zig` as a wrapper-first seam.
 
 ## Decision checklist
@@ -115,15 +115,15 @@ The tracefs helpers share the same serialization gate, but one path keeps a file
 
 ## Maintenance-Mode Handoff
 - current lane posture: `maintenance_mode`
-- live ring-buffer packet replay guidance:
+- historical ring-buffer packet replay vocabulary, to be reused only if current direct readback restores both missing companions:
   - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
   - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
-- keep those two routes bounded to compile evidence and note truthfulness only; their presence does not change the stay-in-C blocker on `kernel/trace/ring_buffer.zig`
+- keep those two routes as historical replay vocabulary only; current contents-path and raw-file readback still leave the dedicated survey companion and shared build companion absent, and that absence does not change the stay-in-C blocker on `kernel/trace/ring_buffer.zig`
 - reopen only when one of the packet-local conditions below becomes true:
-  - the dedicated survey note or manifest drift on surveyed commit, blocked gap, last closed follow-up, ready-next posture, or compile-evidence truthfulness
+  - the dedicated survey note or manifest drift on surveyed commit, blocked gap, last closed follow-up, ready-next posture, or absent executable-companion truthfulness
   - the directly coupled shared smoke or core traceability packet reintroduces a ring-buffer-specific owner-label or ready-next mismatch
   - genuinely narrower stay-in-C evidence appears around reserve or commit publication, reader-page consume, read-page extraction, or tracefs reader serialization that could justify a new dedicated survey audit without implying `kernel/trace/ring_buffer.zig`
-- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_build.zig`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase14-core-boundary-traceability.md` before restoring any stronger replay wording.
+- next future target: stay in maintenance mode unless one of those packet-local reopen conditions fires; if a future truthfulness drift is ring-buffer-local, reread `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase14-core-boundary-traceability.md`; if current direct readback also restores `zigux/tests/phase14_ring_buffer_survey.zig` or `zigux/tests/phase14_build.zig`, reconcile the returned packet with those paths before restoring any stronger replay wording.
 
 ## Recorded gaps
 The current lane state is:
@@ -139,7 +139,7 @@ The current lane state is:
 - landed `phase14-ring-buffer-tracefs-reader-serialization-followup`
 - landed `phase14-ring-buffer-maintenance-handoff`
 - blocked `phase14-ring-buffer-zig-port-blocker`
-This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, that the repo still does not ship `kernel/trace/ring_buffer.zig`, and that the current packet carries both a dedicated survey replay route and a shared full-bundle compile route without turning either one into an ownership claim.
+This keeps the lane honest: Zigux now has an explicit reviewable record that `kernel/trace/ring_buffer.c` belongs in the study-only set for now, that the repo still does not ship `kernel/trace/ring_buffer.zig`, and that the surviving packet carries both absent-companion truthfulness and historical replay vocabulary without turning either one into an ownership claim.
 
 ## Non-goals
 This survey slice does not claim:
@@ -152,13 +152,14 @@ This survey slice does not claim:
 - mmap or splice ownership for the tracefs ring-buffer interfaces
 
 ## Gates
-Keep the compile evidence narrow and reviewable:
-1. dedicated ring-buffer survey replay
+Keep the historical replay vocabulary explicit without overstating current readback:
+1. dedicated ring-buffer survey replay, only if direct readback restores the missing companion
    - `zig test zigux/tests/phase14_ring_buffer_survey.zig`
-2. shared Phase 14 build bundle replay
+2. shared Phase 14 build bundle replay, only if direct readback restores the missing companion
    - `zig build test --build-file zigux/tests/phase14_build.zig --summary all`
 
 ## Next bounded step
-Keep this ring-buffer lane parked unless the shared Phase 14 smoke packet, this survey note, the manifest, or the returned survey or build companions drift.
-If a future same-packet reread changes `zigux/tests/phase14_ring_buffer_survey.zig` or `zigux/tests/phase14_build.zig`, reconcile this note and `zigux/tests/phase14_ring_buffer_manifest.json` with those companions before restoring any stronger replay-backed wording.
-If it drifts without a real same-packet compile-evidence change, reopen only the smallest truthfulness repair inside `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, or `zigux/tests/phase14_end_to_end_smoke_manifest.json` before anyone proposes `kernel/trace/ring_buffer.zig` again.
+Keep this ring-buffer lane parked unless the shared Phase 14 smoke packet, this survey note, the manifest, or the returned survey companions drift.
+If a future same-packet reread changes `Documentation/zigux/phase14-end-to-end-smoke-survey.md` or `Documentation/zigux/phase14-core-boundary-traceability.md`, reconcile this note and `zigux/tests/phase14_ring_buffer_manifest.json` with those companions before restoring any stronger replay-backed wording.
+If current direct readback restores `zigux/tests/phase14_ring_buffer_survey.zig` or `zigux/tests/phase14_build.zig`, reconcile this note, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, and `Documentation/zigux/phase14-core-boundary-traceability.md` with those returned paths before restoring any stronger replay wording.
+If it drifts without a real same-packet executable recovery, reopen only the smallest truthfulness repair inside `Documentation/zigux/phase14-ring-buffer-survey.md`, `zigux/tests/phase14_ring_buffer_manifest.json`, `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, or `Documentation/zigux/phase14-core-boundary-traceability.md` before anyone proposes `kernel/trace/ring_buffer.zig` again.
