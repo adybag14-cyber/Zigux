@@ -117,7 +117,7 @@ EXPECTED_CASE_ORDER = list(EXPECTED_CASES)
 EXPECTED_FIXTURE_FILES = frozenset(
     {
         "cases.json",
-        r"escaped\ space-config.h",
+        r"escaped\\ space-config.h",
         "sample-config.h",
         "sample.c",
         "sample.d",
@@ -418,6 +418,14 @@ def run_self_test() -> int:
         f"{CASES_PATH}:entry[0]:missing_non_empty_name",
     )
 
+    empty_name_cases = copy_valid_cases(valid_cases)
+    empty_name_cases[0]["name"] = ""
+    counted_expect_failure(
+        "empty_case_name",
+        lambda: validate_cases(empty_name_cases),
+        f"{CASES_PATH}:entry[0]:missing_non_empty_name",
+    )
+
     duplicate_name_cases = copy_valid_cases(valid_cases)
     duplicate_name_cases[1]["name"] = duplicate_name_cases[0]["name"]
     counted_expect_failure(
@@ -609,6 +617,14 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample:missing_non_empty_depfile",
     )
 
+    empty_depfile_cases = copy_valid_cases(valid_cases)
+    find_case(empty_depfile_cases, "sample")["depfile"] = ""
+    counted_expect_failure(
+        "empty_depfile_field",
+        lambda: validate_cases(empty_depfile_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_depfile",
+    )
+
     missing_target_cases = copy_valid_cases(valid_cases)
     find_case(missing_target_cases, "sample").pop("target", None)
     counted_expect_failure(
@@ -662,10 +678,10 @@ def run_self_test() -> int:
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
         validate_fixture_inventory(
             fixture_dir,
-            frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+            frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
         )
         self_test_case_count += 1
 
@@ -676,21 +692,21 @@ def run_self_test() -> int:
             "missing_escaped_space_fixture",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
             ),
-            f"{fixture_dir}:missing_fixtures:escaped\\ space-config.h",
+            f"{fixture_dir}:missing_fixtures:escaped\\\\ space-config.h",
         )
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_unexpected_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
+        (fixture_dir / r"escaped\\ space-config.h").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
         counted_expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
                 fixture_dir,
-                frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
+                frozenset({"fixture_a.txt", r"escaped\\ space-config.h"}),
             ),
             f"{fixture_dir}:unexpected_fixtures:unexpected.txt",
         )
