@@ -12,6 +12,7 @@ Use this checklist before opening or merging Zigux product work.
   * is real code co-located with the owning Linux subsystem when appropriate?
   * does the change avoid deep-core scope creep into scheduler, MM, RCU, or skbuff without an Architecture Council decision?
   * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details?
+  * if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?
 ## Validation
   * are parity tests or fixture checks included?
   * is there a stated performance gate if the code is algorithmic, queueing-sensitive, or driver-facing?
