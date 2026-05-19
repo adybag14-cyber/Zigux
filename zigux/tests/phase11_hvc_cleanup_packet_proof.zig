@@ -129,3 +129,40 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff marker
         "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
     );
 }
+
+test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {
+    const matrix_doc = try readRepoFileAlloc(
+        std.testing.allocator,
+        "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
+        32 * 1024,
+    );
+    defer std.testing.allocator.free(matrix_doc);
+
+    const driver = try readRepoFileAlloc(
+        std.testing.allocator,
+        "drivers/tty/hvc/hvc_console.zig",
+        64 * 1024,
+    );
+    defer std.testing.allocator.free(driver);
+
+    try expectContains(matrix_doc, "`hvc_remove()` handoff");
+    try expectContains(matrix_doc, "`hvc_cleanup()` tty-port release");
+    try expectContains(matrix_doc, "targetless notifier, `hvc_kick()` wakeup-cue, notifier-irq, and");
+    try expectContains(matrix_doc, "modem-control helper summaries reviewable on current `master`.");
+
+    try expectContains(driver, "pub const RemoveHandoffRequest = struct {");
+    try expectContains(driver, "pub fn summarizeRemoveHandoff(request: RemoveHandoffRequest) RemoveHandoffSummary {");
+    try expectContains(driver, "pub const CleanupHandoffRequest = struct {");
+    try expectContains(driver, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {");
+    try expectContains(driver, "pub const TargetlessNotifierEdgeRequest = struct {");
+    try expectContains(driver, "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {");
+    try expectContains(driver, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {");
+    try expectContains(driver, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {");
+    try expectContains(driver, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {");
+    try expectContains(driver, "test \"phase11 hvc console keeps active hangup and cleanup ownership handoffs reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps remove handoff summary reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps targetless notifier no-unregister edge reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps hvc_kick wakeup cue reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps notifier irq helper surface reviewable\" {");
+    try expectContains(driver, "test \"phase11 hvc console keeps modem-control helper surface reviewable\" {");
+}
