@@ -51,6 +51,28 @@ test "phase13 devres retains detach-time cleanup ownership when planned coherent
     try std.testing.expect(plan.should_free_on_detach);
 }
 
+test "phase13 devres turns successful coherent-allocation planning into explicit detach cleanup planning" {
+    const plan = try devres.DevresHelperLab.planManagedDmamAllocCoherent(.{
+        .requested_size = 4096,
+        .release_record_allocated = true,
+        .allocation_succeeds = true,
+    });
+
+    try std.testing.expect(plan.should_free_on_detach);
+
+    const cleanup = devres.DevresHelperLab.planManagedDmamFreeCoherent(plan.requested_size);
+    try std.testing.expectEqualStrings("lib/devres.c", cleanup.anchor);
+    try std.testing.expectEqual(@as(u64, 4096), cleanup.requested_size);
+    try std.testing.expect(cleanup.frees_allocation);
+    try std.testing.expect(cleanup.releases_from_devres);
+    try std.testing.expect(cleanup.release_record_consumed);
+
+    const source = try readRepoFile(std.testing.allocator, "lib/devres.zig");
+    defer std.testing.allocator.free(source);
+    try requireContains(source, "pub const ManagedDmamFreeCoherentPlan");
+    try requireContains(source, "pub fn planManagedDmamFreeCoherent(");
+}
+
 test "phase13 devres drops detach-time cleanup ownership when planned coherent allocation fails" {
     const plan = try devres.DevresHelperLab.planManagedDmamAllocCoherent(.{
         .requested_size = 4096,
