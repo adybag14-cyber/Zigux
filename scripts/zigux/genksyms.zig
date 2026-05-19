@@ -52,7 +52,14 @@ const usage_text =
     " -V, --version Print the release version\n";
 
 const version_text = "genksyms version 2.5.60\n";
+const help_expected_json = @embedFile("../../zigux/tests/fixtures/genksyms_bridge/help_expected.json");
 const max_reference_files: usize = 16;
+
+const HelpFixture = struct {
+    stdout: []const u8,
+    stderr: []const u8,
+    exit_code: i64,
+};
 
 const LongOptionKind = enum {
     help,
@@ -797,6 +804,15 @@ test "genksyms bridge help output only advertises implemented flags" {
     const usage_line = "genksyms [-dDpwqhV] [-r file] [-T file] > /path/to/.tmp_obj.ver";
     try testing.expect(std.mem.containsAtLeast(u8, usage_text, 1, usage_line));
     try testing.expect(std.mem.indexOf(u8, usage_text, "genksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver") == null);
+}
+
+test "genksyms bridge help fixture stays aligned with live help output" {
+    const parsed = try std.json.parseFromSlice(HelpFixture, testing.allocator, help_expected_json, .{});
+    defer parsed.deinit();
+
+    try testing.expectEqualStrings("", parsed.value.stdout);
+    try testing.expectEqualStrings(usage_text, parsed.value.stderr);
+    try testing.expectEqual(@as(i64, 0), parsed.value.exit_code);
 }
 
 test "genksyms bridge renders unexpected long option argument like the fixture" {
