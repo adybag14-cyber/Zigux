@@ -1,15 +1,16 @@
 {
   "lane_key": "P7-L13",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-19T14:05:05Z",
+  "verified_on_utc": "2026-05-19T15:44:00Z",
   "anchor": "lib/rbtree.c",
   "roadmap_destinations": [
     "lib/rbtree.zig"
   ],
-  "current_direct_readback_state": "direct_helper_note_survey_manifest_only",
+  "current_direct_readback_state": "direct_helper_test_note_survey_manifest_only",
   "visible_paths": [
     "Documentation/zigux/phase7-rbtree-direct-anchor-note.md",
     "tools/lib/rbtree.zig",
+    "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/phase7_rbtree_survey.zig",
     "zigux/tests/phase7_rbtree_manifest.json"
   ],
@@ -20,7 +21,6 @@
   "missing_paths": [
     "Documentation/zigux/phase7-rbtree-slice.md",
     "lib/rbtree.zig",
-    "zigux/tests/phase7_rbtree.zig",
     "zigux/tests/fixtures/phase7_rbtree.json",
     "zigux/tests/fixtures/phase7_rbtree_c_harness.c",
     "scripts/zigux/check-phase7-rbtree-parity.py",
@@ -41,10 +41,10 @@
     "make -C zigux phase7-test"
   ],
   "ownership_focus": [
-    "the currently readable same-lane rbtree packet includes the direct helper at `tools/lib/rbtree.zig` plus the direct-anchor note, survey, and manifest, so same-lane truthfulness must keep that returned tool-root helper explicit while still not presenting the dedicated slice, dedicated test, fixture pair, parity checker, shared build file, or shared validator as returned on current master",
+    "the currently readable same-lane rbtree packet now includes the direct helper at `tools/lib/rbtree.zig`, the dedicated replay at `zigux/tests/phase7_rbtree.zig`, and the direct-anchor note, survey, and manifest, so same-lane truthfulness must keep those returned surfaces explicit while still not presenting the dedicated slice, fixture pair, parity checker, shared build file, or shared validator as returned on current master",
     "path truthfulness must keep the currently returned helper rooted at `tools/lib/rbtree.zig` explicit while the roadmap destination `lib/rbtree.zig` still remains a repo-reality gap on current master",
     "cross-helper truthfulness must keep the landed string_helpers packet explicit while keeping the cmdline, argv_split, and rbtree packets distinct instead of collapsing them into one shared reminder claim",
-    "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` are readable, while the dedicated rbtree slice, dedicated replay, fixture pair, shared build file, and shared validator still do not directly materialize on current master"
+    "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml` are readable, while the dedicated rbtree slice, fixture pair, shared build file, and shared validator still do not directly materialize on current master"
   ],
-  "next_bounded_step": "Keep same-lane follow-through inside this direct-helper-plus-anchor-note truthfulness packet until one dedicated rbtree companion surface such as `Documentation/zigux/phase7-rbtree-slice.md` or `zigux/tests/phase7_rbtree.zig` rematerializes on current `master`, and do not widen into make-wrapper or workflow lanes before that happens."
+  "next_bounded_step": "Keep same-lane follow-through inside this direct-helper-plus-companion truthfulness packet until one more dedicated rbtree surface such as `Documentation/zigux/phase7-rbtree-slice.md`, `zigux/tests/fixtures/phase7_rbtree.json`, or `scripts/zigux/check-phase7-rbtree-parity.py` rematerializes on current `master`, and do not widen into make-wrapper or workflow lanes before that happens."
 }
