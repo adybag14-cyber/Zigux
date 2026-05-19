@@ -152,6 +152,201 @@ FORBIDDEN_MANIFEST_GAPS = (
     "scripts/zigux/validate-phase2-closure.py",
 )
 
+EXPECTED_CONF_CASE_DETAILS = (
+    {
+        "name": "oldaskconfig",
+        "mode": "oldaskconfig",
+        "kconfig": "Kconfig",
+        "config": "ask/.config",
+        "arch": "x86_64",
+        "expected": "oldaskconfig_expected.json",
+    },
+    {
+        "name": "syncconfig",
+        "mode": "syncconfig",
+        "kconfig": "Kconfig",
+        "config": "out/.config",
+        "arch": "riscv64",
+        "nosilentupdate": "1",
+        "expected": "syncconfig_expected.json",
+    },
+    {
+        "name": "oldconfig",
+        "mode": "oldconfig",
+        "kconfig": "Kconfig",
+        "config": "refresh/.config",
+        "arch": "x86",
+        "expected": "oldconfig_expected.json",
+    },
+    {
+        "name": "allnoconfig",
+        "mode": "allnoconfig",
+        "kconfig": "Kconfig",
+        "config": "none/.config",
+        "arch": "arm64",
+        "expected": "allnoconfig_expected.json",
+    },
+    {
+        "name": "allyesconfig",
+        "mode": "allyesconfig",
+        "kconfig": "Kconfig",
+        "config": "yes/.config",
+        "arch": "arm64",
+        "expected": "allyesconfig_expected.json",
+    },
+    {
+        "name": "allmodconfig",
+        "mode": "allmodconfig",
+        "kconfig": "Kconfig",
+        "config": "mod/.config",
+        "arch": "arm",
+        "allconfig": "",
+        "expected": "allmodconfig_expected.json",
+    },
+    {
+        "name": "alldefconfig",
+        "mode": "alldefconfig",
+        "kconfig": "Kconfig",
+        "config": "build/.config",
+        "arch": "arm64",
+        "expected": "alldefconfig_expected.json",
+    },
+    {
+        "name": "randconfig",
+        "mode": "randconfig",
+        "kconfig": "Kconfig",
+        "config": "rand/.config",
+        "arch": "x86_64",
+        "allconfig": "allrandom.config",
+        "seed": "0xC0FFEE",
+        "probability": "15:25",
+        "expected": "randconfig_expected.json",
+    },
+    {
+        "name": "defconfig",
+        "mode": "defconfig",
+        "kconfig": "Kconfig",
+        "config": "out/.config",
+        "arch": "arm64",
+        "mode_arg": "arch/arm64/configs/defconfig",
+        "expected": "defconfig_expected.json",
+    },
+    {
+        "name": "savedefconfig",
+        "mode": "savedefconfig",
+        "kconfig": "Kconfig",
+        "config": ".config",
+        "arch": "x86_64",
+        "mode_arg": "silent=debug_defconfig",
+        "expected": "savedefconfig_expected.json",
+    },
+    {
+        "name": "listnewconfig",
+        "mode": "listnewconfig",
+        "kconfig": "Kconfig",
+        "config": "out/list.config",
+        "arch": "x86_64",
+        "silent": True,
+        "expected": "listnewconfig_expected.json",
+    },
+    {
+        "name": "helpnewconfig",
+        "mode": "helpnewconfig",
+        "kconfig": "Kconfig",
+        "config": "out/help.config",
+        "arch": "riscv64",
+        "silent": True,
+        "expected": "helpnewconfig_expected.json",
+    },
+    {
+        "name": "olddefconfig",
+        "mode": "olddefconfig",
+        "kconfig": "Kconfig",
+        "config": ".config",
+        "arch": "x86_64",
+        "expected": "olddefconfig_expected.json",
+    },
+    {
+        "name": "yes2modconfig",
+        "mode": "yes2modconfig",
+        "kconfig": "Kconfig",
+        "config": "rewrite/.config",
+        "arch": "x86",
+        "expected": "yes2modconfig_expected.json",
+    },
+    {
+        "name": "mod2yesconfig",
+        "mode": "mod2yesconfig",
+        "kconfig": "Kconfig",
+        "config": "promote/.config",
+        "arch": "x86",
+        "expected": "mod2yesconfig_expected.json",
+    },
+    {
+        "name": "mod2noconfig",
+        "mode": "mod2noconfig",
+        "kconfig": "Kconfig",
+        "config": "demote/.config",
+        "arch": "x86",
+        "expected": "mod2noconfig_expected.json",
+    },
+)
+
+EXPECTED_CONF_MANIFEST = {
+    "tool": "scripts/zigux/kconfig/conf_bridge.zig",
+    "status": "closed",
+    "mode": "bounded request-plan bridge",
+    "fixture_root": "zigux/tests/fixtures/kconfig_bridge",
+    "fixture_case_source": "zigux/tests/fixtures/kconfig_bridge/cases.json",
+    "case_count": 16,
+    "cases": [
+        "oldaskconfig",
+        "syncconfig",
+        "oldconfig",
+        "allnoconfig",
+        "allyesconfig",
+        "allmodconfig",
+        "alldefconfig",
+        "randconfig",
+        "defconfig",
+        "savedefconfig",
+        "listnewconfig",
+        "helpnewconfig",
+        "olddefconfig",
+        "yes2modconfig",
+        "mod2yesconfig",
+        "mod2noconfig",
+    ],
+    "stdout_packet": [
+        "oldaskconfig_expected.json",
+        "syncconfig_expected.json",
+        "oldconfig_expected.json",
+        "allnoconfig_expected.json",
+        "allyesconfig_expected.json",
+        "allmodconfig_expected.json",
+        "alldefconfig_expected.json",
+        "randconfig_expected.json",
+        "defconfig_expected.json",
+        "savedefconfig_expected.json",
+        "listnewconfig_expected.json",
+        "helpnewconfig_expected.json",
+        "olddefconfig_expected.json",
+        "yes2modconfig_expected.json",
+        "mod2yesconfig_expected.json",
+        "mod2noconfig_expected.json",
+    ],
+    "mode_arg_cases": ["defconfig", "savedefconfig"],
+    "silent_request_packet": ["listnewconfig_expected.json", "helpnewconfig_expected.json"],
+    "syncconfig_env_packet": ["syncconfig_expected.json"],
+    "allconfig_sentinel_packet": [
+        "allnoconfig_expected.json",
+        "allyesconfig_expected.json",
+        "alldefconfig_expected.json",
+    ],
+    "allconfig_override_packet": ["allmodconfig_expected.json", "randconfig_expected.json"],
+    "randconfig_env_packet": ["randconfig_expected.json"],
+}
+
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(REQUIRED_CLOSURE_MARKERS)
@@ -164,6 +359,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 1
     + 1
     + 1
+    + 2
     + 3
 )
 
@@ -213,6 +409,29 @@ def require_manifest_list(issues: list[tuple[str, str]], manifest: dict[str, obj
     return normalized
 
 
+def collect_conf_packet_issues(
+    issues: list[tuple[str, str]],
+    kconfig_cases: object,
+    conf_manifest: object,
+) -> None:
+    if not isinstance(kconfig_cases, dict):
+        issues.append(("INVALID_KCONFIG_CASES_SHAPE", "root"))
+    else:
+        conf_cases = kconfig_cases.get("conf_cases")
+        if not isinstance(conf_cases, list):
+            issues.append(("INVALID_KCONFIG_CASES_SHAPE", "conf_cases"))
+        elif conf_cases != list(EXPECTED_CONF_CASE_DETAILS):
+            issues.append(("CONF_CASE_PACKET_MISMATCH", "conf_cases"))
+
+    if not isinstance(conf_manifest, dict):
+        issues.append(("INVALID_CONF_MANIFEST_SHAPE", "root"))
+        return
+
+    for key, expected in EXPECTED_CONF_MANIFEST.items():
+        if conf_manifest.get(key) != expected:
+            issues.append(("CONF_MANIFEST_MISMATCH", key))
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
 
@@ -226,6 +445,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     closure_text = read_text(resolve(root, PHASE2_CLOSURE_REL))
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
     manifest = read_json(resolve(root, MANIFEST_REL))
+    kconfig_cases = read_json(resolve(root, KCONFIG_CASES_REL))
+    conf_manifest = read_json(resolve(root, CONF_MANIFEST_REL))
     if not isinstance(manifest, dict):
         issues.append(("INVALID_MANIFEST_SHAPE", "root"))
         return issues
@@ -290,6 +511,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             if marker not in make_wrappers:
                 issues.append(("MISSING_MANIFEST_SURFACE", f"make_wrappers:{marker}"))
 
+    collect_conf_packet_issues(issues, kconfig_cases, conf_manifest)
     return issues
 
 
@@ -369,6 +591,10 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
             ],
         },
     }
+    kconfig_cases = {
+        "conf_cases": list(EXPECTED_CONF_CASE_DETAILS),
+        "confdata_cases": [],
+    }
 
     write_text(resolve(root, WORKFLOW_REL), "\n".join(workflow_lines) + "\n")
     write_text(resolve(root, PHASE2_CLOSURE_REL), closure_text)
@@ -393,9 +619,9 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
     write_text(resolve(root, MANIFEST_REL), json.dumps(manifest, indent=2) + "\n")
     write_text(resolve(root, ARTIFACT_MANIFEST_REL), "{}\n")
     write_text(resolve(root, CROSS_FIXTURE_REL), "{}\n")
-    write_text(resolve(root, CONF_MANIFEST_REL), "{}\n")
+    write_text(resolve(root, CONF_MANIFEST_REL), json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\n")
     write_text(resolve(root, CONFDATA_MANIFEST_REL), "{}\n")
-    write_text(resolve(root, KCONFIG_CASES_REL), "[]\n")
+    write_text(resolve(root, KCONFIG_CASES_REL), json.dumps(kconfig_cases, indent=2) + "\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -509,6 +735,24 @@ def run_self_test() -> int:
         ]
         write_text(path, json.dumps(manifest, indent=2) + "\n")
         assert ("MISSING_MANIFEST_SURFACE", "fixture_roster:zigux/tests/fixtures/kconfig_bridge/cases.json") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, KCONFIG_CASES_REL)
+        kconfig_cases = read_json(path)
+        assert isinstance(kconfig_cases, dict)
+        kconfig_cases["conf_cases"][11]["silent"] = False
+        write_text(path, json.dumps(kconfig_cases, indent=2) + "\n")
+        assert ("CONF_CASE_PACKET_MISMATCH", "conf_cases") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve(root, CONF_MANIFEST_REL)
+        conf_manifest = read_json(path)
+        assert isinstance(conf_manifest, dict)
+        conf_manifest["case_count"] = 15
+        write_text(path, json.dumps(conf_manifest, indent=2) + "\n")
+        assert ("CONF_MANIFEST_MISMATCH", "case_count") in collect_issues(root)
         checks_run += 1
 
         for rel in (PHASE2_CLOSURE_REL, WORKFLOW_REL, MAKEFILE_REL):
