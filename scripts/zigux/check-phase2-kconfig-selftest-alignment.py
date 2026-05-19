@@ -24,6 +24,7 @@ KCONFIG_BRIDGE_SURFACE_PATHS = (
 WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
+    "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
     "run: zig test scripts/zigux/kconfig/confdata_bridge.zig",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
@@ -32,7 +33,8 @@ WORKFLOW_LINES = (
 MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
-    "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
 )
 
@@ -62,7 +64,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "make -C zigux phase2-kconfig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 47
+EXPECTED_SELF_TEST_CASE_COUNT = 51
 
 
 def read_text(path: Path) -> str:
