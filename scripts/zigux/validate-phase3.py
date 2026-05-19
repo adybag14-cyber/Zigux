@@ -25,6 +25,11 @@ REQUIRED_SOURCE_MARKERS = {
         "struct zigux_list_head {",
         "struct zigux_hlist_head {",
         "struct zigux_hlist_node {",
+        "static inline int zigux_notifier_chain_has_nonincreasing_priority(",
+        "static inline int zigux_notifier_first_chain_priority_increase(",
+        "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
+        "static inline int zigux_header_is_canonical(zigux_boundary_header header)",
+        "static inline uint32_t zigux_header_requested_extra_bytes(",
     ),
     ABI_BINDINGS_PATH: (
         "pub const ABI_VERSION: u16 = 1;",
@@ -36,14 +41,23 @@ REQUIRED_SOURCE_MARKERS = {
         "pub const ListHead = notifier_abi.ListHead;",
         "pub const HListHead = notifier_abi.HListHead;",
         "pub const HListNode = notifier_abi.HListNode;",
+        "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
+        "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {",
         "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
         "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
+        "pub fn defaultHeader(flags: u16) BoundaryHeader {",
+        "pub fn headerIsCanonical(header: BoundaryHeader) bool {",
+        "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {",
+        "pub fn statusIsOk(status: ExportStatus) bool {",
     ),
     NOTIFIER_BINDINGS_PATH: (
         "pub const NotifierBlock = extern struct {",
+        "pub const NotifierChainPriorityIncrease = extern struct {",
         "pub const ListHead = extern struct {",
         "pub const HListHead = extern struct {",
         "pub const HListNode = extern struct {",
+        "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
+        "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?NotifierChainPriorityIncrease {",
         "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
         "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
     ),
@@ -135,7 +149,7 @@ struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_view 
     uint32_t delivery_window;
     uint32_t status;
 };
-struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_window_summary {
+struct zigux_chrdev_notify_ack_window_policy_budget_window_delivery_WINDOW_summary {
     uint32_t applied;
     uint32_t skipped;
     uint32_t delivered;
@@ -166,6 +180,31 @@ struct zigux_hlist_node {
     uintptr_t next;
     uintptr_t pprev;
 };
+static inline int zigux_notifier_chain_has_nonincreasing_priority(
+    const struct zigux_notifier_block *head)
+{
+    return head != 0;
+}
+static inline int zigux_notifier_first_chain_priority_increase(
+    const struct zigux_notifier_block *head,
+    zigux_notifier_chain_priority_increase *out)
+{
+    return head != 0 && out != 0;
+}
+static inline zigux_boundary_header zigux_default_header(uint16_t flags)
+{
+    zigux_boundary_header header = { .size = 8u, .abi_version = 1u, .flags = flags };
+    return header;
+}
+static inline int zigux_header_is_canonical(zigux_boundary_header header)
+{
+    return header.abi_version == (uint16_t)ZIGUX_ABI_VERSION;
+}
+static inline uint32_t zigux_header_requested_extra_bytes(
+    zigux_boundary_header header)
+{
+    return header.size > 8u ? header.size - 8u : 0u;
+}
 """
 
 SELF_TEST_BINDINGS = """\
@@ -218,6 +257,14 @@ pub const NotifierBlock = notifier_abi.NotifierBlock;
 pub const ListHead = notifier_abi.ListHead;
 pub const HListHead = notifier_abi.HListHead;
 pub const HListNode = notifier_abi.HListNode;
+pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
+    _ = head;
+    return true;
+}
+pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {
+    _ = head;
+    return null;
+}
 pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
     _ = head;
     return true;
@@ -226,6 +273,23 @@ pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
     _ = head;
     return true;
 }
+pub fn defaultHeader(flags: u16) BoundaryHeader {
+    return .{
+        .size = @sizeOf(BoundaryHeader),
+        .abi_version = ABI_VERSION,
+        .flags = flags,
+    };
+}
+pub fn headerIsCanonical(header: BoundaryHeader) bool {
+    return header.abi_version == ABI_VERSION;
+}
+pub fn requestedExtraBytes(header: BoundaryHeader) u32 {
+    if (header.size <= @sizeOf(BoundaryHeader)) return 0;
+    return header.size - @as(u32, @sizeOf(BoundaryHeader));
+}
+pub fn statusIsOk(status: ExportStatus) bool {
+    return status.flags == 0;
+}
 """
 
 SELF_TEST_NOTIFIER_BINDINGS = """\
@@ -233,6 +297,12 @@ pub const NotifierBlock = extern struct {
     notifier_call: usize,
     next: usize,
     priority: i32,
+};
+pub const NotifierChainPriorityIncrease = extern struct {
+    previous_index: usize,
+    current_index: usize,
+    previous_priority: i32,
+    current_priority: i32,
 };
 pub const ListHead = extern struct {
     next: usize,
@@ -245,6 +315,14 @@ pub const HListNode = extern struct {
     next: usize,
     pprev: usize,
 };
+pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
+    _ = head;
+    return true;
+}
+pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?NotifierChainPriorityIncrease {
+    _ = head;
+    return null;
+}
 pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
     _ = head;
     return true;
@@ -516,6 +594,29 @@ def run_self_test() -> int:
         _write(root / NOTIFIER_BINDINGS_PATH, SELF_TEST_NOTIFIER_BINDINGS)
 
         _write(
+            root / ABI_BINDINGS_PATH,
+            SELF_TEST_BINDINGS.replace(
+                "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {\n"
+                "    if (header.size <= @sizeOf(BoundaryHeader)) return 0;\n"
+                "    return header.size - @as(u32, @sizeOf(BoundaryHeader));\n"
+                "}\n",
+                "",
+                1,
+            ),
+        )
+        issues = validate_repo(root)
+        expected = (
+            "missing zigux/bindings/abi.zig marker: "
+            "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {"
+        )
+        if expected not in issues:
+            print("PHASE3_VALIDATION_SELF_TEST=fail")
+            print("expected missing ABI helper marker was not reported")
+            return 1
+
+        _write(root / ABI_BINDINGS_PATH, SELF_TEST_BINDINGS)
+
+        _write(
             root / PHASE3_CATALOG_PATH,
             SELF_TEST_CATALOG.replace(
                 'PHASE3_CATALOG_SCOPE = "abi-runtime"\n',
@@ -534,7 +635,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_VALIDATION_SELF_TEST=pass")
-    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=6")
+    print("PHASE3_VALIDATION_SELF_TEST_CASE_COUNT=7")
     return 0
 
 
