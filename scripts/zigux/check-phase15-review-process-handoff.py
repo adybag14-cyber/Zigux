@@ -82,6 +82,7 @@ def collect_failures(root: Path) -> list[str]:
         "`scripts/zigux/check-phase15-review-process-handoff.py`",
         "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
         "`zigux/tests/phase15_architecture_council_review_process.zig`",
+        "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
     ):
         if marker not in review_process:
             failures.append(f"review-process note is missing required marker: {marker}")
@@ -165,10 +166,13 @@ def _sample_manifest() -> str:
         {
             "lane_key": "P15-L08",
             "phase": "Phase 15",
-            "surveyed_commit": "current-master-readback-2026-05-18",
+            "surveyed_commit": "current-master-readback-2026-05-19",
             "review_process_note": "Documentation/zigux/phase15-architecture-council-review-process.md",
             "decision_record_template": "Documentation/zigux/phase15-architecture-council-decision-record-template.md",
             "indefinite_c_policy_note": "Documentation/zigux/phase15-indefinite-c-policy.md",
+            "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
+            "shared_summary_gap_note": "Documentation/zigux/phase15-shared-summary-gap.md",
+            "checker": "scripts/zigux/check-phase15-review-process-handoff.py",
             "build_gate": "zigux/tests/phase15_architecture_council_review_process_build.zig",
             "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
             "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
@@ -233,9 +237,11 @@ def _sample_manifest() -> str:
                 "`Documentation/zigux/phase15-shared-summary-gap.md`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
+                "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
-                "one focused review-process checker, one focused tests-readme checker, and the shared-summary gap checker",
+                "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
+                "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
             ],
             "shared_gap_expected_present_paths": [
                 "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
@@ -248,12 +254,14 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_indefinite_c_policy.json`",
                 "`zigux/tests/phase15_indefinite_c_policy.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process.zig`",
+                "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
+                "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
+                "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
             ],
             "shared_gap_expected_missing_paths": [
                 "`scripts/zigux/validate-phase15.py`",
-                "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`zigux/tests/phase15_build.zig`",
                 "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
             ],
@@ -268,8 +276,9 @@ def _sample_review_process() -> str:
 - `PHASE15_STATUS=architecture_council_review_process_landed`
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
 - this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused Zig replay, the focused build-file replay, and the stay-in-C policy companion explicit through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`
+- broader validator-first shared-summary surfaces remain gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`
 - `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 
 Any freeze-map anchor entering Architecture Council status review must keep all of the following explicit:
@@ -399,15 +408,16 @@ def _sample_handoff_note() -> str:
 
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/README.md`
-- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
-- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
-- `zigux/tests/phase15_architecture_council_review_process_build.zig`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/check-phase15-tests-readme-alignment.py`
-- `scripts/zigux/check-phase15-shared-summary-gap.py`, which together keep one focused review-process checker, one focused tests-readme checker, and the shared-summary gap checker materialized on current `master`
 - `Documentation/zigux/phase15-architecture-council-review-process.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
+- `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_architecture_council_review_process_build.zig`
+- `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-tests-readme-alignment.py`
+- `scripts/zigux/check-phase15-handoff-note-alignment.py`, which together keep one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker materialized on current `master`
 """
 
 
@@ -424,37 +434,39 @@ def _sample_gap_note() -> str:
 - `zigux/tests/phase15_indefinite_c_policy.json`
 - `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_architecture_council_review_process.zig`
+- `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
-- `scripts/zigux/check-phase15-review-process-handoff.py`
-- `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `scripts/zigux/check-phase15-review-process-handoff.py`
+- `scripts/zigux/check-phase15-handoff-note-alignment.py`
+- `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
 - `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 """
 
 
 def _sample_test_file() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
-test \"placeholder focused review-process replay exists\" {
+test "placeholder focused review-process replay exists" {
     try std.testing.expect(true);
 }
 """
 
 
 def _sample_build_gate() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const review_process_module = b.createModule(.{
-        .root_source_file = b.path(\"phase15_architecture_council_review_process.zig\"),
+        .root_source_file = b.path("phase15_architecture_council_review_process.zig"),
     });
     const review_process_tests = b.addTest(.{
-        .name = \"phase15-architecture-council-review-process-tests\",
+        .name = "phase15-architecture-council-review-process-tests",
         .root_module = review_process_module,
     });
     const run_review_process_tests = b.addRunArtifact(review_process_tests);
-    const test_step = b.step(\"test\", \"Run the focused Phase 15 Architecture Council review-process test\");
+    const test_step = b.step("test", "Run the focused Phase 15 Architecture Council review-process test");
     test_step.dependOn(&run_review_process_tests.step);
 }
 """
@@ -471,6 +483,8 @@ def run_self_test() -> int:
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
         _write(root / MANIFEST_PATH, _sample_manifest())
         _write(root / Path("scripts/zigux/check-phase15-review-process-handoff.py"), "# fixture\n")
+        _write(root / Path("scripts/zigux/check-phase15-handoff-note-alignment.py"), "# fixture\n")
+        _write(root / Path("scripts/zigux/check-phase15-tests-readme-alignment.py"), "# fixture\n")
         _write(root / TEST_PATH, _sample_test_file())
         _write(root / BUILD_GATE_PATH, _sample_build_gate())
         sample_manifest = json.loads(_sample_manifest())
@@ -626,6 +640,32 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected shared-gap failure: {failures}")
 
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
+        _write(
+            root / SHARED_GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `zigux/tests/phase15_handoff_next_steps_manifest.json`\n", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_handoff_next_steps_manifest.json`"
+        ]:
+            raise AssertionError(f"unexpected handoff-manifest gap failure: {failures}")
+
+        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
+        _write(
+            root / SHARED_GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `zigux/tests/phase15_architecture_council_review_process_build.zig`\n", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_architecture_council_review_process_build.zig`"
+        ]:
+            raise AssertionError(f"unexpected build-gate gap failure: {failures}")
+
+        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
         (root / TEST_PATH).unlink()
         failures = collect_failures(root)
         expected = [
@@ -636,6 +676,7 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected missing-path failure: {failures}")
 
     print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass")
+    print("PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
