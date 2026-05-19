@@ -309,6 +309,37 @@ test "hlist view reports a broken head prev-link witness without losing tail acc
     try std.testing.expect(view.tailNextIsNull());
 }
 
+test "hlist view keeps longer acyclic tails readable when the head prev-link is stale" {
+    var head = HListHead{ .first = 0 };
+    var first = HListNode{ .next = 0, .pprev = 0 };
+    var second = HListNode{ .next = 0, .pprev = 0 };
+    var third = HListNode{ .next = 0, .pprev = 0 };
+
+    head.first = @intFromPtr(&first);
+    first.next = @intFromPtr(&second);
+    first.pprev = @intFromPtr(&second.next);
+    second.next = @intFromPtr(&third);
+    second.pprev = @intFromPtr(&first.next);
+    third.next = 0;
+    third.pprev = @intFromPtr(&second.next);
+
+    const view = HListView.init(&head);
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 3), view.len());
+    try std.testing.expectEqual(@as(?*const HListNode, &first), view.first());
+    try std.testing.expectEqual(@as(?*const HListNode, &third), view.last());
+    try std.testing.expect(!view.firstPprevMatchesHead());
+    try std.testing.expect(view.firstCycleWitness() == null);
+    try std.testing.expect(!view.hasCycle());
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+    try std.testing.expect(view.tailNextIsNull());
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&second.next)), breakage.actual_pprev);
+}
+
 test "hlist view reports a cycle witness and fails tail checks closed" {
     var head = HListHead{ .first = 0 };
     var first = HListNode{ .next = 0, .pprev = 0 };
