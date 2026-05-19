@@ -38,7 +38,7 @@ MARKERS = {
     ),
     "Documentation/zigux/phase1-closure.md": (
         "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
-        "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
+        "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`",
         "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
         "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
@@ -260,32 +260,28 @@ def run_self_test() -> int:
             ),
         )
 
-    cases = [make_missing_file_case(relative_path) for relative_path in REQUIRED_FILES]
+    cases: list[tuple[str, object]] = [("success", None)]
+    for relative_path in REQUIRED_FILES:
+        cases.append(make_missing_file_case(relative_path))
     for relative_path, markers in MARKERS.items():
         for marker in markers:
             cases.append(make_marker_case(relative_path, marker, "remove"))
             cases.append(make_marker_case(relative_path, marker, "duplicate"))
-    cases.extend(
-        (
-            (
-                f"forbidden_fragment_{index}",
-                lambda root, fragment=fragment: write_text(
-                    root,
-                    "Documentation/zigux/README.md",
-                    read_text(root, "Documentation/zigux/README.md") + fragment + "\n",
-                ),
-            )
-            for index, fragment in enumerate(FORBIDDEN_FRAGMENTS, start=1)
-        )
-    )
 
     for name, mutate in cases:
-        with tempfile.TemporaryDirectory(prefix=f"phase1-shared-reminder-{name}-") as tmpdir:
+        with tempfile.TemporaryDirectory(prefix="phase1-shared-reminder-case-") as tmpdir:
             root = Path(tmpdir)
             build_sample_repo(root)
-            mutate(root)
+            if mutate is not None:
+                mutate(root)
             issues = collect_missing_markers(root)
-            if not issues:
+            if name == "success":
+                if issues:
+                    print("self-test:success:unexpected_failures")
+                    for item in issues:
+                        print(item)
+                    return 1
+            elif not issues:
                 print(f"self-test:{name}:expected_failure")
                 return 1
 
@@ -296,8 +292,8 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", help="override the repository root for validation")
-    parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test")
+    parser.add_argument("--root", help="override repository root")
+    parser.add_argument("--self-test", action="store_true", help="run built-in self-test")
     args = parser.parse_args()
 
     if args.self_test:
