@@ -10,6 +10,7 @@ import sys
 
 SURFACE_PATH = Path("Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md")
 TESTS_ROOT_README_PATH = Path("zigux/tests/README.md")
+SCRIPTS_README_PATH = Path("scripts/zigux/README.md")
 PHASE10_START = "## Phase 10 tests-root packet"
 PHASE10_END = "## Phase 11 tests-root packet"
 
@@ -113,6 +114,16 @@ REQUIRED_TESTS_ROOT_MARKERS = (
     "the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate",
 )
 
+REQUIRED_SCRIPTS_README_MARKERS = (
+    "## Phase 10",
+    "the current scripts-root virtio packet stays reviewable through the bootstrap-route guard, the shared freeze-boundary guard, the ring, input, and MMIO packet guards, the harness-coverage and tests-readme core-surface guards, the returned validator pair, the closure manifest, and the Makefile-backed shared build gate instead of widening into the still-missing core-side slice or risky transport follow-through",
+    "`scripts/zigux/check-phase10-input-packet.py`",
+    "`scripts/zigux/validate-phase10.py`",
+    "`scripts/zigux/validate-phase10-closure.py`",
+    "`zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` keep the returned closure-manifest and shared build gate explicit from the scripts root beside the same checker-backed review packet",
+    "keep risky transport parked behind the shared closure note, freeze map, and adjacent survey packet instead of widening this scripts-root reminder into queue restart, registration lifecycle, IRQ delivery, DMA behavior, or broader transport claims",
+)
+
 FORBIDDEN_GAP_MARKERS = (
     "`Documentation/zigux/phase10-virtio-core-slice.md`, `Documentation/zigux/phase10-virtio-mmio-slice.md`",
     "`zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_virtio_core.zig`",
@@ -159,6 +170,10 @@ def check_tests_root_readme(text: str) -> None:
     check_markers(text, REQUIRED_TESTS_ROOT_MARKERS, "tests-root-readme")
 
 
+def check_scripts_readme(text: str) -> None:
+    check_markers(text, REQUIRED_SCRIPTS_README_MARKERS, "scripts-readme")
+
+
 def run_self_test() -> int:
     good_companion = """# Phase 10, 11, and 13 Tests-Root Review Companion
 
@@ -196,10 +211,34 @@ Current `master` does materialize `zigux/Makefile`, and its live body now expose
 Tests-root reviewer prompt:
 - keep the returned `zigux/Makefile` body plus `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` explicit as the shared build gate
 """
+    good_scripts_readme = """# scripts/zigux
+
+## Phase 10
+
+- Phase 10 flow - the current scripts-root virtio packet stays reviewable through the bootstrap-route guard, the shared freeze-boundary guard, the ring, input, and MMIO packet guards, the harness-coverage and tests-readme core-surface guards, the returned validator pair, the closure manifest, and the Makefile-backed shared build gate instead of widening into the still-missing core-side slice or risky transport follow-through
+- `scripts/zigux/check-phase10-bootstrap-route.py`, `scripts/zigux/check-phase10-shared-freeze-boundary.py`, `scripts/zigux/check-phase10-ring-packet.py`, `scripts/zigux/check-phase10-input-packet.py`, `scripts/zigux/check-phase10-mmio-packet.py`, `scripts/zigux/check-phase10-harness-coverage.py`, `scripts/zigux/check-phase10-tests-readme-core-surfaces.py`, `scripts/zigux/validate-phase10.py`, and `scripts/zigux/validate-phase10-closure.py` keep the shipped shared Phase 10 scripts-root packet explicit on current `master`
+- `zigux/tests/phase10_closure_manifest.json`, `zigux/tests/phase10_build.zig`, `zigux/Makefile`, `make -C zigux phase10-validate`, `make -C zigux phase10-test`, and `make -C zigux phase10` keep the returned closure-manifest and shared build gate explicit from the scripts root beside the same checker-backed review packet
+- current `master` still does not materialize `Documentation/zigux/phase10-virtio-core-slice.md`, so keep the broader core-side slice framed as a repo-reality gap while the returned core survey, ring, input, and MMIO packet anchors continue to carry the bounded shared reminder
+- keep risky transport parked behind the shared closure note, freeze map, and adjacent survey packet instead of widening this scripts-root reminder into queue restart, registration lifecycle, IRQ delivery, DMA behavior, or broader transport claims
+"""
     check_companion_text(good_companion)
     check_tests_root_readme(good_tests_root_readme)
+    check_scripts_readme(good_scripts_readme)
+
+    bad_scripts_readme = good_scripts_readme.replace(
+        "`scripts/zigux/check-phase10-input-packet.py`",
+        "`scripts/zigux/check-phase10-input-packet-missing.py`",
+        1,
+    )
+    try:
+        check_scripts_readme(bad_scripts_readme)
+    except SystemExit as exc:
+        assert "scripts-readme" in str(exc)
+    else:
+        raise AssertionError("expected missing scripts README input checker marker failure")
+
     print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST=pass")
-    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=2")
+    print("PHASE10_TESTS_ROOT_COMPANION_CHECKER_SELF_TEST_CASE_COUNT=3")
     return 0
 
 
@@ -218,11 +257,18 @@ def main() -> int:
         default=TESTS_ROOT_README_PATH,
         help="path to zigux/tests/README.md",
     )
+    parser.add_argument(
+        "--scripts-readme",
+        type=Path,
+        default=SCRIPTS_README_PATH,
+        help="path to scripts/zigux/README.md",
+    )
     args = parser.parse_args()
     if args.self_test:
         return run_self_test()
     check_companion_text(args.source.read_text(encoding="utf-8"))
     check_tests_root_readme(args.tests_root_readme.read_text(encoding="utf-8"))
+    check_scripts_readme(args.scripts_readme.read_text(encoding="utf-8"))
     print("PHASE10_TESTS_ROOT_COMPANION_CHECK=pass")
     return 0
 
