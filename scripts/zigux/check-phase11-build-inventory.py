@@ -75,6 +75,12 @@ REQUIRED_SHARED_ADJUNCT_REPLAYS = (
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
 )
 
+REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS = (
+    "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
+)
+
 REQUIRED_REPLAY_MARKERS: set[tuple[str, str]] = set()
 
 REQUIRED_HVC_VALIDATION_MATRIX_MARKERS = (
@@ -275,6 +281,11 @@ def run_check(root: Path) -> None:
         inventory.get("shared_adjunct_replays"),
         REQUIRED_SHARED_ADJUNCT_REPLAYS,
     )
+    expect_exact_string_list(
+        "shared_adjunct_build_replays",
+        inventory.get("shared_adjunct_build_replays"),
+        REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS,
+    )
 
     replay_pairs = {
         (entry.get("path"), entry.get("marker"))
@@ -312,29 +323,30 @@ def fixture_inventory() -> dict[str, object]:
         "dedicated_survey_replays": list(REQUIRED_DEDICATED_SURVEY_REPLAYS),
         "shared_split_replays": [],
         "shared_adjunct_replays": list(REQUIRED_SHARED_ADJUNCT_REPLAYS),
+        "shared_adjunct_build_replays": list(REQUIRED_SHARED_ADJUNCT_BUILD_REPLAYS),
         "shared_replay_markers": [],
     }
 
 
-FIXTURE_BUILD_TEXT = """const std = @import(\"std\");
+FIXTURE_BUILD_TEXT = """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
     const proof_module = b.createModule(.{
-        .root_source_file = b.path(\"phase11_hvc_cleanup_packet_proof.zig\"),
+        .root_source_file = b.path("phase11_hvc_cleanup_packet_proof.zig"),
         .target = target,
         .optimize = optimize,
     });
 
     const proof_tests = b.addTest(.{
-        .name = \"phase11-hvc-cleanup-packet-proof\",
+        .name = "phase11-hvc-cleanup-packet-proof",
         .root_module = proof_module,
     });
     const run_proof_tests = b.addRunArtifact(proof_tests);
 
-    const test_step = b.step(\"test\", \"Run the focused Phase 11 HVC cleanup packet proof\");
+    const test_step = b.step("test", "Run the focused Phase 11 HVC cleanup packet proof");
     test_step.dependOn(&run_proof_tests.step);
 }
 """
@@ -420,6 +432,17 @@ def run_self_test() -> int:
         inventory["shared_adjunct_replays"] = inventory["shared_adjunct_replays"][:-1]
         write(wrong_adjunct_replays / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_adjunct_replays, "shared_adjunct_replays does not match")
+        case_count += 1
+
+        wrong_adjunct_build_replays = tmpdir / "wrong_adjunct_build_replays"
+        shutil.copytree(fixture, wrong_adjunct_build_replays, dirs_exist_ok=True)
+        inventory = read_json(wrong_adjunct_build_replays / INVENTORY_PATH)
+        inventory["shared_adjunct_build_replays"] = inventory["shared_adjunct_build_replays"][:-1]
+        write(wrong_adjunct_build_replays / INVENTORY_PATH, json.dumps(inventory, indent=2) + "\n")
+        expect_failure(
+            wrong_adjunct_build_replays,
+            "shared_adjunct_build_replays does not match",
+        )
         case_count += 1
 
         wrong_replay_marker = tmpdir / "wrong_replay_marker"
