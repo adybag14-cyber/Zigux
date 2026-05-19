@@ -128,6 +128,41 @@ pub fn summarizeTtyRegistrationHandoff(request: TtyRegistrationRequest) TtyRegis
     };
 }
 
+pub const InstallOwnershipRequest = struct {
+    index_lookup_found: bool,
+    kref_acquired_from_lookup: bool,
+    driver_data_bound: bool,
+    tty_port_install_succeeded: bool,
+    failure_put_releases_port_ref: bool,
+};
+
+pub const InstallOwnershipSummary = struct {
+    index_lookup_found: bool,
+    kref_acquired_from_lookup: bool,
+    driver_data_bound: bool,
+    tty_port_install_succeeded: bool,
+    tty_port_put_on_failure: bool,
+    install_reference_retained: bool,
+};
+
+pub fn summarizeInstallOwnership(request: InstallOwnershipRequest) InstallOwnershipSummary {
+    const tty_port_put_on_failure = request.index_lookup_found and
+        request.kref_acquired_from_lookup and
+        !request.tty_port_install_succeeded and
+        request.failure_put_releases_port_ref;
+
+    return .{
+        .index_lookup_found = request.index_lookup_found,
+        .kref_acquired_from_lookup = request.index_lookup_found and request.kref_acquired_from_lookup,
+        .driver_data_bound = request.index_lookup_found and request.driver_data_bound,
+        .tty_port_install_succeeded = request.index_lookup_found and request.tty_port_install_succeeded,
+        .tty_port_put_on_failure = tty_port_put_on_failure,
+        .install_reference_retained = request.index_lookup_found and
+            request.kref_acquired_from_lookup and
+            request.tty_port_install_succeeded,
+    };
+}
+
 pub const AllocSlotSelection = enum {
     matched_console_slot,
     empty_console_slot,
@@ -594,6 +629,57 @@ test "phase11 hvc console keeps tty-registration handoff summary reviewable" {
     try std.testing.expect(summary.tty_port_linked);
     try std.testing.expect(summary.open_time_irq_request_ready);
     try std.testing.expect(summary.wakeup_after_registration);
+}
+
+test "phase11 hvc console keeps successful hvc_install ownership reviewable" {
+    const summary = summarizeInstallOwnership(.{
+        .index_lookup_found = true,
+        .kref_acquired_from_lookup = true,
+        .driver_data_bound = true,
+        .tty_port_install_succeeded = true,
+        .failure_put_releases_port_ref = false,
+    });
+
+    try std.testing.expect(summary.index_lookup_found);
+    try std.testing.expect(summary.kref_acquired_from_lookup);
+    try std.testing.expect(summary.driver_data_bound);
+    try std.testing.expect(summary.tty_port_install_succeeded);
+    try std.testing.expect(!summary.tty_port_put_on_failure);
+    try std.testing.expect(summary.install_reference_retained);
+}
+
+test "phase11 hvc console keeps failed hvc_install cleanup ownership reviewable" {
+    const summary = summarizeInstallOwnership(.{
+        .index_lookup_found = true,
+        .kref_acquired_from_lookup = true,
+        .driver_data_bound = true,
+        .tty_port_install_succeeded = false,
+        .failure_put_releases_port_ref = true,
+    });
+
+    try std.testing.expect(summary.index_lookup_found);
+    try std.testing.expect(summary.kref_acquired_from_lookup);
+    try std.testing.expect(summary.driver_data_bound);
+    try std.testing.expect(!summary.tty_port_install_succeeded);
+    try std.testing.expect(summary.tty_port_put_on_failure);
+    try std.testing.expect(!summary.install_reference_retained);
+}
+
+test "phase11 hvc console keeps missing hvc_install lookup from lighting later ownership surfaces" {
+    const summary = summarizeInstallOwnership(.{
+        .index_lookup_found = false,
+        .kref_acquired_from_lookup = true,
+        .driver_data_bound = true,
+        .tty_port_install_succeeded = true,
+        .failure_put_releases_port_ref = true,
+    });
+
+    try std.testing.expect(!summary.index_lookup_found);
+    try std.testing.expect(!summary.kref_acquired_from_lookup);
+    try std.testing.expect(!summary.driver_data_bound);
+    try std.testing.expect(!summary.tty_port_install_succeeded);
+    try std.testing.expect(!summary.tty_port_put_on_failure);
+    try std.testing.expect(!summary.install_reference_retained);
 }
 
 test "phase11 hvc console keeps hvc_alloc slot-match handoff reviewable" {
