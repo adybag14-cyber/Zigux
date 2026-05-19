@@ -73,7 +73,7 @@ Authenticated direct readback still leaves `Documentation/zigux/phase6-perf-gate
 - focused helper replay: `zigux/tests/phase6_checksum.zig`
 - dedicated slowdown replay: `zigux/tests/phase6_checksum_perf.zig`
 - committed fixture surface: `zigux/tests/fixtures/phase6_checksum_vectors.zig`
-- direct C parity packet: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
+- last-known direct C parity companions still needing fresh direct reads: `zigux/tests/phase6_checksum_c_parity.zig`, `zigux/tests/fixtures/phase6_checksum_c_harness.c`, and `scripts/zigux/check-phase6-checksum-c-parity.py`
 - slice note: `Documentation/zigux/phase6-checksum-slice.md`
 - current review posture: direct helper-local evidence is readable again through `lib/checksum.zig`, `zigux/tests/phase6_checksum.zig`, `zigux/tests/phase6_checksum_perf.zig`, `zigux/tests/fixtures/phase6_checksum_vectors.zig`, `Documentation/zigux/phase6-checksum-slice.md`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders, while the direct C parity companions still need fresh direct reads before they are presented as current shipped evidence
 
