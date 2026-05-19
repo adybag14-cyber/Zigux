@@ -38,6 +38,53 @@ test "export and uapi version layouts stay aligned" {
     try testing.expect(version.eql(current, export_shim.currentVersion()));
 }
 
+test "export shim relays version compatibility without widening the boundary" {
+    const current = version.current();
+    const stale_major = version.Version{
+        .abi_major = version.abi_major + 1,
+        .abi_minor = version.abi_minor,
+        .header_family_revision = version.header_family_revision,
+    };
+    const stale_minor = version.Version{
+        .abi_major = version.abi_major,
+        .abi_minor = version.abi_minor + 1,
+        .header_family_revision = version.header_family_revision,
+    };
+    const stale_revision = version.Version{
+        .abi_major = version.abi_major,
+        .abi_minor = version.abi_minor,
+        .header_family_revision = version.header_family_revision + 1,
+    };
+    const valid = export_shim.validateVersion(current);
+    const invalid_major = export_shim.validateVersion(stale_major);
+    const invalid_minor = export_shim.validateVersion(stale_minor);
+    const invalid_revision = export_shim.validateVersion(stale_revision);
+
+    try testing.expect(version.matchesCurrent(current));
+    try testing.expect(export_shim.versionMatchesCurrent(current));
+    try testing.expectEqual(version.matchesCurrent(current), export_shim.versionMatchesCurrent(current));
+
+    try testing.expect(!version.matchesCurrent(stale_major));
+    try testing.expect(!version.matchesCurrent(stale_minor));
+    try testing.expect(!version.matchesCurrent(stale_revision));
+    try testing.expectEqual(version.matchesCurrent(stale_major), export_shim.versionMatchesCurrent(stale_major));
+    try testing.expectEqual(version.matchesCurrent(stale_minor), export_shim.versionMatchesCurrent(stale_minor));
+    try testing.expectEqual(version.matchesCurrent(stale_revision), export_shim.versionMatchesCurrent(stale_revision));
+
+    try testing.expectEqual(@as(i32, 0), valid.code);
+    try testing.expectEqual(@as(i32, -22), invalid_major.code);
+    try testing.expectEqual(@as(i32, -22), invalid_minor.code);
+    try testing.expectEqual(@as(i32, -22), invalid_revision.code);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), valid.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_major.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_minor.facility);
+    try testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), invalid_revision.facility);
+    try testing.expectEqual(@as(u16, 0), valid.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_major.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_minor.flags);
+    try testing.expectEqual(@as(u16, 1), invalid_revision.flags);
+}
+
 test "export shim encodes starter dev_t numbers without widening the boundary" {
     const fields = export_shim.makeDevTFields(11, 29);
     const encoded = export_shim.encodeDeviceNumber(fields) orelse unreachable;
