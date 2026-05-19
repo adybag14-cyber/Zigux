@@ -65,6 +65,41 @@ test "phase3 malformed boundary empties stay visible instead of collapsing" {
     try std.testing.expectEqual(@as(usize, 0), hlist_break.actual_pprev);
 }
 
+test "phase3 single-node list and hlist keep distinct tail terminators" {
+    var list_head = list_view.ListHead{ .next = 0, .prev = 0 };
+    var list_node = list_view.ListHead{ .next = 0, .prev = 0 };
+    list_head.next = @intFromPtr(&list_node);
+    list_head.prev = @intFromPtr(&list_node);
+    list_node.next = @intFromPtr(&list_head);
+    list_node.prev = @intFromPtr(&list_head);
+
+    var hlist_head = hlist_view.HListHead{ .first = 0 };
+    var hlist_node = hlist_view.HListNode{ .next = 0, .pprev = 0 };
+    hlist_head.first = @intFromPtr(&hlist_node);
+    hlist_node.next = 0;
+    hlist_node.pprev = @intFromPtr(&hlist_head.first);
+
+    const list = list_view.ListView.init(&list_head);
+    const hlist = hlist_view.HListView.init(&hlist_head);
+
+    try std.testing.expect(!list.isEmpty());
+    try std.testing.expectEqual(@as(usize, 1), list.len());
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&list_node)), @intFromPtr(list.first().?));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&list_node)), @intFromPtr(list.last().?));
+    try std.testing.expect(list.hasConsistentBacklinks());
+    try std.testing.expectEqual(@intFromPtr(&list_head), list_node.next);
+
+    try std.testing.expect(!hlist.isEmpty());
+    try std.testing.expectEqual(@as(usize, 1), hlist.len());
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&hlist_node)), @intFromPtr(hlist.first().?));
+    try std.testing.expect(hlist.firstPprevMatchesHead());
+    try std.testing.expect(hlist.hasConsistentPrevLinks());
+    try std.testing.expect(hlist.tailNextIsNull());
+    try std.testing.expectEqual(@as(usize, 0), hlist_node.next);
+
+    try std.testing.expect(list_node.next != hlist_node.next);
+}
+
 test "phase3 bounded two-node list and hlist chains keep their own tail contracts" {
     var list_head = list_view.ListHead{ .next = 0, .prev = 0 };
     var list_first = list_view.ListHead{ .next = 0, .prev = 0 };
