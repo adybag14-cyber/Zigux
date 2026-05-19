@@ -34,6 +34,8 @@ fn isStandaloneStringSample(name: []const u8) bool {
     if (std.mem.startsWith(u8, name, "string")) return true;
     if (std.mem.indexOf(u8, name, "string_helper") != null) return true;
     if (std.mem.indexOf(u8, name, "string_helpers") != null) return true;
+    if (std.mem.indexOf(u8, name, "kasprintf") != null) return true;
+    if (std.mem.indexOf(u8, name, "strarray") != null) return true;
     return false;
 }
 
@@ -194,6 +196,10 @@ test "phase 7 string helper boundary stays on sample-boundary surfaces only" {
     try expectContainsCount(samples_readme, "* `*argv*`", 1);
     try expectContains(samples_readme, "* `*rbtree*`");
     try expectContainsCount(samples_readme, "* `*rbtree*`", 1);
+    try expectContains(samples_readme, "* `*kasprintf*`");
+    try expectContainsCount(samples_readme, "* `*kasprintf*`", 1);
+    try expectContains(samples_readme, "* `*strarray*`");
+    try expectContainsCount(samples_readme, "* `*strarray*`", 1);
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
