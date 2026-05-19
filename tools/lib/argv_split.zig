@@ -129,3 +129,16 @@ test "argvSplit frees earlier arguments when a later allocation fails" {
         .{"alpha beta gamma delta"},
     );
 }
+
+test "argvSplit cleanup resets state and tolerates repeat deinit calls" {
+    var result = try argvSplit(std.testing.allocator, "alpha beta");
+
+    try std.testing.expectEqual(@as(usize, 2), result.argc());
+    result.deinit();
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+
+    argv_free(&result);
+    try std.testing.expectEqual(@as(usize, 0), result.argc());
+    try std.testing.expectEqual(@as(usize, 0), result.argv.len);
+}
