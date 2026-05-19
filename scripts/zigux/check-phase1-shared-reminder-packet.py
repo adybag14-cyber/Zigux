@@ -31,6 +31,7 @@ REQUIRED_FILES = (
 MARKERS = {
     "Documentation/zigux/README.md": (
         "keep the live owner map, the restored closure note and closure validator, the parked shared-replay-versus-direct-anchor split, the shipped bench checker, and the current Phase 1 reminder packet explicit from the docs root without rebuilding the broader host-tools closure stack from older missing validator and replay surfaces.",
+        "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
         "`scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, and `scripts/zigux/check-phase1-bench.py` are the shipped direct checks",
         "`python3 scripts/zigux/check-phase1-bench.py --self-test`",
     ),
@@ -225,6 +226,14 @@ def run_self_test() -> int:
                 root,
                 "Documentation/zigux/README.md",
                 MARKERS["Documentation/zigux/README.md"][0],
+            ),
+        ),
+        (
+            "missing_docs_shared_reminder_checker_bullet",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/README.md",
+                MARKERS["Documentation/zigux/README.md"][1],
             ),
         ),
         (
