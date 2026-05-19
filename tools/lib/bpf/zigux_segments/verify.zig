@@ -335,7 +335,7 @@ test "materialized tools/lib/bpf Zigux segments keep stable perf-buffer wait and
     );
 }
 
-test "materialized tools/lib/bpf Zigux segments keep typed direct lookup helpers explicit and stable" {
+test "materialized tools/lib/bpf Zigux segments keep typed direct and summary lookup helpers explicit and stable" {
     const buffers = [_]perf_buffer_poll.BufferObservation{
         .{},
         .{ .ready = true },
@@ -350,6 +350,24 @@ test "materialized tools/lib/bpf Zigux segments keep typed direct lookup helpers
     try std.testing.expectEqual(@as(i32, 21), try perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 2));
     try std.testing.expectError(error.MissingFd, perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 1));
     try std.testing.expectError(error.InvalidIndex, perf_buffer_poll.resolveBufferFdAtIndex(&buffer_fds, 4));
+    try std.testing.expectEqual(
+        @as(i32, 21),
+        try perf_buffer_poll.resolveBufferFd(
+            perf_buffer_poll.summarizeBufferFdLookup(&buffer_fds, 2),
+        ),
+    );
+    try std.testing.expectError(
+        error.MissingFd,
+        perf_buffer_poll.resolveBufferFd(
+            perf_buffer_poll.summarizeBufferFdLookup(&buffer_fds, 1),
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidIndex,
+        perf_buffer_poll.resolveBufferFd(
+            perf_buffer_poll.summarizeBufferFdLookup(&buffer_fds, 4),
+        ),
+    );
 
     const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
         .{ .mapped_size = 4096 },
@@ -359,6 +377,24 @@ test "materialized tools/lib/bpf Zigux segments keep typed direct lookup helpers
     try std.testing.expectEqual(@as(usize, 8192), try perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 2));
     try std.testing.expectError(error.MissingWindow, perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 1));
     try std.testing.expectError(error.InvalidIndex, perf_buffer_poll.resolveBufferWindowMappedSizeAtIndex(&buffer_windows, 4));
+    try std.testing.expectEqual(
+        @as(usize, 8192),
+        try perf_buffer_poll.resolveBufferWindowMappedSize(
+            perf_buffer_poll.summarizeBufferWindowLookup(&buffer_windows, 2),
+        ),
+    );
+    try std.testing.expectError(
+        error.MissingWindow,
+        perf_buffer_poll.resolveBufferWindowMappedSize(
+            perf_buffer_poll.summarizeBufferWindowLookup(&buffer_windows, 1),
+        ),
+    );
+    try std.testing.expectError(
+        error.InvalidIndex,
+        perf_buffer_poll.resolveBufferWindowMappedSize(
+            perf_buffer_poll.summarizeBufferWindowLookup(&buffer_windows, 4),
+        ),
+    );
 }
 
 test "materialized tools/lib/bpf Zigux segments keep stable logging helper outputs explicit" {
