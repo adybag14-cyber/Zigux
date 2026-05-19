@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Track the remaining follow-up after the Phase 13 shared-summary guard landed."""
+"""Keep the Phase 13 shared-summary handoff note aligned with current reminder state."""
 
 from __future__ import annotations
 
@@ -13,7 +13,11 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
         "This note records the closure of the old missing-checker gap.",
         "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
-        "The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.",
+        "- companion handoff check: `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`",
+        "That closes the older scripts-root reminder gap too, so the next same-lane follow-through should stay parked until a fresh reread identifies a new one-file drift across the broader Phase 13 reminder packet.",
+        "- `Documentation/zigux/phase13-release-notes-survey.md`",
+        "- `scripts/zigux/README.md`",
+        "- `zigux/tests/README.md`",
     ],
     "Documentation/zigux/phase13-contributor-workflow-guide.md": [
         "stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
@@ -23,6 +27,7 @@ REQUIRED_MARKERS = {
 FORBIDDEN_MARKERS = (
     "missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`",
     "`scripts/zigux/check-phase13-shared-summary-surfaces.py` is still absent on current `master`",
+    "The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.",
 )
 
 
@@ -82,9 +87,26 @@ def run_self_test() -> int:
         (tempdir / "scripts/zigux/check-phase13-shared-summary-surfaces.py").unlink()
         issues = collect_issues(tempdir)
         assert "missing_file:scripts/zigux/check-phase13-shared-summary-surfaces.py" in issues
-        populate_repo(tempdir)
         checks_run += 1
 
+        populate_repo(tempdir)
+        gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
+        gap_path.write_text(
+            gap_path.read_text(encoding="utf-8").replace(
+                "- `Documentation/zigux/phase13-release-notes-survey.md`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:- `Documentation/zigux/phase13-release-notes-survey.md`"
+            in issues
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
         gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
         gap_path.write_text(
             gap_path.read_text(encoding="utf-8")
@@ -94,6 +116,20 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:missing guard path: `scripts/zigux/check-phase13-shared-summary-surfaces.py`"
+            in issues
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        gap_path = tempdir / "Documentation/zigux/phase13-shared-summary-guard-gap.md"
+        gap_path.write_text(
+            gap_path.read_text(encoding="utf-8")
+            + "The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard.\n",
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "forbidden_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:The remaining follow-up is broader README and tests-root packet refresh work, not another missing guard."
             in issues
         )
         checks_run += 1
@@ -119,8 +155,10 @@ def main() -> int:
     issues = collect_issues(args.repo_root)
     if issues:
         print("PHASE13_SHARED_SUMMARY_GUARD_GAP=fail")
+        print("PHASE13_SHARED_SUMMARY_GUARD_GAP_ISSUES_START")
         for issue in issues:
             print(issue)
+        print("PHASE13_SHARED_SUMMARY_GUARD_GAP_ISSUES_END")
         return 1
 
     print("PHASE13_SHARED_SUMMARY_GUARD_GAP=pass")
