@@ -312,6 +312,7 @@ EXIT_ROLLBACK_GUARD_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(ModuleStage.selftest_complete, before_failed_exit.stage);",
     "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.registration_depth);",
     "try std.testing.expectEqual(@as(usize, 2), before_failed_exit.main_iterations);",
+    "try std.testing.expectEqual(@as(usize, 2), before_failed_exit.fn_iterations);",
     "try std.testing.expectEqual(@as(usize, 14), before_failed_exit.total_events);",
     "try std.testing.expectEqual(@as(usize, 1), before_failed_exit.selftest_runs);",
     "try std.testing.expectEqual(@as(usize, 0), before_failed_exit.exit_runs);",
