@@ -20,7 +20,7 @@ FILES = {
 MARKERS = {
     "matrix_gap_note": [
         "# Phase 11 Validation Matrix Gap Survey",
-        "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
+        "`PHASE11_MATRIX_GAP_STATUS=gpio_and_hvc_matrices_direct_readback_only`",
         "lane: `P11-L03`",
         "`Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
         "`Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
@@ -29,87 +29,68 @@ MARKERS = {
         "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
         "Current direct contents reads in this run do not rematerialize",
         "shared matrix packet is no longer an honest four-matrix direct-readback claim",
-        "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+        "The directly readable driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` and `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
         "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains",
         "`zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet",
-        "4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays",
-        "does not stand in for a whole-Phase-11 replay roster while the three watchdog-local matrix notes remain missing from direct readback",
-        "`phase11-hvc-console-tests`",
-        "`phase11-hvc-console-verify-tests`",
-        "`phase11-hvc-cleanup-tests`",
-        "`phase11-hvc-console-survey-tests`",
+        "3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays",
+        "does not stand in for a whole-Phase-11 replay roster while the current direct-readback expansion is limited to the gpio matrix note plus the existing HVC continuity packet",
+        "`phase11-hvc-hv-ops-layout-proof-tests`",
+        "`phase11-hvc-export-surface-layout-proof-tests`",
+        "`phase11-hvc-cleanup-packet-proof`",
     ],
 }
 
 FORBIDDEN_MARKERS = {
     "matrix_gap_note": [
-        "`PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`",
-        "Current direct contents reads in this run do rematerialize",
-        "shared matrix packet is again an honest four-matrix direct-readback claim",
-        "The directly readable driver-local Phase 11 matrix notes on current `master` are",
+        "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
+        "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+        "`gpio_wdt`: current direct contents reads do not rematerialize",
+        "4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays",
     ],
 }
 
 REQUIRED_BUILD_TEST_NAMES = (
-    "phase11-hvc-console-tests",
-    "phase11-hvc-console-verify-tests",
-    "phase11-hvc-cleanup-tests",
-    "phase11-hvc-console-survey-tests",
+    "phase11-hvc-hv-ops-layout-proof-tests",
+    "phase11-hvc-export-surface-layout-proof-tests",
+    "phase11-hvc-cleanup-packet-proof",
 )
 
-REQUIRED_SHARED_DEPEND_STEPS = (
-    "run_phase11_hvc_console_tests",
-    "run_hvc_console_verify_tests",
-    "run_phase11_hvc_cleanup_tests",
-)
+REQUIRED_SHARED_DEPEND_STEPS: tuple[str, ...] = ()
 
 REQUIRED_MODULE_ROOT_SOURCE_FILES = (
     {
-        "module": "hvc_console_module",
-        "path": "../../drivers/tty/hvc/hvc_console.zig",
+        "module": "hv_ops_proof_module",
+        "path": "phase11_hvc_hv_ops_layout_proof.zig",
     },
     {
-        "module": "hvc_console_verify_module",
-        "path": "../../drivers/tty/hvc/hvc_console_verify.zig",
+        "module": "export_surface_proof_module",
+        "path": "phase11_hvc_export_surface_layout_proof.zig",
     },
     {
-        "module": "phase11_hvc_console_module",
-        "path": "phase11_hvc_console.zig",
-    },
-    {
-        "module": "phase11_hvc_cleanup_module",
-        "path": "phase11_hvc_cleanup.zig",
-    },
-    {
-        "module": "phase11_hvc_console_survey_module",
-        "path": "phase11_hvc_console_survey.zig",
+        "module": "proof_module",
+        "path": "phase11_hvc_cleanup_packet_proof.zig",
     },
 )
 
 REQUIRED_TEST_ROOT_MODULES = (
     {
-        "test": "phase11-hvc-console-tests",
-        "root_module": "phase11_hvc_console_module",
+        "test": "phase11-hvc-hv-ops-layout-proof-tests",
+        "root_module": "hv_ops_proof_module",
     },
     {
-        "test": "phase11-hvc-console-verify-tests",
-        "root_module": "hvc_console_verify_module",
+        "test": "phase11-hvc-export-surface-layout-proof-tests",
+        "root_module": "export_surface_proof_module",
     },
     {
-        "test": "phase11-hvc-cleanup-tests",
-        "root_module": "phase11_hvc_cleanup_module",
-    },
-    {
-        "test": "phase11-hvc-console-survey-tests",
-        "root_module": "phase11_hvc_console_survey_module",
+        "test": "phase11-hvc-cleanup-packet-proof",
+        "root_module": "proof_module",
     },
 )
 
-REQUIRED_DEDICATED_SURVEY_REPLAYS = (
-    "zigux/tests/phase11_hvc_console_survey.zig",
-)
+REQUIRED_DEDICATED_SURVEY_REPLAYS: tuple[str, ...] = ()
 
 REQUIRED_SHARED_ADJUNCT_REPLAYS = (
+    "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
 )
@@ -220,23 +201,22 @@ def build_self_test_fixture(root: Path) -> None:
         root / FILES["matrix_gap_note"],
         """# Phase 11 Validation Matrix Gap Survey
 
-- `PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`
+- `PHASE11_MATRIX_GAP_STATUS=gpio_and_hvc_matrices_direct_readback_only`
 - lane: `P11-L03`
 - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
-- Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`, `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`, or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix packet is no longer an honest four-matrix direct-readback claim
-- The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- Current direct contents reads in this run do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`, so the shared matrix packet is no longer an honest four-matrix direct-readback claim
+- The directly readable driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` and `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md` remains useful adjacent shared evidence, but it is not one of the driver-local Phase 11 validation matrices named by the roadmap
 - `zigux/tests/fixtures/phase11_build_inventory.json` still records the narrower current-head HVC continuity packet
-- 4 HVC archival build test names, 3 shared depend steps, 1 dedicated survey replay, and 2 proof adjunct replays
-- the shared build inventory does not stand in for a whole-Phase-11 replay roster while the three watchdog-local matrix notes remain missing from direct readback
-- `phase11-hvc-console-tests`
-- `phase11-hvc-console-verify-tests`
-- `phase11-hvc-cleanup-tests`
-- `phase11-hvc-console-survey-tests`
+- 3 HVC proof-backed build tests, 0 shared depend steps, 0 dedicated survey replays, and 3 proof adjunct replays
+- the shared build inventory does not stand in for a whole-Phase-11 replay roster while the current direct-readback expansion is limited to the gpio matrix note plus the existing HVC continuity packet
+- `phase11-hvc-hv-ops-layout-proof-tests`
+- `phase11-hvc-export-surface-layout-proof-tests`
+- `phase11-hvc-cleanup-packet-proof`
 """,
     )
     write(
@@ -274,10 +254,10 @@ def run_self_test() -> None:
         run_check(fixture_root)
 
         required_cases = [
-            ("matrix_gap_note", "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`"),
+            ("matrix_gap_note", "`PHASE11_MATRIX_GAP_STATUS=gpio_and_hvc_matrices_direct_readback_only`"),
             (
                 "matrix_gap_note",
-                "The only directly readable driver-local Phase 11 matrix note on current `master` is `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
+                "The directly readable driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` and `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
             ),
         ]
         for idx, (label, marker) in enumerate(required_cases, start=1):
@@ -295,32 +275,32 @@ def run_self_test() -> None:
         path = forbidden_root / FILES["matrix_gap_note"]
         path.write_text(
             path.read_text(encoding="utf-8")
-            + "`PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`\n",
+            + "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`\n",
             encoding="utf-8",
         )
         expect_failure(
             forbidden_root,
-            "`PHASE11_MATRIX_GAP_STATUS=four_driver_matrices_direct_readback_restored`",
+            "`PHASE11_MATRIX_GAP_STATUS=hvc_matrix_direct_readback_only`",
         )
 
         wrong_count_root = tmpdir / "wrong_count"
         shutil.copytree(fixture_root, wrong_count_root, dirs_exist_ok=True)
         inventory = json.loads((wrong_count_root / FILES["inventory"]).read_text(encoding="utf-8"))
-        inventory["shared_test_depend_steps"] = inventory["shared_test_depend_steps"][:-1]
+        inventory["shared_adjunct_replays"] = inventory["shared_adjunct_replays"][:-1]
         write(wrong_count_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
-        expect_failure(wrong_count_root, "shared_test_depend_steps does not match")
+        expect_failure(wrong_count_root, "shared_adjunct_replays does not match")
 
         wrong_module_root_root = tmpdir / "wrong_module_root"
         shutil.copytree(fixture_root, wrong_module_root_root, dirs_exist_ok=True)
         inventory = json.loads((wrong_module_root_root / FILES["inventory"]).read_text(encoding="utf-8"))
-        inventory["module_root_source_files"][4]["path"] = "phase11_hvc_cleanup.zig"
+        inventory["module_root_source_files"][2]["path"] = "phase11_hvc_cleanup.zig"
         write(wrong_module_root_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_module_root_root, "module_root_source_files does not match")
 
         wrong_test_root_root = tmpdir / "wrong_test_root"
         shutil.copytree(fixture_root, wrong_test_root_root, dirs_exist_ok=True)
         inventory = json.loads((wrong_test_root_root / FILES["inventory"]).read_text(encoding="utf-8"))
-        inventory["test_root_modules"][3]["root_module"] = "phase11_hvc_cleanup_module"
+        inventory["test_root_modules"][2]["root_module"] = "export_surface_proof_module"
         write(wrong_test_root_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
         expect_failure(wrong_test_root_root, "test_root_modules does not match")
 
