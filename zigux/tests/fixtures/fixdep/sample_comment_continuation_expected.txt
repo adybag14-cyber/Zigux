@@ -12,6 +12,7 @@ deps_sample_comment_continuation.o := \
   zigux/tests/fixtures/fixdep/shared:config.h \
     $(wildcard include/config/ZIGUX_COLON) \
     $(wildcard include/config/ZIGUX_SHARED_COLON) \
+  zigux/tests/fixtures/fixdep/sample.rlib \
   zigux/tests/fixtures/fixdep/sample_comment_continuation_dep.so \
 
 sample_comment_continuation.o: $(deps_sample_comment_continuation.o)
