@@ -85,7 +85,10 @@ pub const ProbePreflightSummary = struct {
 pub const SelectedQueueReadinessSummary = struct {
     anchor: []const u8,
     selected_queue: u16,
+    advertised_queue_size: u16,
+    programmed_queue_size: u16,
     queue_size_programmed: bool,
+    queue_size_matches_advertised: bool,
     queue_ready_for_handoff: bool,
 };
 
@@ -264,7 +267,10 @@ pub const VirtioMmioLab = struct {
         return .{
             .anchor = anchor_path,
             .selected_queue = self.selected_queue,
+            .advertised_queue_size = queue.advertised_size,
+            .programmed_queue_size = queue.programmed_size,
             .queue_size_programmed = queue.programmed_size != 0,
+            .queue_size_matches_advertised = queue.programmed_size != 0 and queue.programmed_size == queue.advertised_size,
             .queue_ready_for_handoff = queue.programmed_size != 0 and queue.ready,
         };
     }
@@ -464,6 +470,36 @@ test "phase10 virtio mmio restaging config bytes clears stale planned config wri
     try std.testing.expectEqual(@as(u32, 0x0506_0708), refreshed.previous_value);
     try std.testing.expectEqual(@as(u32, 0x0506_0709), refreshed.planned_value);
     try std.testing.expectEqual(@as(u4, 0b0001), refreshed.changed_byte_mask);
+}
+
+test "phase10 virtio mmio selected queue readiness exposes advertised and programmed sizes" {
+    var device = try VirtioMmioLab.init(85, &[_]u16{ 8, 16 });
+
+    _ = try device.writeRegister(.queue_sel, 1);
+    var summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 1), summary.selected_queue);
+    try std.testing.expectEqual(@as(u16, 16), summary.advertised_queue_size);
+    try std.testing.expectEqual(@as(u16, 0), summary.programmed_queue_size);
+    try std.testing.expect(!summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_size_matches_advertised);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 8);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 16), summary.advertised_queue_size);
+    try std.testing.expectEqual(@as(u16, 8), summary.programmed_queue_size);
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(!summary.queue_size_matches_advertised);
+    try std.testing.expect(!summary.queue_ready_for_handoff);
+
+    _ = try device.writeRegister(.queue_num, 16);
+    _ = try device.writeRegister(.queue_ready, 1);
+    summary = try device.selectedQueueReadinessSummary();
+    try std.testing.expectEqual(@as(u16, 16), summary.advertised_queue_size);
+    try std.testing.expectEqual(@as(u16, 16), summary.programmed_queue_size);
+    try std.testing.expect(summary.queue_size_programmed);
+    try std.testing.expect(summary.queue_size_matches_advertised);
+    try std.testing.expect(summary.queue_ready_for_handoff);
 }
 
 test "phase10 virtio mmio legacy probe preflight requires guest-page-size programming" {
