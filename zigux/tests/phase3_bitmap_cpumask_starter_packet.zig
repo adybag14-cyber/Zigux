@@ -231,6 +231,42 @@ test "starter packet keeps bitmap and cpumask summaries aligned for the same bou
     try testing.expectEqual(bitmap_view.testBit(bitmap, bitmap_view.bits_per_word + 11), cpumask_view.cpuIsSet(cpumask, bitmap_view.bits_per_word + 11));
 }
 
+test "starter packet keeps cpumask drift fail-closed while bitmap projection stays readable" {
+    var backing = [_]usize{
+        (@as(usize, 1) << 1) | (@as(usize, 1) << 4) | (@as(usize, 1) << 63),
+        (@as(usize, 1) << 0) | (@as(usize, 1) << 7),
+    };
+    const invalid_cpumask = binding.initCpumaskView(
+        @intFromPtr(backing[0..].ptr),
+        bitmap_view.bits_per_word + 12,
+        2,
+        bitmap_view.bits_per_word + 11,
+    );
+    const projected_bitmap = binding.asBitmap(invalid_cpumask);
+    const bitmap_summary = bitmap_view.summarize(projected_bitmap);
+    const cpumask_summary = cpumask_view.summarize(invalid_cpumask);
+
+    try testing.expect(!cpumask_view.isValid(invalid_cpumask));
+    try testing.expectEqual(invalid_cpumask.words_addr, projected_bitmap.words_addr);
+    try testing.expectEqual(invalid_cpumask.nbits, projected_bitmap.nbits);
+    try testing.expectEqual(invalid_cpumask.word_count, projected_bitmap.word_count);
+    try testing.expect(bitmap_view.isValid(projected_bitmap));
+    try testing.expectEqual(@as(u32, 1), bitmap_summary.first_set);
+    try testing.expectEqual(@as(u32, 0), bitmap_summary.first_zero);
+    try testing.expectEqual(@as(u32, 5), bitmap_summary.weight);
+    try testing.expect(bitmap_view.testBit(projected_bitmap, 1));
+    try testing.expect(bitmap_view.testBit(projected_bitmap, bitmap_view.bits_per_word + 7));
+    try testing.expect(!bitmap_view.testBit(projected_bitmap, bitmap_view.bits_per_word + 11));
+    try testing.expectEqual(@as(u32, 0), cpumask_summary.first_set);
+    try testing.expectEqual(@as(u32, 0), cpumask_summary.first_zero);
+    try testing.expectEqual(@as(u32, 0), cpumask_summary.weight);
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstCpu(invalid_cpumask));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(invalid_cpumask));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(invalid_cpumask));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid_cpumask, 1));
+    try testing.expect(!cpumask_view.cpuIsSet(invalid_cpumask, bitmap_view.bits_per_word + 7));
+}
+
 test "cpumask starter helpers fail closed on malformed views" {
     const invalid = binding.initCpumaskView(0, bitmap_view.bits_per_word + 1, 1, bitmap_view.bits_per_word + 1);
     const summary = cpumask_view.summarize(invalid);
