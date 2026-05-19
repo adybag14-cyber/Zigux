@@ -27,6 +27,12 @@ def fixture_paths(root: Path) -> tuple[Path, Path, Path, Path]:
     )
 
 
+def required_paths(refresh: bool, zig_tool: Path, harness: Path, inputs: Path, expected: Path) -> tuple[Path, ...]:
+    if refresh:
+        return (zig_tool, harness, inputs)
+    return (zig_tool, harness, inputs, expected)
+
+
 def ensure_required_files_exist(paths: tuple[Path, ...]) -> None:
     for path in paths:
         if not path.exists():
@@ -136,20 +142,25 @@ def run_self_test() -> int:
     )
     if fixture_paths(derived_root) != expected_paths:
         raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+    if required_paths(False, *expected_paths) != expected_paths:
+        raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+    if required_paths(True, *expected_paths) != expected_paths[:-1]:
+        raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
 
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_required_files_") as required_files_tmp_dir_str:
         required_files_root = Path(required_files_tmp_dir_str) / "repo"
-        required_paths = fixture_paths(required_files_root)
-        for path in required_paths[:-1]:
+        required_paths_tuple = fixture_paths(required_files_root)
+        for path in required_paths_tuple[:-1]:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text("", encoding="utf-8", newline="\n")
+        ensure_required_files_exist(required_paths(True, *required_paths_tuple))
         expect_system_exit_contains(
-            lambda: ensure_required_files_exist(required_paths),
-            f"missing required file: {required_paths[-1]}",
+            lambda: ensure_required_files_exist(required_paths(False, *required_paths_tuple)),
+            f"missing required file: {required_paths_tuple[-1]}",
         )
-        required_paths[-1].parent.mkdir(parents=True, exist_ok=True)
-        required_paths[-1].write_text("{}\n", encoding="utf-8", newline="\n")
-        ensure_required_files_exist(required_paths)
+        required_paths_tuple[-1].parent.mkdir(parents=True, exist_ok=True)
+        required_paths_tuple[-1].write_text("{}\n", encoding="utf-8", newline="\n")
+        ensure_required_files_exist(required_paths(False, *required_paths_tuple))
 
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_tools_") as tool_tmp_dir_str:
         tool_tmp_dir = Path(tool_tmp_dir_str)
@@ -282,7 +293,7 @@ def run_self_test() -> int:
         )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=20")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=21")
     return 0
 
 
@@ -300,7 +311,7 @@ def main() -> int:
 
     root = repo_root_from(Path(__file__), args.repo_root)
     zig_tool, harness, inputs, expected = fixture_paths(root)
-    ensure_required_files_exist((zig_tool, harness, inputs, expected))
+    ensure_required_files_exist(required_paths(args.refresh, zig_tool, harness, inputs, expected))
 
     compiler = find_compiler(args.cc)
     zig = find_zig(args.zig, root)
