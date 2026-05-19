@@ -132,3 +132,15 @@ test "strErrorR reuses smaller caller slices after a longer render" {
     try std.testing.expectEqualStrings("Permi", truncated_permission);
     try std.testing.expectEqual(@as(u8, 0), storage[5]);
 }
+
+test "strErrorR reuses larger caller slices after an earlier truncation" {
+    var storage = [_]u8{0xaa} ** 64;
+
+    const truncated = strErrorR(13, storage[0..6]);
+    try std.testing.expectEqualStrings("Permi", truncated);
+    try std.testing.expectEqual(@as(u8, 0), storage[5]);
+
+    const exact_fit = strErrorR(13, storage[0..18]);
+    try std.testing.expectEqualStrings("Permission denied", exact_fit);
+    try std.testing.expectEqual(@as(u8, 0), storage[exact_fit.len]);
+}
