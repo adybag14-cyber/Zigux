@@ -29,8 +29,9 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_SLICE=governance_packet_readiness_truthfulness",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
-    "the missing validator, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready",
+    "the missing validator, build, workflow, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready",
     "Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes",
+    "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route",
     "ready for maintenance-mode truthfulness refreshes only",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
 )
@@ -179,7 +180,7 @@ def _sample_note() -> str:
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
 
-This note says the governance packet is materially landed and reviewable, while the missing validator, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready.
+This note says the governance packet is materially landed and reviewable, while the missing validator, build, workflow, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready.
 
 Current directly readable packet:
 - `Documentation/zigux/freeze-map.md`
@@ -221,6 +222,7 @@ Although `zigux/Makefile` is present on current `master`, it still does not mate
 - `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
 - `make -C zigux phase15-test` remains blocked route vocabulary rather than a directly readable shipped replay path
 - `make -C zigux phase15` remains blocked route vocabulary rather than a directly readable shipped replay path
+- `.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route, so shared CI coverage for the broader Phase 15 replay packet remains absent rather than directly readable current-master evidence
 
 This packet is ready for maintenance-mode truthfulness refreshes only, and no Architecture Council approval is currently recorded for a freeze-map status change.
 """
