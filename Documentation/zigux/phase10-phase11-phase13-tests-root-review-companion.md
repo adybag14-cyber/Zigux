@@ -52,6 +52,67 @@ The current shared build inventory records three HVC proof-backed build tests, z
 Tests-root reviewer prompt:
 - Does the shared Phase 11 reminder keep the lane-sequencing note, matrix-gap survey, directly readable gpio and HVC matrix notes, explicit bcm2835 and DesignWare matrix repo-reality gaps, the narrower current DesignWare owner packet through `Documentation/zigux/phase11-dw-wdt-clock-acquisition-plan.md`, `Documentation/zigux/phase11-dw-wdt-platform-registration-plan.md`, `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`, `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`, `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`, `Documentation/zigux/phase11-dw-wdt-survey.md`, `Documentation/zigux/phase11-dw-wdt-slice.md`, `Documentation/zigux/phase11-dw-wdt-teardown-note.md`, `drivers/watchdog/dw_wdt.zig`, `drivers/watchdog/dw_wdt_verify.zig`, `zigux/tests/phase11_dw_wdt_manifest.json`, `zigux/tests/phase11_dw_wdt.zig`, `zigux/tests/phase11_dw_wdt_survey.zig`, `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`, `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`, the HVC survey plus current-head companion and verify-helper boundary, the HVC inventory-backed proof/build packet, the returned `zigux/Makefile` surface with no live `phase11*` route names, and the bounded `zig build test --build-file zigux/tests/phase11_hvc_cleanup_packet_build.zig` replay aligned without reviving the missing shared replay-contract stack, absent dedicated Phase 11 make routes, or archived HVC and watchdog replay files as current-head tests-root evidence?
 
+## Phase 13 shared-helper packet
+
+Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md` and `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md` aligned with that stable handle as supporting shared reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.
+
+Keep the current contributor-facing Phase 13 packet explicit through these shipped shared surfaces:
+- `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
+- `Documentation/zigux/phase13-release-coordination-matrix.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
+- `Documentation/zigux/phase13-libfs-survey.md`
+- `Documentation/zigux/phase13-devres-slice.md`
+- `Documentation/zigux/phase13-devres-survey.md`
+- `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`
+- `Documentation/zigux/phase13-devres-scatterlist-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-ownership.md`
+- `Documentation/zigux/phase13-landlock-ruleset-slice.md`
+- `Documentation/zigux/phase13-landlock-ruleset-survey.md`
+- `Documentation/zigux/phase13-landlock-syscalls-governance.md`
+- `Documentation/zigux/phase13-landlock-syscalls-slice.md`
+- `fs/libfs.zig`
+- `zigux/tests/phase13_libfs.zig`
+- `zigux/tests/phase13_libfs_reviewability.zig`
+- `zigux/tests/phase13_libfs_manifest.json`
+- `scripts/zigux/check-phase13-devres-dma-boundary.py`
+- `scripts/zigux/check-phase13-devres-mmio-packet.py`
+- `lib/devres.zig`
+- `zigux/tests/phase13_devres_dma_coherent.zig`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`
+- `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`
+- `lib/devres_scatterlist.zig`
+- `zigux/tests/phase13_devres_scatterlist.zig`
+- `zigux/tests/phase13_devres_scatterlist_build.zig`
+- `security/landlock/ruleset.zig`
+- `security/landlock/syscalls.zig`
+- `zigux/tests/phase13_landlock_ruleset.zig`
+- `zigux/tests/phase13_landlock_ruleset_manifest.json`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`
+- `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
+- `zigux/bindings/notifier_abi.zig`
+- `include/zigux/abi.h`
+- `drivers/tty/hvc/hvc_console.h`
+
+Current `master` instead materializes the narrower devres helper packet through `Documentation/zigux/phase13-devres-slice.md`, `Documentation/zigux/phase13-devres-survey.md`, `Documentation/zigux/phase13-devres-dmam-alloc-coherent-planner.md`, `Documentation/zigux/phase13-devres-scatterlist-slice.md`, `scripts/zigux/check-phase13-devres-dma-boundary.py`, `scripts/zigux/check-phase13-devres-mmio-packet.py`, `lib/devres.zig`, `zigux/tests/phase13_devres_dma_coherent.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner.zig`, `zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json`, `lib/devres_scatterlist.zig`, `zigux/tests/phase13_devres_scatterlist.zig`, and `zigux/tests/phase13_devres_scatterlist_build.zig`, so broader contributor wording should keep the direct DMA-boundary replay, the pure `dmam_alloc_coherent()` planning helper, and the scatterlist packet explicit instead of rebuilding the older missing `zigux/tests/phase13_devres.zig` replay family.
+
+Current `master` also materializes the helper-owned Landlock ownership and syscall-governance notes plus the shipped `Documentation/zigux/phase13-landlock-ruleset-slice.md`, `Documentation/zigux/phase13-landlock-ruleset-survey.md`, and `Documentation/zigux/phase13-landlock-syscalls-slice.md` notes, the shipped `security/landlock/ruleset.zig` and `security/landlock/syscalls.zig` starters, and the direct ruleset replay pair `zigux/tests/phase13_landlock_ruleset.zig` and `zigux/tests/phase13_landlock_ruleset_manifest.json`, so contributor workflow wording should keep those shipped helper anchors explicit beside `Documentation/zigux/phase13-landlock-ruleset-ownership.md` and `Documentation/zigux/phase13-landlock-syscalls-governance.md` instead of treating Landlock as docs-only ownership metadata or as a fully returned syscall replay packet.
+
+Current `master` still does not materialize `zigux/tests/phase13_devres.zig`, `zigux/tests/phase13_devres_reviewability.zig`, `zigux/tests/phase13_devres_boundary_evidence.zig`, `zigux/tests/phase13_devres_manifest.json`, `scripts/zigux/check-phase13-devres-packet.py`, `scripts/zigux/validate-phase13-release.py`, `scripts/zigux/check-phase13-devres-packet-alignment.py`, `scripts/zigux/check-phase13-landlock-ruleset-packet.py`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, or `zigux/tests/phase13_landlock_syscalls_manifest.json`, so keep those validator-first, broader direct devres replay, missing direct Landlock syscall, and checker names framed as repo-reality gaps rather than shipped tests-root evidence.
+
+Current `master` does materialize `scripts/zigux/check-phase13-shared-summary-surfaces.py`, so keep that guard explicit as shipped shared-summary evidence aligned with the contributor workflow guide and roadmap-traceability note instead of repeating it as a missing tests-root gap.
+
+Current `master` also materializes the adjacent notifier survey plus the direct-evidence shards `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, the read-only `zigux/helpers/list_view.zig` and `zigux/helpers/hlist_view.zig` helpers, and the Linux-side `drivers/tty/hvc/hvc_console.h` header, so keep those six paths explicit as shipped adjacent evidence without counting them as extra shared replay steps.
+
+Current `master` does materialize `zigux/Makefile`, but it still does not materialize `make -C zigux phase13-validate` or blocked convenience route `make -C zigux phase13`, so keep those route names framed as repo-reality-gap vocabulary rather than shipped tests-root evidence until a fresh reread proves the shared build handle returned.
+
+Keep `zigux/helpers/notifier_chain_view.zig` framed as an adjacent repo-reality gap rather than a shipped shared surface.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 13 reminder keep the stable contributor-facing handle, the shipped helper-local `libfs`, `devres`, and Landlock anchors, the shared-summary guard, the adjacent notifier evidence, the returned-but-still-non-owner `zigux/Makefile` file, and the still-missing Phase 13 build-route, validator-first, deeper devres replay, notifier-priority, and Landlock syscall replay surfaces aligned without promoting repo-reality gaps back into shipped tests-root proof?
+
 ## Phase 14 shared smoke packet
 
 Keep the current bounded Phase 14 reminder packet explicit through `Documentation/zigux/phase14-end-to-end-smoke-survey.md`, `Documentation/zigux/phase14-productization-gap-survey.md`, `Documentation/zigux/phase14-shared-smoke-current-master-gap.md`, `Documentation/zigux/phase14-attached-toolchain-guidance-gap.md`, `Documentation/zigux/phase14-core-boundary-traceability.md`, `Documentation/zigux/phase14-release-boundary-survey.md`, `Documentation/zigux/phase14-skbuff-bridge-survey.md`, `Documentation/zigux/phase15-study-only-anchor-accounting.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`, and keep the blob-readable `scripts/zigux/validate-phase14.py` plus the directly readable workqueue reviewability shard explicit as mixed-source evidence rather than missing executable-layer proof.
