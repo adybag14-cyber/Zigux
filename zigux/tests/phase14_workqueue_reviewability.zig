@@ -113,15 +113,15 @@ test "phase14 workqueue reviewability packet stays wired to the blocked-maintena
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase14-shared-smoke-current-master-gap.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase14-attached-toolchain-guidance-gap.md") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "Documentation/zigux/phase15-study-only-anchor-accounting.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase14-shared-smoke-route.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "scripts/zigux/check-phase14-release-boundary-exact-counts.py") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zigux/Makefile") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary-map-only submission routing through `queue_work_on()` and `__queue_work()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "boundary-map-only allocation and attribute shaping through `__alloc_workqueue()` and `devm_alloc_workqueue()`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig test zigux/tests/phase14_workqueue_reviewability.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "zig build test --build-file zigux/tests/phase14_build.zig --summary all") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared packet-local rerun vocabulary rather than direct bridge-local trust gates") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "Phase 2, Phase 3, Phase 4, Phase 6, Phase 8, Phase 10, and Phase 12 routes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase14") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "make -C zigux phase14-validate") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "shared packet-local validation rather than direct bridge-local trust gates") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "missing `phase14-smoke`, `phase14-test`, and `phase14` wrappers") != null);
 
     const traceability_note = try std.Io.Dir.cwd().readFileAlloc(
         io_instance.io(),
