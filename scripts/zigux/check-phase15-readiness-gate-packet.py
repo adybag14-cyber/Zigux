@@ -177,7 +177,7 @@ def _sample_note() -> str:
 - `PHASE15_LANE_KEY=arch-council`
 - `PHASE15_SLICE=governance_packet_readiness_truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
 
 This note says the governance packet is materially landed and reviewable, while the missing validator, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready.
 
@@ -230,7 +230,7 @@ def _sample_manifest() -> str:
     return json.dumps(
         {
             "surveyed_commit_mode": "dated_master_readback",
-            "surveyed_commit": "current-master-readback-2026-05-18",
+            "surveyed_commit": "current-master-readback-2026-05-19",
             "readiness_packet_checker": "scripts/zigux/check-phase15-readiness-gate-packet.py",
             "direct_packet_paths": [
                 "Documentation/zigux/freeze-map.md",
