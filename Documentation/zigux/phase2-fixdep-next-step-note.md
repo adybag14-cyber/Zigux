@@ -2,7 +2,7 @@
 
 Lane: `P2-X02`
 
-Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-implementation anchor, but the surviving fixdep companion packet is now narrower and split differently than older closure notes claimed.
+Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-implementation anchor, but the surviving fixdep closure packet is now narrower than older reminder surfaces implied.
 
 ## Roadmap and ledger grounding
 
@@ -11,19 +11,19 @@ Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-imple
 
 ## Current repo evidence
 
-- Current `master` still directly serves `scripts/zigux/fixdep.zig`, so the core dual-implementation helper remains real rather than speculative.
-- Current `master` also directly serves `scripts/zigux/check-phase2-fixdep-gate.py`, `Documentation/zigux/phase2-closure.md`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, `zigux/Makefile`, and this note.
-- Repeated direct reads on current `master` still return missing for `scripts/zigux/check-fixdep-diff.py`, `zigux/tests/fixtures/fixdep/cases.json`, and `Documentation/zigux/artifact-diff.md`, so the older note about a fully materialized external fixdep parity packet is no longer truthful on current head.
-- The live bootstrap workflow and `zigux/Makefile` no longer show dedicated fixdep replay routes, so the surviving dedicated gate script is present but not currently backed by the older shared wrapper and workflow path.
+- Current `master` still directly serves `scripts/zigux/fixdep.zig`, `scripts/zigux/check-phase2-fixdep-gate.py`, `Documentation/zigux/phase2-closure.md`, `Documentation/zigux/phase2-fixdep-next-step-note.md`, `scripts/zigux/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile`.
+- Current `master` still returns missing for `scripts/zigux/check-fixdep-diff.py`, `zigux/tests/fixtures/fixdep/cases.json`, and `Documentation/zigux/artifact-diff.md`, so the older note about a fully materialized external fixdep parity packet is no longer truthful on current head.
+- The live bootstrap workflow and `zigux/Makefile` do not expose dedicated fixdep replay routes, and `zigux/tests/README.md` now carries only the shared Phase 2 review packet rather than a fixdep-local route inventory.
+- `scripts/zigux/check-phase2-fixdep-gate.py` still pins those broader shared surfaces together with the missing artifact-diff companion, so the current mismatch is governance drift inside the fixdep closure packet rather than parser drift inside `fixdep.zig` itself.
 
 ## Survey result
 
-- The same-lane gap is now closure-note drift, not helper-local parser drift.
-- `scripts/zigux/fixdep.zig` and `scripts/zigux/check-phase2-fixdep-gate.py` still make the fixdep family directly readable on current `master`, but the broader external fixture roster and artifact-diff companions recorded by older notes are not currently materialized.
-- Because that external parity packet is still partial, the next honest move is to correct the closure packet first instead of pretending the full older replay stack still exists.
+- The same-lane gap is still closure-note and checker drift, not helper-local parser drift.
+- `scripts/zigux/fixdep.zig` remains directly reviewable on current `master`, but the surviving reminder packet is smaller than the gate script currently enforces.
+- Rebuilding older Makefile or workflow fixdep routes from this lane would widen the packet beyond the smallest truthful repair.
 
 ## Next safe step
 
-1. Choose one exact same-family repair: either narrow `scripts/zigux/check-phase2-fixdep-gate.py` so it only pins the live closure surfaces that still carry fixdep evidence, or re-materialize one smallest missing external parity companion such as `scripts/zigux/check-fixdep-diff.py`, `zigux/tests/fixtures/fixdep/cases.json`, or `Documentation/zigux/artifact-diff.md`.
-2. Only after that fixdep-local companion packet is truthful again should follow-through widen into shared reminder surfaces such as the workflow, scripts-root README, or Makefile wording.
-3. Keep this lane inside fixdep only; do not widen into genksyms, kconfig, or general Phase 2 route inventory.
+1. Narrow `scripts/zigux/check-phase2-fixdep-gate.py` so it fails closed on the live fixdep-local closure packet only, instead of pinning `Documentation/zigux/artifact-diff.md`, dedicated fixdep route lines in `zigux/Makefile` and `.github/workflows/zigux-bootstrap.yml`, or fixdep-local wording in `zigux/tests/README.md` that current `master` no longer materializes.
+2. Keep the follow-through to one same-family governance correction only; do not reopen `fixdep.zig` parser behavior, fixture expected outputs, genksyms, kconfig bridge, or the broader shared Phase 2 route inventory from this note lane.
+3. Only if a fresh current-master reread restores one of the missing external fixdep companions should this note widen back toward artifact-diff or route-level follow-through.
