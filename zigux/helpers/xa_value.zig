@@ -78,3 +78,23 @@ test "first rejected inline value would alias err_ptr floor" {
     try std.testing.expect(err_ptr.isErrValue(overlapping_raw));
     try std.testing.expect(!isValue(overlapping_raw));
 }
+
+test "highest two tagged xa_values stay contiguous below the pointer gap" {
+    const next_value = safe_inline_limit - 1;
+    const highest_value = safe_inline_limit;
+    const next_raw = try makeValue(next_value);
+    const highest_raw = try makeValue(highest_value);
+    const pointer_gap_raw = err_ptr.err_floor - 1;
+
+    try std.testing.expectEqual(err_ptr.err_floor - 4, next_raw);
+    try std.testing.expectEqual(err_ptr.err_floor - 2, highest_raw);
+    try std.testing.expectEqual(next_raw + 2, highest_raw);
+    try std.testing.expectEqual(highest_raw + 1, pointer_gap_raw);
+
+    try std.testing.expect(isValue(next_raw));
+    try std.testing.expect(isValue(highest_raw));
+    try std.testing.expectEqual(next_value, toValue(next_raw));
+    try std.testing.expectEqual(highest_value, toValue(highest_raw));
+    try std.testing.expect(err_ptr.isOkValue(pointer_gap_raw));
+    try std.testing.expect(!isValue(pointer_gap_raw));
+}
