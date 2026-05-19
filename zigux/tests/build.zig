@@ -248,6 +248,49 @@ fn addPhase3XarraySlotStarterPacket(
     return b.addRunArtifact(tests);
 }
 
+fn addPhase3ListHListStarterPacket(
+    b: *std.Build,
+    target: std.Build.ResolvedTarget,
+    optimize: std.builtin.OptimizeMode,
+) *std.Build.Step.Run {
+    const uapi_list_hlist = b.createModule(.{
+        .root_source_file = b.path("../uapi/list_hlist.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const binding_list_hlist = b.createModule(.{
+        .root_source_file = b.path("../bindings/list_hlist.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    binding_list_hlist.addImport("uapi_list_hlist", uapi_list_hlist);
+    const list_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/list_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    const hlist_view = b.createModule(.{
+        .root_source_file = b.path("../helpers/hlist_view.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const root_module = b.createModule(.{
+        .root_source_file = b.path("phase3_list_hlist_starter_packet.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    root_module.addImport("binding_list_hlist", binding_list_hlist);
+    root_module.addImport("list_view", list_view);
+    root_module.addImport("hlist_view", hlist_view);
+
+    const tests = b.addTest(.{
+        .name = "phase3-list-hlist-starter-packet",
+        .root_module = root_module,
+    });
+    return b.addRunArtifact(tests);
+}
+
 fn addPhase3ErrPtrXarrayDump(
     b: *std.Build,
     target: std.Build.ResolvedTarget,
@@ -601,6 +644,11 @@ pub fn build(b: *std.Build) void {
         target,
         optimize,
     );
+    const phase3_list_hlist_starter_packet = addPhase3ListHListStarterPacket(
+        b,
+        target,
+        optimize,
+    );
     const phase3_errptr_xarray_dump = addPhase3ErrPtrXarrayDump(b, target, optimize);
     const phase3_policy_starter_packet = addPhase3PolicyStarterPacket(b, target, optimize);
     const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);
@@ -646,6 +694,12 @@ pub fn build(b: *std.Build) void {
     );
     phase3_xarray_slot_step.dependOn(&phase3_xarray_slot_starter_packet.step);
 
+    const phase3_list_hlist_step = b.step(
+        "phase3-list-hlist-starter-packet",
+        "Run the shared Phase 3 list/hlist starter packet from zigux/tests",
+    );
+    phase3_list_hlist_step.dependOn(&phase3_list_hlist_starter_packet.step);
+
     const phase3_errptr_xarray_dump_step = b.step(
         "phase3-errptr-xarray-dump",
         "Run the shared Phase 3 err_ptr/xarray dump from zigux/tests",
@@ -690,6 +744,7 @@ pub fn build(b: *std.Build) void {
     phase3_test_step.dependOn(&phase3_dev_t_starter_packet.step);
     phase3_test_step.dependOn(&phase3_errptr_xarray_starter_packet.step);
     phase3_test_step.dependOn(&phase3_xarray_slot_starter_packet.step);
+    phase3_test_step.dependOn(&phase3_list_hlist_starter_packet.step);
     phase3_test_step.dependOn(&phase3_policy_starter_packet.step);
     phase3_test_step.dependOn(&phase3_abi_core_packet.step);
     phase3_test_step.dependOn(&phase3_export_uapi_layout.step);
