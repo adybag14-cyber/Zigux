@@ -10,7 +10,16 @@ const SurveySummary = struct {
     preexisting_phase12_build_present: bool,
     preexisting_phase12_virtio_net_survey_present: bool,
     preexisting_phase12_survey_note_present: bool,
+    preexisting_virtio_net_queue_resume_zig_present: bool,
+    preexisting_virtio_net_transmit_recycle_zig_present: bool,
+    preexisting_virtio_net_post_reset_replay_zig_present: bool,
+    preexisting_virtio_net_throughput_parity_zig_present: bool,
+    preexisting_phase12_virtio_net_queue_resume_present: bool,
+    preexisting_phase12_virtio_net_transmit_recycle_present: bool,
+    preexisting_phase12_virtio_net_post_reset_replay_present: bool,
+    preexisting_phase12_virtio_net_throughput_parity_present: bool,
     preexisting_virtio_net_zig_present: bool,
+    preexisting_phase12_virtio_net_zig_present: bool,
     preexisting_phase12_virtio_net_syntax_lab_present: bool,
 };
 
@@ -72,7 +81,7 @@ fn pathExists(path: []const u8) !bool {
     return true;
 }
 
-test "phase12 virtio net survey manifest keeps the bounded post reset replay packet truthful" {
+test "phase12 virtio net survey manifest keeps the split helper packet truthful" {
     const manifest_json = try readFileAlloc("zigux/tests/phase12_virtio_net_manifest.json", 32 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -97,49 +106,51 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_build_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_survey_present);
     try std.testing.expect(manifest.survey_summary.preexisting_phase12_survey_note_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_zig_present);
-    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_queue_resume_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_transmit_recycle_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_post_reset_replay_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_virtio_net_throughput_parity_zig_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_queue_resume_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_transmit_recycle_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_post_reset_replay_present);
+    try std.testing.expect(manifest.survey_summary.preexisting_phase12_virtio_net_throughput_parity_present);
+    try std.testing.expect(!manifest.survey_summary.preexisting_virtio_net_zig_present);
+    try std.testing.expect(!manifest.survey_summary.preexisting_phase12_virtio_net_zig_present);
+    try std.testing.expect(!manifest.survey_summary.preexisting_phase12_virtio_net_syntax_lab_present);
 
     try std.testing.expectEqualStrings(
-        "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_and_post_reset_replay_present_direct_gate_present_shared_smoke_present",
+        "split_queue_resume_transmit_recycle_post_reset_replay_and_direct_gates_present_shared_smoke_present",
         manifest.roadmap_gap_check.queueing_correctness.status,
     );
     try std.testing.expect(
         std.mem.indexOf(
             u8,
             manifest.roadmap_gap_check.queueing_correctness.current_surface,
-            "returned Phase 12 make entrypoints are all present on current master",
+            "returned Phase 12 make entrypoints still keep the queue-resume and transmit-recycle pair",
         ) != null,
     );
     try std.testing.expectEqualStrings(
-        "starter_control_queue_payload_shape_refill_transmit_recycle_and_post_reset_replay_present_runtime_completion_missing",
+        "throughput_parity_helper_present_runtime_completion_missing",
         manifest.roadmap_gap_check.throughput_and_recovery_parity.status,
     );
     try std.testing.expectEqualStrings(
-        "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_post_reset_replay_direct_lab_present_shared_route_present",
+        "split_helper_packet_direct_replays_present_shared_route_partial",
         manifest.roadmap_gap_check.segmented_rollout.status,
     );
     try std.testing.expect(
         std.mem.indexOf(
             u8,
             manifest.roadmap_gap_check.segmented_rollout.current_surface,
-            "returned shared make entrypoints",
-        ) != null,
-    );
-    try std.testing.expect(
-        std.mem.indexOf(
-            u8,
-            manifest.roadmap_gap_check.segmented_rollout.current_surface,
-            "shared build route still stops at the syntax lab plus the queue-resume and transmit-recycle replays",
+            "shared build route still keeps only the queue-resume and transmit-recycle pair",
         ) != null,
     );
 
     var saw_build_gap = false;
-    var saw_post_reset_replay_gap = false;
+    var saw_throughput_gap = false;
     var saw_runtime_gap = false;
-    var saw_make_target_gap = false;
+    var saw_syntax_gap = false;
 
-    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
@@ -148,41 +159,37 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
         if (std.mem.eql(u8, gap.id, "phase12-build-gate")) {
             saw_build_gap = true;
             try std.testing.expectEqualStrings(
-                "shared_build_present_with_queue_resume_and_transmit_recycle_replays_post_reset_replay_still_direct_only",
+                "shared_build_present_with_queue_resume_and_transmit_recycle_replays_post_reset_and_throughput_direct_only",
                 gap.status,
             );
-            try std.testing.expect(
-                std.mem.indexOf(u8, gap.why_now, "virtio_net_queue_resume") != null,
-            );
-            try std.testing.expect(
-                std.mem.indexOf(u8, gap.why_now, "post-reset replay still remains a direct driver-local test") != null,
-            );
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "virtio_net_queue_resume") != null);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "throughput-parity checks still remain direct driver-local tests") != null);
         }
 
-        if (std.mem.eql(u8, gap.id, "phase12-make-target")) {
-            saw_make_target_gap = true;
-        }
-
-        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-post-reset-replay-followup")) {
-            saw_post_reset_replay_gap = true;
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-throughput-parity-followup")) {
+            saw_throughput_gap = true;
             try std.testing.expectEqualStrings("landed_on_master", gap.status);
-            try std.testing.expectEqualStrings("drivers/net/virtio_net_post_reset_replay.zig", gap.zigux_destination);
-            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "probe-snapshot refresh checkpoints") != null);
+            try std.testing.expectEqualStrings("drivers/net/virtio_net_throughput_parity.zig", gap.zigux_destination);
+            try std.testing.expect(std.mem.indexOf(u8, gap.why_now, "transmit wake-threshold readiness") != null);
         }
 
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-runtime-data-path")) {
             saw_runtime_gap = true;
             try std.testing.expectEqualStrings("blocked_on_dma_transport_runtime", gap.status);
         }
+
+        if (std.mem.eql(u8, gap.id, "phase12-virtio-net-syntax-lab-gate")) {
+            saw_syntax_gap = true;
+        }
     }
 
     try std.testing.expect(saw_build_gap);
-    try std.testing.expect(!saw_make_target_gap);
-    try std.testing.expect(saw_post_reset_replay_gap);
+    try std.testing.expect(saw_throughput_gap);
     try std.testing.expect(saw_runtime_gap);
+    try std.testing.expect(!saw_syntax_gap);
 }
 
-test "phase12 virtio net survey note stays aligned with the bounded post reset replay follow-up" {
+test "phase12 virtio net survey note stays aligned with the split helper packet" {
     const survey_note = try readFileAlloc("Documentation/zigux/phase12-virtio-net-survey.md", 20 * 1024);
     defer std.testing.allocator.free(survey_note);
 
@@ -194,35 +201,39 @@ test "phase12 virtio net survey note stays aligned with the bounded post reset r
 
     const manifest = parsed.value;
     try std.testing.expectEqualStrings("2026-05-19", manifest.verified_on);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-post-reset-replay-followup") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=split-helper-packet-present-throughput-parity-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane owner: `P12-L02`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/net/virtio_net_post_reset_replay.zig") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizePostResetReplay()") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_post_reset_replay.zig`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/Makefile` now again exposes `phase12-smoke`, `phase12-test`, and `phase12` convenience entrypoints") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `zigux/Makefile` again exposes `phase12-smoke`, `phase12-test`, and `phase12`") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "while the post-reset replay remains outside `zigux/tests/phase12_build.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/net/virtio_net_throughput_parity.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizeThroughputParity()") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` does not carry the older monolithic `drivers/net/virtio_net.zig` starter") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "phase12_virtio_net_syntax_lab.zig` shard anymore") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/Makefile` still exposes `phase12-smoke`, `phase12-test`, and `phase12` convenience entrypoints") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the post-reset replay and throughput-parity checks remain dedicated driver-local tests outside that shared build route") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "the packet now exposes queue resume, transmit recycle, post-reset replay, and throughput-parity reviewability") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe receive ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded complex-driver or segmented-helper step") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "4578c45f2ac8ed5cd61412e1140b48d8a7a73628") != null);
 }
 
-test "phase12 virtio net survey gate keeps present lane files explicit" {
+test "phase12 virtio net survey gate keeps present lane files and stale scaffold absences explicit" {
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_manifest.json"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_survey.zig"));
     try std.testing.expect(try pathExists("Documentation/zigux/phase12-virtio-net-survey.md"));
-    try std.testing.expect(try pathExists("drivers/net/virtio_net.zig"));
+    try std.testing.expect(try pathExists("drivers/net/virtio_net_queue_resume.zig"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_transmit_recycle.zig"));
     try std.testing.expect(try pathExists("drivers/net/virtio_net_post_reset_replay.zig"));
-    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net.zig"));
+    try std.testing.expect(try pathExists("drivers/net/virtio_net_throughput_parity.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_queue_resume.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_transmit_recycle.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_post_reset_replay.zig"));
-    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
+    try std.testing.expect(try pathExists("zigux/tests/phase12_virtio_net_throughput_parity.zig"));
     try std.testing.expect(try pathExists("zigux/tests/phase12_build.zig"));
+    try std.testing.expect(!try pathExists("drivers/net/virtio_net.zig"));
+    try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_net.zig"));
+    try std.testing.expect(!try pathExists("zigux/tests/phase12_virtio_net_syntax_lab.zig"));
 }
 
-test "phase12 virtio net survey gate keeps shared build surface explicit about post reset replay" {
+test "phase12 virtio net survey gate keeps shared build surface explicit about direct-only follow-ups" {
     const build_zig = try readFileAlloc("zigux/tests/phase12_build.zig", 32 * 1024);
     defer std.testing.allocator.free(build_zig);
 
@@ -232,6 +243,8 @@ test "phase12 virtio net survey gate keeps shared build surface explicit about p
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12-virtio-net-transmit-recycle-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12_virtio_net_post_reset_replay.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12-virtio-net-post-reset-replay-tests") == null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12_virtio_net_throughput_parity.zig") == null);
+    try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12-virtio-net-throughput-parity-tests") == null);
 }
 
 test "phase12 virtio net survey gate keeps shared make routes explicit" {
@@ -243,17 +256,19 @@ test "phase12 virtio net survey gate keeps shared make routes explicit" {
     try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-smoke phase12-test") != null);
 }
 
-test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit" {
-    const syntax_lab = try readFileAlloc("zigux/tests/phase12_virtio_net_syntax_lab.zig", 32 * 1024);
-    defer std.testing.allocator.free(syntax_lab);
+test "phase12 virtio net survey gate keeps throughput parity helper and replay markers explicit" {
+    const helper = try readFileAlloc("drivers/net/virtio_net_throughput_parity.zig", 16 * 1024);
+    defer std.testing.allocator.free(helper);
 
-    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps control queue payload shaping separate from runtime commands") != null);
-    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "phase12 virtio net syntax lab keeps rss payload shaping aligned with tunnel-header recovery") != null);
-    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "planControlQueuePayloadShape") != null);
-    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "controlQueueRecoveryPlan") != null);
-    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "rss_config_payload_bytes") != null);
-    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_hash_report_payload") != null);
-    try std.testing.expect(std.mem.indexOf(u8, syntax_lab, "requires_mergeable_buffer_refill") != null);
+    const replay = try readFileAlloc("zigux/tests/phase12_virtio_net_throughput_parity.zig", 16 * 1024);
+    defer std.testing.allocator.free(replay);
+
+    try std.testing.expect(std.mem.indexOf(u8, helper, "pub const default_wake_threshold: u16 = 2;") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper, "pub const ThroughputParityStatus = enum") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper, ".needs_post_reset_probe_replay") != null);
+    try std.testing.expect(std.mem.indexOf(u8, helper, ".parity_gate_ready") != null);
+    try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 throughput parity gate passes once queue restore refill recycle and replay align") != null);
+    try std.testing.expect(std.mem.indexOf(u8, replay, "phase12 throughput parity gate keeps post reset replay explicit when restore stops after refill") != null);
 }
 
 test "phase12 virtio net survey gate keeps transmit recycle helper and replay markers explicit" {
