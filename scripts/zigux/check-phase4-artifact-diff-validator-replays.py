@@ -18,7 +18,7 @@ EXPECTED_VALIDATOR_REPLAY_MARKERS = [
 ]
 
 EXPECTED_HISTORICAL_GAP_MARKERS = [
-    "The broader Phase 4 validator, lab-matrix, and bitmap-diff companions are still repo-reality gaps in this run",
+    "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
     "`Documentation/zigux/artifact-diff.md`",
     "`scripts/zigux/check-artifact-diff-contract.py`",
     "`scripts/zigux/validate-phase4.py`",
