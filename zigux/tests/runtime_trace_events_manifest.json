@@ -1,5 +1,5 @@
 {
-  "lane_key": "P9-L12",
+  "lane_key": "P9-L10",
   "phase": "Phase 9",
   "surveyed_commit": "9ca34d1aa5c3031e1126cf951cf7e4bc515fe7b4",
   "anchor": "samples/trace_events/trace-events-sample.c",
@@ -39,25 +39,25 @@
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-survey.md",
       "role": "survey_note",
-      "owner": "P9-L12",
+      "owner": "P9-L10",
       "boundary": "Owns the family-local survey wording for the surviving trace-events pilot packet only."
     },
     {
       "surface": "zigux/tests/runtime_trace_events_manifest.json",
       "role": "packet_truth_manifest",
-      "owner": "P9-L12",
+      "owner": "P9-L10",
       "boundary": "Records the current family-local runtime trace-events packet without widening into shared loader ownership."
     },
     {
       "surface": "zigux/tests/runtime_trace_events_survey.zig",
       "role": "survey_gate",
-      "owner": "P9-L12",
+      "owner": "P9-L10",
       "boundary": "Fail-closes on drift between the survey note, module-slice note, manifest, sequencing note, shared workflow guard, and surviving sample family."
     },
     {
       "surface": "Documentation/zigux/phase9-runtime-trace-events-module-slice.md",
       "role": "module_slice_note",
-      "owner": "P9-L12",
+      "owner": "P9-L10",
       "boundary": "Keeps the pilot-module slice paired with the family-local survey packet instead of treating shared loader surfaces as returned evidence."
     },
     {
