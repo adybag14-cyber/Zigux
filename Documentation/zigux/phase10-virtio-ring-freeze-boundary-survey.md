@@ -16,22 +16,22 @@ The product roadmap still keeps Phase 10 focused on virtio and lab-driver provin
 ## Current Repo Reality
 Current `master` still keeps the ring boundary reviewable through `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, `Documentation/zigux/freeze-map.md`, `scripts/zigux/check-phase10-ring-packet.py`, `zigux/tests/phase10_virtio_ring_manifest.json`, and `zigux/tests/phase10_build.zig`.
 
-Repeated direct contents reads now materialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig` on current `master`. Keep the queue-local ring helper ladder, the broader replay, the wrapper-facing verify replay, the focused replays, and the dedicated survey replay framed as direct current-head evidence while keeping the shared reminder and checker follow-through explicit as the next bounded same-lane truthfulness work.
+Repeated direct contents reads now materialize `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`, and `zigux/tests/phase10_virtio_ring_survey.zig` on current `master`, while the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap beside the queue-local helper ladder. Keep the queue-local ring helper ladder, the wrapper-facing verify replay, the focused replays, and the dedicated survey replay framed as direct current-head evidence while keeping the shared reminder and checker follow-through explicit as the next bounded same-lane truthfulness work.
 
 The risky-transport freeze-boundary posture still belongs to the adjacent MMIO-owned blocked `phase10-ring-lab-driver-bridge` packet. This note therefore does not claim queue setup or reset execution, IRQ delivery, DMA paths, or probe/remove lifecycle behavior.
 
 ## Gap Crosswalk
 - current packet lane on master: `P10-L05`
 - adjacent freeze-boundary owner: `P10-L11`
-- the broader ring replay now rematerializes: `zigux/tests/phase10_virtio_ring.zig` joins direct current-head evidence beside the queue-local helper ladder, the wrapper-facing verify replay, and the focused prepare-kick, reset-reuse, broken-queue, and delayed-callback replays
-- the dedicated ring survey replay remains explicit current evidence beside that broader replay: `zigux/tests/phase10_virtio_ring_survey.zig` stays part of the same directly readable ring packet
+- the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap beside the queue-local helper ladder
+- the dedicated ring survey replay `zigux/tests/phase10_virtio_ring_survey.zig` stays part of the same directly readable ring packet
 - shared closure evidence and the current ring survey still agree that risky transport stays blocked on the MMIO-owned bridge even while the queue-local ring packet remains directly reviewable
-- the smallest same-lane follow-through is reminder-surface, checker, or manifest truthfulness work: keep the survey note, slice note, manifest, and `scripts/zigux/check-phase10-ring-packet.py` aligned with the returned broader replay and the landed survey replay so stale direct-readback claims fail closed
+- the smallest same-lane follow-through is reminder-surface, checker, or manifest truthfulness work: keep the survey note, slice note, manifest, and `scripts/zigux/check-phase10-ring-packet.py` aligned with the focused replays and the landed survey replay so stale direct-readback claims fail closed
 
 ## Roadmap Parity Evidence
 The ring-owned parity scoreboard against the Phase 10 roadmap is:
 - `virtqueue_wrappers=starter_landed`
-- evidence: `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`
+- evidence: `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`
 - `lab_only_driver_validation=starter_landed`
 - evidence: `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`
 - `dual_implementations_for_risky_areas=blocked_on_risky_transport`
@@ -46,4 +46,4 @@ This lane therefore stays roadmap-aligned by keeping queue-local ring parity exp
 - no Architecture Council reopen claim
 
 ## Next Bounded Step
-If another same-family follow-through is needed, reread the ring survey note, the ring slice note, the ring manifest, and `scripts/zigux/check-phase10-ring-packet.py` against the returned broader replay and the landed survey replay before widening any queue-local helper or MMIO wording.
+If another same-family follow-through is needed, reread the ring survey note, the ring slice note, the ring manifest, and `scripts/zigux/check-phase10-ring-packet.py` against the focused replays and the landed survey replay before widening any queue-local helper or MMIO wording.
