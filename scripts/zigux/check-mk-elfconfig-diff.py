@@ -66,6 +66,9 @@ EXPECTED_ZIG_MARKERS = {
     "invalid_class_trailing": 'test "classifies unsupported ELF class with trailing bytes silently" {',
     "not_elf_trailing_direct": 'test "classifies non-ELF input with trailing bytes" {',
     "partial_read_failure": 'test "readHeader keeps partial bytes when a later read fails" {',
+    "readheader_split_fill": 'test "readHeader stops after filling the first ELF header across split reads" {',
+    "readheader_truncated_count": 'test "readHeader reports the exact truncated byte count" {',
+    "readheader_zero_eof": 'test "readHeader returns zero bytes on immediate EOF" {',
     "render_not_elf": 'test "renders non-ELF error" {',
     "render_invalid_class": 'test "renders invalid class silently" {',
 }
