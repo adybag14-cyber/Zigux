@@ -16,16 +16,15 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 
 ## Current Repo-Reality Gap
 - The roadmap-backed conf bridge scaffold is still landed. This lane does not show a missing bridge, checker, or fixture family that needs to be recreated from scratch.
-- The dedicated survey note itself had dropped out of the docs tree on current `master`; this file restores that missing reviewer-facing survey surface.
-- A narrower same-family drift is now visible inside the live conf bridge packet: `scripts/zigux/kconfig/conf_bridge.zig` currently still treats bare `randconfig` as an `allconfig` sentinel mode through `modeUsesAllConfigSentinel()` and a helper-local test titled `conf bridge emits randconfig allconfig sentinel without explicit override`, while the current fixture and manifest packet still models `randconfig` only through the explicit override case in `cases.json` and `randconfig_expected.json`, and the current manifest keeps `randconfig_expected.json` out of `allconfig_sentinel_packet`.
-- Because of that split, the real current-master follow-through is no longer a missing scaffold. It is a narrower live behavior-versus-reminder mismatch inside the already-landed bridge family.
+- The earlier bare-`randconfig` drift is no longer live on current `master`: `scripts/zigux/kconfig/conf_bridge.zig` now keeps the sentinel path narrowed to `allnoconfig`, `allyesconfig`, and `alldefconfig`, while `cases.json` and `conf_manifest.json` continue to model `randconfig` only through the explicit override packet.
+- The remaining same-family follow-through is narrower and governance-only: keep any future reopen on the separate checker-and-manifest helper-anchor parity packet rather than treating the bridge as if it still had a current behavior-versus-fixture mismatch.
 
 ## Survey Result
 - `current master` does not have a remaining roadmap gap at the level of conf bridge scaffolding.
 - The live Phase 2 packet still contains the bridge source, checker, fixture roster, manifest, and shared closure reminder surfaces expected for the bounded `conf.c` bridge.
-- The honest survey-level reopen is the restored note plus the newly visible bare-`randconfig` drift above, not a fresh scaffold buildout.
+- The honest survey-level result is that the earlier `randconfig` drift has already been closed, so the remaining same-family follow-through is the separate helper-anchor accounting packet rather than a fresh scaffold or expected-output repair.
 
 ## Next Bounded Step
-- If the family reopens on the behavior side, keep the follow-through on the dedicated conf bridge verification lane and reconcile the live bare-`randconfig` sentinel behavior against the committed fixture and manifest packet before widening into any broader Phase 2 reminder edits.
+- Leave this survey parked unless a later reread shows another bridge-local scaffold, config, artifact, or expected-output governance gap on current `master`.
 - If the family reopens only on helper-anchor accounting, keep that follow-through on the separate checker-and-manifest parity lane rather than in this survey file.
-- Leave this survey parked unless a later reread shows another same-family scaffold surface disappearing or the roadmap expectation changing.
+- Do not widen this note into broader Phase 2 closure maintenance unless the bridge packet itself drifts again.
