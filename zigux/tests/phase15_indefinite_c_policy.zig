@@ -88,7 +88,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("P15-L13", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L16", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-19", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
@@ -111,7 +111,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
 
     try expectContains(policy_note, "PHASE15_STATUS=indefinite_c_policy_packet_landed");
-    try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L13");
+    try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L16");
     try expectContains(policy_note, "current-master-readback-2026-05-19");
     try expectContains(policy_note, "roadmap-required Phase 15 stay-in-C policy surface");
     try expectContains(policy_note, "the C implementation remains the source of truth");
