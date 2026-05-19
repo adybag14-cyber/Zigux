@@ -18,10 +18,28 @@ SCRIPTS_README = Path("scripts/zigux/README.md")
 TESTS_README = Path("zigux/tests/README.md")
 REVERSIBLE_NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
 ARTIFACT_DIFF_NOTE = Path("Documentation/zigux/artifact-diff.md")
+ARTIFACT_DIFF_HELPER = Path("scripts/zigux/artifact_diff.py")
+ARTIFACT_DIFF_CONTRACT = Path("scripts/zigux/check-artifact-diff-contract.py")
+ARTIFACT_DIFF_DETERMINISM = Path("scripts/zigux/check-phase4-artifact-diff-determinism.py")
+VALIDATOR = Path("scripts/zigux/validate-phase4.py")
+PHASE4_BUILD = Path("zigux/tests/phase4_build.zig")
+ATOMIC64_MANIFEST = Path("zigux/tests/phase4_runtime_atomic64_diff_manifest.json")
+ATOMIC64_SURVEY = Path("zigux/tests/phase4_runtime_atomic64_diff_survey.zig")
+BITMAP_MANIFEST = Path("zigux/tests/phase4_bitmap_diff_manifest.json")
+BITMAP_SURVEY = Path("zigux/tests/phase4_bitmap_diff_survey.zig")
+BITMAP_HELPER_REPLAY = Path("zigux/tests/phase4_bitmap_live_helper_replay.zig")
+PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
+PERF_SURVEY = Path("zigux/tests/phase4_perf_baseline_survey.zig")
+KPROBE_NOTE = Path("Documentation/zigux/phase4-kprobe-example-gap-survey.md")
+KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
+KPROBE_SURVEY = Path("zigux/tests/phase4_kprobe_example_survey.zig")
+TEST_FSMOUNT_NOTE = Path("Documentation/zigux/phase4-test-fsmount-gap-survey.md")
+TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
+TEST_FSMOUNT_SURVEY = Path("zigux/tests/phase4_test_fsmount_survey.zig")
 SELF = Path("scripts/zigux/check-phase4-gate-evidence.py")
 
 EXPECTED_TARGET_COUNT = 19
-EXPECTED_SELF_TEST_CASE_COUNT = 34
+EXPECTED_SELF_TEST_CASE_COUNT = 42
 SELF_TEST_CASES = [
     "baseline_round_trip",
     "shipped_target_count_drift",
@@ -56,6 +74,14 @@ SELF_TEST_CASES = [
     "test_fsmount_validation_entrypoint_drift",
     "test_fsmount_linux_style_wrapper_drift",
     "test_fsmount_next_step_drift",
+    "missing_validator_file",
+    "missing_phase4_build_file",
+    "missing_artifact_diff_helper_file",
+    "missing_atomic64_manifest_file",
+    "missing_bitmap_survey_file",
+    "missing_perf_survey_file",
+    "missing_kprobe_manifest_file",
+    "missing_test_fsmount_survey_file",
     "missing_note_file",
 ]
 
@@ -70,7 +96,7 @@ NOTE_MARKERS = (
     "`PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=6e486e059c0d1caa9599c5ac54936f7c52ac8e9a`",
     "`PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=65c2ceed2512dcec8f86cbe3c47831c30f5547d3`",
     "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
-    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`",
+    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42`",
     "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
     + ",".join(SELF_TEST_CASES)
     + "`",
@@ -78,7 +104,7 @@ NOTE_MARKERS = (
     "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
     "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
     "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`",
-    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`",
+    "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42`",
     "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
     "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
     "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
@@ -207,6 +233,24 @@ def require_file_set(root: Path, missing: list[str]) -> None:
         TESTS_README,
         REVERSIBLE_NOTE,
         ARTIFACT_DIFF_NOTE,
+        ARTIFACT_DIFF_HELPER,
+        ARTIFACT_DIFF_CONTRACT,
+        ARTIFACT_DIFF_DETERMINISM,
+        VALIDATOR,
+        PHASE4_BUILD,
+        ATOMIC64_MANIFEST,
+        ATOMIC64_SURVEY,
+        BITMAP_MANIFEST,
+        BITMAP_SURVEY,
+        BITMAP_HELPER_REPLAY,
+        PERF_MANIFEST,
+        PERF_SURVEY,
+        KPROBE_NOTE,
+        KPROBE_MANIFEST,
+        KPROBE_SURVEY,
+        TEST_FSMOUNT_NOTE,
+        TEST_FSMOUNT_MANIFEST,
+        TEST_FSMOUNT_SURVEY,
         SELF,
     ):
         if not (root / rel).is_file():
@@ -292,13 +336,13 @@ def build_fixture_tree(root: Path) -> None:
                 "  * `PHASE4_RUNTIME_ATOMIC64_MANIFEST_BLOB_SHA=6e486e059c0d1caa9599c5ac54936f7c52ac8e9a`",
                 "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=65c2ceed2512dcec8f86cbe3c47831c30f5547d3`",
                 "  * `PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
-                "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`",
+                "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42`",
                 "  * `PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
                 "  * `PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
                 "  * `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
                 "  * `PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
                 "  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`",
-                "  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`",
+                "  * `PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42`",
                 "  * `PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`",
                 "  * `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
                 "  * `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
@@ -423,7 +467,25 @@ def build_fixture_tree(root: Path) -> None:
         ),
     )
     write_text(root / REVERSIBLE_NOTE, "# reversible handoff\n")
-    write_text(root / ARTIFACT_DIFF_NOTE, "# artifact diff\n")
+    write_text(root / ARTIFACT_DIFF_NOTE, "# artifact diff note\n")
+    write_text(root / ARTIFACT_DIFF_HELPER, "# artifact diff helper\n")
+    write_text(root / ARTIFACT_DIFF_CONTRACT, "# artifact diff contract\n")
+    write_text(root / ARTIFACT_DIFF_DETERMINISM, "# artifact diff determinism\n")
+    write_text(root / VALIDATOR, "# phase4 validator\n")
+    write_text(root / PHASE4_BUILD, "// phase4 build\n")
+    write_text(root / ATOMIC64_MANIFEST, "{}\n")
+    write_text(root / ATOMIC64_SURVEY, "// atomic64 survey\n")
+    write_text(root / BITMAP_MANIFEST, "{}\n")
+    write_text(root / BITMAP_SURVEY, "// bitmap survey\n")
+    write_text(root / BITMAP_HELPER_REPLAY, "// bitmap helper replay\n")
+    write_text(root / PERF_MANIFEST, "{}\n")
+    write_text(root / PERF_SURVEY, "// perf survey\n")
+    write_text(root / KPROBE_NOTE, "# kprobe gap note\n")
+    write_text(root / KPROBE_MANIFEST, "{}\n")
+    write_text(root / KPROBE_SURVEY, "// kprobe survey\n")
+    write_text(root / TEST_FSMOUNT_NOTE, "# test_fsmount gap note\n")
+    write_text(root / TEST_FSMOUNT_MANIFEST, "{}\n")
+    write_text(root / TEST_FSMOUNT_SURVEY, "// test_fsmount survey\n")
     write_text(root / SELF, "# self placeholder\n")
 
 
@@ -455,12 +517,12 @@ def run_self_test() -> None:
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "ac515e3ed47c771b0947fde4200a90b9a1952c99", "dddddddddddddddddddddddddddddddddddddddd")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "4b22006c7278280203a23e6ec568cf8f47b62c7e", "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "107d5d300f43fb5c9b0c7f9439601af3507a59ff", "ffffffffffffffffffffffffffffffffffffffff")))
-        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33`")))
+        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42`", "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=41`")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), ",".join(SELF_TEST_CASES), ",".join(SELF_TEST_CASES[:-1]))))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=false`")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`", "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=false`")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=19`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_TARGET_COUNT=18`")))
-        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=34`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=33`")))
+        expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42`", "`PHASE4_SHARED_VALIDATOR_EXPECTED_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=41`")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=true`", "`PHASE4_RUNTIME_ATOMIC64_SURVEY_PACKET_PRESENT=false`")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "zigux/tests/phase4_runtime_atomic64_diff_manifest.json", "zigux/tests/runtime_atomic64_diff_manifest.json")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "zigux/tests/phase4_runtime_atomic64_diff_survey.zig", "zigux/tests/runtime_atomic64_diff_survey.zig")))
@@ -479,6 +541,14 @@ def run_self_test() -> None:
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "test_fsmount validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`", "test_fsmount validation entrypoint: `zig test zigux/tests/phase4_test_fsmount_survey.zig`")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "test_fsmount dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`", "test_fsmount dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount`")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "### `samples/zigux/test_fsmount.zig`", "### `samples/zigux/fsmount.zig`")))
+        expect_failure(lambda r: (r / VALIDATOR).unlink())
+        expect_failure(lambda r: (r / PHASE4_BUILD).unlink())
+        expect_failure(lambda r: (r / ARTIFACT_DIFF_HELPER).unlink())
+        expect_failure(lambda r: (r / ATOMIC64_MANIFEST).unlink())
+        expect_failure(lambda r: (r / BITMAP_SURVEY).unlink())
+        expect_failure(lambda r: (r / PERF_SURVEY).unlink())
+        expect_failure(lambda r: (r / KPROBE_MANIFEST).unlink())
+        expect_failure(lambda r: (r / TEST_FSMOUNT_SURVEY).unlink())
 
         if cases != EXPECTED_SELF_TEST_CASE_COUNT:
             raise AssertionError(f"expected {EXPECTED_SELF_TEST_CASE_COUNT} self-test cases, saw {cases}")
