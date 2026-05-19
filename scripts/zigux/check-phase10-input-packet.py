@@ -78,7 +78,7 @@ MODULE_MARKERS = [
 SURVEY_NOTE_MARKERS = [
     "# Phase 10 Virtio Input Survey",
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L13",
+    "PHASE10_LANE_KEY=P10-L22",
     "PHASE10_SURVEYED_COMMIT=",
     "PHASE10_DUAL_IMPLEMENTATION_POSTURE=blocked_on_risky_transport",
     "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
@@ -96,7 +96,7 @@ SURVEY_NOTE_MARKERS = [
 ]
 
 MANIFEST_MARKERS = [
-    '"lane_key": "P10-L13"',
+    '"lane_key": "P10-L22"',
     '"surveyed_commit": "',
     '"roadmap_destinations": [',
     '"drivers/virtio/*.zig"',
@@ -213,7 +213,7 @@ SURVEY_GATE_MARKERS = [
     'test "phase10 virtio input manifest keeps the restored replay ids and blocked lifecycle posture explicit" {',
     'test "phase10 virtio input slice companions keep the replay inventory and blocked lifecycle boundary explicit" {',
     "PHASE10_STATUS=parked",
-    "PHASE10_LANE_KEY=P10-L13",
+    "PHASE10_LANE_KEY=P10-L22",
     "roadmap destinations: `drivers/virtio/*.zig`, `zigux/kernel/`, and `zigux/helpers/`",
     "drivers/virtio/virtio_input_verify.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
@@ -465,7 +465,7 @@ def validate(root: Path) -> tuple[list[str], list[str]]:
 def write_fixture(root: Path) -> None:
     manifest_commit = "ee789f026f11a0c5c70ded9a868979cdf4f55393"
     input_manifest = {
-        "lane_key": "P10-L13",
+        "lane_key": "P10-L22",
         "surveyed_commit": manifest_commit,
         "roadmap_destinations": ["drivers/virtio/*.zig", "zigux/kernel/", "zigux/helpers/"],
         "risky_transport_posture": "blocked_on_risky_transport",
@@ -484,7 +484,7 @@ def write_fixture(root: Path) -> None:
         ],
     }
     closure_manifest = {
-        "survey_provenance": {"lane_keys": {"input": "P10-L13"}, "surveyed_commits": {"input": manifest_commit}},
+        "survey_provenance": {"lane_keys": {"input": "P10-L22"}, "surveyed_commits": {"input": manifest_commit}},
         "ready_transport_followups": {CLOSURE_INPUT_MANIFEST_PATH: CLOSURE_READY_FOLLOWUP},
         "landed_input_helper_evidence": {CLOSURE_INPUT_MANIFEST_PATH: list(CLOSURE_INPUT_HELPER_IDS)},
         "focused_harness_replays": {path: [f"{Path(path).stem} replay"] for path in CLOSURE_INPUT_REPLAY_FILES},
