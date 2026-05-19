@@ -10,6 +10,7 @@
 #define ZIGUX_UAPI_ABI_MINOR 1u
 #define ZIGUX_UAPI_HEADER_FAMILY_REVISION 1u
 #define ZIGUX_UAPI_DEV_T_PACKET_PRESENT 1u
+#define ZIGUX_UAPI_INVALID_ARGUMENT (-22)
 
 struct zigux_uapi_version {
     uint32_t abi_major;
@@ -42,6 +43,16 @@ static inline int zigux_uapi_version_matches_current(struct zigux_uapi_version v
     return zigux_uapi_version_has_current_abi_major(version.abi_major) &&
         zigux_uapi_version_has_current_abi_minor(version.abi_minor) &&
         zigux_uapi_version_has_current_header_family_revision(version.header_family_revision);
+}
+
+static inline struct zigux_export_status zigux_uapi_validate_version(
+    struct zigux_uapi_version version)
+{
+    if (zigux_uapi_version_matches_current(version))
+        return zigux_ok_status((uint16_t)ZIGUX_FACILITY_KERNEL);
+    return zigux_make_status(
+        (int32_t)ZIGUX_UAPI_INVALID_ARGUMENT,
+        (uint16_t)ZIGUX_FACILITY_KERNEL);
 }
 
 static inline zigux_boundary_header zigux_uapi_boundary_header_current(uint16_t flags)
@@ -156,6 +167,23 @@ static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fie
         fields.minor <= ZIGUX_DEV_MINOR_MASK;
 }
 
+static inline struct zigux_export_status zigux_uapi_validate_dev_t_fields(
+    struct zigux_dev_t_fields fields)
+{
+    if (zigux_uapi_dev_t_fields_is_valid(fields))
+        return zigux_ok_status((uint16_t)ZIGUX_FACILITY_KERNEL);
+    return zigux_make_status(
+        (int32_t)ZIGUX_UAPI_INVALID_ARGUMENT,
+        (uint16_t)ZIGUX_FACILITY_KERNEL);
+}
+
+static inline struct zigux_export_status zigux_uapi_validate_dev_t_components(
+    uint32_t major,
+    uint32_t minor)
+{
+    return zigux_uapi_validate_dev_t_fields(zigux_dev_t_fields_make(major, minor));
+}
+
 static inline int zigux_uapi_dev_t_fields_range_is_valid(
     struct zigux_dev_t_fields start,
     struct zigux_dev_t_fields end
@@ -166,6 +194,17 @@ static inline int zigux_uapi_dev_t_fields_range_is_valid(
         return 0;
     return start.major < end.major ||
         (start.major == end.major && start.minor <= end.minor);
+}
+
+static inline struct zigux_export_status zigux_uapi_validate_dev_t_range(
+    struct zigux_dev_t_fields start,
+    struct zigux_dev_t_fields end)
+{
+    if (zigux_uapi_dev_t_fields_range_is_valid(start, end))
+        return zigux_ok_status((uint16_t)ZIGUX_FACILITY_KERNEL);
+    return zigux_make_status(
+        (int32_t)ZIGUX_UAPI_INVALID_ARGUMENT,
+        (uint16_t)ZIGUX_FACILITY_KERNEL);
 }
 
 #endif
