@@ -24,6 +24,7 @@ coupled continuity remains parked under `P11-L16`.
   - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
   - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
   - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+  - `scripts/zigux/check-phase11-build-inventory.py`
   - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
   - `zigux/tests/fixtures/phase11_build_inventory.json`
   - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
@@ -60,6 +61,7 @@ current-head packet below:
 - `Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md`
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 - `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `scripts/zigux/check-phase11-build-inventory.py`
 - `scripts/zigux/check-phase11-hvc-cleanup-current-head.py`
 - `zigux/tests/fixtures/phase11_build_inventory.json`
 - `zigux/tests/phase11_hvc_export_surface_layout_proof.zig`
@@ -69,9 +71,10 @@ current-head packet below:
 - `zigux/tests/phase11_hvc_cleanup_packet_proof.zig`
 - `zigux/tests/phase11_hvc_cleanup_packet_build.zig`
 
-The shared build inventory still records three proof-backed build tests and no
-dedicated survey replay entries, which matches that narrower current-head
-packet rather than the older starter-depth packet.
+The shared build-inventory checker plus shared build inventory still record
+three proof-backed build tests and no dedicated survey replay entries, which
+matches that narrower current-head packet rather than the older starter-depth
+packet.
 
 ## Still-Bounded Gaps
 
@@ -90,8 +93,9 @@ execution, live sysrq dispatch, and host-backed teardown parity.
 
 The archival lane recorded a broader HVC starter-depth packet.
 Current authenticated contents reads now keep only the direct starter plus the
-smaller companion, boundary-note, matrix, checker, inventory, and proof-backed
-adjunct stack directly reviewable on `master`.
+smaller companion, boundary-note, matrix, build-inventory checker,
+cleanup-current-head checker, inventory, and proof-backed adjunct stack
+explicitly reviewable on `master`.
 
 This survey therefore keeps the current-head packet honest without reviving the
 older manifest, teardown-note, survey-checker, helper, or replay anchors as if
@@ -101,7 +105,8 @@ they had all returned.
 
 This note records that the HVC simple-driver lane still has reviewable
 current-head continuity through the direct starter, the companion reminder
-stack, and the proof-backed adjunct replays listed above.
+stack, the build-inventory checker, and the proof-backed adjunct replays listed
+above.
 
 It does not claim live tty-driver registration, notifier callback execution,
 khvcd polling execution, live sysrq dispatch, host-backed cleanup, or
