@@ -18,6 +18,7 @@ DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
+SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
@@ -34,6 +35,7 @@ REQUIRED_FILES = (
     REVIEW_CHECKLIST_REL,
     SCRIPTS_README_REL,
     BENCH_CHECKER_REL,
+    SHARED_REMINDER_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
@@ -320,7 +322,7 @@ EXPECTED_RBTREE_REVIEW_FIELDS = {
     "next_safe_step_note": (
         "If this helper lane reopens, keep the already-landed shared-replay promotion for "
         "`cached_leftmost_return_serials` aligned across the committed fixture, shared replay, "
-        "and direct cached-root anchors; until another committed cached-root replay field lands, "
+        "and direct cached-root anchors; until another committed cached-root field lands, "
         "insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, "
         "and reseed behavior stay owned by direct helper-local anchors."
     ),
@@ -408,8 +410,8 @@ EXPECTED_STRING_PACKET = {
         "helper-local prefix and suffix boundary anchors stay explicit through the direct string "
         "tests because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity "
         "rather than dedicated prefix or suffix fixture fields, so strHasPrefix and str_has_prefix "
-        "plus strHasSuffix and str_has_suffix plus strstarts plus strEndsWith and str_ends_with "
-        "plus strends remain review-visible at the helper surface"
+        "plus strHasSuffix and str_has_suffix plus strstarts plus strEndsWith and str_ends_with plus strends remain review-visible at "
+        "the helper surface"
     ),
     "sysfs_review_anchors": [
         'test "sysfsStreq treats trailing newline and NUL as equivalent"',
@@ -526,7 +528,8 @@ EXPECTED_MARKERS = {
         "Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,"
         "Documentation/zigux/review-checklist.md,scripts/zigux/README.md,"
         "scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,"
-        "scripts/zigux/check-phase1-bench.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,"
+        "scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,"
+        "scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,"
         "zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`"
     ),
     "gap_packet": (
@@ -956,6 +959,10 @@ def run_self_test() -> int:
                 root / PHASE1_CLOSURE_REL,
                 load_text(root, PHASE1_CLOSURE_REL) + "`PHASE1_CLOSURE_VALIDATOR_STATE=missing_current_master`\n",
             ),
+        ),
+        (
+            "missing_shared_reminder_checker_file",
+            lambda root: (root / SHARED_REMINDER_CHECKER_REL).unlink(),
         ),
     ]
 
