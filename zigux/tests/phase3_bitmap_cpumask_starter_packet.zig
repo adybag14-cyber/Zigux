@@ -319,6 +319,32 @@ test "cpumask starter helpers keep bitmap projection parity explicit on bounded 
     try testing.expectEqual(cpumask_summary.reserved, bitmap_summary.reserved);
 }
 
+test "cpumask starter helpers keep all-clear bitmap projection distinct from the empty sentinel" {
+    var backing = [_]usize{0};
+    const view = cpumask_view.viewFromWords(backing[0..], 16);
+    const projected = binding.asBitmap(view);
+    const cpumask_summary = cpumask_view.summarize(view);
+    const bitmap_summary = bitmap_view.summarize(projected);
+
+    try testing.expect(cpumask_view.isValid(view));
+    try testing.expect(bitmap_view.isValid(projected));
+    try testing.expectEqual(view.words_addr, projected.words_addr);
+    try testing.expectEqual(view.nbits, projected.nbits);
+    try testing.expectEqual(view.word_count, projected.word_count);
+    try testing.expect(!cpumask_view.cpuIsSet(view, 0));
+    try testing.expect(!bitmap_view.testBit(projected, 0));
+    try testing.expectEqual(@as(u32, 16), cpumask_view.firstCpu(view));
+    try testing.expectEqual(@as(u32, 16), bitmap_view.firstSet(projected));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.firstAbsentCpu(view));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.firstZero(projected));
+    try testing.expectEqual(@as(u32, 0), cpumask_view.weight(view));
+    try testing.expectEqual(@as(u32, 0), bitmap_view.weight(projected));
+    try testing.expectEqual(cpumask_summary.first_set, bitmap_summary.first_set);
+    try testing.expectEqual(cpumask_summary.first_zero, bitmap_summary.first_zero);
+    try testing.expectEqual(cpumask_summary.weight, bitmap_summary.weight);
+    try testing.expectEqual(cpumask_summary.reserved, bitmap_summary.reserved);
+}
+
 test "cpumask starter helpers keep a full bounded mask from leaking tail zeros" {
     var backing = [_]usize{
         ~@as(usize, 0),
