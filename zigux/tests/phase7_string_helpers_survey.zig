@@ -43,6 +43,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "stringEscapeMemAnyNp()");
     try expectContains(slice_note, "stringEscapeStr()");
     try expectContains(slice_note, "string_escape_str()");
+    try expectContains(slice_note, "stringEscapeStrAnyNp()");
     try expectContains(slice_note, "string_escape_str_any_np()");
     try expectContains(slice_note, "kasprintfStrarray()");
     try expectContains(slice_note, "kfreeStrarray()");
@@ -50,6 +51,10 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "kstrdup_quotable_cmdline()");
     try expectContains(slice_note, "parseIntArray()");
     try expectContains(slice_note, "parse_int_array()");
+    try expectContains(slice_note, "stringUpper()");
+    try expectContains(slice_note, "string_upper()");
+    try expectContains(slice_note, "stringLower()");
+    try expectContains(slice_note, "string_lower()");
     try expectContains(slice_note, "memcpy_and_pad()");
     try expectContains(slice_note, "leading whitespace skipping that stops at the first NUL");
     try expectContains(slice_note, "newline-aware sysfs equality");
@@ -57,10 +62,12 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(slice_note, "bounded string escaping across space, special, null, octal, hex, append-limited dictionary mode, and string-wrapper mode");
     try expectContains(slice_note, "bounded sequential string-array allocation with a NULL-terminated pointer view, C-string prefix handling, zero-length sentinel reuse, and caller-driven teardown");
     try expectContains(slice_note, "bounded parse-int-array decoding for comma-separated lists, positive ranges, first-NUL and explicit-count limits, trailing-invalid-token stop behavior, and clean allocation-failure replay");
+    try expectContains(slice_note, "uppercase and lowercase copying that stops at the exported C-string boundary and truncates to caller-owned destination storage");
     try expectContains(slice_note, "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit");
     try expectContains(slice_note, "reject overflow before sizing the NULL-terminated pointer view");
     try expectContains(slice_note, "quoted file-path duplication that keeps an explicit `<unknown>` fallback for missing inputs while still escaping special characters through the same quotable path");
     try expectContains(slice_note, "quoted cmdline duplication that collapses trailing NULs, replaces inter-argument NULs with spaces, and then reuses the quotable escape path inside caller-owned output");
+    try expectContains(slice_note, "`stringUpper()`, `string_upper()`, `stringLower()`, and `string_lower()` keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary");
     try expectContains(slice_note, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet");
     try expectContainsCount(slice_note, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet", 1);
     try expectContains(slice_note, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
@@ -100,12 +107,17 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "\"kstrdup_quotable_cmdline\"");
     try expectContains(manifest, "\"parseIntArray\"");
     try expectContains(manifest, "\"parse_int_array\"");
+    try expectContains(manifest, "\"stringUpper\"");
+    try expectContains(manifest, "\"string_upper\"");
+    try expectContains(manifest, "\"stringLower\"");
+    try expectContains(manifest, "\"string_lower\"");
     try expectContains(manifest, "\"memcpyAndPad\"");
     try expectContains(manifest, "\"memcpy_and_pad\"");
     try expectContains(manifest, "\"strreplace\"");
     try expectContains(manifest, "newline-aware sysfs string equality");
     try expectContains(manifest, "null-sentinel table matching through the first NULL entry");
     try expectContains(manifest, "bounded sequential string-array allocation with NULL-terminated pointer views");
+    try expectContains(manifest, "bounded uppercase and lowercase copies through the exported C-string boundary");
     try expectContains(manifest, "\"ownership_focus\": [");
     try expectContains(manifest, "exact-fit, terminator-only, and zero-capacity unescape destinations keep caller-owned output bounds explicit");
     try expectContains(manifest, "stringEscapeMem() keeps append-limited and dictionary-mode output accounting inside caller-owned storage");
@@ -118,6 +130,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(manifest, "parseIntArray() and parse_int_array() keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set");
     try expectContains(manifest, "bounded parse-int-array empty-input NoEntry and allocator-failure replays that keep the helper fail-closed before any caller-owned result packet can escape");
     try expectContains(manifest, "parseIntArray() and parse_int_array() keep empty-input `error.NoEntry` and allocator-failure handling explicit so callers never inherit partial ownership when no decoded result packet can be returned");
+    try expectContains(manifest, "stringUpper(), string_upper(), stringLower(), string_lower() keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary");
     try expectContains(manifest, "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test");
     try expectContains(manifest, "shared no-sample boundary and helper-local reviewability");
     try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
@@ -191,6 +204,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     try expectContains(helper_tests, "phase 7 string helpers starter reports overflow before sizing the null-terminated string-array view");
     try expectContains(helper_tests, "phase 7 string helpers starter reports empty parse-int-array input as no entry");
     try expectContains(helper_tests, "phase 7 string helpers starter reports parse-int-array allocation failure cleanly");
+    try expectContains(helper_tests, "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary");
     try expectContains(helper_tests, "phase 7 string helpers starter reports duplicate-and-replace allocation failure cleanly");
     try expectContains(helper_tests, "phase 7 string helpers starter quotes already-materialized file paths and keeps the missing-file fallback explicit");
     try expectNotContains(helper_tests, "devmKasprintfStrarray");
