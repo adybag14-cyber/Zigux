@@ -13,50 +13,55 @@ TARGET_RELATIVE_PATH = pathlib.Path("zigux/tests/README.md")
 DIRECT_READBACK_PACKET = [
     "Documentation/zigux/phase4-reversible-delivery-evidence.md",
     "Documentation/zigux/review-checklist.md",
-    "zigux/tests/README.md",
     "scripts/zigux/check-phase4-repo-reality-warning.py",
     "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "zigux/tests/phase4_perf_baseline_manifest.json",
+    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zigux/tests/README.md",
 ]
 
-MISSING_BROADER_PACKET = [
+RECOVERED_BROADER_PACKET = [
     "Documentation/zigux/phase4-gate-evidence.md",
     "Documentation/zigux/phase4-validation-matrix.md",
     "scripts/zigux/check-phase4-gate-evidence.py",
-    "scripts/zigux/check-phase4-perf-baseline-packet.py",
+    "scripts/zigux/check-phase4-remaining-gap-matrix.py",
+]
+
+SPLIT_READBACK_COMPANIONS = [
     "scripts/zigux/validate-phase4.py",
     "zigux/tests/phase4_build.zig",
-    "zigux/tests/phase4_perf_baseline_manifest.json",
-    "zigux/tests/phase4_perf_baseline_survey.zig",
+    "zigux/tests/bitmap_diff.zig",
+    "zigux/tests/phase4_bitmap_live_helper_replay.zig",
+    "zigux/tests/atomic64_diff.zig",
+    "zigux/tests/runtime_atomic64_diff.zig",
 ]
 
 REQUIRED_TEXT_MARKERS = [
-    "roadmap-backed Phase 4 differential-gate destinations still missing on current `master`",
-    "current direct-readback Phase 4 rollback packet",
-    "repo-reality warning for the broader Phase 4 validator, lab-matrix, and local-only perf packet",
-    "historical provenance for that missing broader packet",
+    "Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.",
+    "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
+    "Current `master` keeps the shared Phase 4 rollback packet split rather than absent: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still do not materialize through authenticated contents reads in this runtime, while `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` are directly readable roadmap-backed differential-gate evidence again.",
+    "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
+    "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
     "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
-    "historical Phase 4 route names such as the parked kprobe and `test_fsmount` survey companions, the validator-first routes, and the direct local-only perf routes stay owned by the reversible-delivery handoff note until the dedicated exact-pin refresh or a broader republish makes those companion blob values directly readable again",
 ]
 
 REQUIRED_MARKERS = (
     REQUIRED_TEXT_MARKERS
     + DIRECT_READBACK_PACKET
-    + MISSING_BROADER_PACKET
-    + [
-        "zigux/tests/atomic64_diff.zig",
-        "zigux/tests/runtime_atomic64_diff.zig",
-    ]
+    + RECOVERED_BROADER_PACKET
+    + SPLIT_READBACK_COMPANIONS
 )
 
 SELF_TEST_CASE_NAMES = [
     "baseline_round_trip",
-    "missing_atomic64_gap_summary",
     "missing_direct_readback_summary",
-    "missing_repo_reality_warning_checker",
-    "missing_validate_phase4_gap",
-    "missing_phase4_build_gap",
-    "missing_broader_gap_summary",
+    "missing_recovered_packet_summary",
+    "missing_split_readback_summary",
+    "missing_local_perf_checker",
+    "missing_local_perf_companions",
     "missing_owner_handoff",
+    "missing_atomic64_current_head_evidence",
 ]
 
 
@@ -112,7 +117,8 @@ def run_check(args: argparse.Namespace) -> int:
     print("PHASE4_TESTS_README_PACKET_CHECK=pass")
     print(f"checked_file={path}")
     print(f"phase4_direct_readback_marker_count={len(DIRECT_READBACK_PACKET)}")
-    print(f"phase4_missing_broader_marker_count={len(MISSING_BROADER_PACKET)}")
+    print(f"phase4_recovered_broader_marker_count={len(RECOVERED_BROADER_PACKET)}")
+    print(f"phase4_split_readback_marker_count={len(SPLIT_READBACK_COMPANIONS)}")
     return 0
 
 
@@ -128,11 +134,11 @@ def run_self_test() -> int:
     case_markers = [
         REQUIRED_TEXT_MARKERS[0],
         REQUIRED_TEXT_MARKERS[1],
-        DIRECT_READBACK_PACKET[3],
-        MISSING_BROADER_PACKET[4],
-        MISSING_BROADER_PACKET[5],
         REQUIRED_TEXT_MARKERS[2],
+        REQUIRED_TEXT_MARKERS[3],
         REQUIRED_TEXT_MARKERS[4],
+        REQUIRED_TEXT_MARKERS[5],
+        "zigux/tests/atomic64_diff.zig",
     ]
     cases = [("baseline_round_trip", baseline, [])]
     for name, marker in zip(SELF_TEST_CASE_NAMES[1:], case_markers, strict=True):
