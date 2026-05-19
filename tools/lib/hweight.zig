@@ -55,6 +55,82 @@ test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweightLong(0xf0f0));
 }
 
+test "software hweight helpers keep low-width limits and full-width boundaries" {
+    try std.testing.expectEqual(@as(u32, 0), swHweight8(0x100));
+    try std.testing.expectEqual(@as(u32, 8), swHweight8(0x1ff));
+    try std.testing.expectEqual(@as(u32, 0), swHweight16(0x1_0000));
+    try std.testing.expectEqual(@as(u32, 16), swHweight16(0x1_ffff));
+    try std.testing.expectEqual(@as(u32, 0), swHweight32(0));
+    try std.testing.expectEqual(@as(u32, 32), swHweight32(0xffff_ffff));
+    try std.testing.expectEqual(@as(u64, 0), swHweight64(0));
+    try std.testing.expectEqual(@as(u64, 64), swHweight64(0xffff_ffff_ffff_ffff));
+    try std.testing.expectEqual(@as(usize, @popCount(@as(usize, 0x1_0000))), hweightLong(0x1_0000));
+    try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweightLong(std.math.maxInt(usize)));
+}
+
+test "software hweight helpers truncate sparse overflow bits to helper width" {
+    try std.testing.expectEqual(@as(u32, @popCount(@as(u8, 0xa5))), swHweight8(0x1a5));
+    try std.testing.expectEqual(@as(u32, @popCount(@as(u16, 0x9345))), swHweight16(0x2_9345));
+    try std.testing.expectEqual(@as(u32, @popCount(@as(u32, 0x8000_0001))), swHweight32(0x8000_0001));
+    try std.testing.expectEqual(@as(u64, @popCount(@as(u64, 0x8000_0000_0000_0001))), swHweight64(0x8000_0000_0000_0001));
+
+    const long_value: usize = if (@sizeOf(usize) == 4) 0x8000_0001 else 0x8000_0000_0000_0001;
+    try std.testing.expectEqual(@as(usize, @popCount(long_value)), hweightLong(long_value));
+}
+
+test "software hweight helpers compose across smaller helper widths" {
+    var byte: u16 = 0;
+    while (byte < 256) : (byte += 1) {
+        const value: u8 = @intCast(byte);
+        try std.testing.expectEqual(@as(u32, @popCount(value)), swHweight8(value));
+    }
+
+    const cases16 = [_]u32{ 0x0000, 0x00ff, 0xa5c3, 0xffff };
+    for (cases16) |value| {
+        const low = swHweight8(value & 0x00ff);
+        const high = swHweight8((value >> 8) & 0x00ff);
+        try std.testing.expectEqual(low + high, swHweight16(value));
+    }
+
+    const cases32 = [_]u32{ 0x0000_0000, 0x0000_ffff, 0x89ab_cdef, 0xffff_ffff };
+    for (cases32) |value| {
+        const low = swHweight16(value & 0x0000_ffff);
+        const high = swHweight16(value >> 16);
+        try std.testing.expectEqual(low + high, swHweight32(value));
+    }
+
+    const cases64 = [_]u64{ 0x0000_0000_0000_0000, 0x0000_0000_ffff_ffff, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (cases64) |value| {
+        const low = swHweight32(@intCast(value & 0xffff_ffff));
+        const high = swHweight32(@intCast(value >> 32));
+        try std.testing.expectEqual(low + high, swHweight64(value));
+    }
+
+    const cases_long = if (@sizeOf(usize) == 4)
+        [_]usize{ 0x0000_0000, 0x89ab_cdef, 0xffff_ffff }
+    else
+        [_]usize{ 0x0000_0000_0000_0000, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (cases_long) |value| {
+        const expected: usize = if (@sizeOf(usize) == 4)
+            @intCast(swHweight32(@intCast(value)))
+        else
+            @intCast(swHweight64(@intCast(value)));
+        try std.testing.expectEqual(expected, hweightLong(value));
+    }
+}
+
+test "Linux-style hweight aliases preserve helper-width boundaries" {
+    try std.testing.expectEqual(@as(u32, 0), __sw_hweight8(0x100));
+    try std.testing.expectEqual(@as(u32, 8), __sw_hweight8(0x1ff));
+    try std.testing.expectEqual(@as(u32, 0), __sw_hweight16(0x1_0000));
+    try std.testing.expectEqual(@as(u32, 16), __sw_hweight16(0x1_ffff));
+    try std.testing.expectEqual(@as(u32, 32), __sw_hweight32(0xffff_ffff));
+    try std.testing.expectEqual(@as(u64, 64), __sw_hweight64(0xffff_ffff_ffff_ffff));
+
+    const long_value: usize = if (@sizeOf(usize) == 4) 0x8000_0001 else 0x8000_0000_0000_0001;
+    try std.testing.expectEqual(@as(usize, @popCount(long_value)), hweight_long(long_value));
+}
+
 test "Linux-style hweight aliases mirror the primary helper surface" {
     try std.testing.expectEqual(swHweight8(0xf0), __sw_hweight8(0xf0));
     try std.testing.expectEqual(swHweight16(0xf0f0), __sw_hweight16(0xf0f0));
