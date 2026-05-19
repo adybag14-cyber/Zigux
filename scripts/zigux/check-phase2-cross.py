@@ -67,7 +67,7 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 25
+EXPECTED_SELF_TEST_CASE_COUNT = 30
 
 
 def read_text(path: Path) -> str:
@@ -122,6 +122,8 @@ def load_archive_target_scope(root: Path) -> list[str]:
         if not isinstance(value, str) or not value.strip():
             raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
         target = value.strip()
+        if target != value:
+            raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
         if target in seen:
             raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}: {target}")
         seen.add(target)
@@ -143,6 +145,8 @@ def load_archive_sha256_targets(root: Path) -> list[str]:
         if not isinstance(value, str) or not value.strip():
             raise SystemExit(f"invalid archive_sha256 value in required file: {policy_path}: {key}")
         target = key.strip()
+        if target != key:
+            raise SystemExit(f"invalid archive_sha256 key in required file: {policy_path}")
         if target in seen:
             raise SystemExit(f"duplicate archive_sha256 key in required file: {policy_path}: {target}")
         seen.add(target)
@@ -162,6 +166,9 @@ def normalize_fixture_archive_scope(fixture_scope: object) -> tuple[list[str] | 
             issues.append(("INVALID_FIXTURE_ARCHIVE_SCOPE_ENTRY", f"index={index}"))
             continue
         target = value.strip()
+        if target != value:
+            issues.append(("INVALID_FIXTURE_ARCHIVE_SCOPE_ENTRY", f"index={index}"))
+            continue
         if target in seen:
             issues.append(("DUPLICATE_FIXTURE_ARCHIVE_SCOPE", target))
             continue
@@ -230,7 +237,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"index={index}"))
             continue
         raw_target = entry.get("target")
-        entry_label = raw_target.strip() if isinstance(raw_target, str) and raw_target.strip() else f"index={index}"
+        entry_label = (
+            raw_target
+            if isinstance(raw_target, str) and raw_target.strip() and raw_target == raw_target.strip()
+            else f"index={index}"
+        )
         for field in sorted(set(entry) - EXPECTED_CROSS_TARGET_FIELDS):
             issues.append(("UNEXPECTED_CROSS_TARGET_FIELD", f"{entry_label}:{field}"))
 
@@ -239,10 +250,9 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         validation_mode = entry.get("validation_mode")
         route = entry.get("route")
 
-        if not isinstance(target, str) or not target.strip():
+        if not isinstance(target, str) or not target.strip() or target != target.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"index={index}:target"))
             continue
-        target = target.strip()
         if target in seen_targets:
             issues.append(("DUPLICATE_CROSS_TARGET", target))
         seen_targets.add(target)
@@ -257,8 +267,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
         if not isinstance(review_status, str) or not review_status.strip():
             issues.append(("INVALID_CROSS_TARGET_ENTRY", f"{target}:review_status"))
-        elif expected_entry is not None and review_status.strip() != expected_entry["review_status"]:
-            issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", f"{target}:{review_status.strip()}"))
+        elif review_status != review_status.strip() or (
+            expected_entry is not None and review_status != expected_entry["review_status"]
+        ):
+            issues.append(("INVALID_CROSS_TARGET_REVIEW_STATUS", f"{target}:{review_status}"))
 
         if validation_mode not in ALLOWED_VALIDATION_MODES:
             issues.append(("INVALID_CROSS_TARGET_MODE", target))
@@ -395,6 +407,19 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, TOOLCHAIN_POLICY)
         payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = [" x86_64-linux"]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_target_scope" in str(exc)
+        else:
+            raise AssertionError("whitespace policy archive_target_scope did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
         payload["archive_sha256"]["aarch64-linux"] = "4" * 64
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("ARCHIVE_HASH_SCOPE_MISMATCH", "aarch64-linux,x86_64-linux") in collect_issues(root)
@@ -407,6 +432,19 @@ def run_self_test() -> int:
         payload["archive_sha256"]["aarch64-linux"] = "4" * 64
         path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert ("ARCHIVE_HASH_SCOPE_MISMATCH", "aarch64-linux") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["archive_sha256"] = {" x86_64-linux": "3" * 64}
+        try:
+            path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_sha256 key" in str(exc)
+        else:
+            raise AssertionError("whitespace archive_sha256 key did not abort")
         checks_run += 1
 
         build_self_test_root(root)
@@ -460,6 +498,14 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["archive_target_scope"] = [" x86_64-linux"]
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_FIXTURE_ARCHIVE_SCOPE_ENTRY", "index=0") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["archive_target_scope"] = ["aarch64-linux"]
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("ARCHIVE_SCOPE_MISMATCH", "x86_64-linux") in collect_issues(root)
@@ -486,9 +532,28 @@ def run_self_test() -> int:
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
         fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["review_status"] = "route contract only "
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert (
+            "INVALID_CROSS_TARGET_REVIEW_STATUS",
+            "aarch64-linux:route contract only ",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
         fixture["cross_targets"][1]["unexpected"] = True
         path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
         assert ("UNEXPECTED_CROSS_TARGET_FIELD", "aarch64-linux:unexpected") in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"][1]["target"] = " aarch64-linux"
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("INVALID_CROSS_TARGET_ENTRY", "index=1:target") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
