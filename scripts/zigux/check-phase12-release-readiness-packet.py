@@ -74,6 +74,7 @@ REQUIRED_MARKERS = {
         "still agree that current `zigux/Makefile` ships `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while `make -C zigux phase12-validate` remains reminder-only vocabulary",
         "keep the repo-local `.zig-toolchain` fallback before the attached-Zig degraded rerun order explicit",
         "keep `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` explicit beside the smoke-first and rollback-lab `virtio_scsi` packet",
+        "keep the bounded release packet below DMA, queue-restart, throughput, or deeper transport claims until fresh current-`master` proof lands?",
     ],
     RELEASE_READINESS_SURVEY_PATH: [
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
