@@ -30,6 +30,7 @@ SHARED_TESTS_BUILD_FILE = Path("zigux/tests/build.zig")
 SHARED_VALIDATOR_FILE = Path("scripts/zigux/validate-phase3.py")
 CATALOG_TOOL_FILE = Path("scripts/zigux/phase3_catalog.py")
 CATALOG_SELFTEST_CHECK_FILE = Path("scripts/zigux/check-phase3-catalog-selftest.py")
+GENERATED_WRAPPER_FILE = Path("scripts/zigux/generate-phase3-check-wrappers.py")
 FIXTURE_MANIFEST_FILE = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
 
 RUNNER_MARKER = "scripts/zigux/run-phase3-checks.py"
@@ -65,14 +66,6 @@ XARRAY_SLOT_STARTER_MARKER = "zigux/tests/phase3_xarray_slot_starter_packet.zig"
 SHARED_TESTS_BUILD_MARKER = "zigux/tests/build.zig"
 XARRAY_SLOT_BUILD_ROUTE_MARKER = (
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig"
-)
-README_GAP_SUMMARY_MARKER = (
-    "so treat that wrapper-generation route as the current repo-reality gap until fresh "
-    "current-tree proof lands, while `scripts/zigux/check-phase3-catalog-selftest.py` now "
-    "stays explicit as the dedicated returned catalog-selftest guard, "
-    "`scripts/zigux/validate-phase3.py` stays framed as the separately readable shared "
-    "validator entrypoint, and `zigux/tests/fixtures/phase3_abi_manifest.json` stays explicit "
-    "as the manifest-backed inventory companion"
 )
 HEADER_FAMILY_VALIDATOR_GAP_MARKER = (
     "scripts/zigux/validate-phase3-abi-header-family-survey.py"
@@ -111,6 +104,7 @@ REQUIRED_FILES = (
     SHARED_VALIDATOR_FILE,
     CATALOG_TOOL_FILE,
     CATALOG_SELFTEST_CHECK_FILE,
+    GENERATED_WRAPPER_FILE,
     FIXTURE_MANIFEST_FILE,
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
@@ -210,7 +204,6 @@ REQUIRED_MARKERS = (
     WRAPPER_GENERATION_GAP_MARKER,
     SHARED_VALIDATOR_MARKER,
     FIXTURE_MANIFEST_MARKER,
-    README_GAP_SUMMARY_MARKER,
     HEADER_FAMILY_VALIDATOR_GAP_MARKER,
     HEADER_FAMILY_NOTE_GAP_MARKER,
     HEADER_FAMILY_NEXT_STEP_GAP_MARKER,
@@ -258,7 +251,6 @@ README_MARKER_CASES = (
     (XARRAY_SLOT_STARTER_MARKER, "expected missing xarray-slot starter README marker was not reported"),
     (SHARED_TESTS_BUILD_MARKER, "expected missing shared tests build README marker was not reported"),
     (XARRAY_SLOT_BUILD_ROUTE_MARKER, "expected missing xarray-slot build-route README marker was not reported"),
-    (README_GAP_SUMMARY_MARKER, "expected missing repo-reality gap summary README marker was not reported"),
     (
         HEADER_FAMILY_VALIDATOR_GAP_MARKER,
         "expected missing header-family validator gap README marker was not reported",
@@ -286,6 +278,7 @@ FILE_CASES = (
     (UAPI_FILE, "expected missing UAPI file was not reported"),
     (CATALOG_TOOL_FILE, "expected missing catalog tool file was not reported"),
     (CATALOG_SELFTEST_CHECK_FILE, "expected missing catalog-selftest guard file was not reported"),
+    (GENERATED_WRAPPER_FILE, "expected missing generated-wrapper file was not reported"),
     (FIXTURE_MANIFEST_FILE, "expected missing fixture manifest file was not reported"),
     (
         LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
