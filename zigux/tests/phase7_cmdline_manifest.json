@@ -1,16 +1,17 @@
 {
-  "lane_key": "helper-local",
-  "lane_key_note": "helper-local keeps the dedicated cmdline packet separate from broader Phase 7 shared-control lanes. Shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons.",
+  "lane_key": "P7-L10",
   "phase": "Phase 7",
+  "verified_on_utc": "2026-05-19T06:22:44Z",
   "anchor": "lib/cmdline.c",
-  "current_master_state": "helper_local_packet",
+  "current_master_state": "helper_slice_test_survey_manifest_anchor",
   "review_surfaces": [
+    "Documentation/zigux/phase7-helper-lane-sequencing.md",
     "Documentation/zigux/phase7-cmdline-slice.md",
     "lib/cmdline.zig",
     "zigux/tests/phase7_cmdline.zig",
     "zigux/tests/phase7_cmdline_survey.zig",
-    "zigux/tests/phase7_cmdline_sample_boundary.zig",
     "zigux/tests/phase7_cmdline_manifest.json",
+    "scripts/zigux/check-phase7-cmdline-packet.py",
     "samples/zigux/README.md"
   ],
   "covered_helpers": [
@@ -24,24 +25,13 @@
     "next_arg",
     "memparse"
   ],
-  "current_master_truthfulness": "The helper-local Phase 7 cmdline packet is centered on `lib/cmdline.zig`, now carries a dedicated direct replay in `zigux/tests/phase7_cmdline.zig`, and keeps the slice note, survey, manifest, and no-standalone-cmdline-sample boundary aligned around the bounded option-matching, integer-option, next-argument, and memparse helpers without overstating separate `argv_split`, `string_helpers`, or `rbtree` families as part of the same packet.",
-  "packet_focus": [
-    "exact bare-option matching inside comma-separated option strings",
-    "signed and unsigned integer option parsing with Linux-style range handling",
-    "malformed-option clearing behavior for caller-owned integer outputs",
-    "wrapped integer semantics for oversized values and validate-only replay paths",
-    "decimal, hexadecimal, octal, and suffix-aware memparse decoding",
-    "signed-clamp and unchanged-rest behavior when no parse is possible",
-    "next-argument parsing for bare tokens, key-value pairs, quoted values, quoted bare tokens, empty values, leading whitespace, leading equals signs, and first-NUL boundaries",
-    "dedicated helper-local replay rooted at `zigux/tests/phase7_cmdline.zig`",
-    "no-standalone-cmdline-sample reviewability rooted at `samples/zigux/README.md`"
-  ],
+  "missing_paths": [],
   "ownership_focus": [
-    "`parseOptionStr()` keeps matching bounded to exact bare entries and does not promote keyed values into bare-option hits",
-    "`getOption()` and `getOptions()` mutate only caller-owned cursor and integer storage while preserving Linux-style return codes and first-invalid-token stop behavior",
-    "`nextArg()` returns borrowed slices inside the caller-provided command-line buffer and keeps parsing inside the first exported C-string boundary",
-    "`memparse()` keeps the unconsumed suffix explicit through the returned `rest` slice instead of widening into hidden normalization",
-    "the sample boundary stays helper-local only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders"
+    "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix",
+    "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior",
+    "nextArg() and next_arg() keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary",
+    "memparse() keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership",
+    "the no-standalone-cmdline sample boundary stays explicit only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders"
   ],
-  "next_bounded_step": "Keep the dedicated cmdline helper replay, survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet, and reopen only if those same-lane reminder surfaces drift or a fresh reread proves a matching dedicated fixture companion returned on current `master`."
+  "next_bounded_step": "Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof while shared-control routes stay parked outside this helper-local lane."
 }
