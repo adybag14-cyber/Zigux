@@ -78,6 +78,7 @@
     "quoted file-path duplication with explicit missing-file fallback and quotable escaping for already-materialized path strings",
     "quoted cmdline duplication that collapses trailing NULL separators into spaces before escaping special characters",
     "bounded parse-int-array decoding with comma lists, positive ranges, first-NUL and count limits, trailing-invalid-token stop behavior, and caller-owned result storage",
+    "bounded parse-int-array empty-input NoEntry and allocator-failure replays that keep the helper fail-closed before any caller-owned result packet can escape",
     "bounded uppercase and lowercase copies through the exported C-string boundary",
     "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
@@ -95,6 +96,7 @@
     "kstrdupQuotableFile() keeps returned storage caller-owned, uses an explicit `<unknown>` fallback for missing file inputs, and otherwise reuses quotable escaping for already-materialized path strings",
     "kstrdupQuotableCmdline() keeps returned storage caller-owned, collapses trailing and inter-argument NULL separators inside duplicated command-line storage, and only then applies quotable escaping",
     "parseIntArray() and parse_int_array() keep the returned storage caller-owned, prefix the parsed count, and stop cleanly at the first invalid token, first NUL, or explicit count bound without widening beyond the successful decode set",
+    "parseIntArray() and parse_int_array() keep empty-input `error.NoEntry` and allocator-failure handling explicit so callers never inherit partial ownership when no decoded result packet can be returned",
     "stringUpper(), string_upper(), stringLower(), string_lower() keep case-conversion writes inside caller-provided destination storage and stop at the exported C-string boundary",
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
     "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test"
