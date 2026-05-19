@@ -97,11 +97,26 @@ REQUIRED_WORKFLOW_MARKERS = [
     "run: make -C zigux phase4-validate",
     "- name: Run Phase 4 rollback tests",
     "run: make -C zigux phase4-test",
+    "- name: Self-test current Phase 4 artifact-diff helper",
+    "run: python3 scripts/zigux/artifact_diff.py --self-test",
+    "- name: Self-test current Phase 4 artifact-diff determinism checker",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "- name: Check current Phase 4 artifact-diff determinism packet",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "- name: Self-test current Phase 4 artifact-diff validator replay checker",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "- name: Check current Phase 4 artifact-diff validator replay packet",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
 ]
 
 REQUIRED_WORKFLOW_ORDER_MARKERS = [
     "run: make -C zigux phase4-validate",
     "run: make -C zigux phase4-test",
+    "run: python3 scripts/zigux/artifact_diff.py --self-test",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
 ]
 
 REQUIRED_BUILD_MARKERS = [
@@ -182,6 +197,11 @@ SELFTEST_CASES = [
     "missing_make_remaining_gap_command",
     "missing_workflow_validate_route",
     "missing_workflow_test_route",
+    "missing_workflow_artifact_diff_helper_selftest",
+    "missing_workflow_artifact_diff_determinism_selftest",
+    "missing_workflow_artifact_diff_determinism_check",
+    "missing_workflow_artifact_diff_validator_replays_selftest",
+    "missing_workflow_artifact_diff_validator_replays_check",
     "missing_matrix_remaining_gap_marker",
     "missing_gate_evidence_bitmap_build_route",
     "missing_gate_evidence_bitmap_wrapper",
@@ -250,6 +270,16 @@ SELFTEST_WORKFLOW = """jobs:
         run: make -C zigux phase4-validate
       - name: Run Phase 4 rollback tests
         run: make -C zigux phase4-test
+      - name: Self-test current Phase 4 artifact-diff helper
+        run: python3 scripts/zigux/artifact_diff.py --self-test
+      - name: Self-test current Phase 4 artifact-diff determinism checker
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
+      - name: Check current Phase 4 artifact-diff determinism packet
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
+      - name: Self-test current Phase 4 artifact-diff validator replay checker
+        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
+      - name: Check current Phase 4 artifact-diff validator replay packet
+        run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py
 """
 
 SELFTEST_BUILD = """const std = @import("std");
@@ -674,6 +704,66 @@ def run_selftest() -> None:
         )
         expect_failure("missing workflow test route", run_check)
         covered_cases.append("missing_workflow_test_route")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Self-test current Phase 4 artifact-diff helper\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing workflow artifact-diff helper self-test", run_check)
+        covered_cases.append("missing_workflow_artifact_diff_helper_selftest")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Self-test current Phase 4 artifact-diff determinism checker\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing workflow artifact-diff determinism self-test", run_check)
+        covered_cases.append("missing_workflow_artifact_diff_determinism_selftest")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Check current Phase 4 artifact-diff determinism packet\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing workflow artifact-diff determinism check", run_check)
+        covered_cases.append("missing_workflow_artifact_diff_determinism_check")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Self-test current Phase 4 artifact-diff validator replay checker\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing workflow artifact-diff validator replay self-test", run_check)
+        covered_cases.append("missing_workflow_artifact_diff_validator_replays_selftest")
+
+        write_baseline()
+        workflow.write_text(
+            workflow.read_text(encoding="utf-8").replace(
+                "      - name: Check current Phase 4 artifact-diff validator replay packet\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure("missing workflow artifact-diff validator replay check", run_check)
+        covered_cases.append("missing_workflow_artifact_diff_validator_replays_check")
 
         write_baseline()
         validation_matrix.write_text(
