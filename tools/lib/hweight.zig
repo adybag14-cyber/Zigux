@@ -55,6 +55,66 @@ test "software hweight helpers match popcount" {
     try std.testing.expectEqual(@popCount(@as(usize, 0xf0f0)), hweightLong(0xf0f0));
 }
 
+test "software hweight helpers preserve complement symmetry within helper width" {
+    const cases8 = [_]u32{ 0x00, 0x01, 0xa5, 0xff, 0x1ff };
+    for (cases8) |raw| {
+        const value = raw & 0xff;
+        try std.testing.expectEqual(@as(u32, 8), swHweight8(value) + swHweight8((~value) & 0xff));
+    }
+
+    const cases16 = [_]u32{ 0x0000, 0x0001, 0x9345, 0xffff, 0x1_ffff };
+    for (cases16) |raw| {
+        const value = raw & 0xffff;
+        try std.testing.expectEqual(@as(u32, 16), swHweight16(value) + swHweight16((~value) & 0xffff));
+    }
+
+    const cases32 = [_]u32{ 0x0000_0000, 0x0000_0001, 0x89ab_cdef, 0xffff_ffff };
+    for (cases32) |value| {
+        try std.testing.expectEqual(@as(u32, 32), swHweight32(value) + swHweight32(~value));
+    }
+
+    const cases64 = [_]u64{ 0x0000_0000_0000_0000, 0x0000_0000_0000_0001, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (cases64) |value| {
+        try std.testing.expectEqual(@as(u64, 64), swHweight64(value) + swHweight64(~value));
+    }
+
+    const cases_long = if (@sizeOf(usize) == 4)
+        [_]usize{ 0x0000_0000, 0x0000_0001, 0x89ab_cdef, 0xffff_ffff }
+    else
+        [_]usize{ 0x0000_0000_0000_0000, 0x0000_0000_0000_0001, 0x0123_4567_89ab_cdef, 0xffff_ffff_ffff_ffff };
+    for (cases_long) |value| {
+        try std.testing.expectEqual(@as(usize, @bitSizeOf(usize)), hweightLong(value) + hweightLong(~value));
+    }
+}
+
+test "software hweight helpers agree across zero-extended widths" {
+    const cases8 = [_]u8{ 0x00, 0x01, 0xa5, 0xff };
+    for (cases8) |value| {
+        const expected = swHweight8(value);
+        try std.testing.expectEqual(expected, swHweight16(value));
+        try std.testing.expectEqual(expected, swHweight32(value));
+        try std.testing.expectEqual(@as(u64, expected), swHweight64(value));
+        try std.testing.expectEqual(@as(usize, expected), hweightLong(value));
+    }
+
+    const cases16 = [_]u16{ 0x0000, 0x0001, 0x9345, 0xffff };
+    for (cases16) |value| {
+        const expected = swHweight16(value);
+        try std.testing.expectEqual(expected, swHweight32(value));
+        try std.testing.expectEqual(@as(u64, expected), swHweight64(value));
+        try std.testing.expectEqual(@as(usize, expected), hweightLong(value));
+    }
+
+    const cases32 = [_]u32{ 0x0000_0000, 0x0000_0001, 0x89ab_cdef, 0xffff_ffff };
+    for (cases32) |value| {
+        const expected = swHweight32(value);
+        try std.testing.expectEqual(@as(u64, expected), swHweight64(value));
+        if (@sizeOf(usize) >= 4) {
+            try std.testing.expectEqual(@as(usize, expected), hweightLong(value));
+        }
+    }
+}
+
 test "Linux-style hweight aliases mirror the primary helper surface" {
     try std.testing.expectEqual(swHweight8(0xf0), __sw_hweight8(0xf0));
     try std.testing.expectEqual(swHweight16(0xf0f0), __sw_hweight16(0xf0f0));
