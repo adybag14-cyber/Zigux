@@ -60,10 +60,10 @@ REQUIRED_MARKERS = {
         "while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors",
     ],
     REVIEW_CHECKLIST_PATH: [
-        "if the change touches the shared Phase 14 smoke packet",
-        "`scripts/zigux/validate-phase14.py` framed as blob-readable mixed-source evidence",
-        "`zigux/tests/phase14_workqueue_reviewability.zig` explicit as the directly readable workqueue reviewability shard",
-        "while still omitting all `phase14-*` targets",
+        "Use this checklist before opening or merging Zigux product work.",
+        "is the target phase named explicitly?",
+        "does the change avoid deep-core scope creep into scheduler, MM, RCU, or skbuff without an Architecture Council decision?",
+        "is there a stated rollback owner and fallback path?",
     ],
     SMOKE_SURVEY_PATH: [
         "  * rollback owner: `Repo Tooling Pod`",
@@ -82,7 +82,7 @@ REQUIRED_MARKERS = {
         "- `PHASE14_ACTIVE_DELIVERY_GATE_COUNT=0`",
     ],
     PRODUCTIZATION_GAP_PATH: [
-        "scripts/zigux/validate-phase14.py` through pinned blob readback",
+        "scripts/zigux/validate-phase14.py` through the current contents path",
         "zigux/tests/phase14_workqueue_reviewability.zig",
         "but no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
         "The higher-value same-lane task is reminder-surface truthfulness",
@@ -94,8 +94,8 @@ REQUIRED_MARKERS = {
     ],
     SCRIPTS_README_PATH: [
         "Phase 14 flow - the current scripts-root shared smoke packet stays reviewable",
-        "`scripts/zigux/validate-phase14.py` keep the recoverable shared-smoke layer visible",
-        "but still no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
+        "`scripts/zigux/validate-phase14.py` and `scripts/zigux/check-phase14-release-boundary-exact-counts.py` keep the recoverable shared-smoke layer visible",
+        "there are still no `phase14-validate`, `phase14-smoke`, `phase14-test`, or `phase14` targets",
         "`ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14` remain the bounded packet-local rerun examples",
     ],
     ROLLBACK_CHECKER_PATH: [
@@ -107,7 +107,7 @@ REQUIRED_MARKERS = {
     ],
     TESTS_README_PATH: [
         "Keep the current bounded Phase 14 reminder packet explicit",
-        "keep the blob-readable `scripts/zigux/validate-phase14.py` plus the directly readable workqueue reviewability shard explicit",
+        "keep the directly readable `scripts/zigux/validate-phase14.py` plus the directly readable workqueue reviewability shard explicit",
         "`scripts/zigux/check-phase14-release-boundary-exact-counts.py` explicit as the directly readable release-boundary truthfulness guard",
         "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes",
         "Documentation/zigux/phase14-release-boundary-survey.md",
