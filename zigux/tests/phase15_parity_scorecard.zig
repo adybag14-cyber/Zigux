@@ -330,6 +330,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
     try expectCurrentBoundedStepHandoff(scorecard_doc);
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-tests-readme-alignment.py");
 
     try std.testing.expectEqual(
         freeze_map_manifest.value.study_only_targets.len,
