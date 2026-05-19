@@ -89,7 +89,7 @@ test "phase 5 bytestream fifo sample replays exact queue behavior from the Linux
     try std.testing.expectError(error.InvalidLifecycleTransition, module.runAnchorReplay());
 }
 
-test "phase 5 bytestream fifo sample keeps helper and queue-shape behavior explicit" {
+test "phase 5 bytestream fifo sample keeps helper, occupancy, and queue-shape behavior explicit" {
     var module = sample.BytestreamFifoSample{};
 
     try std.testing.expectEqual(@as(?u8, null), module.peekByte());
@@ -106,6 +106,14 @@ test "phase 5 bytestream fifo sample keeps helper and queue-shape behavior expli
     try std.testing.expectEqual(@as(usize, 0), module.visibleSpanSummary().first_window_len);
     try std.testing.expectEqual(@as(usize, 0), module.visibleSpanSummary().second_window_len);
     try std.testing.expect(!module.usesWrappedStorageWindow());
+    const empty_occupancy = module.occupancySummary();
+    try std.testing.expectEqual(@as(usize, 0), empty_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, 0), empty_occupancy.used);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), empty_occupancy.available);
+    try std.testing.expect(empty_occupancy.empty);
+    try std.testing.expect(!empty_occupancy.full);
+    try std.testing.expect(!empty_occupancy.wrapped);
+    try std.testing.expect(!empty_occupancy.wrapped_window);
 
     try module.init();
     try std.testing.expect(module.pushByte(7));
@@ -154,6 +162,14 @@ test "phase 5 bytestream fifo sample keeps helper and queue-shape behavior expli
     try std.testing.expectEqual(@as(usize, sample.fifo_capacity), module.visibleSpanSummary().first_window_len);
     try std.testing.expectEqual(@as(usize, 0), module.visibleSpanSummary().second_window_len);
     try std.testing.expect(!module.usesWrappedStorageWindow());
+    const full_occupancy = module.occupancySummary();
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), full_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), full_occupancy.used);
+    try std.testing.expectEqual(@as(usize, 0), full_occupancy.available);
+    try std.testing.expect(!full_occupancy.empty);
+    try std.testing.expect(full_occupancy.full);
+    try std.testing.expect(!full_occupancy.wrapped);
+    try std.testing.expect(!full_occupancy.wrapped_window);
 
     var full_preview: [sample.fifo_capacity]u8 = [_]u8{0} ** sample.fifo_capacity;
     const full_preview_result = module.previewInto(full_preview[0..]);
@@ -171,6 +187,14 @@ test "phase 5 bytestream fifo sample keeps helper and queue-shape behavior expli
     try std.testing.expectEqual(@as(usize, sample.fifo_capacity - 1), module.visibleSpanSummary().first_window_len);
     try std.testing.expectEqual(@as(usize, 1), module.visibleSpanSummary().second_window_len);
     try std.testing.expect(module.usesWrappedStorageWindow());
+    const wrapped_full_occupancy = module.occupancySummary();
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), wrapped_full_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), wrapped_full_occupancy.used);
+    try std.testing.expectEqual(@as(usize, 0), wrapped_full_occupancy.available);
+    try std.testing.expect(!wrapped_full_occupancy.empty);
+    try std.testing.expect(wrapped_full_occupancy.full);
+    try std.testing.expect(wrapped_full_occupancy.wrapped);
+    try std.testing.expect(wrapped_full_occupancy.wrapped_window);
 
     module.reset();
     try std.testing.expectEqual(@as(usize, 5), module.enqueueSlice("hello"));
@@ -190,6 +214,14 @@ test "phase 5 bytestream fifo sample keeps helper and queue-shape behavior expli
     try std.testing.expectEqual(sample.SampleStage.exited, module.stage());
     try std.testing.expectEqual(@as(usize, 0), module.count());
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
+    const exited_occupancy = module.occupancySummary();
+    try std.testing.expectEqual(@as(usize, 0), exited_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, 0), exited_occupancy.used);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), exited_occupancy.available);
+    try std.testing.expect(exited_occupancy.empty);
+    try std.testing.expect(!exited_occupancy.full);
+    try std.testing.expect(!exited_occupancy.wrapped);
+    try std.testing.expect(!exited_occupancy.wrapped_window);
 }
 
 test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries explicit" {
@@ -215,8 +247,12 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
     try std.testing.expect(!preview_replay.visible_span_after_preview.wraps);
     const preview_occupancy = module.occupancySummary();
     try std.testing.expectEqual(@as(usize, 10), preview_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, 10), preview_occupancy.used);
     try std.testing.expectEqual(@as(usize, 22), preview_occupancy.available);
+    try std.testing.expect(!preview_occupancy.empty);
+    try std.testing.expect(!preview_occupancy.full);
     try std.testing.expect(!preview_occupancy.wrapped);
+    try std.testing.expect(!preview_occupancy.wrapped_window);
     const preview_writable = module.writableSpanSummary();
     try std.testing.expectEqual(@as(usize, 17), preview_writable.tail_index);
     try std.testing.expectEqual(@as(usize, 22), preview_writable.writable_count);
@@ -244,8 +280,12 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
     try std.testing.expect(wrapped_preview.visible_span_after_preview.wraps);
     const wrapped_occupancy = module.occupancySummary();
     try std.testing.expectEqual(@as(usize, sample.fifo_capacity), wrapped_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, sample.fifo_capacity), wrapped_occupancy.used);
     try std.testing.expectEqual(@as(usize, 0), wrapped_occupancy.available);
+    try std.testing.expect(!wrapped_occupancy.empty);
+    try std.testing.expect(wrapped_occupancy.full);
     try std.testing.expect(wrapped_occupancy.wrapped);
+    try std.testing.expect(wrapped_occupancy.wrapped_window);
     const wrapped_writable = module.writableSpanSummary();
     try std.testing.expectEqual(@as(usize, 4), wrapped_writable.tail_index);
     try std.testing.expectEqual(@as(usize, 0), wrapped_writable.writable_count);
@@ -273,8 +313,12 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
     try std.testing.expect(remaining_capacity.wrapped_after_wrap_refill);
     const partial_drain_occupancy = module.occupancySummary();
     try std.testing.expectEqual(@as(usize, 24), partial_drain_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, 24), partial_drain_occupancy.used);
     try std.testing.expectEqual(@as(usize, 8), partial_drain_occupancy.available);
+    try std.testing.expect(!partial_drain_occupancy.empty);
+    try std.testing.expect(!partial_drain_occupancy.full);
     try std.testing.expect(partial_drain_occupancy.wrapped);
+    try std.testing.expect(partial_drain_occupancy.wrapped_window);
     const partial_drain_writable = module.writableSpanSummary();
     try std.testing.expectEqual(@as(usize, 1), partial_drain_writable.tail_index);
     try std.testing.expectEqual(@as(usize, 8), partial_drain_writable.writable_count);
@@ -291,6 +335,14 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
     try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.exit_run_count);
     try std.testing.expectEqual(@as(usize, 0), replay_lifecycle.queue_len);
     try std.testing.expectEqual(sample.StorageBacking.embedded_fixed_buffer, replay_lifecycle.storage_backing);
+    const replay_complete_occupancy = module.occupancySummary();
+    try std.testing.expectEqual(@as(usize, 0), replay_complete_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, 0), replay_complete_occupancy.used);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), replay_complete_occupancy.available);
+    try std.testing.expect(replay_complete_occupancy.empty);
+    try std.testing.expect(!replay_complete_occupancy.full);
+    try std.testing.expect(!replay_complete_occupancy.wrapped);
+    try std.testing.expect(!replay_complete_occupancy.wrapped_window);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
     try std.testing.expectEqual(@as(usize, 0), module.visibleSpanSummary().first_window_len);
     try std.testing.expectEqual(@as(usize, 0), module.visibleSpanSummary().second_window_len);
@@ -302,6 +354,14 @@ test "phase 5 bytestream fifo sample keeps preview and lifecycle boundaries expl
     try std.testing.expectEqual(@as(usize, 1), module.init_runs);
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), module.available());
+    const exited_occupancy = module.occupancySummary();
+    try std.testing.expectEqual(@as(usize, 0), exited_occupancy.queue_len);
+    try std.testing.expectEqual(@as(usize, 0), exited_occupancy.used);
+    try std.testing.expectEqual(@as(usize, sample.BytestreamFifoSample.capacity), exited_occupancy.available);
+    try std.testing.expect(exited_occupancy.empty);
+    try std.testing.expect(!exited_occupancy.full);
+    try std.testing.expect(!exited_occupancy.wrapped);
+    try std.testing.expect(!exited_occupancy.wrapped_window);
     try std.testing.expectEqual(@as(usize, 0), module.visibleSpanSummary().first_window_len);
     try std.testing.expectEqual(@as(usize, 0), module.visibleSpanSummary().second_window_len);
     try std.testing.expect(!module.usesWrappedStorageWindow());
