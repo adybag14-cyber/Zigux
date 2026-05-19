@@ -5,7 +5,7 @@ This note keeps the roadmap-required Phase 15 stay-in-C policy surface explicit 
 ## Status
 
 - `PHASE15_STATUS=indefinite_c_policy_packet_landed`
-- `PHASE15_LANE_KEY=P15-L13`
+- `PHASE15_LANE_KEY=P15-L16`
 - `PHASE15_SLICE=maintenance-mode-policy-truthfulness`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
