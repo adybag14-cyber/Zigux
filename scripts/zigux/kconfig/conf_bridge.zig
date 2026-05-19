@@ -614,6 +614,23 @@ test "conf bridge emits allyesconfig sentinel without explicit override" {
     try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") != null);
 }
 
+test "conf bridge emits explicit empty allconfig override for allyesconfig" {
+    var capture = try TestCapture.init(std.testing.allocator, 192);
+    defer capture.deinit();
+
+    try runConfBridge(&capture, .{
+        .mode = .allyesconfig,
+        .kconfig = "Kconfig",
+        .config = "yes/.config",
+        .arch = "arm64",
+        .allconfig = "",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allyesconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"1\"") == null);
+}
+
 test "conf bridge emits allnoconfig sentinel without explicit override" {
     var capture = try TestCapture.init(std.testing.allocator, 192);
     defer capture.deinit();
@@ -847,6 +864,16 @@ test "bridge options parser accepts explicit empty allconfig override for alldef
 
 test "bridge options parser accepts explicit empty allconfig override for allnoconfig" {
     const options = try parseBridgeOptions(.allnoconfig, &.{"allconfig="});
+    try std.testing.expect(options.silent == false);
+    try std.testing.expect(options.allconfig != null);
+    try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
+    try std.testing.expect(options.seed == null);
+    try std.testing.expect(options.probability == null);
+    try std.testing.expect(options.nosilentupdate == null);
+}
+
+test "bridge options parser accepts explicit empty allconfig override for allyesconfig" {
+    const options = try parseBridgeOptions(.allyesconfig, &.{"allconfig="});
     try std.testing.expect(options.silent == false);
     try std.testing.expect(options.allconfig != null);
     try std.testing.expectEqual(@as(usize, 0), options.allconfig.?.len);
