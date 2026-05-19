@@ -23,6 +23,7 @@ Phase 4 in `ZAR_TO_ZIGUX_PRODUCT_ROADMAP (1).md` still calls for host-side artif
 
 Current `master` now offers direct current-head readback for the helper itself through `scripts/zigux/artifact_diff.py`, but it still does not expose the full older helper-plus-contract packet. The directly readable Phase 4 packet therefore keeps the artifact-diff contract visible through a split handoff:
   * `scripts/zigux/artifact_diff.py` is directly readable again on current `master`, so the bounded helper-side `text`, `json`, and `bytes` comparison entrypoints, the legacy `sha256 -> bytes` mode alias, and the shipped `ARTIFACT_DIFF_SELF_TEST_CASE_COUNT=20` packet are current-head evidence rather than historical provenance.
+  * `.github/workflows/zigux-bootstrap.yml` now keeps the directly readable artifact-diff packet reviewable through separate named steps for `python3 scripts/zigux/artifact_diff.py --self-test`, `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`, `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`, and `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py` rather than routing the current artifact-diff packet only through one shared `make -C zigux phase4-validate` step.
   * `Documentation/zigux/phase4-reversible-delivery-evidence.md` still records that the broader validator, lab-matrix, and local-only perf packet is currently a repo-reality gap and treats the older contract and validator companions as historical provenance rather than current-head proof.
   * `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, and `scripts/zigux/README.md` keep the same repo-reality-warning posture explicit, including the host-side artifact-diff references that still matter for Phase 4 review.
   * `scripts/zigux/check-phase4-repo-reality-warning.py` fail-closes on that shared warning packet so future reruns must narrow the warning if the broader Phase 4 packet returns.
@@ -78,6 +79,12 @@ Current directly readable replay and warning surfaces in this run were:
   * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test`
   * `python3 scripts/zigux/check-phase4-artifact-diff-determinism.py`
   * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test`
+
+Current directly readable workflow step names in this run were:
+  * `Self-test current Phase 4 artifact-diff helper`
+  * `Self-test current Phase 4 artifact-diff determinism checker`
+  * `Self-test current Phase 4 artifact-diff validator replay checker`
+  * `Check current Phase 4 artifact-diff validator replay packet`
 
 The direct validator replay command should fail closed until `scripts/zigux/validate-phase4.py` returns on current `master`:
   * `python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py`
