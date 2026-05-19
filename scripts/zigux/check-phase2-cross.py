@@ -43,7 +43,14 @@ def require_files(root: Path) -> list[str]:
 
 
 def load_fixture(path: Path) -> dict[str, object]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    try:
+        raw = path.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        raise RuntimeError(f"required file missing: {path}") from exc
+    except OSError as exc:
+        raise RuntimeError(f"required file unreadable: {path}") from exc
+
+    payload = json.loads(raw)
     if not isinstance(payload, dict):
         raise ValueError("fixture must be a JSON object")
     return payload
@@ -109,6 +116,15 @@ def resolve_zig(override: str | None) -> str | None:
     return shutil.which("zig")
 
 
+def validate_zig_test_file(root: Path, rel_path: str) -> str | None:
+    candidate = root / rel_path
+    if candidate.is_file():
+        return None
+    if candidate.exists():
+        return f"zig test path is not a file: {rel_path}"
+    return f"zig test path missing on branch: {rel_path}"
+
+
 def run_cross_compile(root: Path, target: str, zig: str) -> int:
     payload = load_fixture(root / FIXTURE_REL)
     targets = payload.get("targets")
@@ -125,6 +141,14 @@ def run_cross_compile(root: Path, target: str, zig: str) -> int:
         return 1
 
     for rel_path in zig_test_files:
+        path_issue = validate_zig_test_file(root, rel_path)
+        if path_issue is not None:
+            print("PHASE2_CROSS=fail")
+            print(f"PHASE2_CROSS_TARGET={target}")
+            print(f"PHASE2_CROSS_FAILED_FILE={rel_path}")
+            print(f"PHASE2_CROSS_NOTE={path_issue}")
+            return 1
+
         completed = subprocess.run(
             [zig, "test", rel_path, "-target", target, "--test-no-exec"],
             cwd=root,
@@ -191,6 +215,15 @@ def capture_packet_summary(root: Path) -> tuple[int, str]:
     with contextlib.redirect_stdout(stdout):
         result = summarize_packet(root)
     return result, stdout.getvalue()
+
+
+def assert_runtime_error_contains(callback, expected_fragment: str) -> None:
+    try:
+        callback()
+    except RuntimeError as exc:
+        assert expected_fragment in str(exc), str(exc)
+        return
+    raise AssertionError(f"expected RuntimeError containing: {expected_fragment}")
 
 
 def run_self_test() -> int:
@@ -424,6 +457,18 @@ def run_self_test() -> int:
             raise AssertionError("non-object fixture did not raise ValueError")
 
         build_self_test_root(root)
+        (root / FIXTURE_REL).unlink()
+        assert_runtime_error_contains(lambda: validate_fixture(root), "required file missing:")
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / FIXTURE_REL).unlink()
+        (root / FIXTURE_REL).mkdir(parents=True)
+        assert_runtime_error_contains(lambda: validate_fixture(root), "required file unreadable:")
+        (root / FIXTURE_REL).rmdir()
+        case_count += 1
+
+        build_self_test_root(root)
         result, output = capture_cross_compile(root, "powerpc-linux-musl", "/bin/true")
         assert result == 1
         assert "PHASE2_CROSS_NOTE=target not listed in fixture" in output
@@ -443,6 +488,24 @@ def run_self_test() -> int:
         result, output = capture_cross_compile(root, EXPECTED_TARGETS[0], "/bin/true")
         assert result == 1
         assert "PHASE2_CROSS_NOTE=fixture zig_test_files is invalid" in output
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/fixdep.zig").unlink()
+        result, output = capture_cross_compile(root, EXPECTED_TARGETS[0], "/bin/true")
+        assert result == 1
+        assert "PHASE2_CROSS_FAILED_FILE=scripts/zigux/fixdep.zig" in output
+        assert "PHASE2_CROSS_NOTE=zig test path missing on branch: scripts/zigux/fixdep.zig" in output
+        case_count += 1
+
+        build_self_test_root(root)
+        (root / "scripts/zigux/fixdep.zig").unlink()
+        (root / "scripts/zigux/fixdep.zig").mkdir(parents=True)
+        result, output = capture_cross_compile(root, EXPECTED_TARGETS[0], "/bin/true")
+        assert result == 1
+        assert "PHASE2_CROSS_FAILED_FILE=scripts/zigux/fixdep.zig" in output
+        assert "PHASE2_CROSS_NOTE=zig test path is not a file: scripts/zigux/fixdep.zig" in output
+        (root / "scripts/zigux/fixdep.zig").rmdir()
         case_count += 1
 
         build_self_test_root(root)
@@ -486,6 +549,10 @@ def main() -> int:
 
     try:
         issues = validate_fixture(args.root)
+    except RuntimeError as exc:
+        print("PHASE2_CROSS=fail")
+        print(f"PHASE2_CROSS_NOTE={exc}")
+        return 1
     except json.JSONDecodeError as exc:
         print("PHASE2_CROSS=fail")
         print(f"PHASE2_CROSS_NOTE=invalid fixture JSON: {exc.msg}")
@@ -509,9 +576,19 @@ def main() -> int:
             print("PHASE2_CROSS=fail")
             print("PHASE2_CROSS_NOTE=zig not found on PATH")
             return 1
-        return run_cross_compile(args.root, args.target, zig)
+        try:
+            return run_cross_compile(args.root, args.target, zig)
+        except RuntimeError as exc:
+            print("PHASE2_CROSS=fail")
+            print(f"PHASE2_CROSS_NOTE={exc}")
+            return 1
 
-    return summarize_packet(args.root)
+    try:
+        return summarize_packet(args.root)
+    except RuntimeError as exc:
+        print("PHASE2_CROSS=fail")
+        print(f"PHASE2_CROSS_NOTE={exc}")
+        return 1
 
 
 if __name__ == "__main__":
