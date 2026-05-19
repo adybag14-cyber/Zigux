@@ -22,7 +22,6 @@ EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
-    "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
@@ -94,7 +93,7 @@ This note records the current helper-evidence survey for the bounded Phase 6 lea
 - lane scope: shared helper-evidence rows and machine-readable manifest only
 - shared scripts-root reminder: `scripts/zigux/README.md`
 - shared tests-root reminder: `zigux/tests/README.md`
-- shared docs-root reminder: `Documentation/zigux/README.md`
+- shared docs-root follow-through gap: `Documentation/zigux/README.md`
 - directly readable shared build foothold: `zigux/tests/phase6_build.zig`
 - directly readable shared Makefile wrapper surface: `zigux/Makefile`
 - shared machine-readable manifest: `zigux/tests/phase6_helper_evidence_manifest.json`
