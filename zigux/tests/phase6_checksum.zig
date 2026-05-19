@@ -63,6 +63,21 @@ fn referenceCompute(bytes: []const u8) u16 {
     return referenceFold(referencePartial(bytes, 0));
 }
 
+fn expectFragmentedPartialMatchesWhole(payload: []const u8, split: usize, seed: u32) !void {
+    const head = payload[0..split];
+    const tail = payload[split..];
+    const head_partial = checksum.partial(head, seed);
+    const tail_partial = checksum.partial(tail, 0);
+    const recomposed = checksum.blockAdd(head_partial, tail_partial, head.len);
+    const recomposed_normalized = @as(u32, checksum.from32to16(recomposed));
+
+    try std.testing.expectEqual(referencePartial(payload, seed), recomposed_normalized);
+    try std.testing.expectEqual(checksum.partial(payload, seed), recomposed_normalized);
+    if (seed == 0) {
+        try std.testing.expectEqual(checksum.compute(payload), checksum.fold(recomposed));
+    }
+}
+
 fn referencePseudoHeaderV4(sum: u32, saddr: u32, daddr: u32, len: u16, proto: u8) u32 {
     var result: u32 = referenceFrom32to16(sum);
     result = checksum.add(result, saddr >> 16);
@@ -110,6 +125,29 @@ test "phase 6 checksum split composition stays aligned with seeded partial accum
 
         try std.testing.expectEqual(referencePartial(full, case.seed), split_sum);
         try std.testing.expectEqual(checksum.partial(full, case.seed), split_sum);
+    }
+}
+
+test "phase 6 checksum fragment recomposition stays aligned across split boundaries" {
+    const odd_payload = [_]u8{ 0xde, 0xad, 0xbe, 0xef, 0x42 };
+    const even_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
+    const singleton_payload = [_]u8{0xa5};
+    const empty_payload = [_]u8{};
+    const payloads = [_][]const u8{
+        empty_payload[0..],
+        singleton_payload[0..],
+        odd_payload[0..],
+        even_payload[0..],
+        "phase6-fragment-checksum",
+    };
+    const seeds = [_]u32{ 0, 0x1357_9bdf, 0xffff_ffff };
+
+    for (payloads) |payload| {
+        for (seeds) |seed| {
+            for (0..payload.len + 1) |split| {
+                try expectFragmentedPartialMatchesWhole(payload, split, seed);
+            }
+        }
     }
 }
 
