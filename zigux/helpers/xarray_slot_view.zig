@@ -477,6 +477,46 @@ test "decoded cutoff entries keep payload accessors stable after reconstruction"
     }
 }
 
+test "err band stays contiguous after the pointer-like cutoff gap" {
+    const gap_raw = err_ptr.err_floor - 1;
+    const first_err_raw = err_ptr.err_floor;
+    const second_err_raw = first_err_raw + 1;
+    const top_err_raw = err_ptr.fromErrorCode(-1);
+
+    const gap_slot = fromRaw(gap_raw);
+    const first_err_slot = fromRaw(first_err_raw);
+    const second_err_slot = fromRaw(second_err_raw);
+    const top_err_slot = fromRaw(top_err_raw);
+
+    try std.testing.expect(gap_slot.isPointer());
+    try std.testing.expectEqual(@as(?usize, gap_raw), gap_slot.pointerValue());
+    try std.testing.expectEqual(@as(?isize, null), gap_slot.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), gap_slot.value());
+
+    try std.testing.expectEqual(gap_raw + 1, first_err_raw);
+    try std.testing.expectEqual(first_err_raw + 1, second_err_raw);
+    try std.testing.expectEqual(err_ptr.fromErrorCode(-4094), second_err_raw);
+
+    try std.testing.expect(first_err_slot.isErr());
+    try std.testing.expect(second_err_slot.isErr());
+    try std.testing.expect(top_err_slot.isErr());
+
+    try std.testing.expectEqual(@as(?isize, -4095), first_err_slot.errorCode());
+    try std.testing.expectEqual(@as(?isize, -4094), second_err_slot.errorCode());
+    try std.testing.expectEqual(@as(?isize, -1), top_err_slot.errorCode());
+
+    try std.testing.expectEqual(@as(?usize, null), first_err_slot.pointerValue());
+    try std.testing.expectEqual(@as(?usize, null), second_err_slot.pointerValue());
+    try std.testing.expectEqual(@as(?usize, null), top_err_slot.pointerValue());
+    try std.testing.expectEqual(@as(?usize, null), first_err_slot.value());
+    try std.testing.expectEqual(@as(?usize, null), second_err_slot.value());
+    try std.testing.expectEqual(@as(?usize, null), top_err_slot.value());
+
+    try std.testing.expect(isTaggedInternalEntry(first_err_raw));
+    try std.testing.expect(isTaggedInternalEntry(second_err_raw));
+    try std.testing.expect(isTaggedInternalEntry(top_err_raw));
+}
+
 test "inline zero stays a tagged value and keeps other decoders closed" {
     const raw = try xa_value.makeValue(0);
     const slot = fromRaw(raw);
