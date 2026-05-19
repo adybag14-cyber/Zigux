@@ -20,6 +20,7 @@ That gap is now closed through these shipped surfaces:
 
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
+- `Documentation/zigux/phase13-release-notes-survey.md`
 - `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
