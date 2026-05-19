@@ -336,5 +336,23 @@
     ],
     "mode": "stdout_json",
     "expected": "quiet_overrides_warning_expected.json"
+  },
+  {
+    "name": "long_version_before_missing_short_dump_types_argument",
+    "argv": [
+      "--version",
+      "-T"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_missing_short_dump_types_argument_expected.json"
+  },
+  {
+    "name": "abbreviated_long_version_before_missing_short_dump_types_argument",
+    "argv": [
+      "--ver",
+      "-T"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_missing_short_dump_types_argument_expected.json"
   }
 ]
