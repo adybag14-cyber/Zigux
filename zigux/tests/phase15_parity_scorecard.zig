@@ -90,6 +90,18 @@ fn expectMetricLine(scorecard_doc: []const u8, label: []const u8, value: usize) 
     try expectContains(scorecard_doc, rendered);
 }
 
+fn expectCurrentReminderRoute(scorecard_doc: []const u8) !void {
+    try expectContains(scorecard_doc, "## Current reminder route");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-docs-readme-alignment.py");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-scripts-readme-alignment.py");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-tests-readme-alignment.py");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-review-process-handoff.py");
+    try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-shared-summary-gap.py");
+    try expectContains(scorecard_doc, "zig test zigux/tests/phase15_parity_scorecard.zig");
+    try expectContains(scorecard_doc, "anchor-level blocker evidence stays reviewable through `zig test zigux/tests/phase15_freeze_map_governance.zig`");
+    try expectContains(scorecard_doc, "the broader validator-first and shared-build route wording through `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` remains repo-reality gap vocabulary on current `master`, not shipped evidence");
+}
+
 fn expectCurrentBoundedStepHandoff(scorecard_doc: []const u8) !void {
     try expectContains(scorecard_doc, "## Next bounded step");
     try expectContains(scorecard_doc, "Keep the scorecard parked until one of the named reopen triggers fits the evidence, the blocker posture changes, or the direct reminder-route wording drifts enough that the aggregate metrics or anchor records need another truthfulness refresh.");
@@ -329,6 +341,7 @@ test "phase 15 parity scorecard doc stays aligned with the machine readable scor
     try expectMetricLine(scorecard_doc, "anchors still blocked on prior-phase bridge evidence", parsed.value.metrics.anchors_still_blocked_on_prior_phase_bridge_evidence);
     try expectMetricLine(scorecard_doc, "study-only anchors tracked outside this scorecard", parsed.value.metrics.study_only_anchors_tracked_outside_scorecard);
     try expectMetricLine(scorecard_doc, "Architecture Council approvals recorded for status change", parsed.value.metrics.architecture_council_status_change_approval_count);
+    try expectCurrentReminderRoute(scorecard_doc);
     try expectCurrentBoundedStepHandoff(scorecard_doc);
     try expectContains(scorecard_doc, "python3 scripts/zigux/check-phase15-tests-readme-alignment.py");
 
