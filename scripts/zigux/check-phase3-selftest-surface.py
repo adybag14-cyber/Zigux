@@ -222,6 +222,7 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
+    'Path("scripts/zigux/check-phase3-policy-dump.py")',
     'Path("scripts/zigux/validate-phase3.py")',
     'Path("scripts/zigux/check-phase3-abi.py")',
     'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
@@ -484,6 +485,11 @@ def run_self_test() -> int:
         (SCRIPTS_README_PATH, "scripts/zigux/generate-phase3-check-wrappers.py", "scripts README"),
         (SCRIPTS_README_PATH, "scripts/zigux/validate-phase3.py", "scripts README"),
         (SCRIPTS_README_PATH, "still return missing on current `master`", "scripts README"),
+        (
+            SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/check-phase3-policy-dump.py")',
+            "selftest driver",
+        ),
         (
             SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
