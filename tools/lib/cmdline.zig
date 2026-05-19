@@ -318,3 +318,24 @@ test "nextArg handles a quoted full token that contains a key value pair" {
     try std.testing.expectEqualStrings("fast path", parsed.value.?);
     try std.testing.expectEqualStrings("tail", parsed.remaining);
 }
+
+test "nextArg keeps quoted bare tokens together" {
+    const parsed = nextArg("\"console quiet\" root=/dev/vda") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("console quiet", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("root=/dev/vda", parsed.remaining);
+}
+
+test "nextArg preserves empty quoted values" {
+    const parsed = nextArg("rdinit=\"\" panic=-1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("rdinit", parsed.param);
+    try std.testing.expectEqualStrings("", parsed.value.?);
+    try std.testing.expectEqualStrings("panic=-1", parsed.remaining);
+}
+
+test "nextArg preserves empty quoted values at end of input" {
+    const parsed = nextArg("rdinit=\"\"") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("rdinit", parsed.param);
+    try std.testing.expectEqualStrings("", parsed.value.?);
+    try std.testing.expectEqualStrings("", parsed.remaining);
+}
