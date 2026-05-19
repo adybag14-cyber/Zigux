@@ -48,6 +48,25 @@ test "starter packet walks a binding-backed list through list_view" {
     try std.testing.expectEqual(@as(?*const list_view.ListHead, null), it.next());
 }
 
+test "starter packet reports a binding-backed broken list backlink" {
+    var head = binding.emptyListHead();
+    var first = binding.emptyListHead();
+    var second = binding.emptyListHead();
+
+    head = binding.initListHead(@intFromPtr(&first), @intFromPtr(&second));
+    first = binding.initListHead(@intFromPtr(&second), @intFromPtr(&head));
+    second = binding.initListHead(@intFromPtr(&head), @intFromPtr(&head));
+
+    const view = list_view.ListView.init(asListViewHead(&head));
+    try std.testing.expectEqual(@as(usize, 2), view.len());
+    try std.testing.expect(!view.hasConsistentBacklinks());
+
+    const breakage = view.firstBrokenBacklink().?;
+    try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), breakage.expected_prev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
+}
+
 test "starter packet keeps an empty detached hlist explicit across binding and helper views" {
     const head = binding.emptyHListHead();
     const node = binding.emptyHListNode();
@@ -86,4 +105,24 @@ test "starter packet walks a binding-backed hlist through hlist_view" {
     try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), @intFromPtr(it.next().?));
     try std.testing.expectEqual(@as(usize, @intFromPtr(&second)), @intFromPtr(it.next().?));
     try std.testing.expectEqual(@as(?*const hlist_view.HListNode, null), it.next());
+}
+
+test "starter packet reports a binding-backed broken hlist prev-link" {
+    var head = binding.emptyHListHead();
+    var first = binding.emptyHListNode();
+    var second = binding.emptyHListNode();
+
+    head = binding.initHListHead(@intFromPtr(&first));
+    first = binding.initHListNode(@intFromPtr(&second), @intFromPtr(&head.first));
+    second = binding.initHListNode(0, @intFromPtr(&head.first));
+
+    const view = hlist_view.HListView.init(asHListViewHead(&head));
+    try std.testing.expect(view.firstPprevMatchesHead());
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+    try std.testing.expect(view.tailNextIsNull());
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
 }
