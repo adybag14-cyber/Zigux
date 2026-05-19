@@ -88,6 +88,8 @@ REQUIRED_MARKERS = {
         'test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {',
         'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {',
         'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {',
+        'test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with reserved-byte gates" {',
+        'test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo explicit" {',
         'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {',
     ),
     WRAPPER_BUILD_PATH: (
@@ -181,6 +183,8 @@ SELF_TEST_CASES = (
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep atomic ordering, barriers, and MMIO handoffs aligned" {'),
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep masked MMIO updates explicit after compare-exchange setup" {'),
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across shared handoff" {'),
+    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with reserved-byte gates" {'),
+    (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep atomic load-store exchange and MMIO echo explicit" {'),
     (WRAPPER_REPLAY_PATH, 'test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {'),
     (WRAPPER_BUILD_PATH, '.root_source_file = b.path("../helpers/atomic.zig"),'),
     (WRAPPER_BUILD_PATH, '.root_source_file = b.path("../helpers/barrier.zig"),'),
