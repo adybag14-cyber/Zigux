@@ -29,11 +29,11 @@ This run could verify that:
 
 - `Documentation/zigux/phase8-kallsyms-slice.md` is present on `master`
 - `scripts/zigux/validate-phase8.py` is present on `master`
-- the public raw fallback now returns usable `tools/lib/symbol/kallsyms.zig` helper content, including the direct parser callback wrapper surface around `kallsymsParseFile()` and `forEachParsedPath()`
+- the public raw fallback now returns usable `tools/lib/symbol/kallsyms.zig` helper content, including the direct parser callback wrapper surface around `kallsymsParseFile()` and `forEachParsedPath()`, and the current `parseLine()` path trims one trailing `\r` before symbol-name slicing so CRLF-backed records normalize to the same symbol names as LF-backed input
 - authenticated GitHub contents reads still fail for the dedicated kallsyms helper, checker, focused test, and focused build file paths
 - the current container and devbox still could not recover the dedicated kallsyms checker, focused test, and focused build files through one consistent source during this scheduled pass
 
-This run could not freshly verify helper-local parser test expectations, focused kallsyms test behavior, or the combined help-and-kallsyms checker contents from one consistent source.
+This run could not freshly verify the dedicated focused kallsyms test body from the same source type as the readable helper, so the remaining lane-local drift is now a reviewability mismatch around the parked external CRLF expectation rather than a newly discovered helper-behavior mismatch.
 
 ## Current parity surface
 
@@ -65,6 +65,6 @@ This slice does not yet claim:
 
 Keep the lane narrow.
 
-If this lane reopens before a focused helper replay is practical, correct one directly coupled symbol-lane checker, focused-test, or review-surface truthfulness gap only after one consistent source exposes the relevant file body again.
+If this lane reopens before a focused helper replay is practical, correct one directly coupled symbol-lane checker, focused-test, or review-surface truthfulness gap only after one consistent source exposes the relevant file body again. The current highest-confidence reopen target is the parked external `zigux/tests/phase8_kallsyms.zig` CRLF expectation sync, because the readable helper note and public helper body already agree that trailing `\r` is trimmed before name slicing.
 
 If exact helper reads become practical later, restart with one focused replay step around the dedicated packet: reread `tools/lib/symbol/kallsyms.zig`, `scripts/zigux/check-phase8-help-kallsyms-packet.py`, and `zigux/tests/phase8_kallsyms.zig` from the same source type, then land the smallest helper- or test-local follow-through that the reread actually proves.
