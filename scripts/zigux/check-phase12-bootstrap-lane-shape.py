@@ -26,6 +26,7 @@ SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 DOCS_SANITY_CHECKER_PATH = "scripts/zigux/check-phase12-bootstrap-docs-sanity.py"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
 INSTALL_ZIG_HELPER_PATH = "scripts/zigux/install-zig.py"
+PHASE2_FIXDEP_GATE_CHECKER_PATH = "scripts/zigux/check-phase2-fixdep-gate.py"
 
 REQUIRED_FILES = [
     WORKFLOW_PATH,
@@ -33,6 +34,7 @@ REQUIRED_FILES = [
     DOCS_SANITY_CHECKER_PATH,
     BUILD_ONLY_CHECKER_PATH,
     INSTALL_ZIG_HELPER_PATH,
+    PHASE2_FIXDEP_GATE_CHECKER_PATH,
 ]
 
 WORKFLOW_STEP_NAMES = [
@@ -48,6 +50,8 @@ WORKFLOW_STEP_NAMES = [
     "Check current Phase 12 docs-root sanity markers",
     "Self-test current Phase 12 bootstrap lane checker",
     "Check current Phase 12 bootstrap lane shape",
+    "Self-test current Phase 2 fixdep gate checker",
+    "Check current Phase 2 fixdep gate packet",
     "Run current Phase 2 toolchain make route",
     "Validate current Phase 2 tool packet",
     "Check current Phase 4 artifact-diff validator replay packet",
@@ -88,6 +92,8 @@ WORKFLOW_COMMAND_MARKERS = [
     "python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
     "python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "python3 scripts/zigux/check-phase2-fixdep-gate.py",
     "make -C zigux phase2-toolchain",
     "python3 scripts/zigux/validate-phase2.py",
     "python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
@@ -116,6 +122,8 @@ WORKFLOW_EXACT_LINES = [
     "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
     "        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
     "        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py",
+    "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
     "        run: make -C zigux phase2-toolchain",
     "        run: python3 scripts/zigux/validate-phase12.py",
     "        run: make -C zigux phase12-smoke",
@@ -291,6 +299,10 @@ jobs:
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test
       - name: Check current Phase 12 bootstrap lane shape
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
+      - name: Self-test current Phase 2 fixdep gate checker
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
+      - name: Check current Phase 2 fixdep gate packet
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py
       - name: Run current Phase 2 toolchain make route
         run: make -C zigux phase2-toolchain
       - name: Validate current Phase 2 tool packet
@@ -344,6 +356,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / DOCS_SANITY_CHECKER_PATH, "#!/usr/bin/env python3\n")
     write_text(root / BUILD_ONLY_CHECKER_PATH, "#!/usr/bin/env python3\n")
     write_text(root / INSTALL_ZIG_HELPER_PATH, "#!/usr/bin/env python3\n")
+    write_text(root / PHASE2_FIXDEP_GATE_CHECKER_PATH, "#!/usr/bin/env python3\n")
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -367,6 +380,10 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         (base / INSTALL_ZIG_HELPER_PATH).unlink()
         expect_failure(base, f"missing_file:{INSTALL_ZIG_HELPER_PATH}")
+
+        write_fixture_tree(base)
+        (base / PHASE2_FIXDEP_GATE_CHECKER_PATH).unlink()
+        expect_failure(base, f"missing_file:{PHASE2_FIXDEP_GATE_CHECKER_PATH}")
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
@@ -408,6 +425,33 @@ def run_self_test() -> int:
         expect_failure(
             base,
             'workflow_marker:python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
+        )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "      - name: Self-test current Phase 2 fixdep gate checker\n        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Self-test current Phase 2 fixdep gate checker")
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "        run: python3 scripts/zigux/check-phase2-fixdep-gate.py\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(
+            base,
+            "workflow_exact_line:run: python3 scripts/zigux/check-phase2-fixdep-gate.py:expected=1:actual=0",
         )
 
         write_fixture_tree(base)
@@ -577,7 +621,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=15")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=18")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -588,7 +632,8 @@ def main() -> int:
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the "
             "workflow keeps its shipped current-master tail, the dedicated "
-            "docs-sanity checks, and the installer-helper self-test reviewable."
+            "docs-sanity checks, the Phase 2 fixdep gate checks, and the "
+            "installer-helper self-test reviewable."
         )
     )
     parser.add_argument(
