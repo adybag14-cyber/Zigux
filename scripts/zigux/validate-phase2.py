@@ -152,6 +152,15 @@ def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     raise AssertionError(f"marker line not found: {marker}")
 
 
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
 def phony_targets_present(text: str) -> set[str]:
     targets: set[str] = set()
     for line in text.splitlines():
@@ -239,6 +248,16 @@ def expect_issue(root: Path, expected: tuple[str, str]) -> None:
 
 
 def run_self_test() -> int:
+    expected_case_count = (
+        1
+        + len(REQUIRED_WORKFLOW_LINES)
+        + len(REQUIRED_WORKFLOW_LINES)
+        + len(DISALLOWED_WORKFLOW_LINES)
+        + 1
+        + len(REQUIRED_MAKEFILE_LINES)
+        + len(REQUIRED_MAKEFILE_LINES)
+        + (len(REQUIRED_PATHS) - 1)
+    )
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
         root = Path(tmp_dir)
@@ -251,6 +270,12 @@ def run_self_test() -> int:
             build_self_test_root(root)
             write_text(root, WORKFLOW, replace_exact_line(read_text(root, WORKFLOW), marker, "run: python3 scripts/zigux/other.py"))
             expect_issue(root, ("MISSING_WORKFLOW_LINE", marker))
+            checks += 1
+
+        for marker in REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), marker))
+            expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
             checks += 1
 
         for marker in DISALLOWED_WORKFLOW_LINES:
@@ -270,12 +295,19 @@ def run_self_test() -> int:
             expect_issue(root, ("MISSING_MAKEFILE_LINE", marker))
             checks += 1
 
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            write_text(root, MAKEFILE, duplicate_exact_line(read_text(root, MAKEFILE), marker))
+            expect_issue(root, ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2"))
+            checks += 1
+
         for rel in REQUIRED_PATHS[:-1]:
             build_self_test_root(root)
             (root / rel).unlink()
             expect_issue(root, ("MISSING_REQUIRED_PATH", rel))
             checks += 1
 
+    assert checks == expected_case_count
     print("PHASE2_VALIDATION_SELF_TEST=pass")
     print(f"PHASE2_VALIDATION_SELF_TEST_CASE_COUNT={checks}")
     return 0
