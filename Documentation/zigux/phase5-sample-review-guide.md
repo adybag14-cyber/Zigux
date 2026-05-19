@@ -182,7 +182,7 @@ Because current `master` keeps the restored direct bytestream sample-plus-tests 
 * one bytestream reminder-surface truthfulness repair at a time
 * one trace-events reminder-surface truthfulness repair at a time
 * one trace-events approved-idiom-gap repair at a time
-* one trace-events sample-root, tests-root, approved-idiom-gap, or shared-build reminder alignment repair at a time
+* one trace-events survey-note, sample-root, tests-root, manifest, survey-replay, approved-idiom-gap, or shared-build reminder alignment repair at a time
 * one kobject split-evidence reminder repair at a time
 
 Avoid:
