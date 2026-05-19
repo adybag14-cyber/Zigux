@@ -19,7 +19,8 @@
     "dw_wdt_registration_order_present": true,
     "dw_wdt_slice_note_present": true,
     "dw_wdt_survey_gate_present": true,
-    "dw_wdt_survey_note_present": true
+    "dw_wdt_survey_note_present": true,
+    "dw_wdt_pm_helper_present": true
   },
   "gaps": [
     {
@@ -101,10 +102,17 @@
     },
     {
       "id": "phase11-dw-wdt-live-platform-pm",
+      "status": "starter_landed",
+      "kind": "validation",
+      "zigux_destination": "drivers/watchdog/dw_wdt_pm.zig",
+      "why_now": "The bounded PM helper now keeps suspend and resume handoff reviewable across missing-drvdata blocks, running-hardware suspend stop intent, imported-running resume recovery, and timeout-reprogram blocks before live MMIO-backed PM work lands."
+    },
+    {
+      "id": "phase11-dw-wdt-live-mmio-validation",
       "status": "ready_next",
       "kind": "validation",
       "zigux_destination": "zigux/tests/phase11_dw_wdt.zig",
-      "why_now": "After the bounded scaffold stays stable, the next real gap is suspend and resume handling plus hardware-backed MMIO validation in a real platform-backed probe or remove execution slice, still without widening into unrelated driver behavior."
+      "why_now": "With the PM handoff helper parked in-tree, the next real gap is hardware-backed MMIO validation around suspend, resume, and platform-backed probe or remove execution, still without widening into unrelated driver behavior."
     }
   ]
 }
