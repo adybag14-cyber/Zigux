@@ -140,6 +140,73 @@ test "policy starter packet keeps unsafe alias symmetry explicit on shared recor
     }
 }
 
+test "policy starter packet keeps panic and allocator byte guards explicit" {
+    const bug_heap = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.bug),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const warn_arena = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 0,
+    };
+    const reserved = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.warn),
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.arena),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.raw_pointer_bridge),
+        .reserved = 1,
+    };
+    const unknown_panic = abi.InteropPolicy{
+        .panic_mode = 9,
+        .allocator_mode = @intFromEnum(abi.AllocatorMode.kernel_heap),
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+    const unknown_allocator = abi.InteropPolicy{
+        .panic_mode = @intFromEnum(abi.PanicMode.abort),
+        .allocator_mode = 9,
+        .unsafe_scope = @intFromEnum(abi.UnsafeScope.none),
+        .reserved = 0,
+    };
+
+    try testing.expectEqual(@as(?panic_policy.Escalation, .kernel_bug), panic_policy.escalationFromInteropPolicy(bug_heap));
+    try testing.expectEqual(@as(?panic_policy.Escalation, .warning_only), panic_policy.escalationFromInteropPolicy(warn_arena));
+    try testing.expectEqual(@as(?panic_policy.Escalation, null), panic_policy.escalationFromInteropPolicy(reserved));
+    try testing.expectEqual(@as(?panic_policy.Escalation, null), panic_policy.escalationFromInteropPolicy(unknown_panic));
+    try testing.expect(panic_policy.recognizesInteropPolicy(bug_heap));
+    try testing.expect(!panic_policy.recognizesInteropPolicy(reserved));
+    try testing.expect(!panic_policy.recognizesInteropPolicy(unknown_panic));
+    try testing.expect(panic_policy.causesImmediateHaltInteropPolicy(bug_heap));
+    try testing.expect(!panic_policy.causesImmediateHaltInteropPolicy(warn_arena));
+    try testing.expect(!panic_policy.causesImmediateHaltInteropPolicy(reserved));
+    try testing.expect(panic_policy.emitsKernelBugByte(@intFromEnum(abi.PanicMode.bug)));
+    try testing.expect(!panic_policy.emitsKernelBugByte(9));
+    try testing.expect(panic_policy.permitsWarningOnlyContinuationByte(@intFromEnum(abi.PanicMode.warn)));
+    try testing.expect(!panic_policy.permitsWarningOnlyContinuationPolicyBytes(@intFromEnum(abi.PanicMode.warn), 1));
+
+    try testing.expect(allocator_policy.recognizesInteropPolicy(bug_heap));
+    try testing.expect(allocator_policy.recognizesInteropPolicy(warn_arena));
+    try testing.expect(!allocator_policy.recognizesInteropPolicy(reserved));
+    try testing.expect(!allocator_policy.recognizesInteropPolicy(unknown_allocator));
+    try testing.expect(allocator_policy.permitsGlobalFallbackInteropPolicy(bug_heap));
+    try testing.expect(allocator_policy.permitsGlobalFallbackInteropPolicy(warn_arena));
+    try testing.expect(!allocator_policy.permitsGlobalFallbackInteropPolicy(reserved));
+    try testing.expect(allocator_policy.initializesOwnedStateInteropPolicy(bug_heap));
+    try testing.expect(allocator_policy.initializesOwnedStateInteropPolicy(warn_arena));
+    try testing.expect(!allocator_policy.initializesOwnedStateInteropPolicy(reserved));
+    try testing.expect(allocator_policy.requiresResetOnInitInteropPolicy(warn_arena));
+    try testing.expect(!allocator_policy.requiresResetOnInitInteropPolicy(bug_heap));
+    try testing.expect(!allocator_policy.requiresResetOnInitInteropPolicy(reserved));
+    try testing.expect(allocator_policy.requiresExplicitCallerByte(@intFromEnum(abi.AllocatorMode.caller_provided)));
+    try testing.expect(!allocator_policy.requiresExplicitCallerByte(@intFromEnum(abi.AllocatorMode.kernel_heap)));
+    try testing.expect(allocator_policy.permitsGlobalFallbackByte(@intFromEnum(abi.AllocatorMode.arena)));
+    try testing.expect(allocator_policy.requiresResetOnInitByte(@intFromEnum(abi.AllocatorMode.arena)));
+    try testing.expect(!allocator_policy.requiresResetOnInitByte(9));
+}
+
 test "panic policy starter packet keeps escalation semantics explicit" {
     try testing.expectEqual(panic_policy.Escalation.immediate_abort, panic_policy.escalationFor(.abort));
     try testing.expectEqual(panic_policy.Escalation.kernel_bug, panic_policy.escalationFor(.bug));
