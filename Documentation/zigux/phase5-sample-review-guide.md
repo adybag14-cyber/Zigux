@@ -26,7 +26,7 @@ Treat those four anchors as the approved Phase 5 destination set unless the road
 
 ## Current repo reality on `master`
 
-Fresh repo-first inspection on 2026-05-18 confirmed that current `master` now directly serves the bounded bytestream sample-plus-tests packet through these paths:
+Fresh repo-first inspection on 2026-05-19 confirmed that current `master` now directly serves the bounded bytestream sample-plus-tests packet through these paths:
 
 * `Documentation/zigux/phase5-kfifo-sample-survey.md`
 * `samples/zigux/bytestream_fifo.zig`
@@ -39,8 +39,9 @@ That same reread also confirmed that the shared build companion still needs to s
 * `zigux/tests/phase5_build.zig`
 
 Keep the direct bytestream sample-plus-tests packet explicit while the shared build companion stays framed as current public-tree-backed evidence instead of flattening the packet back into a sample-only story or treating the shared build route as returned authenticated proof.
+Fresh 2026-05-19 reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries three in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps four focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps four survey-packet checks aligned with the survey note and manifest.
 
-The same 2026-05-18 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:
+The same 2026-05-19 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:
 
 * `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`
 * `Documentation/zigux/phase5-sample-lane-sequencing.md`
@@ -82,6 +83,7 @@ Keep the dedicated scripts-side review-guide guard explicit too: `scripts/zigux/
 ## Bytestream posture
 
 For `kfifo`, follow the restored direct sample-plus-tests packet through `Documentation/zigux/phase5-kfifo-sample-survey.md`, `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig`.
+Current `master` keeps that packet sharper than the older sample-only story: `samples/zigux/bytestream_fifo.zig` now carries three in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps four focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps four survey-packet checks aligned with the note and manifest.
 
 Keep the current ten-cue review contract explicit in shared contributor guidance when a bytestream reminder surface is refreshed:
 
