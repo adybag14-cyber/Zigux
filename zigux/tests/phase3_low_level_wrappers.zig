@@ -79,6 +79,26 @@ test "phase3 low-level wrappers keep MMIO unsafe-scope gates explicit across sha
     try std.testing.expectEqual(updated, register);
 }
 
+test "phase3 low-level wrappers keep MMIO byte-policy shorthand aligned with reserved-byte gates" {
+    try std.testing.expect(mmio.allowsInteropPolicyByte(1));
+    try std.testing.expect(mmio.allowsInteropPolicyBytes(1, 0));
+    try mmio.requireInteropPolicyByte(1);
+    try mmio.requireInteropPolicyBytes(1, 0);
+
+    try std.testing.expect(!mmio.allowsInteropPolicyByte(0));
+    try std.testing.expect(!mmio.allowsInteropPolicyBytes(0, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicyByte(0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicyBytes(0, 0));
+
+    try std.testing.expect(!mmio.allowsInteropPolicyByte(2));
+    try std.testing.expect(!mmio.allowsInteropPolicyBytes(2, 0));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicyByte(2));
+    try std.testing.expectError(error.UnsafeScopeDenied, mmio.requireInteropPolicyBytes(2, 0));
+
+    try std.testing.expect(!mmio.allowsInteropPolicyBytes(1, 1));
+    try std.testing.expectError(error.InvalidInteropPolicy, mmio.requireInteropPolicyBytes(1, 1));
+}
+
 test "phase3 low-level wrappers keep exchange-style MMIO policy handoffs explicit" {
     var register: u16 = 0x55AA;
     const register_ptr: *volatile u16 = @ptrCast(&register);
