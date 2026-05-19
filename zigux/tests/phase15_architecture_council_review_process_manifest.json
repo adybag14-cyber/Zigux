@@ -12,6 +12,7 @@
   "build_gate": "zigux/tests/phase15_architecture_council_review_process_build.zig",
   "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
   "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+  "review_checklist_stay_in_c_policy_boundary_rule": "`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
   "required_review_fields": [
     "exact Linux anchor path",
     "roadmap phase",
