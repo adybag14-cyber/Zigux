@@ -340,15 +340,15 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
 
         validated.append(validated_case)
 
+    missing_names = sorted(set(EXPECTED_CASES) - seen_name_set)
+    if missing_names:
+        raise ValueError(f"{CASES_PATH}:missing_name:{missing_names[0]}")
+
     if seen_names != EXPECTED_CASE_ORDER:
         raise ValueError(f"{CASES_PATH}:case_order={seen_names!r},expected={EXPECTED_CASE_ORDER!r}")
 
     if len(validated) != len(EXPECTED_CASES):
         raise ValueError(f"{CASES_PATH}:count={len(validated)},expected={len(EXPECTED_CASES)}")
-
-    missing_names = sorted(set(EXPECTED_CASES) - seen_name_set)
-    if missing_names:
-        raise ValueError(f"{CASES_PATH}:missing_name:{missing_names[0]}")
 
     return validated
 
@@ -440,6 +440,14 @@ def run_self_test() -> int:
         "unexpected_field",
         lambda: validate_cases(unexpected_field_cases),
         f"{CASES_PATH}:sample:unexpected_field:unexpected_field",
+    )
+
+    missing_expected_name_cases = copy_valid_cases(valid_cases)
+    missing_expected_name_cases.pop()
+    counted_expect_failure(
+        "missing_expected_name",
+        lambda: validate_cases(missing_expected_name_cases),
+        f"{CASES_PATH}:missing_name:sample_output_write",
     )
 
     expected_stdout_alias_cases = copy_valid_cases(valid_cases)
