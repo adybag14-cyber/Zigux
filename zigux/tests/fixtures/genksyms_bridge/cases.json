@@ -1,0 +1,295 @@
+[
+  {
+    "name": "minimal",
+    "argv": [],
+    "mode": "stdout_json",
+    "expected": "minimal_expected.json"
+  },
+  {
+    "name": "debug_reference_types",
+    "argv": [
+      "-d",
+      "-d",
+      "-D",
+      "-w",
+      "-p",
+      "-r",
+      "foo.symref",
+      "-r",
+      "bar.symref",
+      "-T",
+      "out.symtypes"
+    ],
+    "mode": "stdout_json",
+    "expected": "debug_reference_types_expected.json"
+  },
+  {
+    "name": "long_options",
+    "argv": [
+      "--debug",
+      "--warnings",
+      "--quiet",
+      "--reference=foo.symref",
+      "--dump-types",
+      "types.symtypes",
+      "--preserve"
+    ],
+    "mode": "stdout_json",
+    "expected": "long_options_expected.json"
+  },
+  {
+    "name": "abbreviated_long_options",
+    "argv": [
+      "--deb",
+      "--warn",
+      "--qui",
+      "--ref=foo.symref",
+      "--dump-t",
+      "types.symtypes",
+      "--pres"
+    ],
+    "mode": "stdout_json",
+    "expected": "abbreviated_long_options_expected.json"
+  },
+  {
+    "name": "ambiguous_long_option",
+    "argv": [
+      "--d"
+    ],
+    "mode": "process_json",
+    "expected": "ambiguous_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "missing_long_reference_argument",
+    "argv": [
+      "--reference"
+    ],
+    "mode": "process_json",
+    "expected": "missing_long_reference_argument_expected.json"
+  },
+  {
+    "name": "empty_inline_long_reference_argument",
+    "argv": [
+      "--reference="
+    ],
+    "mode": "process_json",
+    "expected": "missing_long_reference_argument_expected.json"
+  },
+  {
+    "name": "missing_long_dump_types_argument",
+    "argv": [
+      "--dump-types"
+    ],
+    "mode": "process_json",
+    "expected": "missing_long_dump_types_argument_expected.json"
+  },
+  {
+    "name": "empty_inline_abbreviated_long_dump_types_argument",
+    "argv": [
+      "--dump-t="
+    ],
+    "mode": "process_json",
+    "expected": "missing_long_dump_types_argument_expected.json"
+  },
+  {
+    "name": "missing_short_dump_types_argument",
+    "argv": [
+      "-T"
+    ],
+    "mode": "process_json",
+    "expected": "missing_short_dump_types_argument_expected.json"
+  },
+  {
+    "name": "unexpected_long_option_argument",
+    "argv": [
+      "--help=extra"
+    ],
+    "mode": "process_json",
+    "expected": "unexpected_long_option_argument_expected.json"
+  },
+  {
+    "name": "version_before_invalid_short_option",
+    "argv": [
+      "-Vx"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_invalid_short_option_expected.json"
+  },
+  {
+    "name": "long_version_before_invalid_short_option",
+    "argv": [
+      "--version",
+      "-x"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_invalid_short_option_expected.json"
+  },
+  {
+    "name": "abbreviated_long_version_before_invalid_short_option",
+    "argv": [
+      "--ver",
+      "-x"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_invalid_short_option_expected.json"
+  },
+  {
+    "name": "long_version_before_invalid_long_option",
+    "argv": [
+      "--version",
+      "--unknown"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_invalid_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "abbreviated_long_version_before_invalid_long_option",
+    "argv": [
+      "--ver",
+      "--unknown"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_invalid_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "version_before_missing_short_option_argument",
+    "argv": [
+      "-Vr"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_missing_short_option_argument_expected.json"
+  },
+  {
+    "name": "version_before_short_help",
+    "argv": [
+      "-Vh"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_short_help_expected.json"
+  },
+  {
+    "name": "long_version_before_short_help",
+    "argv": [
+      "--version",
+      "-h"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_short_help_expected.json"
+  },
+  {
+    "name": "version_before_long_help",
+    "argv": [
+      "-V",
+      "--help"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_long_help_expected.json"
+  },
+  {
+    "name": "long_version_before_long_help",
+    "argv": [
+      "--version",
+      "--help"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_long_help_expected.json"
+  },
+  {
+    "name": "abbreviated_long_version_before_long_help",
+    "argv": [
+      "--ver",
+      "--help"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_long_help_expected.json"
+  },
+  {
+    "name": "abbreviated_long_version_before_short_help",
+    "argv": [
+      "--ver",
+      "-h"
+    ],
+    "mode": "process_json",
+    "expected": "version_before_short_help_expected.json"
+  },
+  {
+    "name": "repeated_version",
+    "argv": [
+      "-VV"
+    ],
+    "mode": "process_json",
+    "expected": "repeated_version_expected.json"
+  },
+  {
+    "name": "repeated_long_version",
+    "argv": [
+      "--version",
+      "--ver"
+    ],
+    "mode": "process_json",
+    "expected": "repeated_version_expected.json"
+  },
+  {
+    "name": "unsupported_long_option",
+    "argv": [
+      "--unknown"
+    ],
+    "mode": "process_json",
+    "expected": "unsupported_long_option_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "too_many_reference_files",
+    "argv": [
+      "-r",
+      "01.symref",
+      "-r",
+      "02.symref",
+      "-r",
+      "03.symref",
+      "-r",
+      "04.symref",
+      "-r",
+      "05.symref",
+      "-r",
+      "06.symref",
+      "-r",
+      "07.symref",
+      "-r",
+      "08.symref",
+      "-r",
+      "09.symref",
+      "-r",
+      "10.symref",
+      "-r",
+      "11.symref",
+      "-r",
+      "12.symref",
+      "-r",
+      "13.symref",
+      "-r",
+      "14.symref",
+      "-r",
+      "15.symref",
+      "-r",
+      "16.symref",
+      "-r",
+      "17.symref"
+    ],
+    "mode": "process_json",
+    "expected": "too_many_reference_files_expected.json",
+    "normalize_stderr": true
+  },
+  {
+    "name": "quiet_overrides_warning",
+    "argv": [
+      "-w",
+      "-q"
+    ],
+    "mode": "stdout_json",
+    "expected": "quiet_overrides_warning_expected.json"
+  }
+]
