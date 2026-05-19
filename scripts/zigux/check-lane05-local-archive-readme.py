@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import tempfile
@@ -69,6 +70,14 @@ def expected_archive_filename(target: str, channel: str) -> str:
 def duplicate_archive_name(expected_filename: str) -> str:
     stem = expected_filename[: -len(".tar.xz")]
     return f"{stem} (1).tar.xz"
+
+
+def compute_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def validate_readme(root: Path) -> tuple[str, int, str]:
@@ -141,12 +150,24 @@ def validate_readme(root: Path) -> tuple[str, int, str]:
             raise ValueError(
                 f"expected {archive_path} to be {expected_size} bytes, got {actual_size}"
             )
+        actual_sha = compute_sha256(archive_path)
+        if actual_sha != expected_sha:
+            raise ValueError(
+                f"expected {archive_path} to have sha256 {expected_sha}, got {actual_sha}"
+            )
         payload_status = "present"
 
     return target, len(required_markers), payload_status
 
 
-def write_fixture(root: Path, *, include_archive: bool = False, archive_size: int | None = None, duplicate_copy: bool = False) -> None:
+def write_fixture(
+    root: Path,
+    *,
+    include_archive: bool = False,
+    archive_size: int | None = None,
+    archive_bytes: bytes = b"x",
+    duplicate_copy: bool = False,
+) -> None:
     scripts_dir = root / "scripts" / "zigux"
     scripts_dir.mkdir(parents=True, exist_ok=True)
     third_party_dir = root / "third_party"
@@ -160,7 +181,9 @@ def write_fixture(root: Path, *, include_archive: bool = False, archive_size: in
     if include_archive:
         payload_name = "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2.tar.xz"
         archive_path = third_party_dir / payload_name
-        archive_path.write_bytes(b"x" * (archive_size if archive_size is not None else EXPECTED_ARCHIVE_SIZES["x86_64-linux"]))
+        size = archive_size if archive_size is not None else EXPECTED_ARCHIVE_SIZES["x86_64-linux"]
+        repeat_count = (size + len(archive_bytes) - 1) // len(archive_bytes)
+        archive_path.write_bytes((archive_bytes * repeat_count)[:size])
         if duplicate_copy:
             (third_party_dir / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2 (1).tar.xz").write_bytes(b"x")
 
@@ -191,7 +214,6 @@ def run_self_test() -> int:
             raise AssertionError("expected validate_readme to fail")
 
     expect_pass()
-    expect_pass(include_archive=True)
     expect_failure(
         lambda root: (root / README_PATH).write_text("missing markers\n", encoding="utf-8"),
         "missing required markers",
@@ -203,6 +225,14 @@ def run_self_test() -> int:
     expect_failure(
         lambda root: write_fixture(root, include_archive=True, duplicate_copy=True),
         "duplicate-suffix archive copies",
+    )
+    expect_failure(
+        lambda root: write_fixture(
+            root,
+            include_archive=True,
+            archive_bytes=b"wrong-bytes",
+        ),
+        "to have sha256 313b231e76f3cc9b718044602dbc3c42b531693507203a6baf2fa892c9533e77",
     )
 
     print("LANE05_LOCAL_ARCHIVE_README_SELF_TEST=pass")
