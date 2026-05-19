@@ -59,6 +59,30 @@ CHECKER_OUTPUT_MARKERS = (
     'print(f"PHASE2_DIRECT_CROSS_ROUTE_ARCHIVE_SCOPE_COUNT={len(load_archive_target_scope(args.root.resolve()))}")',
 )
 
+CHECKER_ISSUE_CODE_LINES = (
+    '"MISSING_MAKEFILE_LINE",',
+    '"DUPLICATE_MAKEFILE_LINE",',
+    '"ARCHIVE_HASH_SCOPE_MISMATCH",',
+    '"INVALID_FIXTURE_SHAPE",',
+    '"UNEXPECTED_FIXTURE_FIELD",',
+    '"INVALID_FIXTURE_FIELD",',
+    '"INVALID_FIXTURE_ARCHIVE_SCOPE_ENTRY",',
+    '"DUPLICATE_FIXTURE_ARCHIVE_SCOPE",',
+    '"ARCHIVE_SCOPE_MISMATCH",',
+    '"INVALID_CROSS_TARGET_ENTRY",',
+    '"UNEXPECTED_CROSS_TARGET_FIELD",',
+    '"DUPLICATE_CROSS_TARGET",',
+    '"UNEXPECTED_CROSS_TARGET",',
+    '"INVALID_CROSS_TARGET_ROUTE",',
+    '"INVALID_CROSS_TARGET_REVIEW_STATUS",',
+    '"INVALID_CROSS_TARGET_MODE",',
+    '"INVALID_CROSS_TARGET_EXPECTED_MODE",',
+    '"CROSS_TARGET_SET_MISMATCH",',
+    '"CROSS_TARGET_ORDER_MISMATCH",',
+    '"ARCHIVE_REQUIRED_TARGET_SET_MISMATCH",',
+    '"ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",',
+)
+
 TARGETS_MANIFEST_MARKERS = (
     '"phase": "Phase 2",',
     '"status": "active",',
@@ -161,12 +185,21 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     checker_path = resolved_surfaces[PHASE2_CROSS_CHECKER]
     if checker_path.exists():
+        checker_text = read_text(checker_path)
         issues.extend(
             collect_exact_line_issues(
-                read_text(checker_path),
+                checker_text,
                 CHECKER_OUTPUT_MARKERS,
                 "MISSING_CHECKER_OUTPUT_MARKERS",
                 "DUPLICATE_CHECKER_OUTPUT_MARKERS",
+            )
+        )
+        issues.extend(
+            collect_exact_line_issues(
+                checker_text,
+                CHECKER_ISSUE_CODE_LINES,
+                "MISSING_CHECKER_ISSUE_CODE_LINES",
+                "DUPLICATE_CHECKER_ISSUE_CODE_LINES",
             )
         )
 
@@ -208,7 +241,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, KBUILD_ROUTES), "\n".join(KBUILD_ROUTE_MARKERS) + "\n")
     write_text(resolve_path(root, TOOLCHAIN_PINNING), "\n".join(TOOLCHAIN_PINNING_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_ALIGNMENT), "\n".join(TESTS_ALIGNMENT_MARKERS) + "\n")
-    write_text(resolve_path(root, PHASE2_CROSS_CHECKER), "\n".join(CHECKER_OUTPUT_MARKERS) + "\n")
+    write_text(
+        resolve_path(root, PHASE2_CROSS_CHECKER),
+        "\n".join((*CHECKER_OUTPUT_MARKERS, *CHECKER_ISSUE_CODE_LINES)) + "\n",
+    )
     write_text(resolve_path(root, TARGETS_MANIFEST), "\n".join(TARGETS_MANIFEST_MARKERS) + "\n")
 
 
@@ -275,6 +311,12 @@ def run_self_test() -> int:
                 CHECKER_OUTPUT_MARKERS,
                 "MISSING_CHECKER_OUTPUT_MARKERS",
                 "DUPLICATE_CHECKER_OUTPUT_MARKERS",
+            ),
+            (
+                PHASE2_CROSS_CHECKER,
+                CHECKER_ISSUE_CODE_LINES,
+                "MISSING_CHECKER_ISSUE_CODE_LINES",
+                "DUPLICATE_CHECKER_ISSUE_CODE_LINES",
             ),
         )
 
@@ -363,7 +405,7 @@ def main() -> int:
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
-        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS) + len(CHECKER_OUTPUT_MARKERS) + len(TARGETS_MANIFEST_MARKERS)}"
+        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS) + len(CHECKER_OUTPUT_MARKERS) + len(CHECKER_ISSUE_CODE_LINES) + len(TARGETS_MANIFEST_MARKERS)}"
     )
     print(f"PHASE2_CROSS_ALIGNMENT_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
     return 0
