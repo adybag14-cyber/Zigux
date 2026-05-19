@@ -229,6 +229,7 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
 
     try expectContains(slice_note, "do not count `scripts/zigux/validate-phase7.py`");
     try expectContains(slice_note, "do not count `zigux/tests/phase7_build.zig`");
+    try expectContains(slice_note, "do not count `make -C zigux phase7-test`");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_string_helpers_sample_boundary.zig");
     defer allocator.free(sample_boundary);
