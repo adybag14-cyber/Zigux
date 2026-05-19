@@ -71,6 +71,10 @@ fn validatePerfMatrix() !void {
     if (!saw_64b or !saw_1501b) return error.ChecksumPerfMatrixMismatch;
 }
 
+test "phase 6 checksum perf matrix preflight stays aligned with the documented packet" {
+    try validatePerfMatrix();
+}
+
 fn referenceInternetChecksum(bytes: []const u8) u16 {
     var acc: u64 = 0;
     var index: usize = 0;
