@@ -64,12 +64,13 @@ REQUIRED_WORKFLOW_LINES = (
     "run: zig test scripts/zigux/fixdep.zig",
 )
 
-FORBIDDEN_MAKEFILE_LINES = (
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-fixdep-gate.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-fixdep-gate.py",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-fixdep-diff.py --self-test",
-    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-fixdep-diff.py",
-    "zig test scripts/zigux/fixdep.zig",
+REQUIRED_MAKEFILE_LINES = (
+    "phase2-fixdep:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
 )
 
 EXPECTED_SELF_TEST_CASE_COUNT = (
@@ -81,7 +82,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(TESTS_README_REQUIRED_MARKERS)
     + len(REQUIRED_WORKFLOW_LINES)
     + len(REQUIRED_WORKFLOW_LINES)
-    + len(FORBIDDEN_MAKEFILE_LINES)
+    + len(REQUIRED_MAKEFILE_LINES)
+    + len(REQUIRED_MAKEFILE_LINES)
     + len(REQUIRED_FILES)
 )
 
@@ -120,17 +122,6 @@ def collect_required_exact_lines(
             issues.append((missing_code, marker))
         elif count != 1:
             issues.append((duplicate_code, f"{marker}:count={count}"))
-    return issues
-
-
-def collect_forbidden_exact_lines(
-    text: str, markers: tuple[str, ...], code: str
-) -> list[tuple[str, str]]:
-    issues: list[tuple[str, str]] = []
-    for marker in markers:
-        count = count_exact_lines(text, marker)
-        if count != 0:
-            issues.append((code, f"{marker}:count={count}"))
     return issues
 
 
@@ -179,7 +170,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(
-        collect_forbidden_exact_lines(makefile_text, FORBIDDEN_MAKEFILE_LINES, "UNEXPECTED_MAKEFILE_LINE")
+        collect_required_exact_lines(
+            makefile_text,
+            REQUIRED_MAKEFILE_LINES,
+            "MISSING_MAKEFILE_LINE",
+            "DUPLICATE_MAKEFILE_LINE",
+        )
     )
 
     return issues
@@ -283,7 +279,13 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(
             (
                 "PYTHON ?= python3",
-                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2",
+                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2",
+                "phase2-fixdep:",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+                "\tcd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+                "\tcd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
                 "phase2: phase2-validate",
             )
         )
@@ -362,11 +364,18 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
-        for marker in FORBIDDEN_MAKEFILE_LINES:
+        for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             path = resolve(root, MAKEFILE_REL)
-            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count=1") in collect_issues(root)
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
+            assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve(root, MAKEFILE_REL)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_MAKEFILE_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for rel in REQUIRED_FILES:
@@ -401,7 +410,7 @@ def main() -> int:
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
-    print(f"PHASE2_FIXDEP_GATE_FORBIDDEN_MAKEFILE_LINE_COUNT={len(FORBIDDEN_MAKEFILE_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
     return 0
 
 
