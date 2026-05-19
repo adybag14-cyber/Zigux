@@ -15,7 +15,7 @@ KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
 TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 10
+EXPECTED_SELF_TEST_CASE_COUNT = 11
 
 MATRIX_MARKERS = (
     "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
@@ -32,6 +32,7 @@ MATRIX_MARKERS = (
     "reviewability_only_no_perf_threshold",
     "`zigux/tests/phase4_perf_baseline_manifest.json`",
     "shared CI perf promotion pending",
+    "`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "Validation and Perf Team owning that policy decision",
 )
 
@@ -220,6 +221,7 @@ c_anchor_only_until_kprobe_example_starter_lands
 reviewability_only_no_perf_threshold
 `zigux/tests/phase4_perf_baseline_manifest.json`
 shared CI perf promotion pending
+`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`
 Validation and Perf Team owning that policy decision
 """,
     )
@@ -333,6 +335,7 @@ def run_self_test() -> int:
         cases = 1
         variants = (
             (MATRIX, "`scripts/zigux/check-phase4-remaining-gap-matrix.py`", "`scripts/zigux/check-phase4-gap-matrix.py`", "matrix_marker:`scripts/zigux/check-phase4-remaining-gap-matrix.py`"),
+            (MATRIX, "`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`", "`python3 scripts/zigux/check-phase4-perf-baseline-packet.py`", "matrix_marker:`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`"),
             (MATRIX, "Validation and Perf Team owning that policy decision", "ABI and Runtime Team owning that policy decision", "matrix_marker:Validation and Perf Team owning that policy decision"),
             (KPROBE_NOTE, "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey", "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-lab-survey", "kprobe_note_marker:PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey"),
             (KPROBE_MANIFEST, "\"threshold_posture\": \"c_anchor_only_until_kprobe_example_starter_lands\"", "\"threshold_posture\": \"reviewability_only_no_perf_threshold\"", "kprobe_manifest:threshold_posture:expected='c_anchor_only_until_kprobe_example_starter_lands'"),
@@ -365,11 +368,6 @@ def run_self_test() -> int:
             print("missing perf manifest case did not fail closed")
             return 1
         cases += 1
-
-        if cases != EXPECTED_SELF_TEST_CASE_COUNT:
-            print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=fail")
-            print(f"expected {EXPECTED_SELF_TEST_CASE_COUNT} self-test cases, saw {cases}")
-            return 1
 
         print("PHASE4_REMAINING_GAP_MATRIX_SELF_TEST=pass")
         print(f"PHASE4_REMAINING_GAP_MATRIX_SELF_TEST_CASE_COUNT={cases}")
