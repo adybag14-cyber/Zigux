@@ -18,6 +18,7 @@ UAPI_VERSION = Path("zigux/uapi/version.zig")
 BINDING_ABI = Path("zigux/bindings/abi.zig")
 BINDING_DEV_T = Path("zigux/bindings/dev_t.zig")
 BINDING_VERSION = Path("zigux/bindings/version.zig")
+BINDING_HEADER_FAMILY = Path("zigux/bindings/header_family.zig")
 BINDING_NOTIFIER = Path("zigux/bindings/notifier_abi.zig")
 EXPORT_SHIM = Path("zigux/kernel/export_shim.zig")
 PHASE3_CATALOG = Path("scripts/zigux/phase3_catalog.py")
@@ -37,15 +38,19 @@ REQUIRED_MARKERS = {
         "zigux/uapi/version.zig",
         "zigux/bindings/dev_t.zig",
         "zigux/bindings/version.zig",
+        "zigux/bindings/header_family.zig",
         "zigux/bindings/abi.zig",
         "zigux/bindings/notifier_abi.zig",
         "zigux/kernel/export_shim.zig",
         "scripts/zigux/check-phase3-abi.py",
         "scripts/zigux/validate-phase3.py",
         "scripts/zigux/phase3_catalog.py",
+        "scripts/zigux/validate-phase3-abi-header-family-survey.py",
         "zigux/tests/phase3_abi.zig",
         "zigux/tests/build.zig",
         "zigux/tests/phase3_abi_dump_current.zig",
+        "zigux/tests/phase3_export_uapi_layout.zig",
+        "zigux/tests/phase3_export_uapi_layout_build.zig",
         "scripts/zigux/check-phase3-catalog-selftest.py",
         "zigux/tests/fixtures/phase3_abi_manifest.json",
     ),
@@ -120,6 +125,20 @@ REQUIRED_MARKERS = {
         "pub fn current() Version {",
         "pub fn matchesCurrent(version: Version) bool {",
     ),
+    BINDING_HEADER_FAMILY: (
+        'const abi = @import("abi_bindings");',
+        'const dev_t_binding = @import("dev_t_binding");',
+        'const version_binding = @import("version_binding");',
+        'const uapi_version = @import("uapi_version");',
+        "pub const abi_major: u32 = uapi_version.abi_major;",
+        "pub const header_family_revision: u32 = uapi_version.header_family_revision;",
+        "pub const BoundaryHeader = abi.BoundaryHeader;",
+        "pub fn currentVersion() Version {",
+        "pub fn currentBoundaryHeader(flags: u16) BoundaryHeader {",
+        "pub fn boundaryHeaderRequestedExtraBytes(header: BoundaryHeader) u32 {",
+        "pub fn initDevTFields(major: u32, minor: u32) DevTFields {",
+        "pub fn validateDevTRange(start: DevTFields, end: DevTFields) bool {",
+    ),
     BINDING_NOTIFIER: (
         "pub const NotifierResult = enum(u32) {",
         "done = 0,",
@@ -178,7 +197,7 @@ REQUIRED_MARKERS = {
     ),
     PHASE3_CATALOG: (
         'PHASE3_CATALOG_SCOPE = "abi-runtime"',
-        'Path("scripts/zigux/phase3_catalog.py")',
+        'Path("zigux/bindings/header_family.zig")',
         'print("PHASE3_CATALOG_SELF_TEST=pass")',
     ),
     ABI_TEST: (
@@ -191,10 +210,13 @@ REQUIRED_MARKERS = {
     ),
     TESTS_BUILD: (
         "const phase3_abi_core_packet = addPhase3AbiCorePacket(b, target, optimize);",
+        "const phase3_export_uapi_layout = addPhase3ExportUapiLayout(b, target, optimize);",
         "const phase3_abi_dump = addPhase3AbiDump(b, target, optimize);",
         '"phase3-abi-core-packet"',
+        '"phase3-export-uapi-layout"',
         '"phase3-dump"',
         "phase3_test_step.dependOn(&phase3_abi_core_packet.step);",
+        "phase3_test_step.dependOn(&phase3_export_uapi_layout.step);",
     ),
     ABI_DUMP: (
         'const abi = @import("abi_bindings");',
@@ -204,42 +226,47 @@ REQUIRED_MARKERS = {
         "const header_is_canonical = abi.headerIsCanonical(default_header);",
         "abi.STATUS_FLAG_ERROR,",
         "abi.NOTIFIER_DONE,",
-        '@offsetOf(abi.NotifierBlock, \\\"priority\\\"),',
-        '"  \\\"abi_version\\\": {},\\n"',
-        '"  \\\"notifier\\\": {{\\n',
+        '@offsetOf(abi.NotifierBlock, \"priority\"),',
+        '"  \"abi_version\": {},\\n"',
+        '"  \"notifier\": {{\\n"',
     ),
     MANIFEST_PATH: (
         '"phase": "Phase 3"',
         '"lane": "abi-runtime"',
         '"slug": "phase3-abi-packet"',
-        '"status": "shared_abi_binding_surface_present"',
-        '"scope": "shared ABI bindings, notifier layouts, export-status layout, and header-compatibility replay"',
+        '"status": "shared_abi_and_header_family_binding_surface_present"',
+        '"scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay"',
         '"Documentation/zigux/phase3-abi-slice.md"',
+        '"Documentation/zigux/phase3-abi-header-family-survey.md"',
         '"zigux/bindings/abi.zig"',
+        '"zigux/bindings/header_family.zig"',
         '"zigux/bindings/notifier_abi.zig"',
         '"scripts/zigux/validate-phase3.py"',
+        '"scripts/zigux/validate-phase3-abi-header-family-survey.py"',
         '"scripts/zigux/phase3_catalog.py"',
         '"zigux/tests/phase3_abi.zig"',
         '"zigux/tests/phase3_abi_dump_current.zig"',
         '"python3 scripts/zigux/check-phase3-abi.py --self-test"',
+        '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
+        '"zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"',
         '"zig build phase3-abi-core-packet --build-file zigux/tests/build.zig"',
         '"zig build phase3-dump --build-file zigux/tests/build.zig"',
-        '"next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work"',
+        '"next_safe_step": "keep the shared ABI packet bounded to manifest-backed header-family parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into later Phase 3 catalog or export/UAPI survey work"',
     ),
 }
 
 SELF_TEST_CASES = (
-    (ABI_SLICE_NOTE, "scripts/zigux/check-phase3-abi.py"),
-    (ABI_SLICE_NOTE, "scripts/zigux/phase3_catalog.py"),
-    (ABI_SLICE_NOTE, "zigux/tests/phase3_abi.zig"),
-    (ABI_SLICE_NOTE, "zigux/tests/phase3_abi_dump_current.zig"),
+    (ABI_SLICE_NOTE, "zigux/bindings/header_family.zig"),
+    (ABI_SLICE_NOTE, "scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+    (ABI_SLICE_NOTE, "zigux/tests/phase3_export_uapi_layout.zig"),
+    (BINDING_HEADER_FAMILY, "pub fn currentBoundaryHeader(flags: u16) BoundaryHeader {"),
     (BINDING_ABI, "pub const NotifierResult = notifier_abi.NotifierResult;"),
     (BINDING_ABI, "pub const ABI_VERSION: u16 = 1;"),
     (EXPORT_SHIM, "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {"),
     (ABI_TEST, 'test "phase3 abi keeps policy helper decoding aligned with interop policy bytes" {'),
     (ABI_DUMP, "abi.NOTIFIER_DONE,"),
-    (PHASE3_CATALOG, 'print("PHASE3_CATALOG_SELF_TEST=pass")'),
-    (MANIFEST_PATH, '"slug": "phase3-abi-packet"'),
+    (PHASE3_CATALOG, 'Path("zigux/bindings/header_family.zig")'),
+    (MANIFEST_PATH, '"status": "shared_abi_and_header_family_binding_surface_present"'),
 )
 
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+ZIGUX_([A-Z0-9_]+)\b", re.MULTILINE)
@@ -249,13 +276,14 @@ REQUIRED_MANIFEST_FIELDS = {
     "phase": "Phase 3",
     "lane": "abi-runtime",
     "slug": "phase3-abi-packet",
-    "status": "shared_abi_binding_surface_present",
-    "scope": "shared ABI bindings, notifier layouts, export-status layout, and header-compatibility replay",
-    "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work",
+    "status": "shared_abi_and_header_family_binding_surface_present",
+    "scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
+    "next_safe_step": "keep the shared ABI packet bounded to manifest-backed header-family parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into later Phase 3 catalog or export/UAPI survey work",
 }
 
 REQUIRED_PACKET_FILES = (
     "Documentation/zigux/phase3-abi-slice.md",
+    "Documentation/zigux/phase3-abi-header-family-survey.md",
     "include/zigux/abi.h",
     "include/linux/zigux.h",
     "include/zigux/dev_t.h",
@@ -264,9 +292,11 @@ REQUIRED_PACKET_FILES = (
     "zigux/bindings/abi.zig",
     "zigux/bindings/dev_t.zig",
     "zigux/bindings/version.zig",
+    "zigux/bindings/header_family.zig",
     "zigux/bindings/notifier_abi.zig",
     "zigux/kernel/export_shim.zig",
     "scripts/zigux/validate-phase3.py",
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "scripts/zigux/phase3_catalog.py",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
@@ -277,6 +307,9 @@ REQUIRED_PACKET_FILES = (
 REQUIRED_REPLAY_ROUTES = (
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
+    "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
+    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig",
 )
@@ -287,12 +320,12 @@ SAMPLE_MANIFEST = {
     "phase": "Phase 3",
     "lane": "abi-runtime",
     "slug": "phase3-abi-packet",
-    "status": "shared_abi_binding_surface_present",
-    "scope": "shared ABI bindings, notifier layouts, export-status layout, and header-compatibility replay",
+    "status": "shared_abi_and_header_family_binding_surface_present",
+    "scope": "shared ABI bindings, header-family follow-through, notifier layouts, export-status layout, and header-compatibility replay",
     "packet_files": list(REQUIRED_PACKET_FILES),
     "replay_routes": list(REQUIRED_REPLAY_ROUTES),
     "repo_reality_gaps": list(REQUIRED_REPO_REALITY_GAPS),
-    "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work",
+    "next_safe_step": "keep the shared ABI packet bounded to manifest-backed header-family parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into later Phase 3 catalog or export/UAPI survey work",
 }
 
 
@@ -545,7 +578,7 @@ def main() -> int:
         return 1
 
     print("PHASE3_ABI_CHECK=pass")
-    print("PHASE3_ABI_SCOPE=shared-abi-packet")
+    print("PHASE3_ABI_SCOPE=shared-abi-and-header-family-packet")
     return 0
 
 
