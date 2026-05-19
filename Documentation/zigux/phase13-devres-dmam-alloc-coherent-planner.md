@@ -4,6 +4,7 @@ This bounded `P13-L08` helper-first packet lands one pure `dmam_alloc_coherent()
 
 The planner stays intentionally narrow:
 - routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)` so the release-record ownership rule is reviewable as its own shared helper step
+- routes `planManagedDmamFreeCoherent(...)` through one private `planReleaseCall(...)` helper so detach cleanup review stays aligned with the retained release-record path
 - accepts already-decided allocation inputs rather than talking to live hardware state
 - records whether a successful planned coherent allocation retains detach-time cleanup ownership on success
 - turns that successful allocation plan into explicit detach cleanup planning through `planManagedDmamFreeCoherent(...)`
