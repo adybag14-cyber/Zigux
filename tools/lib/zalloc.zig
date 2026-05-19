@@ -260,3 +260,36 @@ test "zallocValue re-zeroes packed bitfields after earlier dirty frees" {
     try std.testing.expect(value != null);
     try std.testing.expectEqual(@as(u16, 0), @as(u16, @bitCast(value.?.*)));
 }
+
+test "zallocValue re-zeroes extern struct storage after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Payload = extern struct {
+        active: bool,
+        maybe_ptr: ?*const u8,
+        checksum: u32,
+        nested: extern struct {
+            count: usize,
+            bytes: [3]u8,
+        },
+    };
+
+    var sentinel: u8 = 0xaa;
+    var value: ?*Payload = try zallocValue(allocator, Payload);
+    try std.testing.expect(value != null);
+    value.?.active = true;
+    value.?.maybe_ptr = &sentinel;
+    value.?.checksum = 0xdecafbad;
+    value.?.nested.count = 17;
+    value.?.nested.bytes = .{ 0xaa, 0xbb, 0xcc };
+    zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Payload);
+    defer zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expect(!value.?.active);
+    try std.testing.expect(value.?.maybe_ptr == null);
+    try std.testing.expectEqual(@as(u32, 0), value.?.checksum);
+    try std.testing.expectEqual(@as(usize, 0), value.?.nested.count);
+    try std.testing.expectEqualSlices(u8, &.{ 0, 0, 0 }, &value.?.nested.bytes);
+}
