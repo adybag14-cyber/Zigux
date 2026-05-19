@@ -120,5 +120,7 @@ test "phase 5 kretprobe sample makes ownership and teardown boundaries explicit"
     try std.testing.expectEqual(@as(usize, 1), module.exit_runs);
     try std.testing.expectEqual(@as(usize, 0), module.active_instances);
     try std.testing.expectEqual(@as(i64, -1), module.instance_data.entry_stamp_ns);
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.entryHandler(true, 300));
+    try std.testing.expectError(error.InvalidLifecycleTransition, module.retHandler(11, 320));
     try std.testing.expectError(error.InvalidLifecycleTransition, module.recordMissedInstance());
 }
