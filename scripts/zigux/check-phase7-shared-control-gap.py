@@ -62,7 +62,7 @@ ABSENT_SHARED_CONTROL_ROUTE_MARKERS = {
     ],
 }
 
-REQUIRED_WORKFLOW_MARKERS = [
+REQUIRED_WORKFLOW_LINES = [
     "- name: Self-test current Phase 7 shared-control gap checker",
     "run: python3 scripts/zigux/check-phase7-shared-control-gap.py --self-test",
     "- name: Check current Phase 7 shared-control gap packet",
@@ -95,7 +95,7 @@ SELF_TEST_CASE_COUNT = (
     len(SEQUENCING_REQUIRED_SNIPPETS)
     + len(STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
     + len(BUILD_WIRING_REQUIRED_SNIPPETS)
-    + len(REQUIRED_WORKFLOW_MARKERS)
+    + len(REQUIRED_WORKFLOW_LINES)
     + len(PARKED_SHARED_CONTROL_PATHS)
     + len(DIRECT_PACKET[2:])
     + len(READABLE_NON_OWNER_FILES)
@@ -121,6 +121,15 @@ def require_snippets(path: Path, snippets: list[str]) -> None:
         if snippet not in content:
             raise ValidationError(
                 f"missing expected Phase 7 shared-control marker in {path.as_posix()}: {snippet}"
+            )
+
+
+def require_exact_lines(path: Path, required_lines: list[str]) -> None:
+    content_lines = {line.strip() for line in read_text(path).splitlines()}
+    for required_line in required_lines:
+        if required_line.strip() not in content_lines:
+            raise ValidationError(
+                f"missing expected Phase 7 shared-control line in {path.as_posix()}: {required_line}"
             )
 
 
@@ -163,7 +172,7 @@ def validate(repo_root: Path) -> None:
     require_snippets(repo_root / SEQUENCING_NOTE_PATH, SEQUENCING_REQUIRED_SNIPPETS)
     require_snippets(repo_root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS)
     require_snippets(repo_root / BUILD_WIRING_CHECKER_PATH, BUILD_WIRING_REQUIRED_SNIPPETS)
-    require_snippets(repo_root / WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS)
+    require_exact_lines(repo_root / WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES)
     require_repo_reality(repo_root)
 
 
@@ -180,7 +189,7 @@ def scaffold_repo(root: Path) -> None:
         if rel == BUILD_WIRING_CHECKER_PATH.as_posix():
             continue
         write(root / Path(rel), "# direct phase7 shared-control packet file\n")
-    write(root / WORKFLOW_PATH, "\n".join(["name: zigux-bootstrap", *REQUIRED_WORKFLOW_MARKERS]) + "\n")
+    write(root / WORKFLOW_PATH, "\n".join(["name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES]) + "\n")
     write(
         root / Path("zigux/Makefile"),
         "phase2-validate:\n\tpython3 scripts/zigux/validate-phase2.py\n",
@@ -228,7 +237,7 @@ def run_self_test() -> None:
             (root / SEQUENCING_NOTE_PATH, SEQUENCING_REQUIRED_SNIPPETS),
             (root / STRING_HELPERS_SLICE_PATH, STRING_HELPERS_SLICE_REQUIRED_SNIPPETS),
             (root / BUILD_WIRING_CHECKER_PATH, BUILD_WIRING_REQUIRED_SNIPPETS),
-            (root / WORKFLOW_PATH, REQUIRED_WORKFLOW_MARKERS),
+            (root / WORKFLOW_PATH, REQUIRED_WORKFLOW_LINES),
         ):
             for snippet in snippets:
                 expect_failure(root, path, snippet)
@@ -322,7 +331,7 @@ def main() -> int:
     print(f"PHASE7_SHARED_CONTROL_GAP_DIRECT_FILE_COUNT={len(DIRECT_PACKET)}")
     print(f"PHASE7_SHARED_CONTROL_GAP_PARKED_FILE_COUNT={len(PARKED_SHARED_CONTROL_PATHS)}")
     print(f"PHASE7_SHARED_CONTROL_GAP_NON_OWNER_FILE_COUNT={len(READABLE_NON_OWNER_FILES)}")
-    print(f"PHASE7_SHARED_CONTROL_GAP_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_MARKERS)}")
+    print(f"PHASE7_SHARED_CONTROL_GAP_WORKFLOW_MARKER_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     return 0
 
 
