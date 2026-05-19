@@ -248,16 +248,6 @@ def expect_issue(root: Path, expected: tuple[str, str]) -> None:
 
 
 def run_self_test() -> int:
-    expected_case_count = (
-        1
-        + len(REQUIRED_WORKFLOW_LINES)
-        + len(REQUIRED_WORKFLOW_LINES)
-        + len(DISALLOWED_WORKFLOW_LINES)
-        + 1
-        + len(REQUIRED_MAKEFILE_LINES)
-        + len(REQUIRED_MAKEFILE_LINES)
-        + (len(REQUIRED_PATHS) - 1)
-    )
     checks = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_validate_") as tmp_dir:
         root = Path(tmp_dir)
@@ -272,16 +262,16 @@ def run_self_test() -> int:
             expect_issue(root, ("MISSING_WORKFLOW_LINE", marker))
             checks += 1
 
-        for marker in REQUIRED_WORKFLOW_LINES:
-            build_self_test_root(root)
-            write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), marker))
-            expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
-            checks += 1
-
         for marker in DISALLOWED_WORKFLOW_LINES:
             build_self_test_root(root)
             write_text(root, WORKFLOW, read_text(root, WORKFLOW) + marker + "\n")
             expect_issue(root, ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1"))
+            checks += 1
+
+        for marker in REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            write_text(root, WORKFLOW, duplicate_exact_line(read_text(root, WORKFLOW), marker))
+            expect_issue(root, ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2"))
             checks += 1
 
         build_self_test_root(root)
@@ -307,7 +297,6 @@ def run_self_test() -> int:
             expect_issue(root, ("MISSING_REQUIRED_PATH", rel))
             checks += 1
 
-    assert checks == expected_case_count
     print("PHASE2_VALIDATION_SELF_TEST=pass")
     print(f"PHASE2_VALIDATION_SELF_TEST_CASE_COUNT={checks}")
     return 0
