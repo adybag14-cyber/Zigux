@@ -150,6 +150,9 @@ jobs:
       - name: Check current kconfig bridge packet
         run: python3 scripts/zigux/check-kconfig-bridge.py
 
+      - name: Run current Phase 2 conf bridge unit tests
+        run: zig test scripts/zigux/kconfig/conf_bridge.zig
+
       - name: Run current Phase 2 confdata bridge unit tests
         run: zig test scripts/zigux/kconfig/confdata_bridge.zig
 
