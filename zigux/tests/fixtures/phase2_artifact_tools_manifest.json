@@ -9,6 +9,9 @@
     "consumers": [
       "scripts/zigux/check-kconfig-bridge.py"
     ],
+    "checkers": [
+      "scripts/zigux/check-phase2-artifact-tools-manifest.py"
+    ],
     "supported_modes": [
       "json",
       "text",
@@ -17,6 +20,7 @@
   },
   "notes": [
     "The artifact diff helper provides deterministic comparison output for fixture-backed scripts-root checks.",
+    "Keep `scripts/zigux/check-phase2-artifact-tools-manifest.py` explicit so the bounded Phase 2 artifact-support manifest fails closed beside the broader Phase 2 tool packet.",
     "Keep future Phase 2 artifact-diff follow-up bounded to live consumers and directly readable fixture packets before widening into broader closure routes."
   ]
 }
