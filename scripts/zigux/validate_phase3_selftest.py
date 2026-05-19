@@ -116,6 +116,14 @@ SELFTEST_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+        ("--self-test",),
+        (
+            "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
+            "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
         ("--self-test",),
         (
@@ -270,16 +278,17 @@ def run_self_test() -> int:
             (10, "expected runner omission was not reported"),
             (11, "expected validator-support script omission was not reported"),
             (12, "expected export-uapi survey script omission was not reported"),
-            (13, "expected policy-unsafe survey script omission was not reported"),
-            (14, "expected low-level-wrapper script omission was not reported"),
-            (15, "expected missing trailing script was not reported"),
+            (13, "expected abi-header-family survey script omission was not reported"),
+            (14, "expected policy-unsafe survey script omission was not reported"),
+            (15, "expected low-level-wrapper script omission was not reported"),
+            (16, "expected missing trailing script was not reported"),
         )
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
                 return 1
 
         _populate_repo(root)
-        failing_path = root / SELFTEST_COMMANDS[14][0]
+        failing_path = root / SELFTEST_COMMANDS[15][0]
         _write_synthetic_script(
             failing_path,
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
@@ -363,10 +372,34 @@ def run_self_test() -> int:
             print("expected missing export-uapi count marker to fail the packet")
             return 1
 
+        _populate_repo(root)
+        missing_header_family_pass_path = root / SELFTEST_COMMANDS[13][0]
+        _write_synthetic_script(
+            missing_header_family_pass_path,
+            None,
+            "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST_CASE_COUNT=",
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing abi-header-family pass marker to fail the packet")
+            return 1
+
+        _populate_repo(root)
+        missing_header_family_count_path = root / SELFTEST_COMMANDS[13][0]
+        _write_synthetic_script(
+            missing_header_family_count_path,
+            "PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass",
+            None,
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=fail")
+            print("expected missing abi-header-family count marker to fail the packet")
+            return 1
+
     print("PHASE3_VALIDATE_SELFTEST_SELF_TEST=pass")
     print(
         "PHASE3_VALIDATE_SELFTEST_SELF_TEST_CASE_COUNT="
-        f"{len(missing_cases) + 8}"
+        f"{len(missing_cases) + 10}"
     )
     return 0
 
