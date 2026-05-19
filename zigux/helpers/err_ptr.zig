@@ -27,3 +27,27 @@ comptime {
     std.debug.assert(isErrValue(err_floor));
     std.debug.assert(isOkValue(err_floor - 1));
 }
+
+test "fromErrorCode and toErrorCode round-trip the err_ptr range" {
+    const cases = [_]isize{ -1, -12, -4095 };
+
+    for (cases) |code| {
+        const raw = fromErrorCode(code);
+
+        try std.testing.expect(isErrValue(raw));
+        try std.testing.expect(!isOkValue(raw));
+        try std.testing.expectEqual(code, toErrorCode(raw));
+    }
+}
+
+test "err floor is the first err_ptr value" {
+    try std.testing.expect(isErrValue(err_floor));
+    try std.testing.expectEqual(@as(isize, -4095), toErrorCode(err_floor));
+}
+
+test "value immediately below err floor stays pointer-like" {
+    const raw = err_floor - 1;
+
+    try std.testing.expect(isOkValue(raw));
+    try std.testing.expect(!isErrValue(raw));
+}
