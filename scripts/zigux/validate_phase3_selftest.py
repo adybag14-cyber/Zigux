@@ -92,6 +92,14 @@ SELFTEST_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
+        ("--self-test",),
+        (
+            "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST=pass",
+            "PHASE3_POLICY_UNSAFE_SURVEY_SELF_TEST_CASE_COUNT=",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
         ("--self-test",),
         (
@@ -233,15 +241,16 @@ def run_self_test() -> int:
             (7, "expected runner omission was not reported"),
             (8, "expected validator-support script omission was not reported"),
             (9, "expected export-uapi survey script omission was not reported"),
-            (10, "expected low-level-wrapper script omission was not reported"),
-            (11, "expected missing trailing script was not reported"),
+            (10, "expected policy-unsafe survey script omission was not reported"),
+            (11, "expected low-level-wrapper script omission was not reported"),
+            (12, "expected missing trailing script was not reported"),
         )
         for index, message in missing_cases:
             if _expect_missing(root, index, message) != 0:
                 return 1
 
         _populate_repo(root)
-        failing_path = root / SELFTEST_COMMANDS[10][0]
+        failing_path = root / SELFTEST_COMMANDS[11][0]
         _write_synthetic_script(
             failing_path,
             "PHASE3_LOW_LEVEL_WRAPPER_SURVEY_SELF_TEST=pass",
