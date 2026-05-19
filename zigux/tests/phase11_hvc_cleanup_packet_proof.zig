@@ -128,6 +128,14 @@ test "phase11 hvc cleanup packet proof keeps current-head cleanup handoff marker
         verify_boundary,
         "`targetless_dispatch_without_notifier` keeps targetless sysrq dispatch from implying notifier callbacks.",
     );
+    try expectContains(
+        verify_boundary,
+        "the literal-fallback helpers keep both the sanitized targetless sysrq path and the non-kernel sysrq literal fallback explicit without promoting the lane to live sysrq execution.",
+    );
+    try expectContains(
+        verify_boundary,
+        "do not treat this note as proof that `drivers/tty/hvc/hvc_console_verify.zig` has returned to direct current-head readback",
+    );
 }
 
 test "phase11 hvc cleanup packet proof keeps starter teardown helpers tied to matrix evidence" {
