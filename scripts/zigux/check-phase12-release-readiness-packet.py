@@ -115,6 +115,7 @@ REQUIRED_MARKERS = {
         "support checker: `scripts/zigux/check-phase12-release-readiness-packet.py`",
         "validator-first support bundle: `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and the reminder-only wrapper name `make -C zigux phase12-validate`",
         "`zigux/Makefile` remains directly readable repo evidence and now exposes `phase12-smoke`, `phase12-test`, and `phase12` on `master` while still omitting `phase12-validate`",
+        "`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that workflow-only throughput-parity anchor remains adjacent bounded `virtio_net` evidence rather than shared PMO route proof.",
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
@@ -206,10 +207,12 @@ def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
         return marker in text.splitlines()
     return marker in text
 
+
 def count_marker_occurrences(rel_path: str, text: str, marker: str) -> int:
     if rel_path in EXACT_LINE_MARKER_PATHS:
         return text.splitlines().count(marker)
     return text.count(marker)
+
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
@@ -242,12 +245,15 @@ def validate(root: Path) -> list[str]:
 
     return failures
 
+
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
+
 def marker_fixture(title: str, markers: list[str]) -> str:
     return f"{title}\n\n" + "\n".join(f"- {marker}" for marker in markers) + "\n"
+
 
 def fixture_text(rel_path: str) -> str:
     if rel_path in REQUIRED_MARKERS:
@@ -283,16 +289,19 @@ def fixture_text(rel_path: str) -> str:
         return "name: zigux-bootstrap\n"
     return ""
 
+
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     for rel_path in REQUIRED_FILES:
         write_text(root / rel_path, fixture_text(rel_path))
 
+
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
         raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
+
 
 def remove_marker(path: Path, marker: str) -> None:
     text = path.read_text(encoding="utf-8")
@@ -300,6 +309,7 @@ def remove_marker(path: Path, marker: str) -> None:
     if updated == text:
         updated = text.replace(f"{marker}\n", "", 1)
     path.write_text(updated, encoding="utf-8")
+
 
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase12-release-readiness-"))
@@ -335,6 +345,7 @@ def run_self_test() -> int:
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=("Validate the current narrow Phase 12 release-readiness support bundle around the release notes, shared reminder surfaces, degraded fallback wording, and shared Makefile routes."))
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate. Defaults to the script directory.")
@@ -353,6 +364,7 @@ def main() -> int:
     print("PHASE12_RELEASE_READINESS_PACKET_FORBIDDEN_MARKER_COUNT=" f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}")
     print("PHASE12_RELEASE_READINESS_PACKET_EXACT_COUNT_MARKER_COUNT=" f"{sum(len(markers) for markers in EXACT_COUNT_MARKERS.values())}")
     return 0
+
 
 if __name__ == "__main__":
     raise SystemExit(main())
