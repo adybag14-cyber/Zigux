@@ -44,6 +44,14 @@ pub fn chars(nbytes: usize, padding: bool) usize {
     };
 }
 
+pub fn paddedChars(nbytes: usize) usize {
+    return chars(nbytes, true);
+}
+
+pub fn unpaddedChars(nbytes: usize) usize {
+    return chars(nbytes, false);
+}
+
 pub fn bytes(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
     return decodedLength(src, padding, variant);
 }
@@ -604,6 +612,13 @@ test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 3), chars(2, false));
     try std.testing.expectEqual(@as(usize, 4), chars(3, false));
     try std.testing.expectEqual(@as(usize, 6), chars(4, false));
+}
+
+test "padded and unpadded chars helpers mirror chars padding modes" {
+    for (0..256) |nbytes| {
+        try std.testing.expectEqual(chars(nbytes, true), paddedChars(nbytes));
+        try std.testing.expectEqual(chars(nbytes, false), unpaddedChars(nbytes));
+    }
 }
 
 test "bytes reports decoded output sizes and rejects malformed input" {
