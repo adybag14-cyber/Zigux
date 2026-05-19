@@ -466,7 +466,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_fixture_manifest_alignment_live_root = base / "optional_fixture_manifest_alignment_live"
-        build_sampleRepo(optional_fixture_manifest_alignment_live_root)
+        build_sample_repo(optional_fixture_manifest_alignment_live_root)
         build_stub_script(
             optional_fixture_manifest_alignment_live_root / "scripts/zigux/check-phase1-fixture-manifest-alignment.py",
             live_exit=1,
