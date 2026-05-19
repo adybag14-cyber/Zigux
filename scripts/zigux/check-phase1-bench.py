@@ -346,33 +346,42 @@ def validate_output(expectations: dict[str, object], stdout: str) -> tuple[str, 
     return ("pass", parsed)
 
 
-def emit_expectations_failure(kind: str, payload: object) -> int:
+def emit_expectations_failure(
+    kind: str,
+    payload: object,
+    expectations_path: Path | None = None,
+) -> int:
     print("PHASE1_BENCH_CHECK=fail")
+    print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+
     if kind == "expectations_missing":
         assert isinstance(payload, Path)
-        print("PHASE1_BENCH_CHECK_REASON=expectations_missing")
         print(f"PHASE1_BENCH_EXPECTATIONS={payload}")
         return 1
     if kind == "expectations_json_error":
         path, exc = payload
         assert isinstance(path, Path)
         assert isinstance(exc, json.JSONDecodeError)
-        print("PHASE1_BENCH_CHECK_REASON=expectations_json_error")
         print(f"PHASE1_BENCH_EXPECTATIONS={path}")
         print("EXPECTATIONS_JSON_ERROR={}".format(exc.msg))
         print("EXPECTATIONS_JSON_LINE={}".format(exc.lineno))
         print("EXPECTATIONS_JSON_COLUMN={}".format(exc.colno))
         return 1
 
-    print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+    if expectations_path is not None:
+        print(f"PHASE1_BENCH_EXPECTATIONS={expectations_path}")
     print(payload)
     return 1
 
 
-def capture_expectations_failure_output(kind: str, payload: object) -> list[str]:
+def capture_expectations_failure_output(
+    kind: str,
+    payload: object,
+    expectations_path: Path | None = None,
+) -> list[str]:
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
-        exit_code = emit_expectations_failure(kind, payload)
+        exit_code = emit_expectations_failure(kind, payload, expectations_path)
     assert exit_code == 1
     return buffer.getvalue().splitlines()
 
@@ -634,6 +643,32 @@ def run_self_test() -> None:
             "EXPECTATIONS_JSON_COLUMN=2",
         ]
         case_count += 1
+
+    status_mismatch_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-invalid-status.json"
+    kind, payload = validate_expectations(
+        {
+            "status": "fail",
+            "iterations": dict(EXPECTED_ITERATIONS),
+            "checksums": list(EXPECTED_CHECKSUMS),
+            "exact_checksums": dict(expectations["exact_checksums"]),
+        }
+    )
+    assert kind == "expectations_status"
+    assert payload == "fail"
+    case_count += 1
+
+    invalid_status_output = capture_expectations_failure_output(
+        kind,
+        payload,
+        status_mismatch_path,
+    )
+    assert invalid_status_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=expectations_status",
+        f"PHASE1_BENCH_EXPECTATIONS={status_mismatch_path}",
+        "fail",
+    ]
+    case_count += 1
 
     status_mismatch_output = ok_output.replace(
         "PHASE1_BENCH=pass",
@@ -1024,7 +1059,7 @@ def main() -> int:
 
     kind, payload = load_runtime_expectations(EXPECTATIONS)
     if kind != "pass":
-        return emit_expectations_failure(kind, payload)
+        return emit_expectations_failure(kind, payload, EXPECTATIONS)
 
     expectations = payload
     assert isinstance(expectations, dict)
