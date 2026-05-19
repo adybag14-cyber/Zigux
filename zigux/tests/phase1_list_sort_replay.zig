@@ -491,3 +491,47 @@ test "phase1 list_sort replay preserves stable modulo bucket order across a long
     try std.testing.expect(entries[1].node.prev == &head);
     try std.testing.expect(entries[11].node.next == &head);
 }
+
+test "phase1 list_sort replay preserves sorted unique input and circular links" {
+    const cmp = struct {
+        fn compare(_: ?*anyopaque, a: *const list_sort.ListHead, b: *const list_sort.ListHead) i32 {
+            const lhs: *const Entry = @fieldParentPtr("node", a);
+            const rhs: *const Entry = @fieldParentPtr("node", b);
+            if (lhs.key < rhs.key) return -1;
+            if (lhs.key > rhs.key) return 1;
+            return 0;
+        }
+    }.compare;
+
+    var head: list_sort.ListHead = .{};
+    head.init();
+    var entries = [_]Entry{
+        .{ .key = 1, .ordinal = 0 },
+        .{ .key = 2, .ordinal = 1 },
+        .{ .key = 3, .ordinal = 2 },
+        .{ .key = 4, .ordinal = 3 },
+        .{ .key = 5, .ordinal = 4 },
+    };
+    for (&entries) |*entry| {
+        list_sort.listAddTail(&entry.node, &head);
+    }
+
+    list_sort.listSort(null, &head, cmp);
+
+    var keys: [5]i32 = undefined;
+    var ordinals: [5]usize = undefined;
+    const count = try collectSorted(&head, &keys, &ordinals);
+    try std.testing.expectEqual(@as(usize, entries.len), count);
+    try std.testing.expectEqualSlices(i32, &.{ 1, 2, 3, 4, 5 }, keys[0..count]);
+    try std.testing.expectEqualSlices(usize, &.{ 0, 1, 2, 3, 4 }, ordinals[0..count]);
+    try std.testing.expect(head.next == &entries[0].node);
+    try std.testing.expect(head.prev == &entries[4].node);
+    try std.testing.expect(entries[0].node.prev == &head);
+    try std.testing.expect(entries[4].node.next == &head);
+
+    var current = head.next;
+    while (current != &head) : (current = current.?.next) {
+        try std.testing.expect(current.?.next.?.prev == current.?);
+        try std.testing.expect(current.?.prev.?.next == current.?);
+    }
+}
