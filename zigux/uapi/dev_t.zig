@@ -23,6 +23,25 @@ pub fn init(major: u32, minor: u32) Fields {
     };
 }
 
+pub fn makeDeviceNumber(major: u32, minor: u32) u32 {
+    return (major << minor_bits) | (minor & max_minor);
+}
+
+pub fn majorFromDeviceNumber(device_number: u32) u32 {
+    return device_number >> minor_bits;
+}
+
+pub fn minorFromDeviceNumber(device_number: u32) u32 {
+    return device_number & max_minor;
+}
+
+pub fn fieldsFromDeviceNumber(device_number: u32) Fields {
+    return init(
+        majorFromDeviceNumber(device_number),
+        minorFromDeviceNumber(device_number),
+    );
+}
+
 pub fn validate(fields: Fields) bool {
     return fields.major <= max_major and fields.minor <= max_minor;
 }
@@ -54,4 +73,18 @@ test "dev_t validation keeps the starter boundary explicit" {
     try std.testing.expect(validateRange(valid, later));
     try std.testing.expect(!validateRange(valid, earlier));
     try std.testing.expect(!validateRange(valid, invalid_minor));
+}
+
+test "dev_t packing stays aligned with the starter boundary" {
+    const fields = init(11, 29);
+    const encoded = makeDeviceNumber(fields.major, fields.minor);
+    const roundtrip = fieldsFromDeviceNumber(encoded);
+    const max_encoded = makeDeviceNumber(max_major, max_minor);
+
+    try std.testing.expectEqual(@as(u32, 11), majorFromDeviceNumber(encoded));
+    try std.testing.expectEqual(@as(u32, 29), minorFromDeviceNumber(encoded));
+    try std.testing.expectEqual(fields.major, roundtrip.major);
+    try std.testing.expectEqual(fields.minor, roundtrip.minor);
+    try std.testing.expectEqual(max_major, majorFromDeviceNumber(max_encoded));
+    try std.testing.expectEqual(max_minor, minorFromDeviceNumber(max_encoded));
 }
