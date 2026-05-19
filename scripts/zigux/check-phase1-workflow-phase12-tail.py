@@ -270,6 +270,22 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase12_check_run_not_detected")
             return 1
         case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        anchor_block = (
+            f"      - name: {PHASE12_ANCHOR_STEP[0]}\n"
+            f"        run: {PHASE12_ANCHOR_STEP[1]}\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + anchor_block)
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE12_ANCHOR_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_anchor_step_not_detected")
+            return 1
+        if f"workflow_run:{PHASE12_ANCHOR_STEP[0]}:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_anchor_run_not_detected")
+            return 1
+        case_count += 1
 
     print("PHASE1_WORKFLOW_PHASE12_TAIL_SELF_TEST=pass")
     print(f"PHASE1_WORKFLOW_PHASE12_TAIL_SELF_TEST_CASE_COUNT={case_count}")
