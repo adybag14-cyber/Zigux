@@ -39,6 +39,10 @@ PHASE2_BOUNDARY_MARKER = "remain Phase 2 config-surface bridge references"
 PHASE3_BOUNDARY_MARKER = "remain Phase 3 export-boundary references rather than runtime-pilot evidence"
 
 REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
+REVIEW_CHECKLIST_SURVEY_NOTE_MARKER = "`Documentation/zigux/phase9-runtime-trace-events-survey.md`"
+REVIEW_CHECKLIST_MODULE_SLICE_MARKER = "`Documentation/zigux/phase9-runtime-trace-events-module-slice.md`"
+REVIEW_CHECKLIST_MANIFEST_MARKER = "`zigux/tests/runtime_trace_events_manifest.json`"
+REVIEW_CHECKLIST_SURVEY_GATE_MARKER = "`zigux/tests/runtime_trace_events_survey.zig`"
 REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 REVIEW_CHECKLIST_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
 REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER = "`samples/zigux/runtime_trace_events_unregistered_gate.zig`"
@@ -83,6 +87,10 @@ TESTS_README_REENTRY_COMPANION_MARKER = "keeps balanced function-thread registra
 TESTS_README_BACKLOG_MARKER = "there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, `make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`"
 
 DOCS_README_PHASE9_NOTES_MARKER = "Phase 9 notes - `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`"
+DOCS_README_SURVEY_NOTE_MARKER = "`Documentation/zigux/phase9-runtime-trace-events-survey.md`"
+DOCS_README_MODULE_SLICE_MARKER = "`Documentation/zigux/phase9-runtime-trace-events-module-slice.md`"
+DOCS_README_MANIFEST_MARKER = "`zigux/tests/runtime_trace_events_manifest.json`"
+DOCS_README_SURVEY_GATE_MARKER = "`zigux/tests/runtime_trace_events_survey.zig`"
 DOCS_README_TRACE_EVENTS_SAMPLE_MARKER = "`samples/zigux/runtime_trace_events.zig`"
 DOCS_README_SELFTEST_HOOK_MARKER = "`.provides_selftest_hook = true`"
 DOCS_README_LIFECYCLE_MARKER = "initialized, selftest_complete, and exited lifecycle tracking"
@@ -142,6 +150,10 @@ CHECKLIST_REQUIRED_MARKERS = [
     PHASE9_SHARED_PACKET_MARKER,
     TRACE_EVENTS_PACKET_CHECKER_MARKER,
     REVIEW_CHECKLIST_TRACE_EVENTS_SAMPLE_MARKER,
+    REVIEW_CHECKLIST_SURVEY_NOTE_MARKER,
+    REVIEW_CHECKLIST_MODULE_SLICE_MARKER,
+    REVIEW_CHECKLIST_MANIFEST_MARKER,
+    REVIEW_CHECKLIST_SURVEY_GATE_MARKER,
     REVIEW_CHECKLIST_SELFTEST_HOOK_MARKER,
     REVIEW_CHECKLIST_LIFECYCLE_MARKER,
     REVIEW_CHECKLIST_UNREGISTERED_GATE_MARKER,
@@ -216,6 +228,10 @@ TESTS_README_REQUIRED_MARKERS = [
 
 DOCS_README_REQUIRED_MARKERS = [
     DOCS_README_PHASE9_NOTES_MARKER,
+    DOCS_README_SURVEY_NOTE_MARKER,
+    DOCS_README_MODULE_SLICE_MARKER,
+    DOCS_README_MANIFEST_MARKER,
+    DOCS_README_SURVEY_GATE_MARKER,
     TRACE_EVENTS_PACKET_CHECKER_MARKER,
     DOCS_README_TRACE_EVENTS_SAMPLE_MARKER,
     DOCS_README_SELFTEST_HOOK_MARKER,
@@ -406,7 +422,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, backlog posture, older runtime-loader-survey historical-only status, older Phase 2 versus Phase 3 non-owner boundaries, and the no-Phase-9-make-route policy explicit."
+        description="Check that the Phase 9 review checklist, docs-root summary, lane-sequencing summary, trace-events module-slice note, tests-root guide, scripts-root reminder, samples-root reminder, and live Makefile posture all keep the surviving trace-events runtime packet, returned trace-events family-local survey witness, backlog posture, older runtime-loader-survey historical-only status, older Phase 2 versus Phase 3 non-owner boundaries, and the no-Phase-9-make-route policy explicit."
     )
     parser.add_argument("--repo-root", type=Path, default=ROOT, help="repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="run the built-in checker self-test and exit")
