@@ -13,10 +13,9 @@ MATRIX = Path("Documentation/zigux/phase4-validation-matrix.md")
 MAKEFILE = Path("zigux/Makefile")
 WORKFLOW = Path(".github/workflows/zigux-bootstrap.yml")
 REVIEW_CHECKLIST = Path("Documentation/zigux/review-checklist.md")
-DOCS_README = Path("Documentation/zigux/README.md")
-SCRIPTS_README = Path("scripts/zigux/README.md")
 TESTS_README = Path("zigux/tests/README.md")
 REVERSIBLE_NOTE = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+SEQUENCING_NOTE = Path("Documentation/zigux/phase4-validation-lane-sequencing.md")
 ARTIFACT_DIFF_NOTE = Path("Documentation/zigux/artifact-diff.md")
 ARTIFACT_DIFF_HELPER = Path("scripts/zigux/artifact_diff.py")
 ARTIFACT_DIFF_CONTRACT = Path("scripts/zigux/check-artifact-diff-contract.py")
@@ -88,8 +87,8 @@ SELF_TEST_CASES = [
 NOTE_MARKERS = (
     "# Phase 4 Gate Evidence",
     "`PHASE4_VALIDATOR_BLOB_SHA=dea77e6385618147aba44d3714f73b6c5249e942`",
-    "`PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=7b913e4ba293354fd841934a449697d230dec25a`",
-    "`PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=c8eef0dd5ab531e6a69acacd1f694772454af012`",
+    "`PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=95471df68eea2537ea547394d0311c2939ae0d33`",
+    "`PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=ef333c03fa97927b2be0152b613fab727bb89a11`",
     "`PHASE4_DOC_README_BLOB_SHA=ac515e3ed47c771b0947fde4200a90b9a1952c99`",
     "`PHASE4_SCRIPT_README_BLOB_SHA=4b22006c7278280203a23e6ec568cf8f47b62c7e`",
     "`PHASE4_TESTS_README_BLOB_SHA=107d5d300f43fb5c9b0c7f9439601af3507a59ff`",
@@ -97,9 +96,7 @@ NOTE_MARKERS = (
     "`PHASE4_RUNTIME_ATOMIC64_SURVEY_BLOB_SHA=65c2ceed2512dcec8f86cbe3c47831c30f5547d3`",
     "`PHASE4_SHIPPED_GATE_BLOB_TARGET_COUNT=19`",
     "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASE_COUNT=42`",
-    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES="
-    + ",".join(SELF_TEST_CASES)
-    + "`",
+    "`PHASE4_GATE_EVIDENCE_SELF_TEST_CASES=" + ",".join(SELF_TEST_CASES) + "`",
     "`PHASE4_SEPARATE_GATE_EVIDENCE_CHECKER_PRESENT=true`",
     "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_CHECK=true`",
     "`PHASE4_SHARED_VALIDATOR_RERUNS_GATE_EVIDENCE_SELF_TEST=true`",
@@ -129,22 +126,16 @@ MATRIX_MARKERS = (
     "### `scripts/zigux/check-phase4-gate-evidence.py`",
     "### `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
     "### `zigux/tests/phase4_perf_baseline_survey.zig`",
-    "kprobe survey owner: `Validation and Perf Team`",
-    "kprobe rollback owner: `Validation and Perf Team`",
+    "validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
+    "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners",
+    "dedicated local checker: `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`",
     "local-only benchmark commands and acceptable limits are approved today",
     "shared CI perf promotion pending",
-    "perf baseline shared promotion status: pending",
-    "samples/zigux/kprobe_example.zig",
-    "samples/zigux/test_fsmount.zig",
     "current measurable status: absent on current `master`",
-    "validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
-    "kprobe next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, the explicit bootstrap-CI posture",
-    "test_fsmount current measurable status: absent on current `master`",
     "test_fsmount threshold posture: reviewability_only_no_perf_threshold",
-    "test_fsmount survey owner: `Validation and Perf Team`",
     "test_fsmount validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
     "test_fsmount dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
-    "test_fsmount next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet",
+    "next bounded evidence step: keep the dedicated parked survey packet",
 )
 
 MAKEFILE_MARKERS = (
@@ -165,25 +156,20 @@ WORKFLOW_MARKERS = (
 
 CHECKLIST_MARKERS = (
     "keep the directly readable local-only perf packet explicit",
-    "keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, and bitmap-diff companions",
+    "keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
+    "keep the repo-reality warning explicit for the missing broader Phase 4 validator, build, and bitmap-diff companions",
+    "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
     "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
-)
-
-DOCS_README_MARKERS = (
-    "Phase 4 notes",
-    "scripts/zigux/check-phase4-repo-reality-warning.py",
-    "scripts/zigux/check-phase4-reversible-delivery-pins.py",
+    "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
+    "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval",
 )
 
 TESTS_README_MARKERS = (
-    "current direct-readback Phase 4 rollback packet:",
+    "Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.",
+    "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
     "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
-    "roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
-)
-
-SCRIPTS_README_MARKERS = (
-    "phase4",
-    "artifact-diff",
+    "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
+    "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md`",
 )
 
 
@@ -228,10 +214,9 @@ def require_file_set(root: Path, missing: list[str]) -> None:
         MAKEFILE,
         WORKFLOW,
         REVIEW_CHECKLIST,
-        DOCS_README,
-        SCRIPTS_README,
         TESTS_README,
         REVERSIBLE_NOTE,
+        SEQUENCING_NOTE,
         ARTIFACT_DIFF_NOTE,
         ARTIFACT_DIFF_HELPER,
         ARTIFACT_DIFF_CONTRACT,
@@ -268,8 +253,6 @@ def validate_root(root: Path) -> list[str]:
     makefile_text = read_text(root / MAKEFILE)
     workflow_text = read_text(root / WORKFLOW)
     checklist_text = read_text(root / REVIEW_CHECKLIST)
-    docs_readme_text = read_text(root / DOCS_README)
-    scripts_readme_text = read_text(root / SCRIPTS_README)
     tests_readme_text = read_text(root / TESTS_README)
 
     require_markers(note_text, NOTE_MARKERS, "note", missing)
@@ -277,8 +260,6 @@ def validate_root(root: Path) -> list[str]:
     require_markers(makefile_text, MAKEFILE_MARKERS, "makefile", missing)
     require_markers(workflow_text, WORKFLOW_MARKERS, "workflow", missing)
     require_markers(checklist_text, CHECKLIST_MARKERS, "checklist", missing)
-    require_markers(docs_readme_text, DOCS_README_MARKERS, "docs_readme", missing)
-    require_markers(scripts_readme_text, SCRIPTS_README_MARKERS, "scripts_readme", missing)
     require_markers(tests_readme_text, TESTS_README_MARKERS, "tests_readme", missing)
 
     require_exact_value(
@@ -328,8 +309,8 @@ def build_fixture_tree(root: Path) -> None:
                 "",
                 "## Status",
                 "  * `PHASE4_VALIDATOR_BLOB_SHA=dea77e6385618147aba44d3714f73b6c5249e942`",
-                "  * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=7b913e4ba293354fd841934a449697d230dec25a`",
-                "  * `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=c8eef0dd5ab531e6a69acacd1f694772454af012`",
+                "  * `PHASE4_GATE_EVIDENCE_CHECKER_BLOB_SHA=95471df68eea2537ea547394d0311c2939ae0d33`",
+                "  * `PHASE4_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=ef333c03fa97927b2be0152b613fab727bb89a11`",
                 "  * `PHASE4_DOC_README_BLOB_SHA=ac515e3ed47c771b0947fde4200a90b9a1952c99`",
                 "  * `PHASE4_SCRIPT_README_BLOB_SHA=4b22006c7278280203a23e6ec568cf8f47b62c7e`",
                 "  * `PHASE4_TESTS_README_BLOB_SHA=107d5d300f43fb5c9b0c7f9439601af3507a59ff`",
@@ -347,6 +328,7 @@ def build_fixture_tree(root: Path) -> None:
                 "  * `PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`",
                 "  * `PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`",
                 "  * `PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`",
+                "",
                 "## Exact Readback Evidence",
                 "Use `Documentation/zigux/phase4-reversible-delivery-evidence.md` as the narrower direct-readback handoff while `scripts/zigux/check-phase4-gate-evidence.py` continues to guard this broader rollback-ownership note and `scripts/zigux/check-phase4-perf-baseline-packet.py` keeps the adjacent local-only perf packet exact.",
                 "That narrower handoff still keeps the parked kprobe packet's shared matrix anchor explicit as `PHASE4_KPROBE_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix`.",
@@ -374,21 +356,16 @@ def build_fixture_tree(root: Path) -> None:
                 "### `scripts/zigux/check-phase4-gate-evidence.py`",
                 "### `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
                 "### `zigux/tests/phase4_perf_baseline_survey.zig`",
-                "  * kprobe survey owner: `Validation and Perf Team`",
-                "  * kprobe rollback owner: `Validation and Perf Team`",
-                "  * current benchmark-command status: local-only benchmark commands and acceptable limits are approved today, and shared CI perf promotion pending",
-                "  * perf baseline shared promotion status: pending",
-                "### `samples/zigux/kprobe_example.zig`",
-                "  * current measurable status: absent on current `master`",
-                "  * validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
-                "  * kprobe next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, the explicit bootstrap-CI posture",
-                "### `samples/zigux/test_fsmount.zig`",
-                "  * test_fsmount current measurable status: absent on current `master`",
-                "  * test_fsmount threshold posture: reviewability_only_no_perf_threshold",
-                "  * test_fsmount survey owner: `Validation and Perf Team`",
-                "  * test_fsmount validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
-                "  * test_fsmount dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
-                "  * test_fsmount next bounded evidence step: keep the dedicated parked survey packet, the dedicated local survey wrapper, and the explicit reviewability-only no-perf-threshold posture adjacent to the shared Phase 4 exact-readback packet",
+                "validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`",
+                "Validation and Perf Team owning that policy decision in coordination with the ABI and Runtime Team and Shared Subsystems Pod as the current gate rollback owners so the validator-first packet does not widen by accident.",
+                "dedicated local checker: `python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`; this checker keeps the dedicated perf-baseline packet local-only and self-tested without promoting it into the shared workflow or the shared `phase4-test` route while shared CI perf promotion stays pending",
+                "local-only benchmark commands and acceptable limits are approved today",
+                "shared CI perf promotion pending",
+                "current measurable status: absent on current `master`",
+                "test_fsmount threshold posture: reviewability_only_no_perf_threshold",
+                "test_fsmount validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`",
+                "test_fsmount dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`",
+                "next bounded evidence step: keep the dedicated parked survey packet",
                 "",
             ]
         ),
@@ -425,31 +402,12 @@ def build_fixture_tree(root: Path) -> None:
             [
                 "# Review Checklist",
                 "keep the directly readable local-only perf packet explicit",
-                "keep the repo-reality warning explicit for the missing broader Phase 4 validator, lab-matrix, and bitmap-diff companions",
+                "keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`",
+                "keep the repo-reality warning explicit for the missing broader Phase 4 validator, build, and bitmap-diff companions",
+                "keep the roadmap-backed `atomic64_diff` pair explicit as direct current-head evidence",
                 "keep the Validation and Perf Team as the decision owner for any broader shared-CI perf promotion",
-                "",
-            ]
-        ),
-    )
-    write_text(
-        root / DOCS_README,
-        "\n".join(
-            [
-                "# Zigux Documentation",
-                "Phase 4 notes",
-                "scripts/zigux/check-phase4-repo-reality-warning.py",
-                "scripts/zigux/check-phase4-reversible-delivery-pins.py",
-                "",
-            ]
-        ),
-    )
-    write_text(
-        root / SCRIPTS_README,
-        "\n".join(
-            [
-                "# scripts/zigux",
-                "phase4",
-                "artifact-diff",
+                "keep the ABI and Runtime Team plus Shared Subsystems Pod as coordination owners for that policy call",
+                "keep the pending shared-CI perf-promotion posture explicit instead of implying shared CI perf approval",
                 "",
             ]
         ),
@@ -459,14 +417,17 @@ def build_fixture_tree(root: Path) -> None:
         "\n".join(
             [
                 "# zigux/tests",
-                "current direct-readback Phase 4 rollback packet:",
+                "Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.",
+                "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py` so the tests-root summary records the narrower current-head repo-reality packet instead of leaving those returned checker surfaces in the missing bucket.",
                 "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`",
-                "roadmap-backed Phase 4 differential-gate destinations directly readable on current `master`: `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig`",
+                "Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`",
+                "current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone",
                 "",
             ]
         ),
     )
     write_text(root / REVERSIBLE_NOTE, "# reversible handoff\n")
+    write_text(root / SEQUENCING_NOTE, "# sequencing note\n")
     write_text(root / ARTIFACT_DIFF_NOTE, "# artifact diff note\n")
     write_text(root / ARTIFACT_DIFF_HELPER, "# artifact diff helper\n")
     write_text(root / ARTIFACT_DIFF_CONTRACT, "# artifact diff contract\n")
@@ -529,18 +490,16 @@ def run_self_test() -> None:
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "zigux/tests/phase4_bitmap_diff_manifest.json", "zigux/tests/bitmap_diff_manifest.json")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "zigux/tests/phase4_bitmap_diff_survey.zig", "zigux/tests/phase4_bitmap_survey.zig")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=true`", "`PHASE4_SHARED_KPROBE_SURVEY_PACKET_PRESENT=false`")))
-        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "kprobe survey owner: `Validation and Perf Team`", "kprobe survey owner: `Shared Subsystems Pod`")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "validation entrypoint: `zig test zigux/tests/phase4_kprobe_example_survey.zig`", "validation entrypoint: `zig test zigux/tests/kprobe_example_survey.zig`")))
-        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "kprobe next bounded evidence step: keep the dedicated parked survey packet, the explicit local lab replay marker, the dedicated local survey wrapper, the explicit bootstrap-CI posture", "kprobe next bounded evidence step: revisit later")))
+        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "next bounded evidence step: keep the dedicated parked survey packet", "next bounded evidence step: revisit later")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=true`", "`PHASE4_SHARED_PERF_BASELINE_SURVEY_PACKET_PRESENT=false`")))
-        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "local-only benchmark commands and acceptable limits are approved today, and shared CI perf promotion pending", "local-only benchmark commands are approved today")))
-        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "perf baseline shared promotion status: pending", "perf baseline shared promotion status: approved")))
+        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "local-only benchmark commands and acceptable limits are approved today", "local-only benchmark commands are approved today")))
+        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "shared CI perf promotion pending", "shared CI perf promotion landed")))
         expect_failure(lambda r: write_text(r / NOTE, replace_once(read_text(r / NOTE), "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=true`", "`PHASE4_SHARED_TEST_FSMOUNT_SURVEY_PACKET_PRESENT=false`")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "test_fsmount threshold posture: reviewability_only_no_perf_threshold", "test_fsmount threshold posture: landed_perf_threshold")))
-        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "test_fsmount survey owner: `Validation and Perf Team`", "test_fsmount survey owner: `Shared Subsystems Pod`")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "test_fsmount validation entrypoint: `zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig`", "test_fsmount validation entrypoint: `zig test zigux/tests/phase4_test_fsmount_survey.zig`")))
         expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "test_fsmount dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount-survey`", "test_fsmount dedicated Linux-style survey wrapper: `make -C zigux phase4-test-fsmount`")))
-        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "### `samples/zigux/test_fsmount.zig`", "### `samples/zigux/fsmount.zig`")))
+        expect_failure(lambda r: write_text(r / MATRIX, replace_once(read_text(r / MATRIX), "current measurable status: absent on current `master`", "current measurable status: landed on current `master`")))
         expect_failure(lambda r: (r / VALIDATOR).unlink())
         expect_failure(lambda r: (r / PHASE4_BUILD).unlink())
         expect_failure(lambda r: (r / ARTIFACT_DIFF_HELPER).unlink())
@@ -549,6 +508,8 @@ def run_self_test() -> None:
         expect_failure(lambda r: (r / PERF_SURVEY).unlink())
         expect_failure(lambda r: (r / KPROBE_MANIFEST).unlink())
         expect_failure(lambda r: (r / TEST_FSMOUNT_SURVEY).unlink())
+        expect_failure(lambda r: write_text(r / TESTS_README, replace_once(read_text(r / TESTS_README), "Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`", "Current direct-readback perf checker: `scripts/zigux/check-phase4-perf-baseline.py`")))
+        expect_failure(lambda r: write_text(r / TESTS_README, replace_once(read_text(r / TESTS_README), "Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py`", "Keep the broader packet explicit through shared notes only")))
 
         if cases != EXPECTED_SELF_TEST_CASE_COUNT:
             raise AssertionError(f"expected {EXPECTED_SELF_TEST_CASE_COUNT} self-test cases, saw {cases}")
