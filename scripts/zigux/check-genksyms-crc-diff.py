@@ -82,10 +82,15 @@ def canonicalize_json(text: str) -> str:
     return json.dumps(data, sort_keys=True, separators=(",", ":"))
 
 
+def canonicalize_json_file(path: Path, label: str) -> str:
+    try:
+        return canonicalize_json(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"{label} invalid json: {path}: {exc.msg}") from exc
+
+
 def compare_json(label: str, left: Path, right: Path) -> None:
-    left_text = left.read_text(encoding="utf-8")
-    right_text = right.read_text(encoding="utf-8")
-    if canonicalize_json(left_text) != canonicalize_json(right_text):
+    if canonicalize_json_file(left, label) != canonicalize_json_file(right, label):
         raise SystemExit(f"{label} mismatch: {left} != {right}")
 
 
@@ -272,6 +277,7 @@ def run_self_test() -> int:
         equivalent = tmp_dir / "equivalent.json"
         mismatch = tmp_dir / "mismatch.json"
         reordered = tmp_dir / "reordered.json"
+        invalid = tmp_dir / "invalid.json"
         left.write_text(
             '{"cases":[{"crc_hex":"0x1451dab1","input":"int"},{"crc_hex":"0x8cdc1683","input":"x"}]}\n',
             encoding="utf-8",
@@ -285,15 +291,20 @@ def run_self_test() -> int:
             '{"cases":[{"crc_hex":"0x8cdc1683","input":"x"},{"crc_hex":"0x1451dab1","input":"int"}]}\n',
             encoding="utf-8",
         )
+        invalid.write_text('{"cases":[', encoding="utf-8")
         compare_json("selftest-equal", left, equivalent)
         expect_system_exit_contains(lambda: compare_json("selftest-mismatch", left, mismatch), "selftest-mismatch mismatch")
         expect_system_exit_contains(
             lambda: compare_json("selftest-order-sensitive", left, reordered),
             "selftest-order-sensitive mismatch",
         )
+        expect_system_exit_contains(
+            lambda: compare_json("selftest-invalid-json", left, invalid),
+            "selftest-invalid-json invalid json",
+        )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=21")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=22")
     return 0
 
 
