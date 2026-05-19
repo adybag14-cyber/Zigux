@@ -56,6 +56,8 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-review",
+    "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
     "zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-test",
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
@@ -71,6 +73,8 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "phase6-checksum-test:",
     "phase6-checksum-perf:",
     "phase6-hexdump-review:",
+    "phase6-hexdump-perf-matrix-test:",
+    "$(ZIG) build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig --summary all",
     "phase6-hexdump-test:",
     "phase6-hexdump-perf:",
 ]
@@ -82,6 +86,7 @@ REQUIRED_BUILD_SNIPPETS = [
     'const checksum_test_step = b.step("phase6-checksum-test", "Run Phase 6 checksum helper tests");',
     'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");',
     'const hexdump_review_step = b.step("phase6-hexdump-review", "Run Phase 6 hexdump perf-matrix review preflight");',
+    '"phase6-hexdump-perf-matrix-test",',
     'const hexdump_test_step = b.step("phase6-hexdump-test", "Run Phase 6 hexdump helper tests");',
     'const hexdump_perf_step = b.step("phase6-hexdump-perf", "Run Phase 6 hexdump helper perf gate");',
 ]
@@ -95,6 +100,8 @@ REQUIRED_CATALOG_SNIPPETS = [
     "## Current direct-readback warning",
     "## Roadmap perf-gap readback",
     "## Current shared replay inventory",
+    "- `zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig`",
+    "- `make -C zigux phase6-hexdump-perf-matrix-test`",
 ]
 
 SELF_TEST_CASE_COUNT = 4
@@ -316,8 +323,8 @@ def run_self_test() -> None:
 
         makefile_path = root / MAKEFILE
         original_makefile = makefile_path.read_text(encoding="utf-8")
-        write(makefile_path, original_makefile.replace("phase6-validate:\n", "", 1))
-        expect_failure(lambda: validate(root), "phase6-validate:")
+        write(makefile_path, original_makefile.replace("phase6-hexdump-perf-matrix-test:\n", "", 1))
+        expect_failure(lambda: validate(root), "phase6-hexdump-perf-matrix-test:")
         write(makefile_path, original_makefile)
         cases_run += 1
 
