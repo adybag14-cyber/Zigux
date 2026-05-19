@@ -218,148 +218,27 @@ def run_self_test() -> int:
                 print(item)
             return 1
 
-    cases = [
-        ("missing_docs_root", lambda root: (root / "Documentation/zigux/README.md").unlink()),
-        (
-            "missing_docs_marker",
-            lambda root: mutate_remove_marker(
-                root,
-                "Documentation/zigux/README.md",
-                MARKERS["Documentation/zigux/README.md"][0],
+    def make_missing_file_case(relative_path: str):
+        return (
+            f"missing_file_{relative_path.replace('/', '_').replace('.', '_')}",
+            lambda root, relative_path=relative_path: (root / relative_path).unlink(),
+        )
+
+    def make_marker_case(relative_path: str, marker: str, mutation: str):
+        mutator = mutate_remove_marker if mutation == "remove" else mutate_duplicate_marker
+        return (
+            f"{mutation}_{relative_path.replace('/', '_').replace('.', '_')}_{abs(hash(marker))}",
+            lambda root, relative_path=relative_path, marker=marker, mutator=mutator: mutator(
+                root, relative_path, marker
             ),
-        ),
-        (
-            "missing_docs_shared_reminder_checker_bullet",
-            lambda root: mutate_remove_marker(
-                root,
-                "Documentation/zigux/README.md",
-                MARKERS["Documentation/zigux/README.md"][1],
-            ),
-        ),
-        (
-            "missing_closure_note",
-            lambda root: (root / "Documentation/zigux/phase1-closure.md").unlink(),
-        ),
-        (
-            "missing_closure_shared_checker_bullet",
-            lambda root: mutate_remove_marker(
-                root,
-                "Documentation/zigux/phase1-closure.md",
-                MARKERS["Documentation/zigux/phase1-closure.md"][0],
-            ),
-        ),
-        (
-            "missing_closure_shared_checker_packet_line",
-            lambda root: mutate_remove_marker(
-                root,
-                "Documentation/zigux/phase1-closure.md",
-                MARKERS["Documentation/zigux/phase1-closure.md"][1],
-            ),
-        ),
-        (
-            "missing_lane_note_marker",
-            lambda root: mutate_remove_marker(
-                root,
-                "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
-                MARKERS["Documentation/zigux/phase1-host-helper-lane-sequencing.md"][0],
-            ),
-        ),
-        (
-            "missing_closure_validator_file",
-            lambda root: (root / "scripts/zigux/validate-phase1-closure.py").unlink(),
-        ),
-        (
-            "missing_string_review_checker",
-            lambda root: (root / "scripts/zigux/check-phase1-string-review-packet.py").unlink(),
-        ),
-        (
-            "missing_direct_owner_checker",
-            lambda root: (root / "scripts/zigux/check-phase1-direct-owner-markers.py").unlink(),
-        ),
-        (
-            "missing_shared_reminder_checker_file",
-            lambda root: (root / "scripts/zigux/check-phase1-shared-reminder-packet.py").unlink(),
-        ),
-        (
-            "missing_shared_reminder_checker_marker",
-            lambda root: mutate_remove_marker(
-                root,
-                "scripts/zigux/check-phase1-shared-reminder-packet.py",
-                MARKERS["scripts/zigux/check-phase1-shared-reminder-packet.py"][0],
-            ),
-        ),
-        (
-            "missing_manifest_marker",
-            lambda root: mutate_remove_marker(
-                root,
-                "zigux/tests/fixtures/phase1_helper_manifest.json",
-                MARKERS["zigux/tests/fixtures/phase1_helper_manifest.json"][2],
-            ),
-        ),
-        (
-            "missing_closure_marker",
-            lambda root: mutate_remove_marker(
-                root,
-                "Documentation/zigux/phase1-closure.md",
-                MARKERS["Documentation/zigux/phase1-closure.md"][2],
-            ),
-        ),
-        (
-            "duplicate_scripts_bench_marker",
-            lambda root: mutate_duplicate_marker(
-                root,
-                "scripts/zigux/README.md",
-                MARKERS["scripts/zigux/README.md"][0],
-            ),
-        ),
-        (
-            "missing_tests_bench_marker",
-            lambda root: mutate_remove_marker(
-                root,
-                "zigux/tests/README.md",
-                MARKERS["zigux/tests/README.md"][1],
-            ),
-        ),
-        (
-            "missing_workflow_bench_selftest",
-            lambda root: mutate_remove_marker(
-                root,
-                ".github/workflows/zigux-bootstrap.yml",
-                MARKERS[".github/workflows/zigux-bootstrap.yml"][0],
-            ),
-        ),
-        (
-            "missing_phase1_build_slab_module",
-            lambda root: mutate_remove_marker(
-                root,
-                "zigux/tests/build.zig",
-                MARKERS["zigux/tests/build.zig"][1],
-            ),
-        ),
-        (
-            "missing_phase1_build_zalloc_import",
-            lambda root: mutate_remove_marker(
-                root,
-                "zigux/tests/build.zig",
-                MARKERS["zigux/tests/build.zig"][8],
-            ),
-        ),
-        (
-            "missing_phase1_smoke_slab_import",
-            lambda root: mutate_remove_marker(
-                root,
-                "zigux/tests/phase1_host_tools_smoke.zig",
-                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][1],
-            ),
-        ),
-        (
-            "missing_phase1_smoke_zalloc_decl",
-            lambda root: mutate_remove_marker(
-                root,
-                "zigux/tests/phase1_host_tools_smoke.zig",
-                MARKERS["zigux/tests/phase1_host_tools_smoke.zig"][9],
-            ),
-        ),
+        )
+
+    cases = [make_missing_file_case(relative_path) for relative_path in REQUIRED_FILES]
+    for relative_path, markers in MARKERS.items():
+        for marker in markers:
+            cases.append(make_marker_case(relative_path, marker, "remove"))
+            cases.append(make_marker_case(relative_path, marker, "duplicate"))
+    cases.append(
         (
             "forbidden_fragment",
             lambda root: write_text(
@@ -367,8 +246,8 @@ def run_self_test() -> int:
                 "Documentation/zigux/README.md",
                 read_text(root, "Documentation/zigux/README.md") + FORBIDDEN_FRAGMENTS[0] + "\n",
             ),
-        ),
-    ]
+        )
+    )
 
     for name, mutate in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-shared-reminder-{name}-") as tmpdir:
