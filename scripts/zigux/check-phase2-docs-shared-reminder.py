@@ -5,7 +5,7 @@ import argparse
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[2] if len(Path(__file__).resolve().parents) >= 3 else Path.cwd()
 PHASE2_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
@@ -20,6 +20,7 @@ PHASE2_NOTES_MARKERS = (
     "`scripts/zigux/install-zig.py` is directly readable on current `master`",
     "`scripts/zigux/check-zig-toolchain.py` is directly readable on current `master`",
     "`zigux/tests/fixtures/phase2_cross_targets.json` keeps the rematerialized direct cross-route packet explicit",
+    "`scripts/zigux/check-genksyms-bridge.py`, `scripts/zigux/genksyms.zig`, and the `zigux/tests/fixtures/genksyms_bridge/` fixture roster keep the bounded genksyms bridge helper packet explicit beside the reminder guards, and `make -C zigux phase2-genksyms` keeps its wrapper route inside the same returned make-wrapper packet.",
     "The rematerialized make-wrapper packet is directly readable on current `master` through `make -C zigux phase2-toolchain`",
     "No current repo-reality gaps remain inside the bounded toolchain, installer, and direct cross-route packet on current `master`.",
     "toolchain pinning, toolchain pin-scope alignment, installer-path truthfulness, direct cross-route truthfulness",
