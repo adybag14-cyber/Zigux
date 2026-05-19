@@ -78,6 +78,9 @@ SURVEY_NOTE_INITIALIZED_EXIT_MARKER = (
 )
 MODULE_SLICE_ALIGNMENT_MARKER = "The paired family-local survey packet through `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig`"
 MODULE_SLICE_BOUNDARY_MARKER = "broader shared runtime-loader packet"
+MODULE_SLICE_COLD_STAGE_GUARD_MARKER = (
+    'The shipped cold-stage guard in `test "trace-events sample keeps selftest replay-summary continuity explicit after direct pilot activity"` also keeps pre-init `runSelftest()` and `exit()` rejection explicit before the module ever reaches `.initialized`, so the packet distinguishes cold-stage fail-closed behavior from the later initialized-stage clean-exit path.'
+)
 MODULE_SLICE_INITIALIZED_EXIT_MARKER = (
     'The direct initialized-stage exit proof in `test "trace-events sample preserves initialized summary across direct exit without selftest"` keeps zero selftest runs explicit, preserves the initialized summary until `exit()` succeeds, and then keeps later lifecycle calls rejected without drift.'
 )
@@ -367,6 +370,7 @@ FILE_MARKERS = {
         LIFECYCLE_MARKER,
         MODULE_SLICE_ALIGNMENT_MARKER,
         MODULE_SLICE_BOUNDARY_MARKER,
+        MODULE_SLICE_COLD_STAGE_GUARD_MARKER,
         MODULE_SLICE_INITIALIZED_EXIT_MARKER,
         ABSENT_PHASE9_BUILD_MARKER,
     ],
