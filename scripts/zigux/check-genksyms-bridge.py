@@ -287,6 +287,18 @@ EXPECTED_CASES = [
         "mode": "stdout_json",
         "expected": "quiet_overrides_warning_expected.json",
     },
+    {
+        "name": "long_version_before_missing_short_dump_types_argument",
+        "argv": ["--version", "-T"],
+        "mode": "process_json",
+        "expected": "version_before_missing_short_dump_types_argument_expected.json",
+    },
+    {
+        "name": "abbreviated_long_version_before_missing_short_dump_types_argument",
+        "argv": ["--ver", "-T"],
+        "mode": "process_json",
+        "expected": "version_before_missing_short_dump_types_argument_expected.json",
+    },
 ]
 
 EXPECTED_OUTPUTS = {
@@ -425,6 +437,11 @@ EXPECTED_OUTPUTS = {
     "version_before_missing_short_option_argument_expected.json": {
         "stdout": "",
         "stderr": "genksyms version 2.5.60\noption requires an argument -- 'r'\n",
+        "exit_code": 1,
+    },
+    "version_before_missing_short_dump_types_argument_expected.json": {
+        "stdout": "",
+        "stderr": "genksyms version 2.5.60\noption requires an argument -- 'T'\n",
         "exit_code": 1,
     },
     "version_before_short_help_expected.json": {
