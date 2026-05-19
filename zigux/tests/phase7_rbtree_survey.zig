@@ -44,6 +44,9 @@ test "phase 7 rbtree survey keeps the restored packet truthful to current readba
     const direct_anchor_note = try readRepoFile(allocator, "Documentation/zigux/phase7-rbtree-direct-anchor-note.md");
     defer allocator.free(direct_anchor_note);
 
+    const slice_note = try readRepoFile(allocator, "Documentation/zigux/phase7-rbtree-slice.md");
+    defer allocator.free(slice_note);
+
     const parsed = try std.json.parseFromSlice(RbtreeManifest, allocator, manifest_json, .{});
     defer parsed.deinit();
 
@@ -89,6 +92,13 @@ test "phase 7 rbtree survey keeps the restored packet truthful to current readba
     try expectStringSliceContains(manifest.ownership_focus, "cross-helper truthfulness must keep the landed string_helpers packet explicit while keeping the cmdline, argv_split, and rbtree packets distinct instead of collapsing them into one shared reminder claim");
     try expectStringSliceContains(manifest.ownership_focus, "build-graph truthfulness must keep the split non-owner evidence explicit: `zigux/tests/phase7_build.zig` and `scripts/zigux/validate-phase7.py` are directly readable again, while `zigux/Makefile` still lacks dedicated `phase7-*` wrapper routes and `.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps");
     try expectContains(manifest.next_bounded_step, "restored rbtree helper-test-fixture-checker-build-validator packet");
+
+    try expectContains(slice_note, "`PHASE7_LANE_KEY=P7-L13`");
+    try expectContains(slice_note, "keep this helper slice parked unless a fresh ownership, parity, or review-surface gap appears inside the existing helper, shared-test, survey, manifest, parity-checker, or shared review packet");
+    try expectContains(slice_note, "the broader shared `phase7_build.zig` route is also back to a directly readable shared reminder instead of the older missing-sibling blocker wording");
+    try expectContains(slice_note, "`python3 scripts/zigux/check-phase7-rbtree-parity.py` remains the dedicated parity readback route");
+    try expectContains(slice_note, "this slice does not carry an open parity-fixture follow-up");
+    try expectNotContains(slice_note, "Repo-reality warning for the still-missing Phase 7 rbtree companions:");
 
     try expectContains(direct_anchor_note, "Current direct-readback Phase 7 rbtree packet is publicly visible again through:");
     try expectContains(direct_anchor_note, "`Documentation/zigux/phase7-rbtree-slice.md`");
