@@ -172,3 +172,30 @@ test "zallocValue re-zeroes enum-backed storage after earlier dirty frees" {
     try std.testing.expectEqualSlices(u8, &.{ 0, 0 }, &value.?.nested.bytes);
     try std.testing.expect(value.?.nested.maybe_count == null);
 }
+
+test "zallocValue re-zeroes pointer-like fields after earlier dirty frees" {
+    const allocator = std.testing.allocator;
+    const Payload = struct {
+        active: bool,
+        maybe_ptr: ?*const u8,
+        nested: struct {
+            maybe_count: ?usize,
+        },
+    };
+
+    var sentinel: u8 = 0xaa;
+    var value: ?*Payload = try zallocValue(allocator, Payload);
+    try std.testing.expect(value != null);
+    value.?.active = true;
+    value.?.maybe_ptr = &sentinel;
+    value.?.nested.maybe_count = 9;
+    zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value == null);
+
+    value = try zallocValue(allocator, Payload);
+    defer zfreeValue(allocator, Payload, &value);
+    try std.testing.expect(value != null);
+    try std.testing.expect(!value.?.active);
+    try std.testing.expect(value.?.maybe_ptr == null);
+    try std.testing.expect(value.?.nested.maybe_count == null);
+}
