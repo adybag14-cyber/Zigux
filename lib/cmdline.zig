@@ -700,3 +700,20 @@ test "nextArg keeps quoted empty values explicit without swallowing the next tok
     try std.testing.expectEqualStrings("", parsed.value.?);
     try std.testing.expectEqualStrings("next", parsed.remaining);
 }
+
+test "nextArg keeps rest and remaining as the same borrowed suffix view" {
+    const leading = nextArg(" \tconsole=ttyS0");
+    try std.testing.expectEqualStrings("console=ttyS0", leading.rest);
+    try std.testing.expectEqualStrings("console=ttyS0", leading.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(leading.rest.ptr)), @as(usize, @intFromPtr(leading.remaining.ptr)));
+
+    const quoted_empty = nextArg("flag=\"\" next");
+    try std.testing.expectEqualStrings("next", quoted_empty.rest);
+    try std.testing.expectEqualStrings("next", quoted_empty.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(quoted_empty.rest.ptr)), @as(usize, @intFromPtr(quoted_empty.remaining.ptr)));
+
+    const nul_bounded = nextArg("key=val\x00 trailing");
+    try std.testing.expectEqualStrings("", nul_bounded.rest);
+    try std.testing.expectEqualStrings("", nul_bounded.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(nul_bounded.rest.ptr)), @as(usize, @intFromPtr(nul_bounded.remaining.ptr)));
+}
