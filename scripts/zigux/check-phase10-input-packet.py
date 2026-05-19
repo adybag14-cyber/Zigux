@@ -36,9 +36,13 @@ SLICE_MARKERS = [
     "scripts/zigux/check-phase10-input-packet.py",
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_queue_callback_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
+    "drivers/virtio/virtio_input_status_drain.zig",
     "drivers/virtio/virtio_input_teardown_observation.zig",
     "drivers/virtio/virtio_input_verify.zig",
+    "zigux/tests/phase10_virtio_input.zig",
+    "zigux/tests/phase10_virtio_input_probe_preflight.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
@@ -53,6 +57,7 @@ MODULE_MARKERS = [
     "# Phase 10 Virtio Input Module Slice",
     "drivers/virtio/virtio_input.zig",
     "drivers/virtio/virtio_input_probe_preflight.zig",
+    "drivers/virtio/virtio_input_queue_callback_preflight.zig",
     "drivers/virtio/virtio_input_registration_preflight.zig",
     "drivers/virtio/virtio_input_status_drain.zig",
     "drivers/virtio/virtio_input_teardown_observation.zig",
@@ -63,6 +68,7 @@ MODULE_MARKERS = [
     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+    "zigux/tests/phase10_virtio_input_survey.zig",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "queued status completions reclaimable in memory",
     "wrapper-facing verify coverage still proves queue-callback ordering, registration prerequisites, and teardown-reset parity across reset without widening into transport-backed queue execution or freeze, restore, or remove lifecycle claims",
@@ -553,6 +559,18 @@ def run_self_test() -> int:
 
         text_cases = [
             (
+                "Documentation/zigux/phase10-virtio-input-slice.md",
+                "drivers/virtio/virtio_input_queue_callback_preflight.zig",
+                "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
+                "slice_note:drivers/virtio/virtio_input_queue_callback_preflight.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-input-module-slice.md",
+                "zigux/tests/phase10_virtio_input_survey.zig",
+                "zigux/tests/phase10_virtio_input_survey_missing.zig",
+                "module_note:zigux/tests/phase10_virtio_input_survey.zig",
+            ),
+            (
                 "Documentation/zigux/phase10-virtio-input-survey.md",
                 "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
                 "zigux/tests/phase10_virtio_input_queue_callback_preflight_missing.zig",
@@ -632,7 +650,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "zigux/tests/phase10_virtio_input_survey.zig")
 
     print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST=pass")
-    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=13")
+    print("PHASE10_INPUT_LIVE_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
