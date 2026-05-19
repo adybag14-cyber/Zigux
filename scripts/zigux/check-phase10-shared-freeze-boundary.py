@@ -60,6 +60,7 @@ PHASE14_FUTURE_DESTINATION_POLICY = (
 EXPECTED_COMMON_DRIVER_FIELDS = {
     "freeze_map": "Documentation/zigux/freeze-map.md",
     "freeze_boundary_status": "aligned",
+    "freeze_status_change_claimed": False,
     "risky_transport_posture": "blocked_on_risky_transport",
     "allowed_evidence_kinds": [
         "driver_local_lab_slices",
@@ -404,6 +405,15 @@ def run_self_test() -> int:
         run_driver_manifest_case(
             root,
             "zigux/tests/phase10_virtio_input_manifest.json",
+            "freeze_status_change_claimed",
+            True,
+            "phase10_virtio_input_manifest.json:freeze_status_change_claimed=True",
+        )
+        reset_fixture(root)
+
+        run_driver_manifest_case(
+            root,
+            "zigux/tests/phase10_virtio_input_manifest.json",
             "allowed_evidence_kinds",
             ["driver_local_lab_slices"],
             "phase10_virtio_input_manifest.json:allowed_evidence_kinds=['driver_local_lab_slices']",
@@ -420,7 +430,7 @@ def run_self_test() -> int:
         reset_fixture(root)
 
     print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST=pass")
-    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_SHARED_FREEZE_BOUNDARY_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
