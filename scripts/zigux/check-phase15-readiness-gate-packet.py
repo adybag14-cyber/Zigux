@@ -29,7 +29,7 @@ REQUIRED_NOTE_MARKERS = (
     "PHASE15_SLICE=governance_packet_readiness_truthfulness",
     "PHASE15_PROVENANCE_MODE=dated_master_readback",
     "the governance packet is materially landed and reviewable",
-    "the missing validator, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready",
+    "the missing validator, build, and workflow companions still block any claim that the broader Phase 15 replay route is fully ready",
     "Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes",
     "ready for maintenance-mode truthfulness refreshes only",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
@@ -180,7 +180,7 @@ def _sample_note() -> str:
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
 
-This note says the governance packet is materially landed and reviewable, while the missing validator, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready.
+This note says the governance packet is materially landed and reviewable, while the missing validator, build, and workflow companions still block any claim that the broader Phase 15 replay route is fully ready.
 
 Current directly readable packet:
 - `Documentation/zigux/freeze-map.md`
@@ -211,12 +211,12 @@ Current directly readable packet:
 - `zigux/tests/phase15_indefinite_c_policy.zig`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 
 Blocked broader paths:
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
 Although `zigux/Makefile` is present on current `master`, it still does not materialize dedicated `phase15*` wrapper routes, so:
 - `make -C zigux phase15-validate` remains blocked route vocabulary rather than a directly readable shipped replay path
@@ -262,12 +262,12 @@ def _sample_manifest() -> str:
                 "zigux/tests/phase15_indefinite_c_policy.zig",
                 "zigux/tests/phase15_handoff_next_steps_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps.zig",
+                "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
                 "zigux/tests/phase15_readiness_gate_manifest.json"
             ],
             "still_missing_broader_paths": [
                 "scripts/zigux/validate-phase15.py",
-                "zigux/tests/phase15_build.zig",
-                "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+                "zigux/tests/phase15_build.zig"
             ],
             "repo_evidence": {
                 "phase15_readiness_packet_checker_present": true,
@@ -278,7 +278,7 @@ def _sample_manifest() -> str:
                 "phase15_governance_lane_replay_present": true,
                 "phase15_handoff_manifest_present": true,
                 "phase15_build_zig_present": false,
-                "phase15_indefinite_c_lane_owner_alignment_present": false,
+                "phase15_indefinite_c_lane_owner_alignment_present": true,
                 "phase15_makefile_present": true,
                 "phase15_validate_target_present": false,
                 "phase15_test_target_present": false,
@@ -324,6 +324,7 @@ def _seed_repo(root: Path) -> None:
         "zigux/tests/phase15_indefinite_c_policy.zig",
         "zigux/tests/phase15_handoff_next_steps_manifest.json",
         "zigux/tests/phase15_handoff_next_steps.zig",
+        "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
         "zigux/Makefile",
     ):
         _write(root / rel, "present\n")
