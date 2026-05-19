@@ -33,6 +33,15 @@ fn runKstrdupAndReplaceWithFailingAllocator(
     allocator.free(duplicated);
 }
 
+fn runParseIntArrayWithFailingAllocator(
+    allocator: std.mem.Allocator,
+    buf: []const u8,
+    count: usize,
+) !void {
+    const parsed = try string_helpers.parseIntArray(allocator, buf, count);
+    allocator.free(parsed);
+}
+
 test "phase 7 string helpers starter covers whitespace trimming and prefix skipping" {
     try std.testing.expectEqualStrings("hello", string_helpers.skipSpaces("   hello"));
     try std.testing.expectEqualStrings("world", string_helpers.skip_spaces("\t\nworld"));
@@ -426,6 +435,51 @@ test "phase 7 string helpers starter quotes cmdlines after collapsing trailing N
     try std.testing.expectEqualStrings("", quoted_blank);
 
     try std.testing.expect((try string_helpers.kstrdupQuotableCmdline(std.testing.allocator, null)) == null);
+}
+
+test "phase 7 string helpers starter parses bounded comma lists and positive ranges" {
+    const source = [_]u8{ '1', ',', '3', '-', '5', ',', '0', 'x', '7', ',', '0', '1', 0, '9' };
+    const parsed = try string_helpers.parseIntArray(std.testing.allocator, &source, source.len);
+    defer std.testing.allocator.free(parsed);
+
+    try std.testing.expectEqual(@as(i32, 6), parsed[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 1, 3, 4, 5, 7, 1 }, parsed[1..]);
+
+    const alias = try string_helpers.parse_int_array(std.testing.allocator, "2-4", 3);
+    defer std.testing.allocator.free(alias);
+    try std.testing.expectEqual(@as(i32, 3), alias[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, 3, 4 }, alias[1..]);
+}
+
+test "phase 7 string helpers starter stops parse-int-array at invalid tokens, first NUL, and explicit count bounds" {
+    const partial = try string_helpers.parseIntArray(std.testing.allocator, "9,11,broken,15", "9,11,broken,15".len);
+    defer std.testing.allocator.free(partial);
+    try std.testing.expectEqual(@as(i32, 2), partial[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 9, 11 }, partial[1..]);
+
+    const nul_bounded = [_]u8{ '7', ',', '8', 0, ',', '9' };
+    const bounded = try string_helpers.parse_int_array(std.testing.allocator, &nul_bounded, nul_bounded.len);
+    defer std.testing.allocator.free(bounded);
+    try std.testing.expectEqual(@as(i32, 2), bounded[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 7, 8 }, bounded[1..]);
+
+    const count_limited = try string_helpers.parseIntArray(std.testing.allocator, "4,6,8", 3);
+    defer std.testing.allocator.free(count_limited);
+    try std.testing.expectEqual(@as(i32, 2), count_limited[0]);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 4, 6 }, count_limited[1..]);
+}
+
+test "phase 7 string helpers starter reports empty parse-int-array input as no entry" {
+    try std.testing.expectError(error.NoEntry, string_helpers.parseIntArray(std.testing.allocator, "broken", "broken".len));
+    try std.testing.expectError(error.NoEntry, string_helpers.parse_int_array(std.testing.allocator, "", 0));
+}
+
+test "phase 7 string helpers starter reports parse-int-array allocation failure cleanly" {
+    try std.testing.checkAllAllocationFailures(
+        std.testing.allocator,
+        runParseIntArrayWithFailingAllocator,
+        .{ "1-4,0x8", 7 },
+    );
 }
 
 test "phase 7 string helpers starter uppercases and lowercases only through the exported c-string boundary" {
