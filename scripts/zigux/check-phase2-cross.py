@@ -70,7 +70,7 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 38
+EXPECTED_SELF_TEST_CASE_COUNT = 44
 
 
 class DuplicateJsonKeyError(ValueError):
@@ -648,6 +648,27 @@ def run_self_test() -> int:
             "expected=x86_64-linux,aarch64-linux;actual=aarch64-linux,x86_64-linux",
         ) not in issues
         checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        path.write_text("[]\n", encoding="utf-8")
+        assert ("INVALID_FIXTURE_SHAPE", "root") in collect_issues(root)
+        checks_run += 1
+
+        for field, bad_value in (
+            ("phase", "Phase X"),
+            ("status", "inactive"),
+            ("route", "make -C zigux phase2"),
+            ("archive_target_scope", "x86_64-linux"),
+            ("cross_targets", []),
+        ):
+            build_self_test_root(root)
+            path = resolve_path(root, FIXTURE)
+            fixture = json.loads(path.read_text(encoding="utf-8"))
+            fixture[field] = bad_value
+            path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+            assert ("INVALID_FIXTURE_FIELD", field) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
