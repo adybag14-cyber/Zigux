@@ -195,7 +195,5 @@
       }
     }
   ],
-  "shared_follow_through_gaps": [
-    "Documentation/zigux/README.md"
-  ]
+  "shared_follow_through_gaps": []
 }
