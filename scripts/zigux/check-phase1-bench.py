@@ -399,6 +399,14 @@ def emit_bench_command_failure(
     return 1
 
 
+def emit_bench_command_missing(error: FileNotFoundError, expectations_path: Path) -> int:
+    print("PHASE1_BENCH_CHECK=fail")
+    print("PHASE1_BENCH_CHECK_REASON=bench_command_missing")
+    print(f"PHASE1_BENCH_EXPECTATIONS={expectations_path}")
+    print(f"BENCH_COMMAND_MISSING={error.filename}")
+    return 1
+
+
 def capture_expectations_failure_output(
     kind: str,
     payload: object,
@@ -432,6 +440,17 @@ def capture_bench_command_failure_output(
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
         result = emit_bench_command_failure(exit_code, stdout, stderr, expectations_path)
+    assert result == 1
+    return buffer.getvalue().splitlines()
+
+
+def capture_bench_command_missing_output(
+    error: FileNotFoundError,
+    expectations_path: Path,
+) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = emit_bench_command_missing(error, expectations_path)
     assert result == 1
     return buffer.getvalue().splitlines()
 
@@ -616,7 +635,7 @@ def run_self_test() -> None:
             "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
             "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
             "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_FIND_ADD_CHECKSUM": 10,
+            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
             "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
             "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
         },
@@ -760,6 +779,19 @@ def run_self_test() -> None:
         "stdout-line-2",
         "stderr-line-1",
         "stderr-line-2",
+    ]
+    case_count += 1
+
+    command_missing_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-command-missing.json"
+    command_missing_output = capture_bench_command_missing_output(
+        FileNotFoundError(2, "No such file or directory", "/missing/zig"),
+        command_missing_path,
+    )
+    assert command_missing_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=bench_command_missing",
+        f"PHASE1_BENCH_EXPECTATIONS={command_missing_path}",
+        "BENCH_COMMAND_MISSING=/missing/zig",
     ]
     case_count += 1
 
@@ -1162,12 +1194,15 @@ def main() -> int:
     assert isinstance(expectations, dict)
 
     zig = find_zig(args.zig)
-    result = subprocess.run(
-        [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
-        cwd=str(ROOT),
-        capture_output=True,
-        text=True,
-    )
+    try:
+        result = subprocess.run(
+            [zig, "build", "bench", "--build-file", "zigux/tests/build.zig", "-Doptimize=ReleaseSafe"],
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as error:
+        return emit_bench_command_missing(error, EXPECTATIONS)
     if result.returncode != 0:
         return emit_bench_command_failure(
             result.returncode,
