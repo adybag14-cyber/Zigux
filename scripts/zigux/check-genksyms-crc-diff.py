@@ -50,6 +50,9 @@ def run_checked(label: str, cmd: list[str], **kwargs) -> subprocess.CompletedPro
         raise SystemExit(f"{label} failed: missing executable: {cmd[0]}") from exc
     except subprocess.CalledProcessError as exc:
         raise SystemExit(f"{label} failed with exit {exc.returncode}: {' '.join(cmd)}") from exc
+    except OSError as exc:
+        detail = exc.strerror or str(exc)
+        raise SystemExit(f"{label} failed to launch {cmd[0]}: {detail}") from exc
 
 
 def resolve_tool(candidate: str, missing_message: str) -> str:
@@ -284,6 +287,10 @@ def run_self_test() -> int:
         run_checked_tmp_dir = Path(run_checked_tmp_dir_str)
         fake_missing = run_checked_tmp_dir / "missing-tool"
         fake_fail = write_fake_executable(run_checked_tmp_dir / "fail-tool", "#!/bin/sh\nexit 7\n")
+        fake_nonexec = run_checked_tmp_dir / "not-executable"
+        fake_nonexec.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8", newline="\n")
+        fake_directory = run_checked_tmp_dir / "directory-tool"
+        fake_directory.mkdir()
         expect_system_exit_contains(
             lambda: run_checked("selftest-missing-tool", [str(fake_missing)]),
             f"selftest-missing-tool failed: missing executable: {fake_missing}",
@@ -291,6 +298,14 @@ def run_self_test() -> int:
         expect_system_exit_contains(
             lambda: run_checked("selftest-failing-tool", [str(fake_fail)]),
             f"selftest-failing-tool failed with exit 7: {fake_fail}",
+        )
+        expect_system_exit_contains(
+            lambda: run_checked("selftest-nonexec-tool", [str(fake_nonexec)]),
+            f"selftest-nonexec-tool failed to launch {fake_nonexec}: Permission denied",
+        )
+        expect_system_exit_contains(
+            lambda: run_checked("selftest-directory-tool", [str(fake_directory)]),
+            f"selftest-directory-tool failed to launch {fake_directory}: Permission denied",
         )
 
     with tempfile.TemporaryDirectory(prefix="genksyms_crc_selftest_") as tmp_dir_str:
@@ -332,7 +347,7 @@ def run_self_test() -> int:
         )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=27")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=29")
     return 0
 
 
