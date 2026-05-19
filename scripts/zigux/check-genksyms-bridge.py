@@ -489,6 +489,7 @@ EXPECTED_TOOL_TESTS = [
     'test "genksyms bridge keeps long version side effect before long help"',
     'test "genksyms bridge keeps abbreviated long version side effect before long help"',
     'test "genksyms bridge keeps abbreviated long version side effect before short help"',
+    'test "genksyms bridge help output only advertises implemented flags"',
     'test "genksyms bridge rejects empty inline long reference argument"',
     'test "genksyms bridge canonicalizes abbreviated dump-types empty inline argument"',
     'test "genksyms bridge rejects more than sixteen reference files like the C harness"',
@@ -501,7 +502,7 @@ EXPECTED_HARNESS_MARKERS = [
     'execv(tool_path, child_argv);',
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 18
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 
 def load_json(path: Path, label: str) -> tuple[object | None, list[str]]:
@@ -554,7 +555,7 @@ def validate_cases(payload: object) -> list[str]:
 def validate_checker_text(text: str) -> list[str]:
     issues: list[str] = []
     required_markers = [
-        "EXPECTED_SELF_TEST_CASE_COUNT = 18",
+        "EXPECTED_SELF_TEST_CASE_COUNT = 20",
         'GENKSYMS_HARNESS_REL = f"{FIXTURE_ROOT_REL}/genksyms_bridge_c_harness.c"',
         'print("PHASE2_GENKSYMS_BRIDGE_SELF_TEST=pass")',
         'print("PHASE2_GENKSYMS_BRIDGE=pass")',
@@ -569,6 +570,8 @@ def validate_checker_text(text: str) -> list[str]:
         '"name": "abbreviated_long_version_before_unexpected_long_option_argument"',
         '"expected": "version_before_missing_short_option_argument_expected.json"',
         '"expected": "version_before_unexpected_long_option_argument_expected.json"',
+        '"expected": "version_before_short_help_expected.json"',
+        '"expected": "version_before_long_help_expected.json"',
     ]
     for marker in required_markers:
         if marker not in text:
@@ -627,7 +630,7 @@ def run_self_test() -> int:
             (root / FIXTURE_ROOT_REL).mkdir(parents=True, exist_ok=True)
             (root / GENKSYMS_CHECKER_REL).write_text(Path(__file__).read_text(encoding="utf-8"), encoding="utf-8")
             (root / GENKSYMS_TOOL_REL).write_text("\n".join(EXPECTED_TOOL_TESTS + [""]), encoding="utf-8")
-            (root / GENKSYMS_HARNESS_REL).write_text("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
+            (root / GENKSYMS_HARNESS_REL).writeText("\n".join(EXPECTED_HARNESS_MARKERS + [""]), encoding="utf-8")
             (root / GENKSYMS_CASES_REL).write_text(json.dumps(EXPECTED_CASES, indent=2) + "\n", encoding="utf-8")
             for name, payload in EXPECTED_OUTPUTS.items():
                 (root / FIXTURE_ROOT_REL / name).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -696,6 +699,28 @@ def run_self_test() -> int:
             EXPECTED_CASES[21],
             {"stdout": "", "stderr": "genksyms version 2.5.60\noption requires an argument -- 'r'\n", "exit_code": 1},
             "runtime:abbreviated-long-version-missing-short-option-argument",
+        ):
+            return 1
+        checks_run += 1
+        if validate_runtime_observation(
+            EXPECTED_CASES[22],
+            {
+                "stdout": "",
+                "stderr": EXPECTED_OUTPUTS["version_before_short_help_expected.json"]["stderr"],
+                "exit_code": 0,
+            },
+            "runtime:version-before-short-help",
+        ):
+            return 1
+        checks_run += 1
+        if validate_runtime_observation(
+            EXPECTED_CASES[24],
+            {
+                "stdout": "",
+                "stderr": EXPECTED_OUTPUTS["version_before_long_help_expected.json"]["stderr"],
+                "exit_code": 0,
+            },
+            "runtime:version-before-long-help",
         ):
             return 1
         checks_run += 1
