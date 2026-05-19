@@ -38,6 +38,7 @@ REQUIRED_MARKERS = {
         "drivers/virtio/virtio_input_verify.zig",
         "zigux/tests/phase10_virtio_input_teardown_observation.zig",
         "drivers/virtio/virtio_ring_verify.zig",
+        "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
         "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
         "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
         "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
@@ -122,6 +123,11 @@ REQUIRED_MARKERS = {
         "keep risky transport parked",
         PHASE10_SCRIPTS_ROOT_PHRASE,
     ],
+    "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
+        "test \"phase10 virtio ring notification-data replay keeps split and packed next-avail state explicit\" {",
+        "const split_summary = try ring.notificationDataSummary(1);",
+        "const packed_summary = try ring.notificationDataSummary(2);",
+    ],
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
         "test \"phase10 virtio ring repeated prepareKick stays idle until new descriptors are published\" {",
         "kick_summary = try ring.prepareKick(1);",
@@ -149,6 +155,7 @@ REQUIRED_MARKERS = {
         "\"phase10-virtio-input-teardown-observation-tests\"",
         "\"phase10-virtio-input-survey-tests\"",
         "\"phase10-virtio-input-verify-tests\"",
+        "\"phase10-virtio-ring-notification-data-readiness-tests\"",
         "\"phase10-virtio-ring-verify-tests\"",
         "\"phase10-virtio-ring-prepare-kick-idempotent-tests\"",
         "\"phase10-virtio-ring-reset-reuse-tests\"",
@@ -341,12 +348,6 @@ def run_self_test() -> int:
                 "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:Use the directly re-readable shared validator pair, closure manifest, and Makefile-backed route anchors together with the returned core-survey, ring, input, and MMIO packet anchors before widening shared wording back into direct claims about the still-missing core-side companions.",
             ),
             (
-                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
-                "Current `master` also rematerializes `zigux/tests/phase10_virtio_ring_survey.zig`, so keep that dedicated ring survey gate explicit with `Documentation/zigux/phase10-virtio-ring-survey.md`, `Documentation/zigux/phase10-virtio-ring-slice.md`, `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`, `zigux/tests/phase10_virtio_ring_manifest.json`, and the shared `zigux/tests/phase10_build.zig` route instead of framing the survey gate as a direct-readback gap.",
-                "Authenticated contents reads still fail for `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the broader validator-first `scripts/zigux/validate-phase10.py` route through the direct readback available in this lane.",
-                "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md:forbidden:Authenticated contents reads still fail for `Documentation/zigux/phase10-virtio-core-slice.md`, `drivers/virtio/virtio_driver_id.zig`, `drivers/virtio/virtio_verify.zig`, `zigux/tests/phase10_virtio_core.zig`, `zigux/tests/phase10_virtio_core_reset_queue.zig`, `zigux/tests/phase10_virtio_CORE_interrupt_compound_ack.zig`, `zigux/tests/phase10_virtio_core_manifest.json`, `zigux/tests/phase10_virtio_core_survey.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, and the broader validator-first `scripts/zigux/validate-phase10.py` route through the direct readback available in this lane.",
-            ),
-            (
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
                 "drivers/virtio/virtio_input_queue_callback_preflight.zig",
                 "drivers/virtio/virtio_input_queue_callback_preflight_missing.zig",
@@ -363,6 +364,12 @@ def run_self_test() -> int:
                 "drivers/virtio/virtio_ring_verify.zig",
                 "drivers/virtio/virtio_ring_verify_missing.zig",
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:drivers/virtio/virtio_ring_verify.zig",
+            ),
+            (
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
+                "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+                "zigux/tests/phase10_virtio_ring_notification_data_readiness_missing.zig",
+                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md:zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
             ),
             (
                 "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
@@ -410,7 +417,7 @@ def run_self_test() -> int:
                 "drivers/virtio/virtio_ring_verify.zig",
                 "test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
                 "test \"phase10 virtio ring verify drift\" {",
-                "drivers/virtio/virtio_RING_verify.zig:test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
+                "drivers/virtio/virtio_ring_verify.zig:test \"phase10 virtio ring verify keeps delayed callback wrapper thresholds explicit\" {",
             ),
             (
                 "scripts/zigux/README.md",
@@ -423,6 +430,12 @@ def run_self_test() -> int:
                 PHASE10_SCRIPTS_ROOT_PHRASE,
                 "Treat `scripts/zigux/README.md` as a neighboring shared reminder surface.",
                 f"scripts/zigux/README.md:{PHASE10_SCRIPTS_ROOT_PHRASE}",
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+                "test \"phase10 virtio ring notification-data replay keeps split and packed next-avail state explicit\" {",
+                "test \"phase10 virtio ring notification-data drift\" {",
+                "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig:test \"phase10 virtio ring notification-data replay keeps split and packed next-avail state explicit\" {",
             ),
             (
                 "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
@@ -459,6 +472,12 @@ def run_self_test() -> int:
                 "\"phase10-virtio-input-verify-tests\"",
                 "\"phase10-virtio-input-verify-tests-missing\"",
                 "zigux/tests/phase10_build.zig:\"phase10-virtio-input-verify-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-ring-notification-data-readiness-tests\"",
+                "\"phase10-virtio-ring-notification-data-readiness-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-ring-notification-data-readiness-tests\"",
             ),
             (
                 "zigux/tests/phase10_build.zig",
@@ -516,9 +535,10 @@ def run_self_test() -> int:
         expect_missing_file(root, "Documentation/zigux/phase10-closure-evidence.md")
         expect_missing_file(root, "drivers/virtio/virtio_ring_verify.zig")
         expect_missing_file(root, "scripts/zigux/README.md")
+        expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=41")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=43")
     return 0
 
 
