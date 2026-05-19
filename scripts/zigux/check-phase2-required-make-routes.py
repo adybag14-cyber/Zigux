@@ -77,6 +77,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
     + len(MAKEFILE_MARKERS)
+    + len(MAKEFILE_MARKERS)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
     + (len(MINIMAL_SURFACE_MARKERS) + len(DEFAULT_POLICY_ROUTE_MARKERS)) * len(POLICY_ROUTE_SURFACE_CODES)
     + 10
@@ -176,8 +177,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if not has_required_phase2_phony_targets(makefile_text):
         issues.append(("MISSING_MAKEFILE_MARKERS", REQUIRED_PHASE2_PHONY_LINE))
     for marker in MAKEFILE_MARKERS:
-        if count_exact_lines(makefile_text, marker) == 0:
+        count = count_exact_lines(makefile_text, marker)
+        if count == 0:
             issues.append(("MISSING_MAKEFILE_MARKERS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count={count}"))
 
     for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
         issues.extend(collect_surface_issues(root, path, gap_code, route_code, CURRENT_PACKET_ROUTE_MARKERS))
@@ -324,6 +328,16 @@ def run_self_test() -> int:
                 encoding="utf-8",
             )
             assert ("MISSING_MAKEFILE_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in MAKEFILE_MARKERS:
+            build_self_test_root(root)
+            makefile_path = resolve_path(root, MAKEFILE)
+            makefile_path.write_text(
+                duplicate_exact_line(makefile_path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_MAKEFILE_MARKERS", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for path, gap_code, route_code in FULL_ROUTE_SURFACE_CODES:
