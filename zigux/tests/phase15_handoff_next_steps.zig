@@ -51,8 +51,8 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
     try std.testing.expectEqualStrings("current-master-readback-2026-05-19", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
     try std.testing.expectEqualStrings("scripts/zigux/check-phase15-handoff-note-alignment.py", manifest.checker);
-    try std.testing.expectEqual(@as(usize, 22), manifest.present_paths.len);
-    try std.testing.expectEqual(@as(usize, 3), manifest.still_missing_paths.len);
+    try std.testing.expectEqual(@as(usize, 23), manifest.present_paths.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.still_missing_paths.len);
     try std.testing.expectEqual(@as(usize, 7), manifest.required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.checker_group_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff_rule_markers.len);
@@ -62,6 +62,7 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_handoff_next_steps_manifest.json");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_handoff_next_steps.zig");
+    try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectSliceContains(manifest.present_paths, "scripts/zigux/check-phase15-handoff-note-alignment.py");
     try expectSliceContains(manifest.still_missing_paths, "scripts/zigux/validate-phase15.py");
     try expectSliceContains(manifest.still_missing_paths, "zigux/tests/phase15_build.zig");
@@ -85,7 +86,7 @@ test "phase 15 handoff note treats the focused replay as present and broader com
     try expectContains(handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(handoff_note, manifest.surveyed_commit);
     try expectContains(handoff_note, "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`");
-    try expectContains(handoff_note, "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.");
+    try expectContains(handoff_note, "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.");
     try expectNotContains(handoff_note, "no dedicated handoff-specific Zig replay is directly materialized on current `master`");
 
     for (manifest.present_paths) |path| {
