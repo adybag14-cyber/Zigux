@@ -12,8 +12,8 @@ already describe the host-free teardown and stop-policy packet.
   packet
 - remaining follow-through is still focused replay or manifest recovery, live
   GPIO descriptor lookup, platform-driver registration, watchdog-core
-  registration, remove hooks, reboot-backed teardown execution, and
-  hardware-backed validation
+  registration, live platform cleanup callbacks, reboot-backed teardown
+  execution, and hardware-backed validation
 
 ## Teardown Packet
 
@@ -22,6 +22,7 @@ The current teardown-facing GPIO packet on `master` is:
 - `drivers/watchdog/gpio_wdt.zig`
 - `Documentation/zigux/phase11-gpio-wdt-module-slice.md`
 - `Documentation/zigux/phase11-gpio-wdt-teardown-note.md`
+- `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md`
 - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
 
 These returned driver and documentation surfaces keep the teardown packet
@@ -44,14 +45,19 @@ The current host-free teardown review packet keeps these handoffs explicit:
 - `watchdogDrvdataCheckpointSummary()` and `rebootGlueCheckpointSummary()` as
   the bounded ownership-to-reboot-glue handoff before the first
   `watchdog_stop_on_reboot()` request surface
+- `Documentation/zigux/phase11-gpio-wdt-remove-handoff-note.md` as the
+  companion surface that keeps the bounded remove-handoff packet explicit
+  without claiming live platform cleanup callbacks, platform-driver removal,
+  watchdog-core unregister side effects, or host-backed shutdown execution
 - the teardown handoff after descriptor preflight and the first bounded
   register-device request surface
 
 The returned driver-backed packet also keeps the stop-transition,
-reboot-glue handoff, and teardown-ownership boundaries visible without claiming
-live `watchdog_set_drvdata()` execution, live `watchdog_stop_on_reboot()`
-execution, live GPIO execution, platform cleanup callbacks, or host-backed
-shutdown behavior.
+reboot-glue handoff, remove-handoff boundary, and teardown-ownership boundaries
+visible without claiming live `watchdog_set_drvdata()` execution, live
+`watchdog_stop_on_reboot()` execution, live GPIO execution, live platform
+cleanup callbacks, platform cleanup callbacks, or host-backed shutdown
+behavior.
 
 ## Bounded Meaning
 
@@ -59,6 +65,6 @@ This note records the returned teardown summaries only. It does not claim live
 GPIO descriptor acquisition, `platform_set_drvdata()` execution,
 `watchdog_set_drvdata()` execution, `watchdog_stop_on_reboot()` execution,
 `devm_watchdog_register_device()` execution, platform-driver registration, live
-reboot-hook registration, remove-hook parity, or hardware-validated teardown
-parity. Those remain later same-lane follow-through steps rather than part of
-the already-landed packet.
+reboot-hook registration, live platform cleanup callbacks, live remove-hook
+execution, or hardware-validated teardown parity. Those remain later same-lane
+follow-through steps rather than part of the already-landed packet.
