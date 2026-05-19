@@ -136,7 +136,7 @@ HELPER_TEST_MARKERS = [
 ]
 
 SURVEY_GATE_MARKERS = [
-    'test "phase10 virtio mmio survey note keeps the dedicated survey gate explicit beside the helper-local packet" {',
+    'test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {',
     'try expectContains(survey_note, "interrupt-ack disposition review");',
     'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");',
