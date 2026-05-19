@@ -8,7 +8,7 @@ This note records the bounded current-head readback for the latest `drivers/virt
 - `PHASE10_FAMILY=virtio-mmio`
 - `PHASE10_SURFACE=config-write-disposition-observation`
 - `PHASE10_PROVENANCE_MODE=dated_master_readback`
-- surveyed against current `master` readback on `2026-05-18`
+- surveyed against current `master` readback on `2026-05-19`
 - scope: document the helper-local disposition summary that reports byte-level config-write deltas while keeping the broader MMIO lifecycle, IRQ, DMA, queue setup, and probe or remove packet blocked
 - role: packet-local current-head companion for the Phase 10 MMIO packet, aligned with the live MMIO survey while keeping the byte-level disposition rung explicit on its own terms
 
