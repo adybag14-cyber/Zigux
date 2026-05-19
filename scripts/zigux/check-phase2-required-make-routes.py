@@ -26,7 +26,7 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
 )
 
-REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2"
+REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
 DEFAULT_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate")
 DEFAULT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in DEFAULT_REQUIRED_MAKE_ROUTES)
@@ -45,7 +45,11 @@ MAKEFILE_MARKERS = (
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
+    "phase2-genksyms:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "phase2: phase2-validate",
 )
@@ -55,6 +59,7 @@ CURRENT_PACKET_ROUTE_MARKERS = (
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
     "`make -C zigux phase2-validate`",
     "`make -C zigux phase2`",
 )
@@ -313,7 +318,7 @@ def run_self_test() -> int:
             replace_exact_line(
                 makefile_path.read_text(encoding="utf-8"),
                 REQUIRED_PHASE2_PHONY_LINE,
-                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3",
+                ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-validate phase2 phase3-validate phase3",
             ),
             encoding="utf-8",
         )
