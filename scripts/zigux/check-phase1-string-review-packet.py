@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Phase 1 string helper review packet against helper and manifest drift."""
+"""Guard the Phase 1 string helper review packet against helper, manifest, and lane-note drift."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ HERE = Path(__file__).resolve()
 DEFAULT_ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 STRING_HELPER_REL = Path("tools/lib/string.zig")
 STRING_MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
+STRING_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequencing.md")
 
 EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn sysfsStreq(lhs: []const u8, rhs: []const u8) bool {",
@@ -221,6 +222,30 @@ EXPECTED_STRING_PACKET = {
     ),
 }
 
+EXPECTED_STRING_LANE_MARKERS = [
+    (
+        "lane_direct_owner",
+        "`PHASE1_STRING_DIRECT_OWNER=string keeps strscpy()/strscpyPad() copy-and-pad semantics, "
+        "memparse safety, matched-prefix-length and suffix boundary, sysfs newline-aware equality "
+        "and lookup order through sysfsStreq(), sysfs_streq(), sysfsMatchString(), and "
+        "sysfs_match_string(), C-string list lookup through matchString() and match_string(), "
+        "counted-search strnchr, embedded-NUL trim preservation, and moving-earliest-dirty-byte "
+        "memchrInv coverage helper-local while the committed shared replay owns embedded-NUL "
+        "replaceChar parity bytes and the current string fixture keys`",
+    ),
+    (
+        "lane_next_safe_step",
+        "`PHASE1_STRING_NEXT_SAFE_STEP=string reopens only for direct-anchor drift inside "
+        "strscpy()/strscpyPad() copy-and-pad semantics, memparse, matched-prefix-length or suffix "
+        "boundary, sysfs newline-aware equality or lookup order, matchString()/match_string() "
+        "C-string list lookup, counted-search strnchr, embedded-NUL trim, or moving-earliest-"
+        "dirty-byte memchrInv coverage, or for committed replaceChar or current string fixture "
+        "drift; keep the helper-local sysfs review anchors aligned across the string review packet "
+        "and this lane note unless dedicated shared sysfs fixture keys land; do not reopen missing "
+        "closure-side validator names by default`",
+    ),
+]
+
 
 def repo_root(root: str | None) -> Path:
     return Path(root).resolve() if root else DEFAULT_ROOT.resolve()
@@ -257,13 +282,14 @@ def nested_value(data: object, path: tuple[str, ...]) -> object:
 def collect_failures(root: Path) -> list[str]:
     failures: list[str] = []
 
-    for relative_path in (STRING_HELPER_REL, STRING_MANIFEST_REL):
+    for relative_path in (STRING_HELPER_REL, STRING_MANIFEST_REL, STRING_LANE_NOTE_REL):
         if not (root / relative_path).exists():
             failures.append(f"missing_file:{relative_path.as_posix()}")
     if failures:
         return failures
 
     helper_text = load_text(root, STRING_HELPER_REL)
+    lane_text = load_text(root, STRING_LANE_NOTE_REL)
     manifest = load_json(root, STRING_MANIFEST_REL)
     if not isinstance(manifest, dict):
         return [f"manifest:expected=dict:actual={type(manifest).__name__}"]
@@ -276,6 +302,15 @@ def collect_failures(root: Path) -> list[str]:
     for anchor in EXPECTED_HELPER_TEST_ANCHORS:
         failures.extend(
             require_exact_occurrence(helper_text, f"string_helper:{anchor}", anchor)
+        )
+
+    for label, marker in EXPECTED_STRING_LANE_MARKERS:
+        failures.extend(
+            require_exact_occurrence(
+                lane_text,
+                f"string_lane:{label}",
+                marker,
+            )
         )
 
     failures.extend(
@@ -320,6 +355,10 @@ def sample_manifest() -> str:
     )
 
 
+def sample_lane_note() -> str:
+    return "\n".join(marker for _, marker in EXPECTED_STRING_LANE_MARKERS) + "\n"
+
+
 def build_sample_repo(root: Path) -> None:
     write_file(
         root,
@@ -327,6 +366,7 @@ def build_sample_repo(root: Path) -> None:
         "\n".join(EXPECTED_STRING_SOURCE_SYMBOLS + EXPECTED_HELPER_TEST_ANCHORS) + "\n",
     )
     write_file(root, STRING_MANIFEST_REL, sample_manifest())
+    write_file(root, STRING_LANE_NOTE_REL, sample_lane_note())
 
 
 def mutate_manifest(root: Path, path: tuple[str, ...]) -> None:
@@ -370,13 +410,23 @@ def run_self_test() -> int:
     )
     mutation_specs.extend(
         (
+            f"lane_marker_{idx}_{kind}",
+            ("lane_marker", marker),
+            kind,
+        )
+        for idx, (_, marker) in enumerate(EXPECTED_STRING_LANE_MARKERS)
+        for kind in ("remove", "duplicate")
+    )
+    mutation_specs.extend(
+        (
             f"manifest_{key}",
             ("manifest", ("review_anchors", "tools/lib/string.zig", key)),
             "manifest",
         )
         for key in EXPECTED_STRING_PACKET
     )
-    mutation_specs.append(("manifest_missing_file", ("manifest_missing_file", STRING_MANIFEST_REL), "missing_file"))
+    mutation_specs.append(("manifest_missing_file", ("missing_file", STRING_MANIFEST_REL), "missing_file"))
+    mutation_specs.append(("lane_note_missing_file", ("missing_file", STRING_LANE_NOTE_REL), "missing_file"))
 
     for name, target, kind in mutation_specs:
         safe_name = name.replace("/", "_")
@@ -402,10 +452,19 @@ def run_self_test() -> int:
                 else:
                     text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
                 path.write_text(text, encoding="utf-8")
+            elif isinstance(target, tuple) and target[0] == "lane_marker":
+                path = root / STRING_LANE_NOTE_REL
+                marker = target[1]
+                text = path.read_text(encoding="utf-8")
+                if kind == "remove":
+                    text = text.replace(marker + "\n", "", 1)
+                else:
+                    text = text.replace(marker + "\n", marker + "\n" + marker + "\n", 1)
+                path.write_text(text, encoding="utf-8")
             elif isinstance(target, tuple) and target[0] == "manifest":
                 mutate_manifest(root, target[1])
             else:
-                (root / STRING_MANIFEST_REL).unlink()
+                (root / target[1]).unlink()
 
             failures = collect_failures(root)
             if not failures:
