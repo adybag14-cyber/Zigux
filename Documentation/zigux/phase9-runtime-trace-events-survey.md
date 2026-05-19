@@ -28,7 +28,7 @@ Current `master` also now keeps one direct family-local `zigux/tests/runtime_*` 
 The direct sample still exposes `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking.
 The direct sample also now keeps initialized-stage clean exit explicit: `test "trace-events sample preserves initialized summary across direct exit without selftest"` proves zero selftest runs stay explicit, the initialized summary stays unchanged until `exit()` succeeds, and later lifecycle calls remain rejected without drift.
 The fail-closed companion still keeps unregistered function-thread failures fail-closed.
-The exit-rollback companion still keeps failed-exit rollback explicit after reusable selftest replay.
+The exit-rollback companion still keeps failed-exit rollback explicit after reusable selftest replay, including the `error.OutstandingRegistration` guard plus the later post-exit invalid-lifecycle rejections that leave the summary unchanged.
 The registration-reentry companion still keeps balanced function-thread registration reusable before and after selftest, including the later duplicate-registration rejection that leaves the summary unchanged.
 
 ## Gap Versus Roadmap
