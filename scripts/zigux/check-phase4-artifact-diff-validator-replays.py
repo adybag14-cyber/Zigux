@@ -20,7 +20,7 @@ EXPECTED_VALIDATOR_REPLAY_MARKERS = [
 
 EXPECTED_HISTORICAL_GAP_MARKERS = [
     "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
-    "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md` now aligns with `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` on the recovered note pair, the recovered gate-evidence and remaining-gap checkers, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the scripts-root reminder still needs the same narrower repo-reality warning refresh and the validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff.",
+    "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff.",
     "`Documentation/zigux/artifact-diff.md`",
     "`scripts/zigux/check-artifact-diff-contract.py`",
     "`scripts/zigux/validate-phase4.py`",
@@ -53,14 +53,12 @@ def assert_markers(text: str, markers: list[str], label: str) -> None:
         raise AssertionError(f"{label} markers missing: {missing}")
 
 
-
 def read_text(root: Path, rel: Path, *, missing_label: str) -> str:
     path = root / rel
     try:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise RuntimeError(f"current tree is missing {missing_label}: {rel.as_posix()}") from exc
-
 
 
 def check(root: Path) -> tuple[str, list[str]]:
@@ -102,11 +100,9 @@ def check(root: Path) -> tuple[str, list[str]]:
     return "historical_target_missing", EXPECTED_HISTORICAL_GAP_MARKERS
 
 
-
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
-
 
 
 def make_workflow_fixture(root: Path) -> None:
@@ -122,7 +118,6 @@ def make_workflow_fixture(root: Path) -> None:
     )
 
 
-
 def make_validator_fixture(root: Path) -> None:
     write(
         root / VALIDATOR_REL,
@@ -130,7 +125,6 @@ def make_validator_fixture(root: Path) -> None:
     )
     write(root / NOTE_REL, "# note placeholder\n")
     make_workflow_fixture(root)
-
 
 
 def make_historical_gap_fixture(root: Path) -> None:
@@ -145,7 +139,6 @@ def make_historical_gap_fixture(root: Path) -> None:
         + "\n",
     )
     make_workflow_fixture(root)
-
 
 
 def run_self_test() -> int:
@@ -269,7 +262,6 @@ def run_self_test() -> int:
         + ",".join(EXPECTED_SELF_TEST_CASES)
     )
     return 0
-
 
 
 def main() -> int:
