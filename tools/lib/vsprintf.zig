@@ -63,6 +63,13 @@ test "scnprintfPad returns zero for zero logical size" {
     try std.testing.expectEqual(@as(u8, 0), buffer[0]);
 }
 
+test "scnprintfPad clears single-byte buffers even when logical size is larger" {
+    var buffer = [_]u8{0xaa};
+    const written = scnprintfPad(&buffer, 8, "{s}", .{"zigux"});
+    try std.testing.expectEqual(@as(usize, 0), written);
+    try std.testing.expectEqual(@as(u8, 0), buffer[0]);
+}
+
 test "scnprintfPad clamps oversized logical size to buffer minus terminator" {
     var buffer: [7]u8 = undefined;
     const written = scnprintfPad(&buffer, 64, "{s}", .{"id"});
