@@ -33,9 +33,10 @@ EXPECTED_CROSS_TARGETS = {
         "validation_mode": "route_contract_only",
     },
 }
+EXPECTED_CROSS_TARGET_ORDER = tuple(EXPECTED_CROSS_TARGETS)
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 19
+EXPECTED_SELF_TEST_CASE_COUNT = 21
 
 
 def read_text(path: Path) -> str:
@@ -182,6 +183,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         return issues
 
     seen_targets: set[str] = set()
+    target_order: list[str] = []
+    archive_required_target_order: list[str] = []
     archive_required_targets: set[str] = set()
     for index, entry in enumerate(cross_targets):
         if not isinstance(entry, dict):
@@ -199,6 +202,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         if target in seen_targets:
             issues.append(("DUPLICATE_CROSS_TARGET", target))
         seen_targets.add(target)
+        target_order.append(target)
 
         expected_entry = EXPECTED_CROSS_TARGETS.get(target)
         if expected_entry is None:
@@ -219,12 +223,19 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("INVALID_CROSS_TARGET_EXPECTED_MODE", target))
         if validation_mode == "archive_required":
             archive_required_targets.add(target)
+            archive_required_target_order.append(target)
 
     if seen_targets != set(EXPECTED_CROSS_TARGETS):
         issues.append(("CROSS_TARGET_SET_MISMATCH", ",".join(sorted(seen_targets))))
+    if target_order != list(EXPECTED_CROSS_TARGET_ORDER):
+        issues.append(("CROSS_TARGET_ORDER_MISMATCH", ",".join(target_order)))
 
     if archive_required_targets != set(archive_target_scope):
         issues.append(("ARCHIVE_REQUIRED_TARGET_SET_MISMATCH", ",".join(sorted(archive_required_targets))))
+    if archive_required_target_order != archive_target_scope:
+        issues.append(
+            ("ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH", ",".join(archive_required_target_order))
+        )
 
     return issues
 
@@ -297,15 +308,6 @@ def replace_exact_line(text: str, marker: str, replacement: str = "") -> str:
     for index, line in enumerate(lines):
         if line.strip() == marker:
             lines[index] = replacement
-            return "\n".join(lines) + "\n"
-    raise AssertionError(f"marker line not found: {marker}")
-
-
-def duplicate_exact_line(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            lines.insert(index + 1, line)
             return "\n".join(lines) + "\n"
     raise AssertionError(f"marker line not found: {marker}")
 
@@ -401,6 +403,35 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("UNEXPECTED_CROSS_TARGET", "riscv64-linux") in issues
         assert ("CROSS_TARGET_SET_MISMATCH", "riscv64-linux,x86_64-linux") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"] = [fixture["cross_targets"][1], fixture["cross_targets"][0]]
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("CROSS_TARGET_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in issues
+        assert ("ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH", "x86_64-linux") not in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["cross_targets"] = [
+            fixture["cross_targets"][1],
+            {
+                "target": "x86_64-linux",
+                "review_status": "pinned bootstrap archive",
+                "validation_mode": "archive_required",
+                "route": ROUTE,
+            },
+        ]
+        fixture["archive_target_scope"] = ["x86_64-linux"]
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        issues = collect_issues(root)
+        assert ("CROSS_TARGET_ORDER_MISMATCH", "aarch64-linux,x86_64-linux") in issues
+        assert ("ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH", "x86_64-linux") not in issues
         checks_run += 1
 
         build_self_test_root(root)
