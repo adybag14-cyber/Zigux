@@ -15,7 +15,7 @@ KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
 TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 11
+EXPECTED_SELF_TEST_CASE_COUNT = 16
 
 MATRIX_MARKERS = (
     "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
@@ -42,9 +42,12 @@ KPROBE_NOTE_MARKERS = (
     "PHASE4_KPROBE_C_ANCHOR=samples/kprobes/kprobe_example.c",
     "PHASE4_KPROBE_CURRENT_LINUX_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m",
     "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey",
+    "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey",
+    "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow",
     "PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig",
     "PHASE4_KPROBE_OWNER=Validation and Perf Team",
     "PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team",
+    "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the explicit bootstrap-CI posture, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
     "Current `master` still does not ship `samples/zigux/kprobe_example.zig`.",
 )
 
@@ -55,9 +58,12 @@ TEST_FSMOUNT_NOTE_MARKERS = (
     "PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs",
     "PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig",
     "PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey",
+    "PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
+    "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix",
     "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold",
     "PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team",
     "PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team",
+    "PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface",
     "Current `master` still does not ship `samples/zigux/test_fsmount.zig`.",
 )
 
@@ -110,7 +116,9 @@ def validate_kprobe_manifest(payload: dict[str, object], missing: list[str]) -> 
         (("isolated_survey_replay",), "zig build phase4-kprobe-example-survey --build-file zigux/tests/phase4_build.zig"),
         (("shared_build_replay",), "phase4-kprobe-example-survey-tests"),
         (("threshold_posture",), "c_anchor_only_until_kprobe_example_starter_lands"),
+        (("survey_summary", "kprobe_makefile_replay_present"), True),
         (("survey_summary", "zig_sample_present"), False),
+        (("survey_summary", "phase4_build_present"), True),
         (("survey_summary", "phase4_validation_matrix_present"), True),
         (("survey_summary", "phase4_gate_evidence_present"), True),
         (("gaps", 3, "id"), "phase4-kprobe-example-shared-validator-promotion"),
@@ -232,9 +240,12 @@ PHASE4_KPROBE_LANE_KEY=P4-L19
 PHASE4_KPROBE_C_ANCHOR=samples/kprobes/kprobe_example.c
 PHASE4_KPROBE_CURRENT_LINUX_REPLAY=make M=samples/kprobes CONFIG_SAMPLE_KPROBES=m
 PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey
+PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey
+PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow
 PHASE4_KPROBE_VALIDATION_ENTRYPOINT=zig test zigux/tests/phase4_kprobe_example_survey.zig
 PHASE4_KPROBE_OWNER=Validation and Perf Team
 PHASE4_KPROBE_ROLLBACK_OWNER=Validation and Perf Team
+PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, the explicit local_lab_replay marker, the local survey wrapper, the explicit bootstrap-CI posture, the direct validation entrypoint, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface
 Current `master` still does not ship `samples/zigux/kprobe_example.zig`.
 """,
     )
@@ -246,9 +257,12 @@ PHASE4_TEST_FSMOUNT_C_ANCHOR=samples/vfs/test-fsmount.c
 PHASE4_TEST_FSMOUNT_CURRENT_LINUX_REPLAY=make M=samples/vfs
 PHASE4_TEST_FSMOUNT_LOCAL_SURVEY_WRAPPER=zig build phase4-test-fsmount-survey --build-file zigux/tests/phase4_build.zig
 PHASE4_TEST_FSMOUNT_LINUX_STYLE_SURVEY_WRAPPER=make -C zigux phase4-test-fsmount-survey
+PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow
+PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix
 PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold
 PHASE4_TEST_FSMOUNT_OWNER=Validation and Perf Team
 PHASE4_TEST_FSMOUNT_ROLLBACK_OWNER=Validation and Perf Team
+PHASE4_REVERSIBLE_DELIVERY_EVIDENCE=keep the dedicated parked survey packet, both local survey wrappers, the explicit bootstrap-CI posture, the explicit no-perf-threshold posture, and the absent Zig starter boundary explicit until a later bounded validator or starter lane intentionally widens this surface
 Current `master` still does not ship `samples/zigux/test_fsmount.zig`.
 """,
     )
@@ -266,7 +280,9 @@ Current `master` still does not ship `samples/zigux/test_fsmount.zig`.
   "shared_build_replay": "phase4-kprobe-example-survey-tests",
   "threshold_posture": "c_anchor_only_until_kprobe_example_starter_lands",
   "survey_summary": {
+    "kprobe_makefile_replay_present": true,
     "zig_sample_present": false,
+    "phase4_build_present": true,
     "phase4_validation_matrix_present": true,
     "phase4_gate_evidence_present": true
   },
@@ -338,8 +354,13 @@ def run_self_test() -> int:
             (MATRIX, "`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`", "`python3 scripts/zigux/check-phase4-perf-baseline-packet.py`", "matrix_marker:`python3 scripts/zigux/check-phase4-perf-baseline-packet.py --self-test` then `python3 scripts/zigux/check-phase4-perf-baseline-packet.py`"),
             (MATRIX, "Validation and Perf Team owning that policy decision", "ABI and Runtime Team owning that policy decision", "matrix_marker:Validation and Perf Team owning that policy decision"),
             (KPROBE_NOTE, "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey", "PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-lab-survey", "kprobe_note_marker:PHASE4_KPROBE_LOCAL_LAB_REPLAY=make -C zigux phase4-kprobe-example-survey"),
+            (KPROBE_NOTE, "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey", "PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-gap-survey", "kprobe_note_marker:PHASE4_KPROBE_LOCAL_SURVEY_WRAPPER=make -C zigux phase4-kprobe-example-survey"),
+            (KPROBE_NOTE, "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow", "PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=shared_phase4_test_route", "kprobe_note_marker:PHASE4_KPROBE_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrapper_not_on_shared_phase4_test_or_bootstrap_workflow"),
+            (KPROBE_MANIFEST, "\"phase4_build_present\": true", "\"phase4_build_present\": false", "kprobe_manifest:survey_summary.phase4_build_present:expected=True"),
             (KPROBE_MANIFEST, "\"threshold_posture\": \"c_anchor_only_until_kprobe_example_starter_lands\"", "\"threshold_posture\": \"reviewability_only_no_perf_threshold\"", "kprobe_manifest:threshold_posture:expected='c_anchor_only_until_kprobe_example_starter_lands'"),
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold", "PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=approved_local_only", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_THRESHOLD_POSTURE=reviewability_only_no_perf_threshold"),
+            (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow", "PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=shared_phase4_test_route", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_BOOTSTRAP_CI_POSTURE=reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"),
+            (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix", "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-gate-evidence.md", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix"),
             (TEST_FSMOUNT_MANIFEST, "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-test-fsmount-survey\"", "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-test-fsmount-gap\"", "test_fsmount_manifest:dedicated_linux_style_survey_wrapper:expected='make -C zigux phase4-test-fsmount-survey'"),
             (PERF_MANIFEST, "\"shared_ci_perf_promotion_status\": \"pending\"", "\"shared_ci_perf_promotion_status\": \"approved\"", "perf_manifest:shared_ci_perf_promotion_status:expected='pending'"),
         )
