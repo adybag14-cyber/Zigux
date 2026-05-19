@@ -85,7 +85,11 @@ FOCUSED_HARNESS_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
     "zigux/tests/phase10_virtio_core_reset_queue.zig",
     "zigux/tests/phase10_virtio_driver_id.zig",
+    "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+    "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
+    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
     "zigux/tests/phase10_virtio_input_status_drain.zig",
     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
@@ -289,8 +293,20 @@ def write_fixture(root: Path) -> None:
                     "zigux/tests/phase10_virtio_driver_id.zig": [
                         "phase10 driver-id review path replay"
                     ],
+                    "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
+                        "phase10 ring notification-data readiness replay"
+                    ],
+                    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig": [
+                        "phase10 ring prepare-kick idempotence replay"
+                    ],
                     "zigux/tests/phase10_virtio_ring_reset_reuse.zig": [
                         "phase10 ring drained-reset reuse replay"
+                    ],
+                    "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig": [
+                        "phase10 ring broken-queue queue-discipline replay"
+                    ],
+                    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig": [
+                        "phase10 ring delayed-callback budget replay"
                     ],
                     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig": [
                         "phase10 input queue-callback-preflight replay"
@@ -313,7 +329,11 @@ def write_fixture(root: Path) -> None:
                     "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
                     "zigux/tests/phase10_virtio_core_reset_queue.zig",
                     "zigux/tests/phase10_virtio_driver_id.zig",
+                    "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
+                    "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
                     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
+                    "zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig",
+                    "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
                     "zigux/tests/phase10_virtio_input_queue_callback_preflight.zig",
                     "zigux/tests/phase10_virtio_input_status_drain.zig",
                     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
@@ -461,6 +481,15 @@ def run_self_test() -> int:
 
         broken = dict(original_closure)
         broken["focused_harness_replays"] = dict(original_closure["focused_harness_replays"])
+        broken["focused_harness_replays"]["zigux/tests/phase10_virtio_ring_notification_data_readiness.zig"] = []
+        closure.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "focused_harness_replays:zigux/tests/phase10_virtio_ring_notification_data_readiness.zig:missing" not in drift:
+            raise SystemExit("phase10-closure-self-test:ring_notification_replay_missing_not_detected")
+        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+
+        broken = dict(original_closure)
+        broken["focused_harness_replays"] = dict(original_closure["focused_harness_replays"])
         broken["focused_harness_replays"]["zigux/tests/phase10_virtio_input_status_drain.zig"] = []
         closure.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
@@ -472,12 +501,12 @@ def run_self_test() -> int:
         broken["tests"] = [
             item
             for item in original_closure["tests"]
-            if item != "zigux/tests/phase10_virtio_ring_reset_reuse.zig"
+            if item != "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig"
         ]
         closure.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
-        if "focused_harness_replays:zigux/tests/phase10_virtio_ring_reset_reuse.zig:not_listed_in_tests" not in drift:
-            raise SystemExit("phase10-closure-self-test:focused_replay_test_membership_drift_not_detected")
+        if "focused_harness_replays:zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig:not_listed_in_tests" not in drift:
+            raise SystemExit("phase10-closure-self-test:ring_delayed_budget_test_membership_drift_not_detected")
         closure.write_text(json.dumps(original_closure), encoding="utf-8")
 
         broken = dict(original_closure)
@@ -513,7 +542,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=12")
     return 0
 
 
