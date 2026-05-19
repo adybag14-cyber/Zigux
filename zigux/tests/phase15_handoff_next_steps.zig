@@ -11,6 +11,8 @@ const HandoffManifest = struct {
     required_markers: []const []const u8,
     checker_group_markers: []const []const u8,
     handoff_rule_markers: []const []const u8,
+    roadmap_alignment_markers: []const []const u8,
+    pending_next_step_markers: []const []const u8,
 };
 
 fn readRepoFile(path: []const u8, limit: usize) ![]u8 {
@@ -35,7 +37,7 @@ fn expectSliceContains(haystack: []const []const u8, needle: []const u8) !void {
 }
 
 test "phase 15 handoff manifest records the focused replay as landed packet evidence" {
-    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 20 * 1024);
+    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(HandoffManifest, std.testing.allocator, manifest_json, .{
@@ -44,7 +46,7 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
+    try std.testing.expectEqualStrings("P15-L07", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-19", manifest.surveyed_commit);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-handoff-next-steps-survey.md", manifest.handoff_note);
@@ -54,6 +56,8 @@ test "phase 15 handoff manifest records the focused replay as landed packet evid
     try std.testing.expectEqual(@as(usize, 7), manifest.required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.checker_group_markers.len);
     try std.testing.expectEqual(@as(usize, 2), manifest.handoff_rule_markers.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_alignment_markers.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.pending_next_step_markers.len);
 
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectSliceContains(manifest.present_paths, "zigux/tests/phase15_handoff_next_steps_manifest.json");
@@ -67,7 +71,7 @@ test "phase 15 handoff note treats the focused replay as present and broader com
     const handoff_note = try readRepoFile("Documentation/zigux/phase15-handoff-next-steps-survey.md", 24 * 1024);
     defer std.testing.allocator.free(handoff_note);
 
-    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 20 * 1024);
+    const manifest_json = try readRepoFile("zigux/tests/phase15_handoff_next_steps_manifest.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
     const parsed = try std.json.parseFromSlice(HandoffManifest, std.testing.allocator, manifest_json, .{
@@ -77,7 +81,7 @@ test "phase 15 handoff note treats the focused replay as present and broader com
     const manifest = parsed.value;
 
     try expectContains(handoff_note, "PHASE15_STATUS=handoff_next_steps_survey_landed");
-    try expectContains(handoff_note, "PHASE15_LANE_KEY=P15-L08");
+    try expectContains(handoff_note, "PHASE15_LANE_KEY=P15-L07");
     try expectContains(handoff_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(handoff_note, manifest.surveyed_commit);
     try expectContains(handoff_note, "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`");
@@ -97,6 +101,12 @@ test "phase 15 handoff note treats the focused replay as present and broader com
         try expectContains(handoff_note, marker);
     }
     for (manifest.handoff_rule_markers) |marker| {
+        try expectContains(handoff_note, marker);
+    }
+    for (manifest.roadmap_alignment_markers) |marker| {
+        try expectContains(handoff_note, marker);
+    }
+    for (manifest.pending_next_step_markers) |marker| {
         try expectContains(handoff_note, marker);
     }
 }
