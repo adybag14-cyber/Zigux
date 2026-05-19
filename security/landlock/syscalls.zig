@@ -212,9 +212,9 @@ pub const SyscallsHelperLab = struct {
         }
 
         const ruleset_plan = try landlock_ruleset.RulesetHelperLab.planRulesetCreation(.{
-            .fs_access_mask = input.attr.handled_access_fs,
-            .net_access_mask = input.attr.handled_access_net,
-            .scope_mask = input.attr.scoped,
+            .fs = input.attr.handled_access_fs,
+            .net = input.attr.handled_access_net,
+            .scope = input.attr.scoped,
         });
 
         return .{
@@ -457,6 +457,23 @@ test "landlock syscalls create-ruleset still rejects empty handled access" {
     try std.testing.expectError(error.EmptyRuleset, SyscallsHelperLab.planCreateRuleset(.{}));
 }
 
+test "landlock syscalls top-level wrapper keeps version query nullable and explicit" {
+    const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
+        .attr_present = false,
+        .input = .{
+            .attr_size = 0,
+            .flags = LANDLOCK_CREATE_RULESET_VERSION,
+        },
+    });
+
+    try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, wrapper.anchor);
+    try std.testing.expect(wrapper.checks_initialization_gate);
+    try std.testing.expect(wrapper.checks_attr_presence_before_copy_from_user);
+    try std.testing.expect(wrapper.reuses_create_ruleset_validation);
+    try std.testing.expectEqual(CreateRulesetMode.abi_version_query, wrapper.create_ruleset_plan.mode);
+    try std.testing.expect(!wrapper.create_ruleset_plan.performs_copy_from_user);
+}
+
 test "landlock syscalls top-level wrapper keeps version query install planning nullable and explicit" {
     const wrapper = try SyscallsHelperLab.planLandlockCreateRuleset(.{
         .attr_present = false,
@@ -487,6 +504,7 @@ test "landlock syscalls top-level wrapper threads ruleset fd install only for cr
     try std.testing.expectEqual(CreateRulesetMode.create_handle, wrapper.create_ruleset_plan.mode);
     try std.testing.expect(wrapper.create_ruleset_plan.performs_copy_from_user);
     try std.testing.expect(wrapper.create_ruleset_plan.delegates_ruleset_creation_planning);
+    try std.testing.expect(wrapper.reuses_ruleset_fd_install_planning);
     try std.testing.expectEqualStrings(SyscallsHelperLab.descriptor().anchor, install_plan.anchor);
     try std.testing.expectEqualStrings("[landlock-ruleset]", install_plan.label);
     try std.testing.expect(install_plan.validates_label);
