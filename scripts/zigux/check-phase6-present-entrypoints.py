@@ -49,8 +49,7 @@ EXPECTED_REPO_REALITY_GAPS = [
     "zigux/tests/phase6_checksum_c_parity.zig",
     "zigux/tests/fixtures/phase6_checksum_c_harness.c",
     "scripts/zigux/check-phase6-base64-c-parity.py",
-    "scripts/zigux/check-phase6-checksum-c-parity.py",
-    "scripts/zigux/check-phase6-hexdump-packet.py",
+    "scripts/zigux/check-phase6-checksum-c-parity.py"
 ]
 EXPECTED_BSEARCH_CHECKER = "scripts/zigux/check-phase6-bsearch-corpus-evidence.py"
 REQUIRED_HELPER_PATHS = [
@@ -115,7 +114,6 @@ This note records the current helper-evidence survey for the bounded Phase 6 lea
 - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - `scripts/zigux/check-phase6-base64-c-parity.py`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
-- `scripts/zigux/check-phase6-hexdump-packet.py`
 
 ## Current helper-evidence rows
 
