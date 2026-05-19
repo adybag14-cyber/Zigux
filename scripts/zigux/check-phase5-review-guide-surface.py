@@ -61,7 +61,7 @@ REQUIRED_TEXT = (
     "Keep shared contributor guidance honest about that split instead of flattening the whole kobject packet into public-tree-only support material, treating the sample-local direct proof as gone, or promoting the survey replay plus shared build route into returned authenticated proof.",
     "Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in a mixed direct-plus-public-tree-backed split packet, same-lane follow-through should stay inside these bounded categories:",
     "Keep the current ten-cue review contract explicit in shared contributor guidance when a bytestream reminder surface is refreshed:",
-    "Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.",
+    "Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, and `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.",
     "Respect the freeze map too.",
 )
 
@@ -106,6 +106,14 @@ BYTESTREAM_CONTRACT_MARKERS = (
     "`helper_boundaries`",
     "`reset_and_replay`",
     "`ownership_and_lifetime`",
+)
+
+KOBJECT_CONTRACT_MARKERS = (
+    "`runSingleInitBoundaryReplay()` keeps the one-time `init()` rule executable so a second `init()` still returns `InvalidLifecycleTransition` while the sample stays initialized with zero active attributes and `1/0/0` counters",
+    "the initialized-but-not-registered zero-active-attributes boundary stays explicit through `runPreRegistrationBoundaryReplay()` instead of dissolving into broader lifecycle prose",
+    "`ownershipSummary()` plus sample-owned `runOwnershipReplay()` keep the cold, initialized, registered, and exited snapshots plus the active-attribute-count progression visible from contributor-facing guidance",
+    "the unnamed attribute-group shape, shared `baz`/`bar` dispatch, and the registered replay packet stay reviewable without reopening runtime-substrate claims",
+    "keep the `abandoned_before_registration` versus `tore_down_registered_attributes` exit split explicit alongside the registered teardown, post-`exit()` rejection, and anchor-replay rejection packet",
 )
 
 NO_EXTRA_SAMPLE_MARKERS = (
@@ -161,6 +169,10 @@ def collect_failures(root: Path) -> list[str]:
         if marker not in guide:
             failures.append(f"guide:missing_bytestream_contract:{marker}")
 
+    for marker in KOBJECT_CONTRACT_MARKERS:
+        if marker not in guide:
+            failures.append(f"guide:missing_kobject_contract:{marker}")
+
     for marker in NO_EXTRA_SAMPLE_MARKERS:
         if marker not in guide:
             failures.append(f"guide:missing_boundary:{marker}")
@@ -210,6 +222,7 @@ def _sample_guide() -> str:
     kobject_public_tree = "\n".join(f"* `{rel}`" for rel in KOBJECT_PUBLIC_TREE_PACKET_PATHS)
     trace_gaps = "\n".join(f"* `{rel}`" for rel in TRACE_EVENTS_COMPANION_GAP_PATHS)
     bytestream_contract = "\n".join(f"* {marker}" for marker in BYTESTREAM_CONTRACT_MARKERS)
+    kobject_contract = "\n".join(f"* {marker}" for marker in KOBJECT_CONTRACT_MARKERS)
     no_extra = "\n".join(f"* {marker}" for marker in NO_EXTRA_SAMPLE_MARKERS)
     return f"""# Phase 5 Sample Review Guide
 
@@ -258,7 +271,7 @@ Keep the current ten-cue review contract explicit in shared contributor guidance
 
 {bytestream_contract}
 
-Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
+Use the direct sample-plus-tests packet to keep the primary review surfaces visible too: `previewInto()`, `snapshotInto()`, `occupancySummary()`, `writableSpanSummary()`, `visibleSpanSummary()`, and `usesWrappedStorageWindow()`, and the bounded `init()` -> `runAnchorReplay()` -> `exit()` lifecycle should stay easy to find from shared guidance instead of being left implicit in sample-local code only.
 
 The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback directly returned the survey note, sample root, focused test, and manifest-backed contract again, while `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` still need public-tree fallback in this runtime.
 
@@ -271,6 +284,10 @@ Fresh public current-`master` fallback still carries these companion paths:
 {kobject_public_tree}
 
 Keep shared contributor guidance honest about that split instead of flattening the whole kobject packet into public-tree-only support material, treating the sample-local direct proof as gone, or promoting the survey replay plus shared build route into returned authenticated proof.
+
+Keep the approved Phase 5 in-memory ownership-and-lifetime idiom reviewable from the shared guide too:
+
+{kobject_contract}
 
 Because current `master` keeps the restored direct bytestream sample-plus-tests packet, the restored direct kretprobe packet, the shared trace-events side in a narrower posture with a direct formatting companion and older broader companion paths still in the repo-reality-gap bucket, and the `kobject` anchor in a mixed direct-plus-public-tree-backed split packet, same-lane follow-through should stay inside these bounded categories:
 
@@ -376,7 +393,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 14
+    expected_case_count = 16
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -428,6 +445,30 @@ def run_self_test() -> int:
         expected = [f"guide:missing_bytestream_contract:{BYTESTREAM_CONTRACT_MARKERS[6]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-bytestream-contract failure: {failures}")
+        checks_run += 1
+
+        missing_kobject_contract_root = root / "missing_kobject_contract"
+        _seed(missing_kobject_contract_root)
+        _write(
+            missing_kobject_contract_root / GUIDE_PATH,
+            _sample_guide().replace(KOBJECT_CONTRACT_MARKERS[1], "", 1),
+        )
+        failures = collect_failures(missing_kobject_contract_root)
+        expected = [f"guide:missing_kobject_contract:{KOBJECT_CONTRACT_MARKERS[1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-kobject-contract failure: {failures}")
+        checks_run += 1
+
+        missing_kobject_exit_split_root = root / "missing_kobject_exit_split"
+        _seed(missing_kobject_exit_split_root)
+        _write(
+            missing_kobject_exit_split_root / GUIDE_PATH,
+            _sample_guide().replace(KOBJECT_CONTRACT_MARKERS[-1], "", 1),
+        )
+        failures = collect_failures(missing_kobject_exit_split_root)
+        expected = [f"guide:missing_kobject_contract:{KOBJECT_CONTRACT_MARKERS[-1]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-kobject-exit-split failure: {failures}")
         checks_run += 1
 
         missing_boundary_root = root / "missing_boundary"
@@ -564,6 +605,7 @@ def main() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_KOBJECT_DIRECT_PACKET_COUNT={len(KOBJECT_DIRECT_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_PUBLIC_TREE_PACKET_COUNT={len(KOBJECT_PUBLIC_TREE_PACKET_PATHS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_BYTESTREAM_CONTRACT_COUNT={len(BYTESTREAM_CONTRACT_MARKERS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_KOBJECT_CONTRACT_COUNT={len(KOBJECT_CONTRACT_MARKERS)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DOCS_ROOT_REQUIRED_TEXT_COUNT={len(DOCS_ROOT_REQUIRED_TEXT)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_APPROVED_IDIOM_REQUIRED_TEXT_COUNT={len(APPROVED_IDIOM_REQUIRED_TEXT)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_APPROVED_IDIOM_REQUIRED_PATH_COUNT={len(APPROVED_IDIOM_REQUIRED_PATHS)}")
