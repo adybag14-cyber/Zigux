@@ -25,6 +25,8 @@
     "python3 scripts/zigux/check-phase3-policy-starter-packet.py",
     "zig build phase3-policy-starter-packet-test --build-file zigux/tests/phase3_policy_starter_packet_build.zig"
   ],
-  "repo_reality_gaps": [],
+  "repo_reality_gaps": [
+    "scripts/zigux/check-phase3-catalog-selftest.py"
+  ],
   "next_safe_step": "keep the policy helper family bounded to layout assertions, manifest-backed replay, and narrow-surface cross-checks before widening into mmio, low-level wrapper, or shared runtime-shim families"
 }
