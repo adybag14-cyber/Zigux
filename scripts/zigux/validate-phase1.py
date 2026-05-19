@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 BENCH_EXPECTATIONS_REL = Path("zigux/tests/fixtures/phase1_bench_expectations.json")
 ARTIFACT_DIFF_HELPER_REL = Path("scripts/zigux/artifact_diff.py")
 PHASE1_HELPERS_FIXTURE_REL = Path("zigux/tests/fixtures/phase1_helpers.json")
+PHASE1_HELPER_MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 PHASE1_REPLAY_BLOCKERS_REL = Path("zigux/tests/fixtures/phase1_replay_blockers.json")
 
 REQUIRED_PATHS = (
@@ -137,6 +138,19 @@ OPTIONAL_CHECKS = (
         self_test_args=("--self-test",),
         live_args=("--root", "{root}"),
         required=False,
+        requires=(str(PHASE1_HELPER_MANIFEST_REL),),
+    ),
+    CheckSpec(
+        name="phase1-fixture-manifest-alignment",
+        script_rel="scripts/zigux/check-phase1-fixture-manifest-alignment.py",
+        self_test_args=("--self-test",),
+        live_args=("--root", "{root}"),
+        required=False,
+        requires=(
+            str(PHASE1_HELPERS_FIXTURE_REL),
+            str(PHASE1_HELPER_MANIFEST_REL),
+            str(PHASE1_REPLAY_BLOCKERS_REL),
+        ),
     ),
 )
 
@@ -212,7 +226,7 @@ def collect_issues(root: Path) -> tuple[list[str], list[str], ValidationSummary]
             continue
         live_result = run_command(command_for(spec, root, self_test=False), root)
         if live_result.returncode != 0:
-            issues.append(f"mandatory_live_failed:{spec.name}:exit={live_result.returncode}")
+            issues.append(f"mandatory_live_failed:{spec.name}:exit={self_test_result.returncode}")
             append_output(issues, f"mandatory_live_failed:{spec.name}", live_result)
 
     bench_expectations = root / BENCH_EXPECTATIONS_REL
@@ -329,7 +343,7 @@ def build_sample_repo(root: Path) -> None:
     write_text(root / ARTIFACT_DIFF_HELPER_REL, "print('artifact diff helper placeholder')\n")
     write_text(root / PHASE1_HELPERS_FIXTURE_REL, "{\n  \"status\": \"pass\"\n}\n")
     write_text(root / PHASE1_REPLAY_BLOCKERS_REL, "{\n  \"status\": \"parked\"\n}\n")
-    write_text(root / "zigux/tests/fixtures/phase1_helper_manifest.json", "{\n  \"status\": \"closed\"\n}\n")
+    write_text(root / PHASE1_HELPER_MANIFEST_REL, "{\n  \"status\": \"closed\"\n}\n")
 
 
 def run_self_test() -> int:
@@ -368,7 +382,8 @@ def run_self_test() -> int:
         case_count += 1
 
         mandatory_live_root = base / "mandatory_live"
-        build_sample_repo(mandatory_live_root)
+        build_sampleRepo = build_sample_repo
+        build_sampleRepo(mandatory_live_root)
         build_stub_script(
             mandatory_live_root / "scripts/zigux/check-phase1-direct-owner-markers.py",
             live_exit=1,
@@ -445,6 +460,21 @@ def run_self_test() -> int:
         issues, _, summary = collect_issues(optional_shared_helper_manifest_live_root)
         assert any(
             issue.startswith("optional_live_failed:phase1-shared-helper-manifest-gate")
+            for issue in issues
+        ), issues
+        assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
+        assert summary.optional_skip_count == 0, summary
+        case_count += 1
+
+        optional_fixture_manifest_alignment_live_root = base / "optional_fixture_manifest_alignment_live"
+        build_sample_repo(optional_fixture_manifest_alignment_live_root)
+        build_stub_script(
+            optional_fixture_manifest_alignment_live_root / "scripts/zigux/check-phase1-fixture-manifest-alignment.py",
+            live_exit=1,
+        )
+        issues, _, summary = collect_issues(optional_fixture_manifest_alignment_live_root)
+        assert any(
+            issue.startswith("optional_live_failed:phase1-fixture-manifest-alignment")
             for issue in issues
         ), issues
         assert summary.optional_run_count == len(OPTIONAL_CHECKS), summary
