@@ -89,6 +89,7 @@ def _sample_manifest() -> str:
                 "Documentation/zigux/phase15-study-only-anchor-accounting.md",
                 "Documentation/zigux/phase15-shared-summary-gap.md",
                 "zigux/tests/phase15_architecture_council_review_process_manifest.json",
+                "zigux/tests/phase15_architecture_council_review_process.zig",
                 "zigux/tests/phase15_architecture_council_review_process_build.zig",
                 "zigux/tests/phase15_readiness_gate_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps_manifest.json",
@@ -152,6 +153,7 @@ def _sample_handoff_note() -> str:
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
+- `zigux/tests/phase15_architecture_council_review_process.zig`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
@@ -229,6 +231,25 @@ def run_self_test() -> int:
         ]
         if failures != expected:
             raise AssertionError(f"unexpected missing-present-marker failure: {failures}")
+
+        missing_review_process_marker_root = root / "missing_review_process_marker"
+        _write(missing_review_process_marker_root / HANDOFF_NOTE_PATH, _sample_handoff_note().replace(
+            "- `zigux/tests/phase15_architecture_council_review_process.zig`\n",
+            "",
+            1,
+        ))
+        _write(missing_review_process_marker_root / MANIFEST_PATH, _sample_manifest())
+        manifest = _read_manifest(missing_review_process_marker_root / MANIFEST_PATH)
+        for repo_path in manifest["present_paths"]:
+            if repo_path == MANIFEST_PATH.as_posix():
+                continue
+            _write(missing_review_process_marker_root / repo_path, "# fixture\n")
+        failures = collect_failures(missing_review_process_marker_root)
+        expected = [
+            "handoff note is missing present-path marker: `zigux/tests/phase15_architecture_council_review_process.zig`"
+        ]
+        if failures != expected:
+            raise AssertionError(f"unexpected review-process-present-marker failure: {failures}")
 
         retired_gap_root = root / "retired_gap"
         _write(retired_gap_root / HANDOFF_NOTE_PATH, _sample_handoff_note() + "\n- no dedicated handoff-specific Zig replay is directly materialized on current `master`\n")
