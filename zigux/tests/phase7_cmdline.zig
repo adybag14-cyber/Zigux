@@ -69,3 +69,16 @@ test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted 
     try std.testing.expectEqualStrings("ttyS0", nul_bounded.value.?);
     try std.testing.expectEqualStrings("", nul_bounded.remaining);
 }
+
+test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {
+    var empty_token = [_]u8{ '"', '"', ' ', 'n', 'e', 'x', 't', 0 };
+    const parsed = cmdline.nextArg(&empty_token);
+
+    try std.testing.expectEqualStrings("", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("next", parsed.rest);
+    try std.testing.expectEqualStrings("next", parsed.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&empty_token[1])), @as(usize, @intFromPtr(parsed.param.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&empty_token[3])), @as(usize, @intFromPtr(parsed.rest.ptr)));
+    try std.testing.expectEqual(@as(usize, @intFromPtr(parsed.rest.ptr)), @as(usize, @intFromPtr(parsed.remaining.ptr)));
+}
