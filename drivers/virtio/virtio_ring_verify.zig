@@ -9,6 +9,7 @@ pub const CallbackEnableSummary = virtio_ring.CallbackEnableSummary;
 pub const DelayedCallbackSummary = virtio_ring.DelayedCallbackSummary;
 pub const BrokenQueueSummary = virtio_ring.BrokenQueueSummary;
 pub const QueueResetReadinessSummary = virtio_ring.QueueResetReadinessSummary;
+pub const QueueResetSummary = virtio_ring.QueueResetSummary;
 
 pub fn summarizeQueueShape(
     ring: *const virtio_ring.VirtioRingLab,
@@ -64,6 +65,13 @@ pub fn summarizeResetReadiness(
     queue_index: u16,
 ) !QueueResetReadinessSummary {
     return ring.queueResetReadinessSummary(queue_index);
+}
+
+pub fn summarizeResetQueue(
+    ring: *virtio_ring.VirtioRingLab,
+    queue_index: u16,
+) !QueueResetSummary {
+    return ring.resetQueue(queue_index);
 }
 
 pub fn queueNeedsResetPoll(summary: QueueResetReadinessSummary) bool {
@@ -410,4 +418,30 @@ test "phase10 virtio ring verify keeps reset-readiness blockers ordered through 
     try std.testing.expect(readiness.reset_ready);
     try std.testing.expect(readiness.blocker == null);
     try std.testing.expect(!queueNeedsResetPoll(readiness));
+}
+
+test "phase10 virtio ring verify keeps reset wrapper explicit after queue-local readiness clears" {
+    var ring = virtio_ring.VirtioRingLab{};
+    try ring.defineQueue(1, 8, .packed_ring, true, true);
+
+    try ring.publishDescriptorChain(1);
+    _ = try ring.prepareKick(1);
+    try ring.recordUsedChains(1, 1);
+    _ = try ring.pollUsedBuffers(1);
+
+    const reset = try summarizeResetQueue(&ring, 1);
+    try std.testing.expectEqualStrings("drivers/virtio/virtio_ring.c", reset.anchor);
+    try std.testing.expectEqual(@as(u16, 1), reset.queue_index);
+    try std.testing.expectEqual(@as(u16, 8), reset.descriptor_count);
+    try std.testing.expectEqual(virtio_ring.QueueLayout.packed_ring, reset.layout);
+    try std.testing.expect(reset.uses_event_idx);
+    try std.testing.expect(reset.uses_indirect_descriptors);
+    try std.testing.expect(reset.callback_enabled);
+    try std.testing.expectEqual(@as(u16, 0), reset.avail_idx_shadow);
+    try std.testing.expectEqual(@as(u16, 0), reset.last_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), reset.last_polled_used_idx);
+    try std.testing.expectEqual(@as(u16, 0), reset.outstanding_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), reset.unpublished_chain_count);
+    try std.testing.expectEqual(@as(u16, 0), reset.pending_used_chain_count);
+    try std.testing.expectEqual(@as(usize, 0), reset.notification_count);
 }
