@@ -121,6 +121,8 @@ FORBIDDEN_FRAGMENTS = (
 
 FORBIDDEN_FRAGMENT_SURFACES = (
     "Documentation/zigux/README.md",
+    "Documentation/zigux/phase1-closure.md",
+    "Documentation/zigux/phase1-host-helper-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
