@@ -566,7 +566,7 @@ def run_self_test() -> int:
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_missing_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
-        (fixture_dir / "fixture_a.txt").writeText("fixture\n", encoding="utf-8")
+        (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
         counted_expect_failure(
             "missing_escaped_space_fixture",
             lambda: validate_fixture_inventory(
