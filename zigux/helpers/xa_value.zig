@@ -71,3 +71,23 @@ test "first rejected inline value aliases the err_ptr floor" {
     try std.testing.expect(err_ptr.isErrValue(raw));
     try std.testing.expect(!isValue(raw));
 }
+
+test "second rejected inline value skips the first in-band neighbor and lands on the next tagged err_ptr raw" {
+    const first_rejected = safe_inline_limit + 1;
+    const second_rejected = first_rejected + 1;
+    const first_err_raw = err_ptr.err_floor;
+    const skipped_err_raw = first_err_raw + 1;
+    const aliased_raw = (second_rejected << 1) | value_tag_mask;
+
+    try std.testing.expect(!canRepresent(second_rejected));
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, makeValue(second_rejected));
+    try std.testing.expectEqual(first_err_raw + 2, aliased_raw);
+    try std.testing.expectEqual(@as(isize, -4094), err_ptr.toErrorCode(skipped_err_raw));
+    try std.testing.expectEqual(@as(isize, -4093), err_ptr.toErrorCode(aliased_raw));
+    try std.testing.expect(err_ptr.isErrValue(skipped_err_raw));
+    try std.testing.expect(err_ptr.isErrValue(aliased_raw));
+    try std.testing.expect(!isValue(skipped_err_raw));
+    try std.testing.expect(!isValue(aliased_raw));
+    try std.testing.expectEqual(@as(usize, 0), skipped_err_raw & value_tag_mask);
+    try std.testing.expectEqual(value_tag_mask, aliased_raw & value_tag_mask);
+}
