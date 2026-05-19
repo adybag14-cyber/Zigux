@@ -109,7 +109,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 70
+EXPECTED_SELF_TEST_CASE_COUNT = 79
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -168,6 +168,12 @@ def collect_duplicate_manifest_entries(values: object, code: str) -> list[tuple[
         key = value if isinstance(value, str) else repr(value)
         counts[key] = counts.get(key, 0) + 1
     return [(code, f"{key}:count={count}") for key, count in counts.items() if count > 1]
+
+
+def collect_non_string_manifest_entries(values: object, code: str) -> list[tuple[str, str]]:
+    if not isinstance(values, list):
+        return []
+    return [(code, repr(value)) for value in values if not isinstance(value, str)]
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -252,9 +258,32 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
 
     present_files = manifest.get("present_files")
     missing_files = manifest.get("missing_files")
+    master_present_branch_missing_files = manifest.get("master_present_branch_missing_files")
+
+    if not isinstance(present_files, list):
+        issues.append(("MANIFEST_FIELD_NOT_LIST", "present_files"))
+    if not isinstance(missing_files, list):
+        issues.append(("MANIFEST_FIELD_NOT_LIST", "missing_files"))
+    if not isinstance(master_present_branch_missing_files, list):
+        issues.append(("MANIFEST_FIELD_NOT_LIST", "master_present_branch_missing_files"))
+
+    issues.extend(collect_non_string_manifest_entries(present_files, "NON_STRING_PRESENT_FILE_ENTRY"))
+    issues.extend(collect_non_string_manifest_entries(missing_files, "NON_STRING_MISSING_FILE_ENTRY"))
+    issues.extend(
+        collect_non_string_manifest_entries(
+            master_present_branch_missing_files,
+            "NON_STRING_MASTER_PRESENT_BRANCH_MISSING_FILE_ENTRY",
+        )
+    )
 
     issues.extend(collect_duplicate_manifest_entries(present_files, "DUPLICATE_PRESENT_FILE_ENTRY"))
     issues.extend(collect_duplicate_manifest_entries(missing_files, "DUPLICATE_MISSING_FILE_ENTRY"))
+    issues.extend(
+        collect_duplicate_manifest_entries(
+            master_present_branch_missing_files,
+            "DUPLICATE_MASTER_PRESENT_BRANCH_MISSING_FILE_ENTRY",
+        )
+    )
     if isinstance(present_files, list) and isinstance(missing_files, list):
         present_set = {value for value in present_files if isinstance(value, str)}
         missing_set = {value for value in missing_files if isinstance(value, str)}
@@ -262,6 +291,18 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", value)
             for value in sorted(present_set & missing_set)
         )
+        if isinstance(master_present_branch_missing_files, list):
+            master_present_set = {
+                value for value in master_present_branch_missing_files if isinstance(value, str)
+            }
+            issues.extend(
+                ("MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT", value)
+                for value in sorted(master_present_set & present_set)
+            )
+            issues.extend(
+                ("MASTER_PRESENT_BRANCH_PATH_NOT_MARKED_MISSING", value)
+                for value in sorted(master_present_set - missing_set)
+            )
 
     if manifest.get("packet") != "phase2_tool_manifest":
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
@@ -313,7 +354,12 @@ def write_text(root: Path, path: Path, content: str) -> None:
     resolved.write_text(content, encoding="utf-8")
 
 
-def manifest_json(*, present_files: list[str] | None = None, missing_files: list[str] | None = None) -> str:
+def manifest_json(
+    *,
+    present_files: object | None = None,
+    missing_files: object | None = None,
+    master_present_branch_missing_files: object | None = None,
+) -> str:
     payload = {
         "packet": "phase2_tool_manifest",
         "phase": "phase2",
@@ -326,7 +372,9 @@ def manifest_json(*, present_files: list[str] | None = None, missing_files: list
         "makefile": EXPECTED_MAKEFILE,
         "present_files": EXPECTED_PRESENT_FILES if present_files is None else present_files,
         "missing_files": EXPECTED_MISSING_FILES if missing_files is None else missing_files,
-        "master_present_branch_missing_files": [],
+        "master_present_branch_missing_files": (
+            [] if master_present_branch_missing_files is None else master_present_branch_missing_files
+        ),
         "workflow_surface": EXPECTED_WORKFLOW_SURFACE,
     }
     return json.dumps(payload, indent=2) + "\n"
@@ -500,9 +548,78 @@ def run_self_test() -> int:
 
         build_self_test_root(root)
         bad = json.loads(manifest_json())
+        bad["master_present_branch_missing_files"] = ["scripts/zigux/install-zig.py", "scripts/zigux/install-zig.py"]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert (
+            "DUPLICATE_MASTER_PRESENT_BRANCH_MISSING_FILE_ENTRY",
+            "scripts/zigux/install-zig.py:count=2",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["master_present_branch_missing_files"] = [EXPECTED_PRESENT_FILES[0]]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("MASTER_PRESENT_BRANCH_PATH_ALREADY_PRESENT", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["master_present_branch_missing_files"] = ["scripts/zigux/not-in-missing.py"]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert (
+            "MASTER_PRESENT_BRANCH_PATH_NOT_MARKED_MISSING",
+            "scripts/zigux/not-in-missing.py",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
         bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_PRESENT_FILES[0]]
         write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
         assert ("MANIFEST_PATH_IN_BOTH_PRESENT_AND_MISSING", EXPECTED_PRESENT_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(present_files="wrong"))
+        issues = collect_issues(root)
+        assert ("MANIFEST_FIELD_NOT_LIST", "present_files") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(missing_files="wrong"))
+        issues = collect_issues(root)
+        assert ("MANIFEST_FIELD_NOT_LIST", "missing_files") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files="wrong"))
+        issues = collect_issues(root)
+        assert ("MANIFEST_FIELD_NOT_LIST", "master_present_branch_missing_files") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["present_files"] = [EXPECTED_PRESENT_FILES[0], 7]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        issues = collect_issues(root)
+        assert ("NON_STRING_PRESENT_FILE_ENTRY", "7") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["missing_files"] = [EXPECTED_MISSING_FILES[0], 7]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        issues = collect_issues(root)
+        assert ("NON_STRING_MISSING_FILE_ENTRY", "7") in issues
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["master_present_branch_missing_files"] = [7]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        issues = collect_issues(root)
+        assert ("NON_STRING_MASTER_PRESENT_BRANCH_MISSING_FILE_ENTRY", "7") in issues
         checks_run += 1
 
         build_self_test_root(root)
