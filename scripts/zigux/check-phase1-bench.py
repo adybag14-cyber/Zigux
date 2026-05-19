@@ -382,6 +382,23 @@ def emit_validation_failure(kind: str, payload: object, expectations_path: Path)
     return 1
 
 
+def emit_bench_command_failure(
+    exit_code: int,
+    stdout: str,
+    stderr: str,
+    expectations_path: Path,
+) -> int:
+    print("PHASE1_BENCH_CHECK=fail")
+    print("PHASE1_BENCH_CHECK_REASON=bench_command_exit")
+    print(f"PHASE1_BENCH_EXPECTATIONS={expectations_path}")
+    print(f"BENCH_COMMAND_EXIT={exit_code}")
+    if stdout:
+        print(stdout.rstrip("\n"))
+    if stderr:
+        print(stderr.rstrip("\n"))
+    return 1
+
+
 def capture_expectations_failure_output(
     kind: str,
     payload: object,
@@ -403,6 +420,19 @@ def capture_validation_failure_output(
     with contextlib.redirect_stdout(buffer):
         exit_code = emit_validation_failure(kind, payload, expectations_path)
     assert exit_code == 1
+    return buffer.getvalue().splitlines()
+
+
+def capture_bench_command_failure_output(
+    exit_code: int,
+    stdout: str,
+    stderr: str,
+    expectations_path: Path,
+) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        result = emit_bench_command_failure(exit_code, stdout, stderr, expectations_path)
+    assert result == 1
     return buffer.getvalue().splitlines()
 
 
@@ -586,7 +616,7 @@ def run_self_test() -> None:
             "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
             "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
             "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+            "PHASE1_BENCH_FIND_ADD_CHECKSUM": 10,
             "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
             "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
         },
@@ -714,6 +744,25 @@ def run_self_test() -> None:
     ]
     case_count += 1
 
+    command_failure_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-command-failure.json"
+    command_failure_output = capture_bench_command_failure_output(
+        7,
+        "stdout-line-1\nstdout-line-2\n",
+        "stderr-line-1\nstderr-line-2\n",
+        command_failure_path,
+    )
+    assert command_failure_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=bench_command_exit",
+        f"PHASE1_BENCH_EXPECTATIONS={command_failure_path}",
+        "BENCH_COMMAND_EXIT=7",
+        "stdout-line-1",
+        "stdout-line-2",
+        "stderr-line-1",
+        "stderr-line-2",
+    ]
+    case_count += 1
+
     missing_status_output = ok_output.replace("PHASE1_BENCH=pass\n", "", 1)
     kind, payload = validate_output(expectations, missing_status_output)
     assert kind == "status"
@@ -836,7 +885,7 @@ def run_self_test() -> None:
             "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
             "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
             "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+            "PHASE1_BENCH_FIND_ADD_CHECKSUM": 10,
             "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
             "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
         },
@@ -859,7 +908,7 @@ def run_self_test() -> None:
             "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
             "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
             "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+            "PHASE1_BENCH_FIND_ADD_CHECKSUM": 10,
             "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
             "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12,
         },
@@ -883,7 +932,7 @@ def run_self_test() -> None:
             "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
             "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
             "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-            "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+            "PHASE1_BENCH_FIND_ADD_CHECKSUM": 10,
             "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
         },
     }
@@ -1120,13 +1169,12 @@ def main() -> int:
         text=True,
     )
     if result.returncode != 0:
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"BENCH_COMMAND_EXIT={result.returncode}")
-        if result.stdout:
-            print(result.stdout.rstrip("\n"))
-        if result.stderr:
-            print(result.stderr.rstrip("\n"))
-        return 1
+        return emit_bench_command_failure(
+            result.returncode,
+            result.stdout,
+            result.stderr,
+            EXPECTATIONS,
+        )
 
     kind, payload = validate_output(expectations, result.stdout)
     if kind != "pass":
