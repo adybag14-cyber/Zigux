@@ -132,11 +132,13 @@ HELPER_TEST_MARKERS = [
     'test "phase10 virtio mmio keeps selected queue readiness bounded to in-memory register state" {',
     'test "phase10 virtio mmio records feature mismatches without claiming live negotiation" {',
     'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {',
+    'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {',
+    'try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());',
     'test "phase10 virtio mmio keeps config-write disposition planning-only across restaging" {',
 ]
 
 SURVEY_GATE_MARKERS = [
-    'test "phase10 virtio mmio survey note keeps the direct lab gate, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {',
+    'test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {',
     'try expectContains(survey_note, "interrupt-ack disposition review");',
     'try expectContains(survey_note, "zigux/tests/phase10_virtio_mmio_survey.zig");',
     'try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_mmio_survey.zig");',
@@ -251,16 +253,18 @@ def run_self_test() -> int:
         expect_missing_marker(root, "Documentation/zigux/phase10-virtio-mmio-slice.md", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice", "the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket moved inside this slice", "slice_note:the blocked `phase10-mmio-lifecycle-and-irq-paths` bucket remains outside this slice")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"freeze_boundary_status": "aligned"', '"freeze_boundary_status": "missing"', 'manifest:"freeze_boundary_status": "aligned"')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_manifest.json", '"id": "phase10-mmio-interrupt-ack-disposition-helper"', '"id": "phase10-mmio-ack-missing"', 'manifest:"id": "phase10-mmio-interrupt-ack-disposition-helper"')
+        expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "self.pending_config_write = null;", "self.pending_config_write = stale;", "helper:self.pending_config_write = null;")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio.zig", "pub fn interruptAckDispositionSummary(", "pub fn interruptAckDispositionMissing(", "helper:pub fn interruptAckDispositionSummary(")
         expect_missing_marker(root, "drivers/virtio/virtio_mmio_verify.zig", "pub fn summarizeInterruptAckDisposition(", "pub fn summarizeInterruptAckMissing(", "verify_helper:pub fn summarizeInterruptAckDisposition(")
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {', 'test "phase10 virtio mmio keeps interrupt-ack drift" {', 'helper_tests:test "phase10 virtio mmio keeps interrupt-ack disposition bounded to reviewable queue and config bits" {')
-        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'test "phase10 virtio mmio survey note keeps the direct lab gate, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {', 'test "phase10 virtio mmio survey note keeps the direct lab gate and dedicated survey gate explicit beside the helper-local packet" {', 'survey_gate:test "phase10 virtio mmio survey note keeps the direct lab gate, manifest companion, and dedicated survey gate explicit beside the helper-local packet" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {', 'test "phase10 virtio mmio config-generation drift" {', 'helper_tests:test "phase10 virtio mmio config-generation bumps clear stale planned config writes" {')
+        expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio.zig", 'try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());', 'try std.testing.expect((try device.configWriteDispositionSummary()).has_changes);', 'helper_tests:try std.testing.expectError(error.ConfigWritePlanUnavailable, device.configWriteDispositionSummary());')
         expect_missing_marker(root, "zigux/tests/phase10_virtio_mmio_survey.zig", 'try expectContains(survey_note, "interrupt-ack disposition review");', 'try expectContains(survey_note, "interrupt-ack drift");', 'survey_gate:try expectContains(survey_note, "interrupt-ack disposition review");')
         expect_missing_marker(root, "zigux/tests/phase10_build.zig", "run_phase10_virtio_mmio_survey_tests.step", "run_phase10_virtio_mmio_survey_drift.step", "build_file:run_phase10_virtio_mmio_survey_tests.step")
         expect_missing_file(root, "Documentation/zigux/phase10-virtio-mmio-slice.md")
 
     print("PHASE10_MMIO_PACKET_SELF_TEST=pass")
-    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_MMIO_PACKET_SELF_TEST_CASE_COUNT=16")
     return 0
 
 
