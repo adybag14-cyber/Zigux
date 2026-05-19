@@ -604,6 +604,96 @@ test "contiguous low and high boundary windows rebuild without lane drift" {
     }
 }
 
+test "high-end raw cadence keeps alternating value tags and pointer gaps up to err floor" {
+    const raw_cases = [_]struct {
+        raw: usize,
+        kind: SlotKind,
+        value: ?usize,
+        error_code: ?isize,
+        pointer: ?usize,
+    }{
+        .{
+            .raw = err_ptr.err_floor - 6,
+            .kind = .value,
+            .value = xa_value.safe_inline_limit - 2,
+            .error_code = null,
+            .pointer = null,
+        },
+        .{
+            .raw = err_ptr.err_floor - 5,
+            .kind = .pointer,
+            .value = null,
+            .error_code = null,
+            .pointer = err_ptr.err_floor - 5,
+        },
+        .{
+            .raw = err_ptr.err_floor - 4,
+            .kind = .value,
+            .value = xa_value.safe_inline_limit - 1,
+            .error_code = null,
+            .pointer = null,
+        },
+        .{
+            .raw = err_ptr.err_floor - 3,
+            .kind = .pointer,
+            .value = null,
+            .error_code = null,
+            .pointer = err_ptr.err_floor - 3,
+        },
+        .{
+            .raw = err_ptr.err_floor - 2,
+            .kind = .value,
+            .value = xa_value.safe_inline_limit,
+            .error_code = null,
+            .pointer = null,
+        },
+        .{
+            .raw = err_ptr.err_floor - 1,
+            .kind = .pointer,
+            .value = null,
+            .error_code = null,
+            .pointer = err_ptr.err_floor - 1,
+        },
+        .{
+            .raw = err_ptr.err_floor,
+            .kind = .err,
+            .value = null,
+            .error_code = -4095,
+            .pointer = null,
+        },
+    };
+
+    for (raw_cases, 0..) |case, index| {
+        const slot = fromRaw(case.raw);
+
+        try std.testing.expectEqual(case.kind, slot.kind());
+        try std.testing.expectEqual(case.value, slot.value());
+        try std.testing.expectEqual(case.error_code, slot.errorCode());
+        try std.testing.expectEqual(case.pointer, slot.pointerValue());
+
+        if (index > 0) {
+            try std.testing.expectEqual(raw_cases[index - 1].raw + 1, case.raw);
+        }
+    }
+
+    const third_from_top_value = try fromValue(xa_value.safe_inline_limit - 2);
+    const second_pointer_gap = fromPointer(err_ptr.err_floor - 3);
+    const top_value = try fromValue(xa_value.safe_inline_limit);
+    const final_pointer_gap = fromPointer(err_ptr.err_floor - 1);
+    const first_err = fromErrorCode(-4095);
+
+    try std.testing.expectEqual(@as(usize, err_ptr.err_floor - 6), third_from_top_value.rawValue());
+    try std.testing.expectEqual(@as(usize, err_ptr.err_floor - 3), second_pointer_gap.rawValue());
+    try std.testing.expectEqual(@as(usize, err_ptr.err_floor - 2), top_value.rawValue());
+    try std.testing.expectEqual(@as(usize, err_ptr.err_floor - 1), final_pointer_gap.rawValue());
+    try std.testing.expectEqual(@as(usize, err_ptr.err_floor), first_err.rawValue());
+    try std.testing.expectEqual(@as(?usize, xa_value.safe_inline_limit - 2), third_from_top_value.value());
+    try std.testing.expectEqual(@as(?usize, err_ptr.err_floor - 3), second_pointer_gap.pointerValue());
+    try std.testing.expectEqual(@as(?usize, xa_value.safe_inline_limit), top_value.value());
+    try std.testing.expectEqual(@as(?usize, err_ptr.err_floor - 1), final_pointer_gap.pointerValue());
+    try std.testing.expectEqual(@as(?isize, -4095), first_err.errorCode());
+}
+
 test "err band stays contiguous after the pointer-like cutoff gap" {
     const gap_raw = err_ptr.err_floor - 1;
     const first_err_raw = err_ptr.err_floor;
