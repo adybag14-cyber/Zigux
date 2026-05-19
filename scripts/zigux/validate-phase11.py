@@ -10,13 +10,17 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+SELF_PATH = Path(__file__).resolve()
+ROOT = SELF_PATH.parents[2] if len(SELF_PATH.parents) > 2 else SELF_PATH.parent
 
 REQUIRED_PATHS = (
     ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase11-driver-lane-sequencing.md",
     "Documentation/zigux/phase11-validation-matrix-gap-survey.md",
     "Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md",
+    "Documentation/zigux/phase11-hvc-console-survey.md",
+    "Documentation/zigux/phase11-hvc-cleanup-alignment-current-head-companion.md",
+    "Documentation/zigux/phase11-hvc-verify-helper-boundary.md",
     "Documentation/zigux/phase11-gpio-wdt-validation-matrix.md",
     "Documentation/zigux/phase11-hvc-console-validation-matrix.md",
     "scripts/zigux/check-phase11-build-inventory.py",
@@ -27,6 +31,12 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase11-dw-wdt-verify-alignment.py",
     "zigux/Makefile",
     "zigux/tests/fixtures/phase11_build_inventory.json",
+    "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zigux/tests/phase11_hvc_hv_ops_layout_proof.zig",
+    "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_proof.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_build.zig",
 )
 
 
