@@ -37,12 +37,19 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
     return subprocess.run(cmd, check=True, text=True, **kwargs)
 
 
+def resolve_tool(candidate: str, missing_message: str) -> str:
+    resolved = shutil.which(candidate)
+    if resolved:
+        return candidate
+    raise SystemExit(missing_message)
+
+
 def find_compiler(explicit: str | None) -> str:
     if explicit:
-        return explicit
+        return resolve_tool(explicit, f"C compiler not found or not executable: {explicit}")
     compiler = os.environ.get("CC")
     if compiler:
-        return compiler
+        return resolve_tool(compiler, f"C compiler from CC not found or not executable: {compiler}")
     detected = shutil.which("cc") or shutil.which("gcc") or shutil.which("clang")
     if detected:
         return detected
@@ -51,16 +58,16 @@ def find_compiler(explicit: str | None) -> str:
 
 def find_zig(explicit: str | None, root: Path) -> str:
     if explicit:
-        return explicit
+        return resolve_tool(explicit, f"zig not found or not executable: {explicit}")
     env = os.environ.get("ZIG")
     if env:
-        return env
+        return resolve_tool(env, f"zig from ZIG not found or not executable: {env}")
     detected = shutil.which("zig")
     if detected:
         return detected
     fallback = root.parent / ".toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "zig"
     if fallback.exists():
-        return str(fallback)
+        return resolve_tool(str(fallback), f"zig fallback not executable: {fallback}")
     raise SystemExit("zig not found; pass --zig, set ZIG, or extract the attached toolchain")
 
 
@@ -153,6 +160,8 @@ def run_self_test() -> int:
         fake_fallback = write_fake_executable(
             tool_tmp_dir / ".toolchains" / "zig-x86_64-linux-0.17.0-dev.87+9b177a7d2" / "zig"
         )
+        fake_nonexec = tool_bin / "not-executable"
+        fake_nonexec.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8", newline="\n")
 
         saved_path = os.environ.get("PATH")
         saved_cc = os.environ.get("CC")
@@ -166,22 +175,47 @@ def run_self_test() -> int:
             if Path(find_zig(None, tool_tmp_dir / "repo")).resolve() != fake_zig.resolve():
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
 
-            os.environ["CC"] = "/tmp/from-env-cc"
-            os.environ["ZIG"] = "/tmp/from-env-zig"
-            if find_compiler(None) != "/tmp/from-env-cc":
+            os.environ["CC"] = str(fake_cc)
+            os.environ["ZIG"] = str(fake_zig)
+            if find_compiler(None) != str(fake_cc):
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
-            if find_zig(None, tool_tmp_dir / "repo") != "/tmp/from-env-zig":
+            if find_zig(None, tool_tmp_dir / "repo") != str(fake_zig):
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+
+            expect_system_exit_contains(
+                lambda: find_compiler(str(fake_nonexec)),
+                f"C compiler not found or not executable: {fake_nonexec}",
+            )
+            expect_system_exit_contains(
+                lambda: find_zig(str(fake_nonexec), tool_tmp_dir / "repo"),
+                f"zig not found or not executable: {fake_nonexec}",
+            )
+
+            os.environ["CC"] = str(fake_nonexec)
+            os.environ["ZIG"] = str(fake_nonexec)
+            expect_system_exit_contains(
+                lambda: find_compiler(None),
+                f"C compiler from CC not found or not executable: {fake_nonexec}",
+            )
+            expect_system_exit_contains(
+                lambda: find_zig(None, tool_tmp_dir / "repo"),
+                f"zig from ZIG not found or not executable: {fake_nonexec}",
+            )
 
             os.environ.pop("CC", None)
             os.environ.pop("ZIG", None)
             os.environ["PATH"] = ""
-            if find_compiler("/tmp/from-explicit-cc") != "/tmp/from-explicit-cc":
+            if find_compiler(str(fake_cc)) != str(fake_cc):
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
-            if find_zig("/tmp/from-explicit-zig", tool_tmp_dir / "repo") != "/tmp/from-explicit-zig":
+            if find_zig(str(fake_zig), tool_tmp_dir / "repo") != str(fake_zig):
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
             if Path(find_zig(None, tool_tmp_dir / "repo")).resolve() != fake_fallback.resolve():
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
+            fake_fallback.chmod(0o644)
+            expect_system_exit_contains(
+                lambda: find_zig(None, tool_tmp_dir / "repo"),
+                f"zig fallback not executable: {fake_fallback}",
+            )
         finally:
             if saved_path is None:
                 os.environ.pop("PATH", None)
@@ -248,7 +282,7 @@ def run_self_test() -> int:
         )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=15")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=20")
     return 0
 
 
