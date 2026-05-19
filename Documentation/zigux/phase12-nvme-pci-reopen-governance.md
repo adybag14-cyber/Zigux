@@ -22,18 +22,23 @@ It is a PMO and coordination artifact only. It does not add a new replay route.
 - driver-local packet companions:
   - `drivers/nvme/host/pci.zig`
   - `drivers/nvme/host/pci_verify.zig`
+  - `zigux/tests/phase12_nvme_pci.zig`
   - `zigux/tests/phase12_nvme_pci_manifest.json`
+  - `zigux/tests/phase12_nvme_pci_survey.zig`
+  - `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`
+  - `Documentation/zigux/phase12-nvme-pci-slice.md`
+  - `Documentation/zigux/phase12-nvme-pci-survey.md`
 
 ## Current Reopen Posture
 
 - The current `nvme_pci` packet is real, but deliberately driver-local and still outside the shared `phase12-smoke` and `phase12` replay route.
 - The shipped starter now keeps queue-pair planning, IO queue reservation sizing, recovery reservation replay preflight, PRP buffer-shape accounting, PRP metadata budgeting, dropped-backlog retirement review, rollback-gate review, and frozen queue-restore budgeting reviewable without claiming live DMA mapping, PRP or SGL construction, blk-mq submission, interrupt completion, timeout handling, or transport-backed reset replay.
-- Current `master` does not carry the older direct replay, survey gate, survey note, slice note, or fallback-note paths that earlier lane memory referenced, so this owner map and the manifest must stay explicit about the smaller live packet until those review surfaces are deliberately relanded.
-- The reopen rule is therefore narrow: reopen this packet only when the bounded starter itself drifts, when the manifest or this owner map drifts against the smaller live packet, when the shared Phase 12 build route changes, or when a later roadmap-backed transport-facing shard is explicitly proposed.
+- Current `master` does carry the direct replay, fallback map, slice note, survey note, survey gate, and manifest anchor for this bounded packet, but shared build wiring still leaves that review packet outside the smoke-first shared route.
+- The reopen rule is therefore narrow: reopen this packet only when the bounded starter itself drifts, when the direct review packet drifts, when the shared Phase 12 build route changes, or when a later roadmap-backed transport-facing shard is explicitly proposed.
 
 ## Owner Split
 
-- `P12-L08` owns the substantive driver-local NVMe starter packet in `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, and this owner-map note when those surfaces drift together.
+- `P12-L08` owns the substantive driver-local NVMe starter packet in `drivers/nvme/host/pci.zig`, `drivers/nvme/host/pci_verify.zig`, `zigux/tests/phase12_nvme_pci.zig`, `zigux/tests/phase12_nvme_pci_manifest.json`, `zigux/tests/phase12_nvme_pci_survey.zig`, `Documentation/zigux/phase12-nvme-pci-raw-github-fallback-map.md`, `Documentation/zigux/phase12-nvme-pci-slice.md`, `Documentation/zigux/phase12-nvme-pci-survey.md`, and this owner-map note when those surfaces drift together.
 - `pmo-release` owns shared release wording in the Phase 12 sequencing, closure, readiness, and coordination notes.
 - `complex-driver-shared-release-packet` owns the shared anti-overlap wording that keeps `virtio_net`, `virtio_scsi`, and the driver-local NVMe foothold distinct inside the same release packet.
 - The shared build route remains outside this note's ownership until `zigux/tests/phase12_build.zig` or `zigux/Makefile` actually wires a new NVMe direct replay into the shared smoke-first path.
@@ -46,7 +51,7 @@ Reopen this driver-local packet only if one of these conditions becomes true on 
    This includes new queue-reservation, recovery-replay, PRP metadata, dropped-backlog, rollback-gate, or frozen-restore-budget helpers in `drivers/nvme/host/pci.zig` or `drivers/nvme/host/pci_verify.zig`.
 
 2. The driver-local review packet drifts.
-   This includes changes to this owner map, the manifest in `zigux/tests/phase12_nvme_pci_manifest.json`, or any relanded direct replay, survey gate, survey note, slice note, or fallback note that describes the same bounded packet.
+   This includes changes to this owner map, the manifest in `zigux/tests/phase12_nvme_pci_manifest.json`, the direct replay in `zigux/tests/phase12_nvme_pci.zig`, or the coupled fallback, slice, survey, and survey-gate companions that describe the same bounded packet.
 
 3. Shared replay wiring changes.
    If `zigux/tests/phase12_build.zig`, `zigux/Makefile`, or `.github/workflows/zigux-bootstrap.yml` begins wiring a new NVMe direct replay into the shared `phase12-smoke`, `phase12-test`, or `phase12` route, reopen this note together with the shared Phase 12 PMO packet.
@@ -72,4 +77,4 @@ Leave the driver-local NVMe packet parked unless one exact same-family change la
 
 1. a bounded driver-local starter follow-up that still stays below live DMA and transport execution
 2. one shared-build wiring change that makes NVMe part of the shared smoke-first Phase 12 route
-3. one lane-local truthfulness repair if the manifest or this owner map drifts against the smaller live packet
+3. one lane-local truthfulness repair if the manifest, owner map, direct replay, or coupled survey companions drift against the live packet
