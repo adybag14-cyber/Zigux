@@ -71,6 +71,7 @@ EXPECTED_ZIG_MARKERS = {
     "readheader_immediate_error": 'test "readHeader treats an immediate read error like truncated input" {',
     "readheader_truncated_count": 'test "readHeader reports the exact truncated byte count" {',
     "readheader_zero_eof": 'test "readHeader returns zero bytes on immediate EOF" {',
+    "render_truncated": 'test "renders truncated error" {',
     "render_not_elf": 'test "renders non-ELF error" {',
     "render_invalid_class": 'test "renders invalid class silently" {',
 }
@@ -86,20 +87,20 @@ int main(int argc, char **argv)
 \tunsigned char ei[EI_NIDENT];
 
 \tif (fread(ei, 1, EI_NIDENT, stdin) != EI_NIDENT) {
-\t\tfprintf(stderr, "Error: input truncated\\n");
+\t\tfprintf(stderr, \"Error: input truncated\\n\");
 \t\treturn 1;
 \t}
 \tif (memcmp(ei, ELFMAG, SELFMAG) != 0) {
-\t\tfprintf(stderr, "Error: not ELF\\n");
+\t\tfprintf(stderr, \"Error: not ELF\\n\");
 \t\treturn 1;
 \t}
 \tswitch (ei[EI_CLASS]) {
 \tcase ELFCLASS32:
-\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS32\\n");
+\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS32\\n\");
 \t\tbreak;
 \tcase ELFCLASS64:
-\t\tprintf("#define KERNEL_ELFCLASS ELFCLASS64\\n");
-\t	break;
+\t\tprintf(\"#define KERNEL_ELFCLASS ELFCLASS64\\n\");
+\t\tbreak;
 \tdefault:
 \t	exit(1);
 \t}
