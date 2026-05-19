@@ -281,7 +281,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase10_validate_step_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE10_HELPER_STEP[0]}\n"))
@@ -290,7 +290,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase10_helper_step_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"))
@@ -299,7 +299,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_selftest")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_CHECK_STEP[0]}\n"))
@@ -308,7 +308,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase12_check")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
@@ -358,7 +358,7 @@ def run_self_test() -> int:
             print("self-test:phase12_full_chain_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         phase10_selftest_block = (
@@ -374,7 +374,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase10_selftest_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         phase10_check_block = (
@@ -390,7 +390,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase10_check_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         phase10_validate_block = (
@@ -406,7 +406,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase10_validate_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         phase10_helper_block = (
@@ -422,7 +422,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase10_helper_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         phase11_selftest_block = (
@@ -438,7 +438,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase11_selftest_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         phase11_check_block = (
@@ -454,7 +454,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase11_check_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         selftest_block = (
@@ -470,7 +470,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase12_selftest_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         check_block = (
@@ -486,7 +486,7 @@ def run_self_test() -> int:
             print("self-test:duplicate_phase12_check_run_not_detected")
             return 1
         case_count += 1
-        build_sampleRepo(root)
+        build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         anchor_block = (
