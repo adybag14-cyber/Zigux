@@ -78,6 +78,9 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     const parity_scorecard = try readRepoFile("Documentation/zigux/phase15-parity-scorecard.md", 24 * 1024);
     defer std.testing.allocator.free(parity_scorecard);
 
+    const lane_owner_alignment = try readRepoFile("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig", 12 * 1024);
+    defer std.testing.allocator.free(lane_owner_alignment);
+
     const manifest_json = try readRepoFile("zigux/tests/phase15_indefinite_c_policy.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
@@ -91,12 +94,12 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("policy for code that remains in C indefinitely", manifest.roadmap_requirement);
     try std.testing.expectEqual(@as(usize, 4), manifest.anchors.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.supporting_artifacts.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.supporting_artifacts.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_requirements.len);
     try std.testing.expectEqualStrings("maintenance_mode", manifest.maintenance_handoff.current_lane_posture);
-    try std.testing.expectEqual(@as(usize, 1), manifest.maintenance_handoff.replay_before_trusting.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.maintenance_handoff.replay_before_trusting.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.maintenance_handoff.reopen_conditions.len);
-    try std.testing.expectEqual(@as(usize, 7), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 8), manifest.gaps.len);
 
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/freeze-map.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/review-checklist.md");
@@ -105,6 +108,7 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/phase15-parity-scorecard.md");
     try expectListContains(manifest.supporting_artifacts, "Documentation/zigux/README.md");
+    try expectListContains(manifest.supporting_artifacts, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
 
     try expectContains(policy_note, "PHASE15_STATUS=indefinite_c_policy_packet_landed");
     try expectContains(policy_note, "PHASE15_LANE_KEY=P15-L13");
@@ -119,8 +123,11 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(policy_note, "Documentation/zigux/phase15-architecture-council-decision-record-template.md");
     try expectContains(policy_note, "same reviewable ownership vocabulary");
     try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_policy.zig");
+    try expectContains(policy_note, "zig test zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
+    try expectContains(policy_note, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectContains(policy_note, "phase15-indefinite-c-review-process-companion-sync");
     try expectContains(policy_note, "phase15-indefinite-c-ownership-template-sync");
+    try expectContains(policy_note, "phase15-indefinite-c-lane-owner-companion-sync");
 
     try expectContains(review_process, "`Documentation/zigux/phase15-indefinite-c-policy.md` keeps the stay-in-C policy companion explicit");
     try expectContains(review_process, "indefinite-C policy link or explicit non-applicability note");
@@ -135,6 +142,10 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try expectContains(parity_scorecard, "blocked status-change anchor count: `4`");
     try expectContains(parity_scorecard, "Architecture Council approvals recorded for status change: `0`");
     try expectContains(parity_scorecard, "the indefinite-C policy aligned around the same blocked posture");
+
+    try expectContains(lane_owner_alignment, "Documentation/zigux/phase15-indefinite-c-policy.md");
+    try expectContains(lane_owner_alignment, "lane owner");
+    try expectContains(lane_owner_alignment, "required approver set");
 
     const recordkeeping = findRequirement(manifest.indefinite_c_requirements, "indefinite-c-recordkeeping") orelse return error.MissingRequirement;
     try std.testing.expectEqual(@as(usize, 20), recordkeeping.required_terms.len);
@@ -173,6 +184,12 @@ test "phase 15 indefinite-C policy packet restores the roadmap-required stay-in-
     try std.testing.expectEqualStrings("companion_sync", ownership_template_sync.kind);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", ownership_template_sync.zigux_destination);
     try expectContains(ownership_template_sync.why_now, "ownership");
+
+    const lane_owner_sync = findGap(manifest.gaps, "phase15-indefinite-c-lane-owner-companion-sync") orelse return error.MissingGap;
+    try std.testing.expectEqualStrings("landed", lane_owner_sync.status);
+    try std.testing.expectEqualStrings("companion_sync", lane_owner_sync.kind);
+    try std.testing.expectEqualStrings("zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig", lane_owner_sync.zigux_destination);
+    try expectContains(lane_owner_sync.why_now, "lane-owner");
 
     const blocker_gap = findGap(manifest.gaps, "phase15-deep-core-status-change-blocker") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("blocked_on_stay_in_c_evidence", blocker_gap.status);
