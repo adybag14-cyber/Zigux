@@ -26,12 +26,12 @@ The packet-local validator is now present and should stay aligned with this surv
 
 On current `master`, this packet stays narrow and explicit:
 
-- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, and the status-tagged `validateDeviceNumber` relay.
-- That same starter export surface also now carries the status-tagged `validateDeviceRange` relay for bounded `dev_t` span checks without widening into broader UAPI growth.
+- `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, `versionMatchesCurrent`, `validateVersion`, and the status-tagged `validateDeviceNumber` relay.
+- That same starter export surface also now carries the status-tagged `validateDeviceRange` relay plus the bounded `encodeDeviceNumber` and `decodeDeviceNumber` bridge without widening into broader UAPI growth.
 - `zigux/uapi/version.zig` keeps the starter boundary-header contract explicit through the current ABI version fields and `matchesCurrent`.
 - `zigux/uapi/dev_t.zig` keeps the bounded chrdev validation and range checks readable beside the shared `include/zigux/dev_t.h` contract.
 - `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header and the starter `dev_t` packet.
-- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader` and `ExportStatus` size, alignment, and field-offset contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.
+- `zigux/tests/phase3_export_uapi_layout.zig` together with `zigux/tests/phase3_export_uapi_layout_build.zig` keeps the `BoundaryHeader`, `ExportStatus`, starter version-compatibility relay, and device-number bridge contract visible on the direct replay route `zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig`.
 
 Current `master` does directly serve `scripts/zigux/phase3_catalog.py` as the bounded Phase 3 catalog helper and `zigux/tests/fixtures/phase3_abi_manifest.json` as the same-family manifest-backed inventory companion, but repeated current-head reads still return missing for `Documentation/zigux/phase3-linux-zigux-header-governance.md`.
 
