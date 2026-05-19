@@ -24,6 +24,8 @@ EXPECTED_STRING_SOURCE_SYMBOLS = [
     "pub fn strrchr(buf: []const u8, needle: u8) ?usize {",
     "pub fn strnchrNul(buf: []const u8, count: usize, needle: u8) usize {",
     "pub fn strnchrnul(buf: []const u8, count: usize, needle: u8) usize {",
+    "pub fn strchrNul(buf: []const u8, needle: u8) usize {",
+    "pub fn strchrnul(buf: []const u8, needle: u8) usize {",
 ]
 
 EXPECTED_HELPER_TEST_ANCHORS = [
