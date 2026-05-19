@@ -422,7 +422,7 @@ FILE_MARKERS = {
         PHASE3_EXPORT_SHIM_MARKER,
     ],
     MANIFEST_PATH: [
-        '"lane_key": "P9-L09"',
+        '"lane_key": "P9-L12"',
         '"phase": "Phase 9"',
         '"survey_summary": {',
         MANIFEST_ALIGNMENT_FOCUS_MARKER,
