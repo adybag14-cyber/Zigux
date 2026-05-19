@@ -226,6 +226,7 @@ test "phase9 trace-events survey packet matches the narrow current-master pilot-
     try std.testing.expectEqualStrings("P9-L11", manifest.ownership_map[5].owner);
 
     try expectSurveyedCommitMarker(survey_note, manifest.surveyed_commit);
+    try expectSurveyedCommitMarker(module_slice_note, manifest.surveyed_commit);
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events.zig`");
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events_unregistered_gate.zig`");
     try expectContains(survey_note, "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig`");
