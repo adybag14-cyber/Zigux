@@ -69,8 +69,9 @@ test "phase13 devres turns successful coherent-allocation planning into explicit
 
     const source = try readRepoFile(std.testing.allocator, "lib/devres.zig");
     defer std.testing.allocator.free(source);
-    try requireContains(source, "pub const ManagedDmamFreeCoherentPlan");
-    try requireContains(source, "pub fn planManagedDmamFreeCoherent(");
+    try requireContains(source, "const ReleaseCallPlan = struct");
+    try requireContains(source, "fn planReleaseCall(requested_size: u64) ReleaseCallPlan");
+    try requireContains(source, "const release_call = planReleaseCall(requested_size);");
 }
 
 test "phase13 devres drops detach-time cleanup ownership when planned coherent allocation fails" {
@@ -114,6 +115,7 @@ test "phase13 devres dmam_alloc_coherent planner manifest records the landed hel
     try requireContains(manifest, "zigux/tests/phase13_devres_dma_coherent.zig");
     try requireContains(manifest, "planManagedReleaseRecordLifetime");
     try requireContains(manifest, "planManagedDmamFreeCoherent");
+    try requireContains(manifest, "planReleaseCall");
     try requireContains(manifest, "release_record_consumed");
     try requireContains(manifest, "releases_from_devres");
     try requireContains(manifest, "\"id\": \"phase13-devres-live-dmam-alloc-side-effects\"");
@@ -128,6 +130,7 @@ test "phase13 devres dmam_alloc_coherent planner note keeps the helper-first dma
 
     try requireContains(note, "lands one pure `dmam_alloc_coherent()` planning surface in `lib/devres.zig`");
     try requireContains(note, "routes `planManagedDmamAllocCoherent(...)` through `planManagedReleaseRecordLifetime(...)`");
+    try requireContains(note, "routes `planManagedDmamFreeCoherent(...)` through one private `planReleaseCall(...)` helper");
     try requireContains(note, "accepts already-decided allocation inputs");
     try requireContains(note, "retains detach-time cleanup ownership on success");
     try requireContains(note, "turns that successful allocation plan into explicit detach cleanup planning through `planManagedDmamFreeCoherent(...)`");
