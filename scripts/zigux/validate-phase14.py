@@ -159,6 +159,7 @@ REQUIRED_MARKERS = {
         "`scripts/zigux/check-phase14-release-boundary-exact-counts.py` explicit as the directly readable release-boundary truthfulness guard",
         "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes",
         "Documentation/zigux/phase14-release-boundary-survey.md",
+        "zigux/tests/phase14_workqueue_bridge_manifest.json",
     ],
     MAKEFILE_PATH: [
         "phase3-validate:",
@@ -326,7 +327,7 @@ def run_self_test() -> int:
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
             (ROLLBACK_CHECKER_PATH, REQUIRED_MARKERS[ROLLBACK_CHECKER_PATH][0]),
             (RELEASE_BOUNDARY_CHECKER_PATH, REQUIRED_MARKERS[RELEASE_BOUNDARY_CHECKER_PATH][0]),
-            (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][2]),
+            (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][5]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][1]),
             (WORKQUEUE_REVIEWABILITY_PATH, REQUIRED_MARKERS[WORKQUEUE_REVIEWABILITY_PATH][0]),
         ]
