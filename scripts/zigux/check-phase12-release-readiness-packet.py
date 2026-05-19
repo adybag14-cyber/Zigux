@@ -20,6 +20,7 @@ def infer_repo_root() -> Path:
 
 ROOT = infer_repo_root()
 
+DOCS_README_PATH = "Documentation/zigux/README.md"
 FREEZE_MAP_PATH = "Documentation/zigux/freeze-map.md"
 REVIEW_CHECKLIST_PATH = "Documentation/zigux/review-checklist.md"
 RELEASE_READINESS_SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
@@ -45,6 +46,7 @@ PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 REQUIRED_FILES = [
+    DOCS_README_PATH,
     FREEZE_MAP_PATH,
     REVIEW_CHECKLIST_PATH,
     RELEASE_READINESS_SURVEY_PATH,
@@ -63,6 +65,11 @@ REQUIRED_FILES = [
 ]
 
 REQUIRED_MARKERS = {
+    DOCS_README_PATH: [
+        "keep the bounded Phase 12 docs-root packet explicit through the shared release-order, readiness, closure, coordination, fallback, and driver-local reminder notes plus the shipped validator-side support bundle instead of letting the docs root drift away from the active-not-closed release packet on current `master`.",
+        "`scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the docs root while current `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, and `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns on current `master`.",
+        "keep the degraded rerun order honest here too: rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile` before attached-Zig rerun vocabulary, and if that local fallback is absent keep `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` framed only as last-resort rerun vocabulary while `make -C zigux phase12-validate` remains reminder-only text.",
+    ],
     REVIEW_CHECKLIST_PATH: [
         "still agree that current `zigux/Makefile` ships `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again while `make -C zigux phase12-validate` remains reminder-only vocabulary",
         "keep the repo-local `.zig-toolchain` fallback before the attached-Zig degraded rerun order explicit",
@@ -169,6 +176,7 @@ def marker_fixture(title: str, markers: list[str]) -> str:
 def fixture_text(rel_path: str) -> str:
     if rel_path in REQUIRED_MARKERS:
         title = {
+            DOCS_README_PATH: "# Zigux Documentation",
             REVIEW_CHECKLIST_PATH: "# Zigux Review Checklist",
             RELEASE_READINESS_SURVEY_PATH: "# Phase 12 Release Readiness Survey",
             RELEASE_SEQUENCING_PATH: "# Phase 12 Release Sequencing",
@@ -226,6 +234,7 @@ def run_self_test() -> int:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
 
         missing_file_cases = [
+            DOCS_README_PATH,
             FREEZE_MAP_PATH,
             REVIEW_CHECKLIST_PATH,
             RELEASE_READINESS_SURVEY_PATH,
@@ -263,7 +272,10 @@ def run_self_test() -> int:
         ]
         for rel_path, marker in forbidden_cases:
             write_fixture_tree(base)
-            write_text(base / rel_path, (base / rel_path).read_text(encoding="utf-8") + marker + "\n")
+            write_text(
+                base / rel_path,
+                (base / rel_path).read_text(encoding="utf-8") + marker + "\n",
+            )
             expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
 
         case_count = len(missing_file_cases) + len(marker_cases) + len(forbidden_cases)
