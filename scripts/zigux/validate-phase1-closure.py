@@ -201,6 +201,18 @@ EXPECTED_FIND_BIT_REVIEW_FIELDS = {
     "past_nbits_short_circuit": 'test "next scans past nbits return without reading bitmap words"',
     "underscore_alias_anchor": 'test "low-level underscore aliases mirror the primary find helpers"',
     "linux_alias_anchor": 'test "Linux-style aliases mirror the primary find helpers"',
+    "andnot_scan_entrypoints": [
+        "findFirstAndNotBit",
+        "find_first_andnot_bit",
+        "_find_first_andnot_bit",
+        "findNextAndNotBit",
+        "find_next_andnot_bit",
+        "_find_next_andnot_bit",
+    ],
+    "andnot_scan_entrypoint_contract": (
+        "The shipped public, Linux-style, and underscore andnot scan entry points stay owned "
+        "by the direct find_bit packet instead of being left implicit under generic alias wording."
+    ),
     "tail_word_set_skip_anchor": 'test "tail-word next set scans skip earlier in-range matches before clamping"',
     "tail_word_skip_anchor": 'test "tail-word next zero and shared scans skip earlier in-range matches before clamping"',
     "tail_clamp_fixture_keys": [
@@ -404,10 +416,10 @@ EXPECTED_STRING_PACKET = {
     ],
     "prefix_suffix_review_summary": (
         "helper-local prefix and suffix boundary anchors stay explicit through the direct string tests "
-        "because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather "
-        "than dedicated prefix or suffix fixture fields, so strHasPrefix and str_has_prefix plus "
-        "strHasSuffix and str_has_suffix plus strstarts plus strEndsWith and str_ends_with plus "
-        "strends remain review-visible at the helper surface"
+        "because the shared Phase 1 replay still focuses on replaceChar and memchrInv parity rather than "
+        "dedicated prefix or suffix fixture fields, so strHasPrefix and str_has_prefix plus strHasSuffix "
+        "and str_has_suffix plus strstarts plus strEndsWith and str_ends_with plus strends remain "
+        "review-visible at the helper surface"
     ),
     "lookup_review_anchors": [
         'test "matchString finds C-string matches and preserves first-match order"',
@@ -415,9 +427,8 @@ EXPECTED_STRING_PACKET = {
     ],
     "lookup_review_summary": (
         "helper-local string lookup anchors stay explicit through the direct string tests because the "
-        "shared Phase 1 replay still does not carry dedicated matchString() or match_string() fixture "
-        "keys, so C-string list lookup order and the Linux-style alias remain review-visible at the "
-        "helper surface"
+        "shared Phase 1 replay still does not carry dedicated matchString() or match_string() fixture keys, "
+        "so C-string list lookup order and the Linux-style alias remain review-visible at the helper surface"
     ),
     "sysfs_review_anchors": [
         'test "sysfsStreq treats trailing newline and NUL as equivalent"',
@@ -426,10 +437,10 @@ EXPECTED_STRING_PACKET = {
         'test "sysfs_match_string mirrors sysfsMatchString for empty and matched lists"',
     ],
     "sysfs_review_summary": (
-        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through the "
-        "direct string tests because the shared Phase 1 replay still carries no dedicated sysfs "
-        "fixture keys, so sysfsStreq and sysfs_streq plus sysfsMatchString and sysfs_match_string "
-        "remain review-visible at the helper surface"
+        "helper-local sysfs newline-aware equality and lookup-order anchors stay explicit through the direct "
+        "string tests because the shared Phase 1 replay still carries no dedicated sysfs fixture keys, so "
+        "sysfsStreq and sysfs_streq plus sysfsMatchString and sysfs_match_string remain review-visible at "
+        "the helper surface"
     ),
     "strscpy_review_anchors": [
         'test "strscpy keeps NUL termination and reports truncation with -E2BIG"',
@@ -440,10 +451,10 @@ EXPECTED_STRING_PACKET = {
         'test "strscpy and strscpyPad keep one-byte destinations terminated"',
     ],
     "strscpy_review_summary": (
-        "helper-local string copy-and-pad anchors stay explicit through the direct string tests "
-        "because the shared Phase 1 replay still does not carry dedicated strscpy() or "
-        "strscpyPad() fixture keys"
+        "helper-local string copy-and-pad anchors stay explicit through the direct string tests because "
+        "the shared Phase 1 replay still does not carry dedicated strscpy() or strscpyPad() fixture keys"
     ),
+    "strnchr_review_anchor": 'test "strnchr honors count and C-string boundaries"',
     "counted_search_review_anchors": [
         'test "strchr mirrors full-length C-string searches"',
         'test "strrchr finds the last in-range match with C-string semantics"',
@@ -452,40 +463,37 @@ EXPECTED_STRING_PACKET = {
         'test "strnlen honors count and C-string boundaries"',
         'test "strnchrNul returns the first match, NUL, or count boundary"',
     ],
-    "strnchr_review_anchor": 'test "strnchr honors count and C-string boundaries"',
     "strnchrnul_review_anchor": 'test "strnchrNul returns the first match, NUL, or count boundary"',
     "strnchr_review_summary": (
-        "the direct counted-search and C-string search-length follow-up stays explicit because the "
-        "shared Phase 1 replay still does not carry dedicated counted-search or search-length fixture "
-        "keys, so strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte "
-        "scanning, strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() "
-        "or strnchrnul() match-or-NUL boundary behavior remain owned by the helper-local anchors"
+        "the direct counted-search and C-string search-length follow-up stays explicit because the shared "
+        "Phase 1 replay still does not carry dedicated counted-search or search-length fixture keys, so "
+        "strchr() or strrchr() full-length C-string searches, strpbrk() first-accepted-byte scanning, "
+        "strnchr() count-limited scanning, strnlen() count-clamped length, and strnchrNul() or strnchrnul() "
+        "match-or-NUL boundary behavior remain owned by the helper-local anchors"
     ),
     "basename_review_anchor": 'test "kbasename returns the final path component with C-string semantics"',
     "basename_review_summary": (
-        "helper-local basename path-tail anchor stays explicit through the direct string tests "
-        "because the shared Phase 1 replay still does not carry dedicated kbasename fixture keys, "
-        "so final path-component extraction at the first C-string terminator remains review-visible "
-        "at the helper surface"
+        "helper-local basename path-tail anchor stays explicit through the direct string tests because the "
+        "shared Phase 1 replay still does not carry dedicated kbasename fixture keys, so final path-component "
+        "extraction at the first C-string terminator remains review-visible at the helper surface"
     ),
     "trim_nul_review_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
     "trim_nul_review_summary": (
-        "the direct trim follow-up stays explicit because the shared Phase 1 string fixture records "
-        "the trimmed bytes but not the preserved tail bytes beyond the first embedded terminator"
+        "the direct trim follow-up stays explicit because the shared Phase 1 string fixture records the "
+        "trimmed bytes but not the preserved tail bytes beyond the first embedded terminator"
     ),
     "phase1_trim_cstr_replay_anchor": 'test "phase 1 string trim helpers stop at embedded NUL after trailing whitespace"',
     "phase1_trim_cstr_replay_summary": (
-        "the shared Phase 1 string replay still only locks the plain trailing-whitespace trimSpaces "
-        "bytes from the committed fixture, while the direct helper-local trim follow-up keeps "
-        "embedded-NUL trimming for trimSpaces and strim plus strstrip and preserved tail-byte review "
-        "explicit because the shared packet still does not exercise every trim alias or every "
-        "post-NUL byte position"
+        "the shared Phase 1 string replay still only locks the plain trailing-whitespace trimSpaces bytes "
+        "from the committed fixture, while the direct helper-local trim follow-up keeps embedded-NUL "
+        "trimming for trimSpaces and strim plus strstrip and preserved tail-byte review explicit because "
+        "the shared packet still does not exercise every trim alias or every post-NUL byte position"
     ),
     "memchr_moving_dirty_anchor": 'test "memchrInv follows the earliest dirty byte as long buffers change"',
     "memchr_moving_dirty_review_summary": (
-        "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins one "
-        "fixed dirty index and the clean case, but not the moving earliest-mismatch ownership as later "
-        "dirty bytes become the next live divergence"
+        "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins one fixed "
+        "dirty index and the clean case, but not the moving earliest-mismatch ownership as later dirty "
+        "bytes become the next live divergence"
     ),
     "phase1_helper_replay_anchor": 'test "phase 1 string replaceChar stops at embedded NUL"',
     "shared_replace_char_cstr_review_summary": (
@@ -933,6 +941,15 @@ def run_self_test() -> int:
         (
             "bad_find_bit_review_field",
             lambda root: mutate_manifest_packet(root, "tools/lib/find_bit.zig", "same_word_start_masks", "drift"),
+        ),
+        (
+            "bad_find_bit_andnot_entrypoints",
+            lambda root: mutate_manifest_packet(
+                root,
+                "tools/lib/find_bit.zig",
+                "andnot_scan_entrypoints",
+                EXPECTED_FIND_BIT_REVIEW_FIELDS["andnot_scan_entrypoints"][:-1],
+            ),
         ),
         (
             "missing_find_bit_source_symbol",
