@@ -78,6 +78,14 @@ CHECK_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
+        (),
+        (
+            "validated Documentation/zigux/phase3-policy-unsafe-boundary-survey.md",
+            "validated zigux/tests/phase3_policy_dump.zig",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
         (),
         ("validated Documentation/zigux/phase3-low-level-wrapper-boundary-survey.md",),
@@ -99,8 +107,9 @@ SELF_TEST_MISSING_CASES = (
     (8, "expected catalog-selftest script omission was not reported"),
     (9, "expected validator-support script omission was not reported"),
     (10, "expected export-uapi survey script omission was not reported"),
-    (11, "expected low-level-wrapper script omission was not reported"),
-    (12, "expected selftest-surface script omission was not reported"),
+    (11, "expected policy-unsafe survey script omission was not reported"),
+    (12, "expected low-level-wrapper script omission was not reported"),
+    (13, "expected selftest-surface script omission was not reported"),
 )
 
 
