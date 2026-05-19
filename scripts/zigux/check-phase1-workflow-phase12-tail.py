@@ -24,6 +24,30 @@ PHASE12_ADJACENCY_LINE = (
     "Self-test current Phase 12 tail guard,Check current Phase 12 tail guard,"
     "Run current Phase 12 throughput-parity anchor`"
 )
+PHASE10_SELFTEST_STEP = (
+    "Self-test current Phase 10 bootstrap route checker",
+    "python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test",
+)
+PHASE10_CHECK_STEP = (
+    "Check current Phase 10 bootstrap route",
+    "python3 scripts/zigux/check-phase10-bootstrap-route.py",
+)
+PHASE10_VALIDATE_STEP = (
+    "Validate Phase 10 checker-backed review packet",
+    "make -C zigux phase10-validate",
+)
+PHASE10_HELPER_STEP = (
+    "Run Phase 10 helper tests",
+    "make -C zigux phase10-test",
+)
+PHASE11_SELFTEST_STEP = (
+    "Self-test current Phase 11 HVC cleanup current-head checker",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py --self-test",
+)
+PHASE11_CHECK_STEP = (
+    "Check current Phase 11 HVC cleanup current-head packet",
+    "python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+)
 PHASE12_SELFTEST_STEP = (
     "Self-test current Phase 12 tail guard",
     "python3 scripts/zigux/check-phase1-workflow-phase12-tail.py --self-test",
@@ -36,8 +60,19 @@ PHASE12_ANCHOR_STEP = (
     "Run current Phase 12 throughput-parity anchor",
     "zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig",
 )
-PHASE12_CHAIN = (
-    "Check current Phase 11 HVC cleanup current-head packet",
+PHASE12_FULL_CHAIN = (
+    PHASE10_SELFTEST_STEP[0],
+    PHASE10_CHECK_STEP[0],
+    PHASE10_VALIDATE_STEP[0],
+    PHASE10_HELPER_STEP[0],
+    PHASE11_SELFTEST_STEP[0],
+    PHASE11_CHECK_STEP[0],
+    PHASE12_SELFTEST_STEP[0],
+    PHASE12_CHECK_STEP[0],
+    PHASE12_ANCHOR_STEP[0],
+)
+PHASE12_ADJACENCY_CHAIN = (
+    PHASE11_CHECK_STEP[0],
     PHASE12_SELFTEST_STEP[0],
     PHASE12_CHECK_STEP[0],
     PHASE12_ANCHOR_STEP[0],
@@ -102,10 +137,20 @@ def collect_failures(root: Path) -> list[str]:
     failures.extend(require_once(note_text, "note", PHASE12_TAIL_NOTE_LINE))
     failures.extend(require_once(note_text, "note", PHASE12_GUARD_LINE))
     failures.extend(require_once(note_text, "note", PHASE12_ADJACENCY_LINE))
-    failures.extend(require_step(workflow_text, *PHASE12_SELFTEST_STEP))
-    failures.extend(require_step(workflow_text, *PHASE12_CHECK_STEP))
-    failures.extend(require_step(workflow_text, *PHASE12_ANCHOR_STEP))
-    failures.extend(require_adjacent_chain(workflow_text, PHASE12_CHAIN))
+    for step in (
+        PHASE10_SELFTEST_STEP,
+        PHASE10_CHECK_STEP,
+        PHASE10_VALIDATE_STEP,
+        PHASE10_HELPER_STEP,
+        PHASE11_SELFTEST_STEP,
+        PHASE11_CHECK_STEP,
+        PHASE12_SELFTEST_STEP,
+        PHASE12_CHECK_STEP,
+        PHASE12_ANCHOR_STEP,
+    ):
+        failures.extend(require_step(workflow_text, *step))
+    failures.extend(require_adjacent_chain(workflow_text, PHASE12_FULL_CHAIN))
+    failures.extend(require_adjacent_chain(workflow_text, PHASE12_ADJACENCY_CHAIN))
     return failures
 
 
@@ -130,8 +175,18 @@ def build_workflow_text() -> str:
             "  bootstrap:",
             "    runs-on: ubuntu-latest",
             "    steps:",
-            "      - name: Check current Phase 11 HVC cleanup current-head packet",
-            "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py",
+            f"      - name: {PHASE10_SELFTEST_STEP[0]}",
+            f"        run: {PHASE10_SELFTEST_STEP[1]}",
+            f"      - name: {PHASE10_CHECK_STEP[0]}",
+            f"        run: {PHASE10_CHECK_STEP[1]}",
+            f"      - name: {PHASE10_VALIDATE_STEP[0]}",
+            f"        run: {PHASE10_VALIDATE_STEP[1]}",
+            f"      - name: {PHASE10_HELPER_STEP[0]}",
+            f"        run: {PHASE10_HELPER_STEP[1]}",
+            f"      - name: {PHASE11_SELFTEST_STEP[0]}",
+            f"        run: {PHASE11_SELFTEST_STEP[1]}",
+            f"      - name: {PHASE11_CHECK_STEP[0]}",
+            f"        run: {PHASE11_CHECK_STEP[1]}",
             f"      - name: {PHASE12_SELFTEST_STEP[0]}",
             f"        run: {PHASE12_SELFTEST_STEP[1]}",
             f"      - name: {PHASE12_CHECK_STEP[0]}",
@@ -220,6 +275,24 @@ def run_self_test() -> int:
         build_sample_repo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE10_VALIDATE_STEP[0]}\n"))
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE10_VALIDATE_STEP[0]}:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase10_validate_step_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE10_HELPER_STEP[0]}\n"))
+        failures = collect_failures(root)
+        if f"workflow_step:{PHASE10_HELPER_STEP[0]}:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase10_helper_step_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"))
         failures = collect_failures(root)
         if f"workflow_step:{PHASE12_SELFTEST_STEP[0]}:expected=1:actual=0" not in failures:
@@ -239,8 +312,18 @@ def run_self_test() -> int:
 
         workflow_text = load_text(root, WORKFLOW_REL)
         old = (
-            "      - name: Check current Phase 11 HVC cleanup current-head packet\n"
-            "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py\n"
+            f"      - name: {PHASE10_SELFTEST_STEP[0]}\n"
+            f"        run: {PHASE10_SELFTEST_STEP[1]}\n"
+            f"      - name: {PHASE10_CHECK_STEP[0]}\n"
+            f"        run: {PHASE10_CHECK_STEP[1]}\n"
+            f"      - name: {PHASE10_VALIDATE_STEP[0]}\n"
+            f"        run: {PHASE10_VALIDATE_STEP[1]}\n"
+            f"      - name: {PHASE10_HELPER_STEP[0]}\n"
+            f"        run: {PHASE10_HELPER_STEP[1]}\n"
+            f"      - name: {PHASE11_SELFTEST_STEP[0]}\n"
+            f"        run: {PHASE11_SELFTEST_STEP[1]}\n"
+            f"      - name: {PHASE11_CHECK_STEP[0]}\n"
+            f"        run: {PHASE11_CHECK_STEP[1]}\n"
             f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"
             f"        run: {PHASE12_SELFTEST_STEP[1]}\n"
             f"      - name: {PHASE12_CHECK_STEP[0]}\n"
@@ -249,20 +332,30 @@ def run_self_test() -> int:
             f"        run: {PHASE12_ANCHOR_STEP[1]}\n"
         )
         new = (
-            "      - name: Check current Phase 11 HVC cleanup current-head packet\n"
-            "        run: python3 scripts/zigux/check-phase11-hvc-cleanup-current-head.py\n"
-            f"      - name: {PHASE12_ANCHOR_STEP[0]}\n"
-            f"        run: {PHASE12_ANCHOR_STEP[1]}\n"
+            f"      - name: {PHASE10_SELFTEST_STEP[0]}\n"
+            f"        run: {PHASE10_SELFTEST_STEP[1]}\n"
+            f"      - name: {PHASE10_CHECK_STEP[0]}\n"
+            f"        run: {PHASE10_CHECK_STEP[1]}\n"
+            f"      - name: {PHASE10_HELPER_STEP[0]}\n"
+            f"        run: {PHASE10_HELPER_STEP[1]}\n"
+            f"      - name: {PHASE10_VALIDATE_STEP[0]}\n"
+            f"        run: {PHASE10_VALIDATE_STEP[1]}\n"
+            f"      - name: {PHASE11_SELFTEST_STEP[0]}\n"
+            f"        run: {PHASE11_SELFTEST_STEP[1]}\n"
+            f"      - name: {PHASE11_CHECK_STEP[0]}\n"
+            f"        run: {PHASE11_CHECK_STEP[1]}\n"
             f"      - name: {PHASE12_SELFTEST_STEP[0]}\n"
             f"        run: {PHASE12_SELFTEST_STEP[1]}\n"
             f"      - name: {PHASE12_CHECK_STEP[0]}\n"
             f"        run: {PHASE12_CHECK_STEP[1]}\n"
+            f"      - name: {PHASE12_ANCHOR_STEP[0]}\n"
+            f"        run: {PHASE12_ANCHOR_STEP[1]}\n"
         )
         write_file(root, WORKFLOW_REL, rewrite_once(workflow_text, old, new))
         failures = collect_failures(root)
-        expected = f"workflow_adjacent_chain:missing:{'->'.join(PHASE12_CHAIN)}"
+        expected = f"workflow_adjacent_chain:missing:{'->'.join(PHASE12_FULL_CHAIN)}"
         if expected not in failures:
-            print("self-test:phase12_chain_not_detected")
+            print("self-test:phase12_full_chain_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
