@@ -120,7 +120,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_registration_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_registration_preflight_module.addImport(
         "virtio_input_registration_preflight",
-        phase10_virtio_input_registration_preflight_module,
+        virtio_input_registration_preflight_module,
     );
 
     const phase10_virtio_input_status_drain_module = b.createModule(.{
@@ -131,7 +131,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_status_drain_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_status_drain_module.addImport(
         "virtio_input_status_drain",
-        phase10_virtio_input_status_drain_module,
+        virtio_input_status_drain_module,
     );
 
     const virtio_input_teardown_observation_module = b.createModule(.{
@@ -151,6 +151,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_input_teardown_observation_module.addImport("virtio_input", virtio_input_module);
+    phase10_virtio_input_teardown_observation_module.addImport(
+        "virtio_input_teardown_observation",
+        virtio_input_teardown_observation_module,
+    );
 
     const phase10_virtio_input_survey_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input_survey.zig"),
