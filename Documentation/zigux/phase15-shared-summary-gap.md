@@ -17,7 +17,7 @@ Phase 15 is supposed to govern the mixed-language steady state honestly. Current
 
 The current same-lane truthfulness task is no longer to treat the previously parked focused review-process replay companion as missing. It is to keep the broad reminder surfaces aligned with the now-materialized packet while still refusing to imply Architecture Council approval or direct deep-core delivery just because more review companions are landed.
 
-This refresh closes the note's dedicated-handoff-manifest and dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-19 governance packet, including the now-materialized dedicated handoff manifest, the now-materialized focused handoff-specific Zig replay, the now-current stay-in-C policy companion, the focused review-process build-file replay, the focused tests-root alignment guard, and the focused handoff-note checker, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
+This refresh closes the note's dedicated-handoff-manifest and dated-readback drift. Reviewers can now compare the broad reminder surfaces against the current 2026-05-19 governance packet, including the now-materialized dedicated handoff manifest, the now-materialized focused handoff-specific Zig replay, the now-current stay-in-C policy companion, the stay-in-C lane-owner companion, the focused review-process build-file replay, the focused tests-root alignment guard, and the focused handoff-note checker, instead of reconciling that shared-summary packet against older adjacent governance rereads by hand.
 
 ## Materialized Phase 15 governance assets
 
@@ -41,6 +41,7 @@ Direct current-`master` reads now materialize these focused companions, so the s
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
@@ -51,7 +52,6 @@ These broader reminder paths still are not directly materialized on current `mas
 
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
 ## Current shared-summary watchpoints
 
@@ -73,7 +73,7 @@ The remaining Phase 15 discipline work is broad-summary truthfulness and route w
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_readiness_gate_manifest.json`
-- broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes
+- broader validator-first wording around `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and the parked `make -C zigux phase15-validate`, `make -C zigux phase15-test`, and `make -C zigux phase15` routes
 
 These are the surfaces that should be reread together before claiming any new Phase 15 shared-summary drift.
 
