@@ -112,6 +112,23 @@ test "phase3 first rejected xa_value would alias the err_ptr floor" {
     try std.testing.expect(!xa_value.isValue(aliased_raw));
 }
 
+test "phase3 second rejected xa_value skips the untagged neighbor and aliases the next tagged err_ptr raw" {
+    const second_rejected = xa_value.safe_inline_limit + 2;
+    const untagged_err_neighbor = err_ptr.err_floor + 1;
+    const aliased_raw = (second_rejected << 1) | xa_value.value_tag_mask;
+
+    try std.testing.expectError(error.ValueWouldOverlapErrPtr, xa_value.makeValue(second_rejected));
+    try std.testing.expectEqual(err_ptr.err_floor + 2, aliased_raw);
+    try std.testing.expectEqual(@as(isize, -4094), err_ptr.toErrorCode(untagged_err_neighbor));
+    try std.testing.expectEqual(@as(isize, -4093), err_ptr.toErrorCode(aliased_raw));
+    try std.testing.expect(err_ptr.isErrValue(untagged_err_neighbor));
+    try std.testing.expect(err_ptr.isErrValue(aliased_raw));
+    try std.testing.expect(!xa_value.isValue(untagged_err_neighbor));
+    try std.testing.expect(!xa_value.isValue(aliased_raw));
+    try std.testing.expectEqual(@as(usize, 0), untagged_err_neighbor & xa_value.value_tag_mask);
+    try std.testing.expectEqual(xa_value.value_tag_mask, aliased_raw & xa_value.value_tag_mask);
+}
+
 test "phase3 err_ptr gap below floor stays pointer like" {
     const gap = err_ptr.err_floor - 1;
     try std.testing.expect(err_ptr.isOkValue(gap));
