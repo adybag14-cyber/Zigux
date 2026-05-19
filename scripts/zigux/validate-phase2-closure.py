@@ -80,6 +80,11 @@ EXPECTED_MISSING_FILES = [
     "scripts/zigux/install-zig.py",
 ]
 
+EXPECTED_SHARED_PRESENT_FILES = [
+    "scripts/zigux/check-kconfig-bridge.py",
+    "scripts/zigux/check-zig-toolchain.py",
+]
+
 EXPECTED_DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
     "`Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
@@ -109,7 +114,7 @@ EXPECTED_MANIFEST_FIELDS = {
     "workflow_surface",
 }
 
-EXPECTED_SELF_TEST_CASE_COUNT = 81
+EXPECTED_SELF_TEST_CASE_COUNT = 85
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -349,6 +354,16 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
                 ("MASTER_PRESENT_BRANCH_PATH_NOT_MARKED_MISSING", value)
                 for value in sorted(master_present_set - missing_set)
             )
+
+        if EXPECTED_TOOL_MANIFEST_CHECKER in missing_set:
+            issues.append(("CHECKER_STILL_MARKED_MISSING", EXPECTED_TOOL_MANIFEST_CHECKER))
+        if EXPECTED_TOOL_MANIFEST_CHECKER not in present_set:
+            issues.append(("CHECKER_NOT_MARKED_PRESENT", EXPECTED_TOOL_MANIFEST_CHECKER))
+        for shared_path in EXPECTED_SHARED_PRESENT_FILES:
+            if shared_path in missing_set:
+                issues.append(("SHARED_TOOL_STILL_MARKED_MISSING", shared_path))
+            if shared_path not in present_set:
+                issues.append(("SHARED_TOOL_NOT_MARKED_PRESENT", shared_path))
 
     if manifest.get("packet") != "phase2_tool_manifest":
         issues.append(("INVALID_MANIFEST_FIELD", "packet"))
@@ -642,6 +657,36 @@ def run_self_test() -> int:
         build_self_test_root(root)
         write_text(root, Path(EXPECTED_MISSING_FILES[0]), "# restored on branch\n")
         assert ("MISSING_FILE_ALREADY_PRESENT_ON_BRANCH", EXPECTED_MISSING_FILES[0]) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["missing_files"] = EXPECTED_MISSING_FILES + [EXPECTED_TOOL_MANIFEST_CHECKER]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("CHECKER_STILL_MARKED_MISSING", EXPECTED_TOOL_MANIFEST_CHECKER) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        bad = json.loads(manifest_json())
+        bad["present_files"] = [path for path in EXPECTED_PRESENT_FILES if path != EXPECTED_TOOL_MANIFEST_CHECKER]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("CHECKER_NOT_MARKED_PRESENT", EXPECTED_TOOL_MANIFEST_CHECKER) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        shared_path = EXPECTED_SHARED_PRESENT_FILES[0]
+        bad = json.loads(manifest_json())
+        bad["missing_files"] = EXPECTED_MISSING_FILES + [shared_path]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("SHARED_TOOL_STILL_MARKED_MISSING", shared_path) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        shared_path = EXPECTED_SHARED_PRESENT_FILES[0]
+        bad = json.loads(manifest_json())
+        bad["present_files"] = [path for path in EXPECTED_PRESENT_FILES if path != shared_path]
+        write_text(root, MANIFEST, json.dumps(bad, indent=2) + "\n")
+        assert ("SHARED_TOOL_NOT_MARKED_PRESENT", shared_path) in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
