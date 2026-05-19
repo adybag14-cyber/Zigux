@@ -24,6 +24,7 @@ phase2-tools:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kbuild-routes.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-docs-shared-reminder.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-required-make-routes.py
+	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-artifact-tools-manifest.py
 
 phase2-kconfig:
 	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test
