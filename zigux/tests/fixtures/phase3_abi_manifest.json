@@ -7,9 +7,15 @@
   "packet_files": [
     "Documentation/zigux/phase3-abi-slice.md",
     "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
+    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "include/zigux/abi.h",
+    "include/zigux/dev_t.h",
     "include/linux/zigux.h",
+    "zigux/uapi/dev_t.zig",
+    "zigux/uapi/version.zig",
     "zigux/bindings/abi.zig",
+    "zigux/bindings/dev_t.zig",
+    "zigux/bindings/version.zig",
     "zigux/bindings/notifier_abi.zig",
     "zigux/kernel/export_shim.zig",
     "scripts/zigux/validate-phase3.py",
@@ -30,8 +36,7 @@
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
   ],
   "repo_reality_gaps": [
-    "scripts/zigux/check-phase3-catalog-selftest.py",
-    "Documentation/zigux/phase3-linux-zigux-header-governance.md"
+    "scripts/zigux/check-phase3-catalog-selftest.py"
   ],
   "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work"
 }
