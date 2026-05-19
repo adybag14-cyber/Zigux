@@ -368,7 +368,7 @@ pub const SyscallsHelperLab = struct {
         return .{
             .anchor = descriptor().anchor,
             .reads_file_private_data = true,
-            .invokes_landlock_put_ruleset: true,
+            .invokes_landlock_put_ruleset = true,
             .returns_zero = true,
         };
     }
