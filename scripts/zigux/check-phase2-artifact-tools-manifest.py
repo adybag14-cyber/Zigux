@@ -36,6 +36,32 @@ def read_manifest(path: Path) -> dict:
         raise SystemExit(f"required file missing: {path}") from exc
 
 
+def require_string_list(
+    issues: list[tuple[str, str]],
+    mapping: dict[str, object],
+    key: str,
+) -> list[str] | None:
+    value = mapping.get(key)
+    if not isinstance(value, list):
+        issues.append(("INVALID_TOOLING_SHAPE", key))
+        return None
+
+    normalized: list[str] = []
+    for item in value:
+        if not isinstance(item, str):
+            issues.append(("INVALID_TOOLING_SHAPE", key))
+            return None
+        normalized.append(item)
+
+    seen: set[str] = set()
+    for item in normalized:
+        if item in seen:
+            issues.append(("DUPLICATE_TOOLING_ENTRY", f"{key}:{item}"))
+        seen.add(item)
+
+    return normalized
+
+
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     manifest = read_manifest(root / MANIFEST)
     issues: list[tuple[str, str]] = []
@@ -49,7 +75,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("MISSING_TOOLING", "tooling"))
     else:
         for key, expected in REQUIRED_TOOLING.items():
-            if tooling.get(key) != expected:
+            entries = require_string_list(issues, tooling, key)
+            if entries is None:
+                continue
+            if entries != expected:
                 issues.append(("TOOLING_MISMATCH", key))
 
     notes = manifest.get("notes")
@@ -90,7 +119,7 @@ def build_self_test_manifest() -> dict:
 
 
 def run_self_test() -> int:
-    expected_case_count = 1 + len(REQUIRED_TOP_LEVEL) + len(REQUIRED_TOOLING) + 1 + len(REQUIRED_NOTE_MARKERS) + 1
+    expected_case_count = 1 + len(REQUIRED_TOP_LEVEL) + 1 + len(REQUIRED_TOOLING) + 3 + 1 + len(REQUIRED_NOTE_MARKERS) + 1
     checks_run = 0
     with tempfile.TemporaryDirectory(prefix="zigux_phase2_artifact_tools_manifest_") as tmp_dir:
         root = Path(tmp_dir)
@@ -107,12 +136,38 @@ def run_self_test() -> int:
             assert ("TOP_LEVEL_MISMATCH", key) in collect_issues(root)
             checks_run += 1
 
+        manifest = build_self_test_manifest()
+        manifest["tooling"] = []
+        write_manifest(manifest_path, manifest)
+        assert ("MISSING_TOOLING", "tooling") in collect_issues(root)
+        checks_run += 1
+
         for key in REQUIRED_TOOLING:
             manifest = build_self_test_manifest()
             manifest["tooling"][key] = []
             write_manifest(manifest_path, manifest)
             assert ("TOOLING_MISMATCH", key) in collect_issues(root)
             checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["tooling"]["primary"] = "broken"
+        write_manifest(manifest_path, manifest)
+        assert ("INVALID_TOOLING_SHAPE", "primary") in collect_issues(root)
+        checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["tooling"]["consumers"] = [123]
+        write_manifest(manifest_path, manifest)
+        assert ("INVALID_TOOLING_SHAPE", "consumers") in collect_issues(root)
+        checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["tooling"]["supported_modes"] = ["json", "text", "bytes", "bytes"]
+        write_manifest(manifest_path, manifest)
+        issues = collect_issues(root)
+        assert ("DUPLICATE_TOOLING_ENTRY", "supported_modes:bytes") in issues
+        assert ("TOOLING_MISMATCH", "supported_modes") in issues
+        checks_run += 1
 
         manifest = build_self_test_manifest()
         manifest["notes"] = "broken"
