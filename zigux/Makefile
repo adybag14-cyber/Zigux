@@ -6,7 +6,7 @@ PHASE8_SCRIPT_ROOT := ../scripts/zigux
 ZIGUX_ROOT := ..
 PHONY += phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4
 
-.PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2 phase3-validate phase3 phase3-export-uapi-layout-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase6-validate phase6-base64-test phase6-base64-perf phase6-bsearch-test phase6-checksum-test phase6-checksum-perf phase6-hexdump-review phase6-hexdump-test phase6-hexdump-perf phase8-validate phase8-exec-cmd-test phase8-libbpf-segments-test phase8-file-path-handle-bridge-test phase8-perf-buffer-poll-test phase8-test phase8 phase10-validate phase10-test phase10 phase12-smoke phase12-test phase12
+.PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-validate phase2 phase3-validate phase3 phase3-export-uapi-layout-test phase4-validate phase4-artifact-diff-contract phase4-test phase4-runtime-atomic64-diff phase4-runtime-atomic64-diff-survey phase4-perf-baseline-survey phase4-bitmap-diff phase4-bitmap-diff-survey phase4-bitmap-live-helper-replay phase4-test-fsmount-survey phase4-kprobe-example-survey phase4 phase6-validate phase6-base64-test phase6-base64-perf phase6-bsearch-test phase6-checksum-test phase6-checksum-perf phase6-hexdump-review phase6-hexdump-test phase6-hexdump-perf phase8-validate phase8-exec-cmd-test phase8-libbpf-segments-test phase8-file-path-handle-bridge-test phase8-perf-buffer-poll-test phase8-test phase8 phase10-validate phase10-test phase10 phase12-smoke phase12-test phase12
 
 phase2-toolchain:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-zig-toolchain.py --policy-only
@@ -31,7 +31,14 @@ phase2-cross:
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py
 
-phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross
+phase2-genksyms:
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py
+	cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py --self-test
+	cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-genksyms-bridge-selftest-alignment.py
+
+phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py
 	$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py
 
