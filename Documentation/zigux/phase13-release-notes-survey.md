@@ -52,7 +52,7 @@ Current `master` also keeps the helper-local packet split visible from the relea
 
 ## Current Shared Release Handle
 
-The release-planning handle that is directly supportable from this run stays anchored to the materialized reminder surfaces:
+The release-planning handle that is directly supportable from this run stays anchored to the materialized reminder surfaces and their active shared companions:
 
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
@@ -60,7 +60,9 @@ The release-planning handle that is directly supportable from this run stays anc
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
+- `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
+- `scripts/zigux/check-phase13-tests-readme-alignment.py`
 
 Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps.
 
