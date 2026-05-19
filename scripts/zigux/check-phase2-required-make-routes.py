@@ -30,6 +30,7 @@ REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconf
 REQUIRED_PHASE2_PHONY_TARGETS = tuple(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
 DEFAULT_REQUIRED_MAKE_ROUTES = ("phase2-toolchain", "phase2-validate")
 DEFAULT_POLICY_ROUTE_MARKERS = tuple(f"`make -C zigux {route}`" for route in DEFAULT_REQUIRED_MAKE_ROUTES)
+DEFAULT_WORKFLOW_ROUTE_LINES = tuple(f"run: make -C zigux {route}" for route in DEFAULT_REQUIRED_MAKE_ROUTES)
 
 MAKEFILE_MARKERS = (
     "phase2-toolchain:",
@@ -81,6 +82,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
+    + len(DEFAULT_WORKFLOW_ROUTE_LINES)
+    + len(DEFAULT_WORKFLOW_ROUTE_LINES)
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
     + (len(MINIMAL_SURFACE_MARKERS) + len(CURRENT_PACKET_ROUTE_MARKERS)) * len(FULL_ROUTE_SURFACE_CODES)
@@ -147,6 +150,10 @@ def format_route_marker(route: str) -> str:
     return f"`make -C zigux {route}`"
 
 
+def format_workflow_route_line(route: str) -> str:
+    return f"run: make -C zigux {route}"
+
+
 def collect_surface_issues(
     root: Path,
     path: Path,
@@ -169,6 +176,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     required_routes = load_required_make_routes(resolve_path(root, TOOLCHAIN_POLICY))
     policy_route_markers = tuple(format_route_marker(route) for route in required_routes)
+    workflow_route_lines = tuple(format_workflow_route_line(route) for route in required_routes)
 
     workflow_text = read_text(resolve_path(root, WORKFLOW))
     for line in WORKFLOW_LINES:
@@ -177,6 +185,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_LINES", line))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_LINES", f"{line}:count={count}"))
+    for line in workflow_route_lines:
+        count = count_exact_lines(workflow_text, line)
+        if count == 0:
+            issues.append(("MISSING_WORKFLOW_ROUTE_LINES", line))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_ROUTE_LINES", f"{line}:count={count}"))
 
     makefile_text = read_text(resolve_path(root, MAKEFILE))
     if not has_required_phase2_phony_targets(makefile_text):
@@ -216,7 +230,7 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
+    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES + DEFAULT_WORKFLOW_ROUTE_LINES) + "\n")
     write_text(resolve_path(root, MAKEFILE), "\n".join((REQUIRED_PHASE2_PHONY_LINE,) + MAKEFILE_MARKERS) + "\n")
 
     full_marker_text = "\n".join(MINIMAL_SURFACE_MARKERS + CURRENT_PACKET_ROUTE_MARKERS)
@@ -303,6 +317,26 @@ def run_self_test() -> int:
             assert ("DUPLICATE_WORKFLOW_LINES", f"{line}:count=2") in collect_issues(root)
             checks_run += 1
 
+        for line in DEFAULT_WORKFLOW_ROUTE_LINES:
+            build_self_test_root(root)
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(
+                replace_exact_line(workflow_path.read_text(encoding="utf-8"), line),
+                encoding="utf-8",
+            )
+            assert ("MISSING_WORKFLOW_ROUTE_LINES", line) in collect_issues(root)
+            checks_run += 1
+
+        for line in DEFAULT_WORKFLOW_ROUTE_LINES:
+            build_self_test_root(root)
+            workflow_path = resolve_path(root, WORKFLOW)
+            workflow_path.write_text(
+                duplicate_exact_line(workflow_path.read_text(encoding="utf-8"), line),
+                encoding="utf-8",
+            )
+            assert ("DUPLICATE_WORKFLOW_ROUTE_LINES", f"{line}:count=2") in collect_issues(root)
+            checks_run += 1
+
         build_self_test_root(root)
         makefile_path = resolve_path(root, MAKEFILE)
         makefile_path.write_text(
@@ -380,7 +414,9 @@ def run_self_test() -> int:
         policy_payload = json.loads(policy_path.read_text(encoding="utf-8"))
         policy_payload["upgrade_policy"]["required_make_routes"].append("phase2-cross")
         policy_path.write_text(json.dumps(policy_payload, indent=2) + "\n", encoding="utf-8")
-        assert ("MISSING_TESTS_ROUTE_MARKERS", "`make -C zigux phase2-cross`") in collect_issues(root)
+        issues = collect_issues(root)
+        assert ("MISSING_TESTS_ROUTE_MARKERS", "`make -C zigux phase2-cross`") in issues
+        assert ("MISSING_WORKFLOW_ROUTE_LINES", "run: make -C zigux phase2-cross") in issues
         checks_run += 1
 
         build_self_test_root(root)
