@@ -71,6 +71,11 @@ WORKFLOW_SUBSTRING_MARKERS = (
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     'tar -xJf "$archive_path" -C .zig-toolchain',
     'python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"',
+    'curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"',
+    'while IFS= read -r mirror_url; do',
+    'if try_download "${mirror_url%/}/$ZIGUX_ZIG_FILENAME?source=github-zigux-bootstrap"; then',
+    'if try_download "$ZIGUX_ZIG_URL"; then',
+    "echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2",
     'echo "$extract_root" >> "$GITHUB_PATH"',
     '"$zig_path" version',
 )
@@ -285,8 +290,7 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     else:
         if isinstance(archive_sha256, DuplicateTrackingDict) and archive_sha256.duplicate_keys:
             issues.append(
-                ("INVALID_POLICY", f"duplicate_archive_sha256_keys={archive_sha256.duplicate_keys!r}")
-            )
+                ("INVALID_POLICY", f"duplicate_archive_sha256_keys={archive_sha256.duplicate_keys!r}"))
         if list(archive_sha256.keys()) != EXPECTED_POLICY["archive_target_scope"]:
             issues.append(("INVALID_POLICY", f"archive_sha256_keys={list(archive_sha256.keys())!r}"))
         for target, digest in archive_sha256.items():
