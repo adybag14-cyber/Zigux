@@ -43,9 +43,15 @@ test "phase 7 cmdline boundary stays rooted in the helper-local packet" {
     defer allocator.free(slice_note);
     try expectContains(slice_note, "no-standalone-cmdline-sample boundary");
     try expectContains(slice_note, "`samples/zigux/README.md`");
+    try expectContains(slice_note, "`zigux/tests/phase7_cmdline.zig`");
+
+    const helper_companion = try readRepoFile(allocator, "zigux/tests/phase7_cmdline.zig");
+    defer allocator.free(helper_companion);
+    try expectContains(helper_companion, "phase 7 cmdline companion replays bare-option and integer option boundaries");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_cmdline_manifest.json");
     defer allocator.free(manifest);
+    try expectContains(manifest, "\"zigux/tests/phase7_cmdline.zig\"");
     try expectContains(manifest, "\"samples/zigux/README.md\"");
 
     const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
