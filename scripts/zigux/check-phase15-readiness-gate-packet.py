@@ -141,6 +141,7 @@ def collect_failures(root: Path) -> list[str]:
         "phase15_makefile_present": (root / MAKEFILE_PATH).exists(),
         "phase15_validate_target_present": phase15_validate_target_present,
         "phase15_test_target_present": phase15_test_target_present,
+        "phase15_aggregate_target_present": phase15_aggregate_target_present,
         "shared_ci_phase15_present": shared_ci_phase15_present,
     }
     for key, value in observed.items():
@@ -281,6 +282,7 @@ def _sample_manifest() -> str:
                 "phase15_makefile_present": true,
                 "phase15_validate_target_present": false,
                 "phase15_test_target_present": false,
+                "phase15_aggregate_target_present": false,
                 "shared_ci_phase15_present": false,
                 "phase15_replay_green_on_current_master": false
             },
