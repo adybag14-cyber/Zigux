@@ -20,6 +20,7 @@ PHASE6_BUILD = Path("zigux/tests/phase6_build.zig")
 MAKEFILE = Path("zigux/Makefile")
 SHARED_SURFACE_CHECKER = Path("scripts/zigux/check-phase6-shared-surface.py")
 PRESENT_ENTRYPOINTS_CHECKER = Path("scripts/zigux/check-phase6-present-entrypoints.py")
+HEXDUMP_PACKET_CHECKER = Path("scripts/zigux/check-phase6-hexdump-packet.py")
 HEXDUMP_ROUTE_CHECKER = Path("scripts/zigux/check-phase6-hexdump-route.py")
 
 REQUIRED_FILES = [
@@ -30,6 +31,7 @@ REQUIRED_FILES = [
     MAKEFILE,
     SHARED_SURFACE_CHECKER,
     PRESENT_ENTRYPOINTS_CHECKER,
+    HEXDUMP_PACKET_CHECKER,
     HEXDUMP_ROUTE_CHECKER,
 ]
 
@@ -53,6 +55,7 @@ EXPECTED_SHARED_REPLAY_INVENTORY = [
     "make -C zigux phase6-checksum-test",
     "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-checksum-perf",
+    "python3 scripts/zigux/check-phase6-hexdump-packet.py",
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-review",
@@ -225,6 +228,7 @@ def validate(root: Path) -> None:
 
     run_checker(root, SHARED_SURFACE_CHECKER, "--repo-root")
     run_checker(root, PRESENT_ENTRYPOINTS_CHECKER, "--repo-root")
+    run_checker(root, HEXDUMP_PACKET_CHECKER, "--repo-root")
     run_checker(root, HEXDUMP_ROUTE_CHECKER, "--root")
 
 
@@ -288,6 +292,7 @@ def scaffold_repo(root: Path) -> None:
     write(root / MAKEFILE, "\n".join(REQUIRED_MAKEFILE_SNIPPETS) + "\n")
     scaffold_mock_checker(root / SHARED_SURFACE_CHECKER)
     scaffold_mock_checker(root / PRESENT_ENTRYPOINTS_CHECKER)
+    scaffold_mock_checker(root / HEXDUMP_PACKET_CHECKER)
     scaffold_mock_checker(root / HEXDUMP_ROUTE_CHECKER)
 
 
