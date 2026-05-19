@@ -184,7 +184,19 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     const samples_readme = try readRepoFile(allocator, "samples/zigux/README.md");
     defer allocator.free(samples_readme);
     try expectContains(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:");
+    try expectContainsCount(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:", 1);
     try expectContains(samples_readme, "* `*string*`");
+    try expectContainsCount(samples_readme, "* `*string*`", 1);
+    try expectContains(samples_readme, "* `*cmdline*`");
+    try expectContainsCount(samples_readme, "* `*cmdline*`", 1);
+    try expectContains(samples_readme, "* `*argv*`");
+    try expectContainsCount(samples_readme, "* `*argv*`", 1);
+    try expectContains(samples_readme, "* `*rbtree*`");
+    try expectContainsCount(samples_readme, "* `*rbtree*`", 1);
+    try expectContains(samples_readme, "* `*kasprintf*`");
+    try expectContainsCount(samples_readme, "* `*kasprintf*`", 1);
+    try expectContains(samples_readme, "* `*strarray*`");
+    try expectContainsCount(samples_readme, "* `*strarray*`", 1);
 
     try expectContains(slice_note, "do not count `scripts/zigux/validate-phase7.py`");
     try expectContains(slice_note, "do not count `zigux/tests/phase7_build.zig`");
