@@ -46,7 +46,7 @@ def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess[str]:
 def resolve_tool(candidate: str, missing_message: str) -> str:
     resolved = shutil.which(candidate)
     if resolved:
-        return candidate
+        return resolved
     raise SystemExit(missing_message)
 
 
@@ -193,9 +193,9 @@ def run_self_test() -> int:
 
             os.environ["CC"] = str(fake_cc)
             os.environ["ZIG"] = str(fake_zig)
-            if find_compiler(None) != str(fake_cc):
+            if Path(find_compiler(None)).resolve() != fake_cc.resolve():
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
-            if find_zig(None, tool_tmp_dir / "repo") != str(fake_zig):
+            if Path(find_zig(None, tool_tmp_dir / "repo")).resolve() != fake_zig.resolve():
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
 
             expect_system_exit_contains(
@@ -221,9 +221,9 @@ def run_self_test() -> int:
             os.environ.pop("CC", None)
             os.environ.pop("ZIG", None)
             os.environ["PATH"] = ""
-            if find_compiler(str(fake_cc)) != str(fake_cc):
+            if Path(find_compiler(str(fake_cc))).resolve() != fake_cc.resolve():
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
-            if find_zig(str(fake_zig), tool_tmp_dir / "repo") != str(fake_zig):
+            if Path(find_zig(str(fake_zig), tool_tmp_dir / "repo")).resolve() != fake_zig.resolve():
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
             if Path(find_zig(None, tool_tmp_dir / "repo")).resolve() != fake_fallback.resolve():
                 raise SystemExit("GENKSYMS_CRC_SELF_TEST=fail")
@@ -310,7 +310,7 @@ def run_self_test() -> int:
         )
 
     print("GENKSYMS_CRC_SELF_TEST=pass")
-    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=23")
+    print("GENKSYMS_CRC_SELF_TEST_CASE_COUNT=25")
     return 0
 
 
