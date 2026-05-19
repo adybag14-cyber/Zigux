@@ -45,6 +45,8 @@ It is a release-planning artifact, not a closure claim and not a new replay rout
 ## Smoke Set
 Current repo-reality override: `zigux/Makefile` now exposes `phase12-smoke`, `phase12-test`, and `phase12` on current `master`, while `phase12-validate` remains reminder-only vocabulary until same-lane work rematerializes that wrapper. The directly readable rerun surfaces in the shared packet are `python3 scripts/zigux/check-build-only-phase12-surface.py --self-test`, `python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test`, `scripts/zigux/validate-phase12.py`, `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, and `zig build test --build-file zigux/tests/phase12_build.zig --summary all`.
 
+`.github/workflows/zigux-bootstrap.yml` still runs `zig build phase12-virtio-net-throughput-parity --build-file zigux/tests/build.zig` after the shared `phase12-smoke` and `phase12-test` reruns, but that workflow-only throughput-parity anchor remains adjacent bounded `virtio_net` evidence rather than shared PMO route proof.
+
 1. `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`
 2. shipped wrapper evidence on current `master`: `make -C zigux phase12-smoke`
 3. `zig build test --build-file zigux/tests/phase12_build.zig --summary all`
