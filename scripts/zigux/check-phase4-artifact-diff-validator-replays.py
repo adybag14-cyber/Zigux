@@ -19,6 +19,7 @@ EXPECTED_VALIDATOR_REPLAY_MARKERS = [
 
 EXPECTED_HISTORICAL_GAP_MARKERS = [
     "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
+    "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md` now aligns with `Documentation/zigux/README.md` and `Documentation/zigux/review-checklist.md` on the recovered note pair, the recovered gate-evidence and remaining-gap checkers, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the scripts-root reminder still needs the same narrower repo-reality warning refresh and the validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff.",
     "`Documentation/zigux/artifact-diff.md`",
     "`scripts/zigux/check-artifact-diff-contract.py`",
     "`scripts/zigux/validate-phase4.py`",
