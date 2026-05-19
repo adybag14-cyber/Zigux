@@ -2,6 +2,7 @@ pub const ModuleDescriptor = struct {
     name: []const u8,
     anchor: []const u8,
     provides_dmam_alloc_coherent_planning: bool,
+    provides_dmam_free_coherent_planning: bool,
     touches_live_dma: bool,
     touches_live_scatterlist: bool,
 };
@@ -83,6 +84,7 @@ pub const DevresHelperLab = struct {
             .name = "devres_helper_lab",
             .anchor = "lib/devres.c",
             .provides_dmam_alloc_coherent_planning = true,
+            .provides_dmam_free_coherent_planning = true,
             .touches_live_dma = false,
             .touches_live_scatterlist = false,
         };
