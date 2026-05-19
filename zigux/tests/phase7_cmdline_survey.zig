@@ -21,6 +21,7 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectContains(slice_note, "PHASE7_SLICE=cmdline-runtime-leaf");
     try expectContains(slice_note, "PHASE7_LANE_KEY=helper-local");
     try expectContains(slice_note, "`lib/cmdline.zig`");
+    try expectContains(slice_note, "`zigux/tests/phase7_cmdline.zig`");
     try expectContains(slice_note, "`samples/zigux/README.md`");
     try expectContains(slice_note, "`parseOptionStr()` and `parse_option_str`");
     try expectContains(slice_note, "`getOption()` and `get_option`");
@@ -28,7 +29,8 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectContains(slice_note, "`nextArg()` and `next_arg`");
     try expectContains(slice_note, "`memparse()`");
     try expectContains(slice_note, "Current `master` still ships no standalone `samples/zigux/*cmdline*` reference sample");
-    try expectContains(slice_note, "Keep the dedicated cmdline survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet");
+    try expectContains(slice_note, "dedicated helper-local replay coverage rooted at `zigux/tests/phase7_cmdline.zig`");
+    try expectContains(slice_note, "Keep the dedicated cmdline helper replay, survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet");
     try expectContains(slice_note, "Route adjacent `argv_split`, `string_helpers`, and `rbtree` follow-through to their own Phase 7 helper-local packets.");
     try expectContains(slice_note, "do not count `Documentation/zigux/phase7-rbtree-slice.md`");
     try expectContains(slice_note, "do not count `lib/rbtree.zig`");
@@ -44,6 +46,7 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectContains(manifest, "\"anchor\": \"lib/cmdline.c\"");
     try expectContains(manifest, "\"current_master_state\": \"helper_local_packet\"");
     try expectContains(manifest, "\"lib/cmdline.zig\"");
+    try expectContains(manifest, "\"zigux/tests/phase7_cmdline.zig\"");
     try expectContains(manifest, "\"zigux/tests/phase7_cmdline_sample_boundary.zig\"");
     try expectContains(manifest, "\"samples/zigux/README.md\"");
     try expectContains(manifest, "\"parseOptionStr\"");
@@ -51,7 +54,7 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectContains(manifest, "\"getOptions\"");
     try expectContains(manifest, "\"nextArg\"");
     try expectContains(manifest, "\"memparse\"");
-    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated cmdline survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet");
+    try expectContains(manifest, "\"next_bounded_step\": \"Keep the dedicated cmdline helper replay, survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet");
     try expectNotContains(manifest, "\"next_bounded_step\": \"Build the matching helper-local review packet for `lib/argv_split.zig` while keeping `rbtree` parked");
     try expectNotContains(manifest, "\"stringEscapeMem\"");
     try expectNotContains(manifest, "\"devm_kasprintf_strarray\"");
@@ -71,6 +74,13 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectContains(helper, "test \"memparse handles decimal hexadecimal octal and suffixes\"");
     try expectNotContains(helper, "pub fn argvSplit");
     try expectNotContains(helper, "pub fn kstrdupQuotable");
+
+    const helper_companion = try readRepoFile(allocator, "zigux/tests/phase7_cmdline.zig");
+    defer allocator.free(helper_companion);
+    try expectContains(helper_companion, "const cmdline = @import(\"cmdline\");");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays bare-option and integer option boundaries");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays nextArg borrowed-slice boundaries");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays memparse suffix and unchanged-rest behavior");
 
     const sample_boundary = try readRepoFile(allocator, "zigux/tests/phase7_cmdline_sample_boundary.zig");
     defer allocator.free(sample_boundary);
