@@ -17,7 +17,8 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 ## Current Repo-Reality Gap
 - The roadmap-backed conf bridge scaffold is still landed. This lane does not show a missing bridge, checker, or fixture family that needs to be recreated from scratch.
 - The earlier bare-`randconfig` drift is no longer live on current `master`: `scripts/zigux/kconfig/conf_bridge.zig` now keeps the sentinel path narrowed to `allnoconfig`, `allyesconfig`, and `alldefconfig`, while `cases.json` and `conf_manifest.json` continue to model `randconfig` only through the explicit override packet.
-- The remaining same-family follow-through is narrower and governance-only: keep any future reopen on the separate checker-and-manifest helper-anchor parity packet rather than treating the bridge as if it still had a current behavior-versus-fixture mismatch.
+- The remaining same-family follow-through is narrower and bridge-only: current `master` still keeps the live helper-anchor surface in `scripts/zigux/kconfig/conf_bridge.zig`, but `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json` still does not inventory that helper-local packet and the dedicated checker still does not fail closed on manifest-side bridge-anchor parity.
+- The next safe bridge-local move is to keep behavior and expected-output surfaces parked, then land only the separate checker-and-manifest helper-anchor parity repair instead of reopening the bridge as if it still had a current behavior-versus-fixture mismatch.
 
 ## Survey Result
 - `current master` does not have a remaining roadmap gap at the level of conf bridge scaffolding.
@@ -25,6 +26,6 @@ This note records the current `master` readback for the roadmap-backed `scripts/
 - The honest survey-level result is that the earlier `randconfig` drift has already been closed, so the remaining same-family follow-through is the separate helper-anchor accounting packet rather than a fresh scaffold or expected-output repair.
 
 ## Next Bounded Step
-- Leave this survey parked unless a later reread shows another bridge-local scaffold, config, artifact, or expected-output governance gap on current `master`.
-- If the family reopens only on helper-anchor accounting, keep that follow-through on the separate checker-and-manifest parity lane rather than in this survey file.
-- Do not widen this note into broader Phase 2 closure maintenance unless the bridge packet itself drifts again.
+- Leave this survey parked after recording the current bridge-only truthfulness gap.
+- If the family reopens, keep the next bridge-local step to `scripts/zigux/check-kconfig-bridge.py` plus `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json` so the manifest explicitly carries the live `conf_bridge.zig` helper-anchor packet and the checker exact-checks it.
+- Do not widen this note into broader Phase 2 closure maintenance, fixture-output replay, or confdata work unless the bridge-only reminder surfaces drift again.
