@@ -719,7 +719,7 @@ def main() -> int:
 
     for case in cases:
         depfile = FIXTURE_DIR / case["depfile"]
-        expected_stdout = FIXTURE_DIR / case.get("expected_stdout", case["expected"])
+        expected_stdout = FIXTURE_DIR / case["expected"]
         expected_stderr_name = case.get("expected_stderr")
         expected_stderr = FIXTURE_DIR / expected_stderr_name if expected_stderr_name else None
         expected_exit_code = int(case.get("expected_exit_code", 0))
