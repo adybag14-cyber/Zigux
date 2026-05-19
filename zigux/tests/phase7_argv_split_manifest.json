@@ -1,7 +1,7 @@
 {
   "lane_key": "P7-L09",
   "phase": "Phase 7",
-  "verified_on_utc": "2026-05-19T11:46:38Z",
+  "verified_on_utc": "2026-05-19T12:02:05Z",
   "anchor": "lib/argv_split.c",
   "current_master_state": "helper_slice_test_fixture_survey_manifest_anchor",
   "review_surfaces": [
@@ -30,7 +30,7 @@
     "blank-input results reuse exported empty storage and argv sentinel views without widening beyond the returned packet",
     "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL",
     "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet",
-    "fixture vectors keep copied-storage, blank-input, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership",
+    "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership",
     "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders"
   ],
   "next_bounded_step": "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof while the dedicated replay stays part of the current helper-local packet."
