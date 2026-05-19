@@ -8,8 +8,8 @@ This note records the bounded Phase 15 handoff surface for the existing governan
 - `PHASE15_LANE_KEY=P15-L08`
 - `PHASE15_SLICE=existing_governance_packet_handoff_inventory`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
-- surveyed against dated current-master readback marker `current-master-readback-2026-05-18`
-- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-18 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
+- surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
+- role: keep next-phase prep explicit for the Phase 15 surfaces that already exist on current `master` after the current 2026-05-19 owner-packet reread, without implying that the broader docs-root, scripts-root, tests-root, or validator-first reminder packet is fully aligned
 
 ## Why this note exists
 
@@ -21,7 +21,7 @@ The older handoff target that treated the docs root as the next automatic Phase 
 
 The handoff continuity packet itself now has one dedicated machine-readable companion: the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` is directly materialized on current `master`, while no dedicated handoff-specific Zig replay is directly materialized on current `master`. Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` as the handoff-specific source of truth until that replay lands.
 
-This refresh closes that dated-readback drift. Reviewers can now read this note against the current 2026-05-18 governance packet instead of reconciling it against an older handoff note by hand.
+This refresh closes that dated-readback drift. Reviewers can now read this note against the current 2026-05-19 governance packet instead of reconciling it against an older handoff note by hand.
 
 ## Current handed-off packet on current master
 
