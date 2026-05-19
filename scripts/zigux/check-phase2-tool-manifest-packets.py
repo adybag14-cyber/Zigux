@@ -24,6 +24,7 @@ MAKEFILE_PATH = "zigux/Makefile"
 WORKFLOW_SURFACE_PATH = ".github/workflows/zigux-bootstrap.yml"
 PIN_SCOPE_CHECKER_PATH = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 CROSS_CHECKER_PATH = "scripts/zigux/check-phase2-cross.py"
+GENKSYMS_CHECKER_PATH = "scripts/zigux/check-genksyms-bridge.py"
 CROSS_FIXTURE_PATH = "zigux/tests/fixtures/phase2_cross_targets.json"
 INSTALLER_PATH = "scripts/zigux/install-zig.py"
 
@@ -33,6 +34,7 @@ CLOSURE_DOC_MARKERS = (
     "branch-local manifest packet",
     "`scripts/zigux/check-phase2-toolchain-pin-scope.py`",
     "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/check-phase2-cross.py`",
+    "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/check-genksyms-bridge.py`",
     "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=zigux/tests/fixtures/phase2_cross_targets.json`",
     "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/install-zig.py`",
 )
@@ -57,6 +59,7 @@ PHASE2_CLOSURE_VALIDATOR_MARKERS = (
     '"scripts/zigux/check-phase2-toolchain-pin-scope.py"',
     '"master_present_branch_missing_files"',
     '"scripts/zigux/check-phase2-cross.py"',
+    '"scripts/zigux/check-genksyms-bridge.py"',
     '"zigux/tests/fixtures/phase2_cross_targets.json"',
     '"scripts/zigux/install-zig.py"',
 )
@@ -82,12 +85,17 @@ EXPECTED_PRESENT_FILES = [
 
 EXPECTED_MISSING_FILES = [
     CROSS_CHECKER_PATH,
-    "scripts/zigux/check-genksyms-bridge.py",
+    GENKSYMS_CHECKER_PATH,
     CROSS_FIXTURE_PATH,
     INSTALLER_PATH,
 ]
 
-EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [CROSS_CHECKER_PATH, CROSS_FIXTURE_PATH, INSTALLER_PATH]
+EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [
+    CROSS_CHECKER_PATH,
+    GENKSYMS_CHECKER_PATH,
+    CROSS_FIXTURE_PATH,
+    INSTALLER_PATH,
+]
 
 EXPECTED_SELF_TEST_CASE_COUNT = 36
 
@@ -224,6 +232,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH))
     if CROSS_CHECKER_PATH not in missing_files:
         issues.append(("CROSS_CHECKER_NOT_MARKED_BRANCH_MISSING", CROSS_CHECKER_PATH))
+    if GENKSYMS_CHECKER_PATH not in master_present_branch_missing_files:
+        issues.append(("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH))
+    if GENKSYMS_CHECKER_PATH not in missing_files:
+        issues.append(("GENKSYMS_CHECKER_NOT_MARKED_BRANCH_MISSING", GENKSYMS_CHECKER_PATH))
     if CROSS_FIXTURE_PATH not in master_present_branch_missing_files:
         issues.append(("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH))
     if CROSS_FIXTURE_PATH not in missing_files:
@@ -383,6 +395,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
         assert ("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH) in issues
+        assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
         assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
         assert ("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH) in issues
         checks_run += 1
@@ -394,6 +407,7 @@ def run_self_test() -> int:
         assert ("MASTER_PRESENT_PATH_MARKED_PRESENT", PIN_SCOPE_CHECKER_PATH) in issues
         assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH) in issues
         assert ("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH) in issues
+        assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
         assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
         assert ("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH) in issues
         checks_run += 1
@@ -450,6 +464,7 @@ def run_self_test() -> int:
         )
         issues = collect_issues(root)
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
+        assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
         assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
         checks_run += 1
 
@@ -457,7 +472,7 @@ def run_self_test() -> int:
         write_text(
             root,
             MANIFEST,
-            manifest_json(missing_files=[CROSS_CHECKER_PATH, "scripts/zigux/check-genksyms-bridge.py", INSTALLER_PATH]),
+            manifest_json(missing_files=[CROSS_CHECKER_PATH, GENKSYMS_CHECKER_PATH, INSTALLER_PATH]),
         )
         issues = collect_issues(root)
         assert ("INVALID_MANIFEST_FIELD", "missing_files") in issues
@@ -487,6 +502,7 @@ def run_self_test() -> int:
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
         assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", "scripts/zigux/extra-missing.py") in issues
         assert ("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH) in issues
+        assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
         assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
         assert ("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH) in issues
         checks_run += 1
