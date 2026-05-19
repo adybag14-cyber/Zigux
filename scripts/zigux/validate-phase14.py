@@ -108,6 +108,7 @@ REQUIRED_MARKERS = {
     TESTS_README_PATH: [
         "Keep the current bounded Phase 14 reminder packet explicit",
         "keep the blob-readable `scripts/zigux/validate-phase14.py` plus the directly readable workqueue reviewability shard explicit",
+        "`scripts/zigux/check-phase14-release-boundary-exact-counts.py` explicit as the directly readable release-boundary truthfulness guard",
         "Current `master` does materialize `zigux/Makefile`, but its live body currently exposes",
         "Documentation/zigux/phase14-release-boundary-survey.md",
     ],
@@ -121,7 +122,7 @@ REQUIRED_MARKERS = {
     ],
     WORKQUEUE_BRIDGE_PATH: [
         'return "phase14-workqueue-scheduler-visible-worker-state-refinement";',
-        'return .{',
+        "return .{",
         '.posture = "blocked_maintenance",',
         "zigux/tests/phase14_workqueue_reviewability.zig",
     ],
@@ -146,12 +147,15 @@ REQUIRED_MARKERS = {
 }
 
 FORBIDDEN_MARKERS = {
+    TESTS_README_PATH: [
+        "`scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`,"
+    ],
     MAKEFILE_PATH: [
         "phase14-validate:",
         "phase14-smoke:",
         "phase14-test:",
         "phase14: phase14-validate phase14-smoke phase14-test",
-    ]
+    ],
 }
 
 
@@ -258,7 +262,7 @@ def run_self_test() -> int:
             (PRODUCTIZATION_GAP_PATH, REQUIRED_MARKERS[PRODUCTIZATION_GAP_PATH][0]),
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
             (ROLLBACK_CHECKER_PATH, REQUIRED_MARKERS[ROLLBACK_CHECKER_PATH][0]),
-            (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][1]),
+            (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][2]),
             (WORKQUEUE_MANIFEST_PATH, REQUIRED_MARKERS[WORKQUEUE_MANIFEST_PATH][1]),
             (WORKQUEUE_REVIEWABILITY_PATH, REQUIRED_MARKERS[WORKQUEUE_REVIEWABILITY_PATH][0]),
         ]
@@ -267,15 +271,22 @@ def run_self_test() -> int:
             remove_marker(base / rel_path, marker)
             expect_failure(base, f"missing_marker:{rel_path}:{marker}")
 
-        for marker in FORBIDDEN_MARKERS[MAKEFILE_PATH]:
+        forbidden_cases = [
+            (TESTS_README_PATH, FORBIDDEN_MARKERS[TESTS_README_PATH][0]),
+            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][0]),
+            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][1]),
+            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][2]),
+            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][3]),
+        ]
+        for rel_path, marker in forbidden_cases:
             write_fixture_tree(base)
             write_text(
-                base / MAKEFILE_PATH,
-                (base / MAKEFILE_PATH).read_text(encoding="utf-8") + f"{marker}\n",
+                base / rel_path,
+                (base / rel_path).read_text(encoding="utf-8") + f"{marker}\n",
             )
-            expect_failure(base, f"forbidden_marker:{MAKEFILE_PATH}:{marker}")
+            expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
 
-        case_count = len(missing_file_cases) + len(marker_cases) + len(FORBIDDEN_MARKERS[MAKEFILE_PATH])
+        case_count = len(missing_file_cases) + len(marker_cases) + len(forbidden_cases)
         print("PHASE14_VALIDATOR_SELF_TEST=pass")
         print(f"PHASE14_VALIDATOR_SELF_TEST_CASE_COUNT={case_count}")
         return 0
