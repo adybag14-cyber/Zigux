@@ -135,6 +135,21 @@ jobs:
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
 
+      - name: Self-test current Phase 2 fixdep gate checker
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
+
+      - name: Check current Phase 2 fixdep gate packet
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py
+
+      - name: Self-test current fixdep parity checker
+        run: python3 scripts/zigux/check-fixdep-diff.py --self-test
+
+      - name: Check current fixdep parity packet
+        run: python3 scripts/zigux/check-fixdep-diff.py
+
+      - name: Run current Phase 2 fixdep unit tests
+        run: zig test scripts/zigux/fixdep.zig
+
       - name: Self-test current Lane 01 bootstrap charter checker
         run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test
       - name: Check current Lane 01 bootstrap charter packet
