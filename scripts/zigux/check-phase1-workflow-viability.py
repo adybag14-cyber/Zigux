@@ -32,6 +32,12 @@ PHASE1_PRE_BUFFER_NOTE_LINE = (
 PHASE8_BUFFER_NOTE_LINE = (
     "- `PHASE1_WORKFLOW_PHASE8_BUFFER=Validate Phase 8 tooling routes,Run focused Phase 8 exec-cmd tests,Run Phase 8 tooling tests`"
 )
+PHASE4_ARTIFACT_DIFF_TAIL_NOTE_LINE = (
+    "- `PHASE1_WORKFLOW_PHASE4_ARTIFACT_DIFF_TAIL=Self-test current Phase 4 artifact-diff helper,Self-test current Phase 4 artifact-diff determinism checker,Self-test current Phase 4 artifact-diff validator replay checker,Check current Phase 4 artifact-diff validator replay packet`"
+)
+FORBIDDEN_HISTORICAL_SNIPPETS_NOTE_LINE = (
+    "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/validate-phase1-closure.py,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench,python3 scripts/zigux/check-phase1-bench.py`"
+)
 PHASE12_TAIL_NOTE_LINE = (
     "- `PHASE1_WORKFLOW_PHASE10_PHASE12_TAIL=Self-test current Phase 10 bootstrap route checker,Check current Phase 10 bootstrap route,Validate Phase 10 checker-backed review packet,Run Phase 10 helper tests,Self-test current Phase 11 HVC cleanup current-head checker,Check current Phase 11 HVC cleanup current-head packet,Self-test current Phase 12 tail guard,Check current Phase 12 tail guard,Run current Phase 12 throughput-parity anchor`"
 )
@@ -208,14 +214,14 @@ REQUIRED_NOTE_LINES = (
     "- `PHASE1_WORKFLOW_INSERTION_POINT=after current Phase 1 shared reminder packet and before current Phase 3 interop packet`",
     "- `PHASE1_WORKFLOW_REQUIRED_ADJACENCY=Check current Phase 1 shared reminder packet,Self-test current Phase 1 workflow viability checker,Check current Phase 1 workflow viability,Self-test current Phase 3 interop packet`",
     "- `PHASE1_WORKFLOW_PHASE3_BUFFER=Self-test current Phase 3 interop packet,Check current Phase 3 interop packet,Self-test current Phase 3 low-level wrapper survey validator,Check current Phase 3 low-level wrapper survey packet,Run current Phase 3 low-level wrapper replay,Run current Phase 3 shared tests-root packet,Run current Phase 1 shared tests-root smoke`",
-    "- `PHASE1_WORKFLOW_PHASE4_ARTIFACT_DIFF_TAIL=Self-test current Phase 4 artifact-diff helper,Self-test current Phase 4 artifact-diff determinism checker,Self-test current Phase 4 artifact-diff validator replay checker,Check current Phase 4 artifact-diff validator replay packet`",
+    PHASE4_ARTIFACT_DIFF_TAIL_NOTE_LINE,
     PHASE8_BUFFER_NOTE_LINE,
     "- `PHASE1_WORKFLOW_PHASE9_BUFFER=Self-test current Phase 9 review-checklist boundaries checker,Check current Phase 9 review-checklist boundaries packet,Self-test current Phase 9 trace-events runtime packet checker,Check current Phase 9 trace-events runtime packet,Run current Phase 9 trace-events runtime sample tests,Run current Phase 9 unregistered gate companion tests,Run current Phase 9 exit rollback guard companion tests,Run current Phase 9 registration reentry companion tests`",
     "- `PHASE1_WORKFLOW_PHASE7_HANDOFF=Self-test current Phase 7 shared-control gap checker,Check current Phase 7 shared-control gap packet`",
     PHASE12_TAIL_NOTE_LINE,
     PHASE12_TAIL_GUARD_NOTE_LINE,
     PHASE12_TAIL_ADJACENCY_NOTE_LINE,
-    "- `PHASE1_WORKFLOW_FORBIDDEN_HISTORICAL_SNIPPETS=scripts/zigux/validate-phase1.py,scripts/zigux/validate-phase1-closure.py,make -C zigux phase1-validate,make -C zigux phase1-test,make -C zigux phase1-bench,python3 scripts/zigux/check-phase1-bench.py`",
+    FORBIDDEN_HISTORICAL_SNIPPETS_NOTE_LINE,
 )
 
 FORBIDDEN_WORKFLOW_SNIPPETS = (
@@ -535,6 +541,42 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "note:expected=1:actual=2" not in failures:
             print("self-test:duplicate_phase8_note_marker_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, rewrite_once(note_text, PHASE4_ARTIFACT_DIFF_TAIL_NOTE_LINE + "\n"))
+        failures = collect_failures(root)
+        if "note:expected=1:actual=0" not in failures:
+            print("self-test:missing_phase4_artifact_diff_tail_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + PHASE4_ARTIFACT_DIFF_TAIL_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase4_artifact_diff_tail_note_marker_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, rewrite_once(note_text, FORBIDDEN_HISTORICAL_SNIPPETS_NOTE_LINE + "\n"))
+        failures = collect_failures(root)
+        if "note:expected=1:actual=0" not in failures:
+            print("self-test:missing_forbidden_historical_snippets_note_marker")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        note_text = load_text(root, NOTE_REL)
+        write_file(root, NOTE_REL, note_text + FORBIDDEN_HISTORICAL_SNIPPETS_NOTE_LINE + "\n")
+        failures = collect_failures(root)
+        if "note:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_forbidden_historical_snippets_note_marker_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
