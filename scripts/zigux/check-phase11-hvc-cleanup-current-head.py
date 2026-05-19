@@ -395,6 +395,17 @@ def build_fixture(root: Path) -> None:
         ),
     )
     write(
+        root / HV_OPS_PROOF_PATH,
+        "\n".join(
+            [
+                'test "phase11 hvc hv_ops layout proof keeps callback table explicit" {',
+                'try layout_assert.expectOffset(HvOps, "notifier_hangup", 40);',
+                'try expectContains(hvc_header, "(*dtr_rts)");',
+                "",
+            ]
+        ),
+    )
+    write(
         root / HV_OPS_BUILD_PATH,
         "\n".join(
             [
@@ -531,7 +542,7 @@ def run_self_test() -> int:
         shutil.copytree(fixture, missing_verify_targeted_unregister, dirs_exist_ok=True)
         write(
             missing_verify_targeted_unregister / VERIFY_PATH,
-            readText(missing_verify_targeted_unregister / VERIFY_PATH).replace(
+            read_text(missing_verify_targeted_unregister / VERIFY_PATH).replace(
                 "`NotifierUnregisterTimingState.targeted_unregister_request` keeps targeted unregister requests reviewable without claiming that notifier teardown has become live runtime behavior.",
                 "",
             ),
