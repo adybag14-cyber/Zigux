@@ -27,11 +27,12 @@ Fresh Phase 5 readback in this run also confirmed that the shared reminder packe
   * `Documentation/zigux/phase5-sample-lane-sequencing.md`
   * `Documentation/zigux/phase5-sample-review-guide.md`
   * `Documentation/zigux/review-checklist.md`
+  * `scripts/zigux/check-phase5-review-guide-surface.py`
   * `samples/zigux/README.md`
   * `scripts/zigux/README.md`
   * `zigux/tests/README.md`
 
-Those aligned shared surfaces keep the restored direct packet explicit and keep the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence instead of treating it as direct authenticated proof.
+Those aligned shared surfaces keep the restored direct packet explicit, keep the dedicated review-guide surface checker visible as the shipped shared guard for that reminder family, and keep the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence instead of treating it as direct authenticated proof.
 ## Landed sample and exact checks
   * `KretprobeExampleSample.descriptor()` names `samples/kprobes/kretprobe_example.c` and keeps `requires_runtime_substrate = false`
   * the sample defaults `symbol_name` to `kernel_clone`
@@ -45,7 +46,7 @@ When a contributor updates `samples/zigux/kretprobe_example.zig` or one of its d
   * does `KretprobeExampleSample.descriptor()` still name `samples/kprobes/kretprobe_example.c` and keep `requires_runtime_substrate = false` so the packet stays in the non-runtime Phase 5 lane?
   * do the sample and focused test still keep the default `kernel_clone` path explicit together with pre-init `retargetSymbol("do_sys_openat2")`, empty-symbol rejection, skipped kernel-thread handling, and post-init retarget rejection?
   * do `runAnchorReplay()` plus the focused handler-boundary and teardown tests still describe the same bounded packet across the sample, focused test, manifest-backed contract, and survey gate, including `private_data_size_bytes = 8`, `return_value = 42`, `duration_ns = 75`, `nmissed = 1`, `maxactive = 20`, and recovered duration `60` with post-exit rejection still explicit?
-  * if a shared reminder surface mentions the restored kretprobe packet, does it keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` explicit while also keeping the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence rather than direct authenticated proof?
+  * if a shared reminder surface mentions the restored kretprobe packet, does it keep `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig` explicit while also keeping the shipped `scripts/zigux/check-phase5-review-guide-surface.py` guard and the returned shared `zigux/tests/phase5_build.zig` route visible as current public-tree-backed companion evidence rather than direct authenticated proof?
   * do the docs still keep the separate Phase 9 `runtime_kretprobe` family visible without widening this note into `register_kretprobe()` parity, `unregister_kretprobe()` parity, `pt_regs` parity, or runtime module wiring claims?
 ## Boundary reminders
 
@@ -59,5 +60,5 @@ This note does not claim `register_kretprobe()` parity, `unregister_kretprobe()`
 
 Leave the restored direct kretprobe packet parked unless a future reread finds a new one-file same-lane shared reminder drift:
 
-  * if a shared README, guide, or checklist later stops naming the restored direct packet or misstates the returned shared `phase5_build.zig` route as either missing or direct authenticated proof, repair only that one file
+  * if a shared README, guide, checklist, or dedicated guide-surface checker later stops naming the restored direct packet or misstates the returned shared `phase5_build.zig` route as either missing or direct authenticated proof, repair only that one file
   * otherwise leave the restored direct kretprobe packet parked while the shared reminder surfaces stay aligned
