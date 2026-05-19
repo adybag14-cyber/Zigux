@@ -21,6 +21,12 @@ REQUIRED_MARKERS = {
         "The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`.",
         "- adjacent notifier support: keep `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h` truthful as support evidence without promoting them into a fifth helper lane",
     ],
+    "Documentation/zigux/phase13-release-notes-survey.md": [
+        "The release-planning handle that is directly supportable from this run stays anchored to the materialized reminder surfaces:",
+        "`Documentation/zigux/phase13-release-coordination-matrix.md`",
+        "`scripts/zigux/check-phase13-shared-summary-surfaces.py`",
+        "Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps.",
+    ],
     "Documentation/zigux/phase13-shared-helper-lane-sequencing.md": [
         "shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "do not treat `zigux/Makefile`, `make -C zigux phase13-validate`, or `make -C zigux phase13` as shipped evidence",
@@ -30,6 +36,7 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-shared-summary-guard-gap.md": [
         "This note records the closure of the old missing-checker gap.",
         "The shipped guard is `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`.",
+        "- `Documentation/zigux/phase13-release-notes-survey.md`",
     ],
     "Documentation/zigux/phase13-notifier-summary-gap.md": [
         "Broad Phase 13 reminder work should therefore keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until a future reread proves they returned.",
@@ -246,7 +253,7 @@ def run_self_test() -> int:
         )
         issues = collect_issues(tempdir)
         assert (
-            "missing_marker:Documentation/zigux/phase13-notifier-summary-gap.md:Broad Phase 13 reminder work should therefore keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chain_view.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until a future reread proves they returned."
+            "missing_marker:Documentation/zigux/phase13-notifier-summary-gap.md:Broad Phase 13 reminder work should therefore keep the checker-backed adjacent packet explicit, keep `zigux/Makefile` distinct from the still-missing route names, and keep `zigux/helpers/notifier_chainView.zig` plus `scripts/zigux/check-phase13-notifier-priority-signal.py` recorded as repo-reality gaps until a future reread proves they returned."
             in issues
         )
         populate_repo(tempdir)
@@ -337,6 +344,39 @@ def run_self_test() -> int:
         issues = collect_issues(tempdir)
         assert (
             "missing_marker:Documentation/zigux/phase13-release-coordination-matrix.md:The active shared packet stays contributor-facing and review-first. Helper-local proof remains owned by the `libfs`, `devres`, and `landlock` packets, while notifier evidence stays adjacent release-surface support through `Documentation/zigux/phase13-notifier-list-survey.md`, `zigux/bindings/notifier_abi.zig`, `include/zigux/abi.h`, `zigux/helpers/list_view.zig`, `zigux/helpers/hlist_view.zig`, and `drivers/tty/hvc/hvc_console.h`."
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        release_notes_path = tempdir / "Documentation/zigux/phase13-release-notes-survey.md"
+        release_notes_path.write_text(
+            release_notes_path.read_text(encoding="utf-8").replace(
+                "Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps.\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps."
+            in issues
+        )
+        populate_repo(tempdir)
+        checks_run += 1
+
+        gap_path.write_text(
+            gap_path.read_text(encoding="utf-8").replace(
+                "- `Documentation/zigux/phase13-release-notes-survey.md`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        issues = collect_issues(tempdir)
+        assert (
+            "missing_marker:Documentation/zigux/phase13-shared-summary-guard-gap.md:- `Documentation/zigux/phase13-release-notes-survey.md`"
             in issues
         )
         populate_repo(tempdir)
