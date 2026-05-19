@@ -30,7 +30,12 @@ test "phase 7 cmdline survey keeps the helper-local packet truthful" {
     try expectContains(slice_note, "Current `master` still ships no standalone `samples/zigux/*cmdline*` reference sample");
     try expectContains(slice_note, "Keep the dedicated cmdline survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet");
     try expectContains(slice_note, "Route adjacent `argv_split`, `string_helpers`, and `rbtree` follow-through to their own Phase 7 helper-local packets.");
+    try expectContains(slice_note, "do not count `Documentation/zigux/phase7-rbtree-slice.md`");
+    try expectContains(slice_note, "do not count `lib/rbtree.zig`");
+    try expectContains(slice_note, "the separate `rbtree` helper-local packet under `lib/`");
     try expectNotContains(slice_note, "Build the matching helper-local review packet for `lib/argv_split.zig`");
+    try expectNotContains(slice_note, "do not count missing `lib/rbtree.zig`");
+    try expectNotContains(slice_note, "a returned `rbtree` helper-local packet under `lib/`");
     try expectNotContains(slice_note, "standalone string-helper delivery");
 
     const manifest = try readRepoFile(allocator, "zigux/tests/phase7_cmdline_manifest.json");
