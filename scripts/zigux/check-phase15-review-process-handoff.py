@@ -206,7 +206,7 @@ def _sample_manifest() -> str:
                 "parity scorecard link or blocker record",
                 "indefinite-C policy link or explicit non-applicability note",
                 "explicit non-goals",
-                "written rationale",
+                "written rationale"
             ],
             "stay_in_c_closeout_fields": [
                 "the retained `freeze_in_c` decision",
@@ -216,26 +216,26 @@ def _sample_manifest() -> str:
                 "the automatic return-to-blocked trigger",
                 "the reopen triggers",
                 "the trigger-specific evidence refresh",
-                "the evidence archive path that will be refreshed before any later reopen request",
+                "the evidence archive path that will be refreshed before any later reopen request"
             ],
             "reopen_evidence_fields": [
                 "the exact reopen trigger being exercised",
                 "refreshed evidence by path",
                 "the blocker disposition being challenged",
-                "the narrower seam or policy change that makes the new review safe to consider",
+                "the narrower seam or policy change that makes the new review safe to consider"
             ],
             "indefinite_c_policy_required_markers": [
                 "required approver set",
                 "automatic return-to-blocked trigger",
                 "trigger-specific evidence refresh",
-                "parity scorecard link or blocker record",
+                "parity scorecard link or blocker record"
             ],
             "decision_record_template_required_markers": [
                 "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
                 "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
                 "exact-head provenance exception note:",
                 "Prefer the dated master readback form for parked governance and stay-in-C review packets.",
-                "Only record an exact head when the linked review needs it to anchor a named published decision",
+                "Only record an exact head when the linked review needs it to anchor a named published decision"
             ],
             "handoff_required_markers": [
                 "`Documentation/zigux/review-checklist.md`",
@@ -246,10 +246,11 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+                "`zigux/tests/phase15_handoff_next_steps.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
-                "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
+                "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker"
             ],
             "shared_gap_expected_present_paths": [
                 "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
@@ -265,14 +266,15 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
                 "`zigux/tests/phase15_architecture_council_review_process_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+                "`zigux/tests/phase15_handoff_next_steps.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
-                "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
+                "`scripts/zigux/check-phase15-handoff-note-alignment.py`"
             ],
             "shared_gap_expected_missing_paths": [
                 "`scripts/zigux/validate-phase15.py`",
                 "`zigux/tests/phase15_build.zig`",
-                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
-            ],
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`"
+            ]
         },
         indent=2,
     ) + "\n"
@@ -421,6 +423,7 @@ def _sample_handoff_note() -> str:
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `zigux/tests/phase15_handoff_next_steps.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
@@ -445,6 +448,7 @@ def _sample_gap_note() -> str:
 - `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `zigux/tests/phase15_architecture_council_review_process_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
+- `zigux/tests/phase15_handoff_next_steps.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-handoff-note-alignment.py`
 - `scripts/zigux/validate-phase15.py`
@@ -454,27 +458,27 @@ def _sample_gap_note() -> str:
 
 
 def _sample_test_file() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
-test "placeholder focused review-process replay exists" {
+test \"placeholder focused review-process replay exists\" {
     try std.testing.expect(true);
 }
 """
 
 
 def _sample_build_gate() -> str:
-    return """const std = @import("std");
+    return """const std = @import(\"std\");
 
 pub fn build(b: *std.Build) void {
     const review_process_module = b.createModule(.{
-        .root_source_file = b.path("phase15_architecture_council_review_process.zig"),
+        .root_source_file = b.path(\"phase15_architecture_council_review_process.zig\"),
     });
     const review_process_tests = b.addTest(.{
-        .name = "phase15-architecture-council-review-process-tests",
+        .name = \"phase15-architecture-council-review-process-tests\",
         .root_module = review_process_module,
     });
     const run_review_process_tests = b.addRunArtifact(review_process_tests);
-    const test_step = b.step("test", "Run the focused Phase 15 Architecture Council review-process test");
+    const test_step = b.step(\"test\", \"Run the focused Phase 15 Architecture Council review-process test\");
     test_step.dependOn(&run_review_process_tests.step);
 }
 """
@@ -645,6 +649,19 @@ def run_self_test() -> int:
         _write(
             root / HANDOFF_NOTE_PATH,
             _sample_handoff_note().replace(
+                "- `zigux/tests/phase15_handoff_next_steps.zig`\n", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "handoff note is missing required marker: `zigux/tests/phase15_handoff_next_steps.zig`"
+        ]:
+            raise AssertionError(f"unexpected handoff-replay failure: {failures}")
+
+        _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
+        _write(
+            root / HANDOFF_NOTE_PATH,
+            _sample_handoff_note().replace(
                 "- `scripts/zigux/check-phase15-handoff-note-alignment.py`\n", "", 1
             ),
         )
@@ -679,6 +696,19 @@ def run_self_test() -> int:
             "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_handoff_next_steps_manifest.json`"
         ]:
             raise AssertionError(f"unexpected handoff-manifest shared-gap failure: {failures}")
+
+        _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
+        _write(
+            root / SHARED_GAP_NOTE_PATH,
+            _sample_gap_note().replace(
+                "- `zigux/tests/phase15_handoff_next_steps.zig`\n", "", 1
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "shared-summary gap note is missing newly landed path: `zigux/tests/phase15_handoff_next_steps.zig`"
+        ]:
+            raise AssertionError(f"unexpected handoff-replay shared-gap failure: {failures}")
 
         _write(root / SHARED_GAP_NOTE_PATH, _sample_gap_note())
         _write(
