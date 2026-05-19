@@ -45,11 +45,11 @@ Base raw URL prefix:
 
 ## Review Use
 - use this file only as a read-only fallback index; it does not add a new replay surface
-- keep the same smoke-first release order explicit beside this catalog: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`
-- keep the focused full replay explicit too: `zigux/tests/phase12_virtio_scsi.zig` remains the direct bounded starter replay that the shared `test` step layers in after the smoke shard
-- keep the current smoke shard explicit too: `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` are the shipped driver-local raw-read anchors inside the current `smoke` step
+- keep the same shared Phase 12 route vocabulary explicit beside this catalog: `zig build smoke --build-file zigux/tests/phase12_build.zig --summary all`, `make -C zigux phase12-smoke`, `zig build test --build-file zigux/tests/phase12_build.zig --summary all`, and `make -C zigux phase12`; on current `master` those shared routes are support-bundle evidence only and no longer imply that the `virtio_scsi` raw-read anchors themselves are wired through `zigux/tests/phase12_build.zig`
+- keep the focused full replay explicit too: `zigux/tests/phase12_virtio_scsi.zig` remains the direct bounded starter replay companion even though the current shared `test` step in `zigux/tests/phase12_build.zig` now targets only the `virtio_net` queue-resume and transmit-recycle packet
+- keep the current `virtio_scsi` fallback anchors explicit too: `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig`, `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig` remain directly readable driver-local raw-read anchors for this packet, but current `zigux/tests/phase12_build.zig` no longer places them inside the shared `smoke` step
 - keep the fallback split honest: this file is the only commit-pinned direct replay artifact, while the newer `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, and `zigux/tests/phase12_virtio_scsi_survey.zig` remain shared-tree current-master survey companions for the widened queue-submit-completion-and-recovery packet, `Documentation/zigux/phase12-virtio-net-survey.md` and `Documentation/zigux/phase12-libbpf-segment-survey.md` remain shared-tree-only anchors rather than commit-pinned fallback artifacts, and the reminder-only `make -C zigux phase12-validate` wrapper vocabulary keeps `scripts/zigux/validate-phase12.py` plus `scripts/zigux/check-phase12-release-readiness-packet.py` inside the validator-first support bundle rather than turning them into standalone direct replay routes while current `zigux/Makefile` still omits that wrapper on `master`
-- keep `zigux/tests/phase12_build.zig`, `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` visible as shared-tree raw-read anchors for the shipped smoke-first packet rather than treating them as extra commit-pinned artifacts
+- keep `zigux/tests/phase12_build.zig`, `scripts/zigux/check-build-only-phase12-surface.py`, and `.github/workflows/zigux-bootstrap.yml` visible as shared-tree raw-read anchors for the shipped support bundle rather than treating them as extra commit-pinned artifacts or as proof that the shared `phase12-smoke` and `phase12-test` routes still replay the `virtio_scsi` shard
 - rerun `python3 scripts/zigux/check-build-only-phase12-surface.py` before widening any PMO wording around this artifact
 
 ## Boundaries
@@ -60,27 +60,10 @@ Base raw URL prefix:
 - this note is a public-read pointer catalog only, not a release-closure claim and not a second survey note
 
 ## Current-Master Evidence Snapshot
-- the exact-blob readback below is the last explicit historical current-master snapshot captured for this catalog on `2026-05-15`, not a standing claim that the live branch head still matches those same SHAs after later same-family survey-packet edits
+- exact coverage evidence refreshed on `2026-05-19` against live current `master`
+- public GitHub blob-page readback still confirmed the core `virtio_scsi` packet files are present on `master`, including `drivers/scsi/virtio_scsi.zig` (`861 lines (782 loc) · 33.1 KB`), `zigux/tests/phase12_virtio_scsi.zig`, `zigux/tests/phase12_virtio_scsi_syntax_lab.zig`, and `zigux/tests/phase12_virtio_scsi_packet.zig`, even though direct raw-URL or contents-bridge reads for some of those paths were flaky in this runtime
+- the current GitHub contents bridge directly reread these bounded support surfaces on `master`: `Documentation/zigux/phase12-virtio-scsi-raw-github-fallback-catalog.md` -> blob `eefdae4bc9645e03ee6dfb93764fe4b27f13be3c`, `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `f458ad27ad470c701b7644a5ea0fe90b85aeb84b`, `Documentation/zigux/README.md` -> blob `859b6b7b2feaa5bf16f0dacf21c960b18a065493`, `zigux/tests/README.md` -> blob `a56644cd37d334aae14b6b3a014d7761e1d980ae`, `scripts/zigux/README.md` -> blob `5b066d41b80c380e516b3c6afd878b85af593800`, `zigux/tests/phase12_build.zig` -> blob `18a1f2bfbb78a7c3b871fba93b33f88cacf710d7`, `zigux/Makefile` -> blob `79c077334a5e3c67868081f4c9ae71e0e3cde541`, `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `a2477ccf64a6874768662d5e8dae1b2b19c88371`, `.github/workflows/zigux-bootstrap.yml` -> blob `8f373d8734694964dd63d754c4889fe82bd558b9`, and `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `bc1e16139dd6db23a03579e779d591099a32be0f`
+- that exact readback now shows a sharper split than the older `2026-05-15` snapshot: `zigux/tests/phase12_build.zig` blob `18a1f2bfbb78a7c3b871fba93b33f88cacf710d7` currently wires only `phase12_virtio_net_queue_resume.zig` and `phase12_virtio_net_transmit_recycle.zig` through both shared `smoke` and shared `test`, while `zigux/Makefile` blob `79c077334a5e3c67868081f4c9ae71e0e3cde541` still exposes `phase12-smoke`, `phase12-test`, and `phase12` and still omits `phase12-validate`
 - current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane: `Documentation/zigux/phase12-virtio-scsi-survey.md`, `zigux/tests/phase12_virtio_scsi_manifest.json`, `zigux/tests/phase12_virtio_scsi_survey.zig`, `scripts/zigux/check-phase12-virtio-scsi-packet.py`, `scripts/zigux/validate-phase12.py`, `zigux/tests/phase12_build.zig`, and `zigux/Makefile`
-- this exact-evidence section is therefore a historical fallback snapshot for the pinned raw-read packet, while the newer shared-tree survey companions above remain the truthful source for live current-master packet state
-- the same fifteen covered packet paths were present in that historical `2026-05-15` snapshot beside this commit-pinned raw replay note:
-  - `drivers/scsi/virtio_scsi.zig` -> blob `aef0c4205b7d99f7451ee6011adf63b6ac5220f5`
-  - `Documentation/zigux/phase12-virtio-scsi-slice.md` -> blob `346ea74e682322135eeb56ee2532e663f32188b2`
-  - `Documentation/zigux/phase12-virtio-scsi-survey.md` -> blob `9b10ef0cc480198547fad347d8b137755f190d68`
-  - `Documentation/zigux/README.md` -> blob `38f2dd1097c630b5b7cc1b602b004a21911741fc`
-  - `zigux/tests/README.md` -> blob `65bcef0c2a72a2ac4ca240b5085ea69e3fecb810`
-  - `scripts/zigux/README.md` -> blob `00cea585750e34173e0a29982443b2a0a85b1d22`
-  - `zigux/tests/phase12_build.zig` -> blob `817e868e544a63e021253d0f5b029ea8f751e6b2`
-  - `zigux/tests/phase12_virtio_scsi.zig` -> blob `f829de9b39576c67e81e75fe1e9d849e583db62f`
-  - `zigux/tests/phase12_virtio_scsi_syntax_lab.zig` -> blob `89173ebd7f2c66d9673375e8d15f32cb645b60db`
-  - `zigux/tests/phase12_virtio_scsi_repeated_replan_gate.zig` -> blob `0dcdfea49684b4af523c82a277a54e4362b308cd`
-  - `zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig` -> blob `2d2582f7607a255ce8bd9ccdd6ed5d52b5c8ecca`
-  - `zigux/tests/phase12_virtio_scsi_packet.zig` -> blob `db3fa0bb1ab8d4288ec95c48a76a8725b766b4d5`
-  - `zigux/tests/phase12_virtio_scsi_survey.zig` -> blob `a74d5ff9c3fe97575f78b784af0459ec2468930a`
-  - `zigux/tests/phase12_virtio_scsi_manifest.json` -> blob `dec20bc8cce036aef1a0a9353ed7370f3b681eb4`
-  - `zigux/Makefile` -> blob `767510ae3aa2a2ad0e574e6ad2cddc5adb4ff40e`
-- the same historical snapshot also recorded these support-material blobs:
-  - `scripts/zigux/check-phase12-release-readiness-packet.py` -> blob `196cc338346d7ce39e88c8c45bb49cc04d2b08a1`
-  - `scripts/zigux/validate-phase12.py` -> blob `6f95fa12c8813c494cace0e66cb06178c12ee9fb`
-  - `.github/workflows/zigux-bootstrap.yml` -> blob `1ee77591a9bbf6b3b36060ba44f56f6e2fd929a0`
-- keeping this distinction explicit preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, while the survey note, manifest, survey gate, packet checker, shared validator, and shared build surfaces above carry live current-master packet truth forward
+- this exact-evidence section is therefore still a historical fallback snapshot for the pinned raw-read packet, while the refreshed bullets above now record the current support-bundle split truthfully beside the same pinned replay point
+- keeping this distinction explicit preserves the existing split: this catalog stays pinned to `ee64eec272a352da1d967999c99bb3c3560c9b97` for direct raw replay, the direct `virtio_scsi` file family remains present as driver-local public-read anchors, and the shared current-master build or workflow bundle above is support evidence only rather than proof that the shared `phase12-smoke` or `phase12-test` routes currently replay the `virtio_scsi` raw-read shard
