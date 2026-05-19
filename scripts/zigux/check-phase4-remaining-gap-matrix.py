@@ -15,7 +15,7 @@ KPROBE_MANIFEST = Path("zigux/tests/phase4_kprobe_example_manifest.json")
 TEST_FSMOUNT_MANIFEST = Path("zigux/tests/phase4_test_fsmount_manifest.json")
 PERF_MANIFEST = Path("zigux/tests/phase4_perf_baseline_manifest.json")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 16
+EXPECTED_SELF_TEST_CASE_COUNT = 20
 
 MATRIX_MARKERS = (
     "`scripts/zigux/check-phase4-remaining-gap-matrix.py`",
@@ -160,6 +160,18 @@ def validate_perf_manifest(payload: dict[str, object], missing: list[str]) -> No
         (("coordination_owners",), ["ABI and Runtime Team", "Shared Subsystems Pod"]),
         (("shared_ci_perf_promotion_status",), "pending"),
         (("local_only_posture_note",), "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending."),
+        (("dedicated_local_survey_wrapper",), "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"),
+        (("dedicated_linux_style_survey_wrapper",), "make -C zigux phase4-perf-baseline-survey"),
+        (("validation_entrypoint",), "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig"),
+        (("bootstrap_ci_posture",), "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow"),
+        (("atomic64", "acceptable_limit_status"), "approved_local_only"),
+        (("atomic64", "acceptable_limit_metric"), "median_elapsed_ns"),
+        (("atomic64", "acceptable_limit_sample_count"), 7),
+        (("atomic64", "acceptable_limit_max_elapsed_ns"), 8192),
+        (("bitmap", "acceptable_limit_status"), "approved_local_only"),
+        (("bitmap", "acceptable_limit_metric"), "median_elapsed_ns"),
+        (("bitmap", "acceptable_limit_sample_count"), 7),
+        (("bitmap", "acceptable_limit_max_elapsed_ns"), 12288),
         (("promotion_decision", "status"), "shared CI perf promotion pending"),
         (("promotion_decision", "owner"), "Validation and Perf Team"),
     )
@@ -326,6 +338,22 @@ Current `master` still does not ship `samples/zigux/test_fsmount.zig`.
   "coordination_owners": ["ABI and Runtime Team", "Shared Subsystems Pod"],
   "shared_ci_perf_promotion_status": "pending",
   "local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.",
+  "dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+  "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey",
+  "validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+  "bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
+  "atomic64": {
+    "acceptable_limit_status": "approved_local_only",
+    "acceptable_limit_metric": "median_elapsed_ns",
+    "acceptable_limit_sample_count": 7,
+    "acceptable_limit_max_elapsed_ns": 8192
+  },
+  "bitmap": {
+    "acceptable_limit_status": "approved_local_only",
+    "acceptable_limit_metric": "median_elapsed_ns",
+    "acceptable_limit_sample_count": 7,
+    "acceptable_limit_max_elapsed_ns": 12288
+  },
   "promotion_decision": {
     "status": "shared CI perf promotion pending",
     "owner": "Validation and Perf Team"
@@ -363,6 +391,10 @@ def run_self_test() -> int:
             (TEST_FSMOUNT_NOTE, "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix", "PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-gate-evidence.md", "test_fsmount_note_marker:PHASE4_TEST_FSMOUNT_SHARED_LAB_AND_CI_MATRIX_ANCHOR=Documentation/zigux/phase4-validation-matrix.md#lab-and-ci-matrix"),
             (TEST_FSMOUNT_MANIFEST, "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-test-fsmount-survey\"", "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-test-fsmount-gap\"", "test_fsmount_manifest:dedicated_linux_style_survey_wrapper:expected='make -C zigux phase4-test-fsmount-survey'"),
             (PERF_MANIFEST, "\"shared_ci_perf_promotion_status\": \"pending\"", "\"shared_ci_perf_promotion_status\": \"approved\"", "perf_manifest:shared_ci_perf_promotion_status:expected='pending'"),
+            (PERF_MANIFEST, "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-baseline-survey\"", "\"dedicated_linux_style_survey_wrapper\": \"make -C zigux phase4-perf-gap-survey\"", "perf_manifest:dedicated_linux_style_survey_wrapper:expected='make -C zigux phase4-perf-baseline-survey'"),
+            (PERF_MANIFEST, "\"bootstrap_ci_posture\": \"reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow\"", "\"bootstrap_ci_posture\": \"shared_phase4_test_route\"", "perf_manifest:bootstrap_ci_posture:expected='reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow'"),
+            (PERF_MANIFEST, "\"acceptable_limit_status\": \"approved_local_only\"", "\"acceptable_limit_status\": \"threshold_pending\"", "perf_manifest:atomic64.acceptable_limit_status:expected='approved_local_only'"),
+            (PERF_MANIFEST, "\"acceptable_limit_max_elapsed_ns\": 12288", "\"acceptable_limit_max_elapsed_ns\": 12289", "perf_manifest:bitmap.acceptable_limit_max_elapsed_ns:expected=12288"),
         )
         for rel, old, new, expected_prefix in variants:
             write_fixture_tree(root)
