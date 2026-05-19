@@ -56,5 +56,10 @@
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig",
     "zigux/tests/phase11_hvc_cleanup_packet_proof.zig"
   ],
+  "shared_adjunct_build_replays": [
+    "zigux/tests/phase11_hvc_hv_ops_layout_build.zig",
+    "zigux/tests/phase11_hvc_export_surface_layout_build.zig",
+    "zigux/tests/phase11_hvc_cleanup_packet_build.zig"
+  ],
   "shared_replay_markers": []
 }
