@@ -49,7 +49,7 @@ TRACE_EVENTS_COMPANION_GAP_PATHS = (
 REQUIRED_TEXT = (
     "Treat those four anchors as the approved Phase 5 destination set unless the roadmap changes.",
     "Fresh repo-first inspection on 2026-05-19 confirmed that current `master` now directly serves the bounded bytestream sample-plus-tests packet through these paths:",
-    "Fresh 2026-05-19 reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries three in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps four focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps four survey-packet checks aligned with the survey note and manifest.",
+    "Fresh 2026-05-19 reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries three in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps four focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.",
     "The same 2026-05-19 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:",
     "For the shared tracing and probe lane, ground reviewer guidance in the restored direct kretprobe packet plus the narrower trace-events packet above and these shared reminder surfaces:",
     "The roadmap still includes the `kobject` anchor, and fresh Phase 5 reread in this run kept the split evidence explicit: authenticated current-`master` contents readback still did not return the older sample-root or tests-root packet members that earlier reminder surfaces cited, while public-tree fallback still exposes the bounded packet below:",
@@ -165,7 +165,7 @@ That same reread also confirmed that the shared build companion still needs to s
 * `zigux/tests/phase5_build.zig`
 
 Keep the direct bytestream sample-plus-tests packet explicit while the shared build companion stays framed as current public-tree-backed evidence instead of flattening the packet back into a sample-only story or treating the shared build route as returned authenticated proof.
-Fresh 2026-05-19 reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries three in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps four focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps four survey-packet checks aligned with the survey note and manifest.
+Fresh 2026-05-19 reread also keeps the current direct packet shape explicit: `samples/zigux/bytestream_fifo.zig` now carries three in-file self-checks, `zigux/tests/phase5_bytestream_fifo.zig` keeps four focused replay tests, and `zigux/tests/phase5_bytestream_fifo_survey.zig` keeps five survey-packet checks aligned with the survey note and manifest.
 
 The same 2026-05-19 repo-first inspection also confirmed a narrower current non-runtime trace-events packet: authenticated contents reread still directly proves the bounded formatting companion, and the shared reminder surfaces below still keep that smaller packet explicit:
 
