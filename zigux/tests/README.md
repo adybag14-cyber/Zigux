@@ -165,6 +165,21 @@ Keep the shared ownership reminder truthful by pointing back to `Documentation/z
 Tests-root reviewer prompt:
 - Does the bounded Phase 4 reminder keep the narrower direct-readback handoff, the returned recovered note-and-checker companions, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair explicit while the validator, build, and bitmap replay companions remain repo-reality gaps in this runtime?
 
+## Phase 9 runtime pilot packet
+
+Keep the current bounded Phase 9 tests-root reminder packet explicit through `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, `samples/zigux/runtime_trace_events.zig`, `samples/zigux/runtime_trace_events_unregistered_gate.zig`, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig`, `samples/zigux/runtime_trace_events_registration_reentry_gate.zig`, and `zigux/tests/README.md`.
+
+Keep the current direct runtime-module evidence explicit here too: `samples/zigux/runtime_trace_events.zig` still exposes `.provides_selftest_hook = true` together with initialized, selftest_complete, and exited lifecycle tracking.
+
+Keep the companion boundaries explicit here too: `samples/zigux/runtime_trace_events_unregistered_gate.zig` keeps unregistered function-thread failures fail-closed, `samples/zigux/runtime_trace_events_exit_rollback_guard.zig` keeps failed-exit rollback explicit after reusable selftest replay, and `samples/zigux/runtime_trace_events_registration_reentry_gate.zig` keeps balanced function-thread registration reusable before and after selftest.
+
+Keep the returned family-local `zigux/tests/runtime_*` witness explicit here too: `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`, `zigux/tests/runtime_trace_events_manifest.json`, and `zigux/tests/runtime_trace_events_survey.zig` keep the same narrow trace-events packet reviewable under `zigux/tests/runtime_*` without promoting that witness into evidence that the broader shared runtime-loader family returned.
+
+Keep the backlog wording explicit too: older shared-loader wording still says there is no shared `zigux/tests/runtime_*` replay packet, `zigux/tests/phase9_build.zig`, `make -C zigux phase9*` route family, or dedicated shared `validate-phase9.py` visible on current `master`, but fresh repo-first rereads narrow that statement further: current `master` does return `zigux/tests/phase9_build.zig` as a bounded Phase 9 build bundle for adjacent runtime atomic64 and separate runtime bitmap evidence, not as proof that the broader shared runtime-loader or wider trace-events replay family returned.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 9 reminder keep the surviving trace-events sample family, the selftest-hook and lifecycle-parity cues, the family-local survey witness, and the honest shared-loader backlog wording aligned without widening into new runtime behavior, bitmap-family ownership, or freeze-map study-only boundaries?
+
 ## Phase 10 shared virtio closure packet
 
 Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit as the shared Phase 10 tests-root reminder packet.
