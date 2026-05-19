@@ -175,9 +175,9 @@ Keep the attached-toolchain fallback explicit as packet-local rerun vocabulary r
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14-test`
 - `ZIG=/absolute/path/to/attached-zig/zig make -C zigux phase14`
 
-Keep `scripts/zigux/check-phase14-tests-readme-smoke-summary.py` explicit as the shipped tests-root reminder checker so this packet records the same Phase 14 truthfulness guard that the checklist and other shared reminder notes already rely on.
+Keep the blob-readable `scripts/zigux/validate-phase14.py` explicit as the current mixed-source validator surface for this packet, and treat checker-local Phase 14 follow-through as separate review-path work until a fresh current-`master` readback returns it directly.
 
-Current `master` still does not materialize `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, or `net/core/skbuff_bridge.zig`, so keep that executable-layer packet framed as a repo-reality gap rather than shipped tests-root evidence until fresh current-tree reads restore it.
+Current `master` still does not materialize `scripts/zigux/check-phase14-tests-readme-smoke-summary.py`, `scripts/zigux/check-phase14-release-boundary-exact-counts.py`, `zigux/tests/phase14_build.zig`, `zigux/tests/phase14_end_to_end_smoke_manifest.json`, `zigux/tests/phase14_end_to_end_smoke_survey.zig`, `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_ring_buffer_survey.zig`, `zigux/tests/phase14_rcu_tree_survey.zig`, or `net/core/skbuff_bridge.zig`, so keep that executable-layer packet framed as a repo-reality gap rather than shipped tests-root evidence until fresh current-tree reads restore it.
 
 Keep the four roadmap-owned anchors explicit here too: `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain study-only anchors, while `net/core/skbuff.c` and `kernel/rcu/tree.c` remain freeze-in-C anchors unless a later Architecture Council packet records a status change.
 
