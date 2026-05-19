@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the current Lane 16 bench packet across closure, scripts, workflow, and checker surfaces."""
+"""Guard the current Lane 16 bench packet across closure, scripts, tests, workflow, and checker surfaces."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ DEFAULT_ROOT = Path(__file__).resolve().parents[2]
 
 PHASE1_CLOSURE_REL = "Documentation/zigux/phase1-closure.md"
 SCRIPTS_README_REL = "scripts/zigux/README.md"
+TESTS_README_REL = "zigux/tests/README.md"
 WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 BENCH_CHECKER_REL = "scripts/zigux/check-phase1-bench.py"
 BENCH_SUCCESS_CHECKER_REL = "scripts/zigux/check-phase1-bench-success-packet.py"
@@ -19,6 +20,7 @@ BENCH_SUCCESS_CHECKER_REL = "scripts/zigux/check-phase1-bench-success-packet.py"
 REQUIRED_FILES = (
     PHASE1_CLOSURE_REL,
     SCRIPTS_README_REL,
+    TESTS_README_REL,
     WORKFLOW_REL,
     BENCH_CHECKER_REL,
     BENCH_SUCCESS_CHECKER_REL,
@@ -34,6 +36,11 @@ MARKERS = {
     SCRIPTS_README_REL: (
         "- current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it, so keep the remaining shared reminder follow-through focused on the broader docs-root, checklist, and tests-root bench wording instead of treating the bench checker itself as a repo-reality gap here",
         "- repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase1-installer-review-surfaces.py`, `scripts/zigux/check-phase1-installer-companion-checks.py`, `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, and `zigux/tests/fixtures/phase1_helpers_c_harness.c`, so treat those installer-backed, older validator-first, parity, and replay routes as historical packet members that need fresh re-materialization before they are reused as direct current-`master` reminder evidence",
+    ),
+    TESTS_README_REL: (
+        "- `scripts/zigux/check-phase1-bench.py`",
+        "That shared smoke route should stay paired with the restored closure-side validator, the direct owner-map and string-review guards, the shipped bench checker, and the committed helper manifest so the tests-root note matches the same bounded Phase 1 packet already named by the docs root, lane-sequencing note, and scripts-root reminder.",
+        "Current `master` still keeps `scripts/zigux/validate-phase1.py`, `scripts/zigux/check-phase1-parity.py`, `zigux/tests/phase1_helpers.zig`, `zigux/tests/phase1_bench.zig`, `zigux/tests/fixtures/phase1_bench_expectations.json`, `zigux/tests/fixtures/phase1_helpers_c_harness.c`, `make -C zigux phase1-validate`, `make -C zigux phase1-test`, `make -C zigux phase1-bench`, and `make -C zigux phase1` outside the direct-readback packet here, so leave those validator-first, parity, bench-route, harness, and make-wrapper names framed as historical packet members until a fresh reread restores them on current `master`.",
     ),
     WORKFLOW_REL: (
         "run: python3 scripts/zigux/check-phase1-bench.py --self-test",
@@ -57,6 +64,9 @@ MARKERS = {
 FORBIDDEN_FRAGMENTS = {
     SCRIPTS_README_REL: (
         "treating the bench checker itself as a missing tests-root route",
+    ),
+    TESTS_README_REL: (
+        "promoting missing validator-first and make-route surfaces back into current tests-root evidence",
     ),
     WORKFLOW_REL: (
         "run: zig build bench --build-file zigux/tests/build.zig",
