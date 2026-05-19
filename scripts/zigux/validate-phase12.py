@@ -129,7 +129,7 @@ REQUIRED_MARKERS = {
         "Current `master` now ships the degraded-workflow evidence packet `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py`, while `make -C zigux phase12-validate` remains reminder-only vocabulary until the wrapper returns.",
     ],
     RAW_GITHUB_COVERAGE_PATH: [
-        "- exact coverage evidence checked on `2026-05-18`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
+        "- exact coverage evidence checked on `2026-05-19`: the current GitHub contents bridge directly reads `scripts/zigux/check-build-only-phase12-surface.py`",
         *RAW_GITHUB_BRIDGE_MARKERS,
         "while a direct contents read for `zigux/tests/phase12_build.zig` still returns `404` through the same current `master` bridge",
         "keep the directly readable build-only checker, release-readiness checker, workflow, scripts-root README, and current Makefile as bounded reminder evidence only",
