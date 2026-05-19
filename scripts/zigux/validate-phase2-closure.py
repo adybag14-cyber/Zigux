@@ -28,9 +28,11 @@ CROSS_CHECKER_REL = Path("scripts/zigux/check-phase2-cross.py")
 CROSS_ALIGNMENT_REL = Path("scripts/zigux/check-phase2-cross-selftest-alignment.py")
 DOCS_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase2-docs-shared-reminder.py")
 REQUIRED_ROUTES_CHECKER_REL = Path("scripts/zigux/check-phase2-required-make-routes.py")
+GENKSYMS_CHECKER_REL = Path("scripts/zigux/check-genksyms-bridge.py")
 TOOLCHAIN_POLICY_REL = Path("scripts/zigux/zig-toolchain-policy.json")
 CONF_BRIDGE_REL = Path("scripts/zigux/kconfig/conf_bridge.zig")
 CONFDATA_BRIDGE_REL = Path("scripts/zigux/kconfig/confdata_bridge.zig")
+GENKSYMS_REL = Path("scripts/zigux/genksyms.zig")
 MAKEFILE_REL = Path("zigux/Makefile")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase2_tool_manifest.json")
 ARTIFACT_MANIFEST_REL = Path("zigux/tests/fixtures/phase2_artifact_tools_manifest.json")
@@ -38,6 +40,12 @@ CROSS_FIXTURE_REL = Path("zigux/tests/fixtures/phase2_cross_targets.json")
 CONF_MANIFEST_REL = Path("zigux/tests/fixtures/kconfig_bridge/conf_manifest.json")
 CONFDATA_MANIFEST_REL = Path("zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json")
 KCONFIG_CASES_REL = Path("zigux/tests/fixtures/kconfig_bridge/cases.json")
+GENKSYMS_CASES_REL = Path("zigux/tests/fixtures/genksyms_bridge/cases.json")
+GENKSYMS_HELP_REL = Path("zigux/tests/fixtures/genksyms_bridge/help_expected.json")
+GENKSYMS_MINIMAL_REL = Path("zigux/tests/fixtures/genksyms_bridge/minimal_expected.json")
+GENKSYMS_DEBUG_TYPES_REL = Path("zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json")
+GENKSYMS_LONG_OPTIONS_REL = Path("zigux/tests/fixtures/genksyms_bridge/long_options_expected.json")
+GENKSYMS_QUIET_OVERRIDE_REL = Path("zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json")
 
 REQUIRED_FILES = (
     WORKFLOW_REL,
@@ -56,9 +64,11 @@ REQUIRED_FILES = (
     CROSS_ALIGNMENT_REL,
     DOCS_REMINDER_CHECKER_REL,
     REQUIRED_ROUTES_CHECKER_REL,
+    GENKSYMS_CHECKER_REL,
     TOOLCHAIN_POLICY_REL,
     CONF_BRIDGE_REL,
     CONFDATA_BRIDGE_REL,
+    GENKSYMS_REL,
     MAKEFILE_REL,
     MANIFEST_REL,
     ARTIFACT_MANIFEST_REL,
@@ -66,6 +76,12 @@ REQUIRED_FILES = (
     CONF_MANIFEST_REL,
     CONFDATA_MANIFEST_REL,
     KCONFIG_CASES_REL,
+    GENKSYMS_CASES_REL,
+    GENKSYMS_HELP_REL,
+    GENKSYMS_MINIMAL_REL,
+    GENKSYMS_DEBUG_TYPES_REL,
+    GENKSYMS_LONG_OPTIONS_REL,
+    GENKSYMS_QUIET_OVERRIDE_REL,
 )
 
 REQUIRED_CLOSURE_MARKERS = (
@@ -74,17 +90,28 @@ REQUIRED_CLOSURE_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
+    "`scripts/zigux/genksyms.zig`",
     "`zigux/tests/fixtures/phase2_tool_manifest.json`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/cases.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/help_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`",
+    "`zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`",
     "`python3 scripts/zigux/install-zig.py --self-test`",
     "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
     "`python3 scripts/zigux/check-phase2-required-make-routes.py --self-test`",
+    "`python3 scripts/zigux/check-genksyms-bridge.py --self-test`",
+    "`python3 scripts/zigux/check-genksyms-bridge.py`",
     "`make -C zigux phase2-tools`",
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
+    "`make -C zigux phase2-genksyms`",
     "`PHASE2_CURRENT_GAP_PACKET=`",
     "The older fixdep dual-implementation reminder surfaces are no longer part of the current closure-side authority on `master`;",
 )
@@ -113,6 +140,9 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py --self-test",
     "run: python3 scripts/zigux/check-phase2-tests-readme-alignment.py",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
+    "run: python3 scripts/zigux/check-genksyms-bridge.py",
+    "run: zig test scripts/zigux/genksyms.zig",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
@@ -130,7 +160,11 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross-selftest-alignment.py",
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross",
+    "phase2-genksyms:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
@@ -144,6 +178,12 @@ EXPECTED_MANIFEST_FIXTURE_ROSTER = (
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
     "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
     "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+    "zigux/tests/fixtures/genksyms_bridge/cases.json",
+    "zigux/tests/fixtures/genksyms_bridge/help_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+    "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
 )
 FORBIDDEN_MANIFEST_GAPS = (
     "scripts/zigux/install-zig.py",
@@ -246,7 +286,7 @@ EXPECTED_CONF_CASE_DETAILS = (
         "kconfig": "Kconfig",
         "config": "out/list.config",
         "arch": "x86_64",
-        "silent": True,
+        "silent": true,
         "expected": "listnewconfig_expected.json",
     },
     {
@@ -255,7 +295,7 @@ EXPECTED_CONF_CASE_DETAILS = (
         "kconfig": "Kconfig",
         "config": "out/help.config",
         "arch": "riscv64",
-        "silent": True,
+        "silent": true,
         "expected": "helpnewconfig_expected.json",
     },
     {
@@ -505,6 +545,7 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "make -C zigux phase2-tools",
             "make -C zigux phase2-kconfig",
             "make -C zigux phase2-cross",
+            "make -C zigux phase2-genksyms",
             "make -C zigux phase2-validate",
             "make -C zigux phase2",
         ):
@@ -545,11 +586,19 @@ def build_self_test_root(root: Path) -> None:
 - `scripts/zigux/check-phase2-cross-selftest-alignment.py`
 - `scripts/zigux/check-phase2-required-make-routes.py`
 - `scripts/zigux/check-phase2-docs-shared-reminder.py`
+- `scripts/zigux/check-genksyms-bridge.py`
 - `scripts/zigux/validate-phase2.py`
 - `scripts/zigux/validate-phase2-closure.py`
+- `scripts/zigux/genksyms.zig`
 - `zigux/tests/fixtures/phase2_tool_manifest.json`
 - `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`
 - `zigux/tests/fixtures/phase2_cross_targets.json`
+- `zigux/tests/fixtures/genksyms_bridge/cases.json`
+- `zigux/tests/fixtures/genksyms_bridge/help_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`
+- `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`
 
 ## Current Repo-Reality Gaps
 
@@ -562,16 +611,21 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
 - `python3 scripts/zigux/install-zig.py --self-test`
 - `python3 scripts/zigux/check-phase2-cross.py --self-test`
 - `python3 scripts/zigux/check-phase2-required-make-routes.py --self-test`
+- `python3 scripts/zigux/check-genksyms-bridge.py --self-test`
+- `python3 scripts/zigux/check-genksyms-bridge.py`
 - `python3 scripts/zigux/validate-phase2-closure.py --self-test`
 - `python3 scripts/zigux/validate-phase2-closure.py`
 - `make -C zigux phase2-tools`
 - `make -C zigux phase2-kconfig`
 - `make -C zigux phase2-cross`
+- `make -C zigux phase2-genksyms`
 """
     workflow_lines = ["name: zigux-bootstrap", *REQUIRED_WORKFLOW_LINES]
     makefile_lines = [
         "PYTHON ?= python3",
+        "ZIG ?= zig",
         "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
+        "ZIGUX_ROOT := ..",
         *REQUIRED_MAKEFILE_LINES,
     ]
     manifest = {
@@ -586,6 +640,7 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
                 "make -C zigux phase2-tools",
                 "make -C zigux phase2-kconfig",
                 "make -C zigux phase2-cross",
+                "make -C zigux phase2-genksyms",
                 "make -C zigux phase2-validate",
                 "make -C zigux phase2",
             ],
@@ -612,9 +667,11 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
     write_text(resolve(root, CROSS_ALIGNMENT_REL), "present\n")
     write_text(resolve(root, DOCS_REMINDER_CHECKER_REL), "present\n")
     write_text(resolve(root, REQUIRED_ROUTES_CHECKER_REL), "present\n")
+    write_text(resolve(root, GENKSYMS_CHECKER_REL), "present\n")
     write_text(resolve(root, TOOLCHAIN_POLICY_REL), "present\n")
     write_text(resolve(root, CONF_BRIDGE_REL), "present\n")
     write_text(resolve(root, CONFDATA_BRIDGE_REL), "present\n")
+    write_text(resolve(root, GENKSYMS_REL), "present\n")
     write_text(resolve(root, MAKEFILE_REL), "\n".join(makefile_lines) + "\n")
     write_text(resolve(root, MANIFEST_REL), json.dumps(manifest, indent=2) + "\n")
     write_text(resolve(root, ARTIFACT_MANIFEST_REL), "{}\n")
@@ -622,6 +679,12 @@ The older fixdep dual-implementation reminder surfaces are no longer part of the
     write_text(resolve(root, CONF_MANIFEST_REL), json.dumps(EXPECTED_CONF_MANIFEST, indent=2) + "\n")
     write_text(resolve(root, CONFDATA_MANIFEST_REL), "{}\n")
     write_text(resolve(root, KCONFIG_CASES_REL), json.dumps(kconfig_cases, indent=2) + "\n")
+    write_text(resolve(root, GENKSYMS_CASES_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_HELP_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_MINIMAL_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_DEBUG_TYPES_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_LONG_OPTIONS_REL), "{}\n")
+    write_text(resolve(root, GENKSYMS_QUIET_OVERRIDE_REL), "{}\n")
 
 
 def replace_once(text: str, marker: str, replacement: str = "") -> str:
@@ -659,7 +722,7 @@ def run_self_test() -> int:
         for marker in REQUIRED_CLOSURE_MARKERS:
             build_self_test_root(root)
             path = resolve(root, PHASE2_CLOSURE_REL)
-            path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            path.write_text(path.read_text(encoding="utf-8").replace(marker, ""), encoding="utf-8")
             assert ("MISSING_CLOSURE_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
@@ -686,7 +749,7 @@ def run_self_test() -> int:
         for marker in REQUIRED_MAKEFILE_LINES:
             build_self_test_root(root)
             path = resolve(root, MAKEFILE_REL)
-            replacement = "# removed" if not marker.startswith("$(PYTHON)") else "\t# removed"
+            replacement = "# removed" if not marker.startswith("$(PYTHON)") and not marker.startswith("cd ") else "\t# removed"
             path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, replacement), encoding="utf-8")
             assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
             checks_run += 1
@@ -730,11 +793,17 @@ def run_self_test() -> int:
         manifest = read_json(path)
         assert isinstance(manifest, dict)
         manifest["present_surfaces"]["fixture_roster"] = [
+            "zigux/tests/fixtures/kconfig_bridge/cases.json",
             "zigux/tests/fixtures/kconfig_bridge/conf_manifest.json",
             "zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json",
+            "zigux/tests/fixtures/genksyms_bridge/cases.json",
+            "zigux/tests/fixtures/genksyms_bridge/minimal_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/long_options_expected.json",
+            "zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json",
         ]
         write_text(path, json.dumps(manifest, indent=2) + "\n")
-        assert ("MISSING_MANIFEST_SURFACE", "fixture_roster:zigux/tests/fixtures/kconfig_bridge/cases.json") in collect_issues(root)
+        assert ("MISSING_MANIFEST_SURFACE", "fixture_roster:zigux/tests/fixtures/genksyms_bridge/help_expected.json") in collect_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
