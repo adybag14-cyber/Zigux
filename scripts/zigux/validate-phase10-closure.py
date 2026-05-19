@@ -496,7 +496,7 @@ def run_self_test() -> int:
         broken = dict(original)
         broken["survey_provenance"] = dict(original["survey_provenance"])
         broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
-        broken["survey_provenance"]["core"] = "P10-L10"
+        broken["survey_provenance"]["lane_keys"]["core"] = "P10-L10"
         closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "survey_provenance:core:lane_key:'P10-L10'!='P10-L01'" not in drift:
@@ -516,7 +516,7 @@ def run_self_test() -> int:
         broken = dict(original)
         broken["survey_provenance"] = dict(original["survey_provenance"])
         broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
-        broken["survey_provenance"]["ring"] = "P10-L10"
+        broken["survey_provenance"]["lane_keys"]["ring"] = "P10-L10"
         closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "survey_provenance:ring:lane_key:'P10-L10'!='P10-L05'" not in drift:
@@ -526,7 +526,7 @@ def run_self_test() -> int:
         broken = dict(original)
         broken["survey_provenance"] = dict(original["survey_provenance"])
         broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
-        broken["survey_provenance"]["mmio"] = "P10-L10"
+        broken["survey_provenance"]["lane_keys"]["mmio"] = "P10-L10"
         closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if not any(item.startswith("survey_provenance:mmio:lane_key:") for item in drift):
@@ -536,7 +536,7 @@ def run_self_test() -> int:
         broken = dict(original)
         broken["survey_provenance"] = dict(original["survey_provenance"])
         broken["survey_provenance"]["surveyed_commits"] = dict(original["survey_provenance"]["surveyed_commits"])
-        broken["survey_provenance"]["ring"] = "stale-ring-sha"
+        broken["survey_provenance"]["surveyed_commits"]["ring"] = "stale-ring-sha"
         closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "survey_provenance:ring:surveyed_commit:'stale-ring-sha'!='e42103fc02f544e1bd23a5ec2e5b584734f5af7d'" not in drift:
