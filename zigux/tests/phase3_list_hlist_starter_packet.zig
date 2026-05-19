@@ -25,6 +25,26 @@ test "starter packet keeps an empty sentinel list explicit across binding and he
     try std.testing.expect(view.hasConsistentBacklinks());
 }
 
+test "starter packet keeps a malformed sentinel list visible as non-empty and broken" {
+    var head = binding.emptyListHead();
+    const self_addr = @intFromPtr(&head);
+    head = binding.initListHead(self_addr, 0);
+
+    try std.testing.expect(!binding.isEmptyListHead(head, self_addr));
+
+    const view = list_view.ListView.init(asListViewHead(&head));
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 0), view.len());
+    try std.testing.expectEqual(@as(?*const list_view.ListHead, null), view.first());
+    try std.testing.expectEqual(@as(?*const list_view.ListHead, null), view.last());
+    try std.testing.expect(!view.hasConsistentBacklinks());
+
+    const breakage = view.firstBrokenBacklink().?;
+    try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try std.testing.expectEqual(self_addr, breakage.expected_prev);
+    try std.testing.expectEqual(@as(usize, 0), breakage.actual_prev);
+}
+
 test "starter packet walks a binding-backed list through list_view" {
     var head = binding.emptyListHead();
     var first = binding.emptyListHead();
@@ -81,6 +101,30 @@ test "starter packet keeps an empty detached hlist explicit across binding and h
     try std.testing.expect(view.firstPprevMatchesHead());
     try std.testing.expect(view.hasConsistentPrevLinks());
     try std.testing.expect(view.tailNextIsNull());
+}
+
+test "starter packet keeps a malformed single-node hlist visible as non-empty and broken" {
+    var head = binding.emptyHListHead();
+    var first = binding.emptyHListNode();
+
+    head = binding.initHListHead(@intFromPtr(&first));
+    first = binding.initHListNode(0, 0);
+
+    try std.testing.expect(!binding.isEmptyHListHead(head));
+    try std.testing.expect(binding.isDetachedHListNode(first));
+
+    const view = hlist_view.HListView.init(asHListViewHead(&head));
+    try std.testing.expect(!view.isEmpty());
+    try std.testing.expectEqual(@as(usize, 1), view.len());
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), @intFromPtr(view.first().?));
+    try std.testing.expect(!view.firstPprevMatchesHead());
+    try std.testing.expect(!view.hasConsistentPrevLinks());
+    try std.testing.expect(view.tailNextIsNull());
+
+    const breakage = view.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 0), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, 0), breakage.actual_pprev);
 }
 
 test "starter packet walks a binding-backed hlist through hlist_view" {
