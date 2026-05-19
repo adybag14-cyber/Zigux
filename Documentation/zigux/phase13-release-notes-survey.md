@@ -57,8 +57,10 @@ The release-planning handle that is directly supportable from this run stays anc
 - `scripts/zigux/README.md`
 - `zigux/tests/README.md`
 - `Documentation/zigux/phase13-contributor-workflow-guide.md`
+- `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`
 - `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`
 - `Documentation/zigux/phase13-release-coordination-matrix.md`
+- `Documentation/zigux/phase13-roadmap-traceability.md`
 - `Documentation/zigux/phase13-shared-summary-guard-gap.md`
 - `Documentation/zigux/phase13-notifier-summary-gap.md`
 - `scripts/zigux/check-phase13-shared-summary-surfaces.py`
