@@ -2,6 +2,7 @@ const std = @import("std");
 
 const cpu_mask = @import("cpu_mask.zig");
 const logging = @import("logging.zig");
+const online_cpu_routing = @import("online_cpu_routing.zig");
 const perf_buffer_poll = @import("perf_buffer_poll.zig");
 const pin_path = @import("pin_path.zig");
 const type_names = @import("type_names.zig");
@@ -40,6 +41,7 @@ fn readTooManyCpuMaskChunks(context: ?*anyopaque, buffer: []u8) anyerror!?usize 
 test "materialized tools/lib/bpf Zigux segments compile together and keep their focused tests live" {
     std.testing.refAllDecls(cpu_mask);
     std.testing.refAllDecls(logging);
+    std.testing.refAllDecls(online_cpu_routing);
     std.testing.refAllDecls(perf_buffer_poll);
     std.testing.refAllDecls(pin_path);
     std.testing.refAllDecls(type_names);
@@ -69,6 +71,15 @@ test "materialized tools/lib/bpf Zigux segments keep their current bounded entry
     try expectHasDecl(logging, "libbpfErrorCode");
     try expectHasDecl(logging, "libbpfErrorMessage");
     try expectHasDecl(logging, "formatLibbpfError");
+
+    try expectHasDecl(online_cpu_routing, "OnlineCpuCursor");
+    try expectHasDecl(online_cpu_routing, "OnlineCpuRouteAttemptDisposition");
+    try expectHasDecl(online_cpu_routing, "OnlineCpuRouteAttemptSummary");
+    try expectHasDecl(online_cpu_routing, "OnlineCpuRoutingDisposition");
+    try expectHasDecl(online_cpu_routing, "OnlineCpuRoutingSummary");
+    try expectHasDecl(online_cpu_routing, "advanceOnlineCpuCursor");
+    try expectHasDecl(online_cpu_routing, "summarizeNextOnlineCpuRoute");
+    try expectHasDecl(online_cpu_routing, "summarizeOnlineCpuRouting");
 
     try expectHasDecl(perf_buffer_poll, "classifyObservedWaitResult");
     try expectHasDecl(perf_buffer_poll, "classifyWaitClass");
@@ -332,6 +343,92 @@ test "materialized tools/lib/bpf Zigux segments keep stable perf-buffer wait and
             .skipped_nonready_count = 0,
         },
         perf_buffer_poll.advanceReadyBufferCursor(&buffers, 6),
+    );
+}
+
+test "materialized tools/lib/bpf Zigux segments keep stable online-CPU routing helper outputs explicit" {
+    const online_cpu_mask = [_]bool{ false, true, false, true, true };
+
+    try std.testing.expectEqualDeep(
+        online_cpu_routing.OnlineCpuCursor{
+            .start_index = 0,
+            .next_scan_index = 2,
+            .cpu_index = 1,
+            .skipped_offline_count = 1,
+        },
+        online_cpu_routing.advanceOnlineCpuCursor(&online_cpu_mask, 0),
+    );
+
+    try std.testing.expectEqualDeep(
+        online_cpu_routing.OnlineCpuRouteAttemptSummary{
+            .start_index = 0,
+            .next_scan_index = 2,
+            .cpu_index = 1,
+            .buffer_index = 0,
+            .buffer_fd = 11,
+            .skipped_offline_count = 1,
+            .disposition = .routed_cpu,
+        },
+        online_cpu_routing.summarizeNextOnlineCpuRoute(
+            &online_cpu_mask,
+            0,
+            &.{ 11, 17, 29 },
+            0,
+        ),
+    );
+    try std.testing.expectEqualDeep(
+        online_cpu_routing.OnlineCpuRouteAttemptSummary{
+            .start_index = 2,
+            .next_scan_index = 4,
+            .cpu_index = 3,
+            .buffer_index = 1,
+            .buffer_fd = null,
+            .skipped_offline_count = 1,
+            .disposition = .missing_buffer_fd,
+        },
+        online_cpu_routing.summarizeNextOnlineCpuRoute(
+            &online_cpu_mask,
+            2,
+            &.{ 11, null, 29 },
+            1,
+        ),
+    );
+
+    try std.testing.expectEqualDeep(
+        online_cpu_routing.OnlineCpuRoutingSummary{
+            .online_cpu_count = 3,
+            .requested_cpu_count = 2,
+            .selected_cpu_count = 2,
+            .buffer_slot_count = 3,
+            .routed_cpu_count = 2,
+            .first_routed_cpu_index = 1,
+            .next_online_cpu_index = 4,
+            .missing_buffer_index = null,
+            .disposition = .requested_subset,
+        },
+        online_cpu_routing.summarizeOnlineCpuRouting(
+            &online_cpu_mask,
+            2,
+            &.{ 11, 17, 29 },
+        ),
+    );
+    try std.testing.expectEqualDeep(
+        online_cpu_routing.OnlineCpuRoutingSummary{
+            .online_cpu_count = 3,
+            .requested_cpu_count = 0,
+            .selected_cpu_count = 3,
+            .buffer_slot_count = 2,
+            .routed_cpu_count = 2,
+            .first_routed_cpu_index = 1,
+            .next_online_cpu_index = 4,
+            .missing_buffer_index = 2,
+            .disposition = .missing_buffer_slot,
+        },
+        online_cpu_routing.summarizeOnlineCpuRouting(
+            &online_cpu_mask,
+            0,
+            &.{ 11, 17 },
+        ),
     );
 }
 
