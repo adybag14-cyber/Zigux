@@ -13,6 +13,7 @@ PHASE3_CATALOG_SCOPE = "abi-runtime"
 
 DOC_PATHS = (
     Path("Documentation/zigux/phase3-abi-slice.md"),
+    Path("Documentation/zigux/phase3-abi-header-family-survey.md"),
     Path("Documentation/zigux/phase3-errptr-xarray-slice.md"),
     Path("Documentation/zigux/phase3-policy-slice.md"),
     Path("Documentation/zigux/phase3-validator-support-surface.md"),
@@ -66,6 +67,7 @@ VALIDATOR_PATHS = (
     Path("scripts/zigux/check-phase3-catalog-selftest.py"),
     Path("scripts/zigux/validate-phase3-export-uapi-survey.py"),
     Path("scripts/zigux/validate-phase3-low-level-wrapper-survey.py"),
+    Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
 )
 
 TEST_PATHS = (
@@ -95,6 +97,8 @@ COMMANDS = (
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py --self-test",
     "python3 scripts/zigux/validate-phase3-export-uapi-survey.py",
     "python3 scripts/zigux/validate-phase3-low-level-wrapper-survey.py",
+    "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test",
+    "python3 scripts/zigux/validate-phase3-abi-header-family-survey.py",
     "zig build phase3-xarray-slot-starter-packet --build-file zigux/tests/build.zig",
     "zig build phase3-low-level-wrappers-test --build-file zigux/tests/phase3_low_level_wrappers_build.zig",
     "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
@@ -178,13 +182,13 @@ def run_self_test() -> int:
                 print(f"unexpected {key} count: {len(catalog[key])} != {count}")
                 return 1
 
-        missing_probe = root / VALIDATOR_PATHS[-2]
+        missing_probe = root / VALIDATOR_PATHS[-1]
         missing_probe.unlink()
         issues = validate_repo(root)
-        expected = f"missing repo file: {VALIDATOR_PATHS[-2].as_posix()}"
+        expected = f"missing repo file: {VALIDATOR_PATHS[-1].as_posix()}"
         if expected not in issues:
             print("PHASE3_CATALOG_SELF_TEST=fail")
-            print("expected missing export/UAPI validator route was not reported")
+            print("expected missing ABI header-family survey validator route was not reported")
             return 1
 
     print("PHASE3_CATALOG_SELF_TEST=pass")
