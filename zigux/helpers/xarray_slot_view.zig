@@ -310,6 +310,59 @@ test "constructor helpers keep the low boundary lanes distinct" {
     try std.testing.expect(!isTaggedInternalEntry(pointer_slot.rawValue()));
 }
 
+test "constructor-built low window stays contiguous through fromRaw and rebuild" {
+    const cases = [_]struct {
+        slot: SlotView,
+        raw: usize,
+        kind: SlotKind,
+        value: ?usize,
+        error_code: ?isize,
+        pointer: ?usize,
+    }{
+        .{ .slot = nullSlot(), .raw = 0, .kind = .null, .value = null, .error_code = null, .pointer = null },
+        .{ .slot = try fromValue(0), .raw = 1, .kind = .value, .value = 0, .error_code = null, .pointer = null },
+        .{ .slot = fromPointer(2), .raw = 2, .kind = .pointer, .value = null, .error_code = null, .pointer = 2 },
+        .{ .slot = try fromValue(1), .raw = 3, .kind = .value, .value = 1, .error_code = null, .pointer = null },
+        .{ .slot = fromPointer(4), .raw = 4, .kind = .pointer, .value = null, .error_code = null, .pointer = 4 },
+        .{ .slot = try fromValue(2), .raw = 5, .kind = .value, .value = 2, .error_code = null, .pointer = null },
+    };
+
+    for (cases, 0..) |case, index| {
+        const decoded = fromRaw(case.slot.rawValue());
+        const rebuilt = switch (case.kind) {
+            .null => nullSlot(),
+            .value => try fromValue(decoded.value().?),
+            .err => fromErrorCode(decoded.errorCode().?),
+            .pointer => fromPointer(decoded.pointerValue().?),
+        };
+        const redecode = fromRaw(rebuilt.rawValue());
+
+        try std.testing.expectEqual(case.raw, case.slot.rawValue());
+        try std.testing.expectEqual(case.kind, case.slot.kind());
+        try std.testing.expectEqual(case.value, case.slot.value());
+        try std.testing.expectEqual(case.error_code, case.slot.errorCode());
+        try std.testing.expectEqual(case.pointer, case.slot.pointerValue());
+
+        try std.testing.expectEqual(case.raw, decoded.rawValue());
+        try std.testing.expectEqual(case.kind, decoded.kind());
+        try std.testing.expectEqual(case.value, decoded.value());
+        try std.testing.expectEqual(case.error_code, decoded.errorCode());
+        try std.testing.expectEqual(case.pointer, decoded.pointerValue());
+
+        try std.testing.expectEqual(case.raw, rebuilt.rawValue());
+        try std.testing.expectEqual(case.raw, redecode.rawValue());
+        try std.testing.expectEqual(case.kind, redecode.kind());
+        try std.testing.expectEqual(case.value, redecode.value());
+        try std.testing.expectEqual(case.error_code, redecode.errorCode());
+        try std.testing.expectEqual(case.pointer, redecode.pointerValue());
+        try std.testing.expectEqual(isTaggedInternalEntry(case.raw), isTaggedInternalEntry(redecode.rawValue()));
+
+        if (index > 0) {
+            try std.testing.expectEqual(cases[index - 1].raw + 1, case.raw);
+        }
+    }
+}
+
 test "constructor tagging stays aligned at both slot cutoffs" {
     const low_null = nullSlot();
     const low_value = try fromValue(0);
