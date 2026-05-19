@@ -140,7 +140,7 @@ REQUIRED_MARKERS = {
         "- survey note: `Documentation/zigux/phase12-virtio-scsi-survey.md`",
         "- survey replay: `zigux/tests/phase12_virtio_scsi_survey.zig`",
         "- `scripts/zigux/validate-phase12.py`",
-        "- `make -C zigux phase12-validate`",
+        "- reminder-only validator wrapper vocabulary until it returns: `make -C zigux phase12-validate`",
         "current authoritative packet truth now lives in the shared-tree survey companions and validator surfaces reread for this lane",
     ],
     VIRTIO_SCSI_SURVEY_PATH: [
@@ -200,6 +200,10 @@ FORBIDDEN_MARKERS = {
     MAKEFILE_PATH: [
         "phase12-validate:",
         "phase12: phase12-validate phase12-smoke phase12-test",
+    ],
+    VIRTIO_SCSI_FALLBACK_PATH: [
+        "the shipped `make -C zigux phase12-validate` route keeps",
+        "must not treat the shipped `make -C zigux phase12-validate` route",
     ],
     VALIDATOR_PATH: [
         "RUNTIME_EVIDENCE_PATHS = [",
