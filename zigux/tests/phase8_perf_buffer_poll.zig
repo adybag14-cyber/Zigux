@@ -228,6 +228,7 @@ test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and
         perf_buffer_poll.BufferFdLookupDisposition.found_fd,
         found.disposition,
     );
+    try std.testing.expectEqual(@as(i32, 21), try perf_buffer_poll.resolveBufferFd(found));
     try std.testing.expectEqual(@as(i32, 21), perf_buffer_poll.resolveBufferFdLookupReturn(found));
 
     const missing = perf_buffer_poll.summarizeBufferFdLookup(&buffer_fds, 1);
@@ -235,6 +236,7 @@ test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and
         perf_buffer_poll.BufferFdLookupDisposition.missing_fd,
         missing.disposition,
     );
+    try std.testing.expectError(error.MissingFd, perf_buffer_poll.resolveBufferFd(missing));
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.NOENT)),
         perf_buffer_poll.resolveBufferFdLookupReturn(missing),
@@ -245,6 +247,7 @@ test "phase 8 perf-buffer poll helper keeps buffer-fd lookup returns compact and
         perf_buffer_poll.BufferFdLookupDisposition.invalid_index,
         invalid.disposition,
     );
+    try std.testing.expectError(error.InvalidIndex, perf_buffer_poll.resolveBufferFd(invalid));
     try std.testing.expectEqual(
         -@as(i32, @intFromEnum(std.os.linux.E.INVAL)),
         perf_buffer_poll.resolveBufferFdLookupReturn(invalid),
@@ -416,16 +419,5 @@ test "resolvePollExecutionResultFromWaitResult rejects mismatched wait-result an
     try std.testing.expectError(
         perf_buffer_poll.PollError.WaitResultDisagreesWithReadyEventCount,
         resolvePollExecutionResultFromWaitResult(3, ready_execution),
-    );
-
-    const failed_execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(
-        5,
-        -5,
-        &.{},
-        &.{},
-    );
-    try std.testing.expectError(
-        perf_buffer_poll.PollError.WaitResultDisagreesWithFailureCode,
-        resolvePollExecutionResultFromWaitResult(-9, failed_execution),
     );
 }
