@@ -196,10 +196,15 @@ test "phase3 atomic helper keeps compare-exchange ordering rules explicit" {
 test "phase3 atomic helper reports allowed failure-order bounds" {
     try std.testing.expectEqual(@as(?Ordering, .monotonic), weakestAllowedFailureOrder(.monotonic));
     try std.testing.expectEqual(@as(?Ordering, .monotonic), strongestAllowedFailureOrder(.monotonic));
+    try std.testing.expectEqual(@as(?Ordering, .monotonic), weakestAllowedFailureOrder(.release));
     try std.testing.expectEqual(@as(?Ordering, .monotonic), strongestAllowedFailureOrder(.release));
+    try std.testing.expectEqual(@as(?Ordering, .monotonic), weakestAllowedFailureOrder(.acquire));
     try std.testing.expectEqual(@as(?Ordering, .acquire), strongestAllowedFailureOrder(.acquire));
+    try std.testing.expectEqual(@as(?Ordering, .monotonic), weakestAllowedFailureOrder(.acq_rel));
     try std.testing.expectEqual(@as(?Ordering, .acquire), strongestAllowedFailureOrder(.acq_rel));
+    try std.testing.expectEqual(@as(?Ordering, .monotonic), weakestAllowedFailureOrder(.seq_cst));
     try std.testing.expectEqual(@as(?Ordering, .seq_cst), strongestAllowedFailureOrder(.seq_cst));
+    try std.testing.expectEqual(@as(?Ordering, null), weakestAllowedFailureOrder(.unordered));
     try std.testing.expectEqual(@as(?Ordering, null), strongestAllowedFailureOrder(.unordered));
 }
 
@@ -295,6 +300,16 @@ test "phase3 atomic helper wraps compare-exchange without widening failure seman
         compareExchangeWeak(u32, &value, 2, 5, .seq_cst, .release),
     );
     try std.testing.expectEqual(@as(u32, 2), value);
+}
+
+test "phase3 atomic helper keeps weak compare-exchange mismatch returns explicit" {
+    var value: u32 = 9;
+
+    try std.testing.expectEqual(@as(?u32, 9), try compareExchangeWeak(u32, &value, 7, 11, .acq_rel, .acquire));
+    try std.testing.expectEqual(@as(u32, 9), value);
+
+    try std.testing.expectEqual(@as(?u32, null), try compareExchangeWeak(u32, &value, 9, 11, .release, .monotonic));
+    try std.testing.expectEqual(@as(u32, 11), value);
 }
 
 test "phase3 atomic helper keeps fetch-add updates explicit" {
