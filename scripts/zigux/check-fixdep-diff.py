@@ -284,7 +284,9 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
         if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
             raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
 
-        expected_exit_code = validated_case.get("expected_exit_code", 0)
+        expected_exit_code = validated_case.get("expected_exit_code")
+        if expected_exit_code is None:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_exit_code")
         if not isinstance(expected_exit_code, int) or isinstance(expected_exit_code, bool):
             raise ValueError(
                 f"{CASES_PATH}:{name}:expected_exit_code_type="
@@ -300,7 +302,7 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
 
         for field_name, expected_value in expected_case.items():
-            actual_value = validated_case.get(field_name, 0 if field_name == "expected_exit_code" else None)
+            actual_value = validated_case.get(field_name)
             if actual_value != expected_value:
                 raise ValueError(
                     f"{CASES_PATH}:{name}:{field_name}={actual_value!r},expected={expected_value!r}"
@@ -354,18 +356,22 @@ def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, obje
 
 
 def run_self_test() -> int:
-    global FIXTURE_DIR
-
     validate_fixture_inventory()
     valid_cases = validate_cases(load_cases(CASES_PATH))
     validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
+    self_test_case_count = len(valid_cases)
 
-    expect_failure(
+    def counted_expect_failure(label: str, callback, expected_message: str) -> None:
+        nonlocal self_test_case_count
+        expect_failure(label, callback, expected_message)
+        self_test_case_count += 1
+
+    counted_expect_failure(
         "non_list_cases",
         lambda: validate_cases({"cases": valid_cases}),
         f"{CASES_PATH}:expected_non_empty_json_list",
     )
-    expect_failure(
+    counted_expect_failure(
         "empty_cases",
         lambda: validate_cases([]),
         f"{CASES_PATH}:expected_non_empty_json_list",
@@ -373,7 +379,7 @@ def run_self_test() -> int:
 
     non_object_cases = copy_valid_cases(valid_cases)
     non_object_cases[0] = "sample"
-    expect_failure(
+    counted_expect_failure(
         "non_object_case_entry",
         lambda: validate_cases(non_object_cases),
         f"{CASES_PATH}:entry[0]:expected_json_object",
@@ -381,7 +387,7 @@ def run_self_test() -> int:
 
     missing_name_cases = copy_valid_cases(valid_cases)
     missing_name_cases[0].pop("name", None)
-    expect_failure(
+    counted_expect_failure(
         "missing_case_name",
         lambda: validate_cases(missing_name_cases),
         f"{CASES_PATH}:entry[0]:missing_non_empty_name",
@@ -389,7 +395,7 @@ def run_self_test() -> int:
 
     duplicate_name_cases = copy_valid_cases(valid_cases)
     duplicate_name_cases[1]["name"] = duplicate_name_cases[0]["name"]
-    expect_failure(
+    counted_expect_failure(
         "duplicate_name",
         lambda: validate_cases(duplicate_name_cases),
         f"{CASES_PATH}:duplicate_name:{valid_cases[0]['name']}",
@@ -397,7 +403,7 @@ def run_self_test() -> int:
 
     unexpected_name_cases = copy_valid_cases(valid_cases)
     unexpected_name_cases[0]["name"] = "unexpected_fixdep_case"
-    expect_failure(
+    counted_expect_failure(
         "unexpected_name",
         lambda: validate_cases(unexpected_name_cases),
         f"{CASES_PATH}:unexpected_name:unexpected_fixdep_case",
@@ -405,7 +411,7 @@ def run_self_test() -> int:
 
     unexpected_field_cases = copy_valid_cases(valid_cases)
     find_case(unexpected_field_cases, "sample")["unexpected_field"] = "unexpected"
-    expect_failure(
+    counted_expect_failure(
         "unexpected_field",
         lambda: validate_cases(unexpected_field_cases),
         f"{CASES_PATH}:sample:unexpected_field:unexpected_field",
@@ -415,7 +421,7 @@ def run_self_test() -> int:
     sample_alias_case = find_case(expected_stdout_alias_cases, "sample")
     sample_alias_case.pop("expected", None)
     sample_alias_case["expected_stdout"] = "sample_expected.txt"
-    expect_failure(
+    counted_expect_failure(
         "unexpected_expected_stdout_field",
         lambda: validate_cases(expected_stdout_alias_cases),
         f"{CASES_PATH}:sample:unexpected_field:expected_stdout",
@@ -423,7 +429,7 @@ def run_self_test() -> int:
 
     reordered_cases = copy_valid_cases(valid_cases)
     reordered_cases[0], reordered_cases[1] = reordered_cases[1], reordered_cases[0]
-    expect_failure(
+    counted_expect_failure(
         "reordered_case_packet",
         lambda: validate_cases(reordered_cases),
         f"{CASES_PATH}:case_order="
@@ -432,7 +438,7 @@ def run_self_test() -> int:
 
     missing_stderr_cases = copy_valid_cases(valid_cases)
     find_case(missing_stderr_cases, "sample_comment_only").pop("expected_stderr", None)
-    expect_failure(
+    counted_expect_failure(
         "missing_expected_stderr",
         lambda: validate_cases(missing_stderr_cases),
         f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
@@ -440,15 +446,23 @@ def run_self_test() -> int:
 
     missing_expected_output_cases = copy_valid_cases(valid_cases)
     find_case(missing_expected_output_cases, "sample").pop("expected", None)
-    expect_failure(
+    counted_expect_failure(
         "missing_expected_output_field",
         lambda: validate_cases(missing_expected_output_cases),
         f"{CASES_PATH}:sample:missing_expected_output",
     )
 
+    missing_expected_exit_code_cases = copy_valid_cases(valid_cases)
+    find_case(missing_expected_exit_code_cases, "sample_comment_only").pop("expected_exit_code", None)
+    counted_expect_failure(
+        "missing_expected_exit_code_field",
+        lambda: validate_cases(missing_expected_exit_code_cases),
+        f"{CASES_PATH}:sample_comment_only:missing_expected_exit_code",
+    )
+
     string_expected_exit_cases = copy_valid_cases(valid_cases)
     find_case(string_expected_exit_cases, "sample_comment_only")["expected_exit_code"] = "1"
-    expect_failure(
+    counted_expect_failure(
         "string_expected_exit_code_type",
         lambda: validate_cases(string_expected_exit_cases),
         f"{CASES_PATH}:sample_comment_only:expected_exit_code_type=str,expected=int",
@@ -456,7 +470,7 @@ def run_self_test() -> int:
 
     bool_expected_exit_cases = copy_valid_cases(valid_cases)
     find_case(bool_expected_exit_cases, "sample_comment_only")["expected_exit_code"] = True
-    expect_failure(
+    counted_expect_failure(
         "bool_expected_exit_code_type",
         lambda: validate_cases(bool_expected_exit_cases),
         f"{CASES_PATH}:sample_comment_only:expected_exit_code_type=bool,expected=int",
@@ -464,7 +478,7 @@ def run_self_test() -> int:
 
     mismatched_target_cases = copy_valid_cases(valid_cases)
     find_case(mismatched_target_cases, "sample")["target"] = "sample-wrong.o"
-    expect_failure(
+    counted_expect_failure(
         "mismatched_target_field",
         lambda: validate_cases(mismatched_target_cases),
         f"{CASES_PATH}:sample:target='sample-wrong.o',expected='sample.o'",
@@ -478,16 +492,16 @@ def run_self_test() -> int:
             shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
 
         original_fixture_dir = FIXTURE_DIR
-        FIXTURE_DIR = fixture_dir
+        globals()["FIXTURE_DIR"] = fixture_dir
         try:
-            expect_failure(
+            counted_expect_failure(
                 "missing_expected_output_fixture",
                 lambda: validate_cases(valid_cases),
                 f"{CASES_PATH}:missing_expected_output:sample_expected.txt",
             )
         finally:
-            FIXTURE_DIR = original_fixture_dir
-
+            globals()["FIXTURE_DIR"] = original_fixture_dir
+    
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_stderr_fixture_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
         for fixture_path in FIXTURE_DIR.iterdir():
@@ -496,19 +510,19 @@ def run_self_test() -> int:
             shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
 
         original_fixture_dir = FIXTURE_DIR
-        FIXTURE_DIR = fixture_dir
+        globals()["FIXTURE_DIR"] = fixture_dir
         try:
-            expect_failure(
+            counted_expect_failure(
                 "missing_expected_stderr_fixture",
                 lambda: validate_cases(valid_cases),
                 f"{CASES_PATH}:missing_expected_stderr:sample_comment_only_expected.stderr.txt",
             )
         finally:
-            FIXTURE_DIR = original_fixture_dir
+            globals()["FIXTURE_DIR"] = original_fixture_dir
 
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
-    expect_failure(
+    counted_expect_failure(
         "unsupported_stdout_mode",
         lambda: validate_cases(unsupported_stdout_mode_cases),
         f"{CASES_PATH}:sample_comment_only_stdout_full:unsupported_stdout_mode:'pipe_full'",
@@ -516,7 +530,7 @@ def run_self_test() -> int:
 
     missing_depfile_cases = copy_valid_cases(valid_cases)
     find_case(missing_depfile_cases, "sample").pop("depfile", None)
-    expect_failure(
+    counted_expect_failure(
         "missing_non_empty_depfile",
         lambda: validate_cases(missing_depfile_cases),
         f"{CASES_PATH}:sample:missing_non_empty_depfile",
@@ -530,15 +544,15 @@ def run_self_test() -> int:
             shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
 
         original_fixture_dir = FIXTURE_DIR
-        FIXTURE_DIR = fixture_dir
+        globals()["FIXTURE_DIR"] = fixture_dir
         try:
-            expect_failure(
+            counted_expect_failure(
                 "missing_depfile",
                 lambda: validate_cases(valid_cases),
                 f"{CASES_PATH}:missing_depfile:sample.d",
             )
         finally:
-            FIXTURE_DIR = original_fixture_dir
+            globals()["FIXTURE_DIR"] = original_fixture_dir
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
@@ -548,11 +562,12 @@ def run_self_test() -> int:
             fixture_dir,
             frozenset({"fixture_a.txt", r"escaped\ space-config.h"}),
         )
+        self_test_case_count += 1
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_missing_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
-        (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
-        expect_failure(
+        (fixture_dir / "fixture_a.txt").writeText("fixture\n", encoding="utf-8")
+        counted_expect_failure(
             "missing_escaped_space_fixture",
             lambda: validate_fixture_inventory(
                 fixture_dir,
@@ -566,7 +581,7 @@ def run_self_test() -> int:
         (fixture_dir / "fixture_a.txt").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / r"escaped\ space-config.h").write_text("fixture\n", encoding="utf-8")
         (fixture_dir / "unexpected.txt").write_text("fixture\n", encoding="utf-8")
-        expect_failure(
+        counted_expect_failure(
             "unexpected_fixture_inventory",
             lambda: validate_fixture_inventory(
                 fixture_dir,
@@ -575,19 +590,19 @@ def run_self_test() -> int:
             f"{fixture_dir}:unexpected_fixtures:unexpected.txt",
         )
 
-    expect_failure(
+    counted_expect_failure(
         "explicit_c_tool_drift",
         lambda: validate_tool_sources(C_FIXDEP.with_name("fixdep-mismatch.c"), ZIG_FIXDEP),
         f"fixdep:c_tool={C_FIXDEP.with_name('fixdep-mismatch.c')},expected={EXPECTED_C_FIXDEP}",
     )
-    expect_failure(
+    counted_expect_failure(
         "explicit_zig_tool_drift",
         lambda: validate_tool_sources(C_FIXDEP, ZIG_FIXDEP.with_name("fixdep-mismatch.zig")),
         f"fixdep:zig_tool={ZIG_FIXDEP.with_name('fixdep-mismatch.zig')},expected={EXPECTED_ZIG_FIXDEP}",
     )
 
     print("FIXDEP_SELF_TEST=pass")
-    print(f"FIXDEP_SELF_TEST_CASE_COUNT={len(valid_cases) + 20}")
+    print(f"FIXDEP_SELF_TEST_CASE_COUNT={self_test_case_count}")
     return 0
 
 
