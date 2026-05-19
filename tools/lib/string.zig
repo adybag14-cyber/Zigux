@@ -352,6 +352,82 @@ pub fn kbasename(path: []const u8) []const u8 {
     return visible[slash_idx + 1 ..];
 }
 
+pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
+    const scan_len = @min(count, buf.len);
+    var idx: usize = 0;
+    while (idx < scan_len) : (idx += 1) {
+        const ch = buf[idx];
+        if (ch == needle) {
+            return idx;
+        }
+        if (ch == 0) {
+            return null;
+        }
+    }
+    return null;
+}
+
+pub fn strchr(buf: []const u8, needle: u8) ?usize {
+    return strnchr(buf, buf.len, needle);
+}
+
+pub fn strrchr(buf: []const u8, needle: u8) ?usize {
+    const string_len = cStringLen(buf);
+    if (needle == 0) {
+        if (string_len < buf.len) {
+            return string_len;
+        }
+        return null;
+    }
+
+    var idx = string_len;
+    while (idx > 0) {
+        idx -= 1;
+        if (buf[idx] == needle) {
+            return idx;
+        }
+    }
+    return null;
+}
+
+pub fn strpbrk(buf: []const u8, accept: []const u8) ?usize {
+    const string_len = cStringLen(buf);
+    const accept_len = cStringLen(accept);
+
+    var idx: usize = 0;
+    while (idx < string_len) : (idx += 1) {
+        if (std.mem.indexOfScalar(u8, accept[0..accept_len], buf[idx]) != null) {
+            return idx;
+        }
+    }
+
+    return null;
+}
+
+pub fn strnchrNul(buf: []const u8, count: usize, needle: u8) usize {
+    const scan_len = @min(count, buf.len);
+    var idx: usize = 0;
+    while (idx < scan_len) : (idx += 1) {
+        const ch = buf[idx];
+        if (ch == needle or ch == 0) {
+            return idx;
+        }
+    }
+    return scan_len;
+}
+
+pub fn strnchrnul(buf: []const u8, count: usize, needle: u8) usize {
+    return strnchrNul(buf, count, needle);
+}
+
+pub fn strchrNul(buf: []const u8, needle: u8) usize {
+    return strnchrNul(buf, buf.len, needle);
+}
+
+pub fn strchrnul(buf: []const u8, needle: u8) usize {
+    return strchrNul(buf, needle);
+}
+
 test "strtobool accepts common Linux forms" {
     try std.testing.expect(try strtobool("y"));
     try std.testing.expect(try strtobool("On"));
@@ -878,44 +954,6 @@ test "memparse applies suffixes before signed clamping" {
     try std.testing.expectEqualStrings("more", positive.rest);
 }
 
-pub fn strnchr(buf: []const u8, count: usize, needle: u8) ?usize {
-    const scan_len = @min(count, buf.len);
-    var idx: usize = 0;
-    while (idx < scan_len) : (idx += 1) {
-        const ch = buf[idx];
-        if (ch == needle) {
-            return idx;
-        }
-        if (ch == 0) {
-            return null;
-        }
-    }
-    return null;
-}
-
-pub fn strchr(buf: []const u8, needle: u8) ?usize {
-    return strnchr(buf, buf.len, needle);
-}
-
-pub fn strrchr(buf: []const u8, needle: u8) ?usize {
-    const string_len = cStringLen(buf);
-    if (needle == 0) {
-        if (string_len < buf.len) {
-            return string_len;
-        }
-        return null;
-    }
-
-    var idx = string_len;
-    while (idx > 0) {
-        idx -= 1;
-        if (buf[idx] == needle) {
-            return idx;
-        }
-    }
-    return null;
-}
-
 test "strchr mirrors full-length C-string searches" {
     try std.testing.expectEqual(@as(?usize, 1), strchr("abcd", 'b'));
     try std.testing.expectEqual(@as(?usize, null), strchr("abcd", 'z'));
@@ -941,6 +979,21 @@ test "strrchr finds the last in-range match with C-string semantics" {
     try std.testing.expectEqual(@as(?usize, null), strrchr(&past_nul, 'b'));
 }
 
+test "strpbrk finds the first accepted byte with C-string semantics" {
+    try std.testing.expectEqual(@as(?usize, 1), strpbrk("abcd", "xzbc"));
+    try std.testing.expectEqual(@as(?usize, 0), strpbrk("abcd", "da"));
+    try std.testing.expectEqual(@as(?usize, null), strpbrk("abcd", "xyz"));
+    try std.testing.expectEqual(@as(?usize, null), strpbrk("abcd", ""));
+
+    const cstr = [_]u8{ 'a', 'b', 0, 'c', 'd' };
+    try std.testing.expectEqual(@as(?usize, 0), strpbrk(&cstr, "ax"));
+    try std.testing.expectEqual(@as(?usize, 1), strpbrk(&cstr, "xb"));
+    try std.testing.expectEqual(@as(?usize, null), strpbrk(&cstr, "cd"));
+
+    const accept_cstr = [_]u8{ 'x', 'b', 0, 'a' };
+    try std.testing.expectEqual(@as(?usize, 1), strpbrk("abcd", &accept_cstr));
+}
+
 test "strnchr honors count and C-string boundaries" {
     try std.testing.expectEqual(@as(?usize, 1), strnchr("abcd", 4, 'b'));
     try std.testing.expectEqual(@as(?usize, null), strnchr("abcd", 1, 'b'));
@@ -961,30 +1014,6 @@ test "strnlen honors count and C-string boundaries" {
     try std.testing.expectEqual(@as(usize, 2), strnlen(&cstr, cstr.len));
     try std.testing.expectEqual(@as(usize, 2), strnlen(&cstr, 4));
     try std.testing.expectEqual(@as(usize, 1), strnlen(&cstr, 1));
-}
-
-pub fn strnchrNul(buf: []const u8, count: usize, needle: u8) usize {
-    const scan_len = @min(count, buf.len);
-    var idx: usize = 0;
-    while (idx < scan_len) : (idx += 1) {
-        const ch = buf[idx];
-        if (ch == needle or ch == 0) {
-            return idx;
-        }
-    }
-    return scan_len;
-}
-
-pub fn strnchrnul(buf: []const u8, count: usize, needle: u8) usize {
-    return strnchrNul(buf, count, needle);
-}
-
-pub fn strchrNul(buf: []const u8, needle: u8) usize {
-    return strnchrNul(buf, buf.len, needle);
-}
-
-pub fn strchrnul(buf: []const u8, needle: u8) usize {
-    return strchrNul(buf, needle);
 }
 
 test "strnchrNul returns the first match, NUL, or count boundary" {
