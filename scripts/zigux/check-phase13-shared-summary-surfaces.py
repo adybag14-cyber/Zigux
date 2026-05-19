@@ -24,6 +24,8 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase13-release-notes-survey.md": [
         "The release-planning handle that is directly supportable from this run stays anchored to the materialized reminder surfaces and their active shared companions:",
         "`Documentation/zigux/phase13-release-coordination-matrix.md`",
+        "`Documentation/zigux/phase13-shared-helper-lane-sequencing.md`",
+        "`Documentation/zigux/phase13-roadmap-traceability.md`",
         "`scripts/zigux/check-phase13-shared-summary-surfaces.py`",
         "Keep broad release wording tied to that reminder packet while the missing validator-first helpers and missing shared build route surfaces remain explicit repo-reality gaps.",
     ],
@@ -169,6 +171,22 @@ def run_self_test() -> int:
         expect_issue(
             collect_issues(tempdir),
             "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:The release-planning handle that is directly supportable from this run stays anchored to the materialized reminder surfaces and their active shared companions:",
+        )
+        checks_run += 1
+
+        populate_repo(tempdir)
+        release_notes_path = tempdir / "Documentation/zigux/phase13-release-notes-survey.md"
+        release_notes_path.write_text(
+            release_notes_path.read_text(encoding="utf-8").replace(
+                "`Documentation/zigux/phase13-roadmap-traceability.md`\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_issue(
+            collect_issues(tempdir),
+            "missing_marker:Documentation/zigux/phase13-release-notes-survey.md:`Documentation/zigux/phase13-roadmap-traceability.md`",
         )
         checks_run += 1
 
