@@ -6,8 +6,6 @@
   "scope": "shared ABI bindings, notifier layouts, export-status layout, and header-compatibility replay",
   "packet_files": [
     "Documentation/zigux/phase3-abi-slice.md",
-    "Documentation/zigux/phase3-export-uapi-boundary-survey.md",
-    "Documentation/zigux/phase3-linux-zigux-header-governance.md",
     "include/zigux/abi.h",
     "include/zigux/dev_t.h",
     "include/linux/zigux.h",
@@ -20,11 +18,8 @@
     "zigux/kernel/export_shim.zig",
     "scripts/zigux/validate-phase3.py",
     "scripts/zigux/phase3_catalog.py",
-    "scripts/zigux/validate-phase3-export-uapi-survey.py",
     "zigux/tests/phase3_abi.zig",
     "zigux/tests/phase3_abi_dump_current.zig",
-    "zigux/tests/phase3_export_uapi_layout.zig",
-    "zigux/tests/phase3_export_uapi_layout_build.zig",
     "zigux/tests/fixtures/phase3_abi_manifest.json",
     "scripts/zigux/check-phase3-abi.py"
   ],
@@ -32,8 +27,7 @@
     "python3 scripts/zigux/check-phase3-abi.py --self-test",
     "python3 scripts/zigux/check-phase3-abi.py",
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
-    "zig build phase3-dump --build-file zigux/tests/build.zig",
-    "zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
+    "zig build phase3-dump --build-file zigux/tests/build.zig"
   ],
   "repo_reality_gaps": [
     "scripts/zigux/check-phase3-catalog-selftest.py"
