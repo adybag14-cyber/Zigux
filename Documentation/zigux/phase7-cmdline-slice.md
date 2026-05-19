@@ -4,42 +4,41 @@ This document tracks the bounded Phase 7 runtime leaf-helper slice for Zigux aro
 
 ## Status
 
-- `PHASE7_STATUS=helper_local_packet_landed`
+- `PHASE7_STATUS=helper_local_test_survey_manifest_anchor`
 - `PHASE7_SLICE=cmdline-runtime-leaf`
-- `PHASE7_LANE_KEY=helper-local`
-- lane-key note: `helper-local` keeps the dedicated cmdline packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate shared-control follow-ons
-- scope: keep the Phase 7 cmdline lane limited to the current helper-local packet and the no-standalone-cmdline-sample boundary
-- lane state: current `master` directly carries `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, and this helper-local packet keeps `Documentation/zigux/phase7-cmdline-slice.md`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_sample_boundary.zig`, `zigux/tests/phase7_cmdline_manifest.json`, and `samples/zigux/README.md` aligned around the bounded cmdline helper family without widening into the separate `argv_split`, `string_helpers`, or `rbtree` packets
+- `PHASE7_LANE_KEY=P7-L10`
+- lane-key note: `P7-L10` keeps the dedicated cmdline packet separate from the broader Phase 7 shared-control lanes; shared docs-root, validator, Makefile, workflow, and build-route reminders stay with those separate follow-ons
+- scope: keep the Phase 7 cmdline lane limited to the current helper-local slice anchor, dedicated replay, dedicated survey, and the no-standalone-cmdline-sample boundary
+- lane state: current `master` directly carries `Documentation/zigux/phase7-cmdline-slice.md`, `lib/cmdline.zig`, `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, `scripts/zigux/check-phase7-cmdline-packet.py`, and `samples/zigux/README.md`. Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned survey-backed packet.
 
 ## Why This Slice Exists
 
 Phase 7 is where Zigux starts carrying reusable runtime helper families in product-facing locations.
 
-The current `cmdline` state on `master` now carries a bounded helper-local packet around option matching, integer option decoding, next-argument parsing, and memory-size parsing, plus a dedicated helper-local replay in `zigux/tests/phase7_cmdline.zig`, while keeping the broader token-splitting, string-helper, and tree-helper follow-ons in their own Phase 7 families.
+The current `cmdline` state on `master` now carries a bounded helper-local packet around exact bare-option matching, Linux-style option and range decoding, quoted and key-value argument splitting, signed and unsigned memory parsing, and survey-backed packet reviewability while keeping broader shared-control follow-ons outside this same helper family.
 
-This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `master` still ships no standalone `samples/zigux/*cmdline*` reference sample, so the dedicated boundary replay should keep that separation explicit while the Phase 7 cmdline helper stays reviewable through helper-local surfaces only.
+This is intentionally not a Phase 5 `samples/zigux/` delivery lane. Current `master` still ships no standalone `samples/zigux/*cmdline*` reference sample, so the dedicated boundary reminder should keep that separation explicit while the Phase 7 cmdline helper stays reviewable through helper-local surfaces only.
 
 ## Gates
 
 1. keep the helper-local implementation explicit
 - `lib/cmdline.zig`
 
-2. keep the dedicated helper-local replay and review packet explicit
-- `zigux/tests/phase7_cmdline.zig`
+2. keep the current helper-local review packet explicit
 - `Documentation/zigux/phase7-cmdline-slice.md`
+- `zigux/tests/phase7_cmdline.zig`
 - `zigux/tests/phase7_cmdline_survey.zig`
 - `zigux/tests/phase7_cmdline_manifest.json`
+- `scripts/zigux/check-phase7-cmdline-packet.py`
 
 3. keep the no-standalone-cmdline-sample boundary explicit
 - `samples/zigux/README.md`
-- `zigux/tests/phase7_cmdline_sample_boundary.zig`
 
-4. keep adjacent Phase 7 families out of this packet unless a fresh reread says otherwise
-- do not count `lib/argv_split.zig`
-- do not count `lib/string_helpers.zig`
+4. keep adjacent Phase 7 families and shared-control surfaces out of this packet unless a fresh reread says otherwise
+- do not count `Documentation/zigux/phase7-string-helpers-slice.md`
+- do not count `Documentation/zigux/phase7-argv-split-slice.md`
 - do not count `Documentation/zigux/phase7-rbtree-slice.md`
-- do not count `lib/rbtree.zig`
-- do not count shared validator, Makefile, workflow, or build-route reminders here
+- do not count shared validator, Makefile, workflow, or build-route reminders here even when they are readable as non-owner evidence
 
 ## Current Parity Surface
 
@@ -53,33 +52,30 @@ The current helper-local packet on `master` covers:
 
 The current helper-local replay keeps these proofs explicit:
 
-- exact bare-option matching inside comma-separated option strings
-- signed and unsigned integer option parsing with Linux-style range handling
-- malformed-option clearing behavior for caller-owned integer outputs
-- wrapped integer semantics for oversized values and validate-only replay paths
-- decimal, hexadecimal, octal, and suffix-aware `memparse()` decoding
-- signed-clamp and unchanged-rest behavior when no parse is possible
-- `nextArg()` handling for bare tokens, key-value pairs, quoted values, quoted bare tokens, empty values, leading whitespace, leading equals signs, and first-NUL boundaries
-- dedicated helper-local replay coverage rooted at `zigux/tests/phase7_cmdline.zig`
+- exact bare-option matching that rejects key-value forms and keeps empty-entry behavior explicit
+- Linux-style option parsing across signed, unsigned, comma-separated, and range-expanded inputs, including malformed-input and wraparound behavior
+- quoted and key-value argument splitting that preserves the remaining borrowed suffix without widening beyond the first exported C-string boundary
+- decimal, hexadecimal, octal, signed, and suffix-aware memory parsing with explicit no-conversion and signed-clamping behavior
+- dedicated helper-local replay, survey, manifest, and checker coverage rooted at `zigux/tests/phase7_cmdline.zig`, `zigux/tests/phase7_cmdline_survey.zig`, `zigux/tests/phase7_cmdline_manifest.json`, and `scripts/zigux/check-phase7-cmdline-packet.py`
 
 The current helper-local replay also keeps these ownership and boundary rules explicit:
 
-- `parseOptionStr()` keeps matching bounded to exact bare entries and does not promote keyed values into bare-option hits
-- `getOption()` and `getOptions()` mutate only caller-owned cursor and integer storage while preserving Linux-style return codes and first-invalid-token stop behavior
-- `nextArg()` returns borrowed slices inside the caller-provided command-line buffer and keeps parsing inside the first exported C-string boundary
-- `memparse()` keeps the unconsumed suffix explicit through the returned `rest` slice instead of widening into hidden normalization
+- `parseOptionStr()` stays bounded to exact comma-delimited bare options inside the exported C-string prefix
+- `getOption()` and `getOptions()` keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior
+- `nextArg()` and `next_arg()` keep parameter, optional value, and remaining text borrowed from the caller slice without widening beyond the exported C-string boundary
+- `memparse()` keeps no-conversion, suffix handling, and signed-clamp posture reviewable without widening into separate allocator-backed helper ownership
+- the no-standalone-cmdline sample boundary stays helper-local only while `samples/zigux/README.md` keeps `*cmdline*` listed among the no-extra-sample reminders
 
 ## Non-goals
 
 This helper-local Phase 7 cmdline slice does not yet claim:
 
-- the separate `argv_split` ownership-and-tokenization packet
-- the separate `string_helpers` escape, quoting, and string-array helper packet
-- the separate `rbtree` helper-local packet under `lib/`
 - any standalone `samples/zigux/*cmdline*` sample-root delivery
+- the separate `string_helpers`, `argv_split`, or `rbtree` helper families
 - shared validator, Makefile, workflow, or tests-root reminder ownership
+- widened shell-style quoting or escaping beyond the current helper-local packet
 
 ## Next Bounded Step
 
-Keep the dedicated cmdline helper replay, survey, manifest, and no-standalone-cmdline-sample boundary fail-closed on the current helper-local packet, and reopen only if those same-lane reminder surfaces drift or a fresh reread proves a matching dedicated fixture companion returned on current `master`.
-Route adjacent `argv_split`, `string_helpers`, and `rbtree` follow-through to their own Phase 7 helper-local packets.
+Keep same-lane follow-through limited to the returned helper-local survey-manifest-checker truthfulness packet or one bounded parsing replay proof.
+Route shared validator, Makefile, workflow, tests-root, sample-root, and broader docs-root follow-through to the separate Phase 7 shared-control lanes.
