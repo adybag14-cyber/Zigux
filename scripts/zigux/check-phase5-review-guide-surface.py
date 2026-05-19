@@ -437,7 +437,7 @@ def run_self_test() -> int:
             _sample_guide().replace(NO_EXTRA_SAMPLE_MARKERS[3], "", 1),
         )
         failures = collect_failures(missing_boundary_root)
-        expected = [f"guide:missing_boundary:{NO_EXTRA_SAMPLE_MARKERS[3]}]
+        expected = [f"guide:missing_boundary:{NO_EXTRA_SAMPLE_MARKERS[3]}"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-boundary failure: {failures}")
         checks_run += 1
