@@ -118,7 +118,7 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "the governance packet is materially landed and reviewable");
     try expectContains(
         readiness_note,
-        "the missing validator, build, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready",
+        "the missing validator, build, workflow, and lane-owner companions still block any claim that the broader Phase 15 replay route is fully ready",
     );
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-docs-readme-alignment.py`");
     try expectContains(readiness_note, "`scripts/zigux/check-phase15-scripts-readme-alignment.py`");
@@ -138,6 +138,7 @@ test "phase 15 readiness note stays aligned with the smaller current-master pack
     try expectContains(readiness_note, "`make -C zigux phase15-validate` remains blocked route vocabulary");
     try expectContains(readiness_note, "`make -C zigux phase15-test` remains blocked route vocabulary");
     try expectContains(readiness_note, "`make -C zigux phase15` remains blocked route vocabulary");
+    try expectContains(readiness_note, "`.github/workflows/zigux-bootstrap.yml` still carries no dedicated Phase 15 validate, test, or aggregate route");
     try expectContains(readiness_note, "no Architecture Council approval is currently recorded for a freeze-map status change");
     try expectContains(readiness_note, "ready for maintenance-mode truthfulness refreshes only");
     try expectContains(readiness_note, "focused readiness packet checker");
