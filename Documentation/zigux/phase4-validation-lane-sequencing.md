@@ -16,7 +16,7 @@ Treat the current Phase 4 validation packet as the shipped rollback-readiness an
 
 ## Current repo reality
 
-Current `master` still exposes this sequencing note and the narrower shared-versus-adjacent owner split, but nearby runs should treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, and `scripts/zigux/check-phase4-reversible-delivery-pins.py` as the current direct-readback handoff before reopening older broader Phase 4 companions.
+Current `master` still exposes this sequencing note and the narrower shared-versus-adjacent owner split, but nearby runs should treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` as the current direct-readback handoff before reopening older broader Phase 4 companions.
 
 - current direct-readback shared handoff:
   - `Documentation/zigux/phase4-reversible-delivery-evidence.md`
@@ -24,6 +24,12 @@ Current `master` still exposes this sequencing note and the narrower shared-vers
   - `zigux/tests/README.md`
   - `scripts/zigux/check-phase4-repo-reality-warning.py`
   - `scripts/zigux/check-phase4-reversible-delivery-pins.py`
+- directly readable dedicated local-only perf packet that still stays adjacent to the shared handoff:
+  - `scripts/zigux/check-phase4-perf-baseline-packet.py`
+  - `zigux/tests/phase4_perf_baseline_manifest.json`
+  - `zigux/tests/phase4_perf_baseline_survey.zig`
+  - `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`
+  - `make -C zigux phase4-perf-baseline-survey`
 - historical broader shared exact-readback and owner-map packet until a same-family lane rereads or republishes it:
   - `Documentation/zigux/artifact-diff.md`
   - `Documentation/zigux/phase4-gate-evidence.md`
@@ -37,12 +43,6 @@ Current `master` still exposes this sequencing note and the narrower shared-vers
   - `zigux/tests/phase4_build.zig`
   - `zigux/Makefile`
   - `.github/workflows/zigux-bootstrap.yml`
-- dedicated local-only perf packet when directly readable again:
-  - `scripts/zigux/check-phase4-perf-baseline-packet.py`
-  - `zigux/tests/phase4_perf_baseline_manifest.json`
-  - `zigux/tests/phase4_perf_baseline_survey.zig`
-  - `zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig`
-  - `make -C zigux phase4-perf-baseline-survey`
 - parked starter-gap packets:
   - `Documentation/zigux/phase4-kprobe-example-gap-survey.md`
   - `zigux/tests/phase4_kprobe_example_manifest.json`
@@ -57,7 +57,7 @@ That means current Phase 4 work is no longer about inventing a missing validatio
 
 ### Shared exact-readback lane
 
-Treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, and this sequencing note as the current direct-readback owner map for shared Phase 4 wording that spans more than one validation packet while the broader validator, lab-matrix, and local-only perf companions remain historical or missing in direct contents reads.
+Treat `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, and this sequencing note as the shared side of the current direct-readback owner map for Phase 4 wording that spans more than one validation packet, while `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` remain directly readable adjacent evidence inside the perf-only lane rather than historical companions.
 
 This shared lane owns only:
 - wording that keeps the current direct-readback handoff explicit instead of reconstructing the broader shared packet from older route names alone
@@ -66,7 +66,7 @@ This shared lane owns only:
 - wording that keeps the shipped host-side artifact-diff helper contract, deterministic catalog replay, and validator-first replay routes explicit together without treating them as current direct-readback proof while the broader packet is still historical here
 - wording that keeps the current rollback owners, reviewer prompts, reversible-delivery handoff, and validator-first replay routes explicit together
 - wording that keeps the current broader shared-CI perf-promotion coordination-owner split explicit across both landed rollback gates while the dedicated Validation and Perf Team decision-owner cue stays inside the adjacent local-only perf packet
-- wording that keeps the local-only perf packet and the parked starter-gap packets visible as adjacent evidence without claiming they are the same shared gate
+- wording that keeps the directly readable local-only perf packet and the parked starter-gap packets visible as adjacent evidence without claiming they are the same shared gate
 
 This shared lane does not own the approved local perf commands and acceptable limits themselves, and it does not own starter-gap packet-local reminder wording beyond naming that those packets remain parked and adjacent.
 
