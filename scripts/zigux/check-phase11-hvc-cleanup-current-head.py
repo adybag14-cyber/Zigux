@@ -408,6 +408,7 @@ def build_fixture(root: Path) -> None:
                 'test "phase11 hvc console keeps targetless notifier no-unregister edge reviewable" {',
                 'test "phase11 hvc console keeps notifier irq helper surface reviewable" {',
                 'test "phase11 hvc console keeps modem-control helper surface reviewable" {',
+                'test "phase11 hvc console keeps hvc_kick wakeup cue reviewable" {',
                 "",
             ]
         ),
@@ -782,6 +783,61 @@ def run_self_test() -> int:
         )
         expect_failure(missing_starter_notifier_edge, "pub fn summarizeTargetlessNotifierEdge(request: TargetlessNotifierEdgeRequest) TargetlessNotifierEdgeSummary {")
 
+        missing_starter_kick_wakeup_cue = tmpdir / "missing_starter_kick_wakeup_cue"
+        shutil.copytree(fixture, missing_starter_kick_wakeup_cue, dirs_exist_ok=True)
+        write(
+            missing_starter_kick_wakeup_cue / DRIVER_PATH,
+            read_text(missing_starter_kick_wakeup_cue / DRIVER_PATH).replace(
+                "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {",
+                "",
+            ),
+        )
+        expect_failure(missing_starter_kick_wakeup_cue, "pub fn summarizeKickWakeupCue(request: KickWakeupCueRequest) KickWakeupCueSummary {")
+
+        missing_starter_notifier_irq_helper = tmpdir / "missing_starter_notifier_irq_helper"
+        shutil.copytree(fixture, missing_starter_notifier_irq_helper, dirs_exist_ok=True)
+        write(
+            missing_starter_notifier_irq_helper / DRIVER_PATH,
+            read_text(missing_starter_notifier_irq_helper / DRIVER_PATH).replace(
+                "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {",
+                "",
+            ),
+        )
+        expect_failure(missing_starter_notifier_irq_helper, "pub fn summarizeNotifierIrqHelper(request: NotifierIrqHelperRequest) NotifierIrqHelperSummary {")
+
+        missing_starter_modem_control_handoff = tmpdir / "missing_starter_modem_control_handoff"
+        shutil.copytree(fixture, missing_starter_modem_control_handoff, dirs_exist_ok=True)
+        write(
+            missing_starter_modem_control_handoff / DRIVER_PATH,
+            read_text(missing_starter_modem_control_handoff / DRIVER_PATH).replace(
+                "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {",
+                "",
+            ),
+        )
+        expect_failure(missing_starter_modem_control_handoff, "pub fn summarizeModemControlHandoff(request: ModemControlRequest) ModemControlSummary {")
+
+        missing_starter_notifier_irq_test = tmpdir / "missing_starter_notifier_irq_test"
+        shutil.copytree(fixture, missing_starter_notifier_irq_test, dirs_exist_ok=True)
+        write(
+            missing_starter_notifier_irq_test / DRIVER_PATH,
+            read_text(missing_starter_notifier_irq_test / DRIVER_PATH).replace(
+                'test "phase11 hvc console keeps notifier irq helper surface reviewable" {',
+                "",
+            ),
+        )
+        expect_failure(missing_starter_notifier_irq_test, 'test "phase11 hvc console keeps notifier irq helper surface reviewable" {')
+
+        missing_starter_modem_control_test = tmpdir / "missing_starter_modem_control_test"
+        shutil.copytree(fixture, missing_starter_modem_control_test, dirs_exist_ok=True)
+        write(
+            missing_starter_modem_control_test / DRIVER_PATH,
+            read_text(missing_starter_modem_control_test / DRIVER_PATH).replace(
+                'test "phase11 hvc console keeps modem-control helper surface reviewable" {',
+                "",
+            ),
+        )
+        expect_failure(missing_starter_modem_control_test, 'test "phase11 hvc console keeps modem-control helper surface reviewable" {')
+
         missing_export_build_marker = tmpdir / "missing_export_build_marker"
         shutil.copytree(fixture, missing_export_build_marker, dirs_exist_ok=True)
         write(
@@ -825,7 +881,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=28")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=33")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
