@@ -17,6 +17,7 @@ TOOLCHAIN_CHECKER = "scripts/zigux/check-zig-toolchain.py"
 FIXDEP_GATE_CHECKER = "scripts/zigux/check-phase2-fixdep-gate.py"
 FIXDEP_DIFF_CHECKER = "scripts/zigux/check-fixdep-diff.py"
 FIXDEP_ZIG = "scripts/zigux/fixdep.zig"
+LANE01_CHARTER_CHECKER = "scripts/zigux/check-lane01-bootstrap-charter-alignment.py"
 PINNING_CHECKER = "scripts/zigux/check-phase2-toolchain-pinning.py"
 PIN_SCOPE_CHECKER = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 REQUIRED_MAKE_ROUTES_CHECKER = "scripts/zigux/check-phase2-required-make-routes.py"
@@ -57,6 +58,7 @@ REQUIRED_PATHS = (
     FIXDEP_GATE_CHECKER,
     FIXDEP_DIFF_CHECKER,
     FIXDEP_ZIG,
+    LANE01_CHARTER_CHECKER,
     PINNING_CHECKER,
     PIN_SCOPE_CHECKER,
     REQUIRED_MAKE_ROUTES_CHECKER,
@@ -97,6 +99,8 @@ WORKFLOW_LINE_MARKERS = (
     "run: zig test scripts/zigux/fixdep.zig",
     "run: python3 scripts/zigux/validate-bootstrap.py --self-test",
     "run: python3 scripts/zigux/validate-bootstrap.py",
+    "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test",
+    "run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py",
     "run: python3 scripts/zigux/check-kconfig-bridge.py --self-test",
     "run: python3 scripts/zigux/check-kconfig-bridge.py",
     "run: zig test scripts/zigux/kconfig/conf_bridge.zig",
@@ -440,6 +444,7 @@ def build_self_test_root(root: Path) -> None:
         FIXDEP_GATE_CHECKER,
         FIXDEP_DIFF_CHECKER,
         FIXDEP_ZIG,
+        LANE01_CHARTER_CHECKER,
         PINNING_CHECKER,
         PIN_SCOPE_CHECKER,
         REQUIRED_MAKE_ROUTES_CHECKER,
