@@ -676,7 +676,7 @@ def run_self_test() -> int:
     for name, mutate in cases:
         with tempfile.TemporaryDirectory(prefix=f"phase1-shared-reminder-{name}-") as tmpdir:
             root = Path(tmpdir)
-            build_sampleRepo(root)
+            build_sample_repo(root)
             mutate(root)
             issues = collect_missing_markers(root)
             if not issues:
