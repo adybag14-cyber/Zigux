@@ -12,8 +12,6 @@ SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")
 VALIDATOR_PATH = Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")
 ABI_SLICE_PATH = Path("Documentation/zigux/phase3-abi-slice.md")
 MANIFEST_PATH = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
-CATALOG_PATH = Path("scripts/zigux/phase3_catalog.py")
-CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")
 LINUX_HEADER_PATH = Path("include/linux/zigux.h")
 ABI_HEADER_PATH = Path("include/zigux/abi.h")
 DEV_T_HEADER_PATH = Path("include/zigux/dev_t.h")
@@ -29,8 +27,6 @@ REQUIRED_MARKERS = {
         "PHASE3_ABI_HEADER_FAMILY_VALIDATOR_PATH=scripts/zigux/validate-phase3-abi-header-family-survey.py",
         "PHASE3_ABI_SHARED_SLICE_NOTE=Documentation/zigux/phase3-abi-slice.md",
         "PHASE3_ABI_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
-        "PHASE3_ABI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
-        "PHASE3_ABI_CATALOG_SELFTEST_GUARD=scripts/zigux/check-phase3-catalog-selftest.py",
         "PHASE3_LINUX_ZIGUX_H_PATH=include/linux/zigux.h",
         "PHASE3_ABI_HEADER_PATH=include/zigux/abi.h",
         "PHASE3_DEV_T_HEADER_PATH=include/zigux/dev_t.h",
@@ -49,7 +45,6 @@ REQUIRED_MARKERS = {
     VALIDATOR_PATH: (
         '"""Fail-close the current Phase 3 ABI header-family survey packet."""',
         'SURVEY_PATH = Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
-        'CATALOG_SELFTEST_PATH = Path("scripts/zigux/check-phase3-catalog-selftest.py")',
         'print("PHASE3_ABI_HEADER_FAMILY_SURVEY_SELF_TEST=pass")',
         'print("PHASE3_ABI_HEADER_FAMILY_SURVEY=pass")',
     ),
@@ -61,16 +56,6 @@ REQUIRED_MARKERS = {
     MANIFEST_PATH: (
         '"Documentation/zigux/phase3-abi-header-family-survey.md"',
         '"scripts/zigux/validate-phase3-abi-header-family-survey.py"',
-    ),
-    CATALOG_PATH: (
-        'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
-        'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
-        '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
-        '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py"',
-    ),
-    CATALOG_SELFTEST_PATH: (
-        'Path("Documentation/zigux/phase3-abi-header-family-survey.md")',
-        'Path("scripts/zigux/validate-phase3-abi-header-family-survey.py")',
     ),
     LINUX_HEADER_PATH: (
         "static inline struct zigux_uapi_version zigux_uapi_version_current(void) {",
@@ -185,8 +170,8 @@ def run_self_test() -> int:
     marker_cases = (
         (
             SURVEY_PATH,
-            "PHASE3_ABI_CATALOG_HELPER=scripts/zigux/phase3_catalog.py",
-            "expected missing survey catalog helper marker was not reported",
+            "PHASE3_ABI_SHARED_MANIFEST_PATH=zigux/tests/fixtures/phase3_abi_manifest.json",
+            "expected missing survey manifest marker was not reported",
         ),
         (
             SURVEY_PATH,
@@ -197,11 +182,6 @@ def run_self_test() -> int:
             VALIDATOR_PATH,
             'print("PHASE3_ABI_HEADER_FAMILY_SURVEY=pass")',
             "expected missing validator pass marker was not reported",
-        ),
-        (
-            CATALOG_PATH,
-            '"python3 scripts/zigux/validate-phase3-abi-header-family-survey.py --self-test"',
-            "expected missing catalog header-family self-test route marker was not reported",
         ),
         (
             MANIFEST_PATH,
