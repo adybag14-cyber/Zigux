@@ -56,7 +56,7 @@ TESTS_README_REQUIRED_MARKERS = (
     "`make -C zigux phase2`",
 )
 
-FORBIDDEN_WORKFLOW_LINES = (
+REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
     "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
     "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
@@ -79,7 +79,8 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(CLOSURE_REQUIRED_MARKERS)
     + len(ARTIFACT_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
-    + len(FORBIDDEN_WORKFLOW_LINES)
+    + len(REQUIRED_WORKFLOW_LINES)
+    + len(REQUIRED_WORKFLOW_LINES)
     + len(FORBIDDEN_MAKEFILE_LINES)
     + len(REQUIRED_FILES)
 )
@@ -170,7 +171,12 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         )
     )
     issues.extend(
-        collect_forbidden_exact_lines(workflow_text, FORBIDDEN_WORKFLOW_LINES, "UNEXPECTED_WORKFLOW_LINE")
+        collect_required_exact_lines(
+            workflow_text,
+            REQUIRED_WORKFLOW_LINES,
+            "MISSING_WORKFLOW_LINE",
+            "DUPLICATE_WORKFLOW_LINE",
+        )
     )
     issues.extend(
         collect_forbidden_exact_lines(makefile_text, FORBIDDEN_MAKEFILE_LINES, "UNEXPECTED_MAKEFILE_LINE")
@@ -197,6 +203,24 @@ def replace_once(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
     return text.replace(marker, replacement, 1)
+
+
+def replace_exact_line(text: str, marker: str, replacement: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines[index] = replacement
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
+
+
+def duplicate_exact_line(text: str, marker: str) -> str:
+    lines = text.splitlines()
+    for index, line in enumerate(lines):
+        if line.strip() == marker:
+            lines.insert(index + 1, line)
+            return "\n".join(lines) + "\n"
+    raise AssertionError(f"marker line not found: {marker}")
 
 
 def append_line(text: str, line: str) -> str:
@@ -265,19 +289,16 @@ def build_self_test_root(root: Path) -> None:
         )
         + "\n",
     )
-    write_text(
-        resolve(root, WORKFLOW_REL),
-        "\n".join(
-            (
-                "name: zigux-bootstrap",
-                "jobs:",
-                "  bootstrap:",
-                "    steps:",
-                "      - run: make -C zigux phase2",
-            )
-        )
-        + "\n",
-    )
+    workflow_lines = [
+        "name: zigux-bootstrap",
+        "jobs:",
+        "  bootstrap:",
+        "    steps:",
+    ]
+    for index, marker in enumerate(REQUIRED_WORKFLOW_LINES, start=1):
+        workflow_lines.append(f"      - name: fixdep-step-{index}")
+        workflow_lines.append(f"        {marker}")
+    write_text(resolve(root, WORKFLOW_REL), "\n".join(workflow_lines) + "\n")
 
 
 def run_self_test() -> int:
@@ -324,11 +345,21 @@ def run_self_test() -> int:
             assert ("MISSING_TESTS_README_MARKER", marker) in collect_issues(root)
             checks_run += 1
 
-        for marker in FORBIDDEN_WORKFLOW_LINES:
+        for marker in REQUIRED_WORKFLOW_LINES:
             build_self_test_root(root)
             path = resolve(root, WORKFLOW_REL)
-            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("UNEXPECTED_WORKFLOW_LINE", f"{marker}:count=1") in collect_issues(root)
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "run: python3 scripts/zigux/other.py"),
+                encoding="utf-8",
+            )
+            assert ("MISSING_WORKFLOW_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in REQUIRED_WORKFLOW_LINES:
+            build_self_test_root(root)
+            path = resolve(root, WORKFLOW_REL)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_WORKFLOW_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for marker in FORBIDDEN_MAKEFILE_LINES:
@@ -369,7 +400,7 @@ def main() -> int:
     print("PHASE2_FIXDEP_GATE=pass")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
-    print(f"PHASE2_FIXDEP_GATE_FORBIDDEN_WORKFLOW_LINE_COUNT={len(FORBIDDEN_WORKFLOW_LINES)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_FORBIDDEN_MAKEFILE_LINE_COUNT={len(FORBIDDEN_MAKEFILE_LINES)}")
     return 0
 
