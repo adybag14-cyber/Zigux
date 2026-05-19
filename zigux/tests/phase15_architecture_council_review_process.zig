@@ -19,6 +19,8 @@ const ReviewProcessManifest = struct {
     reopen_evidence_fields: []const []const u8,
     indefinite_c_policy_required_markers: []const []const u8,
     decision_record_template_required_markers: []const []const u8,
+    study_only_anchor_review_markers: []const []const u8,
+    decision_record_template_study_only_rule: []const u8,
     handoff_required_markers: []const []const u8,
     shared_gap_expected_present_paths: []const []const u8,
     shared_gap_expected_missing_paths: []const []const u8,
@@ -64,11 +66,16 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("zigux/tests/phase15_architecture_council_review_process_build.zig", manifest.build_gate);
     try std.testing.expectEqualStrings("if a freeze-map anchor is entering Architecture Council status review", manifest.review_checklist_entry_prompt);
     try expectContains(manifest.review_checklist_boundary_rule, "exact Architecture Council field inventory stays owned by this note");
+    try std.testing.expectEqualStrings(
+        "Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.",
+        manifest.decision_record_template_study_only_rule,
+    );
     try std.testing.expectEqual(@as(usize, 22), manifest.required_review_fields.len);
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
     try std.testing.expectEqual(@as(usize, 13), manifest.handoff_required_markers.len);
     try std.testing.expectEqual(@as(usize, 16), manifest.shared_gap_expected_present_paths.len);
     try std.testing.expectEqual(@as(usize, 3), manifest.shared_gap_expected_missing_paths.len);
@@ -88,6 +95,14 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(
         manifest.indefinite_c_policy_required_markers,
         "parity scorecard link or blocker record",
+    );
+    try expectSliceContains(
+        manifest.study_only_anchor_review_markers,
+        "`kernel/workqueue.c`",
+    );
+    try expectSliceContains(
+        manifest.study_only_anchor_review_markers,
+        "not candidates for a freeze-in-C status review through this note",
     );
     try expectSliceContains(
         manifest.handoff_required_markers,
@@ -162,6 +177,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     try expectContains(review_process, "focused build-file replay");
     try expectContains(review_process, "defaults that record to dated-master-readback provenance");
     try expectContains(review_process, manifest.review_checklist_boundary_rule);
+    try expectContains(decision_record_template, manifest.decision_record_template_study_only_rule);
 
     for (manifest.required_review_fields) |field| {
         try expectContains(review_process, field);
@@ -178,6 +194,9 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     }
     for (manifest.decision_record_template_required_markers) |marker| {
         try expectContains(decision_record_template, marker);
+    }
+    for (manifest.study_only_anchor_review_markers) |marker| {
+        try expectContains(review_process, marker);
     }
     for (manifest.handoff_required_markers) |marker| {
         try expectContains(handoff_note, marker);
@@ -213,6 +232,8 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(checker, "shared-summary gap note claims materialized path is missing from repo");
     try expectContains(checker, "focused review-process Zig replay is missing from repo");
     try expectContains(checker, "review-process note is missing the review-checklist boundary rule");
+    try expectContains(checker, "decision-record template is missing the study-only anchor review rule");
+    try expectContains(checker, "review-process note is missing study-only boundary marker");
     try expectContains(checker, "repo_path = _marker_to_repo_path(marker)");
     try expectContains(checker, "zigux/tests/phase15_architecture_council_review_process.zig");
     try expectContains(checker, "PHASE15_REVIEW_PROCESS_HANDOFF_SELF_TEST=pass");
