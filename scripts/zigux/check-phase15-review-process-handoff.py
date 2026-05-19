@@ -119,6 +119,13 @@ def collect_failures(root: Path) -> list[str]:
                 failures.append(
                     f"review checklist entry prompt is missing required boundary marker: {marker}"
                 )
+        if (
+            manifest["review_checklist_stay_in_c_policy_boundary_rule"]
+            not in checklist_entry_prompt
+        ):
+            failures.append(
+                "review checklist entry prompt is missing required stay-in-C policy boundary marker"
+            )
 
     for field in manifest["stay_in_c_closeout_fields"]:
         if field not in review_process:
@@ -200,6 +207,7 @@ def _sample_manifest() -> str:
             "build_gate": "zigux/tests/phase15_architecture_council_review_process_build.zig",
             "review_checklist_entry_prompt": "if a freeze-map anchor is entering Architecture Council status review",
             "review_checklist_boundary_rule": "`Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+            "review_checklist_stay_in_c_policy_boundary_rule": "`Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
             "required_review_fields": [
                 "exact Linux anchor path",
                 "roadmap phase",
@@ -437,7 +445,7 @@ def _sample_indefinite_c_policy() -> str:
 def _sample_review_checklist() -> str:
     return """# Zigux Review Checklist
 
-  * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details?
+  * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details, and `Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording?
 """
 
 
@@ -682,6 +690,21 @@ def run_self_test() -> int:
             "review checklist entry prompt is missing required boundary marker: Documentation/zigux/phase15-architecture-council-decision-record-template.md"
         ]:
             raise AssertionError(f"unexpected checklist-boundary-marker failure: {failures}")
+
+        _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace(
+                " and `Documentation/zigux/phase15-indefinite-c-policy.md` remains the dedicated stay-in-C policy companion for retained blocker posture, trigger-specific evidence refresh, and return-to-blocked wording",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "review checklist entry prompt is missing required stay-in-C policy boundary marker"
+        ]:
+            raise AssertionError(f"unexpected checklist-stay-in-c-boundary failure: {failures}")
 
         _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
         _write(
