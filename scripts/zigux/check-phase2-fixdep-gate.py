@@ -27,12 +27,13 @@ REQUIRED_FILES = (
     WORKFLOW_REL,
 )
 
-FIXDEP_REQUIRED_MARKERS = (
-    'test "dep parsing returns NoTargets for comment-only depfiles"',
-    'test "dep parsing keeps escaped spaces inside tokens"',
-    'test "escaped hash dependency survives concatenated target comment path"',
-    'test "escaped colon dependency survives concatenated target comment path"',
-    'test "output write failure uses C-style wording"',
+FIXDEP_REQUIRED_EXACT_LINES = (
+    'test "dep parsing returns NoTargets for comment-only depfiles" {',
+    'test "dep parsing keeps escaped spaces inside tokens" {',
+    'test "dep parsing continues dependency lines across escaped newlines" {',
+    'test "escaped hash dependency survives concatenated target comment path" {',
+    'test "escaped colon dependency survives concatenated target comment path" {',
+    'test "output write failure uses C-style wording" {',
 )
 
 CLOSURE_REQUIRED_MARKERS = (
@@ -73,7 +74,8 @@ FORBIDDEN_MAKEFILE_LINES = (
 
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
-    + len(FIXDEP_REQUIRED_MARKERS)
+    + len(FIXDEP_REQUIRED_EXACT_LINES)
+    + len(FIXDEP_REQUIRED_EXACT_LINES)
     + len(CLOSURE_REQUIRED_MARKERS)
     + len(ARTIFACT_REQUIRED_MARKERS)
     + len(TESTS_README_REQUIRED_MARKERS)
@@ -107,6 +109,19 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
+def collect_required_exact_lines(
+    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
+) -> list[tuple[str, str]]:
+    issues: list[tuple[str, str]] = []
+    for marker in markers:
+        count = count_exact_lines(text, marker)
+        if count == 0:
+            issues.append((missing_code, marker))
+        elif count != 1:
+            issues.append((duplicate_code, f"{marker}:count={count}"))
+    return issues
+
+
 def collect_forbidden_exact_lines(
     text: str, markers: tuple[str, ...], code: str
 ) -> list[tuple[str, str]]:
@@ -135,7 +150,14 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     makefile_text = read_text(resolve(root, MAKEFILE_REL))
     workflow_text = read_text(resolve(root, WORKFLOW_REL))
 
-    issues.extend(collect_missing_markers(fixdep_text, FIXDEP_REQUIRED_MARKERS, "MISSING_FIXDEP_MARKER"))
+    issues.extend(
+        collect_required_exact_lines(
+            fixdep_text,
+            FIXDEP_REQUIRED_EXACT_LINES,
+            "MISSING_FIXDEP_TEST_LINE",
+            "DUPLICATE_FIXDEP_TEST_LINE",
+        )
+    )
     issues.extend(
         collect_missing_markers(closure_text, CLOSURE_REQUIRED_MARKERS, "MISSING_CLOSURE_MARKER")
     )
@@ -186,11 +208,18 @@ def build_self_test_root(root: Path) -> None:
         resolve(root, FIXDEP_REL),
         "\n".join(
             (
-                "test \"dep parsing returns NoTargets for comment-only depfiles\" {}",
-                "test \"dep parsing keeps escaped spaces inside tokens\" {}",
-                "test \"escaped hash dependency survives concatenated target comment path\" {}",
-                "test \"escaped colon dependency survives concatenated target comment path\" {}",
-                "test \"output write failure uses C-style wording\" {}",
+                "test \"dep parsing returns NoTargets for comment-only depfiles\" {",
+                "}",
+                "test \"dep parsing keeps escaped spaces inside tokens\" {",
+                "}",
+                "test \"dep parsing continues dependency lines across escaped newlines\" {",
+                "}",
+                "test \"escaped hash dependency survives concatenated target comment path\" {",
+                "}",
+                "test \"escaped colon dependency survives concatenated target comment path\" {",
+                "}",
+                "test \"output write failure uses C-style wording\" {",
+                "}",
             )
         )
         + "\n",
@@ -260,11 +289,18 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for marker in FIXDEP_REQUIRED_MARKERS:
+        for marker in FIXDEP_REQUIRED_EXACT_LINES:
             build_self_test_root(root)
             path = resolve(root, FIXDEP_REL)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert ("MISSING_FIXDEP_MARKER", marker) in collect_issues(root)
+            assert ("MISSING_FIXDEP_TEST_LINE", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in FIXDEP_REQUIRED_EXACT_LINES:
+            build_self_test_root(root)
+            path = resolve(root, FIXDEP_REL)
+            path.write_text(append_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            assert ("DUPLICATE_FIXDEP_TEST_LINE", f"{marker}:count=2") in collect_issues(root)
             checks_run += 1
 
         for marker in CLOSURE_REQUIRED_MARKERS:
@@ -332,7 +368,7 @@ def main() -> int:
 
     print("PHASE2_FIXDEP_GATE=pass")
     print(f"PHASE2_FIXDEP_GATE_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(f"PHASE2_FIXDEP_GATE_HELPER_MARKER_COUNT={len(FIXDEP_REQUIRED_MARKERS)}")
+    print(f"PHASE2_FIXDEP_GATE_REQUIRED_FIXDEP_TEST_COUNT={len(FIXDEP_REQUIRED_EXACT_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_FORBIDDEN_WORKFLOW_LINE_COUNT={len(FORBIDDEN_WORKFLOW_LINES)}")
     print(f"PHASE2_FIXDEP_GATE_FORBIDDEN_MAKEFILE_LINE_COUNT={len(FORBIDDEN_MAKEFILE_LINES)}")
     return 0
