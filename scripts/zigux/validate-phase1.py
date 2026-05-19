@@ -339,7 +339,7 @@ def build_stub_script(path: Path, *, self_test_exit: int = 0, live_exit: int = 0
                 "args = parser.parse_args()",
                 f"SELF_TEST_EXIT = {self_test_exit}",
                 f"LIVE_EXIT = {live_exit}",
-                "if args.self-test:",
+                "if args.self_test:",
                 "    print('SELF_TEST=pass' if SELF_TEST_EXIT == 0 else 'SELF_TEST=fail')",
                 "    raise SystemExit(SELF_TEST_EXIT)",
                 "print('LIVE=pass' if LIVE_EXIT == 0 else 'LIVE=fail')",
@@ -453,7 +453,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_shared_fixture_live_root = base / "optional_shared_fixture_live"
-        build_sample_repo(optional_shared_fixture_live_root)
+        build_sampleRepo(optional_shared_fixture_live_root)
         build_stub_script(
             optional_shared_fixture_live_root / "scripts/zigux/check-phase1-shared-fixture-gate.py",
             live_exit=1,
@@ -559,7 +559,7 @@ def run_self_test() -> int:
         case_count += 1
 
         artifact_diff_helper_skip_root = base / "artifact_diff_helper_skip"
-        build_sample_repo(artifact_diff_helper_skip_root)
+        build_sampleRepo(artifact_diff_helper_skip_root)
         (artifact_diff_helper_skip_root / ARTIFACT_DIFF_HELPER_REL).unlink()
         issues, notes, summary = collect_issues(artifact_diff_helper_skip_root)
         assert issues == [], issues
@@ -572,7 +572,7 @@ def run_self_test() -> int:
         case_count += 1
 
         shared_fixture_skip_root = base / "shared_fixture_skip"
-        build_sample_repo(shared_fixture_skip_root)
+        build_sampleRepo(shared_fixture_skip_root)
         (shared_fixture_skip_root / PHASE1_HELPERS_FIXTURE_REL).unlink()
         issues, notes, summary = collect_issues(shared_fixture_skip_root)
         assert issues == [], issues
@@ -593,7 +593,7 @@ def run_self_test() -> int:
         case_count += 1
 
         optional_skip_required_path_root = base / "optional_skip_required_path"
-        build_sample_repo(optional_skip_required_path_root)
+        build_sampleRepo(optional_skip_required_path_root)
         (optional_skip_required_path_root / PHASE1_REPLAY_BLOCKERS_REL).unlink()
         issues, notes, summary = collect_issues(optional_skip_required_path_root)
         assert issues == [], issues
