@@ -137,6 +137,10 @@ jobs:
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test
       - name: Check current Phase 12 bootstrap lane shape
         run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py
+      - name: Self-test current Phase 2 fixdep gate checker
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test
+      - name: Check current Phase 2 fixdep gate packet
+        run: python3 scripts/zigux/check-phase2-fixdep-gate.py
       - name: Run current Phase 2 toolchain make route
         run: make -C zigux phase2-toolchain
       - name: Validate current Phase 2 tool packet
