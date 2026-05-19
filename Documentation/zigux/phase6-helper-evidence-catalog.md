@@ -36,7 +36,6 @@ Fresh direct GitHub contents reads on current `master` still return missing for 
 - `zigux/tests/phase6_checksum_c_parity.zig`
 - `zigux/tests/fixtures/phase6_checksum_c_harness.c`
 - `scripts/zigux/check-phase6-base64-c-parity.py`
-- `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - `scripts/zigux/check-phase6-checksum-c-parity.py`
 - `scripts/zigux/check-phase6-hexdump-packet.py`
 
@@ -64,9 +63,9 @@ Authenticated direct readback still leaves `Documentation/zigux/phase6-perf-gate
 - focused helper replay: `zigux/tests/phase6_bsearch.zig`
 - focused C ABI replays: `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig` and `zigux/tests/phase6_bsearch_c_abi_budget.zig`
 - compact shared seed fixture companion: `zigux/tests/fixtures/phase6_bsearch_vectors.zig`
+- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
 - slice note: `Documentation/zigux/phase6-bsearch-slice.md`
-- last-known companion packet members still needing fresh direct reads: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`
-- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders, while the dedicated corpus checker still needs fresh direct reads before it is presented as current shipped evidence
+- current review posture: direct helper-local evidence is readable again through `lib/bsearch.zig`, `zigux/tests/phase6_bsearch.zig`, `zigux/tests/phase6_bsearch_lower_bound_c_abi.zig`, `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, `Documentation/zigux/phase6-bsearch-slice.md`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, this shared catalog, `zigux/tests/phase6_helper_evidence_manifest.json`, the returned `zigux/tests/phase6_helper_parity_manifest.json`, the restored shared build foothold, the current Makefile wrapper surface, and the directly readable scripts-root plus tests-root reminders
 
 ### checksum
 
@@ -99,7 +98,7 @@ The Phase 6 roadmap requires perf gates for math-sensitive helpers across the bo
 - `base64` keeps a dedicated helper-local slowdown replay in `zigux/tests/phase6_base64_perf.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig` still centralizes six fixture-owned encode and decode cases across standard, URL-safe, and IMAP variants.
 - `checksum` keeps a dedicated helper-vs-reference slowdown gate in `zigux/tests/phase6_checksum_perf.zig`, with the committed `64B` and `1501B` threshold matrix still owned by `zigux/tests/fixtures/phase6_checksum_vectors.zig`.
 - `hexdump` keeps a dedicated slowdown gate in `zigux/tests/phase6_hexdump_perf.zig`, with the current fixture matrix in `zigux/tests/fixtures/phase6_hexdump_vectors.zig` still covering four formatting cases from `16B-plain-g1` through `16B-ascii-g8`.
-- `bsearch` still measures bounded search cost through `zigux/tests/phase6_bsearch_c_abi_budget.zig` and the deterministic `perf_cases` plus seeded query corpus in `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, which hold raw C ABI search and equal-range comparisons to logarithmic budgets across representative lengths instead of using a dedicated wall-clock slowdown harness.
+- `bsearch` still measures bounded search cost through `zigux/tests/phase6_bsearch_c_abi_budget.zig`, `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`, and the deterministic `perf_cases` plus seeded query corpus in `zigux/tests/fixtures/phase6_bsearch_vectors.zig`, which hold raw C ABI search and equal-range comparisons to logarithmic budgets across representative lengths instead of using a dedicated wall-clock slowdown harness.
 - the remaining roadmap-aligned measurement gap is shared survey truthfulness rather than new helper semantics: `Documentation/zigux/phase6-perf-gate-survey.md` is still missing on current `master`, so the directly readable helper-evidence packet should stay anchored to the returned `zigux/tests/phase6_helper_parity_manifest.json` and the directly readable `zigux/Makefile` Phase 6 wrapper targets while `bsearch` continues to measure bounded search cost through its C ABI budget route instead of a dedicated slowdown replay comparable to the base64, checksum, and hexdump helper-local gates.
 
 ## Current shared replay inventory
