@@ -81,66 +81,26 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 4), manifest.indefinite_c_policy_required_markers.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.study_only_anchor_review_markers.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.handoff_required_markers.len);
-    try std.testing.expectEqual(@as(usize, 16), manifest.shared_gap_expected_present_paths.len);
-    try std.testing.expectEqual(@as(usize, 3), manifest.shared_gap_expected_missing_paths.len);
+    try std.testing.expectEqual(@as(usize, 14), manifest.handoff_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 17), manifest.shared_gap_expected_present_paths.len);
+    try std.testing.expectEqual(@as(usize, 2), manifest.shared_gap_expected_missing_paths.len);
 
-    try expectSliceContains(
-        manifest.indefinite_c_policy_required_markers,
-        "required approver set",
-    );
-    try expectSliceContains(
-        manifest.indefinite_c_policy_required_markers,
-        "automatic return-to-blocked trigger",
-    );
-    try expectSliceContains(
-        manifest.indefinite_c_policy_required_markers,
-        "trigger-specific evidence refresh",
-    );
-    try expectSliceContains(
-        manifest.indefinite_c_policy_required_markers,
-        "parity scorecard link or blocker record",
-    );
-    try expectSliceContains(
-        manifest.study_only_anchor_review_markers,
-        "`kernel/workqueue.c`",
-    );
-    try expectSliceContains(
-        manifest.study_only_anchor_review_markers,
-        "not candidates for a freeze-in-C status review through this note",
-    );
-    try expectSliceContains(
-        manifest.handoff_required_markers,
-        "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
-    );
-    try expectSliceContains(
-        manifest.handoff_required_markers,
-        "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
-    );
-    try expectSliceContains(
-        manifest.shared_gap_expected_present_paths,
-        "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
-    );
-    try expectSliceContains(
-        manifest.shared_gap_expected_present_paths,
-        "`zigux/tests/phase15_architecture_council_review_process.zig`",
-    );
-    try expectSliceContains(
-        manifest.shared_gap_expected_present_paths,
-        "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
-    );
-    try expectSliceContains(
-        manifest.shared_gap_expected_present_paths,
-        "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
-    );
-    try expectSliceContains(
-        manifest.shared_gap_expected_present_paths,
-        "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
-    );
-    try expectSliceContains(
-        manifest.shared_gap_expected_missing_paths,
-        "`zigux/tests/phase15_build.zig`",
-    );
+    try expectSliceContains(manifest.indefinite_c_policy_required_markers, "required approver set");
+    try expectSliceContains(manifest.indefinite_c_policy_required_markers, "automatic return-to-blocked trigger");
+    try expectSliceContains(manifest.indefinite_c_policy_required_markers, "trigger-specific evidence refresh");
+    try expectSliceContains(manifest.indefinite_c_policy_required_markers, "parity scorecard link or blocker record");
+    try expectSliceContains(manifest.study_only_anchor_review_markers, "`kernel/workqueue.c`");
+    try expectSliceContains(manifest.study_only_anchor_review_markers, "not candidates for a freeze-in-C status review through this note");
+    try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
+    try expectSliceContains(manifest.handoff_required_markers, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
+    try expectSliceContains(manifest.handoff_required_markers, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-tests-readme-alignment.py`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_architecture_council_review_process.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
+    try expectSliceContains(manifest.shared_gap_expected_present_paths, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
+    try expectSliceContains(manifest.shared_gap_expected_missing_paths, "`zigux/tests/phase15_build.zig`");
 }
 
 test "phase 15 review-process note stays aligned with the focused replay packet" {
@@ -165,9 +125,7 @@ test "phase 15 review-process note stays aligned with the focused replay packet"
     const manifest_json = try readRepoFile("zigux/tests/phase15_architecture_council_review_process_manifest.json", 24 * 1024);
     defer std.testing.allocator.free(manifest_json);
 
-    const parsed = try std.json.parseFromSlice(ReviewProcessManifest, std.testing.allocator, manifest_json, .{
-        .ignore_unknown_fields = true,
-    });
+    const parsed = try std.json.parseFromSlice(ReviewProcessManifest, std.testing.allocator, manifest_json, .{ .ignore_unknown_fields = true });
     defer parsed.deinit();
     const manifest = parsed.value;
 
@@ -233,7 +191,7 @@ test "phase 15 review-process build gate stays aligned with the focused replay p
 }
 
 test "phase 15 review-process handoff checker fails closed on missing present paths" {
-    const checker = try readRepoFile("scripts/zigux/check-phase15-review-process-handoff.py", 28 * 1024);
+    const checker = try readRepoFile("scripts/zigux/check-phase15-review-process-handoff.py", 48 * 1024);
     defer std.testing.allocator.free(checker);
 
     const review_process = try readRepoFile("Documentation/zigux/phase15-architecture-council-review-process.md", 20 * 1024);
@@ -256,6 +214,7 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
+    try expectContains(gap_note, "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
     try expectContains(gap_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectContains(gap_note, "`zigux/tests/phase15_build.zig`");
 }
