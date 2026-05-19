@@ -516,10 +516,23 @@ test "conf bridge emits alldefconfig argv and env" {
 }
 
 test "conf bridge emits explicit empty allconfig override for allmodconfig" {
-    var capture = try TestCapture.init(std.testing.allocator, 160);
-    defer capture.deinit();
+    var implicit_capture = try TestCapture.init(std.testing.allocator, 160);
+    defer implicit_capture.deinit();
 
-    try runConfBridge(&capture, .{
+    try runConfBridge(&implicit_capture, .{
+        .mode = .allmodconfig,
+        .kconfig = "Kconfig",
+        .config = "mod/.config",
+        .arch = "arm",
+    });
+
+    try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"mode\":\"allmodconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, implicit_capture.list.items, "\"KCONFIG_ALLCONFIG\"") == null);
+
+    var explicit_capture = try TestCapture.init(std.testing.allocator, 160);
+    defer explicit_capture.deinit();
+
+    try runConfBridge(&explicit_capture, .{
         .mode = .allmodconfig,
         .kconfig = "Kconfig",
         .config = "mod/.config",
@@ -527,8 +540,8 @@ test "conf bridge emits explicit empty allconfig override for allmodconfig" {
         .allconfig = "",
     });
 
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"mode\":\"allmodconfig\"") != null);
-    try std.testing.expect(std.mem.indexOf(u8, capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"mode\":\"allmodconfig\"") != null);
+    try std.testing.expect(std.mem.indexOf(u8, explicit_capture.list.items, "\"KCONFIG_ALLCONFIG\":\"\"") != null);
 }
 
 test "conf bridge emits randconfig tunables when present" {
