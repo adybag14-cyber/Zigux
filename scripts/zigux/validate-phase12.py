@@ -68,6 +68,9 @@ VIRTIO_SCSI_SUPPORT_MANIFEST_PATH = (
     "zigux/tests/fixtures/phase12_virtio_scsi_manifest.json"
 )
 LIBBPF_SNAPSHOT_PATH = "zigux/tests/fixtures/phase12_libbpf_snapshot.json"
+LIBBPF_SNAPSHOT_DETERMINISM_PATH = (
+    "zigux/tests/fixtures/phase12_libbpf_snapshot_determinism.json"
+)
 WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 
 # Keep the shared Phase 12 validator scoped to stable support-surface wording.
@@ -118,6 +121,7 @@ REQUIRED_FILES = [
     VIRTIO_SCSI_SURVEY_GATE_PATH,
     VIRTIO_SCSI_SUPPORT_MANIFEST_PATH,
     LIBBPF_SNAPSHOT_PATH,
+    LIBBPF_SNAPSHOT_DETERMINISM_PATH,
     WORKFLOW_PATH,
 ]
 
@@ -404,6 +408,7 @@ FIXTURE_TEXT = {
         "}\n"
     ),
     LIBBPF_SNAPSHOT_PATH: '{\n  "lane_key": "P12-L16"\n}\n',
+    LIBBPF_SNAPSHOT_DETERMINISM_PATH: '{\n  "lane_key": "P12-L17"\n}\n',
     WORKFLOW_PATH: "name: zigux-bootstrap\n",
 }
 
