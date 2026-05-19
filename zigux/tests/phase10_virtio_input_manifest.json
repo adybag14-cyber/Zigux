@@ -10,6 +10,7 @@
   ],
   "freeze_map": "Documentation/zigux/freeze-map.md",
   "freeze_boundary_status": "aligned",
+  "freeze_status_change_claimed": false,
   "risky_transport_posture": "blocked_on_risky_transport",
   "allowed_evidence_kinds": [
     "driver_local_lab_slices",
