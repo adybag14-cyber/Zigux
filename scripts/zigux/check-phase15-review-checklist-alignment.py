@@ -8,33 +8,21 @@ from pathlib import Path
 REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 
 ENTRY_REVIEW_PROMPT = "if a freeze-map anchor is entering Architecture Council status review"
-ENTRY_REVIEW_FIELDS = (
-    "exact Linux anchor path",
-    "roadmap phase",
-    "decision record ID",
-    "lane owner",
-    "current status bucket",
-    "requested decision bucket",
-    "required approver set",
-    "rollback owner",
-    "validation gate summary",
-    "evidence archive path",
-    "latest blocker disposition",
-    "benchmark notes",
-    "replay command",
-    "rollback threshold",
-    "automatic return-to-blocked trigger",
-    "`retired_from_active_discussion` state",
-    "reopen triggers",
-    "trigger-specific evidence refresh",
-    "parity scorecard link or blocker record",
-    "indefinite-C policy link or explicit non-applicability note",
-    "explicit non-goals",
-    "written rationale",
+ENTRY_REVIEW_MARKERS = (
+    "`Documentation/zigux/phase15-architecture-council-review-process.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+    "exact Architecture Council field inventory",
+    "stay-in-C closeout record",
+    "reopen-evidence details",
 )
-FORBIDDEN_MARKERS = (
-    "retained discussion state",
-    "indefinite-C policy link or non-applicability note",
+STUDY_ONLY_PROMPT = "if a shared reminder surface summarizes the study-only freeze-map anchors"
+STUDY_ONLY_MARKERS = (
+    "`Documentation/zigux/freeze-map.md`",
+    "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+    "`kernel/workqueue.c`",
+    "`kernel/trace/ring_buffer.c`",
+    "study-only boundary context",
+    "runtime-substrate or bridge-readiness evidence",
 )
 
 
@@ -54,22 +42,36 @@ def _line_containing(text: str, marker: str) -> str | None:
     return None
 
 
+def _check_line(line: str | None, prompt: str, markers: tuple[str, ...], prefix: str) -> list[str]:
+    failures: list[str] = []
+    if line is None:
+        failures.append(f"{prefix}:missing:{prompt}")
+        return failures
+    for marker in markers:
+        if marker not in line:
+            failures.append(f"{prefix}_field:missing:{marker}")
+    return failures
+
+
 def collect_failures(root: Path) -> list[str]:
     checklist = _read(root / REVIEW_CHECKLIST_PATH)
     failures: list[str] = []
-
-    entry_line = _line_containing(checklist, ENTRY_REVIEW_PROMPT)
-    if entry_line is None:
-        failures.append(f"entry_review:missing:{ENTRY_REVIEW_PROMPT}")
-    else:
-        for field in ENTRY_REVIEW_FIELDS:
-            if field not in entry_line:
-                failures.append(f"entry_review_field:missing:{field}")
-
-    for marker in FORBIDDEN_MARKERS:
-        if marker in checklist:
-            failures.append(f"entry_review:forbidden:{marker}")
-
+    failures.extend(
+        _check_line(
+            _line_containing(checklist, ENTRY_REVIEW_PROMPT),
+            ENTRY_REVIEW_PROMPT,
+            ENTRY_REVIEW_MARKERS,
+            "entry_review",
+        )
+    )
+    failures.extend(
+        _check_line(
+            _line_containing(checklist, STUDY_ONLY_PROMPT),
+            STUDY_ONLY_PROMPT,
+            STUDY_ONLY_MARKERS,
+            "study_only",
+        )
+    )
     return failures
 
 
@@ -79,8 +81,8 @@ def _sample_review_checklist() -> str:
 Use this checklist before opening or merging Zigux product work.
 
 ## Safety
-
-  * if a freeze-map anchor is entering Architecture Council status review, are the exact Linux anchor path, roadmap phase, decision record ID, lane owner, current status bucket, requested decision bucket, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, parity scorecard link or blocker record, indefinite-C policy link or explicit non-applicability note, explicit non-goals, and written rationale explicit?
+  * if a freeze-map anchor is entering Architecture Council status review, does this checklist keep the shared entry-review prompt explicit while `Documentation/zigux/phase15-architecture-council-review-process.md` and `Documentation/zigux/phase15-architecture-council-decision-record-template.md` remain the owners of the exact Architecture Council field inventory, stay-in-C closeout record, and reopen-evidence details?
+  * if a shared reminder surface summarizes the study-only freeze-map anchors, does it route that summary back through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md` so `kernel/workqueue.c` and `kernel/trace/ring_buffer.c` stay explicit as study-only boundary context rather than runtime-substrate or bridge-readiness evidence?
 """
 
 
@@ -97,46 +99,54 @@ def run_self_test() -> int:
 
         _write(
             root / REVIEW_CHECKLIST_PATH,
-            _sample_review_checklist().replace("explicit non-goals, and ", "", 1),
-        )
-        failures = collect_failures(root)
-        expected = ["entry_review_field:missing:explicit non-goals"]
-        if failures != expected:
-            raise AssertionError(f"unexpected explicit-non-goals failure: {failures}")
-        case_count += 1
-
-        _write(
-            root / REVIEW_CHECKLIST_PATH,
             _sample_review_checklist().replace(
-                "`retired_from_active_discussion` state",
-                "retained discussion state",
+                "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
+                "decision-record-template.md",
                 1,
             ),
         )
         failures = collect_failures(root)
         expected = [
-            "entry_review_field:missing:`retired_from_active_discussion` state",
-            "entry_review:forbidden:retained discussion state",
+            "entry_review_field:missing:`Documentation/zigux/phase15-architecture-council-decision-record-template.md`"
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected retained-discussion failure: {failures}")
+            raise AssertionError(f"unexpected decision-record-template failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("stay-in-C closeout record, and ", "", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["entry_review_field:missing:stay-in-C closeout record"]
+        if failures != expected:
+            raise AssertionError(f"unexpected stay-in-C-closeout failure: {failures}")
         case_count += 1
 
         _write(
             root / REVIEW_CHECKLIST_PATH,
             _sample_review_checklist().replace(
-                "indefinite-C policy link or explicit non-applicability note",
-                "indefinite-C policy link or non-applicability note",
+                "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+                "phase15-study-only-anchor-accounting.md",
                 1,
             ),
         )
         failures = collect_failures(root)
         expected = [
-            "entry_review_field:missing:indefinite-C policy link or explicit non-applicability note",
-            "entry_review:forbidden:indefinite-C policy link or non-applicability note",
+            "study_only_field:missing:`Documentation/zigux/phase15-study-only-anchor-accounting.md`"
         ]
         if failures != expected:
-            raise AssertionError(f"unexpected non-applicability wording failure: {failures}")
+            raise AssertionError(f"unexpected study-only-note failure: {failures}")
+        case_count += 1
+
+        _write(
+            root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace("`kernel/trace/ring_buffer.c`", "kernel/trace/ring_buffer.c", 1),
+        )
+        failures = collect_failures(root)
+        expected = ["study_only_field:missing:`kernel/trace/ring_buffer.c`"]
+        if failures != expected:
+            raise AssertionError(f"unexpected ring-buffer failure: {failures}")
         case_count += 1
 
         _write(
