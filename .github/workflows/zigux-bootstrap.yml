@@ -251,6 +251,12 @@ jobs:
       - name: Check current Phase 1 string review packet
         run: python3 scripts/zigux/check-phase1-string-review-packet.py
 
+      - name: Self-test current Phase 1 route summary checker
+        run: python3 scripts/zigux/check-phase1-route-summary-counts.py --self-test
+
+      - name: Check current Phase 1 route summary packet
+        run: python3 scripts/zigux/check-phase1-route-summary-counts.py
+
       - name: Self-test current Phase 1 bench checker
         run: python3 scripts/zigux/check-phase1-bench.py --self-test
 
