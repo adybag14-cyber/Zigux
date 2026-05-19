@@ -107,6 +107,14 @@ test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted 
     try std.testing.expectEqualStrings("", nul_bounded.remaining);
 }
 
+test "phase 7 cmdline companion replays quoted bare-token grouping without fabricating a value" {
+    const parsed = cmdline.nextArg("\"two words\" tail");
+    try std.testing.expectEqualStrings("two words", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("tail", parsed.rest);
+    try std.testing.expectEqualStrings("tail", parsed.remaining);
+}
+
 test "phase 7 cmdline companion replays bare quoted-empty-token ownership" {
     var empty_token = [_]u8{ '"', '"', ' ', 'n', 'e', 'x', 't', 0 };
     const parsed = cmdline.nextArg(&empty_token);
