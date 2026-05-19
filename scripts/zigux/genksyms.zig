@@ -724,6 +724,24 @@ test "genksyms bridge preserves long version side effects before later short par
     }
 }
 
+test "genksyms bridge preserves abbreviated long version side effects before later short parse failures" {
+    const args = [_][]const u8{
+        "--ver",
+        "-x",
+    };
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try testing.expectEqual(@as(usize, 1), failure.version_count);
+            switch (failure.reason) {
+                .invalid_option => |option| try testing.expectEqualStrings("x", option),
+                else => return error.UnexpectedParseFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "genksyms bridge preserves long version side effects before missing long option arguments" {
     const args = [_][]const u8{
         "--version",
