@@ -20,6 +20,9 @@ FIXDEP_ZIG = "scripts/zigux/fixdep.zig"
 PINNING_CHECKER = "scripts/zigux/check-phase2-toolchain-pinning.py"
 PIN_SCOPE_CHECKER = "scripts/zigux/check-phase2-toolchain-pin-scope.py"
 REQUIRED_MAKE_ROUTES_CHECKER = "scripts/zigux/check-phase2-required-make-routes.py"
+SHARED_REMINDER_CHECKER = "scripts/zigux/check-phase2-docs-shared-reminder.py"
+GENKSYMS_ZIG = "scripts/zigux/genksyms.zig"
+PHASE2_VALIDATOR = "scripts/zigux/validate-phase2.py"
 TOOLCHAIN_POLICY = "scripts/zigux/zig-toolchain-policy.json"
 SELF_PATH = "scripts/zigux/validate-bootstrap.py"
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
@@ -56,6 +59,9 @@ REQUIRED_PATHS = (
     PINNING_CHECKER,
     PIN_SCOPE_CHECKER,
     REQUIRED_MAKE_ROUTES_CHECKER,
+    SHARED_REMINDER_CHECKER,
+    GENKSYMS_ZIG,
+    PHASE2_VALIDATOR,
     TOOLCHAIN_POLICY,
     WORKFLOW,
     SELF_PATH,
@@ -103,6 +109,10 @@ WORKFLOW_LINE_MARKERS = (
     "run: make -C zigux phase2-toolchain",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py --self-test",
     "run: python3 scripts/zigux/check-phase2-required-make-routes.py",
+    "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "run: zig test scripts/zigux/genksyms.zig",
+    "run: python3 scripts/zigux/validate-phase2.py",
 )
 
 README_MARKERS = (
@@ -392,7 +402,11 @@ def build_self_test_root(root: Path) -> None:
         WORKFLOW,
         "\n".join(("name: zigux-bootstrap", *WORKFLOW_SUBSTRING_MARKERS, *WORKFLOW_LINE_MARKERS)) + "\n",
     )
-    write_text(root, SCRIPTS_README, "# scripts/zigux\n\n" + "\n".join(f"- {marker}" for marker in README_MARKERS) + "\n")
+    write_text(
+        root,
+        SCRIPTS_README,
+        "# scripts/zigux\n\n" + "\n".join(f"- {marker}" for marker in README_MARKERS) + "\n",
+    )
     write_text(
         root,
         TOOLCHAIN_CHECKER,
@@ -405,6 +419,9 @@ def build_self_test_root(root: Path) -> None:
         PINNING_CHECKER,
         PIN_SCOPE_CHECKER,
         REQUIRED_MAKE_ROUTES_CHECKER,
+        SHARED_REMINDER_CHECKER,
+        GENKSYMS_ZIG,
+        PHASE2_VALIDATOR,
     ):
         write_text(root, rel, "# present\n")
     write_text(
