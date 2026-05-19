@@ -187,6 +187,22 @@ pub const WatchdogDrvdataCheckpointSummary = struct {
     blocked_on_reboot_glue: bool,
 };
 
+pub const RebootGlueCheckpointSummary = struct {
+    anchor: []const u8,
+    hw_algo: HardwareAlgorithm,
+    hw_margin_ms: u32,
+    parent_attached: bool,
+    module_owner_attached: bool,
+    watchdog_drvdata_owner_identity: []const u8,
+    stop_on_reboot_requested: bool,
+    watchdog_drvdata_precedes_reboot_glue: bool,
+    reboot_glue_precedes_register_device_request: bool,
+    reboot_glue_reuses_parent_linkage: bool,
+    blocked_on_live_gpio_lookup: bool,
+    blocked_on_platform_registration: bool,
+    blocked_on_host_shutdown_execution: bool,
+};
+
 pub const NowayoutPolicySummary = struct {
     anchor: []const u8,
     hw_algo: HardwareAlgorithm,
@@ -554,6 +570,24 @@ pub const GpioWatchdogLab = struct {
         };
     }
 
+    pub fn rebootGlueCheckpointSummary(self: *const Self) RebootGlueCheckpointSummary {
+        return .{
+            .anchor = descriptor().anchor,
+            .hw_algo = self.hw_algo,
+            .hw_margin_ms = self.hw_margin_ms,
+            .parent_attached = true,
+            .module_owner_attached = true,
+            .watchdog_drvdata_owner_identity = "gpio_wdt_priv",
+            .stop_on_reboot_requested = true,
+            .watchdog_drvdata_precedes_reboot_glue = true,
+            .reboot_glue_precedes_register_device_request = true,
+            .reboot_glue_reuses_parent_linkage = true,
+            .blocked_on_live_gpio_lookup = true,
+            .blocked_on_platform_registration = true,
+            .blocked_on_host_shutdown_execution = true,
+        };
+    }
+
     pub fn drvdataOwnershipCheckpointSummary(self: *const Self) PlatformDrvdataCheckpointSummary {
         return self.platformDrvdataCheckpointSummary();
     }
@@ -724,6 +758,23 @@ test "watchdog drvdata checkpoint stays between platform drvdata and register-de
     try std.testing.expect(watchdog_drvdata.watchdog_drvdata_reuses_parent_linkage);
     try std.testing.expectEqualStrings("gpio_wdt_priv", watchdog_drvdata.platform_drvdata_owner_identity);
     try std.testing.expectEqualStrings("gpio_wdt_priv", watchdog_drvdata.watchdog_drvdata_owner_identity);
+    try std.testing.expect(register_call.register_device_requested);
+    try std.testing.expect(register_call.blocked_on_reboot_glue);
+}
+
+test "reboot glue checkpoint stays between watchdog drvdata and register-device request" {
+    const lab = try GpioWatchdogLab.init(.level, 64, true);
+    const watchdog_drvdata = lab.watchdogDrvdataCheckpointSummary();
+    const reboot_glue = lab.rebootGlueCheckpointSummary();
+    const register_call = lab.registerDeviceCallSummary(true);
+
+    try std.testing.expect(watchdog_drvdata.blocked_on_reboot_glue);
+    try std.testing.expect(reboot_glue.stop_on_reboot_requested);
+    try std.testing.expect(reboot_glue.watchdog_drvdata_precedes_reboot_glue);
+    try std.testing.expect(reboot_glue.reboot_glue_precedes_register_device_request);
+    try std.testing.expect(reboot_glue.reboot_glue_reuses_parent_linkage);
+    try std.testing.expect(reboot_glue.blocked_on_host_shutdown_execution);
+    try std.testing.expectEqualStrings(watchdog_drvdata.watchdog_drvdata_owner_identity, reboot_glue.watchdog_drvdata_owner_identity);
     try std.testing.expect(register_call.register_device_requested);
     try std.testing.expect(register_call.blocked_on_reboot_glue);
 }
