@@ -25,12 +25,14 @@ WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 SURVEY_PATH = "Documentation/zigux/phase12-release-readiness-survey.md"
 DOCS_SANITY_CHECKER_PATH = "scripts/zigux/check-phase12-bootstrap-docs-sanity.py"
 BUILD_ONLY_CHECKER_PATH = "scripts/zigux/check-build-only-phase12-surface.py"
+INSTALL_ZIG_HELPER_PATH = "scripts/zigux/install-zig.py"
 
 REQUIRED_FILES = [
     WORKFLOW_PATH,
     SURVEY_PATH,
     DOCS_SANITY_CHECKER_PATH,
     BUILD_ONLY_CHECKER_PATH,
+    INSTALL_ZIG_HELPER_PATH,
 ]
 
 WORKFLOW_STEP_NAMES = [
@@ -41,6 +43,7 @@ WORKFLOW_STEP_NAMES = [
     "Self-test current Zig toolchain checker",
     "Check current Zig toolchain policy packet",
     "Check current pinned Zig archive packet",
+    "Self-test current Zig installer helper",
     "Self-test current Phase 12 bootstrap docs sanity checker",
     "Check current Phase 12 docs-root sanity markers",
     "Self-test current Phase 12 bootstrap lane checker",
@@ -75,6 +78,7 @@ WORKFLOW_COMMAND_MARKERS = [
     'curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"',
     'python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
     "python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
+    "python3 scripts/zigux/install-zig.py --self-test",
     "failed to install a verified pinned Zig archive from third_party, mirrors, or ziglang.org",
     'echo "$extract_root" >> "$GITHUB_PATH"',
     '"$zig_path" version',
@@ -107,6 +111,7 @@ WORKFLOW_EXACT_LINES = [
     '          "$zig_path" version',
     '          if [ "${#scripts[@]}" -eq 0 ]; then',
     '          python3 -m py_compile "${scripts[@]}"',
+    "        run: python3 scripts/zigux/install-zig.py --self-test",
     "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test",
     "        run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py",
     "        run: python3 scripts/zigux/check-phase12-bootstrap-lane-shape.py --self-test",
@@ -276,6 +281,8 @@ jobs:
         run: python3 scripts/zigux/check-zig-toolchain.py --policy-only
       - name: Check current pinned Zig archive packet
         run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing
+      - name: Self-test current Zig installer helper
+        run: python3 scripts/zigux/install-zig.py --self-test
       - name: Self-test current Phase 12 bootstrap docs sanity checker
         run: python3 scripts/zigux/check-phase12-bootstrap-docs-sanity.py --self-test
       - name: Check current Phase 12 docs-root sanity markers
@@ -336,6 +343,7 @@ def write_fixture_tree(root: Path) -> None:
     write_text(root / SURVEY_PATH, minimal_survey())
     write_text(root / DOCS_SANITY_CHECKER_PATH, "#!/usr/bin/env python3\n")
     write_text(root / BUILD_ONLY_CHECKER_PATH, "#!/usr/bin/env python3\n")
+    write_text(root / INSTALL_ZIG_HELPER_PATH, "#!/usr/bin/env python3\n")
 
 
 def expect_failure(root: Path, expected: str) -> None:
@@ -355,6 +363,10 @@ def run_self_test() -> int:
         write_fixture_tree(base)
         (base / DOCS_SANITY_CHECKER_PATH).unlink()
         expect_failure(base, f"missing_file:{DOCS_SANITY_CHECKER_PATH}")
+
+        write_fixture_tree(base)
+        (base / INSTALL_ZIG_HELPER_PATH).unlink()
+        expect_failure(base, f"missing_file:{INSTALL_ZIG_HELPER_PATH}")
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
@@ -397,6 +409,18 @@ def run_self_test() -> int:
             base,
             'workflow_marker:python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"',
         )
+
+        write_fixture_tree(base)
+        workflow_path = base / WORKFLOW_PATH
+        workflow_path.write_text(
+            workflow_path.read_text(encoding="utf-8").replace(
+                "      - name: Self-test current Zig installer helper\n        run: python3 scripts/zigux/install-zig.py --self-test\n",
+                "",
+                1,
+            ),
+            encoding="utf-8",
+        )
+        expect_failure(base, "workflow_step:Self-test current Zig installer helper")
 
         write_fixture_tree(base)
         workflow_path = base / WORKFLOW_PATH
@@ -553,7 +577,7 @@ def run_self_test() -> int:
         expect_failure(base, "survey:`PHASE12_RELEASE_CLOSED=no`")
 
         print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST=pass")
-        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=13")
+        print("PHASE12_BOOTSTRAP_LANE_SHAPE_SELF_TEST_CASE_COUNT=15")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
@@ -563,8 +587,8 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description=(
             "Validate the current Phase 12 bootstrap workflow lane so the "
-            "workflow keeps its shipped current-master tail and the dedicated "
-            "docs-sanity checks reviewable."
+            "workflow keeps its shipped current-master tail, the dedicated "
+            "docs-sanity checks, and the installer-helper self-test reviewable."
         )
     )
     parser.add_argument(
