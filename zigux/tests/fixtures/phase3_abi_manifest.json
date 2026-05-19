@@ -29,8 +29,6 @@
     "zig build phase3-abi-core-packet --build-file zigux/tests/build.zig",
     "zig build phase3-dump --build-file zigux/tests/build.zig"
   ],
-  "repo_reality_gaps": [
-    "scripts/zigux/check-phase3-catalog-selftest.py"
-  ],
+  "repo_reality_gaps": [],
   "next_safe_step": "keep the shared ABI packet bounded to manifest-backed binding parity, dump-route reviewability, and directly coupled header-to-binding checks before widening into broader Phase 3 catalog or export/UAPI survey work"
 }
