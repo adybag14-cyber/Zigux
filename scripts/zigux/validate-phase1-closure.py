@@ -17,11 +17,14 @@ PHASE1_LANE_NOTE_REL = Path("Documentation/zigux/phase1-host-helper-lane-sequenc
 DOCS_ROOT_REL = Path("Documentation/zigux/README.md")
 REVIEW_CHECKLIST_REL = Path("Documentation/zigux/review-checklist.md")
 SCRIPTS_README_REL = Path("scripts/zigux/README.md")
+STRING_REVIEW_CHECKER_REL = Path("scripts/zigux/check-phase1-string-review-packet.py")
+DIRECT_OWNER_CHECKER_REL = Path("scripts/zigux/check-phase1-direct-owner-markers.py")
 BENCH_CHECKER_REL = Path("scripts/zigux/check-phase1-bench.py")
 SHARED_REMINDER_CHECKER_REL = Path("scripts/zigux/check-phase1-shared-reminder-packet.py")
 TESTS_README_REL = Path("zigux/tests/README.md")
 TESTS_BUILD_REL = Path("zigux/tests/build.zig")
 PHASE1_SMOKE_REL = Path("zigux/tests/phase1_host_tools_smoke.zig")
+WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 MANIFEST_REL = Path("zigux/tests/fixtures/phase1_helper_manifest.json")
 BITMAP_HELPER_REL = Path("tools/lib/bitmap.zig")
 FIND_BIT_HELPER_REL = Path("tools/lib/find_bit.zig")
@@ -34,11 +37,14 @@ REQUIRED_FILES = (
     DOCS_ROOT_REL,
     REVIEW_CHECKLIST_REL,
     SCRIPTS_README_REL,
+    STRING_REVIEW_CHECKER_REL,
+    DIRECT_OWNER_CHECKER_REL,
     BENCH_CHECKER_REL,
     SHARED_REMINDER_CHECKER_REL,
     TESTS_README_REL,
     TESTS_BUILD_REL,
     PHASE1_SMOKE_REL,
+    WORKFLOW_REL,
     MANIFEST_REL,
     BITMAP_HELPER_REL,
     FIND_BIT_HELPER_REL,
@@ -263,7 +269,7 @@ EXPECTED_RBTREE_REVIEW_FIELDS = {
         "cached_leftmost_return_serials",
     ],
     "shared_replay_summary": (
-        "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, and parked cached-leftmost-return witnesses for rbtree, while the current shared host-tools smoke replay rechecks duplicate-range iteration plus representative cached-root leftmost-return behavior without yet replaying the exact `cached_leftmost_return_serials` sequence"
+        "the committed Phase 1 fixture still carries traversal, detached-node, duplicate-search, and exact cached-leftmost-return witnesses for rbtree, while the current shared host-tools smoke replay now rechecks duplicate-range iteration plus the exact `cached_leftmost_return_serials` cached-root leftmost-return sequence on current master"
     ),
     "traversal_replay_keys": [
         "empty_root",
@@ -284,7 +290,7 @@ EXPECTED_RBTREE_REVIEW_FIELDS = {
         "next_match_terminal_null",
     ],
     "cached_root_direct_review_summary": (
-        "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors, and the exact `cached_leftmost_return_serials` witness also stays aligned across the helper-local tests and committed fixture until a future shared replay promotes that precise return sequence"
+        "cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed behavior remain owned by direct helper-local anchors, while the exact `cached_leftmost_return_serials` witness now stays aligned across the helper-local tests, the shared host-tools smoke replay, and the committed fixture"
     ),
     "ordered_alias_anchor": 'test "rbtree ordered Linux-style aliases mirror traversal and replacement helpers"',
     "low_level_alias_anchor": 'test "rbtree low-level Linux-style aliases mirror node-state helpers"',
@@ -305,7 +311,7 @@ EXPECTED_RBTREE_REVIEW_FIELDS = {
     ],
     "cached_root_alias_anchor": 'test "rbtree cached-root Linux-style aliases mirror the primary helpers"',
     "review_packet_summary": (
-        "the current shared host-tools smoke replay keeps duplicate-range iteration and representative cached-root leftmost-return behavior visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and parked `cached_leftmost_return_serials` witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly"
+        "the current shared host-tools smoke replay keeps duplicate-range iteration and the exact `cached_leftmost_return_serials` cached-root leftmost-return witness visible for rbtree, while the committed Phase 1 fixture still carries the exact traversal, detached-node, duplicate-search, and cached-leftmost-return witnesses; direct helper-local anchors continue to own cached-root insert-miss, leftmost-sync, cached-root alias, singleton-erase, replacement, detach, and reseed paths that the shared smoke route does not replay exactly"
     ),
     "next_safe_step_note": (
         "If this helper lane reopens, keep the already-landed shared-replay promotion for "
@@ -386,12 +392,6 @@ EXPECTED_STRING_PACKET = {
         'test "memparse consumes suffix after saturation"',
         'test "memparse applies suffixes before signed clamping"',
     ],
-    "memparse_review_summary": (
-        "helper-local memparse safety anchors stay explicit through the direct string tests so "
-        "sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split "
-        "aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of "
-        "trapping, and suffixes are still consumed after saturation"
-    ),
     "prefix_suffix_review_anchors": [
         'test "strHasPrefix returns the matched prefix length with C-string semantics"',
         'test "strHasSuffix returns the matched suffix length with C-string semantics"',
@@ -526,7 +526,8 @@ EXPECTED_MARKERS = {
         "scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,"
         "scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,"
         "scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,"
-        "zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`"
+        "zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,"
+        "zigux/tests/fixtures/phase1_helper_manifest.json`"
     ),
     "gap_packet": (
         "`PHASE1_CURRENT_GAP_PACKET=scripts/zigux/validate-phase1.py,scripts/zigux/check-phase1-parity.py,"
