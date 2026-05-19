@@ -85,3 +85,39 @@ test "phase10 virtio core driver model replay keeps wrapper stages reviewable" {
     try std.testing.expectEqual(virtio_core.DriverModelStage.device_failed, summary.stage);
     try std.testing.expect(summary.failed);
 }
+
+test "phase10 virtio core reset replay clears interrupt debt and drops driver readiness" {
+    var core = try virtio_core.VirtioCoreLab.init(0x1044, 2);
+    core.setStatusBits(virtio_core.status_acknowledge | virtio_core.status_driver);
+    core.noteFeaturesNegotiated();
+    _ = try core.selectQueue(1);
+    core.setStatusBits(virtio_core.status_driver_ok);
+    core.stageInterrupt(0b0110);
+
+    var model = core.driverModelSummary();
+    try std.testing.expectEqual(virtio_core.DriverModelStage.driver_ready, model.stage);
+    try std.testing.expect(model.driver_ready);
+
+    const queue = core.resetForReplay();
+    try std.testing.expectEqual(@as(u16, 2), queue.queue_count);
+    try std.testing.expectEqual(@as(?u16, null), queue.selected_queue);
+    try std.testing.expect(!queue.selected_queue_valid);
+    try std.testing.expectEqual(@as(u8, 1), queue.config_generation);
+
+    const status = core.statusSummary();
+    try std.testing.expectEqual(@as(u8, 0), status.status);
+    try std.testing.expect(!status.features_negotiated);
+    try std.testing.expect(!status.driver_ready);
+    try std.testing.expect(!status.needs_reset);
+    try std.testing.expectEqual(@as(?u16, null), status.selected_queue);
+
+    const ack = core.ackInterrupt(0xff);
+    try std.testing.expectEqual(@as(u8, 0), ack.pending_before);
+    try std.testing.expectEqual(@as(u8, 0), ack.cleared_bits);
+    try std.testing.expectEqual(@as(u8, 0), ack.pending_after);
+    try std.testing.expect(ack.all_acknowledged);
+
+    model = core.driverModelSummary();
+    try std.testing.expectEqual(virtio_core.DriverModelStage.unattached, model.stage);
+    try std.testing.expectEqual(@as(?virtio_core.DriverLifecycleBlocker, .acknowledge_missing), model.blocker);
+}
