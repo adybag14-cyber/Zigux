@@ -239,6 +239,9 @@ jobs:
       - name: Run current Phase 2 genksyms unit replay
         run: zig test scripts/zigux/genksyms.zig
 
+      - name: Run current Phase 2 validate make route
+        run: make -C zigux phase2-validate
+
       - name: Validate current Phase 2 tool packet
         run: python3 scripts/zigux/validate-phase2.py
 
