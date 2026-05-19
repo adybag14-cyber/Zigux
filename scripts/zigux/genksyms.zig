@@ -760,6 +760,24 @@ test "genksyms bridge preserves long version side effects before missing long op
     }
 }
 
+test "genksyms bridge preserves abbreviated long version side effects before missing long option arguments" {
+    const args = [_][]const u8{
+        "--ver",
+        "--reference",
+    };
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try testing.expectEqual(@as(usize, 1), failure.version_count);
+            switch (failure.reason) {
+                .missing_option_argument => |option| try testing.expectEqualStrings("--reference", option),
+                else => return error.UnexpectedParseFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
 test "genksyms bridge preserves long version side effects before missing short option arguments" {
     const args = [_][]const u8{
         "--version",
@@ -952,6 +970,24 @@ test "genksyms bridge renders unexpected long option argument like the fixture" 
 test "genksyms bridge preserves long version side effects before unexpected long option arguments" {
     const args = [_][]const u8{
         "--version",
+        "--help=extra",
+    };
+    const outcome = try parseArgs(testing.allocator, &args);
+    switch (outcome) {
+        .failure => |failure| {
+            try testing.expectEqual(@as(usize, 1), failure.version_count);
+            switch (failure.reason) {
+                .unexpected_option_argument => |option| try testing.expectEqualStrings("--help", option),
+                else => return error.UnexpectedParseFailure,
+            }
+        },
+        else => return error.ExpectedFailure,
+    }
+}
+
+test "genksyms bridge preserves abbreviated long version side effects before unexpected long option arguments" {
+    const args = [_][]const u8{
+        "--ver",
         "--help=extra",
     };
     const outcome = try parseArgs(testing.allocator, &args);
