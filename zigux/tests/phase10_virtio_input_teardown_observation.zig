@@ -33,7 +33,7 @@ test "phase10 virtio input teardown observation keeps identity while resettable 
 
     try device.configureEventQueue(16);
     try device.configureStatusQueue(8);
-    try device.fillEventBuffers();
+    _ = try device.fillEventBuffers();
     try device.markReady();
 
     const sent = try device.sendStatus(1, 2, 3);
