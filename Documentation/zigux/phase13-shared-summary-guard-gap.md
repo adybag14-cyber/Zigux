@@ -34,6 +34,8 @@ Fresh authenticated file checks in this run also resolve `zigux/Makefile`, so ke
 
 Fresh authenticated file checks in this run also keep `zigux/tests/phase13_devres_dma_coherent.zig` materialized on current `master`, while `Documentation/zigux/phase13-landlock-syscalls-survey.md`, `zigux/tests/phase13_landlock_syscalls.zig`, `zigux/tests/phase13_landlock_syscalls_reviewability.zig`, and `zigux/tests/phase13_landlock_syscalls_manifest.json` still return missing. The shipped tests-root packet and `scripts/zigux/check-phase13-tests-readme-alignment.py` now keep those direct Landlock syscall companions recorded as repo-reality gaps rather than shipped evidence while still keeping the returned direct devres DMA replay explicit.
 
+Current `master` still leaves one broader shared reminder surface lagging behind that returned notifier packet: `scripts/zigux/README.md` still records `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, and `zigux/tests/phase13_notifier_list_reviewability.zig` as repo-reality gaps even though fresh authenticated reads in this run returned those paths directly. Keep that scripts-root drift explicit as the next same-lane follow-through instead of treating the wider shared reminder packet as fully closed.
+
 Keep these paths recorded as repo-reality gaps until current `master` rematerializes them:
 
 - `make -C zigux phase13-validate`
@@ -55,7 +57,7 @@ Keep these paths recorded as repo-reality gaps until current `master` rematerial
 2. Run `python3 scripts/zigux/check-phase13-shared-summary-guard-gap.py`.
 3. Keep `Documentation/zigux/phase13-notifier-list-survey.md`, `scripts/zigux/check-phase13-notifier-packet.py`, `zigux/tests/phase13_notifier_list_manifest.json`, `zigux/tests/phase13_notifier_list_reviewability.zig`, `zigux/helpers/list_view.zig`, and `zigux/helpers/hlist_view.zig` explicit as returned adjacent notifier evidence without turning them into part of the stable shared replay handle.
 4. Keep `zigux/Makefile` explicit as a returned file, but keep `make -C zigux phase13-validate`, `make -C zigux phase13`, `scripts/zigux/check-phase13-notifier-priority-signal.py`, `zigux/tests/phase13_build.zig`, `include/zigux/notifier_abi.h`, and the still-missing direct Landlock syscall companions recorded as repo-reality gaps rather than promoting them into shipped contributor workflow evidence.
-5. Treat the next same-lane follow-through as a scripts-root and tests-root reread so the wider shared reminder packet can stop treating the returned notifier packet checker and reviewability surfaces as missing before reopening helper-local work.
+5. Treat the next same-lane follow-through as a scripts-root reread so `scripts/zigux/README.md` can stop treating the returned notifier packet checker and reviewability surfaces as missing before reopening helper-local work.
 
 ## Boundaries
 
