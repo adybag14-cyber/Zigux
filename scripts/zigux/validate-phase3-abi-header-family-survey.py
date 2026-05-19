@@ -175,8 +175,23 @@ def run_self_test() -> int:
         ),
         (
             SURVEY_PATH,
+            "PHASE3_VERSION_BINDING_PATH=zigux/bindings/version.zig",
+            "expected missing survey version-binding marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "PHASE3_EXPORT_UAPI_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+            "expected missing survey layout-gate marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
             "- `include/linux/zigux.h` keeps the Linux-facing header-family relay bounded to `zigux_uapi_version_current()`, the `zigux_uapi_version_has_current_*()` helpers, `zigux_uapi_version_matches_current()`, and `zigux_uapi_validate_version()` rather than introducing a second semantic owner.",
             "expected missing survey linux-header marker was not reported",
+        ),
+        (
+            SURVEY_PATH,
+            "Current `master` no longer has a packet-local repo-reality gap for the bounded header-family survey follow-through itself.",
+            "expected missing survey current-gap marker was not reported",
         ),
         (
             VALIDATOR_PATH,
@@ -184,9 +199,39 @@ def run_self_test() -> int:
             "expected missing validator pass marker was not reported",
         ),
         (
+            ABI_SLICE_PATH,
+            "the separate broader header-family binding follow-through remains the wider gap",
+            "expected missing shared-slice wider-gap marker was not reported",
+        ),
+        (
             MANIFEST_PATH,
             '"Documentation/zigux/phase3-abi-header-family-survey.md"',
             "expected missing manifest header-family survey marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline struct zigux_export_status zigux_uapi_validate_version(",
+            "expected missing linux-header validate-version marker was not reported",
+        ),
+        (
+            UAPI_VERSION_PATH,
+            "pub const header_family_revision: u32 = 1;",
+            "expected missing uapi version header-family revision marker was not reported",
+        ),
+        (
+            VERSION_BINDING_PATH,
+            "pub fn hasCurrentHeaderFamilyRevision(value: u32) bool {",
+            "expected missing version-binding header-family revision marker was not reported",
+        ),
+        (
+            LAYOUT_TEST_PATH,
+            'test "export shim mirrors boundary header predicate helpers" {',
+            "expected missing layout replay predicate marker was not reported",
+        ),
+        (
+            LAYOUT_BUILD_PATH,
+            '"phase3-export-uapi-layout-test"',
+            "expected missing layout build route marker was not reported",
         ),
     )
 
@@ -212,7 +257,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Validate the current Phase 3 ABI header-family survey packet."
+        description="Validate the current Phase 3 ABI header-family packet."
     )
     parser.add_argument(
         "--repo-root",
