@@ -62,6 +62,7 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
     "run: python3 scripts/zigux/check-fixdep-diff.py",
     "run: zig test scripts/zigux/fixdep.zig",
+    "run: python3 scripts/zigux/install-zig.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -90,6 +91,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
+    "run: make -C zigux phase2-tools",
+    "run: make -C zigux phase2-validate",
     "run: python3 scripts/zigux/validate-phase2.py",
 )
 
