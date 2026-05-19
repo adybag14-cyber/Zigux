@@ -115,6 +115,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + 2
     + len(SURFACE_PATHS)
     + len(REQUIRED_MAKEFILE_LINES)
+    + len(REQUIRED_MAKEFILE_LINES)
     + len(DISALLOWED_MAKEFILE_LINES)
 )
 
@@ -253,12 +254,6 @@ def build_self_test_root(root: Path) -> None:
         write_text(resolve_path(root, path), "present\n")
 
 
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
-
-
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
     lines = text.splitlines()
     for index, line in enumerate(lines):
@@ -377,6 +372,17 @@ def run_self_test() -> int:
             )
             issues = collect_issues(root)
             assert ("MISSING_MAKEFILE_LINES", marker) in issues
+            checks_run += 1
+
+        for marker in REQUIRED_MAKEFILE_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, MAKEFILE)
+            path.write_text(
+                duplicate_exact_line(path.read_text(encoding="utf-8"), marker),
+                encoding="utf-8",
+            )
+            issues = collect_issues(root)
+            assert ("DUPLICATE_MAKEFILE_LINES", f"{marker}:count=2") in issues
             checks_run += 1
 
         for marker in DISALLOWED_MAKEFILE_LINES:
