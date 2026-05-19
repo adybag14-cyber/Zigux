@@ -305,6 +305,27 @@ def run_self_test() -> None:
             "do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md`",
         )
 
+        wrong_build_tests_root = tmpdir / "wrong_build_tests"
+        shutil.copytree(fixture_root, wrong_build_tests_root, dirs_exist_ok=True)
+        inventory = json.loads((wrong_build_tests_root / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["build_test_names"] = inventory["build_test_names"][:-1]
+        write(wrong_build_tests_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_build_tests_root, "build_test_names does not match")
+
+        wrong_depend_steps_root = tmpdir / "wrong_depend_steps"
+        shutil.copytree(fixture_root, wrong_depend_steps_root, dirs_exist_ok=True)
+        inventory = json.loads((wrong_depend_steps_root / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["shared_test_depend_steps"] = ["phase11-hvc-cleanup-packet-proof"]
+        write(wrong_depend_steps_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_depend_steps_root, "shared_test_depend_steps does not match")
+
+        wrong_dedicated_replays_root = tmpdir / "wrong_dedicated_replays"
+        shutil.copytree(fixture_root, wrong_dedicated_replays_root, dirs_exist_ok=True)
+        inventory = json.loads((wrong_dedicated_replays_root / FILES["inventory"]).read_text(encoding="utf-8"))
+        inventory["dedicated_survey_replays"] = ["zigux/tests/phase11_hvc_console_survey.zig"]
+        write(wrong_dedicated_replays_root / FILES["inventory"], json.dumps(inventory, indent=2) + "\n")
+        expect_failure(wrong_dedicated_replays_root, "dedicated_survey_replays does not match")
+
         wrong_count_root = tmpdir / "wrong_count"
         shutil.copytree(fixture_root, wrong_count_root, dirs_exist_ok=True)
         inventory = json.loads((wrong_count_root / FILES["inventory"]).read_text(encoding="utf-8"))
@@ -327,7 +348,7 @@ def run_self_test() -> None:
         expect_failure(wrong_test_root_root, "test_root_modules does not match")
 
         print("PHASE11_MATRIX_GAP_SURVEY_CHECK=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=8")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=11")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
