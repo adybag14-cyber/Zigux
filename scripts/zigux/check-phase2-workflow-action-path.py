@@ -13,7 +13,15 @@ WORKFLOW = ROOT / ".github" / "workflows" / "zigux-bootstrap.yml"
 INSTALLER = ROOT / "scripts" / "zigux" / "install-zig.py"
 CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
 CROSS_ALIGNMENT_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross-selftest-alignment.py"
+TOOLCHAIN_PINNING_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py"
 CROSS_FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
+REQUIRED_FILES = (
+    INSTALLER,
+    CROSS_CHECKER,
+    CROSS_ALIGNMENT_CHECKER,
+    TOOLCHAIN_PINNING_CHECKER,
+    CROSS_FIXTURE,
+)
 
 EXACT_WORKFLOW_RUN_COUNTS = {
     "python3 scripts/zigux/install-zig.py --self-test": 1,
@@ -33,7 +41,7 @@ ORDERED_STEP_MARKERS = (
     "- name: Self-test current Phase 2 toolchain pinning checker",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 8
+EXPECTED_SELF_TEST_CASE_COUNT = 15
 
 
 def read_text(path: Path) -> str:
@@ -59,6 +67,12 @@ def count_exact_lines(text: str, marker: str) -> int:
     return sum(1 for line in text.splitlines() if line.strip() == marker)
 
 
+def replace_once(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement, 1)
+
+
 def validate_exact_workflow_runs(text: str) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for command, expected_count in EXACT_WORKFLOW_RUN_COUNTS.items():
@@ -72,7 +86,7 @@ def validate_exact_workflow_runs(text: str) -> list[tuple[str, str]]:
 
 def validate_required_files(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    for path in (INSTALLER, CROSS_CHECKER, CROSS_ALIGNMENT_CHECKER, CROSS_FIXTURE):
+    for path in REQUIRED_FILES:
         resolved = resolve_path(root, path)
         if not resolved.exists():
             issues.append(("MISSING_REQUIRED_FILE", str(path.relative_to(ROOT))))
@@ -121,9 +135,8 @@ def emit_issues(issues: list[tuple[str, str]]) -> int:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(resolve_path(root, INSTALLER), "#!/usr/bin/env python3\n")
-    write_text(resolve_path(root, CROSS_CHECKER), "#!/usr/bin/env python3\n")
-    write_text(resolve_path(root, CROSS_ALIGNMENT_CHECKER), "#!/usr/bin/env python3\n")
+    for path in (INSTALLER, CROSS_CHECKER, CROSS_ALIGNMENT_CHECKER, TOOLCHAIN_PINNING_CHECKER):
+        write_text(resolve_path(root, path), "#!/usr/bin/env python3\n")
     write_text(resolve_path(root, CROSS_FIXTURE), '{\n  "phase": "Phase 2"\n}\n')
     write_text(
         resolve_path(root, WORKFLOW),
@@ -190,11 +203,7 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for command in (
-            "python3 scripts/zigux/install-zig.py --self-test",
-            "python3 scripts/zigux/check-phase2-cross.py --self-test",
-            "python3 scripts/zigux/check-phase2-cross.py",
-        ):
+        for command in EXACT_WORKFLOW_RUN_COUNTS:
             build_self_test_root(root)
             workflow_path = resolve_path(root, WORKFLOW)
             workflow_path.write_text(
@@ -223,10 +232,11 @@ def run_self_test() -> int:
         ) in collect_issues(root)
         checks_run += 1
 
-        build_self_test_root(root)
-        resolve_path(root, INSTALLER).unlink()
-        assert ("MISSING_REQUIRED_FILE", "scripts/zigux/install-zig.py") in collect_issues(root)
-        checks_run += 1
+        for path in REQUIRED_FILES:
+            build_self_test_root(root)
+            resolve_path(root, path).unlink()
+            assert ("MISSING_REQUIRED_FILE", str(path.relative_to(ROOT))) in collect_issues(root)
+            checks_run += 1
 
         build_self_test_root(root)
         workflow_path = resolve_path(root, WORKFLOW)
@@ -257,6 +267,21 @@ def run_self_test() -> int:
         assert (
             "STEP_ORDER",
             "- name: Check current Phase 2 direct cross-route packet -> - name: Self-test current Phase 2 cross selftest alignment checker",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        workflow_path = resolve_path(root, WORKFLOW)
+        workflow_path.write_text(
+            replace_once(
+                workflow_path.read_text(encoding="utf-8"),
+                "- name: Self-test current Phase 2 toolchain pinning checker\n",
+            ),
+            encoding="utf-8",
+        )
+        assert (
+            "MISSING_STEP_MARKER",
+            "- name: Self-test current Phase 2 toolchain pinning checker",
         ) in collect_issues(root)
         checks_run += 1
 
@@ -298,7 +323,7 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_WORKFLOW_ACTION_PATH=pass")
-    print("PHASE2_WORKFLOW_ACTION_PATH_REQUIRED_FILE_COUNT=4")
+    print(f"PHASE2_WORKFLOW_ACTION_PATH_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
     print(f"PHASE2_WORKFLOW_ACTION_PATH_MARKER_COUNT={len(EXACT_WORKFLOW_RUN_COUNTS)}")
     print(f"PHASE2_WORKFLOW_ACTION_PATH_ORDER_CHECK_COUNT={len(ORDERED_STEP_MARKERS) - 1}")
     return 0
