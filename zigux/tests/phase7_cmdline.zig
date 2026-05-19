@@ -80,6 +80,13 @@ test "phase 7 cmdline companion replays leading-whitespace sentinels and quoted 
     try std.testing.expectEqualStrings("fast path", quoted.value.?);
     try std.testing.expectEqualStrings("tail", quoted.remaining);
 
+    const quoted_empty = cmdline.nextArg("flag=\"\" next");
+    try std.testing.expectEqualStrings("flag", quoted_empty.param);
+    try std.testing.expectEqualStrings("", quoted_empty.value.?);
+    try std.testing.expectEqualStrings("next", quoted_empty.rest);
+    try std.testing.expectEqualStrings("next", quoted_empty.remaining);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(quoted_empty.rest.ptr)), @as(usize, @intFromPtr(quoted_empty.remaining.ptr)));
+
     const nul_bounded = cmdline.nextArg("console=ttyS0\x00 root=/dev/vda");
     try std.testing.expectEqualStrings("console", nul_bounded.param);
     try std.testing.expectEqualStrings("ttyS0", nul_bounded.value.?);
