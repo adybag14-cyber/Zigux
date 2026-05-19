@@ -41,12 +41,12 @@ This focused ledger records the current closure-evidence bundle for the active P
 - `PHASE10_LEDGER_ROADMAP_SCOREBOARD_SOURCE=zigux/tests/phase10_closure_manifest.json`
 - `PHASE10_LEDGER_SURVEY_PROVENANCE_SOURCE=manifest_derived`
 - `PHASE10_LEDGER_SURVEY_CORE_LANE=P10-L01`
-- `PHASE10_LEDGER_SURVEY_RING_LANE=P10-L05`
+- `PHASE10_LEDGER_SURVEY_RING_LANE=P10-L10`
 - `PHASE10_LEDGER_SURVEY_INPUT_LANE=P10-L13`
 - `PHASE10_LEDGER_SURVEY_MMIO_LANE=P10-L11`
 - `PHASE10_LEDGER_SURVEY_CORE_COMMIT=c11221dc7a68d7511ae1c69d64b3f08528287ed8`
-- `PHASE10_LEDGER_SURVEY_RING_COMMIT=e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
-- `PHASE10_LEDGER_SURVEY_INPUT_COMMIT=7361ac51374149a96b7a7a2c6ea3c995d8cc1231`
+- `PHASE10_LEDGER_SURVEY_RING_COMMIT=0aa2db32bcb1c7065850ee3f66ec119b071fbf5c`
+- `PHASE10_LEDGER_SURVEY_INPUT_COMMIT=ee789f026f11a0c5c70ded9a868979cdf4f55393`
 - `PHASE10_LEDGER_SURVEY_MMIO_COMMIT=b53ec2bd507d0b3283486e76acc273b184ad5bf8`
 - `PHASE10_LEDGER_ROADMAP_VIRTQUEUE_WRAPPERS=starter_landed`
 - `PHASE10_LEDGER_SCOREBOARD_VIRTQUEUE_EVIDENCE=zigux/tests/phase10_virtio_ring_manifest.json,Documentation/zigux/phase10-virtio-ring-survey.md,Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`
@@ -91,7 +91,7 @@ It records the roadmap-backed closure packet and the current parked-next-step po
 
 That shared scoreboard still reads `starter_landed` for virtqueue wrappers, MMIO wrappers, and lab-only validation, while risky dual implementations remain `blocked_on_risky_transport` until a smaller transport-facing helper lane is ready.
 
-The same manifest also carries the survey-provenance packet for the current closure bundle, so this ledger now publishes the exact lane ownership and inspected heads behind the live core, ring, input, and MMIO survey notes: ring ownership is back on `P10-L05`, MMIO ownership remains `P10-L11`, and the MMIO surveyed commit is the current manifest-backed `b53ec2bd507d0b3283486e76acc273b184ad5bf8`.
+The same manifest also carries the survey-provenance packet for the current closure bundle, so this ledger now publishes the exact lane ownership and inspected heads behind the live core, ring, input, and MMIO survey notes: ring ownership is now `P10-L10`, input surveyed commit is the current manifest-backed `ee789f026f11a0c5c70ded9a868979cdf4f55393`, and MMIO ownership remains `P10-L11` with the current manifest-backed `b53ec2bd507d0b3283486e76acc273b184ad5bf8`.
 
 Fresh public GitHub fallback rereads now materialize the previously stale ring and MMIO packet surfaces on current `master`, including `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `scripts/zigux/check-phase10-ring-packet.py`, `drivers/virtio/virtio_mmio.zig`, `zigux/tests/phase10_build.zig`, and `zigux/tests/phase10_virtio_mmio_survey.zig`. Because the packet-local slice-note set is also directly readable again, this ledger no longer carries the older repo-reality-gap or contents-bridge-gap wording for those surfaces.
 
