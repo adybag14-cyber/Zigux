@@ -1,6 +1,6 @@
 # Phase 2 fixdep next step note
 
-Lane: `P2-X02`
+Lane: `P2-L06`
 
 Current `master` still carries the bounded `scripts/zigux/fixdep.zig` dual-implementation anchor, but the surviving fixdep closure packet is now narrower than older reminder surfaces implied.
 
