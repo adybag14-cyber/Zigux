@@ -26,6 +26,13 @@ fn isLowerHexCommitSha(value: []const u8) bool {
     return true;
 }
 
+fn findExactCheck(manifest: Manifest, id: []const u8) ?ExactCheck {
+    for (manifest.exact_checks) |check| {
+        if (std.mem.eql(u8, check.id, id)) return check;
+    }
+    return null;
+}
+
 test "phase 5 bytestream fifo manifest still records the bounded replay contract" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
@@ -51,6 +58,35 @@ test "phase 5 bytestream fifo manifest still records the bounded replay contract
     try std.testing.expectEqual(@as(usize, 8), manifest.review_prompts.len);
     try std.testing.expectEqual(@as(usize, 16), manifest.exact_checks.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.non_goals.len);
+}
+
+test "phase 5 bytestream fifo manifest keeps queue-shape wording aligned" {
+    var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
+    defer io_instance.deinit();
+
+    const manifest_json = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "zigux/tests/phase5_bytestream_fifo_manifest.json",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(manifest_json);
+
+    const parsed = try std.json.parseFromSlice(Manifest, std.testing.allocator, manifest_json, .{});
+    defer parsed.deinit();
+    const manifest = parsed.value;
+
+    const occupancy = findExactCheck(manifest, "occupancy-summary-boundary") orelse return error.MissingExactCheck;
+    try std.testing.expect(std.mem.indexOf(u8, occupancy.expected, "queue_len=10, available=22, and wrapped=false") != null);
+    try std.testing.expect(std.mem.indexOf(u8, occupancy.expected, "queue_len=32, available=0, and wrapped=true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, occupancy.expected, "queue_len=24, available=8, and wrapped=true") != null);
+    try std.testing.expect(std.mem.indexOf(u8, occupancy.expected, "used=") == null);
+
+    const writable = findExactCheck(manifest, "writable-span-boundary") orelse return error.MissingExactCheck;
+    try std.testing.expect(std.mem.indexOf(u8, writable.expected, "tail_index=17, writable_count=22") != null);
+    try std.testing.expect(std.mem.indexOf(u8, writable.expected, "tail_index=4, writable_count=0") != null);
+    try std.testing.expect(std.mem.indexOf(u8, writable.expected, "tail_index=1, writable_count=8") != null);
+    try std.testing.expect(std.mem.indexOf(u8, writable.expected, "total_available=") == null);
 }
 
 test "phase 5 bytestream fifo survey packet keeps direct sample-and-tests guidance explicit" {
