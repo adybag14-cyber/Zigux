@@ -159,6 +159,38 @@ test "cpumask exact-word windows keep full-word masks explicit" {
     try std.testing.expectEqual(bitmap.bits_per_word + 1, summary.weight);
 }
 
+test "cpumask exact-word windows project to bitmap windows unchanged" {
+    var backing = [_]Word{
+        ~@as(Word, 0),
+        (@as(Word, 1) << 5),
+    };
+    const view = viewFromWords(backing[0..], bitmap.bits_per_word * 2);
+    const projected = binding.asBitmap(view);
+    const cpumask_summary = summarize(view);
+    const bitmap_summary = bitmap.summarize(projected);
+
+    try std.testing.expect(isValid(view));
+    try std.testing.expect(bitmap.isValid(projected));
+    try std.testing.expectEqual(view.words_addr, projected.words_addr);
+    try std.testing.expectEqual(view.nbits, projected.nbits);
+    try std.testing.expectEqual(view.word_count, projected.word_count);
+    try std.testing.expectEqual(
+        cpuIsSet(view, bitmap.bits_per_word + 5),
+        bitmap.testBit(projected, bitmap.bits_per_word + 5),
+    );
+    try std.testing.expectEqual(
+        cpuIsSet(view, bitmap.bits_per_word + 6),
+        bitmap.testBit(projected, bitmap.bits_per_word + 6),
+    );
+    try std.testing.expectEqual(firstCpu(view), bitmap.firstSet(projected));
+    try std.testing.expectEqual(firstAbsentCpu(view), bitmap.firstZero(projected));
+    try std.testing.expectEqual(weight(view), bitmap.weight(projected));
+    try std.testing.expectEqual(cpumask_summary.first_set, bitmap_summary.first_set);
+    try std.testing.expectEqual(cpumask_summary.first_zero, bitmap_summary.first_zero);
+    try std.testing.expectEqual(cpumask_summary.weight, bitmap_summary.weight);
+    try std.testing.expectEqual(cpumask_summary.reserved, bitmap_summary.reserved);
+}
+
 test "cpumask full tail-masked windows project to bitmap windows unchanged" {
     var backing = [_]Word{
         ~@as(Word, 0),
