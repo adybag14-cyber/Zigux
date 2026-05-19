@@ -30,6 +30,7 @@ test "phase 8 file-path handle bridge docs keep the bounded fdinfo helper explic
     try expectContains(note, "value_size");
     try expectContains(note, "max_entries");
     try expectContains(note, "map_flags");
+    try expectContains(note, "map_extra");
     try expectContains(note, "no direct procfs reads");
     try expectContains(note, "no `bpf_obj_get()` reopen flow");
     try expectContains(note, "helper-only `mapReuseObservationFromFdinfo()` handoff");
@@ -111,7 +112,15 @@ test "phase 8 file-path handle bridge proof keeps the manifest-backed helper and
     );
     try expectContains(
         manifest,
+        "\"why_now\": \"This remains a bounded next helper once Zigux chooses to materialize the shared file-path bridge surface; until then the reviewable procfs path construction and fdinfo text parsing should stay explicitly smaller than direct file reads, descriptor ownership, or pinned-object reopen flow.\"",
+    );
+    try expectContains(
+        manifest,
         "\"slug\": \"map-reuse-compatibility\",\n \"status\": \"starter_landed\"",
+    );
+    try expectContains(
+        manifest,
+        "\"why_now\": \"This remains a bounded next helper once the shared bridge surface exists; the reused-map-name chooser and compatibility comparison are still reviewable without widening into FD duplication, close-on-replacement, or pinned-map reopen side effects.\"",
     );
     try expectContains(
         manifest,
