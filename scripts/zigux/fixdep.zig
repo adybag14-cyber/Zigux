@@ -28,6 +28,22 @@ fn bytesBeforeFirstNull(bytes: []const u8) []const u8 {
     return bytes[0 .. std.mem.indexOfScalar(u8, bytes, 0) orelse bytes.len];
 }
 
+fn lineBreakLen(bytes: []const u8, index: usize) usize {
+    if (bytes[index] == '\r' and index + 1 < bytes.len and bytes[index + 1] == '\n') {
+        return 2;
+    }
+    return 1;
+}
+
+fn lineContinuationLen(bytes: []const u8, index: usize) ?usize {
+    if (bytes[index] != '\\' or index + 1 >= bytes.len) return null;
+    return switch (bytes[index + 1]) {
+        '\n' => 2,
+        '\r' => if (index + 2 < bytes.len and bytes[index + 2] == '\n') 3 else 2,
+        else => null,
+    };
+}
+
 fn describeFileReadError(err: anyerror) []const u8 {
     return switch (err) {
         error.FileNotFound => "No such file or directory",
@@ -224,9 +240,10 @@ const Processor = struct {
             switch (dep_text[index]) {
                 '#' => {
                     index += 1;
-                    while (index < dep_text.len and dep_text[index] != '\n') {
-                        if (dep_text[index] == '\\' and index + 1 < dep_text.len) {
-                            index += 1;
+                    while (index < dep_text.len and dep_text[index] != '\n' and dep_text[index] != '\r') {
+                        if (lineContinuationLen(dep_text, index)) |continuation_len| {
+                            index += continuation_len;
+                            continue;
                         }
                         index += 1;
                     }
@@ -237,13 +254,13 @@ const Processor = struct {
                     continue;
                 },
                 '\\' => {
-                    if (index + 1 < dep_text.len and dep_text[index + 1] == '\n') {
-                        index += 2;
+                    if (lineContinuationLen(dep_text, index)) |continuation_len| {
+                        index += continuation_len;
                         continue;
                     }
                 },
-                '\n' => {
-                    index += 1;
+                '\n', '\r' => {
+                    index += lineBreakLen(dep_text, index);
                     is_target = true;
                     continue;
                 },
@@ -258,9 +275,9 @@ const Processor = struct {
 
             token.clearRetainingCapacity();
             var cursor = index;
-            while (cursor < dep_text.len and dep_text[cursor] != ' ' and dep_text[cursor] != '\t' and dep_text[cursor] != '\n' and dep_text[cursor] != '#' and dep_text[cursor] != ':') {
+            while (cursor < dep_text.len and dep_text[cursor] != ' ' and dep_text[cursor] != '\t' and dep_text[cursor] != '\n' and dep_text[cursor] != '\r' and dep_text[cursor] != '#' and dep_text[cursor] != ':') {
                 if (dep_text[cursor] == '\\') {
-                    if (cursor + 1 < dep_text.len and dep_text[cursor + 1] == '\n') {
+                    if (lineContinuationLen(dep_text, cursor) != null) {
                         break;
                     }
                     if (cursor + 1 < dep_text.len and (dep_text[cursor + 1] == '#' or dep_text[cursor + 1] == ':')) {
@@ -668,6 +685,52 @@ test "dep parsing continues dependency lines across escaped newlines" {
             "  dep-first.so \\\n" ++
             "  dep-second.so \\\n" ++
             "  dep-third.so \\\n" ++
+            "\n" ++
+            "continued.o: $(deps_continued.o)\n\n" ++
+            "$(deps_continued.o):\n",
+        capture.list.items,
+    );
+}
+
+test "dep parsing accepts CRLF lines and continuations" {
+    const Capture = struct {
+        list: std.ArrayList(u8),
+        allocator: std.mem.Allocator,
+
+        fn init(allocator: std.mem.Allocator) !@This() {
+            return .{
+                .list = try std.ArrayList(u8).initCapacity(allocator, 224),
+                .allocator = allocator,
+            };
+        }
+
+        fn deinit(self: *@This()) void {
+            self.list.deinit(self.allocator);
+        }
+
+        fn print(self: *@This(), comptime fmt: []const u8, args: anytype) !void {
+            const rendered = try std.fmt.allocPrint(self.allocator, fmt, args);
+            defer self.allocator.free(rendered);
+            try self.list.appendSlice(self.allocator, rendered);
+        }
+    };
+
+    var processor = Processor.init(std.testing.allocator, std.testing.io);
+    defer processor.deinit();
+
+    var capture = try Capture.init(std.testing.allocator);
+    defer capture.deinit();
+
+    try processor.parseDepFile(
+        &capture,
+        "continued.o: continued.rmeta dep-first.so \\\r\n dep-second.so\r\n# kept comment\\\r\ncontinued.o: ignored.rmeta\r\n",
+        "continued.o",
+    );
+
+    try std.testing.expectEqualStrings(
+        "source_continued.o := continued.rmeta\n\ndeps_continued.o := \\\n" ++
+            "  dep-first.so \\\n" ++
+            "  dep-second.so \\\n" ++
             "\n" ++
             "continued.o: $(deps_continued.o)\n\n" ++
             "$(deps_continued.o):\n",
