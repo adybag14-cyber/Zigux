@@ -89,7 +89,6 @@ These are handoff and reminder-surface gaps, not missing ownership of the roadma
 - if docs-root, checklist, tests-root, or scripts-root Phase 15 reminder wording drifts, refresh this handoff note so it points to the current direct surfaces, the focused tests-readme checker, the checker-backed shared-gap packet, the focused handoff-specific replay, and the focused handoff-note checker instead of carrying stale future-target language
 - if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here
 - if the freeze-map anchor set or any blocker disposition changes, reopen `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase15-freeze-map-governance.md`, and `Documentation/zigux/phase15-parity-scorecard.md` before widening this note
-- if dedicated handoff-specific companions are published later, reread this note together with those new direct paths before presenting them as current evidence here
 
 ## Non-goals
 
