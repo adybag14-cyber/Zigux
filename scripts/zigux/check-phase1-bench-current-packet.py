@@ -38,6 +38,9 @@ MARKERS = {
     ),
     BENCH_CHECKER_REL: (
         "RBTREE_REQUIRED_EXACT_CHECKSUMS = {",
+        "def emit_bench_command_failure(",
+        'print("PHASE1_BENCH_CHECK_REASON=bench_command_missing")',
+        'print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations[\'checksums\'])}")',
         "def run_self_test() -> None:",
         'print("PHASE1_BENCH_CHECK_SELF_TEST=pass")',
     ),
@@ -49,6 +52,9 @@ FORBIDDEN_FRAGMENTS = {
     ),
     WORKFLOW_REL: (
         "run: zig build bench --build-file zigux/tests/build.zig",
+    ),
+    BENCH_CHECKER_REL: (
+        'print(f"PHASE1_BENCH_ZIG={zig}")',
     ),
 }
 
