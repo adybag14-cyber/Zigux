@@ -22,6 +22,14 @@ pub const ManagedDmamAllocCoherentPlan = struct {
     should_free_on_detach: bool,
 };
 
+pub const ManagedDmamFreeCoherentPlan = struct {
+    anchor: []const u8,
+    requested_size: u64,
+    frees_allocation: bool,
+    releases_from_devres: bool,
+    release_record_consumed: bool,
+};
+
 pub const ReleaseRecordLifetimePlan = struct {
     added_to_devres: bool,
     release_record_retained: bool,
@@ -78,6 +86,16 @@ pub const DevresHelperLab = struct {
             .release_record_retained = lifetime.release_record_retained,
             .release_record_freed = lifetime.release_record_freed,
             .should_free_on_detach = lifetime.should_release_on_detach,
+        };
+    }
+
+    pub fn planManagedDmamFreeCoherent(requested_size: u64) ManagedDmamFreeCoherentPlan {
+        return .{
+            .anchor = descriptor().anchor,
+            .requested_size = requested_size,
+            .frees_allocation = true,
+            .releases_from_devres = true,
+            .release_record_consumed = true,
         };
     }
 };
