@@ -83,8 +83,13 @@ def validate_fixture(root: Path) -> list[str]:
         issues.append(f"fixture:targets_not_list:{targets!r}")
     elif targets != EXPECTED_TARGETS:
         issues.append(f"fixture:targets:{targets!r}")
-    if payload.get("target_count") != len(EXPECTED_TARGETS):
-        issues.append(f"fixture:target_count:{payload.get('target_count')!r}")
+
+    target_count = payload.get("target_count")
+    if not isinstance(target_count, int):
+        issues.append(f"fixture:target_count_not_int:{target_count!r}")
+    elif target_count != len(EXPECTED_TARGETS):
+        issues.append(f"fixture:target_count:{target_count!r}")
+
     issues.extend(collect_non_string_entries(targets, "fixture:non_string_target"))
     issues.extend(collect_duplicate_entries(targets, "fixture:duplicate_target"))
 
@@ -216,6 +221,21 @@ def run_self_test() -> int:
         issues = validate_fixture(root)
         assert any(issue.startswith("fixture:targets:") for issue in issues)
         assert "fixture:target_count:2" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": "3",
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:target_count_not_int:'3'" in issues
         case_count += 1
 
         build_self_test_root(root)
