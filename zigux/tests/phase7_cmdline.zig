@@ -43,6 +43,10 @@ test "phase 7 cmdline companion replays quoted argument splitting and memparse b
     try std.testing.expectEqual(@as(u64, @bitCast(@as(i64, -2048))), negative.value);
     try std.testing.expectEqualStrings("tail", negative.rest);
 
+    const bare_hex = cmdline.memparse("0xK");
+    try std.testing.expectEqual(@as(u64, 0), bare_hex.value);
+    try std.testing.expectEqualStrings("xK", bare_hex.rest);
+
     const no_conversion = cmdline.memparse("+nope");
     try std.testing.expectEqual(@as(u64, 0), no_conversion.value);
     try std.testing.expectEqualStrings("+nope", no_conversion.rest);
