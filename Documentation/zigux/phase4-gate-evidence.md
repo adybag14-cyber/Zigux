@@ -2,7 +2,7 @@
 
 This note records the last fully pinned broader Phase 4 rollback-ownership and lab-matrix packet. Keep the narrower reversible-delivery handoff as the direct-readback source when authenticated contents reads for the broader packet still flap, while the local-only perf and parked survey packets remain intentionally separate.
 ## Status
-  * `PHASE4_EVIDENCE_DATE=2026-05-18`
+  * `PHASE4_EVIDENCE_DATE=2026-05-19`
   * `PHASE4_EVIDENCE_MODE=github_connector_readback`
   * `PHASE4_EVIDENCE_SCOPE=rollback_ownership_and_lab_matrix_current_gate_definitions`
   * `PHASE4_EXACT_READBACK_REF=master`
@@ -13,8 +13,8 @@ This note records the last fully pinned broader Phase 4 rollback-ownership and l
   * `PHASE4_ARTIFACT_DIFF_DOC_BLOB_SHA=5173368ba7f69587f6839931b380f1e77c456933`
   * `PHASE4_ARTIFACT_DIFF_CONTRACT_CHECKER_BLOB_SHA=b8fea944496bfd7e058778d8d6f8f09c2f4e5a2d`
   * `PHASE4_BUILD_BLOB_SHA=86f88d03cd82e2e11ea6ed4a02175b77b472fdb4`
-  * `PHASE4_MAKEFILE_BLOB_SHA=2d4c2543eca9a9c197b20383af3d61c99ee14730`
-  * `PHASE4_WORKFLOW_BLOB_SHA=6874f1855d3e044666e154093a80f134b99858d4`
+  * `PHASE4_MAKEFILE_BLOB_SHA=b71641c73d23d5fde48a1bb7808c3207e9b2ed4b`
+  * `PHASE4_WORKFLOW_BLOB_SHA=e07b69eaf4070b83f943e1ad41cf1a47bdc532fa`
   * `PHASE4_DOC_README_BLOB_SHA=ac515e3ed47c771b0947fde4200a90b9a1952c99`
   * `PHASE4_SCRIPT_README_BLOB_SHA=4b22006c7278280203a23e6ec568cf8f47b62c7e`
   * `PHASE4_TESTS_README_BLOB_SHA=107d5d300f43fb5c9b0c7f9439601af3507a59ff`
