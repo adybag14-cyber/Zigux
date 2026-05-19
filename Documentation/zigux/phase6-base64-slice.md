@@ -32,7 +32,7 @@ Phase 6 is where Zigux can keep proving low-risk in-kernel helper ports without 
 - local scratch validation in this run used a dedicated `zig build test` replay wired only to `lib/base64.zig`, `zigux/tests/phase6_base64.zig`, and `zigux/tests/fixtures/phase6_base64_vectors.zig`
 
 2. keep the base64 slice note aligned with the shared helper-evidence packet
-- `Documentation/zigux/phase6-helper-evidence-catalog.md` and `zigux/tests/phase6_helper_evidence_manifest.json` should describe this slice as directly readable helper-local evidence plus the committed perf replay, while the older direct C parity companions remain a fresh-read follow-up rather than current shipped direct evidence
+- `Documentation/zigux/phase6-helper-evidence-catalog.md` and `zigux/tests/phase6_helper_evidence_manifest.json` should describe this slice as directly readable helper-local evidence plus the committed perf replay, while the older direct C parity companions, including the missing `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig` fixture companion, remain a fresh-read follow-up rather than current shipped direct evidence
 
 ## Current parity surface
 
@@ -71,7 +71,7 @@ This slice does not yet claim:
 
 - KUnit integration
 - architecture-specific performance thresholds beyond the committed helper-local slowdown replay
-- the older direct C-vs-Zig parity companions as current shipped direct evidence before fresh direct reads recover `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
+- the older direct C-vs-Zig parity companions as current shipped direct evidence before fresh direct reads recover `zigux/tests/fixtures/phase6_base64_c_parity_vectors.zig`, `zigux/tests/phase6_base64_c_parity.zig`, `zigux/tests/phase6_base64_c_casegen.zig`, `zigux/tests/fixtures/phase6_base64_c_harness.c`, and `scripts/zigux/check-phase6-base64-c-parity.py`
 
 ## Next bounded step
 
