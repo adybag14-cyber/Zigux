@@ -53,6 +53,8 @@ MARKERS = {
     "scripts/zigux/README.md": (
         "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it",
         "`Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` are back on current `master`",
+        "`python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py` replay the shipped bounded Phase 1 reminder and live shared-reminder workflow-gate checks, while `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` replays the shipped shared tests-root smoke route",
+        "`.github/workflows/zigux-bootstrap.yml` also self-tests `scripts/zigux/check-phase1-shared-reminder-packet.py` and then runs the live shared reminder packet, so keep those scripts-root checker routes explicit instead of leaving the workflow-gate reminder only in neighboring tests-root wording",
     ),
     "scripts/zigux/check-phase1-bench.py": (
         "RBTREE_REQUIRED_EXACT_CHECKSUMS = {",
