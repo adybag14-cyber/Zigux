@@ -57,6 +57,7 @@ REQUIRED_SNIPPETS = {
         'test "phase 6 bsearch typed c abi budgets stay logarithmic for deterministic ascending and descending slices" {',
         'test "phase 6 bsearch raw c abi equal-range budgets stay logarithmic for duplicate spans in both sort orders" {',
         'test "phase 6 bsearch typed c abi equal-range budgets stay logarithmic for duplicate spans in both sort orders" {',
+        'test "phase 6 bsearch typed c abi runtime-selected comparator pointers keep the budget contract" {',
         'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {',
     ],
     FIXTURES_PATH: [
@@ -105,6 +106,11 @@ SELF_TEST_CASES = [
     ),
     (
         BUDGET_TEST_PATH,
+        'test "phase 6 bsearch typed c abi runtime-selected comparator pointers keep the budget contract" {',
+        'test "phase 6 bsearch typed c abi runtime-selected pointer budgets keep the contract" {',
+    ),
+    (
+        BUDGET_TEST_PATH,
         'test "phase 6 bsearch runtime-selected raw c abi comparator pointers keep the budget contract" {',
         'test "phase 6 bsearch runtime-selected raw comparator pointers keep the budget contract" {',
     ),
@@ -128,7 +134,6 @@ def read_text(path: Path) -> str:
         raise ValidationError(f"missing required file: {path.as_posix()}") from exc
 
 
-
 def validate(repo_root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         content = read_text(repo_root / rel_path)
@@ -139,17 +144,14 @@ def validate(repo_root: Path) -> None:
                 )
 
 
-
 def write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
 
-
 def scaffold_repo(root: Path) -> None:
     for rel_path, snippets in REQUIRED_SNIPPETS.items():
         write(root / rel_path, "\n".join(snippets) + "\n")
-
 
 
 def expect_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
@@ -171,7 +173,6 @@ def expect_failure(root: Path, rel_path: Path, old: str, new: str) -> None:
         write(path, original)
 
 
-
 def run_self_test() -> None:
     with tempfile.TemporaryDirectory() as tmpdir:
         root = Path(tmpdir)
@@ -181,7 +182,6 @@ def run_self_test() -> None:
             expect_failure(root, rel_path, old, new)
     print("PHASE6_BSEARCH_CORPUS_EVIDENCE_SELF_TEST=pass")
     print(f"PHASE6_BSEARCH_CORPUS_EVIDENCE_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES)}")
-
 
 
 def parse_args() -> argparse.Namespace:
@@ -198,7 +198,6 @@ def parse_args() -> argparse.Namespace:
         help="run built-in self-test instead of validating a repository",
     )
     return parser.parse_args()
-
 
 
 def main() -> int:
