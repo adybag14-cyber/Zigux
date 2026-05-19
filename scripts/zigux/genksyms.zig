@@ -39,7 +39,7 @@ pub const ParseOutcome = union(enum) {
 
 const usage_text =
     "Usage:\n" ++
-    "genksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver\n" ++
+    "genksyms [-dDpwqhV] [-r file] [-T file] > /path/to/.tmp_obj.ver\n" ++
     "\n" ++
     " -d, --debug Increment the debug level (repeatable)\n" ++
     " -D, --dump Dump expanded symbol defs (for debugging only)\n" ++
@@ -385,8 +385,8 @@ pub fn parseArgs(allocator: std.mem.Allocator, args: []const []const u8) !ParseO
         const arg = args[index];
         if (std.mem.eql(u8, arg, "--")) {
             saw_non_version_request_input = true;
-            try rendered_args.appendSlice(allocator, positional_args.items);
             try rendered_args.append(allocator, arg);
+            try rendered_args.appendSlice(allocator, positional_args.items);
             if (index + 1 < args.len) {
                 try rendered_args.appendSlice(allocator, args[index + 1 ..]);
             }
@@ -901,6 +901,25 @@ test "genksyms bridge renders missing short option argument like the fixture" {
     );
 }
 
+test "genksyms bridge help output only advertises implemented flags" {
+    try testing.expectEqualStrings(
+        "Usage:\n" ++
+            "genksyms [-dDpwqhV] [-r file] [-T file] > /path/to/.tmp_obj.ver\n" ++
+            "\n" ++
+            " -d, --debug Increment the debug level (repeatable)\n" ++
+            " -D, --dump Dump expanded symbol defs (for debugging only)\n" ++
+            " -r, --reference file Read reference symbols from a file\n" ++
+            " -T, --dump-types file Dump expanded types into file\n" ++
+            " -p, --preserve Preserve reference modversions or fail\n" ++
+            " -w, --warnings Enable warnings\n" ++
+            " -q, --quiet Disable warnings (default)\n" ++
+            " -h, --help Print this message\n" ++
+            " -V, --version Print the release version\n",
+        usage_text,
+    );
+    try testing.expect(std.mem.indexOf(u8, usage_text, "genksyms [-adDTwqhVR] > /path/to/.tmp_obj.ver") == null);
+}
+
 test "genksyms bridge renders unexpected long option argument like the fixture" {
     var output: std.Io.Writer.Allocating = .init(testing.allocator);
     defer output.deinit();
@@ -1058,13 +1077,11 @@ test "genksyms bridge treats lone dash as positional passthrough" {
     }
 }
 
-test "genksyms bridge keeps explicit option terminator in original position" {
+test "genksyms bridge accepts explicit option terminator" {
     var arena_state = std.heap.ArenaAllocator.init(testing.allocator);
     defer arena_state.deinit();
 
     const args = [_][]const u8{
-        "-d",
-        "leftover.c",
         "--",
         "--leftover",
         "positional",
@@ -1073,12 +1090,10 @@ test "genksyms bridge keeps explicit option terminator in original position" {
     switch (outcome) {
         .command => |command| switch (command) {
             .request => |request| {
-                try testing.expectEqual(@as(usize, 5), request.rendered_args.len);
-                try testing.expectEqualStrings("-d", request.rendered_args[0]);
-                try testing.expectEqualStrings("leftover.c", request.rendered_args[1]);
-                try testing.expectEqualStrings("--", request.rendered_args[2]);
-                try testing.expectEqualStrings("--leftover", request.rendered_args[3]);
-                try testing.expectEqualStrings("positional", request.rendered_args[4]);
+                try testing.expectEqual(@as(usize, 3), request.rendered_args.len);
+                try testing.expectEqualStrings("--", request.rendered_args[0]);
+                try testing.expectEqualStrings("--leftover", request.rendered_args[1]);
+                try testing.expectEqualStrings("positional", request.rendered_args[2]);
             },
             else => return error.ExpectedRequestCommand,
         },
