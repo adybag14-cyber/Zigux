@@ -583,8 +583,28 @@ test "materialized tools/lib/bpf Zigux segments keep stable pin-path helper outp
         try pin_path.buildMapPinPath(buffer[0..], null, "stats_map"),
     );
     try std.testing.expectEqualStrings(
+        "/custom/root/stats_map",
+        try pin_path.buildMapPinPath(buffer[0..], "/custom/root", "stats_map"),
+    );
+    try std.testing.expectEqualStrings(
         "/tmp/bpf.v1/stats.map",
         try pin_path.buildValidatedMapPinPath(buffer[0..], "/tmp/bpf.v1", "stats.map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/cache_map",
+        try pin_path.buildSanitizedMapPinPath(buffer[0..], "/", "cache.map"),
+    );
+    try std.testing.expectEqualStrings(
+        "/sys/fs/bpf/metrics_v1",
+        try pin_path.buildValidatedSanitizedMapPinPath(buffer[0..], null, "metrics.v1"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/xdp_dispatch",
+        try pin_path.buildValidatedProgramPinPath(buffer[0..], "/tmp/bpf.v1", "xdp_dispatch"),
+    );
+    try std.testing.expectEqualStrings(
+        "/tmp/bpf.v1/xdp_dispatch_v1",
+        try pin_path.buildSanitizedProgramPinPath(buffer[0..], "/tmp/bpf.v1", "xdp_dispatch.v1"),
     );
     try std.testing.expectEqualStrings(
         "/sys/fs/bpf/xdp_dispatch_v1",
@@ -627,6 +647,7 @@ test "materialized tools/lib/bpf Zigux segments keep direct pin-path sanitizer a
     try pin_path.validatePinRootPath("/sys/fs/bpf");
     try std.testing.expectError(error.InvalidRootPath, pin_path.validatePinRootPath("relative/root"));
     try std.testing.expectError(error.InvalidRootPath, pin_path.validatePinRootPath("/sys/fs/bpf/"));
+    try std.testing.expectError(error.InvalidRootPath, pin_path.validatePinRootPath("/tmp/bpf\x00tmp"));
 
     var buffer: [128]u8 = undefined;
     try std.testing.expectEqualStrings(
