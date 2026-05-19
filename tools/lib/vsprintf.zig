@@ -126,6 +126,30 @@ test "vscnprintf and scnprintfPad also clear the first byte on scratch overflow"
     try std.testing.expectEqual(@as(u8, 0), padded_buffer[0]);
 }
 
+test "scnprintf and vscnprintf reuse caller buffers after earlier scratch overflow" {
+    const oversized = [_]u8{'x'} ** (max_render_bytes + 1);
+
+    var scn_buffer = [_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
+    const scn_failed = scnprintf(&scn_buffer, "{s}", .{oversized[0..]});
+    try std.testing.expectEqual(@as(usize, 0), scn_failed);
+    try std.testing.expectEqual(@as(u8, 0), scn_buffer[0]);
+
+    const scn_written = scnprintf(&scn_buffer, "{s}:{d}", .{ "id", 7 });
+    try std.testing.expectEqual(@as(usize, 4), scn_written);
+    try std.testing.expectEqualStrings("id:7", scn_buffer[0..scn_written]);
+    try std.testing.expectEqual(@as(u8, 0), scn_buffer[scn_written]);
+
+    var vscn_buffer = [_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
+    const vscn_failed = vscnprintf(&vscn_buffer, "{s}", .{oversized[0..]});
+    try std.testing.expectEqual(@as(usize, 0), vscn_failed);
+    try std.testing.expectEqual(@as(u8, 0), vscn_buffer[0]);
+
+    const vscn_written = vscnprintf(&vscn_buffer, "{s}:{d}", .{ "ok", 3 });
+    try std.testing.expectEqual(@as(usize, 4), vscn_written);
+    try std.testing.expectEqualStrings("ok:3", vscn_buffer[0..vscn_written]);
+    try std.testing.expectEqual(@as(u8, 0), vscn_buffer[vscn_written]);
+}
+
 test "scnprintfPad reuses the caller buffer after an earlier scratch overflow" {
     const oversized = [_]u8{'x'} ** (max_render_bytes + 1);
     var buffer = [_]u8{ 0xaa, 0xbb, 0xcc, 0xdd, 0xee, 0xff };
