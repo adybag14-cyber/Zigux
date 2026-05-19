@@ -30,6 +30,10 @@ WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-kconfig-selftest-alignment.py",
 )
 
+WORKFLOW_PATH_LINES = (
+    "- 'scripts/kconfig/conf.c'",
+)
+
 MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
@@ -65,7 +69,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "make -C zigux phase2-kconfig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 53
+EXPECTED_SELF_TEST_CASE_COUNT = 55
 
 
 def read_text(path: Path) -> str:
@@ -104,6 +108,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_HOOKS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count={count}"))
+
+    for marker in WORKFLOW_PATH_LINES:
+        count = count_exact_lines(workflow_text, marker)
+        if count == 0:
+            issues.append(("MISSING_WORKFLOW_PATH_FILTERS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_PATH_FILTERS", f"{marker}:count={count}"))
 
     for marker in MAKEFILE_LINES:
         count = count_exact_lines(makefile_text, marker)
@@ -144,7 +155,7 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(resolve_path(root, WORKFLOW), "\n".join(WORKFLOW_LINES) + "\n")
+    write_text(resolve_path(root, WORKFLOW), "\n".join((*WORKFLOW_PATH_LINES, *WORKFLOW_LINES)) + "\n")
     write_text(resolve_path(root, MAKEFILE), "\n".join(MAKEFILE_LINES) + "\n")
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_README), "\n".join(TESTS_README_MARKERS) + "\n")
@@ -204,6 +215,22 @@ def run_self_test() -> int:
             path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("DUPLICATE_WORKFLOW_HOOKS", f"{marker}:count=2") in issues
+            checks_run += 1
+
+        for marker in WORKFLOW_PATH_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "- 'scripts/kconfig/other.c'"), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("MISSING_WORKFLOW_PATH_FILTERS", marker) in issues
+            checks_run += 1
+
+        for marker in WORKFLOW_PATH_LINES:
+            build_self_test_root(root)
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_WORKFLOW_PATH_FILTERS", f"{marker}:count=2") in issues
             checks_run += 1
 
         for marker in MAKEFILE_LINES:
@@ -290,6 +317,7 @@ def main() -> int:
 
     print("PHASE2_KCONFIG_ALIGNMENT=pass")
     print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_HOOK_COUNT={len(WORKFLOW_LINES)}")
+    print(f"PHASE2_KCONFIG_ALIGNMENT_WORKFLOW_PATH_FILTER_COUNT={len(WORKFLOW_PATH_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_MAKEFILE_HOOK_COUNT={len(MAKEFILE_LINES)}")
     print(f"PHASE2_KCONFIG_ALIGNMENT_BRIDGE_SURFACE_PATH_COUNT={len(KCONFIG_BRIDGE_SURFACE_PATHS)}")
     return 0
