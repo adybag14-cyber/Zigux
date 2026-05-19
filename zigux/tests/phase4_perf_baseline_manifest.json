@@ -10,6 +10,10 @@
   ],
   "shared_ci_perf_promotion_status": "pending",
   "local_only_posture_note": "The dedicated perf-baseline survey keeps approved local benchmark commands and approved local-only acceptable limits explicit while shared CI perf promotion remains intentionally pending.",
+  "dedicated_local_survey_wrapper": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+  "dedicated_linux_style_survey_wrapper": "make -C zigux phase4-perf-baseline-survey",
+  "validation_entrypoint": "zig build phase4-perf-baseline-survey --build-file zigux/tests/phase4_build.zig",
+  "bootstrap_ci_posture": "reviewability_only_local_survey_wrappers_not_on_shared_phase4_test_or_bootstrap_workflow",
   "atomic64": {
     "benchmark_command": "zig build phase4-runtime-atomic64-diff --build-file zigux/tests/phase4_build.zig",
     "linux_style_wrapper": "make -C zigux phase4-perf-baseline-survey",
