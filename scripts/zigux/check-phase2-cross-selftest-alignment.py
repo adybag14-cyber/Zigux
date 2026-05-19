@@ -12,6 +12,8 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 KBUILD_ROUTES = ROOT / "scripts" / "zigux" / "check-phase2-kbuild-routes.py"
 TOOLCHAIN_PINNING = ROOT / "scripts" / "zigux" / "check-phase2-toolchain-pinning.py"
 TESTS_ALIGNMENT = ROOT / "scripts" / "zigux" / "check-phase2-tests-readme-alignment.py"
+PHASE2_CROSS_CHECKER = ROOT / "scripts" / "zigux" / "check-phase2-cross.py"
+TARGETS_MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 
 SCRIPTS_README_MARKERS = (
     "`scripts/zigux/check-phase2-cross-selftest-alignment.py`",
@@ -50,7 +52,30 @@ TESTS_ALIGNMENT_MARKERS = (
     "\"`make -C zigux phase2-cross`\",",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 38
+CHECKER_OUTPUT_MARKERS = (
+    'print("PHASE2_DIRECT_CROSS_ROUTE=fail")',
+    'print("PHASE2_DIRECT_CROSS_ROUTE=pass")',
+    'print(f"PHASE2_DIRECT_CROSS_ROUTE_TARGET_COUNT={len(cross_targets)}")',
+    'print(f"PHASE2_DIRECT_CROSS_ROUTE_ARCHIVE_SCOPE_COUNT={len(load_archive_target_scope(args.root.resolve()))}")',
+)
+
+TARGETS_MANIFEST_MARKERS = (
+    '"phase": "Phase 2",',
+    '"status": "active",',
+    '"route": "make -C zigux phase2-cross",',
+    '"archive_target_scope": [',
+    '"x86_64-linux"',
+    '"cross_targets": [',
+    '"target": "x86_64-linux"',
+    '"validation_mode": "archive_required"',
+    '"target": "aarch64-linux"',
+    '"validation_mode": "route_contract_only"',
+)
+
+SURFACE_PATHS = (
+    PHASE2_CROSS_CHECKER,
+    TARGETS_MANIFEST,
+)
 
 
 def read_text(path: Path) -> str:
@@ -75,7 +100,9 @@ def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> l
     return [(code, marker) for marker in markers if marker not in text]
 
 
-def collect_exact_line_issues(text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str) -> list[tuple[str, str]]:
+def collect_exact_line_issues(
+    text: str, markers: tuple[str, ...], missing_code: str, duplicate_code: str
+) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
     for marker in markers:
         count = count_exact_lines(text, marker)
@@ -126,6 +153,33 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             "DUPLICATE_TESTS_ALIGNMENT_MARKERS",
         )
     )
+
+    resolved_surfaces = {path: resolve_path(root, path) for path in SURFACE_PATHS}
+    for path, resolved in resolved_surfaces.items():
+        if not resolved.exists():
+            issues.append(("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()))
+
+    checker_path = resolved_surfaces[PHASE2_CROSS_CHECKER]
+    if checker_path.exists():
+        issues.extend(
+            collect_exact_line_issues(
+                read_text(checker_path),
+                CHECKER_OUTPUT_MARKERS,
+                "MISSING_CHECKER_OUTPUT_MARKERS",
+                "DUPLICATE_CHECKER_OUTPUT_MARKERS",
+            )
+        )
+
+    manifest_path = resolved_surfaces[TARGETS_MANIFEST]
+    if manifest_path.exists():
+        issues.extend(
+            collect_missing_markers(
+                read_text(manifest_path),
+                TARGETS_MANIFEST_MARKERS,
+                "MISSING_TARGETS_MANIFEST_MARKERS",
+            )
+        )
+
     return issues
 
 
@@ -154,18 +208,14 @@ def build_self_test_root(root: Path) -> None:
     write_text(resolve_path(root, KBUILD_ROUTES), "\n".join(KBUILD_ROUTE_MARKERS) + "\n")
     write_text(resolve_path(root, TOOLCHAIN_PINNING), "\n".join(TOOLCHAIN_PINNING_MARKERS) + "\n")
     write_text(resolve_path(root, TESTS_ALIGNMENT), "\n".join(TESTS_ALIGNMENT_MARKERS) + "\n")
+    write_text(resolve_path(root, PHASE2_CROSS_CHECKER), "\n".join(CHECKER_OUTPUT_MARKERS) + "\n")
+    write_text(resolve_path(root, TARGETS_MANIFEST), "\n".join(TARGETS_MANIFEST_MARKERS) + "\n")
 
 
-def remove_marker_occurrence(text: str, marker: str) -> str:
-    lines = text.splitlines()
-    for index, line in enumerate(lines):
-        if line.strip() == marker:
-            del lines[index]
-            updated = "\n".join(lines) + "\n"
-            if marker in updated:
-                return updated.replace(marker, "")
-            return updated
-    return text.replace(marker, "")
+def replace_all(text: str, marker: str, replacement: str = "") -> str:
+    if marker not in text:
+        raise AssertionError(f"marker not found: {marker}")
+    return text.replace(marker, replacement)
 
 
 def replace_exact_line(text: str, marker: str, replacement: str) -> str:
@@ -198,6 +248,42 @@ def run_self_test() -> int:
         presence_cases = (
             (SCRIPTS_README, SCRIPTS_README_MARKERS, "MISSING_SCRIPTS_README_MARKERS"),
             (TESTS_README, TESTS_README_MARKERS, "MISSING_TESTS_README_MARKERS"),
+            (TARGETS_MANIFEST, TARGETS_MANIFEST_MARKERS, "MISSING_TARGETS_MANIFEST_MARKERS"),
+        )
+
+        exact_line_cases = (
+            (
+                KBUILD_ROUTES,
+                KBUILD_ROUTE_MARKERS,
+                "MISSING_KBUILD_ROUTE_MARKERS",
+                "DUPLICATE_KBUILD_ROUTE_MARKERS",
+            ),
+            (
+                TOOLCHAIN_PINNING,
+                TOOLCHAIN_PINNING_MARKERS,
+                "MISSING_TOOLCHAIN_PINNING_MARKERS",
+                "DUPLICATE_TOOLCHAIN_PINNING_MARKERS",
+            ),
+            (
+                TESTS_ALIGNMENT,
+                TESTS_ALIGNMENT_MARKERS,
+                "MISSING_TESTS_ALIGNMENT_MARKERS",
+                "DUPLICATE_TESTS_ALIGNMENT_MARKERS",
+            ),
+            (
+                PHASE2_CROSS_CHECKER,
+                CHECKER_OUTPUT_MARKERS,
+                "MISSING_CHECKER_OUTPUT_MARKERS",
+                "DUPLICATE_CHECKER_OUTPUT_MARKERS",
+            ),
+        )
+
+        expected_case_count = (
+            1
+            + sum(len(markers) for _, markers, _ in presence_cases)
+            + (2 * sum(len(markers) for _, markers, _, _ in exact_line_cases))
+            + 5
+            + len(SURFACE_PATHS)
         )
 
         for path, markers, code in presence_cases:
@@ -205,18 +291,12 @@ def run_self_test() -> int:
                 build_self_test_root(root)
                 resolved = resolve_path(root, path)
                 resolved.write_text(
-                    remove_marker_occurrence(resolved.read_text(encoding="utf-8"), marker),
+                    replace_all(resolved.read_text(encoding="utf-8"), marker),
                     encoding="utf-8",
                 )
                 issues = collect_issues(root)
                 assert (code, marker) in issues
                 checks_run += 1
-
-        exact_line_cases = (
-            (KBUILD_ROUTES, KBUILD_ROUTE_MARKERS, "MISSING_KBUILD_ROUTE_MARKERS", "DUPLICATE_KBUILD_ROUTE_MARKERS"),
-            (TOOLCHAIN_PINNING, TOOLCHAIN_PINNING_MARKERS, "MISSING_TOOLCHAIN_PINNING_MARKERS", "DUPLICATE_TOOLCHAIN_PINNING_MARKERS"),
-            (TESTS_ALIGNMENT, TESTS_ALIGNMENT_MARKERS, "MISSING_TESTS_ALIGNMENT_MARKERS", "DUPLICATE_TESTS_ALIGNMENT_MARKERS"),
-        )
 
         for path, markers, missing_code, duplicate_code in exact_line_cases:
             for marker in markers:
@@ -241,7 +321,7 @@ def run_self_test() -> int:
                 assert (duplicate_code, f"{marker}:count=2") in issues
                 checks_run += 1
 
-        for path, _, _ in presence_cases:
+        for path in (SCRIPTS_README, TESTS_README, KBUILD_ROUTES, TOOLCHAIN_PINNING, TESTS_ALIGNMENT):
             build_self_test_root(root)
             resolve_path(root, path).unlink()
             try:
@@ -252,18 +332,14 @@ def run_self_test() -> int:
             else:
                 raise AssertionError(f"missing file did not abort: {path}")
 
-        for path, _, _, _ in exact_line_cases:
+        for path in SURFACE_PATHS:
             build_self_test_root(root)
             resolve_path(root, path).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                checks_run += 1
-            else:
-                raise AssertionError(f"missing file did not abort: {path}")
+            issues = collect_issues(root)
+            assert ("MISSING_SURFACE_PATHS", path.relative_to(ROOT).as_posix()) in issues
+            checks_run += 1
 
-    assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
+    assert checks_run == expected_case_count
     print("PHASE2_CROSS_ALIGNMENT_SELF_TEST=pass")
     print(f"PHASE2_CROSS_ALIGNMENT_SELF_TEST_CASE_COUNT={checks_run}")
     return 0
@@ -271,7 +347,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the current Phase 2 cross-route reminder packet aligned across the live scripts and tests surfaces."
+        description="Keep the current Phase 2 cross-route reminder packet aligned across the live scripts, tests, and direct-cross surfaces."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
@@ -287,8 +363,9 @@ def main() -> int:
     print("PHASE2_CROSS_ALIGNMENT=pass")
     print(
         "PHASE2_CROSS_ALIGNMENT_MARKER_COUNT="
-        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS)}"
+        f"{len(SCRIPTS_README_MARKERS) + len(TESTS_README_MARKERS) + len(KBUILD_ROUTE_MARKERS) + len(TOOLCHAIN_PINNING_MARKERS) + len(TESTS_ALIGNMENT_MARKERS) + len(CHECKER_OUTPUT_MARKERS) + len(TARGETS_MANIFEST_MARKERS)}"
     )
+    print(f"PHASE2_CROSS_ALIGNMENT_SURFACE_PATH_COUNT={len(SURFACE_PATHS)}")
     return 0
 
 
