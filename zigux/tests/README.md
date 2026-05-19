@@ -143,6 +143,25 @@ Current `master` keeps `Documentation/zigux/phase3-export-uapi-boundary-survey.m
 Tests-root reviewer prompt:
 - Does the bounded Phase 3 reminder keep the starter, helper, policy, export/UAPI survey, layout-replay, and low-level-wrapper packet aligned across `zigux/tests/build.zig`, the packet-local survey validators, and the dedicated low-level-wrapper replay/build anchor without reopening broader shared-validator, catalog-selftest, or header-family claims?
 
+## Phase 4 rollback-readiness packet
+
+Keep the current bounded Phase 4 reminder packet explicit through `Documentation/zigux/phase4-reversible-delivery-evidence.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`, and `zigux/tests/README.md`.
+
+Keep the recovered broader note-and-checker companions explicit through `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `scripts/zigux/check-phase4-gate-evidence.py`, and `scripts/zigux/check-phase4-remaining-gap-matrix.py` so the tests-root summary records the narrower current-head repo-reality packet instead of leaving those returned checker surfaces in the missing bucket.
+
+Current `master` keeps the shared Phase 4 rollback packet split rather than absent: `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` still do not materialize through authenticated contents reads in this runtime, while `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` are directly readable roadmap-backed differential-gate evidence again.
+
+Current direct-readback dedicated local-only perf checker: `scripts/zigux/check-phase4-perf-baseline-packet.py`
+
+Current direct-readback dedicated local-only perf companion members: `zigux/tests/phase4_perf_baseline_manifest.json`, `zigux/tests/phase4_perf_baseline_survey.zig`
+
+current shared Phase 4 ownership reminder: keep rollback-owner wording, artifact-diff contract references, and remaining-gap truthfulness aligned with `Documentation/zigux/phase4-reversible-delivery-evidence.md` instead of reconstructing the broader packet from older route names alone
+
+Keep the shared ownership reminder truthful by pointing back to `Documentation/zigux/phase4-reversible-delivery-evidence.md` for the narrower current-head handoff instead of reconstructing the broader validator-and-bitmap packet from older route names alone.
+
+Tests-root reviewer prompt:
+- Does the bounded Phase 4 reminder keep the narrower direct-readback handoff, the returned recovered note-and-checker companions, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair explicit while the validator, build, and bitmap replay companions remain repo-reality gaps in this runtime?
+
 ## Phase 10 shared virtio closure packet
 
 Keep `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/phase10-virtio-driver-lane-sequencing.md`, `Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md`, and `scripts/zigux/check-phase10-tests-readme-core-surfaces.py` explicit as the shared Phase 10 tests-root reminder packet.
