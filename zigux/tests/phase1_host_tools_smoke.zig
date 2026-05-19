@@ -267,6 +267,23 @@ test "phase1 host-tools smoke exercises live helper behavior" {
     try std.testing.expectEqual(@as(?*rbtree.Node, &cached_entries[0].node), rbtree.firstCached(&cached_root));
 }
 
+test "phase1 host-tools smoke exercises string whitespace and dirty-byte helpers" {
+    try std.testing.expectEqualStrings("zigux", string.skipSpaces(" \t zigux"));
+
+    var trim_buffer = [_]u8{ ' ', '\t', 'z', 'i', 'g', 'u', 'x', ' ', '\n', 0, 'x' };
+    const trimmed = string.trimSpaces(&trim_buffer);
+    try std.testing.expectEqualStrings("zigux", trimmed);
+
+    var compact_buffer = [_]u8{ ' ', 'z', 'i', ' ', 'g', '\t', 'u', 'x', 0, 'x' };
+    const compact = string.removeSpaces(&compact_buffer);
+    try std.testing.expectEqualStrings("zig\tux", compact);
+
+    try std.testing.expectEqual(@as(?usize, 3), string.memchrInv(&[_]u8{ 0, 0, 0, 1, 1 }, 0));
+    try std.testing.expectEqual(@as(?usize, null), string.memchrInv(&[_]u8{ 7, 7, 7 }, 7));
+
+    try std.testing.expect(string.sysfsStreq("enabled\n", "enabled"));
+}
+
 test "phase1 host-tools smoke keeps bitmap alias zero-size and empty-format edges aligned" {
     var src = [_]find_bit.Word{~@as(find_bit.Word, 0)};
 
