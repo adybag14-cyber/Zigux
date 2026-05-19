@@ -121,13 +121,13 @@ fn clampSignedMagnitude(magnitude: u64, negative: bool) u64 {
 
 fn skipLeadingSpaces(text: []const u8, start: usize) usize {
     var idx = start;
-    while (idx < text.len and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
+    while (idx < text.len and text[idx] != 0 and std.ascii.isWhitespace(text[idx])) : (idx += 1) {}
     return idx;
 }
 
 pub fn nextArg(args: []const u8) ?NextArgResult {
     const start = skipLeadingSpaces(args, 0);
-    if (start >= args.len) {
+    if (start >= args.len or args[start] == 0) {
         return null;
     }
 
@@ -140,6 +140,9 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
 
     while (idx < args.len) : (idx += 1) {
         const ch = args[idx];
+        if (ch == 0) {
+            break;
+        }
         if (std.ascii.isWhitespace(ch) and !in_quote) {
             break;
         }
@@ -151,7 +154,10 @@ pub fn nextArg(args: []const u8) ?NextArgResult {
         }
     }
 
-    const remaining_start = skipLeadingSpaces(args, idx);
+    const remaining_start = if (idx < args.len and args[idx] == 0)
+        args.len
+    else
+        skipLeadingSpaces(args, idx);
     const token_end = if (quoted_prefix and idx > token_start and args[idx - 1] == '"') idx - 1 else idx;
 
     if (equals_idx) |eq| {
@@ -329,4 +335,32 @@ test "nextArg keeps empty and unterminated quoted values aligned" {
     try std.testing.expectEqualStrings("mode", unterminated.param);
     try std.testing.expectEqualStrings("fast boot", unterminated.value.?);
     try std.testing.expectEqualStrings("", unterminated.remaining);
+}
+
+test "nextArg stops at the first embedded NUL byte" {
+    const parsed = nextArg("root=/dev/sda1\x00 panic=-1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("root", parsed.param);
+    try std.testing.expectEqualStrings("/dev/sda1", parsed.value.?);
+    try std.testing.expectEqualStrings("", parsed.remaining);
+
+    try std.testing.expect(nextArg(parsed.remaining) == null);
+}
+
+test "nextArg treats a leading or post-space NUL as end of input" {
+    try std.testing.expect(nextArg("\x00panic=-1") == null);
+    try std.testing.expect(nextArg(" \t\x00panic=-1") == null);
+}
+
+test "nextArg truncates a quoted bare token at an embedded NUL" {
+    const parsed = nextArg("\"console quiet\x00root=/dev/vda") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("console quiet", parsed.param);
+    try std.testing.expect(parsed.value == null);
+    try std.testing.expectEqualStrings("", parsed.remaining);
+}
+
+test "nextArg truncates a quoted value at an embedded NUL" {
+    const parsed = nextArg("rdinit=\"/bin/sh\x00 panic=-1") orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqualStrings("rdinit", parsed.param);
+    try std.testing.expectEqualStrings("/bin/sh", parsed.value.?);
+    try std.testing.expectEqualStrings("", parsed.remaining);
 }
