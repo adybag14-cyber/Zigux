@@ -132,6 +132,51 @@ test "phase3 allocator policy keeps init ownership explicit" {
     try std.testing.expect(requiresResetOnInit(.arena));
 }
 
+test "phase3 allocator policy ignores unrelated interop-policy bytes when reserved stays clear" {
+    const caller_policy = abi.InteropPolicy{
+        .panic_mode = 2,
+        .allocator_mode = 0,
+        .unsafe_scope = 1,
+        .reserved = 0,
+    };
+    const heap_policy = abi.InteropPolicy{
+        .panic_mode = 0,
+        .allocator_mode = 1,
+        .unsafe_scope = 2,
+        .reserved = 0,
+    };
+    const arena_policy = abi.InteropPolicy{
+        .panic_mode = 1,
+        .allocator_mode = 2,
+        .unsafe_scope = 0,
+        .reserved = 0,
+    };
+
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), modeFromInteropPolicy(caller_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), modeFromInteropPolicy(heap_policy));
+    try std.testing.expectEqual(@as(?abi.AllocatorMode, .arena), modeFromInteropPolicy(arena_policy));
+
+    try std.testing.expect(recognizesInteropPolicy(caller_policy));
+    try std.testing.expect(recognizesInteropPolicy(heap_policy));
+    try std.testing.expect(recognizesInteropPolicy(arena_policy));
+
+    try std.testing.expect(requiresExplicitCallerInteropPolicy(caller_policy));
+    try std.testing.expect(!requiresExplicitCallerInteropPolicy(heap_policy));
+    try std.testing.expect(!requiresExplicitCallerInteropPolicy(arena_policy));
+
+    try std.testing.expect(!permitsGlobalFallbackInteropPolicy(caller_policy));
+    try std.testing.expect(permitsGlobalFallbackInteropPolicy(heap_policy));
+    try std.testing.expect(permitsGlobalFallbackInteropPolicy(arena_policy));
+
+    try std.testing.expect(!initializesOwnedStateInteropPolicy(caller_policy));
+    try std.testing.expect(initializesOwnedStateInteropPolicy(heap_policy));
+    try std.testing.expect(initializesOwnedStateInteropPolicy(arena_policy));
+
+    try std.testing.expect(!requiresResetOnInitInteropPolicy(caller_policy));
+    try std.testing.expect(!requiresResetOnInitInteropPolicy(heap_policy));
+    try std.testing.expect(requiresResetOnInitInteropPolicy(arena_policy));
+}
+
 test "phase3 allocator policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), modeFromByte(0));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), modeFromByte(1));
