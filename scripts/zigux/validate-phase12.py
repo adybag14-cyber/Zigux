@@ -43,6 +43,12 @@ VIRTIO_SCSI_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-virtio-scsi-packe
 VIRTIO_SCSI_BOUNDARY_CHECKER_PATH = (
     "scripts/zigux/check-phase12-virtio-scsi-libbpf-boundary.py"
 )
+VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-virtio-scsi-rollback-coverage.py"
+)
+VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_CHECKER_PATH = (
+    "scripts/zigux/check-phase12-virtio-scsi-repeated-rollback-packet.py"
+)
 NVME_PACKET_CHECKER_PATH = "scripts/zigux/check-phase12-nvme-pci-packet.py"
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 TESTS_README_PATH = "zigux/tests/README.md"
@@ -88,6 +94,8 @@ REQUIRED_FILES = [
     RELEASE_READINESS_CHECKER_PATH,
     VIRTIO_SCSI_PACKET_CHECKER_PATH,
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
+    VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
+    VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_CHECKER_PATH,
     NVME_PACKET_CHECKER_PATH,
     VALIDATOR_PATH,
     TESTS_README_PATH,
@@ -184,8 +192,25 @@ REQUIRED_MARKERS = {
         "phase12-test:",
         "phase12: phase12-smoke phase12-test",
     ],
+    VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH: [
+        "PHASE12_VIRTIO_SCSI_ROLLBACK_COVERAGE_SELF_TEST=pass",
+        "Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "zigux/tests/phase12_virtio_scsi_manifest.json",
+        "zigux/tests/phase12_virtio_scsi_survey.zig",
+        "zigux/tests/phase12_build.zig",
+    ],
+    VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_CHECKER_PATH: [
+        "PHASE12_VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_SELF_TEST=pass",
+        "Documentation/zigux/phase12-virtio-scsi-survey.md",
+        "zigux/tests/phase12_virtio_scsi_manifest.json",
+        "zigux/tests/phase12_build.zig",
+        "zigux/tests/phase12_virtio_scsi_repeated_rollback_gate.zig",
+    ],
     VALIDATOR_PATH: [
         VIRTIO_SCSI_PACKET_CHECKER_PATH,
+        VIRTIO_SCSI_BOUNDARY_CHECKER_PATH,
+        VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH,
+        VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_CHECKER_PATH,
         NVME_PACKET_CHECKER_PATH,
         VIRTIO_SCSI_MANIFEST_PATH,
         VIRTIO_SCSI_SURVEY_GATE_PATH,
@@ -292,6 +317,14 @@ FIXTURE_TEXT = {
     RELEASE_READINESS_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VIRTIO_SCSI_BOUNDARY_CHECKER_PATH: "#!/usr/bin/env python3\n",
+    VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH: "\n".join(
+        REQUIRED_MARKERS[VIRTIO_SCSI_ROLLBACK_COVERAGE_CHECKER_PATH]
+    )
+    + "\n",
+    VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_CHECKER_PATH: "\n".join(
+        REQUIRED_MARKERS[VIRTIO_SCSI_REPEATED_ROLLBACK_PACKET_CHECKER_PATH]
+    )
+    + "\n",
     NVME_PACKET_CHECKER_PATH: "#!/usr/bin/env python3\n",
     VALIDATOR_PATH: "\n".join(REQUIRED_MARKERS[VALIDATOR_PATH]) + "\n",
     TESTS_README_PATH: "# zigux/tests\n",
