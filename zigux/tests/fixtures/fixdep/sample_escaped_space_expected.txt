@@ -3,7 +3,7 @@ savedcmd_sample_escaped_space.o := clang -c zigux/tests/fixtures/fixdep/sample_e
 source_sample_escaped_space.o := zigux/tests/fixtures/fixdep/sample_escaped_space_source.rmeta
 
 deps_sample_escaped_space.o := \
- zigux/tests/fixtures/fixdep/dep\ name.rmeta \
+  zigux/tests/fixtures/fixdep/dep\ name.rmeta \
 
 sample_escaped_space.o: $(deps_sample_escaped_space.o)
 
