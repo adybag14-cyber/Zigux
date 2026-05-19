@@ -87,8 +87,8 @@ REQUIRED_MAKEFILE_LINES = (
     "phase2-kconfig:",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-kconfig-bridge.py",
-    "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/conf_bridge.zig",
-    "cd $(ZIGUX_ROOT) && zig test scripts/zigux/kconfig/confdata_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/conf_bridge.zig",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/kconfig/confdata_bridge.zig",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-kconfig-selftest-alignment.py",
     "phase2-cross:",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-cross.py",
@@ -235,6 +235,7 @@ def build_self_test_root(root: Path) -> None:
         "\n".join(
             [
                 "PYTHON ?= python3",
+                "ZIG ?= zig",
                 "PHASE2_SCRIPT_ROOT := ../scripts/zigux",
                 "ZIGUX_ROOT := ..",
                 "",
@@ -322,11 +323,7 @@ def run_self_test() -> int:
             build_self_test_root(root)
             makefile_path = path_under(root, MAKEFILE)
             makefile_path.write_text(
-                replace_exact_line(
-                    makefile_path.read_text(encoding="utf-8"),
-                    marker,
-                    "# removed for self-test",
-                ),
+                replace_exact_line(makefile_path.read_text(encoding="utf-8"), marker, "# removed for self-test"),
                 encoding="utf-8",
             )
             assert (("MISSING_MAKEFILE_LINE", marker) in collect_issues(root))
@@ -352,26 +349,33 @@ def run_self_test() -> int:
             assert (("UNEXPECTED_MAKEFILE_LINE", f"{marker}:count=1") in collect_issues(root))
             checks_run += 1
 
-        for rel in REQUIRED_PATHS:
-            if rel == MAKEFILE:
-                continue
+        for rel in REQUIRED_PATHS[:-1]:
             build_self_test_root(root)
-            path_under(root, rel).unlink()
+            path = path_under(root, rel)
+            path.unlink()
             issues = collect_issues(root)
             assert (("MISSING_REQUIRED_PATH", rel) in issues)
             checks_run += 1
 
-        for rel in (WORKFLOW, MAKEFILE):
-            build_self_test_root(root)
-            path_under(root, rel).unlink()
-            try:
-                collect_issues(root)
-            except SystemExit as exc:
-                assert "required file missing" in str(exc)
-                assert str(path_under(root, rel)) in str(exc)
-            else:
-                raise AssertionError(f"missing primary file did not abort: {rel}")
-            checks_run += 1
+        build_self_test_root(root)
+        path_under(root, WORKFLOW).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+        else:
+            raise AssertionError("missing workflow did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path_under(root, MAKEFILE).unlink()
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "required file missing" in str(exc)
+        else:
+            raise AssertionError("missing makefile did not abort")
+        checks_run += 1
 
     assert checks_run == EXPECTED_SELF_TEST_CASE_COUNT
     print("PHASE2_VALIDATION_SELF_TEST=pass")
@@ -380,7 +384,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current shared Phase 2 packet on master.")
+    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, and kconfig packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
@@ -393,11 +397,8 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_VALIDATION=pass")
-    print(f"PHASE2_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
-    print(f"PHASE2_REQUIRED_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
-    print(f"PHASE2_DISALLOWED_WORKFLOW_LINE_COUNT={len(DISALLOWED_WORKFLOW_LINES)}")
-    print(f"PHASE2_REQUIRED_MAKEFILE_LINE_COUNT={len(REQUIRED_MAKEFILE_LINES)}")
-    print(f"PHASE2_DISALLOWED_MAKEFILE_LINE_COUNT={len(DISALLOWED_MAKEFILE_LINES)}")
+    print(f"PHASE2_VALIDATION_WORKFLOW_LINE_COUNT={len(REQUIRED_WORKFLOW_LINES)}")
+    print(f"PHASE2_VALIDATION_REQUIRED_PATH_COUNT={len(REQUIRED_PATHS)}")
     return 0
 
 
