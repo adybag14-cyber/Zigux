@@ -116,6 +116,12 @@ REQUIRED_MARKERS = {
         "Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.",
         "Keep the bounded packet split explicit here too: `virtio_net` remains starter-present reviewability, `virtio_scsi` remains the smoke-first and rollback-lab packet",
     ],
+    WORKFLOW_PATH: [
+        "- name: Run current Phase 12 smoke packet",
+        "run: make -C zigux phase12-smoke",
+        "- name: Run current Phase 12 shared test packet",
+        "run: make -C zigux phase12-test",
+    ],
 }
 
 FORBIDDEN_MARKERS = {
@@ -169,6 +175,7 @@ def fixture_text(rel_path: str) -> str:
             RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
             SCRIPTS_README_PATH: "# scripts/zigux",
             TESTS_README_PATH: "# zigux/tests",
+            WORKFLOW_PATH: "name: zigux-bootstrap",
         }.get(rel_path, "# Fixture")
         if rel_path in {
             VALIDATOR_PATH,
@@ -257,7 +264,6 @@ def run_self_test() -> int:
             (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][0]),
             (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][1]),
             (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][2]),
-            (RAW_GITHUB_COVERAGE_SURVEY_PATH, REQUIRED_MARKERS[RAW_GITHUB_COVERAGE_SURVEY_PATH][3]),
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][0]),
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][1]),
             (SCRIPTS_README_PATH, REQUIRED_MARKERS[SCRIPTS_README_PATH][2]),
@@ -273,6 +279,10 @@ def run_self_test() -> int:
             (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][0]),
             (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][1]),
             (TESTS_README_PATH, REQUIRED_MARKERS[TESTS_README_PATH][2]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][0]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][1]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][2]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][3]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
