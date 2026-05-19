@@ -45,6 +45,18 @@ pub fn initFlowFor(mode: abi.AllocatorMode) InitFlow {
     };
 }
 
+pub fn initFlowFromInteropPolicyBytes(mode: u8, reserved: u8) ?InitFlow {
+    return initFlowFor(modeFromInteropPolicyBytes(mode, reserved) orelse return null);
+}
+
+pub fn initFlowFromInteropPolicy(policy: abi.InteropPolicy) ?InitFlow {
+    return initFlowFromInteropPolicyBytes(policy.allocator_mode, policy.reserved);
+}
+
+pub fn initFlowFromByte(mode: u8) ?InitFlow {
+    return initFlowFromInteropPolicyBytes(mode, 0);
+}
+
 pub fn requiresExplicitCaller(mode: abi.AllocatorMode) bool {
     return mode == .caller_provided;
 }
@@ -123,6 +135,12 @@ test "phase3 allocator policy keeps init ownership explicit" {
     try std.testing.expectEqual(InitFlow.helper_owned, initFlowFor(.kernel_heap));
     try std.testing.expectEqual(InitFlow.helper_owned_with_reset, initFlowFor(.arena));
 
+    try std.testing.expectEqual(@as(?InitFlow, .caller_prepared), initFlowFromByte(0));
+    try std.testing.expectEqual(@as(?InitFlow, .helper_owned), initFlowFromByte(1));
+    try std.testing.expectEqual(@as(?InitFlow, .helper_owned_with_reset), initFlowFromByte(2));
+    try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromByte(9));
+    try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromInteropPolicyBytes(2, 1));
+
     try std.testing.expect(!initializesOwnedState(.caller_provided));
     try std.testing.expect(initializesOwnedState(.kernel_heap));
     try std.testing.expect(initializesOwnedState(.arena));
@@ -155,6 +173,10 @@ test "phase3 allocator policy ignores unrelated interop-policy bytes when reserv
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .caller_provided), modeFromInteropPolicy(caller_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .kernel_heap), modeFromInteropPolicy(heap_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .arena), modeFromInteropPolicy(arena_policy));
+
+    try std.testing.expectEqual(@as(?InitFlow, .caller_prepared), initFlowFromInteropPolicy(caller_policy));
+    try std.testing.expectEqual(@as(?InitFlow, .helper_owned), initFlowFromInteropPolicy(heap_policy));
+    try std.testing.expectEqual(@as(?InitFlow, .helper_owned_with_reset), initFlowFromInteropPolicy(arena_policy));
 
     try std.testing.expect(recognizesInteropPolicy(caller_policy));
     try std.testing.expect(recognizesInteropPolicy(heap_policy));
@@ -236,6 +258,12 @@ test "phase3 allocator policy stays explicit" {
     try std.testing.expectEqual(@as(?abi.AllocatorMode, .arena), modeFromInteropPolicy(arena_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(unknown_policy));
     try std.testing.expectEqual(@as(?abi.AllocatorMode, null), modeFromInteropPolicy(reserved_policy));
+
+    try std.testing.expectEqual(@as(?InitFlow, .caller_prepared), initFlowFromInteropPolicy(caller_policy));
+    try std.testing.expectEqual(@as(?InitFlow, .helper_owned), initFlowFromInteropPolicy(heap_policy));
+    try std.testing.expectEqual(@as(?InitFlow, .helper_owned_with_reset), initFlowFromInteropPolicy(arena_policy));
+    try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromInteropPolicy(unknown_policy));
+    try std.testing.expectEqual(@as(?InitFlow, null), initFlowFromInteropPolicy(reserved_policy));
 
     try std.testing.expect(recognizesInteropPolicy(caller_policy));
     try std.testing.expect(recognizesInteropPolicy(heap_policy));
