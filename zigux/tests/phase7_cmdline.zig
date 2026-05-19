@@ -26,6 +26,22 @@ test "phase 7 cmdline companion replays option decoding, ranges, and malformed-i
     try std.testing.expectEqual(@as(u8, 0), cmdline.getOption(&malformed_negative, &malformed_negative_value));
     try std.testing.expectEqual(@as(i32, 0), malformed_negative_value);
     try std.testing.expectEqualStrings("x", malformed_negative);
+
+    var wrapped_positive_rest: []const u8 = "18446744073709551615,tail";
+    var wrapped_positive_value: i32 = 0;
+    try std.testing.expectEqual(@as(u8, 2), cmdline.getOption(&wrapped_positive_rest, &wrapped_positive_value));
+    try std.testing.expectEqual(@as(i32, -1), wrapped_positive_value);
+    try std.testing.expectEqualStrings("tail", wrapped_positive_rest);
+
+    var wrapped_values = [_]i32{ 0, 0, 0 };
+    const wrapped_rest = cmdline.getOptions("18446744073709551615,-18446744073709551615", wrapped_values.len, &wrapped_values);
+    try std.testing.expectEqualStrings("", wrapped_rest);
+    try std.testing.expectEqualSlices(i32, &[_]i32{ 2, -1, 1 }, &wrapped_values);
+
+    var wrapped_validate = [_]i32{0};
+    const wrapped_validate_rest = cmdline.getOptions("18446744073709551615,-18446744073709551615", 0, &wrapped_validate);
+    try std.testing.expectEqualStrings("", wrapped_validate_rest);
+    try std.testing.expectEqual(@as(i32, 2), wrapped_validate[0]);
 }
 
 test "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries" {
