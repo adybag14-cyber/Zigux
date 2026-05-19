@@ -166,6 +166,8 @@ def read_text(path: Path) -> str:
         return path.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
         raise SystemExit(f"required file missing: {path}") from exc
+    except OSError as exc:
+        raise SystemExit(f"required file unreadable: {path}: {exc}") from exc
 
 
 def collect_issues(readme_text: str) -> list[tuple[str, str]]:
@@ -266,7 +268,23 @@ def run_self_test() -> int:
         )
         checks_run += 1
 
-    expected_case_count = 5 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
+        unreadable_root = root / "unreadable-root" / "scripts" / "zigux" / "README.md"
+        unreadable_root.mkdir(parents=True)
+        assert_system_exit_contains(
+            lambda: read_text(resolve_readme_path(root=root / "unreadable-root", readme=None)),
+            "required file unreadable:",
+        )
+        checks_run += 1
+
+        unreadable_explicit = root / "README.unreadable.md"
+        unreadable_explicit.mkdir()
+        assert_system_exit_contains(
+            lambda: read_text(resolve_readme_path(root=root, readme=unreadable_explicit)),
+            "required file unreadable:",
+        )
+        checks_run += 1
+
+    expected_case_count = 7 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
     if checks_run != expected_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
