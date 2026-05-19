@@ -149,6 +149,38 @@ test "cutoff boundary keeps value, pointer-like gap, then err in order" {
     try std.testing.expectEqual(@as(?usize, null), err_slot.pointerValue());
 }
 
+test "highest two tagged values stay packed below the final pointer gap" {
+    const next_value_slot = try fromValue(xa_value.safe_inline_limit - 1);
+    const top_value_slot = try fromValue(xa_value.safe_inline_limit);
+    const gap_slot = fromPointer(err_ptr.err_floor - 1);
+    const err_slot = fromErrorCode(-4095);
+
+    const decoded_next = fromRaw(next_value_slot.rawValue());
+    const decoded_top = fromRaw(top_value_slot.rawValue());
+    const rebuilt_next = try fromValue(decoded_next.value().?);
+    const rebuilt_top = try fromValue(decoded_top.value().?);
+
+    try std.testing.expectEqual(err_ptr.err_floor - 4, next_value_slot.rawValue());
+    try std.testing.expectEqual(next_value_slot.rawValue() + 2, top_value_slot.rawValue());
+    try std.testing.expectEqual(top_value_slot.rawValue() + 1, gap_slot.rawValue());
+    try std.testing.expectEqual(gap_slot.rawValue() + 1, err_slot.rawValue());
+
+    try std.testing.expectEqual(SlotKind.value, decoded_next.kind());
+    try std.testing.expectEqual(@as(?usize, xa_value.safe_inline_limit - 1), decoded_next.value());
+    try std.testing.expectEqual(@as(?isize, null), decoded_next.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), decoded_next.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(decoded_next.rawValue()));
+
+    try std.testing.expectEqual(SlotKind.value, decoded_top.kind());
+    try std.testing.expectEqual(@as(?usize, xa_value.safe_inline_limit), decoded_top.value());
+    try std.testing.expectEqual(@as(?isize, null), decoded_top.errorCode());
+    try std.testing.expectEqual(@as(?usize, null), decoded_top.pointerValue());
+    try std.testing.expect(isTaggedInternalEntry(decoded_top.rawValue()));
+
+    try std.testing.expectEqual(decoded_next.rawValue(), rebuilt_next.rawValue());
+    try std.testing.expectEqual(decoded_top.rawValue(), rebuilt_top.rawValue());
+}
+
 test "constructor helpers keep the cutoff boundary lanes distinct" {
     const value_slot = try fromValue(xa_value.safe_inline_limit);
     const gap_slot = fromPointer(err_ptr.err_floor - 1);
