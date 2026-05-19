@@ -1,24 +1,20 @@
 # Zigux Review Checklist
-
-Use this checklist before opening or merging Zigux product work.
-
-## Scope
-
-  * is the target phase named explicitly?
-  * is the status bucket explicit: port now, port after substrate, dual implementation required, study only, or freeze in C initially?
-  * is the Linux anchor file or tree path named directly?
-## Safety
-
-  * does the change avoid mirror-tree sprawl?
-  * is real code co-located with the owning Linux subsystem when appropriate?
-  * does the change avoid deep-core scope creep into scheduler, MM, RCU, or skbuff without an Architecture Council decision?
-  * if a freeze-map anchor is entering Architecture Council status review, are the exact Linux anchor path, roadmap phase, decision record ID, lane owner, current status bucket, requested decision bucket, required approver set, rollback owner, validation gate summary, evidence archive path, latest blocker disposition, benchmark notes, replay command, rollback threshold, automatic return-to-blocked trigger, `retired_from_active_discussion` state, reopen triggers, trigger-specific evidence refresh, parity scorecard link or blocker record, indefinite-C policy link or explicit non-applicability note, explicit non-goals, and written rationale explicit?
-## Validation
-  * are parity tests or fixture checks included?
-  * is there a stated performance gate if the code is algorithmic, queueing-sensitive, or driver-facing?
-  * is there a stated rollback owner and fallback path?
-  * if the change touches the shared Phase 1 host-tools closure packet, do `Documentation/zigux/phase1-closure.md`, `Documentation/zigux/phase1-host-helper-lane-sequencing.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/validate-phase1-closure.py`, `scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, `zigux/tests/README.md`, `zigux/tests/fixtures/phase1_helper_manifest.json`, and `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig` still agree on the current closed-helper reminder packet, while the older validator-first, parity, bench-route, and replay names stay framed as historical packet members until current `master` materializes them again?
-  * if the change touches the shared Phase 2 kconfig bridge packet, do `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, and `make -C zigux phase2-kconfig` still agree on the current bridge packet?
-  * if the change touches the shared Phase 2 toolchain pin-scope packet, do `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, and `scripts/zigux/check-zig-toolchain.py` still agree on the current pinned-channel reminder packet, keep `python3 scripts/zigux/check-zig-toolchain.py --self-test` and `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing` explicit, keep `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2` framed as the current rematerialized Phase 2 routes, and keep the same pinned toolchain wording explicit instead of treating those route names as missing-current-master gaps?
-  * if the change touches the shared Phase 2 toolchain packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, `scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-kbuild-routes.py`, `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`, `scripts/zigux/check-phase2-tests-readme-alignment.py`, `scripts/zigux/check-phase2-toolchain-pinning.py`, `scripts/zigux/check-phase2-toolchain-pin-scope.py`, `scripts/zigux/check-phase2-cross-selftest-alignment.py`, `scripts/zigux/check-phase2-docs-shared-reminder.py`, `scripts/zigux/check-phase2-required-make-routes.py`, `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/kconfig/conf_bridge.zig`, `scripts/zigux/kconfig/confdata_bridge.zig`, `scripts/zigux/zig-toolchain-policy.json`, `zigux/tests/fixtures/phase2_tool_manifest.json`, `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`, `zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`, `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`, and `zigux/tests/fixtures/kconfig_bridge/cases.json` still agree on the current directly readable Phase 2 toolchain, installer, kbuild, kconfig bridge, direct cross-route, docs-shared-reminder, and required-make-route packet, while `Documentation/zigux/phase2-closure.md`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, `zigux/Makefile`, `python3 scripts/zigux/check-zig-toolchain.py --self-test`, `python3 scripts/zigux/check-zig-toolchain.py --policy-only`, `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`, `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-validate`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, and `make -C zigux phase2` stay explicit as the current rematerialized Phase 2 closure-side, closure-validator, validation, installer-selftest, direct-cross-selftest, artifact-support, toolchain self-check, and make-wrapper packet?
-  * if the change touches that same shared Phase 2 toolchain packet, does the checklist still say plainly that direct current-tree readback plus `zigux/tests/README.md` outrank the lagging repo-reality-gap wording still present in `Documentation/zigux/phase2-toolchain-bootstrap-notes.md` and `scripts/zigux/README.md` for the returned installer, direct cross-route, and cross-target fixture packet?
+  * if the change touches the shared Phase 2 toolchain packet, do `Documentation/zigux/README.md`
+  * `scripts/zigux/install-zig.py`
+  * `scripts/zigux/check-phase2-cross.py`
+  * `zigux/tests/fixtures/phase2_cross_targets.json`
+  * `scripts/zigux/check-kconfig-bridge.py`
+  * `scripts/zigux/check-genksyms-bridge.py`
+  * `scripts/zigux/genksyms.zig`
+  * `zigux/tests/fixtures/genksyms_bridge/cases.json`
+  * `zigux/tests/fixtures/genksyms_bridge/help_expected.json`
+  * `zigux/tests/fixtures/genksyms_bridge/minimal_expected.json`
+  * `zigux/tests/fixtures/genksyms_bridge/debug_reference_types_expected.json`
+  * `zigux/tests/fixtures/genksyms_bridge/long_options_expected.json`
+  * `zigux/tests/fixtures/genksyms_bridge/quiet_overrides_warning_expected.json`
+  * current directly readable Phase 2 toolchain, installer, kbuild, kconfig bridge, direct cross-route, docs-shared-reminder, and required-make-route packet
+  * `python3 scripts/zigux/install-zig.py --self-test`
+  * `python3 scripts/zigux/check-phase2-cross.py --self-test`
+  * `make -C zigux phase2-genksyms`
+  * current rematerialized Phase 2 closure-side, closure-validator, validation, installer-selftest, direct-cross-selftest, artifact-support, toolchain self-check, and make-wrapper packet?
+  * direct current-tree readback plus `zigux/tests/README.md` outrank the lagging repo-reality-gap wording still present in `Documentation/zigux/phase2-toolchain-bootstrap-notes.md` and `scripts/zigux/README.md` for the returned installer, direct cross-route, and cross-target fixture packet, while direct current-tree readback plus `zigux/tests/fixtures/phase2_tool_manifest.json` outrank the still-lagging reminder wording for the shipped `check-kconfig-bridge.py` surface and bounded `genksyms` helper/checker packet.
