@@ -19,6 +19,7 @@ ROOT = _default_root()
 REQUIRED_FILES = (
     Path(".github/workflows/zigux-bootstrap.yml"),
     Path("Documentation/zigux/README.md"),
+    Path("Documentation/zigux/phase8-kallsyms-slice.md"),
     Path("Documentation/zigux/phase8-libbpf-segment-survey.md"),
     Path("Documentation/zigux/review-checklist.md"),
     Path("scripts/zigux/README.md"),
@@ -69,6 +70,16 @@ FILE_MARKERS: dict[Path, tuple[str, ...]] = {
         "zigux/tests/phase8_file_path_handle_bridge.zig",
         "zigux/tests/phase8_libbpf_segments.zig",
         "zigux/tests/phase8_perf_buffer_poll.zig",
+    ),
+    Path("Documentation/zigux/phase8-kallsyms-slice.md"): (
+        "This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around `tools/lib/symbol/kallsyms.c`.",
+        "`PHASE8_SLICE=kallsyms-parse-wrapper-parked`",
+        "`scripts/zigux/validate-phase8.py`",
+        "`tools/lib/symbol/kallsyms.zig` through the public raw fallback",
+        "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
+        "`zigux/tests/phase8_kallsyms.zig`",
+        "`zigux/tests/phase8_kallsyms_only_build.zig`",
+        "restart with one focused replay step around the dedicated packet",
     ),
     Path("Documentation/zigux/phase8-libbpf-segment-survey.md"): (
         "survey checkpoint: refreshed against current `master` readback on",
@@ -254,6 +265,21 @@ def _passing_fixture(root: Path) -> None:
         ),
     )
     _write(
+        root / "Documentation/zigux/phase8-kallsyms-slice.md",
+        "\n".join(
+            (
+                "This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zigux around `tools/lib/symbol/kallsyms.c`.",
+                "`PHASE8_SLICE=kallsyms-parse-wrapper-parked`",
+                "`scripts/zigux/validate-phase8.py`",
+                "`tools/lib/symbol/kallsyms.zig` through the public raw fallback",
+                "`scripts/zigux/check-phase8-help-kallsyms-packet.py`",
+                "`zigux/tests/phase8_kallsyms.zig`",
+                "`zigux/tests/phase8_kallsyms_only_build.zig`",
+                "restart with one focused replay step around the dedicated packet",
+            )
+        ),
+    )
+    _write(
         root / "Documentation/zigux/phase8-libbpf-segment-survey.md",
         "\n".join(
             (
@@ -367,7 +393,7 @@ def _passing_fixture(root: Path) -> None:
 
 
 def _self_test_case_count() -> int:
-    return 13
+    return 15
 
 
 def run_self_test() -> int:
@@ -433,6 +459,29 @@ def run_self_test() -> int:
         if expected_survey_marker not in missing_survey_marker.missing_markers:
             raise AssertionError("expected missing libbpf survey marker to be reported")
         survey.write_text(original_survey, encoding="utf-8")
+
+        kallsyms_note = root / "Documentation/zigux/phase8-kallsyms-slice.md"
+        original_kallsyms_note = _read(kallsyms_note)
+        kallsyms_note.write_text(
+            original_kallsyms_note.replace("`zigux/tests/phase8_kallsyms.zig`", "", 1),
+            encoding="utf-8",
+        )
+        missing_kallsyms_marker = validate_root(root)
+        expected_kallsyms_marker = (
+            "Documentation/zigux/phase8-kallsyms-slice.md:`zigux/tests/phase8_kallsyms.zig`"
+        )
+        if expected_kallsyms_marker not in missing_kallsyms_marker.missing_markers:
+            raise AssertionError("expected missing kallsyms marker to be reported")
+        kallsyms_note.write_text(original_kallsyms_note, encoding="utf-8")
+
+        kallsyms_note.unlink()
+        missing_kallsyms_note = validate_root(root)
+        if "Documentation/zigux/phase8-kallsyms-slice.md" not in missing_kallsyms_note.missing_files:
+            raise AssertionError("expected missing kallsyms note to be reported")
+        _write(
+            kallsyms_note,
+            original_kallsyms_note,
+        )
 
         bridge_test = root / "zigux/tests/phase8_file_path_handle_bridge.zig"
         bridge_test.unlink()
