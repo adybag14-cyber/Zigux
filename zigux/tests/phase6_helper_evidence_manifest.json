@@ -122,6 +122,8 @@
     "python3 scripts/zigux/check-phase6-hexdump-route.py",
     "zig build phase6-hexdump-review --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-review",
+    "zig build phase6-hexdump-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+    "make -C zigux phase6-hexdump-perf-matrix-test",
     "zig build phase6-hexdump-test --build-file zigux/tests/phase6_build.zig",
     "make -C zigux phase6-hexdump-test",
     "zig build phase6-hexdump-perf --build-file zigux/tests/phase6_build.zig",
