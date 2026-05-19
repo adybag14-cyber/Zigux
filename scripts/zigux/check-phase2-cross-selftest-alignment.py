@@ -397,7 +397,7 @@ def main() -> int:
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
-    args = parse_args()
+    args = parser.parse_args()
 
     if args.self_test:
         return run_self_test()
