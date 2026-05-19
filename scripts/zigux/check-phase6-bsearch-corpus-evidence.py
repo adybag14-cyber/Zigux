@@ -25,6 +25,12 @@ REQUIRED_SNIPPETS = {
     SLICE_PATH: [
         "- `PHASE6_STATUS=parked`",
         "- lane state: helper slice restored; parked unless helper-local parity, portability, duplicate-span, raw C ABI bounds, or compact fixture-companion drift reappears",
+        "- `equalRangeIndex`",
+        "- `equalRange`",
+        "- `equalRangeMutable`",
+        "- `bsearchEqualRangeIndex`",
+        "- `bsearchEqualRange`",
+        "- `bsearchEqualRangeMutable`",
         "- `zigux/tests/phase6_bsearch_c_abi_budget.zig`",
         "- the compact shared seed fixture companion keeps representative ascending, descending, duplicate, symbol, packed-record, and deterministic query corpus reviewable without widening this lane into a standalone timing route",
         "- helper-local checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
@@ -36,12 +42,17 @@ REQUIRED_SNIPPETS = {
     ],
     LIB_PATH: [
         "pub fn lowerBoundIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) usize {",
+        "pub fn equalRangeIndex(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) IndexRange {",
+        "pub fn equalRange(comptime Key: type, comptime T: type, key: *const Key, items: []const T, compare: anytype) []const T {",
         "pub fn equalRangeMutable(comptime Key: type, comptime T: type, key: *const Key, items: []T, compare: anytype) []T {",
         "pub fn bsearchLowerBoundIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {",
+        "pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {",
+        "pub fn bsearchEqualRange(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) []const u8 {",
         "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []u8 {",
     ],
     HELPER_TEST_PATH: [
         'test "phase 6 bsearch direct equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
+        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
         'test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers" {',
         'test "phase 6 bsearch accepts runtime-selected typed c abi comparator pointers" {',
         'test "phase 6 bsearch keeps symbol fixtures searchable through typed bounds" {',
@@ -87,6 +98,11 @@ SELF_TEST_CASES = [
         "- helper-local checker: `scripts/zigux/check-phase6-bsearch-helper-check.py`",
     ),
     (
+        SLICE_PATH,
+        "- `bsearchEqualRangeMutable`",
+        "- `bsearchEqualRangeBytesMutable`",
+    ),
+    (
         CATALOG_PATH,
         "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-evidence.py`",
         "- dedicated corpus checker: `scripts/zigux/check-phase6-bsearch-corpus-proof.py`",
@@ -97,9 +113,19 @@ SELF_TEST_CASES = [
         "pub fn bsearchEqualRangeMutable(key: *const anyopaque, base: [*]u8, num: usize, size: usize, compare: anytype) []const u8 {",
     ),
     (
+        LIB_PATH,
+        "pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) IndexRange {",
+        "pub fn bsearchEqualRangeIndex(key: *const anyopaque, base: [*]const u8, num: usize, size: usize, compare: anytype) usize {",
+    ),
+    (
         HELPER_TEST_PATH,
         'test "phase 6 bsearch keeps packed-record fixtures searchable through raw wrappers" {',
         'test "phase 6 bsearch keeps packed-record fixtures searchable through typed wrappers" {',
+    ),
+    (
+        HELPER_TEST_PATH,
+        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span and write-through coverage aligned" {',
+        'test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span coverage aligned" {',
     ),
     (
         LOWER_BOUND_TEST_PATH,
