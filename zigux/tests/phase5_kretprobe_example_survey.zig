@@ -142,7 +142,7 @@ test "phase 5 kretprobe manifest records the exact bounded checks" {
     try std.testing.expect(std.mem.eql(u8, manifest.non_goals[1], "unregister_kretprobe parity"));
 }
 
-test "phase 5 kretprobe note stays aligned with the manifest packet" {
+test "phase 5 kretprobe note and shared reminder packet stay aligned with the manifest packet" {
     var io_instance: std.Io.Threaded = .init(std.testing.allocator, .{});
     defer io_instance.deinit();
 
@@ -166,6 +166,22 @@ test "phase 5 kretprobe note stays aligned with the manifest packet" {
     );
     defer std.testing.allocator.free(note);
 
+    const checklist = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "Documentation/zigux/review-checklist.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(checklist);
+
+    const sample_root_readme = try std.Io.Dir.cwd().readFileAlloc(
+        io_instance.io(),
+        "samples/zigux/README.md",
+        std.testing.allocator,
+        .limited(32 * 1024),
+    );
+    defer std.testing.allocator.free(sample_root_readme);
+
     try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_STATUS=restored-direct-sample-packet`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_LANE_KEY=P5-L18`") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "`PHASE5_SLICE=kretprobe-sample-reviewability-packet`") != null);
@@ -176,4 +192,17 @@ test "phase 5 kretprobe note stays aligned with the manifest packet" {
     try std.testing.expect(std.mem.indexOf(u8, note, "zigux/tests/phase5_build.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "current public-tree-backed companion evidence") != null);
     try std.testing.expect(std.mem.indexOf(u8, note, "runtime_kretprobe") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "Documentation/zigux/phase5-kretprobe-sample-survey.md") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, manifest.sample_path) != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, checklist, "direct non-runtime kretprobe proof") != null);
+
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, manifest.sample_path) != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "zigux/tests/phase5_kretprobe_example.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "zigux/tests/phase5_kretprobe_example_manifest.json") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "zigux/tests/phase5_kretprobe_example_survey.zig") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "current direct sample-root proof") != null);
+    try std.testing.expect(std.mem.indexOf(u8, sample_root_readme, "directly readable paired test evidence") != null);
 }
