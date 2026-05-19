@@ -138,6 +138,15 @@
       "past_nbits_short_circuit": "test \"next scans past nbits return without reading bitmap words\"",
       "underscore_alias_anchor": "test \"low-level underscore aliases mirror the primary find helpers\"",
       "linux_alias_anchor": "test \"Linux-style aliases mirror the primary find helpers\"",
+      "andnot_scan_entrypoints": [
+        "findFirstAndNotBit",
+        "find_first_andnot_bit",
+        "_find_first_andnot_bit",
+        "findNextAndNotBit",
+        "find_next_andnot_bit",
+        "_find_next_andnot_bit"
+      ],
+      "andnot_scan_entrypoint_contract": "The shipped public, Linux-style, and underscore andnot scan entry points stay owned by the direct find_bit packet instead of being left implicit under generic alias wording.",
       "tail_word_set_skip_anchor": "test \"tail-word next set scans skip earlier in-range matches before clamping\"",
       "tail_word_skip_anchor": "test \"tail-word next zero and shared scans skip earlier in-range matches before clamping\"",
       "tail_clamp_fixture_keys": [
@@ -372,7 +381,6 @@
       "phase1_trim_cstr_replay_summary": "the shared Phase 1 string replay still only locks the plain trailing-whitespace trimSpaces bytes from the committed fixture, while the direct helper-local trim follow-up keeps embedded-NUL trimming for trimSpaces and strim plus strstrip and preserved tail-byte review explicit because the shared packet still does not exercise every trim alias or every post-NUL byte position",
       "memchr_moving_dirty_anchor": "test \"memchrInv follows the earliest dirty byte as long buffers change\"",
       "memchr_moving_dirty_review_summary": "the direct memchrInv follow-up stays explicit because the shared Phase 1 fixture pins one fixed dirty index and the clean case, but not the moving earliest-mismatch ownership as later dirty bytes become the next live divergence",
-      "memparse_review_summary": "helper-local memparse safety anchors stay explicit through the direct string tests so sign-prefixed invalid input preserves rest, signed inputs keep their trailing-rest split aligned with unsigned parsing, implicit and explicit signed overflow clamp instead of trapping, and suffixes are still consumed after saturation",
       "phase1_helper_replay_anchor": "test \"phase 1 string replaceChar stops at embedded NUL\"",
       "shared_replace_char_cstr_review_summary": "the shared Phase 1 string replay now exercises strtobool, strlcpy, skipSpaces, trimSpaces, removeSpaces, replaceChar, and memchrInv fixture parity, while the dedicated embedded-NUL replaceChar follow-up keeps the first-terminator stop rule explicit without widening helper-local memparse ownership",
       "parity_fixture_keys": [
