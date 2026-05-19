@@ -88,6 +88,7 @@ REQUIRED_DOCS_ROOT_MARKERS = (
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
     "`scripts/zigux/check-genksyms-bridge.py`",
+    "`scripts/zigux/check-phase2-tool-manifest.py`",
     "`scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-cross.py`",
     "`python3 scripts/zigux/validate-phase2.py`",
