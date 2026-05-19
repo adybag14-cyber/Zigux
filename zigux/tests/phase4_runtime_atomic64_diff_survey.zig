@@ -139,7 +139,7 @@ test "phase 4 atomic64 survey keeps wrapper handoff, owner map, and current loca
     defer parsed.deinit();
     const manifest = parsed.value;
 
-    try std.testing.expectEqualStrings("P4-L01", manifest.lane_key);
+    try std.testing.expectEqualStrings("P4-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 4", manifest.phase);
     try std.testing.expectEqualStrings("zigux/tests/atomic64_diff.zig", manifest.roadmap_target_path);
     try std.testing.expect(manifest.roadmap_atomic64_diff_present);
