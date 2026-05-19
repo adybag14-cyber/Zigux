@@ -32,6 +32,7 @@ WORKFLOW_LINES = (
 
 WORKFLOW_PATH_LINES = (
     "- 'scripts/kconfig/conf.c'",
+    "- 'scripts/kconfig/confdata.c'",
 )
 
 MAKEFILE_LINES = (
@@ -69,7 +70,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "make -C zigux phase2-kconfig",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 55
+EXPECTED_SELF_TEST_CASE_COUNT = 57
 
 
 def read_text(path: Path) -> str:
