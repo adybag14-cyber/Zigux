@@ -83,8 +83,8 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
 
     try std.testing.expectEqualStrings("P12-L02", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 12", manifest.phase);
-    try std.testing.expectEqualStrings("b53ec2bd507d0b3283486e76acc273b184ad5bf8", manifest.surveyed_commit);
-    try std.testing.expectEqualStrings("2026-05-18", manifest.verified_on);
+    try std.testing.expectEqualStrings("4578c45f2ac8ed5cd61412e1140b48d8a7a73628", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("2026-05-19", manifest.verified_on);
     try std.testing.expectEqualStrings("drivers/net/virtio_net.c", manifest.anchor);
     try std.testing.expectEqual(@as(usize, 2), manifest.roadmap_destinations.len);
 
@@ -104,6 +104,13 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
         "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_and_post_reset_replay_present_direct_gate_present_shared_smoke_present",
         manifest.roadmap_gap_check.queueing_correctness.status,
     );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            manifest.roadmap_gap_check.queueing_correctness.current_surface,
+            "returned Phase 12 make entrypoints are all present on current master",
+        ) != null,
+    );
     try std.testing.expectEqualStrings(
         "starter_control_queue_payload_shape_refill_transmit_recycle_and_post_reset_replay_present_runtime_completion_missing",
         manifest.roadmap_gap_check.throughput_and_recovery_parity.status,
@@ -116,6 +123,13 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
         std.mem.indexOf(
             u8,
             manifest.roadmap_gap_check.segmented_rollout.current_surface,
+            "returned shared make entrypoints",
+        ) != null,
+    );
+    try std.testing.expect(
+        std.mem.indexOf(
+            u8,
+            manifest.roadmap_gap_check.segmented_rollout.current_surface,
             "shared build route still stops at the syntax lab plus the queue-resume and transmit-recycle replays",
         ) != null,
     );
@@ -123,8 +137,9 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
     var saw_build_gap = false;
     var saw_post_reset_replay_gap = false;
     var saw_runtime_gap = false;
+    var saw_make_target_gap = false;
 
-    try std.testing.expectEqual(@as(usize, 14), manifest.gaps.len);
+    try std.testing.expectEqual(@as(usize, 13), manifest.gaps.len);
     for (manifest.gaps) |gap| {
         try std.testing.expect(gap.id.len > 0);
         try std.testing.expect(gap.kind.len > 0);
@@ -144,6 +159,10 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
             );
         }
 
+        if (std.mem.eql(u8, gap.id, "phase12-make-target")) {
+            saw_make_target_gap = true;
+        }
+
         if (std.mem.eql(u8, gap.id, "phase12-virtio-net-post-reset-replay-followup")) {
             saw_post_reset_replay_gap = true;
             try std.testing.expectEqualStrings("landed_on_master", gap.status);
@@ -158,6 +177,7 @@ test "phase12 virtio net survey manifest keeps the bounded post reset replay pac
     }
 
     try std.testing.expect(saw_build_gap);
+    try std.testing.expect(!saw_make_target_gap);
     try std.testing.expect(saw_post_reset_replay_gap);
     try std.testing.expect(saw_runtime_gap);
 }
@@ -173,17 +193,19 @@ test "phase12 virtio net survey note stays aligned with the bounded post reset r
     defer parsed.deinit();
 
     const manifest = parsed.value;
-    try std.testing.expectEqualStrings("2026-05-18", manifest.verified_on);
+    try std.testing.expectEqualStrings("2026-05-19", manifest.verified_on);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "PHASE12_STATUS=starter-present-post-reset-replay-followup") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "lane owner: `P12-L02`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "drivers/net/virtio_net_post_reset_replay.zig") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "summarizePostResetReplay()") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `master` now carries `zigux/tests/phase12_virtio_net_post_reset_replay.zig`") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "`zigux/Makefile` now again exposes `phase12-smoke`, `phase12-test`, and `phase12` convenience entrypoints") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "current `zigux/Makefile` again exposes `phase12-smoke`, `phase12-test`, and `phase12`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "while the post-reset replay remains outside `zigux/tests/phase12_build.zig`") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "still does not claim live DMA-safe receive ownership") != null);
     try std.testing.expect(std.mem.indexOf(u8, survey_note, "one bounded complex-driver or segmented-helper step") != null);
-    try std.testing.expect(std.mem.indexOf(u8, survey_note, "b53ec2bd507d0b3283486e76acc273b184ad5bf8") != null);
+    try std.testing.expect(std.mem.indexOf(u8, survey_note, "4578c45f2ac8ed5cd61412e1140b48d8a7a73628") != null);
 }
 
 test "phase12 virtio net survey gate keeps present lane files explicit" {
@@ -210,6 +232,15 @@ test "phase12 virtio net survey gate keeps shared build surface explicit about p
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12-virtio-net-transmit-recycle-tests") != null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12_virtio_net_post_reset_replay.zig") == null);
     try std.testing.expect(std.mem.indexOf(u8, build_zig, "phase12-virtio-net-post-reset-replay-tests") == null);
+}
+
+test "phase12 virtio net survey gate keeps shared make routes explicit" {
+    const makefile = try readFileAlloc("zigux/Makefile", 32 * 1024);
+    defer std.testing.allocator.free(makefile);
+
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-smoke:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12-test:") != null);
+    try std.testing.expect(std.mem.indexOf(u8, makefile, "phase12: phase12-smoke phase12-test") != null);
 }
 
 test "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit" {
