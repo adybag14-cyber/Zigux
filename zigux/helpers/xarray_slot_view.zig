@@ -207,6 +207,47 @@ test "low boundary keeps null, inline zero, then pointer-like in order" {
     try std.testing.expect(!isTaggedInternalEntry(pointer_raw));
 }
 
+test "low-end raw cadence keeps alternating value tags and pointer gaps" {
+    const raw_cases = [_]struct {
+        raw: usize,
+        kind: SlotKind,
+        value: ?usize,
+        pointer: ?usize,
+    }{
+        .{ .raw = 0, .kind = .null, .value = null, .pointer = null },
+        .{ .raw = try xa_value.makeValue(0), .kind = .value, .value = 0, .pointer = null },
+        .{ .raw = 2, .kind = .pointer, .value = null, .pointer = 2 },
+        .{ .raw = try xa_value.makeValue(1), .kind = .value, .value = 1, .pointer = null },
+        .{ .raw = 4, .kind = .pointer, .value = null, .pointer = 4 },
+        .{ .raw = try xa_value.makeValue(2), .kind = .value, .value = 2, .pointer = null },
+    };
+
+    for (raw_cases, 0..) |case, index| {
+        const slot = fromRaw(case.raw);
+
+        try std.testing.expectEqual(case.kind, slot.kind());
+        try std.testing.expectEqual(case.value, slot.value());
+        try std.testing.expectEqual(@as(?isize, null), slot.errorCode());
+        try std.testing.expectEqual(case.pointer, slot.pointerValue());
+        try std.testing.expectEqual(case.kind == .value, isTaggedInternalEntry(case.raw));
+
+        if (index > 0) {
+            try std.testing.expectEqual(raw_cases[index - 1].raw + 1, case.raw);
+        }
+    }
+
+    const first_positive_value = try fromValue(1);
+    const second_pointer_gap = fromPointer(4);
+    const second_positive_value = try fromValue(2);
+
+    try std.testing.expectEqual(@as(usize, 3), first_positive_value.rawValue());
+    try std.testing.expectEqual(@as(usize, 4), second_pointer_gap.rawValue());
+    try std.testing.expectEqual(@as(usize, 5), second_positive_value.rawValue());
+    try std.testing.expectEqual(@as(?usize, 1), first_positive_value.value());
+    try std.testing.expectEqual(@as(?usize, 4), second_pointer_gap.pointerValue());
+    try std.testing.expectEqual(@as(?usize, 2), second_positive_value.value());
+}
+
 test "constructor helpers keep the low boundary lanes distinct" {
     const null_slot = nullSlot();
     const value_slot = try fromValue(0);
