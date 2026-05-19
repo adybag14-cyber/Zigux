@@ -68,11 +68,14 @@ REQUIRED_MARKERS = {
         "Current `master` still ships no standalone Phase 5 sample-root files here for:",
         "* `*string*`",
         "* `*cmdline*`",
+        "* `*argv*`",
+        "* `*rbtree*`",
+        "* `*kasprintf*`",
         "* `*strarray*`",
     ],
 }
 
-SELF_TEST_CASE_COUNT = 16
+SELF_TEST_CASE_COUNT = 19
 
 
 def read_text(path: Path) -> str:
@@ -193,6 +196,26 @@ def run_self_test() -> None:
         samples_marker = "* `*string*`"
         samples_path.write_text(read_text(samples_path).replace(samples_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker("missing_samples_string_boundary_marker", tmp_root, f"samples/zigux/README.md: {samples_marker}")
+        write_fixture_root(tmp_root)
+
+        samples_marker = "* `*cmdline*`"
+        samples_path.write_text(read_text(samples_path).replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_samples_cmdline_boundary_marker", tmp_root, f"samples/zigux/README.md: {samples_marker}")
+        write_fixture_root(tmp_root)
+
+        samples_marker = "* `*argv*`"
+        samples_path.write_text(read_text(samples_path).replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_samples_argv_boundary_marker", tmp_root, f"samples/zigux/README.md: {samples_marker}")
+        write_fixture_root(tmp_root)
+
+        samples_marker = "* `*rbtree*`"
+        samples_path.write_text(read_text(samples_path).replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_samples_rbtree_boundary_marker", tmp_root, f"samples/zigux/README.md: {samples_marker}")
+        write_fixture_root(tmp_root)
+
+        samples_marker = "* `*kasprintf*`"
+        samples_path.write_text(read_text(samples_path).replace(samples_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker("missing_samples_kasprintf_boundary_marker", tmp_root, f"samples/zigux/README.md: {samples_marker}")
         write_fixture_root(tmp_root)
 
         checker_marker = '"zigux/tests/phase7_string_helpers_sample_boundary.zig",'
