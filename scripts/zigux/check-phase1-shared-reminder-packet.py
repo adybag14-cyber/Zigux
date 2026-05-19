@@ -54,6 +54,8 @@ MARKERS = {
     "scripts/zigux/README.md": (
         "current `master` does ship `scripts/zigux/check-phase1-bench.py`, and `.github/workflows/zigux-bootstrap.yml` self-tests it",
         "`Documentation/zigux/phase1-closure.md` and `scripts/zigux/validate-phase1-closure.py` are back on current `master`",
+        "`scripts/zigux/check-phase1-string-review-packet.py`, `scripts/zigux/check-phase1-direct-owner-markers.py`, `scripts/zigux/check-phase1-bench.py`, `scripts/zigux/check-phase1-shared-reminder-packet.py`, and `scripts/zigux/validate-phase1-closure.py` keep the shipped string-review, direct-owner, bench, shared-reminder, and closure-validator packet explicit from the scripts root",
+        "`python3 scripts/zigux/validate-phase1-closure.py`, `python3 scripts/zigux/check-phase1-string-review-packet.py --self-test`, `python3 scripts/zigux/check-phase1-direct-owner-markers.py --self-test`, `python3 scripts/zigux/check-phase1-bench.py --self-test`, and `python3 scripts/zigux/check-phase1-shared-reminder-packet.py --self-test` replay the shipped bounded Phase 1 reminder checks",
     ),
     "scripts/zigux/check-phase1-bench.py": (
         "RBTREE_REQUIRED_EXACT_CHECKSUMS = {",
@@ -64,7 +66,7 @@ MARKERS = {
         'print("phase1-direct-owner-markers:ok")',
     ),
     "scripts/zigux/check-phase1-shared-reminder-packet.py": (
-        "\"\"\"Guard the current shared Phase 1 reminder packet across docs, tests, scripts, and workflow.\"\"\"",
+        '"""Guard the current shared Phase 1 reminder packet across docs, tests, scripts, and workflow."""',
         'print("PHASE1_SHARED_REMINDER_PACKET=pass")',
         'print("PHASE1_SHARED_REMINDER_PACKET_SELF_TEST=pass")',
     ),
