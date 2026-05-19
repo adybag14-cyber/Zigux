@@ -22,6 +22,14 @@ fn allocatorName(mode: ?abi.AllocatorMode) []const u8 {
     };
 }
 
+fn initFlowName(flow: ?allocator_policy.InitFlow) []const u8 {
+    return switch (flow orelse return "invalid") {
+        .caller_prepared => "caller_prepared",
+        .helper_owned => "helper_owned",
+        .helper_owned_with_reset => "helper_owned_with_reset",
+    };
+}
+
 fn unsafeName(scope: ?abi.UnsafeScope) []const u8 {
     return switch (scope orelse return "invalid") {
         .none => "none",
@@ -33,15 +41,20 @@ fn unsafeName(scope: ?abi.UnsafeScope) []const u8 {
 fn printPolicy(name: []const u8, policy: abi.InteropPolicy) void {
     const panic_mode = panic_policy.modeFromInteropPolicy(policy);
     const allocator_mode = allocator_policy.modeFromInteropPolicy(policy);
+    const init_flow = if (allocator_mode) |mode| allocator_policy.initFlowFor(mode) else null;
     const helper_scope = unsafe_policy.scopeFromInteropPolicy(policy);
     const narrow_scope = narrow_surface.scopeFromInteropPolicy(policy);
 
     std.debug.print(
-        "{s}|panic={s}|allocator={s}|unsafe={s}|typed_only={any}|global_fallback={any}|warn_only={any}|mmio={any}|raw_bridge={any}|audit={any}|narrow={s}\n",
+        "{s}|panic={s}|allocator={s}|init_flow={s}|explicit_caller={any}|owned_state={any}|reset_on_init={any}|unsafe={s}|typed_only={any}|global_fallback={any}|warn_only={any}|mmio={any}|raw_bridge={any}|audit={any}|narrow={s}\n",
         .{
             name,
             panicName(panic_mode),
             allocatorName(allocator_mode),
+            initFlowName(init_flow),
+            allocator_mode != null and allocator_policy.requiresExplicitCaller(allocator_mode.?),
+            allocator_mode != null and allocator_policy.initializesOwnedState(allocator_mode.?),
+            allocator_mode != null and allocator_policy.requiresResetOnInit(allocator_mode.?),
             unsafeName(helper_scope),
             unsafe_policy.allowsTypedOnlyAccessInteropPolicy(policy),
             allocator_mode != null and allocator_policy.permitsGlobalFallback(allocator_mode.?),
