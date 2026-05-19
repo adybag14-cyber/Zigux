@@ -257,8 +257,7 @@ REENTRY_GATE_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(@as(usize, 1), before_exit.main_iterations);",
     "try std.testing.expectEqual(@as(usize, 3), before_exit.fn_iterations);",
     "try std.testing.expectEqual(@as(usize, 6), before_exit.main_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 6), before_exit.fn_thread_events);",
-    "try std.testing.expectEqual(@as(usize, 12), before_exit.total_events);",
+    "try std.testing.expectEqual(@as(usize, 6), before_exit.fn_thread_events);",    "try std.testing.expectEqual(@as(usize, 12), before_exit.total_events);",
     "try std.testing.expectEqual(@as(usize, 1), before_exit.init_runs);",
     "try std.testing.expectEqual(@as(usize, 1), before_exit.selftest_runs);",
     "try std.testing.expectEqual(@as(usize, 0), before_exit.exit_runs);",
@@ -339,7 +338,12 @@ EXIT_ROLLBACK_GUARD_REQUIRED_MARKERS = [
     "try std.testing.expectEqual(ModuleStage.exited, after_exit.stage);",
     "try std.testing.expectEqual(@as(usize, 1), after_exit.exit_runs);",
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.init());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitMainIteration(17));",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.registerFunctionThread());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.emitFunctionIteration(19));",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.unregisterFunctionThread());",
     "try std.testing.expectError(error.InvalidLifecycleTransition, module.runSelftest());",
+    "try std.testing.expectError(error.InvalidLifecycleTransition, module.exit());",
     "try expectSummaryStable(exited_before_rejected_ops, exited_after_rejected_ops);",
 ]
 
@@ -517,7 +521,6 @@ def run_self_test() -> int:
             seed_fixture_tree(base)
             (base / rel_path).unlink()
             expect_failure(base, f"missing_file:{rel_path}")
-
         print("PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SELF_TEST=pass")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SEQUENCING_MARKER_COUNT={len(FILE_MARKERS[SEQUENCING_PATH])}")
         print(f"PHASE9_TRACE_EVENTS_RUNTIME_PACKET_SURVEY_NOTE_MARKER_COUNT={len(FILE_MARKERS[SURVEY_NOTE_PATH])}")
