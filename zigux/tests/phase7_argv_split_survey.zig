@@ -86,8 +86,8 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     try expectStringSliceContains(manifest.missing_paths, "Documentation/zigux/phase7-argv-split-slice.md");
     try expectStringSliceContains(manifest.missing_paths, "zigux/tests/phase7_argv_split.zig");
     try expectStringSliceContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
-    try expectStringSliceContains(manifest.missing_paths, "zigux/tests/phase7_build.zig");
-    try expectStringSliceContains(manifest.missing_paths, "scripts/zigux/validate-phase7.py");
+    try expectStringSliceNotContains(manifest.missing_paths, "zigux/tests/phase7_build.zig");
+    try expectStringSliceNotContains(manifest.missing_paths, "scripts/zigux/validate-phase7.py");
 
     const checker_is_review_surface = stringSliceContains(manifest.review_surfaces, checker_path);
     const checker_is_missing = stringSliceContains(manifest.missing_paths, checker_path);
@@ -115,6 +115,7 @@ test "phase 7 argv split survey keeps the helper-local anchor truthful" {
     try expectStringSliceContains(manifest.ownership_focus, "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet");
     try expectStringSliceContains(manifest.ownership_focus, "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders");
     try expectContains(manifest.next_bounded_step, "sample-boundary truthfulness");
+    try expectContains(manifest.next_bounded_step, "shared Phase 7 build and validation routes stay directly readable as non-owner evidence");
 
     try expectContains(sequencing_note, "- argv-split packet, lane `P7-L09`:");
     try expectContains(sequencing_note, "  - `scripts/zigux/check-phase7-argv-split-packet.py`");
