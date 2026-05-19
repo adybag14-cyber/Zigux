@@ -68,7 +68,21 @@ REQUIRED_MARKERS = {
         "struct zigux_interop_policy {",
         "struct zigux_notifier_block {",
         "static inline zigux_boundary_header zigux_default_header(uint16_t flags)",
+        "static inline zigux_boundary_header zigux_compatible_header(",
+        "static inline int zigux_abi_version_is_current(uint16_t abi_version)",
+        "static inline int zigux_header_is_canonical(zigux_boundary_header header)",
+        "static inline int zigux_header_is_compatible(zigux_boundary_header header)",
+        "static inline int zigux_header_extends_boundary(zigux_boundary_header header)",
+        "static inline uint32_t zigux_header_requested_extra_bytes(",
+        "static inline zigux_boundary_header zigux_header_canonicalize(",
+        "static inline struct zigux_interop_policy zigux_default_interop_policy(void)",
+        "static inline struct zigux_export_status zigux_make_status(",
+        "static inline struct zigux_export_status zigux_ok_status(uint16_t facility)",
         "static inline int zigux_export_status_ok(struct zigux_export_status status)",
+        "static inline int zigux_notifier_chain_has_nonincreasing_priority(",
+        "static inline int zigux_notifier_first_chain_priority_increase(",
+        "static inline int zigux_list_has_consistent_backlinks(",
+        "static inline int zigux_hlist_has_consistent_prev_links(",
     ),
     LINUX_ZIGUX_HEADER: (
         "#define ZIGUX_UAPI_ABI_MAJOR 0u",
@@ -178,9 +192,21 @@ REQUIRED_MARKERS = {
         "pub const NotifierResult = notifier_abi.NotifierResult;",
         "pub const NotifierBlock = notifier_abi.NotifierBlock;",
         "pub fn defaultHeader(flags: u16) BoundaryHeader {",
+        "pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {",
+        "pub fn headerHasCurrentAbiVersion(abi_version: u16) bool {",
         "pub fn defaultInteropPolicy() InteropPolicy {",
         "pub fn headerIsCanonical(header: BoundaryHeader) bool {",
+        "pub fn headerIsCompatible(header: BoundaryHeader) bool {",
+        "pub fn extendsBoundary(header: BoundaryHeader) bool {",
+        "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {",
+        "pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {",
+        "pub fn makeStatus(code: i32, facility: Facility) ExportStatus {",
+        "pub fn okStatus(facility: Facility) ExportStatus {",
+        "pub fn statusIsOk(status: ExportStatus) bool {",
+        "pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {",
         "pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?ChainPriorityIncrease {",
+        "pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {",
+        "pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {",
     ),
     EXPORT_SHIM: (
         'const abi = @import("abi_bindings");',
@@ -190,6 +216,11 @@ REQUIRED_MARKERS = {
         "pub const ExportStatus = abi.ExportStatus;",
         "pub const Facility = abi.Facility;",
         "pub fn canonicalHeader(flags: u16) BoundaryHeader {",
+        "pub fn headerIsCanonical(header: BoundaryHeader) bool {",
+        "pub fn headerIsCompatible(header: BoundaryHeader) bool {",
+        "pub fn extendsBoundary(header: BoundaryHeader) bool {",
+        "pub fn requestedExtraBytes(header: BoundaryHeader) u32 {",
+        "pub fn canonicalizeHeader(header: BoundaryHeader) BoundaryHeader {",
         "pub fn okStatus(facility: Facility) ExportStatus {",
         "pub fn errorStatus(code: i32, facility: Facility) ExportStatus {",
         "pub fn statusIsOk(status: ExportStatus) bool {",
@@ -227,8 +258,8 @@ REQUIRED_MARKERS = {
         "abi.STATUS_FLAG_ERROR,",
         "abi.NOTIFIER_DONE,",
         '@offsetOf(abi.NotifierBlock, \"priority\"),',
-        '"  \"abi_version\": {},\\n"',
-        '"  \"notifier\": {{\\n"',
+        '"  \\\"abi_version\\\": {},\\\\n"',
+        '"  \\\"notifier\\\": {{\\\\n"',
     ),
     MANIFEST_PATH: (
         '"phase": "Phase 3"',
@@ -269,8 +300,60 @@ SELF_TEST_CASES = (
     (MANIFEST_PATH, '"status": "shared_abi_and_header_family_binding_surface_present"'),
 )
 
+SEMANTIC_SELF_TEST_CASES = (
+    (
+        BINDING_ABI,
+        "pub fn compatibleHeader(size: u32, flags: u16) BoundaryHeader {",
+        "missing ABI binding helper for ABI header inline helper: zigux_compatible_header -> compatibleHeader",
+    ),
+    (
+        EXPORT_SHIM,
+        "pub fn extendsBoundary(header: BoundaryHeader) bool {",
+        "missing export shim helper for ABI header inline helper: zigux_header_extends_boundary -> extendsBoundary",
+    ),
+    (
+        ABI_HEADER,
+        "static inline uint32_t zigux_header_requested_extra_bytes(",
+        "missing ABI header inline helper: zigux_header_requested_extra_bytes",
+    ),
+)
+
 HEADER_DEFINE_RE = re.compile(r"^\s*#define\s+ZIGUX_([A-Z0-9_]+)\b", re.MULTILINE)
 BINDING_CONST_RE = re.compile(r"^\s*pub const\s+([A-Z0-9_]+)\s*:", re.MULTILINE)
+C_INLINE_HELPER_RE = re.compile(
+    r"^\s*static\s+inline\b[^\n(]*\b(zigux_[A-Za-z0-9_]+)\s*\(",
+    re.MULTILINE,
+)
+ZIG_FUNCTION_RE = re.compile(r"^\s*pub fn\s+([A-Za-z][A-Za-z0-9_]*)\s*\(", re.MULTILINE)
+
+REQUIRED_HEADER_BINDING_HELPERS = {
+    "zigux_default_header": "defaultHeader",
+    "zigux_compatible_header": "compatibleHeader",
+    "zigux_abi_version_is_current": "headerHasCurrentAbiVersion",
+    "zigux_header_is_canonical": "headerIsCanonical",
+    "zigux_header_is_compatible": "headerIsCompatible",
+    "zigux_header_extends_boundary": "extendsBoundary",
+    "zigux_header_requested_extra_bytes": "requestedExtraBytes",
+    "zigux_header_canonicalize": "canonicalizeHeader",
+    "zigux_default_interop_policy": "defaultInteropPolicy",
+    "zigux_make_status": "makeStatus",
+    "zigux_ok_status": "okStatus",
+    "zigux_export_status_ok": "statusIsOk",
+    "zigux_notifier_chain_has_nonincreasing_priority": "chainHasNonincreasingPriority",
+    "zigux_notifier_first_chain_priority_increase": "firstChainPriorityIncrease",
+    "zigux_list_has_consistent_backlinks": "listHasConsistentBacklinks",
+    "zigux_hlist_has_consistent_prev_links": "hlistHasConsistentPrevLinks",
+}
+
+REQUIRED_HEADER_EXPORT_SHIM_HELPERS = {
+    "zigux_header_is_canonical": "headerIsCanonical",
+    "zigux_header_is_compatible": "headerIsCompatible",
+    "zigux_header_extends_boundary": "extendsBoundary",
+    "zigux_header_requested_extra_bytes": "requestedExtraBytes",
+    "zigux_header_canonicalize": "canonicalizeHeader",
+    "zigux_ok_status": "okStatus",
+    "zigux_export_status_ok": "statusIsOk",
+}
 
 REQUIRED_MANIFEST_FIELDS = {
     "phase": "Phase 3",
@@ -346,6 +429,14 @@ def _binding_names(text: str) -> set[str]:
     return set(BINDING_CONST_RE.findall(text))
 
 
+def _header_inline_helpers(text: str) -> set[str]:
+    return set(C_INLINE_HELPER_RE.findall(text))
+
+
+def _zig_function_names(text: str) -> set[str]:
+    return set(ZIG_FUNCTION_RE.findall(text))
+
+
 def _append_duplicate_list_entry_issues(
     manifest_name: str,
     field_name: str,
@@ -363,6 +454,25 @@ def _append_duplicate_list_entry_issues(
             f"{manifest_name} duplicate {field_name} entry: "
             f"{value!r} (first index {first_index}, duplicate index {index})"
         )
+
+
+def _append_helper_mapping_issues(
+    source_label: str,
+    source_helpers: set[str],
+    target_label: str,
+    target_helpers: set[str],
+    required_pairs: dict[str, str],
+    issues: list[str],
+) -> None:
+    for source_name, target_name in required_pairs.items():
+        if source_name not in source_helpers:
+            issues.append(f"missing {source_label}: {source_name}")
+            continue
+        if target_name not in target_helpers:
+            issues.append(
+                f"missing {target_label} for {source_label}: "
+                f"{source_name} -> {target_name}"
+            )
 
 
 def validate_repo(repo_root: Path) -> list[str]:
@@ -389,6 +499,26 @@ def validate_repo(repo_root: Path) -> list[str]:
                 "missing ABI binding constant for header define: "
                 f"ZIGUX_{name} -> {name}"
             )
+
+        _append_helper_mapping_issues(
+            "ABI header inline helper",
+            _header_inline_helpers(header_text),
+            "ABI binding helper",
+            _zig_function_names(binding_text),
+            REQUIRED_HEADER_BINDING_HELPERS,
+            issues,
+        )
+
+    export_shim_text = texts.get(EXPORT_SHIM)
+    if header_text is not None and export_shim_text is not None:
+        _append_helper_mapping_issues(
+            "ABI header inline helper",
+            _header_inline_helpers(header_text),
+            "export shim helper",
+            _zig_function_names(export_shim_text),
+            REQUIRED_HEADER_EXPORT_SHIM_HELPERS,
+            issues,
+        )
 
     notifier_text = texts.get(BINDING_NOTIFIER)
     if binding_text is not None and notifier_text is not None:
@@ -501,6 +631,17 @@ def run_self_test() -> int:
                 print(f"expected missing marker was not reported: {expected}")
                 return 1
 
+        for rel_path, marker, expected in SEMANTIC_SELF_TEST_CASES:
+            for populate_path, markers in REQUIRED_MARKERS.items():
+                _write(root / populate_path, "\n".join(markers) + "\n")
+            _write(root / MANIFEST_PATH, json.dumps(SAMPLE_MANIFEST, indent=2) + "\n")
+            _write(root / rel_path, _read(root / rel_path).replace(marker, "", 1))
+            issues = validate_repo(root)
+            if expected not in issues:
+                print("PHASE3_ABI_CHECK_SELF_TEST=fail")
+                print(f"expected semantic issue was not reported: {expected}")
+                return 1
+
         for populate_path, markers in REQUIRED_MARKERS.items():
             _write(root / populate_path, "\n".join(markers) + "\n")
         _write(root / MANIFEST_PATH, json.dumps(SAMPLE_MANIFEST, indent=2) + "\n")
@@ -550,7 +691,7 @@ def run_self_test() -> int:
             return 1
 
     print("PHASE3_ABI_CHECK_SELF_TEST=pass")
-    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + 3}")
+    print(f"PHASE3_ABI_CHECK_SELF_TEST_CASE_COUNT={len(SELF_TEST_CASES) + len(SEMANTIC_SELF_TEST_CASES) + 3}")
     return 0
 
 
