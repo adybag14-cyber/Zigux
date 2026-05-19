@@ -55,6 +55,17 @@ When shared Phase 13 wording changes, reread these contributor-facing and suppor
 
 Keep broader docs-root refresh as a separate same-lane follow-up instead of mixing it into helper-local packet work.
 
+## Contributor Edit Loop
+
+When the change stays inside the shared Phase 13 reminder lane, use this bounded edit loop:
+
+1. reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together before touching helper-local wording
+2. update at most one shared reminder surface plus the smallest necessary helper-local packet note in the same change
+3. rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py` and `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`
+4. if a route, replay, or helper is absent on current `master`, keep it recorded as a repo-reality gap instead of promoting it into shipped evidence
+
+Shared contributor edit loop: reread `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` together first, update at most one shared reminder surface plus the smallest helper-local packet note in the same change, rerun `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py` and `python3 scripts/zigux/check-phase13-tests-readme-alignment.py`, and keep any absent route, replay, or helper recorded as a repo-reality gap instead of promoted shipped evidence.
+
 ## Helper-Local Packets
 
 Keep helper-local ownership explicit instead of flattening the packet into a single generic Phase 13 summary.
