@@ -94,6 +94,11 @@ TOOLCHAIN_CHECKER_MARKERS = (
     'parser.add_argument("--archive-target"',
 )
 
+FORBIDDEN_BOOTSTRAP_GAP_MARKERS = (
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-zig-toolchain.py`, `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/validate-phase2.py`, `scripts/zigux/validate-phase2-closure.py`, and `zigux/Makefile`",
+    "treat `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2` as missing-current-master gaps",
+)
+
 EXPECTED_PHASE = "Phase 2"
 EXPECTED_TARGETS = ["x86_64-linux"]
 EXPECTED_REQUIRED_ROUTES = ["phase2-toolchain", "phase2-validate"]
@@ -109,6 +114,7 @@ EXPECTED_SELF_TEST_CASE_COUNT = (
     + len(MAKEFILE_MARKERS)
     + len(MAKEFILE_MARKERS)
     + len(TOOLCHAIN_CHECKER_MARKERS)
+    + len(FORBIDDEN_BOOTSTRAP_GAP_MARKERS)
     + 13
     + 8
 )
@@ -154,6 +160,10 @@ def duplicate_exact_line(text: str, marker: str) -> str:
 
 def collect_missing_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
     return [(code, marker) for marker in markers if marker not in text]
+
+
+def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) -> list[tuple[str, str]]:
+    return [(code, marker) for marker in markers if marker in text]
 
 
 def collect_exact_line_issues(
@@ -241,6 +251,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             read_text(resolve_path(root, BOOTSTRAP_NOTES)),
             BOOTSTRAP_MARKERS,
             "MISSING_BOOTSTRAP_MARKERS",
+        )
+    )
+    issues.extend(
+        collect_forbidden_markers(
+            read_text(resolve_path(root, BOOTSTRAP_NOTES)),
+            FORBIDDEN_BOOTSTRAP_GAP_MARKERS,
+            "FORBIDDEN_BOOTSTRAP_GAP_MARKERS",
         )
     )
     issues.extend(
@@ -366,6 +383,13 @@ def run_self_test() -> int:
             path = resolve_path(root, BOOTSTRAP_NOTES)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             assert ("MISSING_BOOTSTRAP_MARKERS", marker) in collect_issues(root)
+            checks_run += 1
+
+        for marker in FORBIDDEN_BOOTSTRAP_GAP_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, BOOTSTRAP_NOTES)
+            path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
+            assert ("FORBIDDEN_BOOTSTRAP_GAP_MARKERS", marker) in collect_issues(root)
             checks_run += 1
 
         for marker in WORKFLOW_MARKERS:
