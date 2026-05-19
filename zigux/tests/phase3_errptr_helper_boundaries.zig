@@ -34,6 +34,28 @@ test "phase3 err_ptr tagged endpoints stay out of the xa_value lane" {
     try std.testing.expect(!xa_value.isValue(err_top_raw));
 }
 
+test "phase3 low raw values stay ordered as null, xa_value, gap, xa_value" {
+    const null_raw: usize = 0;
+    const inline_zero_raw = try xa_value.makeValue(0);
+    const gap_raw: usize = 2;
+    const inline_one_raw = try xa_value.makeValue(1);
+
+    try std.testing.expectEqual(@as(usize, 1), inline_zero_raw);
+    try std.testing.expectEqual(@as(usize, 3), inline_one_raw);
+    try std.testing.expectEqual(null_raw + 1, inline_zero_raw);
+    try std.testing.expectEqual(inline_zero_raw + 1, gap_raw);
+    try std.testing.expectEqual(gap_raw + 1, inline_one_raw);
+
+    try std.testing.expect(!xa_value.isValue(null_raw));
+    try std.testing.expect(err_ptr.isOkValue(null_raw));
+    try std.testing.expect(xa_value.isValue(inline_zero_raw));
+    try std.testing.expectEqual(@as(usize, 0), xa_value.toValue(inline_zero_raw));
+    try std.testing.expect(!xa_value.isValue(gap_raw));
+    try std.testing.expect(err_ptr.isOkValue(gap_raw));
+    try std.testing.expect(xa_value.isValue(inline_one_raw));
+    try std.testing.expectEqual(@as(usize, 1), xa_value.toValue(inline_one_raw));
+}
+
 test "phase3 highest xa_value stays below the err_ptr floor" {
     const inline_limit_raw = try xa_value.makeValue(xa_value.safe_inline_limit);
 
