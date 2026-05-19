@@ -199,6 +199,31 @@ pub fn summarizeAllocSlotHandoff(request: AllocSlotRequest) AllocSlotSummary {
     };
 }
 
+pub const ConsoleSetupRequest = struct {
+    console_index: c_int,
+    adapter_present: bool,
+};
+
+pub const ConsoleSetupSummary = struct {
+    console_index_in_range: bool,
+    adapter_present: bool,
+    returns_enodev: bool,
+    setup_allowed: bool,
+};
+
+pub fn summarizeConsoleSetup(request: ConsoleSetupRequest) ConsoleSetupSummary {
+    const console_index_in_range = request.console_index >= 0 and
+        request.console_index < MAX_NR_HVC_CONSOLES;
+    const setup_allowed = console_index_in_range and request.adapter_present;
+
+    return .{
+        .console_index_in_range = console_index_in_range,
+        .adapter_present = request.adapter_present,
+        .returns_enodev = !setup_allowed,
+        .setup_allowed = setup_allowed,
+    };
+}
+
 pub const ResizeHandoffRequest = struct {
     tty_present: bool,
     winsize: Winsize,
@@ -722,6 +747,39 @@ test "phase11 hvc console keeps hvc_alloc hotplug extension distinct from consol
     try std.testing.expect(!summary.claims_console_slot);
     try std.testing.expect(summary.hvc_struct_list_linked);
     try std.testing.expect(summary.rechecks_kernel_console);
+}
+
+test "phase11 hvc console keeps early console setup success reviewable" {
+    const summary = summarizeConsoleSetup(.{
+        .console_index = 0,
+        .adapter_present = true,
+    });
+
+    try std.testing.expect(summary.console_index_in_range);
+    try std.testing.expect(summary.adapter_present);
+    try std.testing.expect(!summary.returns_enodev);
+    try std.testing.expect(summary.setup_allowed);
+}
+
+test "phase11 hvc console keeps early console setup ENODEV gates reviewable" {
+    const out_of_range = summarizeConsoleSetup(.{
+        .console_index = @as(c_int, @intCast(MAX_NR_HVC_CONSOLES)),
+        .adapter_present = true,
+    });
+    const missing_adapter = summarizeConsoleSetup(.{
+        .console_index = 3,
+        .adapter_present = false,
+    });
+
+    try std.testing.expect(!out_of_range.console_index_in_range);
+    try std.testing.expect(out_of_range.adapter_present);
+    try std.testing.expect(out_of_range.returns_enodev);
+    try std.testing.expect(!out_of_range.setup_allowed);
+
+    try std.testing.expect(missing_adapter.console_index_in_range);
+    try std.testing.expect(!missing_adapter.adapter_present);
+    try std.testing.expect(missing_adapter.returns_enodev);
+    try std.testing.expect(!missing_adapter.setup_allowed);
 }
 
 test "phase11 hvc console keeps resize handoff summary reviewable" {
