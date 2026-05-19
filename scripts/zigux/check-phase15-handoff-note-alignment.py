@@ -78,7 +78,7 @@ def _write(path: Path, text: str) -> None:
 def _sample_manifest() -> str:
     return json.dumps(
         {
-            "lane_key": "P15-L07",
+            "lane_key": "P15-L10",
             "phase": "Phase 15",
             "surveyed_commit": "current-master-readback-2026-05-19",
             "handoff_note": "Documentation/zigux/phase15-handoff-next-steps-survey.md",
@@ -102,6 +102,7 @@ def _sample_manifest() -> str:
                 "zigux/tests/phase15_readiness_gate_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps_manifest.json",
                 "zigux/tests/phase15_handoff_next_steps.zig",
+                "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig",
                 "scripts/zigux/check-phase15-review-process-handoff.py",
                 "scripts/zigux/check-phase15-tests-readme-alignment.py",
                 "scripts/zigux/check-phase15-shared-summary-gap.py",
@@ -109,15 +110,14 @@ def _sample_manifest() -> str:
             ],
             "still_missing_paths": [
                 "scripts/zigux/validate-phase15.py",
-                "zigux/tests/phase15_build.zig",
-                "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig"
+                "zigux/tests/phase15_build.zig"
             ],
             "required_markers": [
                 "PHASE15_STATUS=handoff_next_steps_survey_landed",
-                "PHASE15_LANE_KEY=P15-L07",
+                "PHASE15_LANE_KEY=P15-L10",
                 "PHASE15_PROVENANCE_MODE=dated_master_readback",
                 "the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`",
-                "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.",
+                "Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.",
                 "an Architecture Council approval workflow implementation",
                 "a direct port-readiness decision for any Phase 15 anchor"
             ],
@@ -149,11 +149,11 @@ def _sample_handoff_note() -> str:
     return """# Phase 15 Handoff Next Steps Survey
 
 - `PHASE15_STATUS=handoff_next_steps_survey_landed`
-- `PHASE15_LANE_KEY=P15-L07`
+- `PHASE15_LANE_KEY=P15-L10`
 - `PHASE15_PROVENANCE_MODE=dated_master_readback`
 - surveyed against dated current-master readback marker `current-master-readback-2026-05-19`
 - the dedicated handoff-specific manifest `zigux/tests/phase15_handoff_next_steps_manifest.json` and the focused handoff-specific Zig replay `zigux/tests/phase15_handoff_next_steps.zig` are directly materialized on current `master`
-- Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first, dedicated-build, and lane-owner companions remain gap-tracked.
+- Treat this note together with `zigux/tests/phase15_handoff_next_steps_manifest.json` and `zigux/tests/phase15_handoff_next_steps.zig` as the handoff-specific source of truth while the broader validator-first and dedicated-build companions remain gap-tracked.
 
 ## Current handed-off packet on current master
 
@@ -175,6 +175,7 @@ def _sample_handoff_note() -> str:
 - `zigux/tests/phase15_readiness_gate_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps_manifest.json`
 - `zigux/tests/phase15_handoff_next_steps.zig`
+- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 - `scripts/zigux/check-phase15-review-process-handoff.py`
 - `scripts/zigux/check-phase15-tests-readme-alignment.py`
 - `scripts/zigux/check-phase15-shared-summary-gap.py`
@@ -186,7 +187,6 @@ The roadmap-required Phase 15 governance features are already materialized on cu
 
 - `scripts/zigux/validate-phase15.py`
 - `zigux/tests/phase15_build.zig`
-- `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`
 
 These are handoff and reminder-surface gaps, not missing ownership of the roadmap's four required governance features.
 
