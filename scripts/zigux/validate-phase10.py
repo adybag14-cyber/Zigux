@@ -32,7 +32,6 @@ REQUIRED_PATHS = (
     "zigux/tests/README.md",
     "zigux/tests/phase10_build.zig",
     "zigux/tests/phase10_closure_manifest.json",
-    "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
