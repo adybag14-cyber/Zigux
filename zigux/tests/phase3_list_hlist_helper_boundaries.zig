@@ -217,6 +217,51 @@ test "phase3 bounded two-node list and hlist chains keep their own tail contract
     try std.testing.expectEqual(@as(usize, 0), hlist_second.next);
 }
 
+test "phase3 null second-node back links stay visible at index one for list and hlist" {
+    var list_head = list_view.ListHead{ .next = 0, .prev = 0 };
+    var list_first = list_view.ListHead{ .next = 0, .prev = 0 };
+    var list_second = list_view.ListHead{ .next = 0, .prev = 0 };
+
+    list_head.next = @intFromPtr(&list_first);
+    list_head.prev = @intFromPtr(&list_second);
+    list_first.next = @intFromPtr(&list_second);
+    list_first.prev = @intFromPtr(&list_head);
+    list_second.next = @intFromPtr(&list_head);
+    list_second.prev = 0;
+
+    var hlist_head = hlist_view.HListHead{ .first = 0 };
+    var hlist_first = hlist_view.HListNode{ .next = 0, .pprev = 0 };
+    var hlist_second = hlist_view.HListNode{ .next = 0, .pprev = 0 };
+
+    hlist_head.first = @intFromPtr(&hlist_first);
+    hlist_first.next = @intFromPtr(&hlist_second);
+    hlist_first.pprev = @intFromPtr(&hlist_head.first);
+    hlist_second.next = 0;
+    hlist_second.pprev = 0;
+
+    const list = list_view.ListView.init(&list_head);
+    const hlist = hlist_view.HListView.init(&hlist_head);
+
+    try std.testing.expectEqual(@as(usize, 2), list.len());
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&list_second)), @intFromPtr(list.last().?));
+    try std.testing.expect(!list.hasConsistentBacklinks());
+
+    const list_break = list.firstBrokenBacklink().?;
+    try std.testing.expectEqual(@as(usize, 1), list_break.current_index);
+    try std.testing.expectEqual(@intFromPtr(&list_first), list_break.expected_prev);
+    try std.testing.expectEqual(@as(usize, 0), list_break.actual_prev);
+
+    try std.testing.expectEqual(@as(usize, 2), hlist.len());
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&hlist_first)), @intFromPtr(hlist.first().?));
+    try std.testing.expect(hlist.tailNextIsNull());
+    try std.testing.expect(!hlist.hasConsistentPrevLinks());
+
+    const hlist_break = hlist.firstBrokenPrevLink().?;
+    try std.testing.expectEqual(@as(usize, 1), hlist_break.current_index);
+    try std.testing.expectEqual(@intFromPtr(&hlist_first.next), hlist_break.expected_pprev);
+    try std.testing.expectEqual(@as(usize, 0), hlist_break.actual_pprev);
+}
+
 test "phase3 second-node break witnesses stay anchored at index one for list and hlist" {
     var list_head = list_view.ListHead{ .next = 0, .prev = 0 };
     var list_first = list_view.ListHead{ .next = 0, .prev = 0 };
