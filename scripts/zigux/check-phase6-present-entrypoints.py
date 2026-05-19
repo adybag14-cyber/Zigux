@@ -22,6 +22,7 @@ EXPECTED_LANE_SCOPE = "shared helper-evidence rows and machine-readable manifest
 EXPECTED_HELPER_KEYS = ["base64", "bsearch", "checksum", "hexdump"]
 EXPECTED_DIRECT_COMPANIONS = [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
+    "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
@@ -70,7 +71,7 @@ REQUIRED_MAKEFILE_SNIPPETS = [
     "$(ZIG) build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig --summary all",
 ]
 SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
-SELF_TEST_CASE_COUNT = 8
+SELF_TEST_CASE_COUNT = 9
 
 
 class ValidationError(RuntimeError):
@@ -230,6 +231,7 @@ def run_self_test() -> None:
             (root / BUILD_PATH, 'const checksum_perf_step = b.step("phase6-checksum-perf", "Run Phase 6 checksum helper perf gate");'),
             (root / MAKEFILE_PATH, "phase6-checksum-perf:"),
             (root / MANIFEST_PATH, '"public_tree_backed_shared_companions"'),
+            (root / MANIFEST_PATH, '"Documentation/zigux/README.md",'),
             (root / MANIFEST_PATH, '"ipv4_fast_path_case_labels"'),
             (root / MANIFEST_PATH, '"make -C zigux phase6-checksum-perf"'),
         ]:
