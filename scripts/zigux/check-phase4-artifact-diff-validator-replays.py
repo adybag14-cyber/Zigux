@@ -10,6 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 VALIDATOR_REL = Path("scripts/zigux/validate-phase4.py")
 NOTE_REL = Path("Documentation/zigux/phase4-reversible-delivery-evidence.md")
+WORKFLOW_REL = Path(".github/workflows/zigux-bootstrap.yml")
 
 EXPECTED_VALIDATOR_REPLAY_MARKERS = [
     '("ARTIFACT_DIFF_DETERMINISM_SELF_TEST_CHECK", ["scripts/zigux/check-phase4-artifact-diff-determinism.py", "--self-test"], "PHASE4_ARTIFACT_DIFF_DETERMINISM_SELF_TEST=pass"),',
@@ -25,6 +26,14 @@ EXPECTED_HISTORICAL_GAP_MARKERS = [
     "`scripts/zigux/validate-phase4.py`",
 ]
 
+EXPECTED_WORKFLOW_REPLAY_MARKERS = [
+    "run: python3 scripts/zigux/artifact_diff.py --self-test",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test",
+    "run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py",
+]
+
 EXPECTED_SELF_TEST_CASES = [
     "catalog_shape",
     "validator_marker_round_trip",
@@ -32,6 +41,9 @@ EXPECTED_SELF_TEST_CASES = [
     "historical_gap_marker_round_trip",
     "historical_gap_marker_drift",
     "historical_gap_note_missing",
+    "workflow_marker_round_trip",
+    "workflow_marker_drift",
+    "workflow_missing",
 ]
 
 
@@ -39,6 +51,7 @@ def assert_markers(text: str, markers: list[str], label: str) -> None:
     missing = [marker for marker in markers if marker not in text]
     if missing:
         raise AssertionError(f"{label} markers missing: {missing}")
+
 
 
 def read_text(root: Path, rel: Path, *, missing_label: str) -> str:
@@ -49,7 +62,19 @@ def read_text(root: Path, rel: Path, *, missing_label: str) -> str:
         raise RuntimeError(f"current tree is missing {missing_label}: {rel.as_posix()}") from exc
 
 
+
 def check(root: Path) -> tuple[str, list[str]]:
+    workflow_text = read_text(
+        root,
+        WORKFLOW_REL,
+        missing_label="the Phase 4 bootstrap workflow",
+    )
+    assert_markers(
+        workflow_text,
+        EXPECTED_WORKFLOW_REPLAY_MARKERS,
+        "workflow_surface",
+    )
+
     validator_path = root / VALIDATOR_REL
     if validator_path.exists():
         validator_text = read_text(
@@ -77,9 +102,25 @@ def check(root: Path) -> tuple[str, list[str]]:
     return "historical_target_missing", EXPECTED_HISTORICAL_GAP_MARKERS
 
 
+
 def write(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
+
+
+
+def make_workflow_fixture(root: Path) -> None:
+    write(
+        root / WORKFLOW_REL,
+        "\n".join(
+            [
+                "name: zigux-bootstrap",
+                *EXPECTED_WORKFLOW_REPLAY_MARKERS,
+            ]
+        )
+        + "\n",
+    )
+
 
 
 def make_validator_fixture(root: Path) -> None:
@@ -88,6 +129,8 @@ def make_validator_fixture(root: Path) -> None:
         "\n".join(EXPECTED_VALIDATOR_REPLAY_MARKERS) + "\n",
     )
     write(root / NOTE_REL, "# note placeholder\n")
+    make_workflow_fixture(root)
+
 
 
 def make_historical_gap_fixture(root: Path) -> None:
@@ -101,6 +144,8 @@ def make_historical_gap_fixture(root: Path) -> None:
         )
         + "\n",
     )
+    make_workflow_fixture(root)
+
 
 
 def run_self_test() -> int:
@@ -171,6 +216,44 @@ def run_self_test() -> int:
         else:
             raise AssertionError("expected historical_gap_note_missing to fail closed")
 
+        make_historical_gap_fixture(root)
+        mode, markers = check(root)
+        if (
+            mode != "historical_target_missing"
+            or markers != EXPECTED_HISTORICAL_GAP_MARKERS
+        ):
+            raise AssertionError("workflow_marker_round_trip")
+        covered_cases.append("workflow_marker_round_trip")
+
+        make_historical_gap_fixture(root)
+        write(root / WORKFLOW_REL, EXPECTED_WORKFLOW_REPLAY_MARKERS[0] + "\n")
+        try:
+            check(root)
+        except AssertionError:
+            covered_cases.append("workflow_marker_drift")
+        else:
+            raise AssertionError("expected workflow_marker_drift to fail closed")
+
+        make_historical_gap_fixture(root)
+        workflow_path = root / WORKFLOW_REL
+        if workflow_path.exists():
+            workflow_path.unlink()
+        try:
+            check(root)
+        except RuntimeError as exc:
+            expected = (
+                "current tree is missing the Phase 4 bootstrap workflow: "
+                f"{WORKFLOW_REL.as_posix()}"
+            )
+            if str(exc) != expected:
+                raise AssertionError(
+                    "workflow missing message drifted: "
+                    f"expected {expected!r}, got {str(exc)!r}"
+                ) from exc
+            covered_cases.append("workflow_missing")
+        else:
+            raise AssertionError("expected workflow_missing to fail closed")
+
     if covered_cases != EXPECTED_SELF_TEST_CASES:
         raise AssertionError(
             f"self-test catalog drifted: expected {EXPECTED_SELF_TEST_CASES}, got {covered_cases}"
@@ -186,6 +269,7 @@ def run_self_test() -> int:
         + ",".join(EXPECTED_SELF_TEST_CASES)
     )
     return 0
+
 
 
 def main() -> int:
@@ -231,6 +315,10 @@ def main() -> int:
     print(
         "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_MARKERS="
         + ",".join(markers)
+    )
+    print(
+        "PHASE4_ARTIFACT_DIFF_VALIDATOR_REPLAYS_WORKFLOW_MARKER_COUNT="
+        f"{len(EXPECTED_WORKFLOW_REPLAY_MARKERS)}"
     )
     return 0
 
