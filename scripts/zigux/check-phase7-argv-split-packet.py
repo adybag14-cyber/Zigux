@@ -64,18 +64,21 @@ REQUIRED_MARKERS = {
         '"zigux/tests/fixtures/phase7_argv_split_vectors.zig"',
         "fixture-backed helper-local survey-manifest-checker truthfulness packet",
         "whitespace-before-first-NUL input still reuses the exported empty storage and argv sentinel views because cStringPrefix() bounds blank-input handling to the first NUL",
+        "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership",
     ],
     "zigux/tests/phase7_argv_split_survey.zig": [
         'test "phase 7 argv split survey keeps the returned fixture-backed helper-local packet truthful" {',
         'try std.testing.expectEqualStrings("helper_slice_test_fixture_survey_manifest_anchor", manifest.current_master_state);',
         'const fixture_vectors = try readRepoFile(allocator, fixture_path);',
-        'try expectContains(helper, "test \\"argvSplit treats whitespace before the first NUL as blank input\\" {");',
+        'try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");',
+        'try expectContains(fixture_vectors, "whitespace_before_first_nul_reuses_empty_packet");',
     ],
     "zigux/tests/fixtures/phase7_argv_split_vectors.zig": [
         "pub const ArgvSplitVector = struct {",
         "pub const phase7_argv_split_vectors = [_]ArgvSplitVector{",
         "copied_storage_whitespace_packet",
         "blank_input_reuses_empty_packet",
+        "whitespace_before_first_nul_reuses_empty_packet",
         "first_nul_truncation_keeps_tail_outside_packet",
         "quoted_tokens_stay_whitespace_split",
     ],
@@ -85,7 +88,7 @@ REQUIRED_MARKERS = {
     ],
 }
 
-SELF_TEST_CASE_COUNT = 22
+SELF_TEST_CASE_COUNT = 25
 
 
 def read_text(path: Path) -> str:
@@ -201,6 +204,16 @@ def run_self_test() -> None:
         )
         write_fixture_root(tmp_root)
 
+        manifest_text = read_text(manifest_path)
+        manifest_marker = "fixture vectors keep copied-storage, blank-input, whitespace-before-first-NUL blank-sentinel reuse, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership"
+        manifest_path.write_text(manifest_text.replace(manifest_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_manifest_fixture_first_nul_vector_focus",
+            tmp_root,
+            f"zigux/tests/phase7_argv_split_manifest.json: {manifest_marker}",
+        )
+        write_fixture_root(tmp_root)
+
         survey_path = tmp_root / "zigux" / "tests" / "phase7_argv_split_survey.zig"
         survey_text = read_text(survey_path)
         survey_marker = 'const fixture_vectors = try readRepoFile(allocator, fixture_path);'
@@ -213,10 +226,20 @@ def run_self_test() -> None:
         write_fixture_root(tmp_root)
 
         survey_text = read_text(survey_path)
-        survey_marker = 'try expectContains(helper, "test \\"argvSplit treats whitespace before the first NUL as blank input\\" {");'
+        survey_marker = 'try expectContains(helper, "test \\\"argvSplit treats whitespace before the first NUL as blank input\\\" {");'
         survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_survey_first_nul_blank_proof_marker",
+            tmp_root,
+            f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        survey_text = read_text(survey_path)
+        survey_marker = 'try expectContains(fixture_vectors, "whitespace_before_first_nul_reuses_empty_packet");'
+        survey_path.write_text(survey_text.replace(survey_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_survey_fixture_first_nul_vector_marker",
             tmp_root,
             f"zigux/tests/phase7_argv_split_survey.zig: {survey_marker}",
         )
@@ -237,6 +260,16 @@ def run_self_test() -> None:
         fixture_path.write_text(fixture_text.replace(fixture_marker + "\n", "", 1), encoding="utf-8")
         expect_missing_marker(
             "missing_fixture_blank_input_vector_case",
+            tmp_root,
+            f"zigux/tests/fixtures/phase7_argv_split_vectors.zig: {fixture_marker}",
+        )
+        write_fixture_root(tmp_root)
+
+        fixture_text = read_text(fixture_path)
+        fixture_marker = "whitespace_before_first_nul_reuses_empty_packet"
+        fixture_path.write_text(fixture_text.replace(fixture_marker + "\n", "", 1), encoding="utf-8")
+        expect_missing_marker(
+            "missing_fixture_blank_prefix_first_nul_vector_case",
             tmp_root,
             f"zigux/tests/fixtures/phase7_argv_split_vectors.zig: {fixture_marker}",
         )
