@@ -217,4 +217,9 @@ test "phase 7 string helpers survey keeps the expanded starter packet truthful" 
     defer allocator.free(sample_boundary);
     try expectContains(sample_boundary, "phase 7 string helper boundary keeps the no-string-sample policy lane-local");
     try expectContains(sample_boundary, "phase 7 string helper boundary stays on sample-boundary surfaces only");
+    try expectContains(sample_boundary, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet");
+    try expectContainsCount(sample_boundary, "the broader full-family packet that still leaves `devm_kasprintf_strarray()` outside the current `master` helper packet", 1);
+    try expectContains(sample_boundary, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on");
+    try expectContainsCount(sample_boundary, "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on", 1);
+    try expectNotContains(sample_boundary, "The next bounded follow-through should realign the dedicated survey and sample-boundary replays");
 }
