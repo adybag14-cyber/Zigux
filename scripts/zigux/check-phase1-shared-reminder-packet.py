@@ -18,6 +18,7 @@ REQUIRED_FILES = (
     "scripts/zigux/README.md",
     "scripts/zigux/check-phase1-bench.py",
     "scripts/zigux/check-phase1-direct-owner-markers.py",
+    "scripts/zigux/check-phase1-shared-reminder-packet.py",
     "scripts/zigux/check-phase1-string-review-packet.py",
     "scripts/zigux/validate-phase1-closure.py",
     "zigux/tests/README.md",
@@ -34,6 +35,8 @@ MARKERS = {
         "`python3 scripts/zigux/check-phase1-bench.py --self-test`",
     ),
     "Documentation/zigux/phase1-closure.md": (
+        "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
+        "`PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`",
         "`PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`",
         "`PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
@@ -56,6 +59,11 @@ MARKERS = {
     "scripts/zigux/check-phase1-direct-owner-markers.py": (
         "EXPECTED_DIRECT_ANCHOR_FOLLOWUP_HELPERS = [",
         'print("phase1-direct-owner-markers:ok")',
+    ),
+    "scripts/zigux/check-phase1-shared-reminder-packet.py": (
+        "\"\"\"Guard the current shared Phase 1 reminder packet across docs, tests, scripts, and workflow.\"\"\"",
+        'print("PHASE1_SHARED_REMINDER_PACKET=pass")',
+        'print("PHASE1_SHARED_REMINDER_PACKET_SELF_TEST=pass")',
     ),
     "scripts/zigux/check-phase1-string-review-packet.py": (
         "STRING_REVIEW_RULE_LINE = (",
@@ -174,8 +182,16 @@ def write_text(root: Path, relative_path: str, content: str) -> None:
 
 def build_sample_repo(root: Path) -> None:
     for relative_path in REQUIRED_FILES:
+        if relative_path == "scripts/zigux/check-phase1-shared-reminder-packet.py":
+            write_text(root, relative_path, __file__ + "\n")
+            continue
         markers = MARKERS.get(relative_path, ())
         write_text(root, relative_path, "\n".join(markers) + ("\n" if markers else ""))
+    write_text(
+        root,
+        "scripts/zigux/check-phase1-shared-reminder-packet.py",
+        "\n".join(MARKERS["scripts/zigux/check-phase1-shared-reminder-packet.py"]) + "\n",
+    )
 
 
 def mutate_remove_marker(root: Path, relative_path: str, marker: str) -> None:
@@ -216,6 +232,22 @@ def run_self_test() -> int:
             lambda root: (root / "Documentation/zigux/phase1-closure.md").unlink(),
         ),
         (
+            "missing_closure_shared_checker_bullet",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-closure.md",
+                MARKERS["Documentation/zigux/phase1-closure.md"][0],
+            ),
+        ),
+        (
+            "missing_closure_shared_checker_packet_line",
+            lambda root: mutate_remove_marker(
+                root,
+                "Documentation/zigux/phase1-closure.md",
+                MARKERS["Documentation/zigux/phase1-closure.md"][1],
+            ),
+        ),
+        (
             "missing_lane_note_marker",
             lambda root: mutate_remove_marker(
                 root,
@@ -236,6 +268,18 @@ def run_self_test() -> int:
             lambda root: (root / "scripts/zigux/check-phase1-direct-owner-markers.py").unlink(),
         ),
         (
+            "missing_shared_reminder_checker_file",
+            lambda root: (root / "scripts/zigux/check-phase1-shared-reminder-packet.py").unlink(),
+        ),
+        (
+            "missing_shared_reminder_checker_marker",
+            lambda root: mutate_remove_marker(
+                root,
+                "scripts/zigux/check-phase1-shared-reminder-packet.py",
+                MARKERS["scripts/zigux/check-phase1-shared-reminder-packet.py"][0],
+            ),
+        ),
+        (
             "missing_manifest_marker",
             lambda root: mutate_remove_marker(
                 root,
@@ -248,7 +292,7 @@ def run_self_test() -> int:
             lambda root: mutate_remove_marker(
                 root,
                 "Documentation/zigux/phase1-closure.md",
-                MARKERS["Documentation/zigux/phase1-closure.md"][0],
+                MARKERS["Documentation/zigux/phase1-closure.md"][2],
             ),
         ),
         (
