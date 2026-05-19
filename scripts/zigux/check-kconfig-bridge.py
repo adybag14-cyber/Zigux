@@ -71,11 +71,13 @@ REQUIRED_CONFDATA_HELPER_ANCHORS = [
     "confdata bridge decodes escaped quoted strings",
     "confdata bridge strips backslashes from escaped control sequences like upstream confdata",
     "confdata bridge escapes low control bytes in json output",
+    "confdata bridge emits escaped string values in json output",
     "confdata bridge emits low control bytes escaped in json output",
     "confdata bridge accepts CRLF config lines",
     "confdata bridge preserves trailing carriage return on final unterminated value line",
     "confdata bridge ignores unterminated unset comment with trailing carriage return",
     "confdata bridge ignores suffix bytes after an embedded NUL",
+    "confdata bridge omits embedded NUL suffix bytes from json output",
     "confdata bridge preserves carriage return before an embedded NUL on newline-terminated lines",
     "confdata bridge keeps explicit n assignments as tristate values",
     "confdata bridge recognizes uppercase tristate assignments",
@@ -478,12 +480,12 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "randconfig", "mode": "randconfig", "kconfig": "Kconfig", "config": "rand/.config", "arch": "x86_64", "allconfig": "allrandom.config", "seed": "0xC0FFEE", "probability": "15:25", "expected": "randconfig_expected.json"},
                     {"name": "defconfig", "mode": "defconfig", "kconfig": "Kconfig", "config": "out/.config", "arch": "arm64", "mode_arg": "arch/arm64/configs/defconfig", "expected": "defconfig_expected.json"},
                     {"name": "savedefconfig", "mode": "savedefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "mode_arg": "defconfig.out", "expected": "savedefconfig_expected.json"},
-                    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": true, "expected": "listnewconfig_expected.json"},
-                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": true, "expected": "helpnewconfig_expected.json"},
+                    {"name": "listnewconfig", "mode": "listnewconfig", "kconfig": "Kconfig", "config": "out/list.config", "arch": "x86_64", "silent": True, "expected": "listnewconfig_expected.json"},
+                    {"name": "helpnewconfig", "mode": "helpnewconfig", "kconfig": "Kconfig", "config": "out/help.config", "arch": "riscv64", "silent": True, "expected": "helpnewconfig_expected.json"},
                     {"name": "olddefconfig", "mode": "olddefconfig", "kconfig": "Kconfig", "config": ".config", "arch": "x86_64", "expected": "olddefconfig_expected.json"},
                     {"name": "yes2modconfig", "mode": "yes2modconfig", "kconfig": "Kconfig", "config": "rewrite/.config", "arch": "x86", "expected": "yes2modconfig_expected.json"},
                     {"name": "mod2yesconfig", "mode": "mod2yesconfig", "kconfig": "Kconfig", "config": "promote/.config", "arch": "x86", "expected": "mod2yesconfig_expected.json"},
-                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"}
+                    {"name": "mod2noconfig", "mode": "mod2noconfig", "kconfig": "Kconfig", "config": "demote/.config", "arch": "x86", "expected": "mod2noconfig_expected.json"},
                 ],
                 "confdata_cases": [
                     {"name": "sample", "input": "sample.config", "expected": "sample_expected.json"},
@@ -499,12 +501,12 @@ def build_self_test_root(root: Path) -> None:
                     {"name": "empty_config_symbol_names", "input": "empty_config_symbol_names.config", "expected": "empty_config_symbol_names_expected.json"},
                     {"name": "malformed_unset_comment_tokens", "input": "malformed_unset_comment_tokens.config", "expected": "malformed_unset_comment_tokens_expected.json"},
                     {"name": "last_state_transitions", "input": "last_state_transitions.config", "expected": "last_state_transitions_expected.json"},
-                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"}
-                ]
+                    {"name": "duplicate_malformed_quoted_assignment", "input": "duplicate_malformed_quoted_assignment.config", "expected": "duplicate_malformed_quoted_assignment_expected.json"},
+                ],
             },
-            indent=2
+            indent=2,
         )
-        + "\n"
+        + "\n",
     )
     write_text(
         root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "conf_manifest.json",
@@ -533,35 +535,35 @@ def build_self_test_root(root: Path) -> None:
                     "olddefconfig_expected.json",
                     "yes2modconfig_expected.json",
                     "mod2yesconfig_expected.json",
-                    "mod2noconfig_expected.json"
+                    "mod2noconfig_expected.json",
                 ],
                 "mode_arg_cases": [
                     "defconfig",
-                    "savedefconfig"
+                    "savedefconfig",
                 ],
                 "silent_request_packet": [
                     "listnewconfig_expected.json",
-                    "helpnewconfig_expected.json"
+                    "helpnewconfig_expected.json",
                 ],
                 "syncconfig_env_packet": [
-                    "syncconfig_expected.json"
+                    "syncconfig_expected.json",
                 ],
                 "allconfig_sentinel_packet": [
                     "allnoconfig_expected.json",
                     "allyesconfig_expected.json",
-                    "alldefconfig_expected.json"
+                    "alldefconfig_expected.json",
                 ],
                 "allconfig_override_packet": [
                     "allmodconfig_expected.json",
-                    "randconfig_expected.json"
+                    "randconfig_expected.json",
                 ],
                 "randconfig_env_packet": [
-                    "randconfig_expected.json"
-                ]
+                    "randconfig_expected.json",
+                ],
             },
-            indent=2
+            indent=2,
         )
-        + "\n"
+        + "\n",
     )
     write_text(
         root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / "confdata_manifest.json",
@@ -588,7 +590,7 @@ def build_self_test_root(root: Path) -> None:
                     "empty_config_symbol_names.config",
                     "malformed_unset_comment_tokens.config",
                     "last_state_transitions.config",
-                    "duplicate_malformed_quoted_assignment.config"
+                    "duplicate_malformed_quoted_assignment.config",
                 ],
                 "expected_packet": [
                     "sample_expected.json",
@@ -604,13 +606,13 @@ def build_self_test_root(root: Path) -> None:
                     "empty_config_symbol_names_expected.json",
                     "malformed_unset_comment_tokens_expected.json",
                     "last_state_transitions_expected.json",
-                    "duplicate_malformed_quoted_assignment_expected.json"
+                    "duplicate_malformed_quoted_assignment_expected.json",
                 ],
-                "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS
+                "helper_local_anchors": REQUIRED_CONFDATA_HELPER_ANCHORS,
             },
-            indent=2
+            indent=2,
         )
-        + "\n"
+        + "\n",
     )
     for rel_path in (
         "oldaskconfig_expected.json",
@@ -656,7 +658,7 @@ def build_self_test_root(root: Path) -> None:
         "empty_config_symbol_names.config",
         "malformed_unset_comment_tokens.config",
         "last_state_transitions.config",
-        "duplicate_malformed_quoted_assignment.config"
+        "duplicate_malformed_quoted_assignment.config",
     ):
         write_text(root / "zigux" / "tests" / "fixtures" / "kconfig_bridge" / rel_path, "{}\n")
 
