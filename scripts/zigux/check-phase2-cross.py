@@ -35,7 +35,7 @@ EXPECTED_CROSS_TARGETS = {
 }
 ALLOWED_VALIDATION_MODES = ("archive_required", "route_contract_only")
 
-EXPECTED_SELF_TEST_CASE_COUNT = 15
+EXPECTED_SELF_TEST_CASE_COUNT = 17
 
 
 def read_text(path: Path) -> str:
@@ -69,25 +69,49 @@ def count_exact_lines(text: str, marker: str) -> int:
 
 
 def load_archive_target_scope(root: Path) -> list[str]:
-    payload = read_json(resolve_path(root, TOOLCHAIN_POLICY))
+    policy_path = resolve_path(root, TOOLCHAIN_POLICY)
+    payload = read_json(policy_path)
     if not isinstance(payload, dict):
-        raise SystemExit(f"invalid json shape in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        raise SystemExit(f"invalid json shape in required file: {policy_path}")
     upgrade_policy = payload.get("upgrade_policy")
     if not isinstance(upgrade_policy, dict):
-        raise SystemExit(f"invalid upgrade_policy in required file: {resolve_path(root, TOOLCHAIN_POLICY)}")
+        raise SystemExit(f"invalid upgrade_policy in required file: {policy_path}")
     archive_target_scope = upgrade_policy.get("archive_target_scope")
     if not isinstance(archive_target_scope, list) or not archive_target_scope:
-        raise SystemExit(
-            f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-        )
+        raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
     normalized: list[str] = []
+    seen: set[str] = set()
     for value in archive_target_scope:
         if not isinstance(value, str) or not value.strip():
-            raise SystemExit(
-                f"invalid archive_target_scope in required file: {resolve_path(root, TOOLCHAIN_POLICY)}"
-            )
-        normalized.append(value.strip())
+            raise SystemExit(f"invalid archive_target_scope in required file: {policy_path}")
+        target = value.strip()
+        if target in seen:
+            raise SystemExit(f"duplicate archive_target_scope entry in required file: {policy_path}: {target}")
+        seen.add(target)
+        normalized.append(target)
     return normalized
+
+
+def normalize_fixture_archive_scope(fixture_scope: object) -> tuple[list[str] | None, list[tuple[str, str]]]:
+    issues: list[tuple[str, str]] = []
+    if not isinstance(fixture_scope, list) or not fixture_scope:
+        return None, [("INVALID_FIXTURE_FIELD", "archive_target_scope")]
+
+    normalized: list[str] = []
+    seen: set[str] = set()
+    for index, value in enumerate(fixture_scope):
+        if not isinstance(value, str) or not value.strip():
+            issues.append(("INVALID_FIXTURE_ARCHIVE_SCOPE_ENTRY", f"index={index}"))
+            continue
+        target = value.strip()
+        if target in seen:
+            issues.append(("DUPLICATE_FIXTURE_ARCHIVE_SCOPE", target))
+            continue
+        seen.add(target)
+        normalized.append(target)
+    if issues:
+        return None, issues
+    return normalized, []
 
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
@@ -115,8 +139,11 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if fixture.get("route") != ROUTE:
         issues.append(("INVALID_FIXTURE_FIELD", "route"))
 
-    fixture_scope = fixture.get("archive_target_scope")
-    if fixture_scope != archive_target_scope:
+    fixture_scope, fixture_scope_issues = normalize_fixture_archive_scope(
+        fixture.get("archive_target_scope")
+    )
+    issues.extend(fixture_scope_issues)
+    if fixture_scope is not None and fixture_scope != archive_target_scope:
         issues.append(("ARCHIVE_SCOPE_MISMATCH", ",".join(archive_target_scope)))
 
     cross_targets = fixture.get("cross_targets")
@@ -265,9 +292,33 @@ def run_self_test() -> int:
         for marker in MAKEFILE_LINES:
             build_self_test_root(root)
             path = resolve_path(root, MAKEFILE)
-            path.write_text(replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"), encoding="utf-8")
+            path.write_text(
+                replace_exact_line(path.read_text(encoding="utf-8"), marker, "# removed"),
+                encoding="utf-8",
+            )
             assert ("MISSING_MAKEFILE_LINE", marker) in collect_issues(root)
             checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["upgrade_policy"]["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
+        path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        try:
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "duplicate archive_target_scope entry" in str(exc)
+        else:
+            raise AssertionError("duplicate policy archive_target_scope did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, FIXTURE)
+        fixture = json.loads(path.read_text(encoding="utf-8"))
+        fixture["archive_target_scope"] = ["x86_64-linux", "x86_64-linux"]
+        path.write_text(json.dumps(fixture, indent=2) + "\n", encoding="utf-8")
+        assert ("DUPLICATE_FIXTURE_ARCHIVE_SCOPE", "x86_64-linux") in collect_issues(root)
+        checks_run += 1
 
         build_self_test_root(root)
         path = resolve_path(root, FIXTURE)
