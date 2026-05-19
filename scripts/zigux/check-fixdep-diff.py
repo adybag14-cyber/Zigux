@@ -288,7 +288,6 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:{name}:unexpected_field:{unexpected_fields[0]}")
 
         validated_case = dict(raw_case)
-
         depfile = validated_case.get("depfile")
         if not isinstance(depfile, str) or not depfile:
             raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
@@ -312,6 +311,8 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
                 raise ValueError(f"{CASES_PATH}:{name}:missing_expected_stderr")
 
         stdout_mode = validated_case.get("stdout_mode")
+        if "stdout_mode" in expected_case and stdout_mode is None:
+            raise ValueError(f"{CASES_PATH}:{name}:missing_stdout_mode")
         if stdout_mode not in (None, "dev_full"):
             raise ValueError(f"{CASES_PATH}:{name}:unsupported_stdout_mode:{stdout_mode!r}")
 
@@ -535,6 +536,14 @@ def run_self_test() -> int:
             )
         finally:
             FIXTURE_DIR = original_fixture_dir
+
+    missing_stdout_mode_cases = copy_valid_cases(valid_cases)
+    find_case(missing_stdout_mode_cases, "sample_comment_only_stdout_full").pop("stdout_mode", None)
+    counted_expect_failure(
+        "missing_stdout_mode",
+        lambda: validate_cases(missing_stdout_mode_cases),
+        f"{CASES_PATH}:sample_comment_only_stdout_full:missing_stdout_mode",
+    )
 
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
