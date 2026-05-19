@@ -134,6 +134,16 @@ def collect_failures(root: Path) -> list[str]:
         if marker not in decision_record_template:
             failures.append(f"decision-record template is missing required marker: {marker}")
 
+    for marker in manifest["study_only_anchor_review_markers"]:
+        if marker not in review_process:
+            failures.append(f"review-process note is missing study-only boundary marker: {marker}")
+
+    study_only_rule = manifest.get("decision_record_template_study_only_rule")
+    if study_only_rule is None:
+        failures.append("review-process manifest is missing decision_record_template_study_only_rule")
+    elif study_only_rule not in decision_record_template:
+        failures.append("decision-record template is missing the study-only anchor review rule")
+
     for marker in manifest["handoff_required_markers"]:
         if marker not in handoff_note:
             failures.append(f"handoff note is missing required marker: {marker}")
@@ -237,6 +247,13 @@ def _sample_manifest() -> str:
                 "Prefer the dated master readback form for parked governance and stay-in-C review packets.",
                 "Only record an exact head when the linked review needs it to anchor a named published decision"
             ],
+            "study_only_anchor_review_markers": [
+                "`kernel/workqueue.c`",
+                "`kernel/trace/ring_buffer.c`",
+                "remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
+                "not candidates for a freeze-in-C status review through this note"
+            ],
+            "decision_record_template_study_only_rule": "Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.",
             "handoff_required_markers": [
                 "`Documentation/zigux/review-checklist.md`",
                 "`Documentation/zigux/README.md`",
@@ -314,6 +331,10 @@ Any freeze-map anchor entering Architecture Council status review must keep all 
 - explicit non-goals
 - written rationale
 
+Study-only freeze-map anchors stay outside this Architecture Council status-review packet until the freeze map itself changes.
+
+`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`, not candidates for a freeze-in-C status review through this note.
+
 If a freeze-in-C review closes without a status change, the closeout record must keep all of the following explicit:
 - the retained `freeze_in_c` decision
 - the current blocker
@@ -389,6 +410,7 @@ This is a review packet template, not approval by itself.
 
 - Prefer the dated master readback form for parked governance and stay-in-C review packets.
 - Only record an exact head when the linked review needs it to anchor a named published decision, and explain that exception in the exact-head provenance note.
+- Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.
 """
 
 
@@ -672,6 +694,32 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected handoff-note-checker failure: {failures}")
 
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
+        _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace("`kernel/workqueue.c` and ", "", 1),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "review-process note is missing study-only boundary marker: `kernel/workqueue.c`"
+        ]:
+            raise AssertionError(f"unexpected study-only-note failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / DECISION_RECORD_TEMPLATE_PATH,
+            _sample_decision_record_template().replace(
+                "- Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != [
+            "decision-record template is missing the study-only anchor review rule"
+        ]:
+            raise AssertionError(f"unexpected study-only-template failure: {failures}")
+
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
             root / SHARED_GAP_NOTE_PATH,
             _sample_gap_note().replace(
