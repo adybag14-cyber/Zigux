@@ -76,9 +76,11 @@ APPROVED_IDIOM_REQUIRED_TEXT = (
     "The roadmap-backed Phase 5 trace-events anchor is still:",
     "Authenticated sample-root readback still directly exposes this bounded non-runtime formatting companion:",
     "Fresh mixed reread on 2026-05-19 keeps the broader non-runtime trace-events sample-local companions in a split state rather than a missing state:",
+    "Those paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-19.",
     "The shared `zigux/tests/phase5_build.zig` route remains useful support material too, but keep it framed as current public-tree-backed companion evidence until authenticated contents reread returns that path directly again.",
     "Keep the approved formatting idiom bounded to the current landed reminder packet:",
-    "That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split:",
+    "That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.",
+    "Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `\"iter=12\"` and keeps the sample in `.initialized`.",
     "Current `master` also still ships no standalone Phase 5 `samples/zigux/*cmdline*`, `*argv*`, `*rbtree*`, or `*bitmap*` reference sample.",
     "Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, keep `cmdline`, `argv_split`, and `rbtree` evidence under the bounded Phase 7 helper packet, keep direct bitmap helper reviewability under the closed Phase 1 plus bounded Phase 4 reminder packet, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.",
 )
@@ -349,6 +351,8 @@ Fresh mixed reread on 2026-05-19 keeps the broader non-runtime trace-events samp
 - `zigux/tests/phase5_trace_events_sample_manifest.json`
 - `zigux/tests/phase5_trace_events_sample_survey.zig`
 
+Those paths are again carried by the live trace-events reminder packet and current public-tree-backed reread surfaces, but the authenticated contents route used for this lane still did not return them directly on 2026-05-19.
+
 The shared `zigux/tests/phase5_build.zig` route remains useful support material too, but keep it framed as current public-tree-backed companion evidence until authenticated contents reread returns that path directly again.
 
 Keep the approved formatting idiom bounded to the current landed reminder packet:
@@ -363,11 +367,9 @@ Keep the approved formatting idiom bounded to the current landed reminder packet
 - `scripts/zigux/check-phase5-review-guide-surface.py`
 - `zigux/tests/README.md`
 
-That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split:
+That packet should keep the selected-string plus `iter=%d` formatting cue explicit while staying honest about the current split: the bounded formatting companion remains directly readable through the authenticated sample-root route, the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane, the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof, and `scripts/zigux/check-phase5-review-guide-surface.py` remains the shipped shared guard for that reminder family rather than an optional extra.
 
-- the bounded formatting companion remains directly readable through the authenticated sample-root route
-- the broader non-runtime trace-events sample-local companions are visible again through the live public-tree-backed packet but are not yet returned authenticated proof in this lane
-- the shared `zigux/tests/phase5_build.zig` path is still public-tree-backed companion evidence rather than returned authenticated proof
+Keep the bounded destination discipline explicit in that same reminder packet too: `formatIterationMessageInto(12, [5]u8)` still returns `error.NoSpaceLeft` without advancing the sample stage or `replay_runs`, while `formatIterationMessageInto(12, [7]u8)` still returns `"iter=12"` and keeps the sample in `.initialized`.
 
 ## Review boundary
 
@@ -393,7 +395,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 16
+    expected_case_count = 19
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -519,14 +521,50 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected missing-approved-idiom-marker failure: {failures}")
         checks_run += 1
 
+        missing_approved_idiom_split_root = root / "missing_approved_idiom_split"
+        _seed(missing_approved_idiom_split_root)
+        _write(
+            missing_approved_idiom_split_root / APPROVED_IDIOM_PATH,
+            _sample_approved_idiom_gap().replace(APPROVED_IDIOM_REQUIRED_TEXT[3], "", 1),
+        )
+        failures = collect_failures(missing_approved_idiom_split_root)
+        expected = [f"approved_idiom:missing_text:{APPROVED_IDIOM_REQUIRED_TEXT[3]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-approved-idiom-split failure: {failures}")
+        checks_run += 1
+
+        missing_approved_idiom_guard_root = root / "missing_approved_idiom_guard"
+        _seed(missing_approved_idiom_guard_root)
+        _write(
+            missing_approved_idiom_guard_root / APPROVED_IDIOM_PATH,
+            _sample_approved_idiom_gap().replace(APPROVED_IDIOM_REQUIRED_TEXT[6], "", 1),
+        )
+        failures = collect_failures(missing_approved_idiom_guard_root)
+        expected = [f"approved_idiom:missing_text:{APPROVED_IDIOM_REQUIRED_TEXT[6]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-approved-idiom-guard failure: {failures}")
+        checks_run += 1
+
+        missing_approved_idiom_destination_root = root / "missing_approved_idiom_destination"
+        _seed(missing_approved_idiom_destination_root)
+        _write(
+            missing_approved_idiom_destination_root / APPROVED_IDIOM_PATH,
+            _sample_approved_idiom_gap().replace(APPROVED_IDIOM_REQUIRED_TEXT[7], "", 1),
+        )
+        failures = collect_failures(missing_approved_idiom_destination_root)
+        expected = [f"approved_idiom:missing_text:{APPROVED_IDIOM_REQUIRED_TEXT[7]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-approved-idiom-destination failure: {failures}")
+        checks_run += 1
+
         missing_approved_idiom_path_root = root / "missing_approved_idiom_path"
         _seed(missing_approved_idiom_path_root)
         _write(
             missing_approved_idiom_path_root / APPROVED_IDIOM_PATH,
-            _sample_approved_idiom_gap().replace("`scripts/zigux/check-phase5-review-guide-surface.py`", "", 1),
+            _sample_approved_idiom_gap().replace("`samples/trace_events/trace-events-sample.c`", "", 1),
         )
         failures = collect_failures(missing_approved_idiom_path_root)
-        expected = ["approved_idiom:missing_path:`scripts/zigux/check-phase5-review-guide-surface.py`"]
+        expected = ["approved_idiom:missing_path:`samples/trace_events/trace-events-sample.c`"]
         if failures != expected:
             raise AssertionError(f"unexpected missing-approved-idiom-path failure: {failures}")
         checks_run += 1
