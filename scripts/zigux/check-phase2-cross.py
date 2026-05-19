@@ -60,6 +60,12 @@ def collect_duplicate_entries(values: object, prefix: str) -> list[str]:
     return [f"{prefix}:{key}:count={count}" for key, count in counts.items() if count > 1]
 
 
+def collect_non_string_entries(values: object, prefix: str) -> list[str]:
+    if not isinstance(values, list):
+        return []
+    return [f"{prefix}:{value!r}" for value in values if not isinstance(value, str)]
+
+
 def validate_fixture(root: Path) -> list[str]:
     issues: list[str] = []
     payload = load_fixture(root / FIXTURE_REL)
@@ -73,15 +79,21 @@ def validate_fixture(root: Path) -> list[str]:
         issues.append(f"fixture:status:{payload.get('status')!r}")
 
     targets = payload.get("targets")
-    if targets != EXPECTED_TARGETS:
+    if not isinstance(targets, list):
+        issues.append(f"fixture:targets_not_list:{targets!r}")
+    elif targets != EXPECTED_TARGETS:
         issues.append(f"fixture:targets:{targets!r}")
     if payload.get("target_count") != len(EXPECTED_TARGETS):
         issues.append(f"fixture:target_count:{payload.get('target_count')!r}")
+    issues.extend(collect_non_string_entries(targets, "fixture:non_string_target"))
     issues.extend(collect_duplicate_entries(targets, "fixture:duplicate_target"))
 
     zig_test_files = payload.get("zig_test_files")
-    if zig_test_files != EXPECTED_ZIG_TEST_FILES:
+    if not isinstance(zig_test_files, list):
+        issues.append(f"fixture:zig_test_files_not_list:{zig_test_files!r}")
+    elif zig_test_files != EXPECTED_ZIG_TEST_FILES:
         issues.append(f"fixture:zig_test_files:{zig_test_files!r}")
+    issues.extend(collect_non_string_entries(zig_test_files, "fixture:non_string_zig_test_file"))
     issues.extend(collect_duplicate_entries(zig_test_files, "fixture:duplicate_zig_test_file"))
     return issues
 
@@ -258,12 +270,72 @@ def run_self_test() -> int:
                 "phase": "Phase 2",
                 "status": EXPECTED_STATUS,
                 "target_count": len(EXPECTED_TARGETS),
+                "targets": "x86_64-linux-musl",
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:targets_not_list:'x86_64-linux-musl'" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": [EXPECTED_TARGETS[0], 7, EXPECTED_TARGETS[2]],
+                "zig_test_files": EXPECTED_ZIG_TEST_FILES,
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:non_string_target:7" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
                 "targets": EXPECTED_TARGETS + [EXPECTED_TARGETS[0]],
                 "zig_test_files": EXPECTED_ZIG_TEST_FILES,
             },
         )
         issues = validate_fixture(root)
         assert f"fixture:duplicate_target:{EXPECTED_TARGETS[0]}:count=2" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": "scripts/zigux/fixdep.zig",
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:zig_test_files_not_list:'scripts/zigux/fixdep.zig'" in issues
+        case_count += 1
+
+        build_self_test_root(root)
+        write_fixture(
+            root,
+            {
+                "phase": "Phase 2",
+                "status": EXPECTED_STATUS,
+                "target_count": len(EXPECTED_TARGETS),
+                "targets": EXPECTED_TARGETS,
+                "zig_test_files": [123],
+            },
+        )
+        issues = validate_fixture(root)
+        assert "fixture:non_string_zig_test_file:123" in issues
         case_count += 1
 
         build_self_test_root(root)
