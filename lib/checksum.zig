@@ -355,6 +355,64 @@ test "replacement helpers match direct recomputation for payload and header edit
     try std.testing.expectEqual(compute(&ipv4_header), replace4(checksum_before_addr_change, 0xc0a8_0001, 0xc0a8_0002));
 }
 
+fn makeIpv4PseudoHeaderBytes(saddr: u32, daddr: u32, len: u16, proto: u8) [12]u8 {
+    return .{
+        @truncate(saddr >> 24),
+        @truncate(saddr >> 16),
+        @truncate(saddr >> 8),
+        @truncate(saddr),
+        @truncate(daddr >> 24),
+        @truncate(daddr >> 16),
+        @truncate(daddr >> 8),
+        @truncate(daddr),
+        0,
+        proto,
+        @truncate(len >> 8),
+        @truncate(len),
+    };
+}
+
+fn makeIpv6PseudoHeaderBytes(saddr: *const [16]u8, daddr: *const [16]u8, len: u32, proto: u8) [40]u8 {
+    var bytes: [40]u8 = undefined;
+    @memcpy(bytes[0..16], saddr);
+    @memcpy(bytes[16..32], daddr);
+    bytes[32] = @truncate(len >> 24);
+    bytes[33] = @truncate(len >> 16);
+    bytes[34] = @truncate(len >> 8);
+    bytes[35] = @truncate(len);
+    bytes[36] = 0;
+    bytes[37] = 0;
+    bytes[38] = 0;
+    bytes[39] = proto;
+    return bytes;
+}
+
+test "pseudo-header helpers match direct checksum recomputation over pseudo-header bytes and payload" {
+    const payload = [_]u8{ 'p', 'h', 'a', 's', 'e', '6', '!' };
+    const payload_partial = partial(&payload, 0);
+
+    const v4_saddr: u32 = 0xc0a8_0001;
+    const v4_daddr: u32 = 0xc0a8_00c7;
+    const v4_proto: u8 = 17;
+    const v4_pseudo = makeIpv4PseudoHeaderBytes(v4_saddr, v4_daddr, payload.len, v4_proto);
+    var v4_bytes: [12 + payload.len]u8 = undefined;
+    @memcpy(v4_bytes[0..12], &v4_pseudo);
+    @memcpy(v4_bytes[12..], &payload);
+    try std.testing.expectEqual(partial(&v4_bytes, 0), tcpUdpNofold(payload_partial, v4_saddr, v4_daddr, payload.len, v4_proto));
+    try std.testing.expectEqual(compute(&v4_bytes), tcpUdpMagic(payload_partial, v4_saddr, v4_daddr, payload.len, v4_proto));
+
+    const v6_saddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x01, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbe };
+    const v6_daddr = [_]u8{ 0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x02, 0xde, 0xad, 0xbe, 0xef, 0xca, 0xfe, 0xba, 0xbf };
+    const v6_len: u32 = payload.len;
+    const v6_proto: u8 = 58;
+    const v6_pseudo = makeIpv6PseudoHeaderBytes(&v6_saddr, &v6_daddr, v6_len, v6_proto);
+    var v6_bytes: [40 + payload.len]u8 = undefined;
+    @memcpy(v6_bytes[0..40], &v6_pseudo);
+    @memcpy(v6_bytes[40..], &payload);
+    try std.testing.expectEqual(partial(&v6_bytes, 0), tcpUdpV6Nofold(payload_partial, &v6_saddr, &v6_daddr, v6_len, v6_proto));
+    try std.testing.expectEqual(compute(&v6_bytes), tcpUdpV6Magic(payload_partial, &v6_saddr, &v6_daddr, v6_len, v6_proto));
+}
+
 test "pseudo-header helpers match manual accumulation for IPv4 and IPv6" {
     const payload_seed = partial("phase6", 0);
 
