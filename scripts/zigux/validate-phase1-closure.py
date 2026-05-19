@@ -646,7 +646,7 @@ def collect_failures(root: Path) -> list[str]:
     closure_text = load_text(root, PHASE1_CLOSURE_REL)
     for label, marker in EXPECTED_MARKERS.items():
         failures.extend(
-            require_exact_occurrence(closure_text, f"{PHASE1_CLOSURE_REL.as_posix()}:label", marker)
+            require_exact_occurrence(closure_text, f"{PHASE1_CLOSURE_REL.as_posix()}:{label}", marker)
         )
     for marker in FORBIDDEN_MARKERS:
         count = closure_text.count(marker)
