@@ -118,7 +118,7 @@ REQUIRED_MARKERS = {
     ],
     RAW_GITHUB_COVERAGE_SURVEY_PATH: [
         "It is a compact fallback overview, not a new replay surface and not a commit-pinned artifact itself.",
-        "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
+        "the raw-URL-backed direct replay catalog, the current-master NVMe gap-note companion, the contents-bridge-backed build-only anchor pair, and the contents-bridge-backed shared support bundle are distinct evidence states in this runtime",
         "This note must keep the repo-local `.zig-toolchain` fallback explicit as the first shipped degraded rerun path when `ZIG` is unset, and keep the attached-toolchain override framed as the last-resort rerun of the same shipped Make routes rather than a separate public fallback artifact or replay surface.",
     ],
     PHASE12_COMPLEX_DRIVER_LANE_PATH: [
@@ -201,18 +201,15 @@ EXACT_COUNT_MARKERS = {
     },
 }
 
-
 def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
     if rel_path in EXACT_LINE_MARKER_PATHS:
         return marker in text.splitlines()
     return marker in text
 
-
 def count_marker_occurrences(rel_path: str, text: str, marker: str) -> int:
     if rel_path in EXACT_LINE_MARKER_PATHS:
         return text.splitlines().count(marker)
     return text.count(marker)
-
 
 def validate(root: Path) -> list[str]:
     failures: list[str] = []
@@ -245,15 +242,12 @@ def validate(root: Path) -> list[str]:
 
     return failures
 
-
 def write_text(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")
 
-
 def marker_fixture(title: str, markers: list[str]) -> str:
     return f"{title}\n\n" + "\n".join(f"- {marker}" for marker in markers) + "\n"
-
 
 def fixture_text(rel_path: str) -> str:
     if rel_path in REQUIRED_MARKERS:
@@ -289,19 +283,16 @@ def fixture_text(rel_path: str) -> str:
         return "name: zigux-bootstrap\n"
     return ""
 
-
 def write_fixture_tree(root: Path) -> None:
     if root.exists():
         shutil.rmtree(root)
     for rel_path in REQUIRED_FILES:
         write_text(root / rel_path, fixture_text(rel_path))
 
-
 def expect_failure(root: Path, expected: str) -> None:
     failures = validate(root)
     if expected not in failures:
         raise SystemExit(f"expected failure not found: {expected}\nactual={failures!r}")
-
 
 def remove_marker(path: Path, marker: str) -> None:
     text = path.read_text(encoding="utf-8")
@@ -310,7 +301,6 @@ def remove_marker(path: Path, marker: str) -> None:
         updated = text.replace(f"{marker}\n", "", 1)
     path.write_text(updated, encoding="utf-8")
 
-
 def run_self_test() -> int:
     base = Path(tempfile.mkdtemp(prefix="phase12-release-readiness-"))
     try:
@@ -318,130 +308,51 @@ def run_self_test() -> int:
         failures = validate(base)
         if failures:
             raise SystemExit(f"fixture tree should pass but failed: {failures!r}")
-
-        missing_file_cases = [
-            DOCS_README_PATH,
-            FREEZE_MAP_PATH,
-            REVIEW_CHECKLIST_PATH,
-            RELEASE_READINESS_SURVEY_PATH,
-            RELEASE_SEQUENCING_PATH,
-            RELEASE_CLOSURE_CHECKLIST_PATH,
-            RELEASE_COORDINATION_MATRIX_PATH,
-            RAW_GITHUB_COVERAGE_SURVEY_PATH,
-            PHASE12_COMPLEX_DRIVER_LANE_PATH,
-            PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH,
-            BUILD_ONLY_CHECKER_PATH,
-            RELEASE_READINESS_CHECKER_PATH,
-            SCRIPTS_README_PATH,
-            VALIDATOR_PATH,
-            MAKEFILE_PATH,
-            TESTS_README_PATH,
-            PHASE12_BUILD_PATH,
-            WORKFLOW_PATH,
-        ]
+        missing_file_cases = [DOCS_README_PATH, FREEZE_MAP_PATH, REVIEW_CHECKLIST_PATH, RELEASE_READINESS_SURVEY_PATH, RELEASE_SEQUENCING_PATH, RELEASE_CLOSURE_CHECKLIST_PATH, RELEASE_COORDINATION_MATRIX_PATH, RAW_GITHUB_COVERAGE_SURVEY_PATH, PHASE12_COMPLEX_DRIVER_LANE_PATH, PHASE12_LIBBPF_HEAVY_CONSUMER_LANE_PATH, BUILD_ONLY_CHECKER_PATH, RELEASE_READINESS_CHECKER_PATH, SCRIPTS_README_PATH, VALIDATOR_PATH, MAKEFILE_PATH, TESTS_README_PATH, PHASE12_BUILD_PATH, WORKFLOW_PATH]
         for rel_path in missing_file_cases:
             write_fixture_tree(base)
             (base / rel_path).unlink()
             expect_failure(base, f"missing_file:{rel_path}")
-
-        marker_cases = [
-            (rel_path, marker)
-            for rel_path, markers in REQUIRED_MARKERS.items()
-            for marker in markers
-        ]
+        marker_cases = [(rel_path, marker) for rel_path, markers in REQUIRED_MARKERS.items() for marker in markers]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
             remove_marker(base / rel_path, marker)
             expect_failure(base, f"missing_marker:{rel_path}:{marker}")
-
-        exact_count_cases = [
-            (rel_path, marker, expected_count)
-            for rel_path, markers in EXACT_COUNT_MARKERS.items()
-            for marker, expected_count in markers.items()
-        ]
+        exact_count_cases = [(rel_path, marker, expected_count) for rel_path, markers in EXACT_COUNT_MARKERS.items() for marker, expected_count in markers.items()]
         for rel_path, marker, expected_count in exact_count_cases:
             write_fixture_tree(base)
-            write_text(
-                base / rel_path,
-                (base / rel_path).read_text(encoding="utf-8") + marker + "\n",
-            )
-            expect_failure(
-                base,
-                "wrong_count:"
-                f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}",
-            )
-
-        forbidden_cases = [
-            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][0]),
-            (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][1]),
-        ]
+            write_text(base / rel_path, (base / rel_path).read_text(encoding="utf-8") + marker + "\n")
+            expect_failure(base, "wrong_count:" f"{rel_path}:{marker}:expected={expected_count}:actual={expected_count + 1}")
+        forbidden_cases = [(MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][0]), (MAKEFILE_PATH, FORBIDDEN_MARKERS[MAKEFILE_PATH][1])]
         for rel_path, marker in forbidden_cases:
             write_fixture_tree(base)
-            write_text(
-                base / rel_path,
-                (base / rel_path).read_text(encoding="utf-8") + marker + "\n",
-            )
+            write_text(base / rel_path, (base / rel_path).read_text(encoding="utf-8") + marker + "\n")
             expect_failure(base, f"forbidden_marker:{rel_path}:{marker}")
-
-        case_count = (
-            len(missing_file_cases)
-            + len(marker_cases)
-            + len(exact_count_cases)
-            + len(forbidden_cases)
-        )
+        case_count = (len(missing_file_cases) + len(marker_cases) + len(exact_count_cases) + len(forbidden_cases))
         print("PHASE12_RELEASE_READINESS_PACKET_SELF_TEST=pass")
         print(f"PHASE12_RELEASE_READINESS_PACKET_SELF_TEST_CASE_COUNT={case_count}")
         return 0
     finally:
         shutil.rmtree(base, ignore_errors=True)
 
-
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Validate the current narrow Phase 12 release-readiness support bundle "
-            "around the release notes, shared reminder surfaces, degraded fallback "
-            "wording, and shared Makefile routes."
-        )
-    )
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=ROOT,
-        help="Repository root to validate. Defaults to the script directory.",
-    )
-    parser.add_argument(
-        "--self-test",
-        action="store_true",
-        help="Run the fixture-backed self-test.",
-    )
+    parser = argparse.ArgumentParser(description=("Validate the current narrow Phase 12 release-readiness support bundle around the release notes, shared reminder surfaces, degraded fallback wording, and shared Makefile routes."))
+    parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to validate. Defaults to the script directory.")
+    parser.add_argument("--self-test", action="store_true", help="Run the fixture-backed self-test.")
     args = parser.parse_args()
-
     if args.self_test:
         return run_self_test()
-
     failures = validate(args.root)
     if failures:
         for failure in failures:
             print(f"PHASE12_RELEASE_READINESS_PACKET=fail:{failure}", file=sys.stderr)
         return 1
-
     print("PHASE12_RELEASE_READINESS_PACKET=pass")
     print(f"PHASE12_RELEASE_READINESS_PACKET_REQUIRED_FILE_COUNT={len(REQUIRED_FILES)}")
-    print(
-        "PHASE12_RELEASE_READINESS_PACKET_REQUIRED_MARKER_COUNT="
-        f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}"
-    )
-    print(
-        "PHASE12_RELEASE_READINESS_PACKET_FORBIDDEN_MARKER_COUNT="
-        f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}"
-    )
-    print(
-        "PHASE12_RELEASE_READINESS_PACKET_EXACT_COUNT_MARKER_COUNT="
-        f"{sum(len(markers) for markers in EXACT_COUNT_MARKERS.values())}"
-    )
+    print("PHASE12_RELEASE_READINESS_PACKET_REQUIRED_MARKER_COUNT=" f"{sum(len(markers) for markers in REQUIRED_MARKERS.values())}")
+    print("PHASE12_RELEASE_READINESS_PACKET_FORBIDDEN_MARKER_COUNT=" f"{sum(len(markers) for markers in FORBIDDEN_MARKERS.values())}")
+    print("PHASE12_RELEASE_READINESS_PACKET_EXACT_COUNT_MARKER_COUNT=" f"{sum(len(markers) for markers in EXACT_COUNT_MARKERS.values())}")
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
