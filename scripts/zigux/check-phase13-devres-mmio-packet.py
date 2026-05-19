@@ -41,6 +41,7 @@ SLICE_MARKERS = [
 
 SURVEY_MARKERS = [
     "# Phase 13 devres DMA and scatterlist Boundary Survey",
+    "This document records the bounded `P13-L07` survey lane around the current DMA and scatterlist boundary evidence for `lib/devres.c`.",
     "`zigux/tests/phase13_devres_dmam_alloc_coherent_planner_manifest.json` marks the packet as `starter_landed`",
     "`lib/devres.zig` now ships a pure `dmam_alloc_coherent()` planning surface through `DevresHelperLab.descriptor()`, `planManagedReleaseRecordLifetime(...)`, and `planManagedDmamAllocCoherent(...)`",
     "`zigux/tests/phase13_devres_dma_coherent.zig` continues to fail-close on generic DMA and scatterlist ownership boundaries beside the new helper-first planner",
