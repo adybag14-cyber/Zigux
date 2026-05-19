@@ -304,6 +304,9 @@ jobs:
       - name: Self-test current Phase 4 artifact-diff determinism checker
         run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py --self-test
 
+      - name: Check current Phase 4 artifact-diff determinism packet
+        run: python3 scripts/zigux/check-phase4-artifact-diff-determinism.py
+
       - name: Self-test current Phase 4 artifact-diff validator replay checker
         run: python3 scripts/zigux/check-phase4-artifact-diff-validator-replays.py --self-test
 
