@@ -75,17 +75,22 @@ pub fn summarizeThroughputParity(request: ThroughputParityRequest) !ThroughputPa
     const refill_budget_preserved = request.receive_buffers_after_restore >= request.receive_buffers_before_reset;
     const recycle_budget_ready = !request.transmit_queue_was_stopped or
         request.recycled_transmit_descriptors >= request.wake_threshold;
-    const requires_post_reset_probe_replay = switch (request.replay_checkpoint) {
-        .after_transmit_queue_restore => false,
-        .after_control_queue_restore => request.transmit_queue_was_stopped,
-        .after_receive_refill, .before_receive_refill => true,
+    const receive_refill_checkpoint_ready = switch (request.replay_checkpoint) {
+        .before_receive_refill, .after_control_queue_restore => false,
+        .after_receive_refill, .after_transmit_queue_restore => true,
     };
+    const transmit_recycle_checkpoint_ready = switch (request.replay_checkpoint) {
+        .after_receive_refill => !request.transmit_queue_was_stopped,
+        .before_receive_refill, .after_control_queue_restore => false,
+        .after_transmit_queue_restore => true,
+    };
+    const requires_post_reset_probe_replay = request.replay_checkpoint != .after_transmit_queue_restore;
 
     const status: ThroughputParityStatus = if (!queue_pairs_preserved)
         .needs_queue_restore
-    else if (!refill_budget_preserved)
+    else if (!refill_budget_preserved or !receive_refill_checkpoint_ready)
         .needs_receive_refill
-    else if (!recycle_budget_ready)
+    else if (!recycle_budget_ready or !transmit_recycle_checkpoint_ready)
         .needs_transmit_recycle
     else if (requires_post_reset_probe_replay)
         .needs_post_reset_probe_replay
@@ -161,7 +166,7 @@ test "summarizeThroughputParity blocks stopped transmit queues below the wake th
         .recycled_transmit_descriptors = 1,
         .wake_threshold = 2,
         .transmit_queue_was_stopped = true,
-        .replay_checkpoint = .after_control_queue_restore,
+        .replay_checkpoint = .after_transmit_queue_restore,
     });
 
     try std.testing.expectEqual(ThroughputParityStatus.needs_transmit_recycle, summary.status);
@@ -171,24 +176,7 @@ test "summarizeThroughputParity blocks stopped transmit queues below the wake th
     try std.testing.expect(!summary.meets_expected_min_ratio);
 }
 
-test "summarizeThroughputParity keeps post reset replay explicit when restore stops after refill" {
-    const summary = try summarizeThroughputParity(.{
-        .queue_pairs_before_reset = 1,
-        .queue_pairs_after_restore = 1,
-        .receive_buffers_before_reset = 128,
-        .receive_buffers_after_restore = 128,
-        .recycled_transmit_descriptors = 2,
-        .wake_threshold = 2,
-        .transmit_queue_was_stopped = true,
-        .replay_checkpoint = .after_receive_refill,
-    });
-
-    try std.testing.expectEqual(ThroughputParityStatus.needs_post_reset_probe_replay, summary.status);
-    try std.testing.expect(summary.requires_post_reset_probe_replay);
-    try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
-}
-
-test "summarizeThroughputParity keeps control-queue replay clear when the transmit queue never stopped" {
+test "summarizeThroughputParity keeps receive refill explicit after control queue restore" {
     const summary = try summarizeThroughputParity(.{
         .queue_pairs_before_reset = 2,
         .queue_pairs_after_restore = 2,
@@ -201,12 +189,43 @@ test "summarizeThroughputParity keeps control-queue replay clear when the transm
         .expected_min_ratio_pct = 100,
     });
 
-    try std.testing.expectEqual(ThroughputParityStatus.parity_gate_ready, summary.status);
-    try std.testing.expectEqual(@as(u8, 100), summary.recycle_ratio_pct);
+    try std.testing.expectEqual(ThroughputParityStatus.needs_receive_refill, summary.status);
+    try std.testing.expect(summary.requires_post_reset_probe_replay);
+    try std.testing.expect(!summary.meets_expected_min_ratio);
+}
+
+test "summarizeThroughputParity keeps transmit recycle explicit after receive refill for stopped queues" {
+    const summary = try summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .recycled_transmit_descriptors = 2,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = true,
+        .replay_checkpoint = .after_receive_refill,
+    });
+
+    try std.testing.expectEqual(ThroughputParityStatus.needs_transmit_recycle, summary.status);
+    try std.testing.expect(summary.requires_post_reset_probe_replay);
     try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
-    try std.testing.expect(summary.recycle_budget_ready);
-    try std.testing.expect(summary.meets_expected_min_ratio);
-    try std.testing.expect(!summary.requires_post_reset_probe_replay);
+}
+
+test "summarizeThroughputParity keeps post reset replay explicit after receive refill when transmit never stopped" {
+    const summary = try summarizeThroughputParity(.{
+        .queue_pairs_before_reset = 1,
+        .queue_pairs_after_restore = 1,
+        .receive_buffers_before_reset = 128,
+        .receive_buffers_after_restore = 128,
+        .recycled_transmit_descriptors = 0,
+        .wake_threshold = 2,
+        .transmit_queue_was_stopped = false,
+        .replay_checkpoint = .after_receive_refill,
+    });
+
+    try std.testing.expectEqual(ThroughputParityStatus.needs_post_reset_probe_replay, summary.status);
+    try std.testing.expect(summary.requires_post_reset_probe_replay);
+    try std.testing.expectEqual(@as(u8, 100), summary.throughput_ratio_pct);
 }
 
 test "summarizeThroughputParity rejects missing queue restore baselines" {
