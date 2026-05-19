@@ -54,6 +54,14 @@ CHECK_COMMANDS = (
         ("validated scripts/zigux/README.md",),
     ),
     (
+        Path("scripts/zigux/check-phase3-catalog-selftest.py"),
+        (),
+        (
+            "validated scripts/zigux/phase3_catalog.py",
+            "PHASE3_CATALOG_SELFTEST_CHECK=pass",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-validator-support-surface.py"),
         (),
         (
@@ -88,10 +96,11 @@ SELF_TEST_MISSING_CASES = (
     (5, "expected shared ABI checker omission was not reported"),
     (6, "expected shared-tests-routes script omission was not reported"),
     (7, "expected readme-tooling script omission was not reported"),
-    (8, "expected validator-support script omission was not reported"),
-    (9, "expected export-uapi survey script omission was not reported"),
-    (10, "expected low-level-wrapper script omission was not reported"),
-    (11, "expected selftest-surface script omission was not reported"),
+    (8, "expected catalog-selftest script omission was not reported"),
+    (9, "expected validator-support script omission was not reported"),
+    (10, "expected export-uapi survey script omission was not reported"),
+    (11, "expected low-level-wrapper script omission was not reported"),
+    (12, "expected selftest-surface script omission was not reported"),
 )
 
 
