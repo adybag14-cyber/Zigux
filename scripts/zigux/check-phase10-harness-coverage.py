@@ -151,7 +151,11 @@ REQUIRED_MARKERS = {
     ],
     "zigux/tests/phase10_build.zig": [
         "\"phase10-virtio-core-tests\"",
+        "\"phase10-virtio-input-tests\"",
+        "\"phase10-virtio-input-probe-preflight-tests\"",
         "\"phase10-virtio-input-queue-callback-preflight-tests\"",
+        "\"phase10-virtio-input-registration-preflight-tests\"",
+        "\"phase10-virtio-input-status-drain-tests\"",
         "\"phase10-virtio-input-teardown-observation-tests\"",
         "\"phase10-virtio-input-survey-tests\"",
         "\"phase10-virtio-input-verify-tests\"",
@@ -162,6 +166,7 @@ REQUIRED_MARKERS = {
         "\"phase10-virtio-ring-broken-queue-queue-discipline-tests\"",
         "\"phase10-virtio-ring-delayed-callback-budget-tests\"",
         "\"phase10-virtio-ring-survey-tests\"",
+        "\"phase10-virtio-mmio-tests\"",
         "\"phase10-virtio-mmio-verify-tests\"",
         "\"phase10-virtio-mmio-survey-tests\"",
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
@@ -463,6 +468,30 @@ def run_self_test() -> int:
             ),
             (
                 "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-input-tests\"",
+                "\"phase10-virtio-input-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-input-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-input-probe-preflight-tests\"",
+                "\"phase10-virtio-input-probe-preflight-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-input-probe-preflight-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-input-registration-preflight-tests\"",
+                "\"phase10-virtio-input-registration-preflight-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-input-registration-preflight-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-input-status-drain-tests\"",
+                "\"phase10-virtio-input-status-drain-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-input-status-drain-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
                 "\"phase10-virtio-input-survey-tests\"",
                 "\"phase10-virtio-input-survey-tests-missing\"",
                 "zigux/tests/phase10_build.zig:\"phase10-virtio-input-survey-tests\"",
@@ -496,6 +525,12 @@ def run_self_test() -> int:
                 "\"phase10-virtio-ring-survey-tests\"",
                 "\"phase10-virtio-ring-survey-tests-missing\"",
                 "zigux/tests/phase10_build.zig:\"phase10-virtio-ring-survey-tests\"",
+            ),
+            (
+                "zigux/tests/phase10_build.zig",
+                "\"phase10-virtio-mmio-tests\"",
+                "\"phase10-virtio-mmio-tests-missing\"",
+                "zigux/tests/phase10_build.zig:\"phase10-virtio-mmio-tests\"",
             ),
             (
                 "zigux/tests/phase10_build.zig",
@@ -538,7 +573,7 @@ def run_self_test() -> int:
         expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
 
     print("PHASE10_HARNESS_COVERAGE_SELF_TEST=pass")
-    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=43")
+    print("PHASE10_HARNESS_COVERAGE_SELF_TEST_CASE_COUNT=48")
     return 0
 
 
