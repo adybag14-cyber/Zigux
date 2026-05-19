@@ -15,12 +15,12 @@ REPO_REALITY_WARNING = Path("scripts/zigux/check-phase4-repo-reality-warning.py"
 PIN_SELF_TEST_COUNT_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT"
 LEGACY_PIN_SELF_TEST_CASES_LABEL = "PHASE4_REVERSIBLE_DELIVERY_PINS_SELF_TEST_CASES"
 REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"
-EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16
+EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22
 EXPECTED_PIN_SELF_TEST_CASES = 14
 
 STATUS_MARKERS = (
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here",
+    "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here",
 )
 
 DIRECT_MARKERS = (
@@ -32,7 +32,7 @@ DIRECT_MARKERS = (
 
 CURRENT_HEAD_BLOB_MARKERS = (
     "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_NOTE_BLOB_SHA=9c32cfdc6d3c8d449a10ede6b3380ef84ef8aad6`",
-    "`PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=f0039d28a5a8dce68b3d13a14fcdc43f5581f99b`",
+    "`PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=d0d8786c5c4251719b84596978f55599cd99f52e`",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_BLOB_SHA=a19e335ad46c6aba552d59fff4752b13d5f51c8b`",
     "`PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=6c6f6df826807f915e21444921cf1960a69a7e28`",
     "`PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=f63c111ad0060e65f5d08b75a0edf85faa3a065d`",
@@ -101,7 +101,7 @@ WARNING_MARKERS = (
     "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff",
     WARNING_MIXED_PROVENANCE_MARKER,
     'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
-    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16",
+    "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22",
     "EXPECTED_PIN_SELF_TEST_CASES = 14",
     WARNING_FOLLOW_UP_MARKER + '.",',
 )
@@ -166,7 +166,7 @@ def baseline_note() -> str:
         "",
         "## Status",
         "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_NOTE_BLOB_SHA=9c32cfdc6d3c8d449a10ede6b3380ef84ef8aad6`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=f0039d28a5a8dce68b3d13a14fcdc43f5581f99b`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=d0d8786c5c4251719b84596978f55599cd99f52e`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_BLOB_SHA=a19e335ad46c6aba552d59fff4752b13d5f51c8b`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=6c6f6df826807f915e21444921cf1960a69a7e28`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=f63c111ad0060e65f5d08b75a0edf85faa3a065d`",
@@ -181,13 +181,13 @@ def baseline_note() -> str:
         "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=d6c5e647c33a8034d00a06fcb190d0fc484f55cb`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=5b37e7a7ac60a605d13d5e759e1dd2b9ba0fe910`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
-        "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`",
+        "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14`",
         "",
         "Current direct readback in this run confirmed this note, `Documentation/zigux/review-checklist.md`, `zigux/tests/README.md`, `scripts/zigux/check-phase4-repo-reality-warning.py`, `scripts/zigux/check-phase4-reversible-delivery-pins.py`, `scripts/zigux/check-phase4-perf-baseline-packet.py`, `zigux/tests/phase4_perf_baseline_manifest.json`, and `zigux/tests/phase4_perf_baseline_survey.zig` on current `master`.",
         "Current direct contents reads in this run also confirmed the roadmap-backed differential-gate pair `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` on current `master`.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state even though the broader validator, build, and bitmap replay companions still remain unreadable in authenticated contents reads for this runtime.",
-        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here",
+        "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here",
         "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff. Authenticated contents reads in this runtime still flap on `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`, but public raw fallback rereads now return those files on current `master`, matching the broader review packet's recovered note-and-checker companions.",
         "The recovered broader note pair therefore no longer overstates those validator-side and bitmap-side companions as absent current-head evidence. Treat this narrower handoff as the authoritative shared reminder while exact blob recapture for the validator, build, and bitmap replay companions still waits on steadier authenticated contents reads.",
         NOTE_MIXED_PROVENANCE_MARKER,
@@ -222,7 +222,7 @@ def baseline_warning() -> str:
             '    "zigux/tests/phase4_bitmap_live_helper_replay.zig",',
             ")",
             'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
-            "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16",
+            "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 22",
             "EXPECTED_PIN_SELF_TEST_CASES = 14",
             '"scripts/zigux/check-phase4-reversible-delivery-pins.py",',
             '"scripts/zigux/check-phase4-perf-baseline-packet.py",',
@@ -266,7 +266,7 @@ def run_self_test() -> int:
             (NOTE, CURRENT_HEAD_BLOB_MARKERS[10], "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=ffffffffffffffffffffffffffffffffffffffff`"),
             (NOTE, CURRENT_HEAD_BLOB_MARKERS[14], "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=1212121212121212121212121212121212121212`"),
             (NOTE, REMAINING_GAP_MARKERS[-1], "The broader Phase 4 bitmap replay companions are still repo-reality gaps in this run"),
-            (NOTE, "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`", "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=15`"),
+            (NOTE, "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=22`", "`PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=21`"),
             (NOTE, "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14`", "`PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=12`"),
             (NOTE, ATOMIC64_DIRECT_MARKERS[1], "Current direct contents reads for the atomic64 pair drifted"),
             (REPO_REALITY_WARNING, "EXPECTED_PIN_SELF_TEST_CASES = 14", "EXPECTED_PIN_SELF_TEST_CASES = 12"),
