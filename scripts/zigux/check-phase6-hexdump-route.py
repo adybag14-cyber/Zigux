@@ -58,7 +58,7 @@ CATALOG_MARKERS = (
     "- `make -C zigux phase6-hexdump-perf-matrix-test`",
 )
 
-SELF_TEST_CASE_COUNT = 13
+SELF_TEST_CASE_COUNT = 15
 
 
 def resolve(root: Path, relative: Path) -> Path:
@@ -148,6 +148,8 @@ def run_self_test() -> int:
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[3]),
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[7]),
             (resolve(root, PERF_MATRIX_FILE), PERF_MATRIX_MARKERS[8]),
+            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[0]),
+            (resolve(root, CATALOG_FILE), CATALOG_MARKERS[3]),
         ):
             expect_failure(root, path, marker)
             cases_run += 1
