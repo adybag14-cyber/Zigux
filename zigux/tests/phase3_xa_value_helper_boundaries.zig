@@ -86,6 +86,22 @@ test "cutoff sequence keeps xa_value, gap, and first two err_ptr raws in distinc
     try testing.expectEqual(@as(isize, -4094), err_ptr.toErrorCode(second_err_raw));
 }
 
+test "last rejected xa_value lands on the top tagged err_ptr raw" {
+    const tagged_err_count = (err_ptr.max_errno + 1) / 2;
+    const last_rejected = xa_value.safe_inline_limit + tagged_err_count;
+    const first_err_raw = err_ptr.err_floor;
+    const top_err_raw = err_ptr.fromErrorCode(-1);
+    const aliased_raw = (last_rejected << 1) | xa_value.value_tag_mask;
+
+    try testing.expectError(error.ValueWouldOverlapErrPtr, xa_value.makeValue(last_rejected));
+    try testing.expectEqual((tagged_err_count - 1) * 2, aliased_raw - first_err_raw);
+    try testing.expectEqual(top_err_raw, aliased_raw);
+    try testing.expect(err_ptr.isErrValue(aliased_raw));
+    try testing.expect(!xa_value.isValue(aliased_raw));
+    try testing.expectEqual(@as(isize, -1), err_ptr.toErrorCode(aliased_raw));
+    try testing.expectEqual(xa_value.value_tag_mask, aliased_raw & xa_value.value_tag_mask);
+}
+
 test "top of err_ptr band stays contiguous and never reenters xa_value lane" {
     const next_to_top_raw = err_ptr.fromErrorCode(-2);
     const top_raw = err_ptr.fromErrorCode(-1);
