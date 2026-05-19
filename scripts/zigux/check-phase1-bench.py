@@ -374,6 +374,14 @@ def emit_expectations_failure(
     return 1
 
 
+def emit_validation_failure(kind: str, payload: object, expectations_path: Path) -> int:
+    print("PHASE1_BENCH_CHECK=fail")
+    print(f"PHASE1_BENCH_CHECK_REASON={kind}")
+    print(f"PHASE1_BENCH_EXPECTATIONS={expectations_path}")
+    print(payload)
+    return 1
+
+
 def capture_expectations_failure_output(
     kind: str,
     payload: object,
@@ -382,6 +390,18 @@ def capture_expectations_failure_output(
     buffer = io.StringIO()
     with contextlib.redirect_stdout(buffer):
         exit_code = emit_expectations_failure(kind, payload, expectations_path)
+    assert exit_code == 1
+    return buffer.getvalue().splitlines()
+
+
+def capture_validation_failure_output(
+    kind: str,
+    payload: object,
+    expectations_path: Path,
+) -> list[str]:
+    buffer = io.StringIO()
+    with contextlib.redirect_stdout(buffer):
+        exit_code = emit_validation_failure(kind, payload, expectations_path)
     assert exit_code == 1
     return buffer.getvalue().splitlines()
 
@@ -434,7 +454,7 @@ def run_self_test() -> None:
     "PHASE1_BENCH_LIST_SORT_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM",
-    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM",
+    "PHASE1_BENCH_FIND_ADD_CHECKSUM",
     "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM",
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM"
   ],
@@ -448,7 +468,7 @@ def run_self_test() -> None:
     "PHASE1_BENCH_LIST_SORT_CHECKSUM": 7,
     "PHASE1_BENCH_RBTREE_CHECKSUM": 8,
     "PHASE1_BENCH_RBTREE_POSTORDER_SAFE_CHECKSUM": 9,
-    "PHASE1_BENCH_RBTREE_FIND_ADD_CHECKSUM": 10,
+    "PHASE1_BENCH_FIND_ADD_CHECKSUM": 10,
     "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM": 11,
     "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM": 12
   }
@@ -680,6 +700,20 @@ def run_self_test() -> None:
     assert payload == ("pass", "fail")
     case_count += 1
 
+    bench_status_drift_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-status-drift.json"
+    status_drift_output = capture_validation_failure_output(
+        kind,
+        payload,
+        bench_status_drift_path,
+    )
+    assert status_drift_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=status",
+        f"PHASE1_BENCH_EXPECTATIONS={bench_status_drift_path}",
+        "('pass', 'fail')",
+    ]
+    case_count += 1
+
     missing_status_output = ok_output.replace("PHASE1_BENCH=pass\n", "", 1)
     kind, payload = validate_output(expectations, missing_status_output)
     assert kind == "status"
@@ -705,6 +739,29 @@ def run_self_test() -> None:
     kind, payload = validate_output(expectations, rbtree_iteration_mismatch_output)
     assert kind == "rbtree_iteration_mismatch"
     assert payload == ("PHASE1_BENCH_RBTREE_ITERATIONS", 4000, "4")
+    case_count += 1
+
+    exact_checksum_mismatch_output = ok_output.replace(
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12",
+        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=120",
+    )
+    kind, payload = validate_output(expectations, exact_checksum_mismatch_output)
+    assert kind == "exact_checksum_mismatch"
+    assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 12, 120)
+    case_count += 1
+
+    checksum_drift_path = Path(tempfile.gettempdir()) / "phase1-bench-self-test-checksum-drift.json"
+    checksum_drift_output = capture_validation_failure_output(
+        kind,
+        payload,
+        checksum_drift_path,
+    )
+    assert checksum_drift_output == [
+        "PHASE1_BENCH_CHECK=fail",
+        "PHASE1_BENCH_CHECK_REASON=exact_checksum_mismatch",
+        f"PHASE1_BENCH_EXPECTATIONS={checksum_drift_path}",
+        "('PHASE1_BENCH_RBTREE_CACHED_CHECKSUM', 12, 120)",
+    ]
     case_count += 1
 
     for key, value in (
@@ -750,15 +807,6 @@ def run_self_test() -> None:
         assert kind == expected_kind
         assert payload == [key]
         case_count += 1
-
-    mismatch_output = ok_output.replace(
-        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=12",
-        "PHASE1_BENCH_RBTREE_CACHED_CHECKSUM=120",
-    )
-    kind, payload = validate_output(expectations, mismatch_output)
-    assert kind == "exact_checksum_mismatch"
-    assert payload == ("PHASE1_BENCH_RBTREE_CACHED_CHECKSUM", 12, 120)
-    case_count += 1
 
     duplicate_mismatch_output = ok_output.replace(
         "PHASE1_BENCH_RBTREE_DUPLICATE_CHECKSUM=11",
@@ -1082,10 +1130,7 @@ def main() -> int:
 
     kind, payload = validate_output(expectations, result.stdout)
     if kind != "pass":
-        print("PHASE1_BENCH_CHECK=fail")
-        print(f"PHASE1_BENCH_CHECK_REASON={kind}")
-        print(payload)
-        return 1
+        return emit_validation_failure(kind, payload, EXPECTATIONS)
 
     print("PHASE1_BENCH_CHECK=pass")
     print(f"PHASE1_BENCH_EXPECTATION_COUNT={len(expectations['checksums'])}")
