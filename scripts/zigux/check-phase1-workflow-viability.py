@@ -384,6 +384,9 @@ def run_self_test() -> int:
         if "workflow_step:Preflight current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
             print("self-test:duplicate_preflight_step_not_detected")
             return 1
+        if "workflow_run:Preflight current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_preflight_run_not_detected")
+            return 1
         case_count += 1
         build_sample_repo(root)
 
@@ -397,6 +400,9 @@ def run_self_test() -> int:
         if "workflow_step:Self-test current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
             print("self-test:duplicate_lane_selftest_not_detected")
             return 1
+        if "workflow_run:Self-test current Phase 1 workflow viability checker:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_selftest_run_not_detected")
+            return 1
         case_count += 1
         build_sample_repo(root)
 
@@ -409,6 +415,9 @@ def run_self_test() -> int:
         failures = collect_failures(root)
         if "workflow_step:Check current Phase 1 workflow viability:expected=1:actual=2" not in failures:
             print("self-test:duplicate_lane_check_not_detected")
+            return 1
+        if "workflow_run:Check current Phase 1 workflow viability:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_lane_check_run_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
@@ -527,7 +536,7 @@ def run_self_test() -> int:
             print("self-test:broken_phase12_tail_chain_not_detected")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         workflow_text = load_text(root, WORKFLOW_REL)
         write_file(root, WORKFLOW_REL, workflow_text + "\n        run: make -C zigux phase1-test\n")
