@@ -541,6 +541,26 @@ test "bitmap copy helpers mask partial tail words and zero grown storage" {
     try std.testing.expectEqual(@as(Word, 0), extend_dst[2]);
 }
 
+test "bitmap copy helpers pin empty-source copy semantics" {
+    var clear_src = [_]Word{~@as(Word, 0)};
+    var clear_dst = [_]Word{ 0xaa55, 0x55aa };
+    copyClearTail(&clear_dst, clear_src[0..0], 0);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0xaa55, 0x55aa }, &clear_dst);
+
+    var alias_clear_dst = [_]Word{ 0xaa55, 0x55aa };
+    bitmap_copy_clear_tail(&alias_clear_dst, clear_src[0..0], 0);
+    try std.testing.expectEqualSlices(Word, &clear_dst, &alias_clear_dst);
+
+    var extend_src = [_]Word{0x1234};
+    var extend_dst = [_]Word{ 0xbeef, 0xface };
+    copyAndExtend(&extend_dst, extend_src[0..0], 0, bits_per_long * extend_dst.len);
+    try std.testing.expectEqualSlices(Word, &[_]Word{ 0, 0 }, &extend_dst);
+
+    var alias_extend_dst = [_]Word{ 0xbeef, 0xface };
+    bitmap_copy_and_extend(&alias_extend_dst, extend_src[0..0], 0, bits_per_long * alias_extend_dst.len);
+    try std.testing.expectEqualSlices(Word, &extend_dst, &alias_extend_dst);
+}
+
 test "bitmap copy and extend handles zero and aligned counts" {
     var zero_src = [_]Word{0x1234};
     var zero_dst = [_]Word{0xbeef};
