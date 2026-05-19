@@ -168,6 +168,15 @@ pub fn bitmap_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usi
     orBits(dst, src1, src2, nbits);
 }
 
+pub fn weightedOr(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    orBits(dst, src1, src2, nbits);
+    return weight(dst, nbits);
+}
+
+pub fn bitmap_weighted_or(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightedOr(dst, src1, src2, nbits);
+}
+
 pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     const nwords = bitsToWords(nbits);
     std.debug.assert(dst.len >= nwords);
@@ -184,6 +193,15 @@ pub fn xorBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize
 
 pub fn bitmap_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) void {
     xorBits(dst, src1, src2, nbits);
+}
+
+pub fn weightedXor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    xorBits(dst, src1, src2, nbits);
+    return weight(dst, nbits);
+}
+
+pub fn bitmap_weighted_xor(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) usize {
+    return weightedXor(dst, src1, src2, nbits);
 }
 
 pub fn andBits(dst: []Word, src1: []const Word, src2: []const Word, nbits: usize) bool {
@@ -600,7 +618,7 @@ test "bitmap zero-bit logical helpers stay explicit" {
     try std.testing.expect(empty(lhs[0..0], 0));
     try std.testing.expect(full(lhs[0..0], 0));
     try std.testing.expectEqual(@as(usize, 0), weight(lhs[0..0], 0));
-    try std.testing.expect(equal(lhs[0..0], rhs[0..0], 0));
+    try std.testing.expectEqual(equal(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(!intersects(lhs[0..0], rhs[0..0], 0));
     try std.testing.expect(subset(lhs[0..0], rhs[0..0], 0));
 
