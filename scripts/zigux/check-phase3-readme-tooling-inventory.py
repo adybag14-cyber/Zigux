@@ -32,6 +32,12 @@ CATALOG_TOOL_FILE = Path("scripts/zigux/phase3_catalog.py")
 CATALOG_SELFTEST_CHECK_FILE = Path("scripts/zigux/check-phase3-catalog-selftest.py")
 GENERATED_WRAPPER_FILE = Path("scripts/zigux/generate-phase3-check-wrappers.py")
 FIXTURE_MANIFEST_FILE = Path("zigux/tests/fixtures/phase3_abi_manifest.json")
+HEADER_FAMILY_VALIDATOR_FILE = Path(
+    "scripts/zigux/validate-phase3-abi-header-family-survey.py"
+)
+HEADER_FAMILY_NOTE_FILE = Path(
+    "Documentation/zigux/phase3-abi-header-family-survey.md"
+)
 
 RUNNER_MARKER = "scripts/zigux/run-phase3-checks.py"
 SHARED_TESTS_ROUTES_MARKER = "scripts/zigux/check-phase3-shared-tests-routes.py"
@@ -106,6 +112,8 @@ REQUIRED_FILES = (
     CATALOG_SELFTEST_CHECK_FILE,
     GENERATED_WRAPPER_FILE,
     FIXTURE_MANIFEST_FILE,
+    HEADER_FAMILY_VALIDATOR_FILE,
+    HEADER_FAMILY_NOTE_FILE,
     Path("scripts/zigux/check-phase3-dev-t-starter-packet.py"),
     Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py"),
     Path("scripts/zigux/check-phase3-policy-starter-packet.py"),
@@ -280,6 +288,14 @@ FILE_CASES = (
     (CATALOG_SELFTEST_CHECK_FILE, "expected missing catalog-selftest guard file was not reported"),
     (GENERATED_WRAPPER_FILE, "expected missing generated-wrapper file was not reported"),
     (FIXTURE_MANIFEST_FILE, "expected missing fixture manifest file was not reported"),
+    (
+        HEADER_FAMILY_VALIDATOR_FILE,
+        "expected missing header-family validator file was not reported",
+    ),
+    (
+        HEADER_FAMILY_NOTE_FILE,
+        "expected missing header-family survey note was not reported",
+    ),
     (
         LOW_LEVEL_WRAPPER_SURVEY_VALIDATOR_FILE,
         "expected missing low-level-wrapper survey validator file was not reported",
