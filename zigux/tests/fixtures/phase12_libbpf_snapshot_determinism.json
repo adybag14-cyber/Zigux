@@ -9,7 +9,7 @@
   "files": [
     {
       "path": "tools/lib/bpf/zigux_segments/pin_path.zig",
-      "blob_sha": "4a69376e359382ebe488d2a5b132b2da31a02522"
+      "blob_sha": "46e4f7fcf8d1f591ca8035631191a9d702a0edc0"
     }
   ]
 }
