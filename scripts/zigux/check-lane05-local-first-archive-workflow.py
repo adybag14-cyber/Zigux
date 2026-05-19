@@ -28,6 +28,9 @@ PHASE7_MAKE_WRAPPER_SELF_TEST_STEP = "- name: Self-test current Phase 7 make-wra
 PHASE7_MAKE_WRAPPER_CHECK_STEP = "- name: Check current Phase 7 make-wrapper selftest alignment packet"
 PHASE9_FREEZE_MAP_SELF_TEST_STEP = "- name: Self-test current Phase 9 freeze-map study-boundaries checker"
 PHASE9_FREEZE_MAP_CHECK_STEP = "- name: Check current Phase 9 freeze-map study-boundaries packet"
+THIRD_PARTY_PATH = "- 'third_party/**'"
+SCRIPTS_PATH = "- 'scripts/zigux/**'"
+TOOLS_PATH = "- 'tools/lib/*.zig'"
 
 POLICY_MARKERS = (
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
@@ -117,6 +120,7 @@ def check_workflow(text: str) -> None:
     require_marker(text, CHECK_STEP, "workflow checker step name")
     require_marker(text, CHECK_CMD, "workflow checker command")
     require_marker(text, NEXT_PHASE_STEP, "workflow next-step anchor")
+    require_marker(text, THIRD_PARTY_PATH, "workflow third-party path filter")
 
     for self_test_step, check_step in RETAINED_STEP_PAIRS:
         require_marker(text, self_test_step, "retained bootstrap step")
@@ -136,6 +140,7 @@ def check_workflow(text: str) -> None:
     require_exact_count(text, 'repo_archive_path="third_party/$ZIGUX_ZIG_FILENAME"', 1, "local archive path marker")
     require_exact_count(text, "try_local_archive() {", 1, "local archive helper definition")
     require_exact_count(text, "if try_local_archive; then", 1, "local archive helper invocation")
+    require_exact_line_count(text, THIRD_PARTY_PATH, 1, "workflow path filter line")
 
     for self_test_step, check_step in RETAINED_STEP_PAIRS:
         require_exact_count(text, self_test_step, 1, "retained bootstrap step")
@@ -148,6 +153,8 @@ def check_workflow(text: str) -> None:
     require_order(text, ARCHIVE_CHECK_STEP, SELF_TEST_STEP, "workflow step order")
     require_order(text, SELF_TEST_STEP, CHECK_STEP, "workflow step order")
     require_order(text, CHECK_STEP, NEXT_PHASE_STEP, "workflow step order")
+    require_order(text, SCRIPTS_PATH, THIRD_PARTY_PATH, "workflow pull_request path order")
+    require_order(text, THIRD_PARTY_PATH, TOOLS_PATH, "workflow pull_request path order")
 
     for self_test_step, check_step in RETAINED_STEP_PAIRS:
         require_order(text, self_test_step, check_step, "retained bootstrap step order")
@@ -238,6 +245,7 @@ jobs:
         run: |
           paths:
             - 'scripts/zigux/**'
+            - 'third_party/**'
             - 'tools/lib/*.zig'
           policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))
           targets = policy["upgrade_policy"]["archive_target_scope"]
@@ -379,6 +387,33 @@ jobs:
         case_count += 1
     else:
         raise AssertionError("expected missing retained step failure")
+
+    missing_third_party_path = good_workflow.replace(
+        "            - 'third_party/**'\n",
+        "",
+        1,
+    )
+    try:
+        check_workflow(missing_third_party_path)
+    except SystemExit as exc:
+        assert "third_party/**" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected missing third-party path failure")
+
+    duplicate_third_party_path = good_workflow.replace(
+        "            - 'third_party/**'\n",
+        "            - 'third_party/**'\n"
+        "            - 'third_party/**'\n",
+        1,
+    )
+    try:
+        check_workflow(duplicate_third_party_path)
+    except SystemExit as exc:
+        assert "third_party/**" in str(exc)
+        case_count += 1
+    else:
+        raise AssertionError("expected duplicate third-party path failure")
 
     reordered_fallback = good_workflow.replace(
         "          if try_local_archive; then\n"
