@@ -6,53 +6,29 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-DOCS_README = ROOT / "Documentation" / "zigux" / "README.md"
+PHASE2_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
 REVIEW_CHECKLIST = ROOT / "Documentation" / "zigux" / "review-checklist.md"
 SCRIPTS_README = ROOT / "scripts" / "zigux" / "README.md"
 
-DOCS_README_MARKERS = (
-    "Phase 2 notes",
-    "- `Documentation/zigux/phase2-toolchain-bootstrap-notes.md`",
-    "- `Documentation/zigux/phase2-closure.md`",
-    "- `Documentation/zigux/review-checklist.md`",
-    "- `scripts/zigux/README.md`",
-    "- `scripts/zigux/validate-phase2.py`",
-    "- `scripts/zigux/validate-phase2-closure.py`",
-    "- `scripts/zigux/check-zig-toolchain.py`",
-    "- `scripts/zigux/check-phase2-kbuild-routes.py`",
-    "- `scripts/zigux/check-phase2-kconfig-selftest-alignment.py`",
-    "- `scripts/zigux/check-phase2-tests-readme-alignment.py`",
-    "- `scripts/zigux/check-phase2-toolchain-pinning.py`",
-    "- `scripts/zigux/check-phase2-cross-selftest-alignment.py`",
-    "- `scripts/zigux/check-phase2-toolchain-pin-scope.py`",
-    "- `scripts/zigux/check-phase2-docs-shared-reminder.py`",
-    "- `scripts/zigux/check-phase2-required-make-routes.py`",
-    "- `python3 scripts/zigux/check-zig-toolchain.py --self-test`",
-    "- `python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
-    "- `python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "- `python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
-    "- `scripts/zigux/kconfig/conf_bridge.zig`",
-    "- `scripts/zigux/kconfig/confdata_bridge.zig`",
-    "- `scripts/zigux/zig-toolchain-policy.json`",
-    "- `zigux/Makefile`",
-    "- `zigux/tests/fixtures/phase2_tool_manifest.json`",
-    "- `zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
-    "- `zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
-    "- `zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
-    "- `zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "current directly readable Phase 2 toolchain, closure-side, kbuild, kconfig bridge, make-wrapper, and artifact-support packet",
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
-    "historical packet members until same-lane work rematerializes them on `master`",
-    "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the docs-shared-reminder checker, the required-make-route guard",
-    "keep the pinned policy-only and archive-integrity replays explicit without reviving missing installer or direct cross-route proof text",
+PHASE2_NOTES_MARKERS = (
+    "# Phase 2 Toolchain Bootstrap Notes",
+    "## Current direct packet",
+    "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
+    "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
+    "`scripts/zigux/check-phase2-required-make-routes.py`",
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`scripts/zigux/install-zig.py` is directly readable on current `master`",
+    "`scripts/zigux/check-zig-toolchain.py` is directly readable on current `master`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json` keeps the rematerialized direct cross-route packet explicit",
+    "The rematerialized make-wrapper packet is directly readable on current `master` through `make -C zigux phase2-toolchain`",
+    "No current repo-reality gaps remain inside the bounded toolchain, installer, and direct cross-route packet on current `master`.",
+    "toolchain pinning, toolchain pin-scope alignment, installer-path truthfulness, direct cross-route truthfulness",
 )
 
-DOCS_README_FORBIDDEN_MARKERS = (
-    "- `scripts/zigux/install-zig.py`",
-    "- `python3 scripts/zigux/install-zig.py --self-test`",
-    "current directly readable Phase 2 toolchain-installer, closure-side, kbuild, kconfig bridge, make-wrapper, and artifact-support packet",
-    "keep the docs-root Phase 2 summary aligned to the shipped toolchain checker, the returned installer helper, the docs-shared-reminder checker, the required-make-route guard",
-    "keep the pinned policy-only, installer self-test, and archive-integrity replays explicit without reviving missing direct cross-route proof text",
+PHASE2_NOTES_FORBIDDEN_MARKERS = (
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
+    "historical packet members until same-lane work rematerializes them on `master`",
+    "without reviving missing installer or direct cross-route proof text",
 )
 
 REVIEW_CHECKLIST_MARKERS = (
@@ -76,7 +52,7 @@ REVIEW_CHECKLIST_MARKERS = (
     "`zigux/tests/fixtures/kconfig_bridge/conf_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/confdata_manifest.json`",
     "`zigux/tests/fixtures/kconfig_bridge/cases.json`",
-    "current directly readable Phase 2 toolchain, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
+    "current directly readable Phase 2 toolchain, installer, direct cross-route, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
     "`Documentation/zigux/phase2-closure.md`",
     "`scripts/zigux/validate-phase2.py`",
     "`scripts/zigux/validate-phase2-closure.py`",
@@ -92,19 +68,24 @@ REVIEW_CHECKLIST_MARKERS = (
     "`make -C zigux phase2-kconfig`",
     "`make -C zigux phase2-cross`",
     "`make -C zigux phase2`",
+    "`scripts/zigux/install-zig.py`",
+    "`python3 scripts/zigux/install-zig.py --self-test`",
+    "`scripts/zigux/check-phase2-cross.py`",
+    "`python3 scripts/zigux/check-phase2-cross.py --self-test`",
+    "`python3 scripts/zigux/check-phase2-cross.py`",
+    "`zigux/tests/fixtures/phase2_cross_targets.json`",
+    "current rematerialized Phase 2 closure-side, closure-validator, validation, installer, direct cross-route, artifact-support, toolchain self-check, and make-wrapper packet",
+)
+
+REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
+    "current directly readable Phase 2 toolchain, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
     "current rematerialized Phase 2 closure-side, closure-validator, validation, artifact-support, toolchain self-check, and make-wrapper packet",
     "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` stay framed as historical packet members rather than shipped current-`master` evidence",
 )
 
-REVIEW_CHECKLIST_FORBIDDEN_MARKERS = (
-    "while `scripts/zigux/check-phase2-cross.py`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` stay framed as historical packet members rather than shipped current-`master` evidence",
-    "current directly readable Phase 2 toolchain, installer, kbuild, kconfig bridge, docs-shared-reminder, and required-make-route packet",
-    "current rematerialized Phase 2 closure-side, closure-validator, validation, artifact-support, installer-selftest, and make-wrapper packet",
-)
-
 SCRIPTS_README_MARKERS = (
     "## Phase 2",
-    "- Phase 2 flow - the current scripts-root bridge packet stays reviewable through the live `conf_bridge` and `confdata_bridge` helper surfaces, the restored closure-side validator packet, the manifest-backed kconfig fixture roster, the shipped make-wrapper packet, and the surviving Phase 2 alignment guards instead of rebuilding the older installer and direct cross-route stack from paths that current `master` no longer serves",
+    "the current scripts-root bridge packet stays reviewable through the live toolchain checker, installer helper, direct cross-route packet",
     "`scripts/zigux/check-phase2-docs-shared-reminder.py`",
     "`scripts/zigux/check-phase2-required-make-routes.py`",
     "`zigux/Makefile`",
@@ -116,13 +97,13 @@ SCRIPTS_README_MARKERS = (
     "`make -C zigux phase2`",
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`scripts/zigux/validate-phase2-closure.py`",
-    "keep the shipped closure-side reminder, closure-validator, validator entrypoint, make-wrapper, and artifact-support packet explicit from the scripts root beside the surviving checker set",
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
-    "treat those installer and direct cross-route names as historical packet members that need fresh re-materialization before they are reused here as direct current-`master` scripts-root evidence",
+    "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
+    "keep those installer and direct cross-route surfaces explicit beside the shipped toolchain and kbuild reminder packet",
 )
 
 SCRIPTS_README_FORBIDDEN_MARKERS = (
-    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase2-closure.py`, `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, `zigux/Makefile`, `make -C zigux phase2-toolchain`, `make -C zigux phase2-tools`, `make -C zigux phase2-kconfig`, `make -C zigux phase2-cross`, `make -C zigux phase2-validate`, and `make -C zigux phase2`",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json`",
 )
 
 
@@ -150,21 +131,21 @@ def collect_forbidden_markers(text: str, markers: tuple[str, ...], code: str) ->
 
 def collect_issues(root: Path) -> list[tuple[str, str]]:
     issues: list[tuple[str, str]] = []
-    docs_readme_text = read_text(resolve_path(root, DOCS_README))
+    phase2_notes_text = read_text(resolve_path(root, PHASE2_NOTES))
     review_checklist_text = read_text(resolve_path(root, REVIEW_CHECKLIST))
     scripts_readme_text = read_text(resolve_path(root, SCRIPTS_README))
     issues.extend(
         collect_missing_markers(
-            docs_readme_text,
-            DOCS_README_MARKERS,
-            "MISSING_DOCS_README_MARKERS",
+            phase2_notes_text,
+            PHASE2_NOTES_MARKERS,
+            "MISSING_PHASE2_NOTES_MARKERS",
         )
     )
     issues.extend(
         collect_forbidden_markers(
-            docs_readme_text,
-            DOCS_README_FORBIDDEN_MARKERS,
-            "FORBIDDEN_DOCS_README_MARKERS",
+            phase2_notes_text,
+            PHASE2_NOTES_FORBIDDEN_MARKERS,
+            "FORBIDDEN_PHASE2_NOTES_MARKERS",
         )
     )
     issues.extend(
@@ -217,7 +198,7 @@ def write_text(path: Path, content: str) -> None:
 
 
 def build_self_test_root(root: Path) -> None:
-    write_text(resolve_path(root, DOCS_README), "\n".join(DOCS_README_MARKERS) + "\n")
+    write_text(resolve_path(root, PHASE2_NOTES), "\n".join(PHASE2_NOTES_MARKERS) + "\n")
     write_text(resolve_path(root, REVIEW_CHECKLIST), "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n")
     write_text(resolve_path(root, SCRIPTS_README), "\n".join(SCRIPTS_README_MARKERS) + "\n")
 
@@ -232,8 +213,8 @@ def run_self_test() -> int:
     checks_run = 0
     expected_case_count = (
         1
-        + len(DOCS_README_MARKERS)
-        + len(DOCS_README_FORBIDDEN_MARKERS)
+        + len(PHASE2_NOTES_MARKERS)
+        + len(PHASE2_NOTES_FORBIDDEN_MARKERS)
         + len(REVIEW_CHECKLIST_MARKERS)
         + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS)
         + len(SCRIPTS_README_MARKERS)
@@ -246,20 +227,20 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for marker in DOCS_README_MARKERS:
+        for marker in PHASE2_NOTES_MARKERS:
             build_self_test_root(root)
-            path = resolve_path(root, DOCS_README)
+            path = resolve_path(root, PHASE2_NOTES)
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
-            assert ("MISSING_DOCS_README_MARKERS", marker) in issues
+            assert ("MISSING_PHASE2_NOTES_MARKERS", marker) in issues
             checks_run += 1
 
-        for marker in DOCS_README_FORBIDDEN_MARKERS:
+        for marker in PHASE2_NOTES_FORBIDDEN_MARKERS:
             build_self_test_root(root)
-            path = resolve_path(root, DOCS_README)
+            path = resolve_path(root, PHASE2_NOTES)
             path.write_text(path.read_text(encoding="utf-8") + marker + "\n", encoding="utf-8")
             issues = collect_issues(root)
-            assert ("FORBIDDEN_DOCS_README_MARKERS", marker) in issues
+            assert ("FORBIDDEN_PHASE2_NOTES_MARKERS", marker) in issues
             checks_run += 1
 
         for marker in REVIEW_CHECKLIST_MARKERS:
@@ -294,7 +275,7 @@ def run_self_test() -> int:
             assert ("FORBIDDEN_SCRIPTS_README_MARKERS", marker) in issues
             checks_run += 1
 
-        for rel_path in (DOCS_README, REVIEW_CHECKLIST, SCRIPTS_README):
+        for rel_path in (PHASE2_NOTES, REVIEW_CHECKLIST, SCRIPTS_README):
             build_self_test_root(root)
             resolve_path(root, rel_path).unlink()
             try:
@@ -314,7 +295,7 @@ def run_self_test() -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Keep the shared Phase 2 docs-root, checklist, and scripts-root reminder packet aligned to current repo reality."
+        description="Keep the shared Phase 2 notes, checklist, and scripts-root reminder packet aligned to current repo reality."
     )
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run the built-in contract self-test")
@@ -328,10 +309,13 @@ def main() -> int:
         return emit_issues(issues)
 
     print("PHASE2_DOCS_SHARED_REMINDER=pass")
-    print(f"PHASE2_DOCS_SHARED_REMINDER_MARKER_COUNT={len(DOCS_README_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS)}")
+    print(
+        "PHASE2_DOCS_SHARED_REMINDER_MARKER_COUNT="
+        f"{len(PHASE2_NOTES_MARKERS) + len(REVIEW_CHECKLIST_MARKERS) + len(SCRIPTS_README_MARKERS)}"
+    )
     print(
         "PHASE2_DOCS_SHARED_REMINDER_FORBIDDEN_MARKER_COUNT="
-        f"{len(DOCS_README_FORBIDDEN_MARKERS) + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS)}"
+        f"{len(PHASE2_NOTES_FORBIDDEN_MARKERS) + len(REVIEW_CHECKLIST_FORBIDDEN_MARKERS) + len(SCRIPTS_README_FORBIDDEN_MARKERS)}"
     )
     return 0
 
