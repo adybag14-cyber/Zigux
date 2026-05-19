@@ -32,6 +32,7 @@ Keep the current lane split explicit:
   `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`,
   `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`,
   `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`,
+  `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`,
   `Documentation/zigux/phase11-dw-wdt-survey.md`,
   `Documentation/zigux/phase11-dw-wdt-slice.md`,
   `Documentation/zigux/phase11-dw-wdt-teardown-note.md`,
@@ -41,10 +42,9 @@ Keep the current lane split explicit:
   `zigux/tests/phase11_dw_wdt_survey.zig`,
   `zigux/tests/phase11_dw_wdt_registration_scaffold.zig`,
   `scripts/zigux/check-phase11-dw-wdt-teardown-packet.py`, and
-  `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`; keep
-  `Documentation/zigux/phase11-dw-wdt-validation-matrix.md` and the older
-  `scripts/zigux/check-phase11-dw-wdt-packet.py` handles framed as historical or
-  repo-reality-gap vocabulary until a future reread proves they returned on
+  `scripts/zigux/check-phase11-dw-wdt-verify-alignment.py`; keep the older
+  `scripts/zigux/check-phase11-dw-wdt-packet.py` handle framed as historical or
+  repo-reality-gap vocabulary until a future reread proves it returned on
   current `master`
 - HVC archival lane `P11-L16` currently keeps the directly readable
   `Documentation/zigux/phase11-hvc-console-survey.md`,
@@ -77,6 +77,7 @@ Treat the current shared Phase 11 packet as the reminder surfaces that were
 - `Documentation/zigux/phase11-dw-wdt-provenance-readback.md`
 - `Documentation/zigux/phase11-dw-wdt-lane-sequencing-gap.md`
 - `Documentation/zigux/phase11-dw-wdt-verify-alignment-gap.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-dw-wdt-survey.md`
 - `Documentation/zigux/phase11-dw-wdt-slice.md`
 - `Documentation/zigux/phase11-dw-wdt-teardown-note.md`
@@ -94,11 +95,11 @@ Treat the current shared Phase 11 packet as the reminder surfaces that were
 - `Documentation/zigux/phase11-hvc-verify-helper-boundary.md`
 
 Current rereads in this run rematerialized the returned DesignWare helper,
-replay, reminder-note, and checker packet alongside the narrower HVC current-head
-continuity packet. Keep `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
-plus the older DesignWare packet-checker handle
-`scripts/zigux/check-phase11-dw-wdt-packet.py` framed as historical or
-repo-reality-gap vocabulary until a future reread proves they returned.
+replay, reminder-note, validation-matrix, and checker packet alongside the
+narrower HVC current-head continuity packet. Keep only the older DesignWare
+packet-checker handle `scripts/zigux/check-phase11-dw-wdt-packet.py` framed as
+historical or repo-reality-gap vocabulary until a future reread proves it
+returned.
 
 HVC still has the smaller current-head continuity packet rather than the deeper
 starter-depth replay or manifest stack. bcm2835 and gpio reminder follow-through
@@ -115,10 +116,8 @@ Use this note to keep the bounded work order honest:
    owns reminder-surface truthfulness, not driver-local execution claims.
 3. Keep the current readback boundary honest: today that means the HVC
    current-head continuity packet plus the returned DesignWare helper-backed
-   owner stack of notes, helpers, replays, manifest, registration scaffold, and
-   paired teardown and verify checkers, with the DesignWare validation-matrix
-   note still treated as repo-reality-gap vocabulary until a fresh reread
-   restores it.
+   owner stack of notes, helpers, replays, manifest, registration scaffold,
+   validation matrix, and paired teardown and verify checkers.
 4. Keep the DesignWare follow-through parked on bounded starter, scaffold, and
    reminder-surface truthfulness; do not widen that returned owner stack into
    live watchdog-core execution, PM plumbing, reset execution, IRQ execution,
