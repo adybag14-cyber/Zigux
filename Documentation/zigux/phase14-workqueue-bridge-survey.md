@@ -54,6 +54,9 @@ The landed workqueue packet is strong enough to keep the following review-only a
 
   * boundary-map-only submission routing through `queue_work_on()` and `__queue_work()`
   * boundary-map-only allocation and attribute shaping through `__alloc_workqueue()` and `devm_alloc_workqueue()`
+  * worker-pool manager-role serialization and forward-progress accounting around `manage_workers()` and `struct worker_pool`
+  * ordered `max_active` throttling and last-pool reentrancy handoff inside `__queue_work()`
+  * callback execution and idle-sleep handoff around `process_one_work()` and `worker_thread()`
   * pending-bit claim windows
   * delayed timer handoff back into `__queue_work()`
   * delayed requeue governance
@@ -63,6 +66,8 @@ The landed workqueue packet is strong enough to keep the following review-only a
   * hotplug topology rebinding
 
 Those two boundary-map-only entrypoint groups are the current roadmap-backed bridge foothold. The rest of the packet stays review-only so Phase 14 can keep `kernel/workqueue.c` honest as a boundary-study target without implying live worker execution or wrapper ownership.
+
+The newer bridge-local concurrency audit also keeps the manager, forward-progress, inactive-list, reentrancy, callback-window, and idle-sleep checkpoints explicit as stay-in-C evidence rather than as a live wrapper claim.
 
 The packet is still blocked from claiming:
 
