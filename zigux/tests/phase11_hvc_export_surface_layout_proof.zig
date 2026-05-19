@@ -1,4 +1,5 @@
 const std = @import("std");
+const hvc_console = @import("../../drivers/tty/hvc/hvc_console.zig");
 const layout_assert = @import("layout_assert");
 
 const WinsizeLayout = extern struct {
@@ -160,6 +161,16 @@ test "phase11 HVC exported helper proof keeps exported helper signatures exact" 
         assertExactType(@FieldType(HvcExportSurface, "notifier_del_irq"), HvcNotifierDelIrqFn);
         assertExactType(@FieldType(HvcExportSurface, "notifier_hangup_irq"), HvcNotifierHangupIrqFn);
     }
+}
+
+test "phase11 HVC exported helper proof keeps exported HVC constants exact" {
+    const hvc_header = try readFileAlloc(std.testing.allocator, "drivers/tty/hvc/hvc_console.h", 32 * 1024);
+    defer std.testing.allocator.free(hvc_header);
+
+    try std.testing.expectEqual(@as(u32, 16), hvc_console.MAX_NR_HVC_CONSOLES);
+    try std.testing.expectEqual(@as(u32, 0x01), hvc_console.HVC_ALLOC_TTY_ADAPTERS);
+    try expectContains(hvc_header, "#define MAX_NR_HVC_CONSOLES 16");
+    try expectContains(hvc_header, "#define HVC_ALLOC_TTY_ADAPTERS 1");
 }
 
 test "phase11 HVC exported helper proof stays tied to the exported header signatures" {
