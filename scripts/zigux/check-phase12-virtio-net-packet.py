@@ -30,8 +30,9 @@ MANIFEST_MARKERS = [
     '"anchor": "drivers/net/virtio_net.c"',
     '"status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_and_post_reset_replay_present_direct_gate_present_shared_smoke_present"',
     '"status": "starter_control_queue_payload_shape_refill_transmit_recycle_and_post_reset_replay_present_runtime_completion_missing"',
+    '"status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_post_reset_replay_direct_lab_present_shared_route_present"',
     '"id": "phase12-build-gate"',
-    '"status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay"',
+    '"status": "shared_build_present_with_queue_resume_and_transmit_recycle_replays_post_reset_replay_still_direct_only"',
     '"id": "phase12-virtio-net-post-reset-replay-followup"',
     '"zigux_destination": "drivers/net/virtio_net_post_reset_replay.zig"',
     '"id": "phase12-virtio-net-runtime-data-path"',
@@ -48,6 +49,8 @@ SURVEY_NOTE_MARKERS = [
     "planControlQueuePayloadShape()",
     "summarizePostResetReplay()",
     "shared Phase 12 smoke and test routes keep the dedicated `virtio_net` syntax-lab shard plus the queue-resume and transmit-recycle replays reachable",
+    "post-reset replay still remains a dedicated driver-local test outside the shared Phase 12 build route",
+    "while the post-reset replay remains outside `zigux/tests/phase12_build.zig`",
     "still does not claim live DMA-safe receive ownership",
 ]
 
@@ -55,6 +58,7 @@ SURVEY_GATE_MARKERS = [
     "phase12 virtio net survey manifest keeps the bounded post reset replay packet truthful",
     "phase12 virtio net survey note stays aligned with the bounded post reset replay follow-up",
     "phase12 virtio net survey gate keeps present lane files explicit",
+    "phase12 virtio net survey gate keeps shared build surface explicit about post reset replay",
     "phase12 virtio net syntax lab keeps payload-shaping and recovery markers explicit",
     "phase12 virtio net survey gate keeps transmit recycle helper and replay markers explicit",
     'try std.testing.expectEqualStrings("P12-L02", manifest.lane_key);',
@@ -65,6 +69,12 @@ SURVEY_GATE_MARKERS = [
     "zigux/tests/phase12_virtio_net_transmit_recycle.zig",
     "zigux/tests/phase12_virtio_net_post_reset_replay.zig",
     "summarizePostResetReplay()",
+    "phase12_virtio_net_queue_resume.zig",
+    "phase12-virtio-net-queue-resume-tests",
+    "phase12_virtio_net_transmit_recycle.zig",
+    "phase12-virtio-net-transmit-recycle-tests",
+    'phase12_virtio_net_post_reset_replay.zig") == null',
+    '"phase12-virtio-net-post-reset-replay-tests") == null',
 ]
 
 SYNTAX_LAB_MARKERS = [
@@ -85,10 +95,15 @@ BUILD_MARKERS = [
     "phase12-virtio-net-syntax-lab-tests",
     'run_virtio_net_contract_tests.setCwd(b.path("../.."));',
     'run_virtio_net_syntax_tests.setCwd(b.path("../.."));',
+    "../../drivers/net/virtio_net_queue_resume.zig",
+    '"phase12_virtio_net_queue_resume.zig"',
+    "phase12-virtio-net-queue-resume-tests",
+    'run_virtio_net_queue_resume_tests.setCwd(b.path("../.."));',
     "../../drivers/net/virtio_net_transmit_recycle.zig",
     '"phase12_virtio_net_transmit_recycle.zig"',
     "phase12-virtio-net-transmit-recycle-tests",
     'run_virtio_net_transmit_recycle_tests.setCwd(b.path("../.."));',
+    "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
     "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
     "test_step.dependOn(&run_virtio_net_contract_tests.step);",
 ]
@@ -142,6 +157,14 @@ def run_check(root: Path) -> None:
 
     build_text = read_text(root, "zigux/tests/phase12_build.zig")
     require_markers(build_text, "zigux/tests/phase12_build.zig", BUILD_MARKERS)
+    if "phase12_virtio_net_post_reset_replay.zig" in build_text:
+        raise CheckError(
+            "zigux/tests/phase12_build.zig: post-reset replay unexpectedly entered the shared build route"
+        )
+    if "phase12-virtio-net-post-reset-replay-tests" in build_text:
+        raise CheckError(
+            "zigux/tests/phase12_build.zig: post-reset replay run step unexpectedly entered the shared build route"
+        )
 
     makefile_text = read_text(root, "zigux/Makefile")
     require_markers(makefile_text, "zigux/Makefile", MAKEFILE_MARKERS)
@@ -174,11 +197,14 @@ def make_fixture_tree(root: Path) -> None:
                     "throughput_and_recovery_parity": {
                         "status": "starter_control_queue_payload_shape_refill_transmit_recycle_and_post_reset_replay_present_runtime_completion_missing"
                     },
+                    "segmented_rollout": {
+                        "status": "starter_queue_summary_control_queue_recovery_refill_payload_shape_transmit_recycle_post_reset_replay_direct_lab_present_shared_route_present"
+                    },
                 },
                 "gaps": [
                     {
                         "id": "phase12-build-gate",
-                        "status": "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay",
+                        "status": "shared_build_present_with_queue_resume_and_transmit_recycle_replays_post_reset_replay_still_direct_only",
                     },
                     {
                         "id": "phase12-virtio-net-post-reset-replay-followup",
@@ -225,7 +251,10 @@ def run_self_test() -> None:
         make_fixture_tree(root)
         broken_manifest = root / "zigux/tests/phase12_virtio_net_manifest.json"
         broken_manifest.write_text(
-            broken_manifest.read_text(encoding="utf-8").replace("P12-L02", "P12-L04"),
+            broken_manifest.read_text(encoding="utf-8").replace(
+                "shared_build_present_with_queue_resume_and_transmit_recycle_replays_post_reset_replay_still_direct_only",
+                "shared_build_present_with_direct_virtio_net_syntax_lab_and_transmit_recycle_replay",
+            ),
             encoding="utf-8",
         )
         try:
@@ -238,15 +267,35 @@ def run_self_test() -> None:
         case_count += 1
 
         make_fixture_tree(root)
-        broken_survey_gate = root / "zigux/tests/phase12_virtio_net_survey.zig"
-        broken_survey_gate.write_text("broken\n", encoding="utf-8")
+        broken_build = root / "zigux/tests/phase12_build.zig"
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8").replace(
+                "phase12-virtio-net-queue-resume-tests\n", ""
+            ),
+            encoding="utf-8",
+        )
         try:
             run_check(root)
         except CheckError as err:
-            if "phase12_virtio_net_survey.zig" not in str(err):
+            if "phase12_build.zig" not in str(err):
                 raise
         else:
-            raise AssertionError("expected survey-gate marker failure")
+            raise AssertionError("expected shared-build marker failure")
+        case_count += 1
+
+        make_fixture_tree(root)
+        broken_build = root / "zigux/tests/phase12_build.zig"
+        broken_build.write_text(
+            broken_build.read_text(encoding="utf-8") + 'phase12_virtio_net_post_reset_replay.zig\n',
+            encoding="utf-8",
+        )
+        try:
+            run_check(root)
+        except CheckError as err:
+            if "phase12_build.zig" not in str(err):
+                raise
+        else:
+            raise AssertionError("expected post-reset direct-only failure")
         case_count += 1
 
         make_fixture_tree(root)
