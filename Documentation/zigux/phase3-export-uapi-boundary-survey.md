@@ -27,6 +27,7 @@ The packet-local validator is now present and should stay aligned with this surv
 On current `master`, this packet stays narrow and explicit:
 
 - `zigux/kernel/export_shim.zig` keeps the export boundary reviewable through `canonicalHeader`, `headerIsCanonical`, `headerIsCompatible`, `requestedExtraBytes`, and the status-tagged `validateDeviceNumber` relay.
+- That same starter export surface also now carries the status-tagged `validateDeviceRange` relay for bounded `dev_t` span checks without widening into broader UAPI growth.
 - `zigux/uapi/version.zig` keeps the starter boundary-header contract explicit through the current ABI version fields and `matchesCurrent`.
 - `zigux/uapi/dev_t.zig` keeps the bounded chrdev validation and range checks readable beside the shared `include/zigux/dev_t.h` contract.
 - `include/linux/zigux.h` keeps the C-facing boundary helpers aligned with the shared ABI header and the starter `dev_t` packet.
