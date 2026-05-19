@@ -152,7 +152,7 @@
     {
       "anchor": "kernel/rcu/tree.c",
       "roadmap_basis": "Phase 15 keeps Tree RCU frozen unless a narrower-than-freeze follow-up answers the current blocker with Architecture Council reviewable evidence.",
-      "repo_reality": "Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L14 still records blocked phase14-rcu-tree-bridge-blocker and keeps Tree RCU parked in a freeze-in-C posture, while public current-master readback now resolves the shared Phase 15 validator, dedicated-build, and lane-owner companions even though the current GitHub contents path still returns not-found for those three files from this runtime, and the zigux/Makefile readback still carries no phase15-validate, phase15-test, or phase15 targets.",
+      "repo_reality": "Current master already carries Documentation/zigux/phase14-rcu-tree-survey.md, where lane P14-L16 still records blocked phase14-rcu-tree-bridge-blocker and keeps Tree RCU parked in a freeze-in-C posture, while public current-master readback now resolves the shared Phase 15 validator, dedicated-build, and lane-owner companions even though the current GitHub contents path still returns not-found for those three files from this runtime, and the zigux/Makefile readback still carries no phase15-validate, phase15-test, or phase15 targets.",
       "current_blocker": "blocked_phase14_followup_still_wider_than_allowed_rcu_seam"
     },
     {
