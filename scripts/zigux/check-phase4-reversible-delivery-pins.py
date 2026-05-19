@@ -32,20 +32,20 @@ DIRECT_MARKERS = (
 
 CURRENT_HEAD_BLOB_MARKERS = (
     "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_NOTE_BLOB_SHA=9c32cfdc6d3c8d449a10ede6b3380ef84ef8aad6`",
-    "`PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=cf5b7e8b7951fbab08751894a5582eb0a818f1f7`",
+    "`PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=18338cd8134d9fd962edf9b177f82e5b9bd40108`",
     "`PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_BLOB_SHA=a19e335ad46c6aba552d59fff4752b13d5f51c8b`",
-    "`PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=2159f357591633f21d60d4607cf4cbfa1d086f84`",
-    "`PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=5143b3595c7f862a25efc32916249ed68c88a713`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=c744a2a91139b31b616affa80f0030586e906a80`",
+    "`PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=0c38a3e7470f92b5b38da8659c548a51dbd09440`",
+    "`PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=a6f9a63307ab24bf58fe574f5394fe87512d4d12`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=fc5728aa0ea4e46d1cebecd42fafc22b30746b38`",
     "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=44955f39e37b9389b3b97e7d710c25b1841aedf3`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=2e7b03fa41b7fe705ce73158b55249c729caa2fd`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=c8eef0dd5ab531e6a69acacd1f694772454af012`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=81b9a93e6cbb3e9f2c0a7d95ac4961d528756902`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=263f1d20190b807f38864f76810a57f1e79c5321`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=69bbaadbd6c88c5210ca91914e639bbc5f456829`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA=5a37abd5f8c02414c9ca8e9d24043a8e8e29f428`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=049c1f90422a49ea83b5e50bf9f9fde9aa5bb501`",
-    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=ed1e702f3bd46386627b51cb60fde7b871b80215`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=946467383c7645434f6a0787486590fb443edd6b`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=ef333c03fa97927b2be0152b613fab727bb89a11`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=93aebf412639ccc1122a74b87201f57f6e7bfc99`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=76019df486d2582d3197a15cd00e7a050edcc766`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=ae44be2133b0bc9b7c13b3061c4eab0ecdff3ad0`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA=c535d9f78360e0c3dfd4b93f8f01b1f4b4dd89b8`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=d6c5e647c33a8034d00a06fcb190d0fc484f55cb`",
+    "`PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=795eafb366534f3d315565db05cace72a4009c4f`",
 )
 
 RECOVERED_NOTE_MARKERS = (
@@ -58,7 +58,7 @@ REMAINING_GAP_MARKERS = (
     "`zigux/tests/phase4_build.zig`",
     "`zigux/tests/bitmap_diff.zig`",
     "`zigux/tests/phase4_bitmap_live_helper_replay.zig`",
-    "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
+    "Authenticated contents reads in this runtime still flap on `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`",
 )
 
 ATOMIC64_DIRECT_MARKERS = (
@@ -66,11 +66,19 @@ ATOMIC64_DIRECT_MARKERS = (
     "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
 )
 
-FOLLOW_UP_MARKER = (
+NOTE_FOLLOW_UP_MARKER = (
+    "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` should align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, the roadmap-backed `atomic64_diff` pair, and the now-returned validator, build, and bitmap replay companions, while exact blob-pin refresh for those broader companions remains the remaining authenticated-readback gap in this handoff"
+)
+
+WARNING_FOLLOW_UP_MARKER = (
     "The remaining shared reminder follow-up from the older mixed-readback packet is now narrower: `zigux/tests/README.md`, `Documentation/zigux/README.md`, `Documentation/zigux/review-checklist.md`, and `scripts/zigux/README.md` now align on the recovered note pair, the returned helper-contract and checker packet, the direct local-only perf packet, and the roadmap-backed `atomic64_diff` pair, while the validator, build, and bitmap replay companions remain the only authenticated-readback gaps in this handoff"
 )
 
-MIXED_PROVENANCE_MARKER = (
+NOTE_MIXED_PROVENANCE_MARKER = (
+    "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for the review checklist, the tests-root reminder, the repo-reality warning checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the dedicated local-only perf checker plus companion packet; archival anchor pins only for this note's self-reference and the reversible-delivery pin checker self-reference; public-raw current-tree proof that `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig` are present again on `master`; and historical blob-pin provenance for those four companions until exact authenticated blob capture stabilizes."
+)
+
+WARNING_MIXED_PROVENANCE_MARKER = (
     "The `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_*` lines therefore remain mixed provenance in this handoff: current-head proof for the review checklist, the tests-root reminder, the repo-reality warning checker, the recovered gate-evidence note, validation matrix, validation-lane sequencing note, the recovered gate-evidence and remaining-gap checkers, the workflow-route checker, `zigux/Makefile`, `.github/workflows/zigux-bootstrap.yml`, and the dedicated local-only perf checker plus companion packet; archival anchor pins only for this note's self-reference and the reversible-delivery pin checker self-reference; and historical provenance only for the still-missing validator, build, and bitmap replay companions."
 )
 
@@ -82,8 +90,8 @@ NOTE_MARKERS = (
     + REMAINING_GAP_MARKERS
     + ATOMIC64_DIRECT_MARKERS
     + (
-        MIXED_PROVENANCE_MARKER,
-        FOLLOW_UP_MARKER,
+        NOTE_MIXED_PROVENANCE_MARKER,
+        NOTE_FOLLOW_UP_MARKER,
     )
 )
 
@@ -95,11 +103,11 @@ WARNING_MARKERS = (
     "\"scripts/zigux/check-phase4-perf-baseline-packet.py\",",
     "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`",
     "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
-    MIXED_PROVENANCE_MARKER,
+    WARNING_MIXED_PROVENANCE_MARKER,
     'REPO_REALITY_WARNING_SELF_TEST_COUNT_LABEL = "PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES"',
     "EXPECTED_REPO_REALITY_WARNING_SELF_TEST_CASES = 16",
     "EXPECTED_PIN_SELF_TEST_CASES = 14",
-    FOLLOW_UP_MARKER + '.",',
+    WARNING_FOLLOW_UP_MARKER + '.",',
 )
 
 
@@ -162,20 +170,20 @@ def baseline_note() -> str:
         "",
         "## Status",
         "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_NOTE_BLOB_SHA=9c32cfdc6d3c8d449a10ede6b3380ef84ef8aad6`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=cf5b7e8b7951fbab08751894a5582eb0a818f1f7`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_REPO_REALITY_WARNING_CHECKER_BLOB_SHA=18338cd8134d9fd962edf9b177f82e5b9bd40108`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_BLOB_SHA=a19e335ad46c6aba552d59fff4752b13d5f51c8b`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=2159f357591633f21d60d4607cf4cbfa1d086f84`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=5143b3595c7f862a25efc32916249ed68c88a713`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=c744a2a91139b31b616affa80f0030586e906a80`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_REVIEW_CHECKLIST_BLOB_SHA=0c38a3e7470f92b5b38da8659c548a51dbd09440`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_TESTS_README_BLOB_SHA=a6f9a63307ab24bf58fe574f5394fe87512d4d12`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_GATE_EVIDENCE_BLOB_SHA=fc5728aa0ea4e46d1cebecd42fafc22b30746b38`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MATRIX_BLOB_SHA=44955f39e37b9389b3b97e7d710c25b1841aedf3`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=2e7b03fa41b7fe705ce73158b55249c729caa2fd`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=c8eef0dd5ab531e6a69acacd1f694772454af012`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=81b9a93e6cbb3e9f2c0a7d95ac4961d528756902`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=263f1d20190b807f38864f76810a57f1e79c5321`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=69bbaadbd6c88c5210ca91914e639bbc5f456829`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA=5a37abd5f8c02414c9ca8e9d24043a8e8e29f428`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=049c1f90422a49ea83b5e50bf9f9fde9aa5bb501`",
-        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=ed1e702f3bd46386627b51cb60fde7b871b80215`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_REMAINING_GAP_CHECKER_BLOB_SHA=946467383c7645434f6a0787486590fb443edd6b`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_ROUTE_CHECKER_BLOB_SHA=ef333c03fa97927b2be0152b613fab727bb89a11`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_MAKEFILE_BLOB_SHA=93aebf412639ccc1122a74b87201f57f6e7bfc99`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_WORKFLOW_BLOB_SHA=76019df486d2582d3197a15cd00e7a050edcc766`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_CHECKER_BLOB_SHA=ae44be2133b0bc9b7c13b3061c4eab0ecdff3ad0`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_MANIFEST_BLOB_SHA=c535d9f78360e0c3dfd4b93f8f01b1f4b4dd89b8`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_LOCAL_PERF_SURVEY_BLOB_SHA=d6c5e647c33a8034d00a06fcb190d0fc484f55cb`",
+        "  * `PHASE4_REVERSIBLE_DELIVERY_LAST_KNOWN_SEQUENCING_NOTE_BLOB_SHA=795eafb366534f3d315565db05cace72a4009c4f`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_CHECKER_PRESENT=true`",
         "  * `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16`",
         "  * `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14`",
@@ -184,11 +192,12 @@ def baseline_note() -> str:
         "Current direct contents reads in this run also confirmed the roadmap-backed differential-gate pair `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` on current `master`.",
         "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`, so the broader review packet has partially recovered past the older all-missing state even though the broader validator, build, and bitmap replay companions still remain unreadable in authenticated contents reads for this runtime.",
         "The direct checker pair now publishes `PHASE4_REPO_REALITY_WARNING_SELF_TEST_CASES=16` and `PHASE4_REVERSIBLE_DELIVERY_PIN_SELF_TEST_CASE_COUNT=14` here",
-        "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run: authenticated contents reads returned missing for `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`.",
-        MIXED_PROVENANCE_MARKER,
+        "The broader Phase 4 validator, build, and bitmap replay companions are no longer safe to describe as current-`master` gaps in this handoff. Authenticated contents reads in this runtime still flap on `scripts/zigux/validate-phase4.py`, `zigux/tests/phase4_build.zig`, `zigux/tests/bitmap_diff.zig`, and `zigux/tests/phase4_bitmap_live_helper_replay.zig`, but public raw fallback rereads now return those files on current `master`, matching the broader review packet's recovered note-and-checker companions.",
+        "The recovered broader note pair therefore no longer overstates those validator-side and bitmap-side companions as absent current-head evidence. Treat this narrower handoff as the authoritative shared reminder while exact blob recapture for the validator, build, and bitmap replay companions still waits on steadier authenticated contents reads.",
+        NOTE_MIXED_PROVENANCE_MARKER,
         "Historical broader packet references still include `Documentation/zigux/artifact-diff.md`, `scripts/zigux/artifact_diff.py`, `scripts/zigux/check-artifact-diff-contract.py`, and `scripts/zigux/check-phase4-artifact-diff-determinism.py`.",
-        "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence",
-        FOLLOW_UP_MARKER,
+        "Current direct contents reads for `zigux/tests/atomic64_diff.zig` and `zigux/tests/runtime_atomic64_diff.zig` now return on current `master`, so keep that roadmap-backed differential-gate pair explicit as direct current-head evidence even while the broader Phase 4 companion set remains split between recovered note companions and exact-blob refresh debt.",
+        NOTE_FOLLOW_UP_MARKER,
     ]
     return "\n".join(lines) + "\n"
 
@@ -223,8 +232,8 @@ def baseline_warning() -> str:
             '"scripts/zigux/check-phase4-perf-baseline-packet.py",',
             "Current direct contents reads in this run also confirmed `Documentation/zigux/phase4-gate-evidence.md`, `Documentation/zigux/phase4-validation-matrix.md`, `Documentation/zigux/phase4-validation-lane-sequencing.md`, `scripts/zigux/check-phase4-gate-evidence.py`, `scripts/zigux/check-phase4-remaining-gap-matrix.py`, `scripts/zigux/check-phase4-workflow-route-counts.py`, `zigux/Makefile`, and `.github/workflows/zigux-bootstrap.yml` on current `master`",
             "The broader Phase 4 validator, build, and bitmap replay companions are still repo-reality gaps in this run",
-            MIXED_PROVENANCE_MARKER,
-            FOLLOW_UP_MARKER + '.",',
+            WARNING_MIXED_PROVENANCE_MARKER,
+            WARNING_FOLLOW_UP_MARKER + '.",',
         ]
     ) + "\n"
 
