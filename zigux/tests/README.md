@@ -195,18 +195,20 @@ Tests-root reviewer prompt:
 
 ## Phase 12 shared release packet
 
-Keep `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the shared Phase 12 tests-root reminder packet.
+Keep `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, `Documentation/zigux/phase12-release-coordination-matrix.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` explicit as the shared Phase 12 tests-root reminder packet.
 
 Keep `scripts/zigux/check-build-only-phase12-surface.py`, `scripts/zigux/check-phase12-release-readiness-packet.py`, and `scripts/zigux/validate-phase12.py` explicit as the shipped shared support bundle so the tests-root summary does not undercount the dedicated release-readiness checker.
 
 Current `master` keeps the shared Phase 12 rerun story split rather than absent: `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, while `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns.
+
+Keep `Documentation/zigux/phase12-raw-github-coverage-survey.md` explicit as the shared degraded-read companion so the tests-root reminder stays aligned with the same one-catalog plus one-missing-gap-note plus shared-support-bundle fallback split already named by the PMO release packet.
 
 Keep `zigux/tests/phase12_build.zig`, `.github/workflows/zigux-bootstrap.yml`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` explicit as the current shared smoke-first build gate, and keep the degraded rerun order honest by relying on the repo-local `.zig-toolchain` fallback in `zigux/Makefile` before the attached-Zig `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` vocabulary.
 
 Keep the bounded packet split explicit here too: `virtio_net` remains starter-present reviewability, `virtio_scsi` remains the smoke-first and rollback-lab packet, and `nvme_pci` stays driver-local outside the shared smoke-and-test route.
 
 Tests-root reviewer prompt:
-- Does the shared Phase 12 reminder keep the release-planning companions, the dedicated build-only and readiness checkers, the shipped validator body, the returned `phase12-smoke`, `phase12-test`, and `phase12` wrappers, the reminder-only `phase12-validate` vocabulary, the repo-local `.zig-toolchain` then attached-Zig degraded rerun order, and the bounded `virtio_net` plus `virtio_scsi` plus driver-local NVMe split aligned without widening into DMA, queue restart, throughput, or deeper transport claims?
+- Does the shared Phase 12 reminder keep the release-planning companions, the raw-coverage companion, the dedicated build-only and readiness checkers, the shipped validator body, the returned `phase12-smoke`, `phase12-test`, and `phase12` wrappers, the reminder-only `phase12-validate` vocabulary, the repo-local `.zig-toolchain` then attached-Zig degraded rerun order, and the bounded `virtio_net` plus `virtio_scsi` plus driver-local NVMe split aligned without widening into DMA, queue restart, throughput, or deeper transport claims?
 
 ## Phase 13 review packet
 
