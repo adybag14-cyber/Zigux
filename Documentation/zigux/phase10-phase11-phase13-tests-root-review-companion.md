@@ -43,7 +43,7 @@ Tests-root reviewer prompt:
 
 ## Phase 13 tests-root packet
 
-Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, and `Documentation/zigux/phase13-shared-helper-lane-sequencing.md` aligned as supporting shared reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.
+Keep the stable contributor-facing reminder handle explicit through `Documentation/zigux/phase13-contributor-workflow-guide.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase10-phase11-phase13-contributor-surface-sync.md`, `Documentation/zigux/phase13-release-coordination-matrix.md`, `Documentation/zigux/phase13-shared-helper-lane-sequencing.md`, `Documentation/zigux/phase13-release-notes-survey.md`, and `Documentation/zigux/phase13-roadmap-traceability.md` aligned as supporting shared reminder surfaces rather than treating the missing Makefile-backed route family as the shared entrypoint.
 
 Keep `scripts/zigux/check-phase13-shared-summary-surfaces.py` explicit as the shipped shared-summary guard and `scripts/zigux/check-phase13-tests-readme-alignment.py` explicit as the shipped tests-root alignment companion for that stable handle rather than as new replay routes or a Makefile-backed entrypoint.
 
