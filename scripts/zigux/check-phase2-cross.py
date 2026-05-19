@@ -244,7 +244,7 @@ def run_self_test() -> int:
             {
                 "phase": "Phase 2",
                 "status": EXPECTED_STATUS,
-                "target_count": true,
+                "target_count": True,
                 "targets": EXPECTED_TARGETS,
                 "zig_test_files": EXPECTED_ZIG_TEST_FILES,
             },
@@ -397,7 +397,7 @@ def run_self_test() -> int:
                 "target_count": len(EXPECTED_TARGETS),
                 "targets": EXPECTED_TARGETS,
                 "zig_test_files": EXPECTED_ZIG_TEST_FILES,
-                "unexpected": true,
+                "unexpected": True,
             },
         )
         issues = validate_fixture(root)
