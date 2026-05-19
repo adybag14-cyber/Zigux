@@ -592,6 +592,17 @@ def run_self_test() -> int:
         )
         expect_failure(missing_verify_cleanup_trigger, "`CleanupTrigger.hangup_only` and `CleanupTrigger.final_close_and_hangup`")
 
+        missing_verify_cleanup_prereq = tmpdir / "missing_verify_cleanup_prereq"
+        shutil.copytree(fixture, missing_verify_cleanup_prereq, dirs_exist_ok=True)
+        write(
+            missing_verify_cleanup_prereq / VERIFY_PATH,
+            read_text(missing_verify_cleanup_prereq / VERIFY_PATH).replace(
+                "`error.CleanupRequiresFinalCloseOrHangup` keeps cleanup-time tty-port release evidence tied to a prior final-close or hangup boundary",
+                "",
+            ),
+        )
+        expect_failure(missing_verify_cleanup_prereq, "`error.CleanupRequiresFinalCloseOrHangup`")
+
         missing_verify_targeted_unregister = tmpdir / "missing_verify_targeted_unregister"
         shutil.copytree(fixture, missing_verify_targeted_unregister, dirs_exist_ok=True)
         write(
@@ -625,6 +636,17 @@ def run_self_test() -> int:
         )
         expect_failure(missing_verify_notifier_prereq, "`error.NotifierDispatchRequiresTtyRegistration`")
 
+        missing_verify_targetless_unregister_sanitized = tmpdir / "missing_verify_targetless_unregister_sanitized"
+        shutil.copytree(fixture, missing_verify_targetless_unregister_sanitized, dirs_exist_ok=True)
+        write(
+            missing_verify_targetless_unregister_sanitized / VERIFY_PATH,
+            read_text(missing_verify_targetless_unregister_sanitized / VERIFY_PATH).replace(
+                "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized` keeps targetless unregister requests visible as a sanitized edge instead of implying notifier callback execution.",
+                "",
+            ),
+        )
+        expect_failure(missing_verify_targetless_unregister_sanitized, "`NotifierUnregisterTimingState.targetless_unregister_request_sanitized`")
+
         missing_verify_literal_fallback = tmpdir / "missing_verify_literal_fallback"
         shutil.copytree(fixture, missing_verify_literal_fallback, dirs_exist_ok=True)
         write(
@@ -635,6 +657,17 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_verify_literal_fallback, "the literal-fallback helpers keep both the sanitized targetless sysrq path")
+
+        missing_verify_direct_readback_boundary = tmpdir / "missing_verify_direct_readback_boundary"
+        shutil.copytree(fixture, missing_verify_direct_readback_boundary, dirs_exist_ok=True)
+        write(
+            missing_verify_direct_readback_boundary / VERIFY_PATH,
+            read_text(missing_verify_direct_readback_boundary / VERIFY_PATH).replace(
+                "do not treat this note as proof that `drivers/tty/hvc/hvc_console_verify.zig` has returned to direct current-head readback",
+                "",
+            ),
+        )
+        expect_failure(missing_verify_direct_readback_boundary, "do not treat this note as proof that `drivers/tty/hvc/hvc_console_verify.zig` has returned to direct current-head readback")
 
         missing_matrix = tmpdir / "missing_matrix"
         shutil.copytree(fixture, missing_matrix, dirs_exist_ok=True)
@@ -672,6 +705,28 @@ def run_self_test() -> int:
         )
         expect_failure(missing_matrix_export_build, "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`")
 
+        missing_matrix_status = tmpdir / "missing_matrix_status"
+        shutil.copytree(fixture, missing_matrix_status, dirs_exist_ok=True)
+        write(
+            missing_matrix_status / MATRIX_PATH,
+            read_text(missing_matrix_status / MATRIX_PATH).replace(
+                "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
+                "",
+            ),
+        )
+        expect_failure(missing_matrix_status, "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`")
+
+        missing_matrix_helper_boundary = tmpdir / "missing_matrix_helper_boundary"
+        shutil.copytree(fixture, missing_matrix_helper_boundary, dirs_exist_ok=True)
+        write(
+            missing_matrix_helper_boundary / MATRIX_PATH,
+            read_text(missing_matrix_helper_boundary / MATRIX_PATH).replace(
+                "keep helper-local failure-mode edges reviewable through `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` rather than treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned direct-readback anchor",
+                "",
+            ),
+        )
+        expect_failure(missing_matrix_helper_boundary, "keep helper-local failure-mode edges reviewable through")
+
         missing_matrix_starter_failure_modes = tmpdir / "missing_matrix_starter_failure_modes"
         shutil.copytree(fixture, missing_matrix_starter_failure_modes, dirs_exist_ok=True)
         write(
@@ -693,6 +748,28 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_starter_remove_handoff, 'test "phase11 hvc console keeps remove handoff summary reviewable" {')
+
+        missing_starter_cleanup_request = tmpdir / "missing_starter_cleanup_request"
+        shutil.copytree(fixture, missing_starter_cleanup_request, dirs_exist_ok=True)
+        write(
+            missing_starter_cleanup_request / DRIVER_PATH,
+            read_text(missing_starter_cleanup_request / DRIVER_PATH).replace(
+                "pub const CleanupHandoffRequest = struct {",
+                "",
+            ),
+        )
+        expect_failure(missing_starter_cleanup_request, "pub const CleanupHandoffRequest = struct {")
+
+        missing_starter_cleanup_handoff = tmpdir / "missing_starter_cleanup_handoff"
+        shutil.copytree(fixture, missing_starter_cleanup_handoff, dirs_exist_ok=True)
+        write(
+            missing_starter_cleanup_handoff / DRIVER_PATH,
+            read_text(missing_starter_cleanup_handoff / DRIVER_PATH).replace(
+                "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {",
+                "",
+            ),
+        )
+        expect_failure(missing_starter_cleanup_handoff, "pub fn summarizeCleanupHandoff(request: CleanupHandoffRequest) CleanupHandoffSummary {")
 
         missing_starter_notifier_edge = tmpdir / "missing_starter_notifier_edge"
         shutil.copytree(fixture, missing_starter_notifier_edge, dirs_exist_ok=True)
@@ -748,7 +825,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=22")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=28")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
