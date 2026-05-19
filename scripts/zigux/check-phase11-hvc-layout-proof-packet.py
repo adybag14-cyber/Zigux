@@ -19,7 +19,7 @@ PACKET_FILES = {
         'try expectContains(hvc_header, "(*dtr_rts)");',
     ],
     "zigux/tests/phase11_hvc_export_surface_layout_proof.zig": [
-        'const hvc_console = @import("../../drivers/tty/hvc/hvc_console.zig");',
+        'const hvc_console = @import("hvc_console");',
         'layout_assert.assertSize(HvOpsLayout, 72);',
         'layout_assert.assertOffset(HvcExportSurface, "notifier_hangup_irq", 64);',
         'assertExactType(',
@@ -34,6 +34,8 @@ PACKET_FILES = {
         'try expectContains(hvc_header, "void notifier_hangup_irq(struct hvc_struct *hp, int irq);");',
     ],
     "zigux/tests/phase11_hvc_hv_ops_layout_build.zig": [
+        '.root_source_file = b.path("../../drivers/tty/hvc/hvc_console.zig"),',
+        'export_surface_proof_module.addImport("hvc_console", hvc_console_module);',
         '.root_source_file = b.path("phase11_hvc_hv_ops_layout_proof.zig"),',
         '.root_source_file = b.path("phase11_hvc_export_surface_layout_proof.zig"),',
         '.name = "phase11-hvc-hv-ops-layout-proof-tests",',
