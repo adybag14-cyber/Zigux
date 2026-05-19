@@ -194,10 +194,11 @@ SELFTEST_DRIVER_MARKERS = (
     'Path("scripts/zigux/check-phase3-errptr-xarray-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-xarray-slot-starter-packet.py")',
     'Path("scripts/zigux/check-phase3-policy-starter-packet.py")',
+    'Path("scripts/zigux/validate-phase3.py")',
+    'Path("scripts/zigux/check-phase3-abi.py")',
     'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
     'Path("scripts/zigux/check-phase3-readme-tooling-inventory.py")',
     'Path("scripts/zigux/run-phase3-checks.py")',
-    'Path("scripts/zigux/validate-phase3.py")',
     'Path("scripts/zigux/validate-phase3-validator-support-surface.py")',
     'Path("scripts/zigux/validate-phase3-export-uapi-survey.py")',
     'Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py")',
@@ -405,6 +406,11 @@ def run_self_test() -> int:
         (
             SELFTEST_DRIVER_PATH,
             'Path("scripts/zigux/check-phase3-shared-tests-routes.py")',
+            "selftest driver",
+        ),
+        (
+            SELFTEST_DRIVER_PATH,
+            'Path("scripts/zigux/check-phase3-abi.py")',
             "selftest driver",
         ),
         (
