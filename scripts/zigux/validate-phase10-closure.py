@@ -12,7 +12,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 REQUIRED_FILES = [
+    "scripts/zigux/check-phase10-bootstrap-route.py",
     "scripts/zigux/validate-phase10-closure.py",
+    ".github/workflows/zigux-bootstrap.yml",
     "Documentation/zigux/phase10-closure-evidence.md",
     "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
     "Documentation/zigux/review-checklist.md",
@@ -29,11 +31,12 @@ MAKE_MARKERS = [
 ]
 
 CLOSURE_DOC_MARKERS = [
+    "scripts/zigux/check-phase10-bootstrap-route.py",
     "scripts/zigux/check-phase10-harness-coverage.py",
     "scripts/zigux/validate-phase10.py",
     "scripts/zigux/validate-phase10-closure.py",
     "zigux/tests/phase10_closure_manifest.json",
-    "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md",
+    "fails closed if the bootstrap workflow drops `make -C zigux phase10-validate` or reorders it behind `make -C zigux phase10-test`",
     "shared reminder-surface drift",
 ]
 
@@ -58,6 +61,7 @@ REVIEW_CHECKLIST_MARKERS = [
 MANIFEST_MARKERS = [
     '"phase": "Phase 10"',
     '"tranche": "virtio-lab-bundle"',
+    'scripts/zigux/check-phase10-bootstrap-route.py',
     '"scripts/zigux/check-phase10-harness-coverage.py"',
 ]
 
@@ -91,7 +95,16 @@ FOCUSED_HARNESS_REPLAY_FILES = [
     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
 ]
 
+EXPECTED_EXACT_CHECK_ROUTE = [
+    "python3 scripts/zigux/check-phase10-bootstrap-route.py",
+    "make -C zigux phase10-validate",
+    "make -C zigux phase10-test",
+    "make -C zigux phase10",
+]
+
 COMMANDS = [
+    ["scripts/zigux/check-phase10-bootstrap-route.py", "--self-test"],
+    ["scripts/zigux/check-phase10-bootstrap-route.py"],
     ["scripts/zigux/check-phase10-harness-coverage.py", "--self-test"],
     ["scripts/zigux/check-phase10-harness-coverage.py"],
 ]
@@ -132,6 +145,20 @@ def collect_manifest_drift(root: Path) -> list[str]:
     lane_keys = provenance.get("lane_keys", {})
     surveyed_commits = provenance.get("surveyed_commits", {})
     drift: list[str] = []
+
+    exact_checks = closure.get("exact_checks")
+    if not isinstance(exact_checks, list) or not exact_checks:
+        drift.append("exact_checks:missing")
+    else:
+        exact_route_indexes: list[int] = []
+        for item in EXPECTED_EXACT_CHECK_ROUTE:
+            if item not in exact_checks:
+                drift.append(f"exact_checks:{item!r}:missing")
+                continue
+            exact_route_indexes.append(exact_checks.index(item))
+        if len(exact_route_indexes) == len(EXPECTED_EXACT_CHECK_ROUTE):
+            if exact_route_indexes != sorted(exact_route_indexes):
+                drift.append("exact_checks:phase10_route:out_of_order")
 
     for key, path in SURVEY_MANIFESTS.items():
         manifest = read_json(root, path)
@@ -218,6 +245,28 @@ def run_required_commands(root: Path) -> list[str]:
 def write_fixture(root: Path) -> None:
     files = {
         "scripts/zigux/validate-phase10-closure.py": "fixture\n",
+        "scripts/zigux/check-phase10-bootstrap-route.py": (
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            "if '--self-test' in sys.argv[1:]:\n"
+            "    print('PHASE10_BOOTSTRAP_ROUTE_CHECKER_SELF_TEST=pass')\n"
+            "    raise SystemExit(0)\n"
+            "print('PHASE10_BOOTSTRAP_ROUTE_CHECK=pass')\n"
+        ),
+        ".github/workflows/zigux-bootstrap.yml": (
+            "name: zigux-bootstrap\n"
+            "jobs:\n"
+            "  bootstrap:\n"
+            "    steps:\n"
+            "      - name: Self-test current Phase 10 bootstrap route checker\n"
+            "        run: python3 scripts/zigux/check-phase10-bootstrap-route.py --self-test\n"
+            "      - name: Check current Phase 10 bootstrap route\n"
+            "        run: python3 scripts/zigux/check-phase10-bootstrap-route.py\n"
+            "      - name: Validate Phase 10 checker-backed review packet\n"
+            "        run: make -C zigux phase10-validate\n"
+            "      - name: Run Phase 10 helper tests\n"
+            "        run: make -C zigux phase10-test\n"
+        ),
         "Documentation/zigux/phase10-closure-evidence.md": "\n".join(CLOSURE_DOC_MARKERS) + "\n",
         "Documentation/zigux/phase10-virtio-driver-lane-sequencing.md": "\n".join(LANE_MARKERS) + "\n",
         "Documentation/zigux/review-checklist.md": "\n".join(REVIEW_CHECKLIST_MARKERS) + "\n",
@@ -237,6 +286,7 @@ def write_fixture(root: Path) -> None:
                 "lab_only_driver_validation": {
                     "evidence": ["scripts/zigux/check-phase10-harness-coverage.py"]
                 },
+                "exact_checks": EXPECTED_EXACT_CHECK_ROUTE,
                 "survey_provenance": {
                     "lane_keys": {
                         "ring": "P10-L05",
@@ -382,6 +432,31 @@ def run_self_test() -> int:
         original = json.loads(closure_path.read_text(encoding="utf-8"))
 
         broken = dict(original)
+        broken["exact_checks"] = [
+            item
+            for item in original["exact_checks"]
+            if item != "python3 scripts/zigux/check-phase10-bootstrap-route.py"
+        ]
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "exact_checks:'python3 scripts/zigux/check-phase10-bootstrap-route.py':missing" not in drift:
+            raise SystemExit("phase10-closure-self-test:bootstrap_exact_check_missing_not_detected")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
+
+        broken = dict(original)
+        broken["exact_checks"] = [
+            "make -C zigux phase10-test",
+            "python3 scripts/zigux/check-phase10-bootstrap-route.py",
+            "make -C zigux phase10-validate",
+            "make -C zigux phase10",
+        ]
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "exact_checks:phase10_route:out_of_order" not in drift:
+            raise SystemExit("phase10-closure-self-test:bootstrap_exact_check_order_not_detected")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
+
+        broken = dict(original)
         broken["survey_provenance"] = dict(original["survey_provenance"])
         broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
         broken["survey_provenance"]["lane_keys"]["ring"] = "P10-L10"
@@ -507,7 +582,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=11")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=13")
     return 0
 
 
@@ -566,6 +641,7 @@ def main() -> int:
     print(f"PHASE10_CLOSURE_READY_FOLLOWUP_COUNT={len(READY_TRANSPORT_FOLLOWUPS)}")
     print(f"PHASE10_CLOSURE_LANDED_HELPER_PACKET_COUNT={len(LANDED_HELPER_FIELDS)}")
     print(f"PHASE10_CLOSURE_FOCUSED_HARNESS_REPLAY_COUNT={len(FOCUSED_HARNESS_REPLAY_FILES)}")
+    print(f"PHASE10_CLOSURE_EXACT_ROUTE_CHECK_COUNT={len(EXPECTED_EXACT_CHECK_ROUTE)}")
     return 0
 
 
