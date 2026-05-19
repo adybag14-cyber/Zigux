@@ -429,7 +429,7 @@ def run_self_test() -> int:
             print("self-test:missing_phase9_buffer_note")
             return 1
         case_count += 1
-        build_sample_repo(root)
+        build_sampleRepo(root)
 
         note_text = load_text(root, NOTE_REL)
         write_file(root, NOTE_REL, rewrite_once(note_text, PHASE12_TAIL_NOTE_LINE + "\n"))
@@ -534,6 +534,38 @@ def run_self_test() -> int:
         expected = f"workflow_adjacent_chain:missing:{'->'.join(PHASE12_TAIL_CHAIN)}"
         if expected not in failures:
             print("self-test:broken_phase12_tail_chain_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        phase12_tail_selftest_block = (
+            "      - name: Self-test current Phase 12 tail guard\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-phase12-tail.py --self-test\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + phase12_tail_selftest_block)
+        failures = collect_failures(root)
+        if "workflow_step:Self-test current Phase 12 tail guard:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_tail_selftest_not_detected")
+            return 1
+        if "workflow_run:Self-test current Phase 12 tail guard:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_tail_selftest_run_not_detected")
+            return 1
+        case_count += 1
+        build_sample_repo(root)
+
+        workflow_text = load_text(root, WORKFLOW_REL)
+        phase12_tail_check_block = (
+            "      - name: Check current Phase 12 tail guard\n"
+            "        run: python3 scripts/zigux/check-phase1-workflow-phase12-tail.py\n"
+        )
+        write_file(root, WORKFLOW_REL, workflow_text + phase12_tail_check_block)
+        failures = collect_failures(root)
+        if "workflow_step:Check current Phase 12 tail guard:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_tail_check_not_detected")
+            return 1
+        if "workflow_run:Check current Phase 12 tail guard:expected=1:actual=2" not in failures:
+            print("self-test:duplicate_phase12_tail_check_run_not_detected")
             return 1
         case_count += 1
         build_sample_repo(root)
