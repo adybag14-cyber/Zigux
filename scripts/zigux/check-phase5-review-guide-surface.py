@@ -76,6 +76,8 @@ BYTESTREAM_CONTRACT_MARKERS = (
 NO_EXTRA_SAMPLE_MARKERS = (
     "`samples/zigux/trace_events_string_formatting_sample.zig` is a bounded trace-events formatting companion, not a fifth Phase 5 anchor and not a standalone helper packet",
     "there is no standalone `samples/zigux/*string*` Phase 5 reference sample on current `master` outside the bounded trace-events formatting companion and the shared reminder packet",
+    "there is no standalone `samples/zigux/*kasprintf*` Phase 5 reference sample on current `master`",
+    "there is no standalone `samples/zigux/*strarray*` Phase 5 reference sample on current `master`",
     "there is no standalone `samples/zigux/*cmdline*` Phase 5 reference sample on current `master`",
     "there is no standalone `samples/zigux/*argv*` Phase 5 reference sample on current `master`",
     "there is no standalone `samples/zigux/*rbtree*` Phase 5 reference sample on current `master`",
