@@ -324,11 +324,12 @@ def run_checked(root: Path, zig: str | None, target: str | None, all_targets: bo
                 print(issue)
             return 1
 
-        if zig is None:
-            return fail_with_note("zig not found on PATH")
-
         if target and all_targets:
             raise SystemExit("--target and --all-targets are mutually exclusive")
+
+        if all_targets or target:
+            if zig is None:
+                return fail_with_note("zig not found on PATH")
 
         if all_targets:
             return run_all_targets(root, zig, timeout_seconds)
@@ -355,9 +356,23 @@ def run_self_test() -> int:
         checks_run += 1
 
         payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["phase"] = "Phase X"
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert "fixture:phase:'Phase X'" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
         payload["status"] = "blocked"
         fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         assert "fixture:status:'blocked'" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["route"] = "make -C zigux phase2"
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert "fixture:route:'make -C zigux phase2'" in collect_fixture_issues(root)
         checks_run += 1
 
         build_self_test_root(root)
@@ -432,6 +447,41 @@ def run_self_test() -> int:
         issues = collect_fixture_issues(root)
         assert "fixture:archive_target_scope:['x86_64-linux']" in issues
         assert any(issue.startswith("fixture:archive_required_target_set_mismatch:") for issue in issues)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["cross_targets"] = {}
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert "fixture:cross_targets:{}" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        payload = json.loads(fixture_path.read_text(encoding="utf-8"))
+        payload["cross_targets"][0] = "broken"
+        fixture_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        assert "fixture:cross_target_entry:0:str" in collect_fixture_issues(root)
+        checks_run += 1
+
+        build_self_test_root(root)
+        result, output = capture_stdout(run_checked, root, None, None, False, 60)
+        assert result == 0
+        assert "PHASE2_CROSS_TARGET_REPLAY_MODE=summary" in output
+        assert "PHASE2_CROSS_TARGET_REPLAY_TARGET_COUNT=2" in output
+        checks_run += 1
+
+        build_self_test_root(root)
+        result, output = capture_stdout(run_checked, root, None, "x86_64-linux", False, 60)
+        assert result == 1
+        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
+        assert "zig not found on PATH" in output
+        checks_run += 1
+
+        build_self_test_root(root)
+        result, output = capture_stdout(run_checked, root, None, None, True, 60)
+        assert result == 1
+        assert "PHASE2_CROSS_TARGET_REPLAY=fail" in output
+        assert "zig not found on PATH" in output
         checks_run += 1
 
         build_self_test_root(root)
