@@ -50,7 +50,7 @@ It stays branch-scoped: live `master` still lacks parts of the broader Phase 2 p
 
 - repeated authenticated current-branch reads still returned missing for:
   - `scripts/zigux/check-phase2-cross.py`
-  - `scripts/zigux/tests/fixtures/phase2_cross_targets.json`
+  - `zigux/tests/fixtures/phase2_cross_targets.json`
   - `scripts/zigux/check-genksyms-bridge.py`
   - `scripts/zigux/install-zig.py`
 - current `master` already directly serves `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, and `scripts/zigux/install-zig.py`, so keep the direct-cross packet, the bounded genksyms checker, and the installer-backed helper in the master-present branch-missing bucket instead of treating them as gaps on both sides
