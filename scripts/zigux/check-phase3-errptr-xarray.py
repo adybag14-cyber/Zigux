@@ -61,7 +61,8 @@ REQUIRED_MARKERS = {
         'return "err_ptr";',
         '\\"safe_inline_limit_raw_hex\\"',
         'try writeCase(writer, "inline_limit", inline_limit_raw, true);',
-        'try writeCase(writer, "err_max", err_ptr.fromErrorCode(-4095), false);',
+        'try writeCase(writer, "err_floor_plus_one", err_ptr.err_floor + 1, true);',
+        'try writeCase(writer, "err_enomem", err_ptr.fromErrorCode(-12), false);',
     ),
     DUMP_BUILD_PATH: (
         '.root_source_file = b.path("../helpers/err_ptr.zig"),',
@@ -74,15 +75,15 @@ REQUIRED_MARKERS = {
         "#define MAX_ERRNO ((uintptr_t)4095)",
         "static uintptr_t err_floor(void) {",
         'return "xa_value";',
-        'write_case("inline_limit", inline_limit_raw, 1);',
-        'write_case("err_max", (uintptr_t)(intptr_t)-4095, 0);',
+        'write_case("err_floor_plus_one", err_floor() + 1, 1);',
+        'write_case("err_enomem", (uintptr_t)(intptr_t)-12, 0);',
     ),
     EXPECTED_PATH: (
         '"word_bits": 64',
         '"safe_inline_limit_raw_hex": "0xffffffffffffefff"',
-        '"name": "inline_limit"',
-        '"decoded_value": 9223372036854773759',
-        '"decoded_error": -4095',
+        '"name": "err_floor_plus_one"',
+        '"raw_hex": "0xfffffffffffff002"',
+        '"decoded_error": -4094',
     ),
     MANIFEST_PATH: (
         '"slug": "phase3-errptr-xarray"',
@@ -317,7 +318,7 @@ SELF_TEST_CASES = (
     (SLICE_PATH, "fixture-backed parity packet"),
     (VALIDATOR_NOTE_PATH, "zigux/tests/phase3_errptr_xarray_dump.zig"),
     (DUMP_PATH, '\\"safe_inline_limit_raw_hex\\"'),
-    (C_HARNESS_PATH, 'write_case("err_max", (uintptr_t)(intptr_t)-4095, 0);'),
+    (C_HARNESS_PATH, 'write_case("err_floor_plus_one", err_floor() + 1, 1);'),
     (MANIFEST_PATH, '"status": "parity_packet_present"'),
 )
 
