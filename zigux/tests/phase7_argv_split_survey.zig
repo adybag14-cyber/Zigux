@@ -32,17 +32,14 @@ fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !
     try std.testing.expect(stringSliceContains(haystack, needle));
 }
 
-fn expectStringSliceNotContains(haystack: []const []const u8, needle: []const u8) !void {
-    try std.testing.expect(!stringSliceContains(haystack, needle));
-}
-
 fn readRepoFile(allocator: std.mem.Allocator, path: []const u8) ![]u8 {
     return std.Io.Dir.cwd().readFileAlloc(std.testing.io, path, allocator, .limited(256 * 1024));
 }
 
-test "phase 7 argv split survey keeps the returned helper-local packet truthful" {
+test "phase 7 argv split survey keeps the returned fixture-backed helper-local packet truthful" {
     const allocator = std.testing.allocator;
     const checker_path = "scripts/zigux/check-phase7-argv-split-packet.py";
+    const fixture_path = "zigux/tests/fixtures/phase7_argv_split_vectors.zig";
 
     const manifest_json = try readRepoFile(allocator, "zigux/tests/phase7_argv_split_manifest.json");
     defer allocator.free(manifest_json);
@@ -59,6 +56,9 @@ test "phase 7 argv split survey keeps the returned helper-local packet truthful"
     const helper_companion = try readRepoFile(allocator, "zigux/tests/phase7_argv_split.zig");
     defer allocator.free(helper_companion);
 
+    const fixture_vectors = try readRepoFile(allocator, fixture_path);
+    defer allocator.free(fixture_vectors);
+
     const checker = try readRepoFile(allocator, checker_path);
     defer allocator.free(checker);
 
@@ -72,8 +72,9 @@ test "phase 7 argv split survey keeps the returned helper-local packet truthful"
     try std.testing.expectEqualStrings("P7-L09", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 7", manifest.phase);
     try std.testing.expectEqualStrings("lib/argv_split.c", manifest.anchor);
-    try std.testing.expectEqualStrings("helper_slice_test_survey_manifest_anchor", manifest.current_master_state);
+    try std.testing.expectEqualStrings("helper_slice_test_fixture_survey_manifest_anchor", manifest.current_master_state);
     try std.testing.expect(manifest.verified_on_utc.len != 0);
+    try std.testing.expectEqual(@as(usize, 0), manifest.missing_paths.len);
 
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-argv-split-slice.md");
     try expectStringSliceContains(manifest.review_surfaces, "Documentation/zigux/phase7-helper-lane-sequencing.md");
@@ -81,6 +82,7 @@ test "phase 7 argv split survey keeps the returned helper-local packet truthful"
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_survey.zig");
     try expectStringSliceContains(manifest.review_surfaces, "zigux/tests/phase7_argv_split_manifest.json");
+    try expectStringSliceContains(manifest.review_surfaces, fixture_path);
     try expectStringSliceContains(manifest.review_surfaces, checker_path);
     try expectStringSliceContains(manifest.review_surfaces, "samples/zigux/README.md");
 
@@ -91,37 +93,33 @@ test "phase 7 argv split survey keeps the returned helper-local packet truthful"
     try expectStringSliceContains(manifest.covered_helpers, "ArgvSplitResult.deinit");
     try expectStringSliceContains(manifest.covered_helpers, "ArgvSplitResult.cArgv");
 
-    try expectStringSliceContains(manifest.missing_paths, "zigux/tests/fixtures/phase7_argv_split_vectors.zig");
-    try expectStringSliceNotContains(manifest.missing_paths, "zigux/tests/phase7_argv_split.zig");
-
-    try expectContains(checker, "\"zigux/tests/phase7_argv_split.zig\",");
+    try expectContains(checker, "\"zigux/tests/fixtures/phase7_argv_split_vectors.zig\",");
     try expectContains(checker, "\"PHASE7_ARGV_SPLIT_PACKET_SELF_TEST=pass\",");
-    try expectContains(checker, "phase 7 argv split companion replays copied-storage token ownership");
+    try expectContains(checker, "phase7_argv_split_vectors = [_]ArgvSplitVector{");
 
-    try expectStringSliceContains(manifest.ownership_focus, "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage");
-    try expectStringSliceContains(manifest.ownership_focus, "countArgc(), cStringPrefix(), nextArgSpan(), and nextSplitArgSpan() keep token counting and separator zeroing bounded to the exported C-string prefix");
-    try expectStringSliceContains(manifest.ownership_focus, "blank-input results reuse exported empty storage and argv sentinel views without widening beyond the returned packet");
-    try expectStringSliceContains(manifest.ownership_focus, "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet");
-    try expectStringSliceContains(manifest.ownership_focus, "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders");
-    try expectContains(manifest.next_bounded_step, "fixture vectors");
-    try expectContains(manifest.next_bounded_step, "helper-local survey-manifest-checker truthfulness");
-
-    try expectContains(sequencing_note, "- argv-split packet, lane `P7-L09`:");
-    try expectContains(sequencing_note, "  - `zigux/tests/phase7_argv_split.zig`");
-    try expectContains(sequencing_note, "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;");
+    try expectContains(fixture_vectors, "pub const ArgvSplitVector = struct {");
+    try expectContains(fixture_vectors, "pub const phase7_argv_split_vectors = [_]ArgvSplitVector{");
+    try expectContains(fixture_vectors, "copied_storage_whitespace_packet");
+    try expectContains(fixture_vectors, "blank_input_reuses_empty_packet");
+    try expectContains(fixture_vectors, "first_nul_truncation_keeps_tail_outside_packet");
+    try expectContains(fixture_vectors, "quoted_tokens_stay_whitespace_split");
 
     try expectContains(slice_note, "`PHASE7_STATUS=helper_local_test_packet_landed`");
     try expectContains(slice_note, "`PHASE7_SLICE=argv-split-runtime-leaf`");
-    try expectContains(slice_note, "`Documentation/zigux/phase7-argv-split-slice.md`, `lib/argv_split.zig`, `zigux/tests/phase7_argv_split.zig`, `zigux/tests/phase7_argv_split_survey.zig`, `zigux/tests/phase7_argv_split_manifest.json`, `scripts/zigux/check-phase7-argv-split-packet.py`, and `samples/zigux/README.md`.");
-    try expectContains(slice_note, "`zigux/tests/fixtures/phase7_argv_split_vectors.zig` explicit as the remaining same-lane follow-on");
-    try expectContains(slice_note, "Keep the dedicated argv_split replay, survey, manifest, checker, and no-standalone-argv-sample boundary fail-closed");
+    try expectContains(slice_note, "`zigux/tests/fixtures/phase7_argv_split_vectors.zig`");
+    try expectContains(slice_note, "Treat those surfaces as the current helper-local packet for this slice and keep same-lane follow-through inside that returned fixture-backed packet.");
+    try expectContains(slice_note, "Keep same-lane follow-through limited to the returned fixture-backed helper-local survey-manifest-checker truthfulness packet or one bounded vector-backed replay proof.");
+
+    try expectContains(sequencing_note, "- argv-split packet, lane `P7-L09`:");
+    try expectContains(sequencing_note, "  - `zigux/tests/fixtures/phase7_argv_split_vectors.zig`");
+    try expectContains(sequencing_note, "Fresh helper-local reread for this slot confirmed the dedicated fixture vectors have now returned on current `master`");
+    try expectContains(sequencing_note, "`P7-L09` owns only argv-split helper-local parity, survey, manifest, fixture, checker, or reminder drift;");
 
     try expectContains(helper, "pub const ArgvSplitResult = struct {");
     try expectContains(helper, "pub fn countArgc");
     try expectContains(helper, "pub fn argvSplit");
     try expectContains(helper, "pub fn argvSplitWithArgc");
     try expectContains(helper, "pub fn argvFree");
-    try expectContains(helper, "pub fn deinit(self: *ArgvSplitResult, allocator: std.mem.Allocator) void");
     try expectContains(helper, "pub fn cArgv(self: *const ArgvSplitResult)");
     try expectContains(helper, "fn nextSplitArgSpan");
 
@@ -129,6 +127,15 @@ test "phase 7 argv split survey keeps the returned helper-local packet truthful"
     try expectContains(helper_companion, "phase 7 argv split companion replays copied-storage token ownership");
     try expectContains(helper_companion, "phase 7 argv split companion replays blank-input sentinel reuse and first-NUL truncation");
     try expectContains(helper_companion, "phase 7 argv split companion replays caller-owned teardown and failure boundaries");
+
+    try expectStringSliceContains(manifest.ownership_focus, "argvSplit() duplicates the caller input before tokenizing so returned tokens stay inside helper-owned storage");
+    try expectStringSliceContains(manifest.ownership_focus, "countArgc(), cStringPrefix(), nextArgSpan(), and nextSplitArgSpan() keep token counting and separator zeroing bounded to the exported C-string prefix");
+    try expectStringSliceContains(manifest.ownership_focus, "blank-input results reuse exported empty storage and argv sentinel views without widening beyond the returned packet");
+    try expectStringSliceContains(manifest.ownership_focus, "deinit(), argvFree(), allocator-failure cleanup, and overflow rejection keep release ownership explicit without widening beyond the returned argv packet");
+    try expectStringSliceContains(manifest.ownership_focus, "fixture vectors keep copied-storage, blank-input, first-NUL truncation, and quoted-token packet expectations reviewable without widening into shared-control ownership");
+    try expectStringSliceContains(manifest.ownership_focus, "the no-standalone-argv sample boundary stays explicit only while `samples/zigux/README.md` keeps `*argv*` listed among the no-extra-sample reminders");
+    try expectContains(manifest.next_bounded_step, "fixture-backed");
+    try expectContains(manifest.next_bounded_step, "vector-backed replay proof");
 
     try expectContains(samples_readme, "Current `master` still ships no standalone Phase 5 sample-root files here for:");
     try expectContains(samples_readme, "* `*argv*`");
