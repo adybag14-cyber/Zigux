@@ -66,8 +66,8 @@ MARKERS = {
         'print("PHASE1_SHARED_REMINDER_PACKET_SELF_TEST=pass")',
     ),
     "scripts/zigux/check-phase1-string-review-packet.py": (
-        "STRING_REVIEW_RULE_LINE = (",
-        "COUNTED_SEARCH_REVIEW_RULE_LINE = (",
+        "EXPECTED_STRING_SOURCE_SYMBOLS = [",
+        "EXPECTED_HELPER_TEST_ANCHORS = [",
         'print("phase1-string-review-packet:ok")',
     ),
     "scripts/zigux/validate-phase1-closure.py": (
