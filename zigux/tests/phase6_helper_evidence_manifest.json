@@ -5,7 +5,6 @@
   "lane_scope": "shared helper-evidence rows and machine-readable manifest only",
   "current_direct_readback_companions": [
     "Documentation/zigux/phase6-helper-evidence-catalog.md",
-    "Documentation/zigux/README.md",
     "scripts/zigux/README.md",
     "zigux/tests/README.md",
     "zigux/Makefile",
