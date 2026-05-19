@@ -86,6 +86,12 @@ fn compareDirectOpaqueInt(key: *const anyopaque, item: *const anyopaque) i32 {
     return compareDirectInt(typed_key, typed_item);
 }
 
+fn compareDirectOpaqueDescendingInt(key: *const anyopaque, item: *const anyopaque) i32 {
+    const typed_key: *const u32 = @ptrCast(@alignCast(key));
+    const typed_item: *const u32 = @ptrCast(@alignCast(item));
+    return compareDirectDescendingInt(typed_key, typed_item);
+}
+
 fn compareSymbol(key: *const []const u8, item: *const []const u8) i32 {
     return switch (std.mem.order(u8, key.*, item.*)) {
         .lt => -1,
@@ -336,6 +342,43 @@ test "phase 6 bsearch direct equalRange wrappers keep duplicate-span and write-t
     try std.testing.expectEqual(@as(u32, 22), mutable_raw_duplicates[5]);
 }
 
+test "phase 6 bsearch direct descending equalRange wrappers keep duplicate-span and write-through coverage aligned" {
+    const descending_duplicates = fixtures.representative_descending_duplicate_values;
+    const duplicate_target = @as(u32, 21);
+
+    const typed_view = bsearch.equalRange(u32, u32, &duplicate_target, descending_duplicates[0..], compareDirectDescendingInt);
+    try std.testing.expectEqual(@as(usize, 3), typed_view.len);
+    try std.testing.expectEqualSlices(u32, &[_]u32{ 21, 21, 21 }, typed_view);
+
+    const missing_target = @as(u32, 20);
+    const missing_view = bsearch.equalRange(u32, u32, &missing_target, descending_duplicates[0..], compareDirectDescendingInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_view.len);
+    try std.testing.expectEqual(@intFromPtr(&descending_duplicates[6]), @intFromPtr(missing_view.ptr));
+
+    var mutable_duplicates = descending_duplicates;
+    const mutable_view = bsearch.equalRangeMutable(u32, u32, &duplicate_target, mutable_duplicates[0..], compareDirectDescendingInt);
+    try std.testing.expectEqual(@as(usize, 3), mutable_view.len);
+    mutable_view[1] = 22;
+    try std.testing.expectEqual(@as(u32, 22), mutable_duplicates[4]);
+
+    const duplicate_bytes = bsearch.bsearchEqualRange(&duplicate_target, @ptrCast(descending_duplicates[0..].ptr), descending_duplicates.len, @sizeOf(u32), compareDirectOpaqueDescendingInt);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(u32)), duplicate_bytes.len);
+    const typed_duplicate_bytes: [*]const u32 = @ptrCast(@alignCast(duplicate_bytes.ptr));
+    try std.testing.expectEqual(@as(u32, 21), typed_duplicate_bytes[0]);
+    try std.testing.expectEqual(@as(u32, 21), typed_duplicate_bytes[2]);
+
+    const missing_bytes = bsearch.bsearchEqualRange(&missing_target, @ptrCast(descending_duplicates[0..].ptr), descending_duplicates.len, @sizeOf(u32), compareDirectOpaqueDescendingInt);
+    try std.testing.expectEqual(@as(usize, 0), missing_bytes.len);
+    try std.testing.expectEqual(@intFromPtr(@as([*]const u8, @ptrCast(descending_duplicates[0..].ptr)) + (6 * @sizeOf(u32))), @intFromPtr(missing_bytes.ptr));
+
+    var mutable_raw_duplicates = descending_duplicates;
+    const mutable_bytes = bsearch.bsearchEqualRangeMutable(&duplicate_target, @ptrCast(mutable_raw_duplicates[0..].ptr), mutable_raw_duplicates.len, @sizeOf(u32), compareDirectOpaqueDescendingInt);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(u32)), mutable_bytes.len);
+    const typed_mutable_bytes: [*]u32 = @ptrCast(@alignCast(mutable_bytes.ptr));
+    typed_mutable_bytes[1] = 22;
+    try std.testing.expectEqual(@as(u32, 22), mutable_raw_duplicates[4]);
+}
+
 test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator pointers" {
     const values = fixtures.representative_descending_values;
     const comparators = [_]bsearch.CRawComparator{
@@ -352,7 +395,7 @@ test "phase 6 bsearch accepts runtime-selected descending raw c abi comparator p
 
 test "phase 6 bsearch accepts runtime-selected typed c abi comparator pointers" {
     const ascending_duplicates = fixtures.representative_duplicate_values;
-    const descending_duplicates = [_]u32{ 45, 42, 39, 21, 21, 21, 12, 9, 6, 3 };
+    const descending_duplicates = fixtures.representative_descending_duplicate_values;
 
     const cases = [_]struct {
         items: []const u32,
