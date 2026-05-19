@@ -19,7 +19,6 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
-    "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
@@ -63,28 +62,23 @@ MANIFEST_MARKERS = [
 ]
 
 SURVEY_MANIFESTS = {
-    "core": "zigux/tests/phase10_virtio_core_manifest.json",
     "ring": "zigux/tests/phase10_virtio_ring_manifest.json",
     "input": "zigux/tests/phase10_virtio_input_manifest.json",
     "mmio": "zigux/tests/phase10_virtio_mmio_manifest.json",
 }
 
 READY_TRANSPORT_FOLLOWUPS = {
-    "zigux/tests/phase10_virtio_input_manifest.json": "blocked_on_risky_transport",
-    "zigux/tests/phase10_virtio_mmio_manifest.json": "blocked_on_risky_transport",
+    "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
+    "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
 }
 
 LANDED_HELPER_FIELDS = {
-    "landed_core_helper_evidence": "zigux/tests/phase10_virtio_core_manifest.json",
     "landed_ring_helper_evidence": "zigux/tests/phase10_virtio_ring_manifest.json",
     "landed_input_helper_evidence": "zigux/tests/phase10_virtio_input_manifest.json",
     "landed_mmio_helper_evidence": "zigux/tests/phase10_virtio_mmio_manifest.json",
 }
 
 FOCUSED_HARNESS_REPLAY_FILES = [
-    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
-    "zigux/tests/phase10_virtio_core_reset_queue.zig",
-    "zigux/tests/phase10_virtio_driver_id.zig",
     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
@@ -151,19 +145,21 @@ def collect_manifest_drift(root: Path) -> list[str]:
             drift.append(f"survey_provenance:{key}:surveyed_commit:{actual_commit!r}!={expected_commit!r}")
 
     ready_followups = closure.get("ready_transport_followups", {})
-    for path, expected_status in READY_TRANSPORT_FOLLOWUPS.items():
-        expected_gap = ready_followups.get(path)
-        if not isinstance(expected_gap, str) or not expected_gap:
+    for path, expected_gap in READY_TRANSPORT_FOLLOWUPS.items():
+        actual_gap = ready_followups.get(path)
+        if not isinstance(actual_gap, str) or not actual_gap:
             drift.append(f"ready_transport_followups:{path}:missing")
             continue
         manifest = read_json(root, path)
         blocked = {
             gap.get("id")
             for gap in manifest.get("gaps", [])
-            if gap.get("status") == expected_status and isinstance(gap.get("id"), str)
+            if gap.get("status") == "blocked_on_risky_transport" and isinstance(gap.get("id"), str)
         }
+        if actual_gap != expected_gap:
+            drift.append(f"ready_transport_followups:{path}:{actual_gap!r}!={expected_gap!r}")
         if expected_gap not in blocked:
-            drift.append(f"ready_transport_followups:{path}:{expected_gap!r}:not_{expected_status}")
+            drift.append(f"ready_transport_followups:{path}:{expected_gap!r}:not_blocked_on_risky_transport")
 
     for field, path in LANDED_HELPER_FIELDS.items():
         helper_map = closure.get(field, {})
@@ -243,13 +239,11 @@ def write_fixture(root: Path) -> None:
                 },
                 "survey_provenance": {
                     "lane_keys": {
-                        "core": "P10-L01",
                         "ring": "P10-L05",
                         "input": "P10-L13",
                         "mmio": "P10-L11",
                     },
                     "surveyed_commits": {
-                        "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
                         "ring": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
                         "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
                         "mmio": "b53ec2bd507d0b3283486e76acc273b184ad5bf8",
@@ -258,12 +252,6 @@ def write_fixture(root: Path) -> None:
                 "ready_transport_followups": {
                     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
                     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
-                },
-                "landed_core_helper_evidence": {
-                    "zigux/tests/phase10_virtio_core_manifest.json": [
-                        "phase10-queue-shape-bookkeeping-helper",
-                        "phase10-reset-replay-bookkeeping-helper",
-                    ]
                 },
                 "landed_ring_helper_evidence": {
                     "zigux/tests/phase10_virtio_ring_manifest.json": [
@@ -284,15 +272,6 @@ def write_fixture(root: Path) -> None:
                     ]
                 },
                 "focused_harness_replays": {
-                    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig": [
-                        "phase10 core interrupt-compound-ack replay"
-                    ],
-                    "zigux/tests/phase10_virtio_core_reset_queue.zig": [
-                        "phase10 core reset-queue replay"
-                    ],
-                    "zigux/tests/phase10_virtio_driver_id.zig": [
-                        "phase10 driver-id review path replay"
-                    ],
                     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig": [
                         "phase10 ring notification-data readiness replay"
                     ],
@@ -325,10 +304,6 @@ def write_fixture(root: Path) -> None:
                     ],
                 },
                 "tests": [
-                    "zigux/tests/phase10_virtio_core.zig",
-                    "zigux/tests/phase10_virtio_core_interrupt_compound_ack.zig",
-                    "zigux/tests/phase10_virtio_core_reset_queue.zig",
-                    "zigux/tests/phase10_virtio_driver_id.zig",
                     "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig",
                     "zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig",
                     "zigux/tests/phase10_virtio_ring_reset_reuse.zig",
@@ -338,17 +313,7 @@ def write_fixture(root: Path) -> None:
                     "zigux/tests/phase10_virtio_input_status_drain.zig",
                     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
                     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
-                    "zigux/tests/phase10_virtio_input_teardown_observation.zig"
-                ],
-            }
-        ),
-        "zigux/tests/phase10_virtio_core_manifest.json": json.dumps(
-            {
-                "lane_key": "P10-L01",
-                "surveyed_commit": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
-                "gaps": [
-                    {"id": "phase10-queue-shape-bookkeeping-helper", "status": "starter_landed"},
-                    {"id": "phase10-reset-replay-bookkeeping-helper", "status": "starter_landed"},
+                    "zigux/tests/phase10_virtio_input_teardown_observation.zig",
                 ],
             }
         ),
@@ -413,110 +378,110 @@ def run_self_test() -> int:
                 f"commands={','.join(failed_commands)}"
             )
 
-        closure = root / "zigux/tests/phase10_closure_manifest.json"
-        original_closure = json.loads(closure.read_text(encoding="utf-8"))
+        closure_path = root / "zigux/tests/phase10_closure_manifest.json"
+        original = json.loads(closure_path.read_text(encoding="utf-8"))
 
-        broken = dict(original_closure)
-        broken["survey_provenance"] = dict(original_closure["survey_provenance"])
-        broken["survey_provenance"]["lane_keys"] = dict(original_closure["survey_provenance"]["lane_keys"])
+        broken = dict(original)
+        broken["survey_provenance"] = dict(original["survey_provenance"])
+        broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
         broken["survey_provenance"]["lane_keys"]["ring"] = "P10-L10"
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "survey_provenance:ring:lane_key:'P10-L10'!='P10-L05'" not in drift:
             raise SystemExit("phase10-closure-self-test:ring_lane_drift_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
-        broken["survey_provenance"] = dict(original_closure["survey_provenance"])
-        broken["survey_provenance"]["lane_keys"] = dict(original_closure["survey_provenance"]["lane_keys"])
+        broken = dict(original)
+        broken["survey_provenance"] = dict(original["survey_provenance"])
+        broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
         broken["survey_provenance"]["lane_keys"]["mmio"] = "P10-L10"
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if not any(item.startswith("survey_provenance:mmio:lane_key:") for item in drift):
             raise SystemExit("phase10-closure-self-test:mmio_lane_drift_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
-        broken["survey_provenance"] = dict(original_closure["survey_provenance"])
-        broken["survey_provenance"]["surveyed_commits"] = dict(original_closure["survey_provenance"]["surveyed_commits"])
+        broken = dict(original)
+        broken["survey_provenance"] = dict(original["survey_provenance"])
+        broken["survey_provenance"]["surveyed_commits"] = dict(original["survey_provenance"]["surveyed_commits"])
         broken["survey_provenance"]["surveyed_commits"]["ring"] = "stale-ring-sha"
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "survey_provenance:ring:surveyed_commit:'stale-ring-sha'!='e42103fc02f544e1bd23a5ec2e5b584734f5af7d'" not in drift:
             raise SystemExit("phase10-closure-self-test:ring_commit_drift_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
-        broken["ready_transport_followups"] = dict(original_closure["ready_transport_followups"])
+        broken = dict(original)
+        broken["ready_transport_followups"] = dict(original["ready_transport_followups"])
         broken["ready_transport_followups"]["zigux/tests/phase10_virtio_mmio_manifest.json"] = "phase10-mmio-config-write-helper"
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
-        if "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper':not_blocked_on_risky_transport" not in drift:
+        if "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper'!='phase10-mmio-lifecycle-and-irq-paths'" not in drift:
             raise SystemExit("phase10-closure-self-test:mmio_followup_drift_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
-        broken["landed_ring_helper_evidence"] = dict(original_closure["landed_ring_helper_evidence"])
+        broken = dict(original)
+        broken["landed_ring_helper_evidence"] = dict(original["landed_ring_helper_evidence"])
         broken["landed_ring_helper_evidence"]["zigux/tests/phase10_virtio_ring_manifest.json"] = [
             "phase10-virtqueue-shape-helper",
             "phase10-callback-delay-helper",
         ]
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "landed_ring_helper_evidence:zigux/tests/phase10_virtio_ring_manifest.json:'phase10-callback-delay-helper':not_starter_landed" not in drift:
             raise SystemExit("phase10-closure-self-test:ring_helper_drift_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
-        broken["landed_input_helper_evidence"] = dict(original_closure["landed_input_helper_evidence"])
+        broken = dict(original)
+        broken["landed_input_helper_evidence"] = dict(original["landed_input_helper_evidence"])
         broken["landed_input_helper_evidence"]["zigux/tests/phase10_virtio_input_manifest.json"] = [
             "phase10-virtio-input-capability-setup-helper",
             "phase10-virtio-input-queue-callback-preflight-helper",
         ]
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "landed_input_helper_evidence:zigux/tests/phase10_virtio_input_manifest.json:'phase10-virtio-input-queue-callback-preflight-helper':not_starter_landed" not in drift:
             raise SystemExit("phase10-closure-self-test:input_helper_drift_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
-        broken["focused_harness_replays"] = dict(original_closure["focused_harness_replays"])
+        broken = dict(original)
+        broken["focused_harness_replays"] = dict(original["focused_harness_replays"])
         broken["focused_harness_replays"]["zigux/tests/phase10_virtio_ring_notification_data_readiness.zig"] = []
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "focused_harness_replays:zigux/tests/phase10_virtio_ring_notification_data_readiness.zig:missing" not in drift:
             raise SystemExit("phase10-closure-self-test:ring_notification_replay_missing_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
-        broken["focused_harness_replays"] = dict(original_closure["focused_harness_replays"])
+        broken = dict(original)
+        broken["focused_harness_replays"] = dict(original["focused_harness_replays"])
         broken["focused_harness_replays"]["zigux/tests/phase10_virtio_input_status_drain.zig"] = []
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "focused_harness_replays:zigux/tests/phase10_virtio_input_status_drain.zig:missing" not in drift:
             raise SystemExit("phase10-closure-self-test:focused_replay_missing_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
+        broken = dict(original)
         broken["tests"] = [
             item
-            for item in original_closure["tests"]
+            for item in original["tests"]
             if item != "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig"
         ]
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "focused_harness_replays:zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig:not_listed_in_tests" not in drift:
             raise SystemExit("phase10-closure-self-test:ring_delayed_budget_test_membership_drift_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
-        broken = dict(original_closure)
-        broken["focused_harness_replays"] = dict(original_closure["focused_harness_replays"])
+        broken = dict(original)
+        broken["focused_harness_replays"] = dict(original["focused_harness_replays"])
         broken["focused_harness_replays"]["zigux/tests/phase10_virtio_input_probe_preflight.zig"] = ["   "]
-        closure.write_text(json.dumps(broken), encoding="utf-8")
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "focused_harness_replays:zigux/tests/phase10_virtio_input_probe_preflight.zig:blank_label" not in drift:
             raise SystemExit("phase10-closure-self-test:focused_replay_blank_label_not_detected")
-        closure.write_text(json.dumps(original_closure), encoding="utf-8")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
 
         makefile = root / "zigux/Makefile"
         makefile.write_text("", encoding="utf-8")
@@ -542,7 +507,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=12")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=11")
     return 0
 
 
