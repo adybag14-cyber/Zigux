@@ -40,7 +40,7 @@ SURVEY_NOTE_MARKERS = [
 
 COMPANION_MARKERS = [
     "# Phase 10 virtio MMIO Config-Write Disposition Companion",
-    "surveyed against current `master` readback on `2026-05-18`",
+    "surveyed against current `master` readback on `2026-05-19`",
     "Current `master` readback keeps this narrower MMIO packet explicit through:",
     "`drivers/virtio/virtio_mmio.zig` carries the richer config-write disposition observation helper",
     "`drivers/virtio/virtio_mmio_verify.zig` keeps the changed-byte-count, interrupt-ack-disposition, and queue-readiness wrapper proof explicit beside the helper",
@@ -210,7 +210,7 @@ def write_fixture_files(root: Path) -> None:
 def expect_missing_marker(root: Path, rel_path: str, old: str, new: str, expected: str) -> None:
     path = root / rel_path
     original = path.read_text(encoding="utf-8")
-    path.write_text(original.replace(old, new, 1), encoding="utf-8")
+    path.writeText(original.replace(old, new, 1), encoding="utf-8")
     missing_files, missing_markers = validate(root)
     if missing_files:
         raise SystemExit(f"phase10-mmio-packet-self-test:unexpected_missing_files:{','.join(missing_files)}")
