@@ -60,7 +60,7 @@ The real same-lane gap is still truthfulness about directly readable segment evi
 
 Current `master` now exposes a slightly larger helper-first Phase 8 libbpf packet because `cpu_mask.zig`, `logging.zig`, and `perf_buffer_poll.zig` are exact-readable current-head evidence again, and the current reminder surfaces already keep the dedicated `Documentation/zigux/phase8-perf-buffer-poll-slice.md` timing boundary explicit. The smallest current truthful next step is to keep the survey honest about both the directly readable helper packet and the already-landed poll-boundary reminder packet without overstating the deferred setup-side routing work.
 
-A fresh exact reread also now returns this survey itself and `zigux/Makefile`, so sibling reminder surfaces that still group either path with the remaining authenticated gaps are lagging current repo reality rather than defining it.
+A fresh exact reread also now returns this survey itself and `zigux/Makefile`, and the still-current `scripts/zigux/README.md` Phase 8 packet is one concrete sibling reminder surface that still groups `Documentation/zigux/phase8-libbpf-segment-survey.md` with the remaining authenticated gaps. That scripts-root wording is now lagging current repo reality rather than defining it.
 
 So the dedicated survey needs to keep four facts explicit at the same time:
 - the roadmap still calls for segmented libbpf delivery under `tools/lib/bpf/zigux_segments/`
