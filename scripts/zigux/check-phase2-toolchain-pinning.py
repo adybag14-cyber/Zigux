@@ -60,10 +60,17 @@ SURFACE_PATHS = (
 WORKFLOW_SETUP_MARKERS = (
     "- name: Setup pinned Zig toolchain",
     'policy = json.loads(Path("scripts/zigux/zig-toolchain-policy.json").read_text(encoding="utf-8"))',
+    'print(f"ZIGUX_ZIG_TARGET=\'{target}\'")',
+    'print(f"ZIGUX_ZIG_CHANNEL=\'{channel}\'")',
+    'print(f"ZIGUX_ZIG_FILENAME=\'{filename}\'")',
+    'print(f"ZIGUX_ZIG_URL=\'{url}\'")',
+    'extract_root="$GITHUB_WORKSPACE/.zig-toolchain/zig-$ZIGUX_ZIG_TARGET-$ZIGUX_ZIG_CHANNEL"',
     'mirror_file=".zig-toolchain/community-mirrors.txt"',
     'if curl -L --fail https://ziglang.org/download/community-mirrors.txt -o "$mirror_file"; then',
     'if python3 scripts/zigux/check-zig-toolchain.py --archive-only --archive "$archive_path" --archive-target "$ZIGUX_ZIG_TARGET"; then',
     'if python3 scripts/zigux/check-zig-toolchain.py --zig "$zig_path"; then',
+    'echo "$extract_root" >> "$GITHUB_PATH"',
+    '"$zig_path" version',
     "echo 'failed to install a verified pinned Zig archive from mirrors or ziglang.org' >&2",
 )
 
@@ -216,6 +223,7 @@ EXPECTED_TOOL_MANIFEST = {
 EXPECTED_SELF_TEST_CASE_COUNT = (
     1
     + len(WORKFLOW_SETUP_MARKERS)
+    + len(WORKFLOW_SETUP_MARKERS)
     + len(WORKFLOW_LINES)
     + len(WORKFLOW_LINES)
     + len(BOOTSTRAP_PRESENT_MARKERS)
@@ -348,7 +356,13 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     bootstrap_present_text = extract_markdown_section(bootstrap_notes_text, "## Current direct packet")
     bootstrap_gap_text = extract_markdown_section(bootstrap_notes_text, "## Current repo-reality gaps")
 
-    issues.extend(collect_missing_markers(workflow_text, WORKFLOW_SETUP_MARKERS, "MISSING_WORKFLOW_SETUP_MARKERS"))
+    for marker in WORKFLOW_SETUP_MARKERS:
+        count = count_exact_lines(workflow_text, marker)
+        if count == 0:
+            issues.append(("MISSING_WORKFLOW_SETUP_MARKERS", marker))
+        elif count != 1:
+            issues.append(("DUPLICATE_WORKFLOW_SETUP_MARKERS", f"{marker}:count={count}"))
+
 
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
@@ -460,6 +474,14 @@ def run_self_test() -> int:
             path.write_text(replace_once(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
             issues = collect_issues(root)
             assert ("MISSING_WORKFLOW_SETUP_MARKERS", marker) in issues
+            checks_run += 1
+
+        for marker in WORKFLOW_SETUP_MARKERS:
+            build_self_test_root(root)
+            path = resolve_path(root, WORKFLOW)
+            path.write_text(duplicate_exact_line(path.read_text(encoding="utf-8"), marker), encoding="utf-8")
+            issues = collect_issues(root)
+            assert ("DUPLICATE_WORKFLOW_SETUP_MARKERS", f"{marker}:count=2") in issues
             checks_run += 1
 
         for marker in WORKFLOW_LINES:
