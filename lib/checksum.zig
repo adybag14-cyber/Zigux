@@ -277,6 +277,42 @@ test "partial and compute match reference accumulation across seeded odd payload
     }
 }
 
+fn expectFragmentedPartialMatchesWhole(payload: []const u8, split: usize, seed: u32) !void {
+    const head = payload[0..split];
+    const tail = payload[split..];
+    const head_partial = partial(head, seed);
+    const tail_partial = partial(tail, 0);
+    const recomposed = blockAdd(head_partial, tail_partial, head.len);
+
+    try std.testing.expectEqual(partial(payload, seed), normalize(recomposed));
+    if (seed == 0) {
+        try std.testing.expectEqual(compute(payload), fold(recomposed));
+    }
+}
+
+test "block helpers recompute whole payload partials across fragment boundaries" {
+    const odd_payload = [_]u8{ 0xde, 0xad, 0xbe, 0xef, 0x42 };
+    const even_payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
+    const singleton_payload = [_]u8{0xa5};
+    const empty_payload = [_]u8{};
+    const payloads = [_][]const u8{
+        empty_payload[0..],
+        singleton_payload[0..],
+        odd_payload[0..],
+        even_payload[0..],
+        "phase6-fragment-checksum",
+    };
+    const seeds = [_]u32{ 0, 0x1357_9bdf, 0xffff_ffff };
+
+    for (payloads) |payload| {
+        for (seeds) |seed| {
+            for (0..payload.len + 1) |split| {
+                try expectFragmentedPartialMatchesWhole(payload, split, seed);
+            }
+        }
+    }
+}
+
 test "replacement helpers match direct recomputation for payload and header edits" {
     var payload = [_]u8{ 0x70, 0x68, 0x61, 0x73, 0x65, 0x36 };
     const old_partial = partial(&payload, 0);
