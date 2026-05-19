@@ -28,10 +28,13 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-phase2-artifact-tools-manifest.py",
     "scripts/zigux/check-genksyms-bridge.py",
+    "scripts/zigux/check-phase2-fixdep-gate.py",
+    "scripts/zigux/check-fixdep-diff.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
     "scripts/zigux/kconfig/confdata_bridge.zig",
     "scripts/zigux/genksyms.zig",
+    "scripts/zigux/fixdep.zig",
     "scripts/zigux/zig-toolchain-policy.json",
     "zigux/tests/README.md",
     "zigux/tests/fixtures/kconfig_bridge/cases.json",
@@ -46,6 +49,7 @@ REQUIRED_PATHS = (
     "zigux/tests/fixtures/phase2_tool_manifest.json",
     "zigux/tests/fixtures/phase2_artifact_tools_manifest.json",
     "zigux/tests/fixtures/phase2_cross_targets.json",
+    "zigux/tests/fixtures/fixdep/cases.json",
     MAKEFILE,
 )
 
@@ -54,6 +58,11 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-zig-toolchain.py --policy-only",
     "run: python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing",
     "run: python3 scripts/zigux/install-zig.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-fixdep-gate.py",
+    "run: python3 scripts/zigux/check-fixdep-diff.py --self-test",
+    "run: python3 scripts/zigux/check-fixdep-diff.py",
+    "run: zig test scripts/zigux/fixdep.zig",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test",
     "run: python3 scripts/zigux/check-phase2-toolchain-pinning.py",
     "run: python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test",
@@ -91,7 +100,7 @@ REQUIRED_WORKFLOW_LINES = (
 
 DISALLOWED_WORKFLOW_LINES: tuple[str, ...] = ()
 
-REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-validate phase2"
+REQUIRED_PHASE2_PHONY_LINE = ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep phase2-validate phase2"
 REQUIRED_PHASE2_PHONY_TARGETS = set(REQUIRED_PHASE2_PHONY_LINE.split(":", 1)[1].strip().split())
 
 REQUIRED_MAKEFILE_LINES = (
@@ -118,7 +127,13 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py --self-test",
     "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-genksyms-bridge.py",
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
-    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
+    "phase2-fixdep:",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-phase2-fixdep-gate.py",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py --self-test",
+    "cd $(ZIGUX_ROOT) && $(PYTHON) scripts/zigux/check-fixdep-diff.py",
+    "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/fixdep.zig",
+    "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms phase2-fixdep",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
@@ -314,7 +329,7 @@ def run_self_test() -> int:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, and genksyms packet.")
+    parser = argparse.ArgumentParser(description="Validate the current Phase 2 toolchain, kbuild, kconfig, genksyms, and fixdep packet.")
     parser.add_argument("--root", type=Path, default=ROOT, help="Repository root to inspect")
     parser.add_argument("--self-test", action="store_true", help="Run built-in contract checks")
     args = parser.parse_args()
