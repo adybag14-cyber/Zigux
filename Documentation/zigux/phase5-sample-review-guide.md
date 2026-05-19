@@ -110,6 +110,12 @@ Keep the current split explicit too:
 
 For `kretprobe`, follow the restored direct packet recorded in `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `samples/zigux/kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example.zig`, `zigux/tests/phase5_kretprobe_example_manifest.json`, and `zigux/tests/phase5_kretprobe_example_survey.zig`, while keeping `zigux/tests/phase5_build.zig` framed only as current public-tree-backed companion evidence.
 
+Keep the current kretprobe contributor cues explicit in shared guidance too:
+
+* `samples/zigux/kretprobe_example.zig` keeps `kernel_clone` as the default symbol name while allowing pre-init `retargetSymbol("do_sys_openat2")`
+* `zig test samples/zigux/kretprobe_example.zig` and `zig test zigux/tests/phase5_kretprobe_example_survey.zig` stay explicit as the sample-owned self-check plus focused replay route, while the shared `zigux/tests/phase5_build.zig` line stays only current public-tree-backed companion evidence
+* the direct packet keeps the pre-init-only `retargetMaxactive(3)` path, replay `maxactive = 20`, the single `my_data`-style entry timestamp word, the one-missed-instance summary, recovered duration `60`, and post-exit `recordMissedInstance()` rejection visible without implying runtime registration parity
+
 For `trace_events`, follow the current bounded packet through `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `samples/zigux/trace_events_string_formatting_sample.zig`, `samples/zigux/README.md`, `Documentation/zigux/review-checklist.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md`. Keep `Documentation/zigux/phase5-trace-events-sample-survey.md`, `samples/zigux/trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample.zig`, `zigux/tests/phase5_trace_events_sample_manifest.json`, `zigux/tests/phase5_trace_events_sample_survey.zig`, and `zigux/tests/phase5_build.zig` framed as public-tree-backed companion, repo-reality-gap, or historical support references until a fresh authenticated reread proves they returned directly on current `master`.
 
 Use the shared docs to preserve these bounded cues:
