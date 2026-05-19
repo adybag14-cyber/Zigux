@@ -201,6 +201,10 @@ pub fn defaultInteropPolicy() InteropPolicy {
     };
 }
 
+pub fn statusIsOk(status: ExportStatus) bool {
+    return (status.flags & STATUS_FLAG_ERROR) == 0;
+}
+
 test "abi binding default header stays canonical" {
     const header = defaultHeader(0x41);
 
@@ -266,6 +270,34 @@ test "abi binding default interop policy stays safe by default" {
     try std.testing.expectEqual(@as(u8, @intFromEnum(AllocatorMode.caller_provided)), policy.allocator_mode);
     try std.testing.expectEqual(@as(u8, @intFromEnum(UnsafeScope.none)), policy.unsafe_scope);
     try std.testing.expectEqual(@as(u8, 0), policy.reserved);
+}
+
+test "abi binding status helper mirrors the exported status flag contract" {
+    const ok = ExportStatus{
+        .code = 0,
+        .facility = FACILITY_HELPERS,
+        .flags = 0,
+    };
+    const negative = ExportStatus{
+        .code = -22,
+        .facility = FACILITY_KERNEL,
+        .flags = STATUS_FLAG_ERROR,
+    };
+    const positive = ExportStatus{
+        .code = 7,
+        .facility = FACILITY_DRIVERS,
+        .flags = 0,
+    };
+    const flagged_positive = ExportStatus{
+        .code = 7,
+        .facility = FACILITY_DRIVERS,
+        .flags = STATUS_FLAG_ERROR,
+    };
+
+    try std.testing.expect(statusIsOk(ok));
+    try std.testing.expect(!statusIsOk(negative));
+    try std.testing.expect(statusIsOk(positive));
+    try std.testing.expect(!statusIsOk(flagged_positive));
 }
 
 test "abi binding enums stay aligned with exported constants" {
