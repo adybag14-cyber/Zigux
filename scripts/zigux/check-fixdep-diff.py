@@ -247,6 +247,18 @@ def validate_fixture_inventory(
         raise ValueError(f"{fixture_dir}:unexpected_fixtures:{','.join(unexpected)}")
 
 
+def get_expected_exit_code(name: str, case: dict[str, object]) -> int:
+    expected_exit_code = case.get("expected_exit_code")
+    if expected_exit_code is None:
+        raise ValueError(f"{CASES_PATH}:{name}:missing_expected_exit_code")
+    if not isinstance(expected_exit_code, int) or isinstance(expected_exit_code, bool):
+        raise ValueError(
+            f"{CASES_PATH}:{name}:expected_exit_code_type="
+            f"{type(expected_exit_code).__name__},expected=int"
+        )
+    return expected_exit_code
+
+
 def validate_cases(cases: object) -> list[dict[str, object]]:
     if not isinstance(cases, list) or not cases:
         raise ValueError(f"{CASES_PATH}:expected_non_empty_json_list")
@@ -276,6 +288,7 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:{name}:unexpected_field:{unexpected_fields[0]}")
 
         validated_case = dict(raw_case)
+
         depfile = validated_case.get("depfile")
         if not isinstance(depfile, str) or not depfile:
             raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
@@ -292,14 +305,7 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
         if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
             raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
 
-        expected_exit_code = validated_case.get("expected_exit_code")
-        if expected_exit_code is None:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_exit_code")
-        if not isinstance(expected_exit_code, int) or isinstance(expected_exit_code, bool):
-            raise ValueError(
-                f"{CASES_PATH}:{name}:expected_exit_code_type="
-                f"{type(expected_exit_code).__name__},expected=int"
-            )
+        expected_exit_code = get_expected_exit_code(name, validated_case)
         if expected_exit_code != 0:
             expected_stderr_name = validated_case.get("expected_stderr")
             if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
@@ -364,6 +370,8 @@ def find_case(valid_cases: list[dict[str, object]], name: str) -> dict[str, obje
 
 
 def run_self_test() -> int:
+    global FIXTURE_DIR
+
     validate_fixture_inventory()
     valid_cases = validate_cases(load_cases(CASES_PATH))
     validate_tool_sources(C_FIXDEP, ZIG_FIXDEP)
@@ -500,7 +508,7 @@ def run_self_test() -> int:
             shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
 
         original_fixture_dir = FIXTURE_DIR
-        globals()["FIXTURE_DIR"] = fixture_dir
+        FIXTURE_DIR = fixture_dir
         try:
             counted_expect_failure(
                 "missing_expected_output_fixture",
@@ -508,7 +516,7 @@ def run_self_test() -> int:
                 f"{CASES_PATH}:missing_expected_output:sample_expected.txt",
             )
         finally:
-            globals()["FIXTURE_DIR"] = original_fixture_dir
+            FIXTURE_DIR = original_fixture_dir
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_missing_stderr_fixture_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
@@ -518,7 +526,7 @@ def run_self_test() -> int:
             shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
 
         original_fixture_dir = FIXTURE_DIR
-        globals()["FIXTURE_DIR"] = fixture_dir
+        FIXTURE_DIR = fixture_dir
         try:
             counted_expect_failure(
                 "missing_expected_stderr_fixture",
@@ -526,7 +534,7 @@ def run_self_test() -> int:
                 f"{CASES_PATH}:missing_expected_stderr:sample_comment_only_expected.stderr.txt",
             )
         finally:
-            globals()["FIXTURE_DIR"] = original_fixture_dir
+            FIXTURE_DIR = original_fixture_dir
 
     unsupported_stdout_mode_cases = copy_valid_cases(valid_cases)
     find_case(unsupported_stdout_mode_cases, "sample_comment_only_stdout_full")["stdout_mode"] = "pipe_full"
@@ -568,7 +576,7 @@ def run_self_test() -> int:
             shutil.copy2(fixture_path, fixture_dir / fixture_path.name)
 
         original_fixture_dir = FIXTURE_DIR
-        globals()["FIXTURE_DIR"] = fixture_dir
+        FIXTURE_DIR = fixture_dir
         try:
             counted_expect_failure(
                 "missing_depfile",
@@ -576,7 +584,7 @@ def run_self_test() -> int:
                 f"{CASES_PATH}:missing_depfile:sample.d",
             )
         finally:
-            globals()["FIXTURE_DIR"] = original_fixture_dir
+            FIXTURE_DIR = original_fixture_dir
 
     with tempfile.TemporaryDirectory(prefix="zigux_fixdep_fixture_inventory_ok_") as tmp_dir:
         fixture_dir = Path(tmp_dir)
@@ -770,7 +778,7 @@ def main() -> int:
         expected_stdout = FIXTURE_DIR / case["expected"]
         expected_stderr_name = case.get("expected_stderr")
         expected_stderr = FIXTURE_DIR / expected_stderr_name if expected_stderr_name else None
-        expected_exit_code = int(case.get("expected_exit_code", 0))
+        expected_exit_code = get_expected_exit_code(case["name"], case)
         stdout_mode = case.get("stdout_mode")
         target = case["target"]
         cmdline = case["cmdline"]
