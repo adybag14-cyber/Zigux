@@ -184,7 +184,7 @@ REQUIRED_CATALOG_SNIPPETS = [
     "- `make -C zigux phase6-hexdump-perf`",
 ]
 CATALOG_SURVEYED_HEAD_PATTERN = re.compile(r"^- surveyed head: `([^`]+)`$", re.M)
-SELF_TEST_CASE_COUNT = 20
+SELF_TEST_CASE_COUNT = 22
 CATALOG_SCAFFOLD = """# Phase 6 Helper Evidence Catalog
 
 This note records the current helper-evidence survey for the bounded Phase 6 leaf-helper packet on `master`.
@@ -709,6 +709,12 @@ def run_self_test() -> None:
         expect_failure(root, "helper packet mismatch")
         cases_run += 1
         scaffold_repo(root)
+        manifest = json.loads(read_text(root / HELPER_EVIDENCE_MANIFEST_PATH))
+        manifest["helpers"][2]["checker_surfaces"] = manifest["helpers"][2]["checker_surfaces"][:-1]
+        write(root / HELPER_EVIDENCE_MANIFEST_PATH, json.dumps(manifest, indent=2) + "\n")
+        expect_failure(root, "helper packet mismatch")
+        cases_run += 1
+        scaffold_repo(root)
         write(root / EXPECTED_CURRENT_REPO_REALITY_GAPS[0], "# returned gap path\n")
         expect_failure(root, EXPECTED_CURRENT_REPO_REALITY_GAPS[0])
         cases_run += 1
@@ -724,6 +730,15 @@ def run_self_test() -> None:
         scaffold_repo(root)
         (root / REQUIRED_HELPER_PATHS[0]).unlink()
         expect_failure(root, REQUIRED_HELPER_PATHS[0].as_posix())
+        cases_run += 1
+        scaffold_repo(root)
+        write(
+            root / HELPER_EVIDENCE_CATALOG_PATH,
+            read_text(root / HELPER_EVIDENCE_CATALOG_PATH).replace(
+                REQUIRED_CATALOG_SNIPPETS[10] + "\n", "", 1
+            ),
+        )
+        expect_failure(root, REQUIRED_CATALOG_SNIPPETS[10])
         cases_run += 1
         if cases_run != SELF_TEST_CASE_COUNT:
             raise AssertionError(f"expected {SELF_TEST_CASE_COUNT} cases, ran {cases_run}")
