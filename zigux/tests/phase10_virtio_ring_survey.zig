@@ -21,12 +21,23 @@ test "phase10 virtio ring survey note keeps the dedicated survey replay explicit
     const build_file = try readRepoRelative(allocator, "zigux/tests/phase10_build.zig");
     defer allocator.free(build_file);
 
+    const verify_file = try readRepoRelative(allocator, "drivers/virtio/virtio_ring_verify.zig");
+    defer allocator.free(verify_file);
+
     try expectContains(survey_note, "PHASE10_STATUS=parked");
     try expectContains(survey_note, "drivers/virtio/virtio_ring.zig");
     try expectContains(survey_note, "drivers/virtio/virtio_ring_verify.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_survey.zig");
     try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig");
     try expectContains(survey_note, "zig test zigux/tests/phase10_virtio_ring_survey.zig");
+    try expectContains(
+        verify_file,
+        "test \"phase10 virtio ring verify exposes reset-readiness blocker ordering after clearBroken releases queue debt\" {",
+    );
+    try expectContains(
+        verify_file,
+        "test \"phase10 virtio ring verify keeps reset-readiness blockers ordered through queue-local replay\" {",
+    );
     try expectContains(build_file, "phase10_virtio_ring_survey_module");
     try expectContains(build_file, "\"phase10-virtio-ring-survey-tests\"");
     try expectContains(build_file, "run_phase10_virtio_ring_survey_tests.step");
@@ -44,6 +55,8 @@ test "phase10 virtio ring survey manifest keeps lane identity and blocked transp
     try expectContains(manifest, "\"lane_key\": \"P10-L05\"");
     try expectContains(manifest, "\"risky_transport_posture\": \"blocked_on_risky_transport\"");
     try expectContains(manifest, "\"id\": \"phase10-virtio-ring-survey-gate\"");
+    try expectContains(manifest, "\"id\": \"phase10-queue-reset-helper\"");
+    try expectContains(manifest, "\"id\": \"phase10-queue-reset-readiness-helper\"");
     try expectContains(manifest, "\"status\": \"starter_landed\"");
     try expectContains(manifest, "\"zigux_destination\": \"zigux/tests/phase10_virtio_ring_survey.zig\"");
 }
