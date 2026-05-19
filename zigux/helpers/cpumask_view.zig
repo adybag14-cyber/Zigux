@@ -20,6 +20,7 @@ pub fn isValid(view: binding.CpumaskView) bool {
 }
 
 pub fn cpuIsSet(view: binding.CpumaskView, cpu: u32) bool {
+    if (!isValid(view)) return false;
     return bitmap.testBit(binding.asBitmap(view), cpu);
 }
 
@@ -41,6 +42,33 @@ pub fn weight(view: binding.CpumaskView) u32 {
 pub fn summarize(view: binding.CpumaskView) binding.BitmapSummary {
     if (!isValid(view)) return binding.initBitmapSummary(0, 0, 0);
     return bitmap.summarize(binding.asBitmap(view));
+}
+
+test "cpumask validity closes membership even when the raw bitmap projection looks readable" {
+    var backing = [_]Word{
+        (@as(Word, 1) << 1) | (@as(Word, 1) << 4) | (@as(Word, 1) << 63),
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 7),
+    };
+    const invalid = binding.initCpumaskView(
+        @intFromPtr(backing[0..].ptr),
+        bitmap.bits_per_word + 12,
+        2,
+        bitmap.bits_per_word + 11,
+    );
+    const projected_bitmap = binding.asBitmap(invalid);
+    const bitmap_summary = bitmap.summarize(projected_bitmap);
+    const cpumask_summary = summarize(invalid);
+
+    try std.testing.expect(!isValid(invalid));
+    try std.testing.expect(bitmap.isValid(projected_bitmap));
+    try std.testing.expectEqual(@as(u32, 1), bitmap_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), bitmap_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 5), bitmap_summary.weight);
+    try std.testing.expect(!cpuIsSet(invalid, 1));
+    try std.testing.expect(!cpuIsSet(invalid, bitmap.bits_per_word + 7));
+    try std.testing.expectEqual(@as(u32, 0), cpumask_summary.first_set);
+    try std.testing.expectEqual(@as(u32, 0), cpumask_summary.first_zero);
+    try std.testing.expectEqual(@as(u32, 0), cpumask_summary.weight);
 }
 
 test "cpumask view helpers keep cpu windows reviewable" {
