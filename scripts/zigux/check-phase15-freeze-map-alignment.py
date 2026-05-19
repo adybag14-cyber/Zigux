@@ -13,15 +13,34 @@ REQUIRED_MARKERS = (
     "`Documentation/zigux/phase15-freeze-map-governance.md`",
     "`Documentation/zigux/phase15-parity-scorecard.md`",
     "`Documentation/zigux/phase15-indefinite-c-policy.md`",
+    "`Documentation/zigux/phase15-architecture-council-decision-record-template.md`",
     "`Documentation/zigux/README.md`",
     "`Documentation/zigux/review-checklist.md`",
     "`Documentation/zigux/phase15-study-only-anchor-accounting.md`",
     "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
     "`Documentation/zigux/phase15-shared-summary-gap.md`",
+    "exact Linux anchor path",
+    "current roadmap phase",
+    "lane owner",
+    "rollback owner",
+    "current status bucket",
+    "requested decision bucket",
     "decision record ID",
     "required approver set",
+    "validation gate summary",
+    "evidence archive path",
+    "latest blocker disposition",
     "automatic return-to-blocked trigger",
+    "benchmark notes",
+    "replay command",
+    "rollback threshold",
+    "`retired_from_active_discussion` state",
+    "reopen triggers",
+    "trigger-specific evidence refresh",
     "parity scorecard link or blocker record",
+    "indefinite-C policy link or non-applicability note",
+    "explicit non-goals",
+    "written rationale",
     "shared reminder surfaces that summarize freeze posture",
     "must describe missing validator, tests-root, or make-route companions as repo-reality gaps until those paths are directly materialized on `master`",
     "direct Zig port or bridge claims for a freeze-in-C anchor stay blocked until the repo carries a parity scorecard entry and the Architecture Council records why the status can change",
@@ -51,15 +70,34 @@ def _sample_freeze_map() -> str:
 - `Documentation/zigux/phase15-freeze-map-governance.md`
 - `Documentation/zigux/phase15-parity-scorecard.md`
 - `Documentation/zigux/phase15-indefinite-c-policy.md`
+- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
 - `Documentation/zigux/README.md`
 - `Documentation/zigux/review-checklist.md`
 - `Documentation/zigux/phase15-study-only-anchor-accounting.md`
 - `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 - `Documentation/zigux/phase15-shared-summary-gap.md`
+- exact Linux anchor path
+- current roadmap phase
+- lane owner
+- rollback owner
+- current status bucket
+- requested decision bucket
 - decision record ID
 - required approver set
+- validation gate summary
+- evidence archive path
+- latest blocker disposition
 - automatic return-to-blocked trigger
+- benchmark notes
+- replay command
+- rollback threshold
+- `retired_from_active_discussion` state
+- reopen triggers
+- trigger-specific evidence refresh
 - parity scorecard link or blocker record
+- indefinite-C policy link or non-applicability note
+- explicit non-goals
+- written rationale
 - shared reminder surfaces that summarize freeze posture
 - must describe missing validator, tests-root, or make-route companions as repo-reality gaps until those paths are directly materialized on `master`
 - direct Zig port or bridge claims for a freeze-in-C anchor stay blocked until the repo carries a parity scorecard entry and the Architecture Council records why the status can change
@@ -81,66 +119,51 @@ def run_self_test() -> int:
         _write(
             root / FREEZE_MAP_PATH,
             _sample_freeze_map().replace(
-                "- `Documentation/zigux/phase15-architecture-council-review-process.md`\n",
+                "- `Documentation/zigux/phase15-architecture-council-decision-record-template.md`\n",
                 "",
                 1,
             ),
         )
         missing = collect_missing_markers(root)
-        expected = ["freeze_map:`Documentation/zigux/phase15-architecture-council-review-process.md`"]
+        expected = ["freeze_map:`Documentation/zigux/phase15-architecture-council-decision-record-template.md`"]
         if missing != expected:
-            raise AssertionError(f"unexpected review-process failure: {missing}")
+            raise AssertionError(f"unexpected decision-record-template failure: {missing}")
         case_count += 1
 
         _write(
             root / FREEZE_MAP_PATH,
-            _sample_freeze_map().replace("- required approver set\n", "", 1),
+            _sample_freeze_map().replace("- evidence archive path\n", "", 1),
         )
         missing = collect_missing_markers(root)
-        if missing != ["freeze_map:required approver set"]:
-            raise AssertionError(f"unexpected approver-set failure: {missing}")
+        if missing != ["freeze_map:evidence archive path"]:
+            raise AssertionError(f"unexpected evidence-archive failure: {missing}")
         case_count += 1
 
         _write(
             root / FREEZE_MAP_PATH,
-            _sample_freeze_map().replace(
-                "- parity scorecard link or blocker record\n",
-                "",
-                1,
-            ),
+            _sample_freeze_map().replace("- `retired_from_active_discussion` state\n", "", 1),
         )
         missing = collect_missing_markers(root)
-        if missing != ["freeze_map:parity scorecard link or blocker record"]:
-            raise AssertionError(f"unexpected parity-scorecard failure: {missing}")
+        if missing != ["freeze_map:`retired_from_active_discussion` state"]:
+            raise AssertionError(f"unexpected retired-discussion failure: {missing}")
         case_count += 1
 
         _write(
             root / FREEZE_MAP_PATH,
-            _sample_freeze_map().replace(
-                "- must describe missing validator, tests-root, or make-route companions as repo-reality gaps until those paths are directly materialized on `master`\n",
-                "",
-                1,
-            ),
+            _sample_freeze_map().replace("- indefinite-C policy link or non-applicability note\n", "", 1),
         )
         missing = collect_missing_markers(root)
-        expected = [
-            "freeze_map:must describe missing validator, tests-root, or make-route companions as repo-reality gaps until those paths are directly materialized on `master`"
-        ]
-        if missing != expected:
-            raise AssertionError(f"unexpected repo-reality-gap failure: {missing}")
+        if missing != ["freeze_map:indefinite-C policy link or non-applicability note"]:
+            raise AssertionError(f"unexpected policy-link failure: {missing}")
         case_count += 1
 
         _write(
             root / FREEZE_MAP_PATH,
-            _sample_freeze_map().replace(
-                "- there is no silent exception path around the stay-in-C policy\n",
-                "",
-                1,
-            ),
+            _sample_freeze_map().replace("- explicit non-goals\n", "", 1),
         )
         missing = collect_missing_markers(root)
-        if missing != ["freeze_map:there is no silent exception path around the stay-in-C policy"]:
-            raise AssertionError(f"unexpected stay-in-C failure: {missing}")
+        if missing != ["freeze_map:explicit non-goals"]:
+            raise AssertionError(f"unexpected explicit-non-goals failure: {missing}")
         case_count += 1
 
     print("PHASE15_FREEZE_MAP_ALIGNMENT_SELF_TEST=pass")
