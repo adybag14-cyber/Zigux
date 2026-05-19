@@ -140,7 +140,87 @@ def _populate_repo(root: Path) -> None:
         _write(root / relative_path, "\n".join(markers) + "\n")
 
 
+def _expect_missing_marker(
+    root: Path, relative_path: Path, marker: str, message: str
+) -> int:
+    path = root / relative_path
+    path.write_text(_read(path).replace(marker, "", 1), encoding="utf-8")
+    issues = validate_repo(root)
+    expected = f"missing {relative_path.as_posix()} marker: {marker}"
+    if expected not in issues:
+        print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
+        print(message)
+        return 1
+    return 0
+
+
+def _expect_returned_gap(root: Path, gap_path: str, message: str) -> int:
+    _populate_repo(root)
+    (root / gap_path).parent.mkdir(parents=True, exist_ok=True)
+    _write(root / gap_path, "# drift\n")
+    issues = validate_repo(root)
+    expected = f"expected gap is present on disk: {gap_path}"
+    if expected not in issues:
+        print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
+        print(message)
+        return 1
+    return 0
+
+
 def run_self_test() -> int:
+    marker_cases = (
+        (
+            SURVEY_PATH,
+            "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig",
+            "expected missing survey layout gate marker was not reported",
+        ),
+        (
+            VALIDATOR_PATH,
+            'print("PHASE3_EXPORT_UAPI_SURVEY=pass")',
+            "expected missing validator pass marker was not reported",
+        ),
+        (
+            EXPORT_SHIM_PATH,
+            "pub fn validateDeviceNumber(major: u32, minor: u32) ExportStatus {",
+            "expected missing export-shim validation marker was not reported",
+        ),
+        (
+            UAPI_VERSION_PATH,
+            "pub fn matchesCurrent(version: Version) bool {",
+            "expected missing version compatibility marker was not reported",
+        ),
+        (
+            UAPI_DEV_T_PATH,
+            "pub fn validateRange(start: Fields, end: Fields) bool {",
+            "expected missing dev_t range marker was not reported",
+        ),
+        (
+            LINUX_HEADER_PATH,
+            "static inline int zigux_uapi_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
+            "expected missing linux header validator marker was not reported",
+        ),
+        (
+            DEV_T_HEADER_PATH,
+            "static inline int zigux_dev_t_fields_is_valid(struct zigux_dev_t_fields fields)",
+            "expected missing dev_t header validator marker was not reported",
+        ),
+        (
+            ABI_HEADER_PATH,
+            "struct zigux_interop_policy {",
+            "expected missing abi header interop policy marker was not reported",
+        ),
+        (
+            LAYOUT_TEST_PATH,
+            'test "export shim mirrors boundary header predicate helpers" {',
+            "expected missing layout test predicate marker was not reported",
+        ),
+        (
+            LAYOUT_BUILD_PATH,
+            '"phase3-export-uapi-layout-test"',
+            "expected missing layout build target marker was not reported",
+        ),
+    )
+
     with tempfile.TemporaryDirectory(prefix="zigux_phase3_export_uapi_") as temp_dir:
         root = Path(temp_dir)
         _populate_repo(root)
@@ -151,28 +231,26 @@ def run_self_test() -> int:
             print("\n".join(issues))
             return 1
 
-        survey = root / SURVEY_PATH
-        marker = "PHASE3_LAYOUT_GATE=zig build phase3-export-uapi-layout-test --build-file zigux/tests/phase3_export_uapi_layout_build.zig"
-        survey.write_text(_read(survey).replace(marker, "", 1), encoding="utf-8")
-        issues = validate_repo(root)
-        expected = f"missing {SURVEY_PATH.as_posix()} marker: {marker}"
-        if expected not in issues:
-            print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
-            print(f"expected missing survey marker was not reported: {expected}")
-            return 1
+        for relative_path, marker, message in marker_cases:
+            _populate_repo(root)
+            if _expect_missing_marker(root, relative_path, marker, message) != 0:
+                return 1
 
-        _populate_repo(root)
-        (root / MISSING_GAP_PATHS[0]).parent.mkdir(parents=True, exist_ok=True)
-        _write(root / MISSING_GAP_PATHS[0], "# drift\n")
-        issues = validate_repo(root)
-        expected = f"expected gap is present on disk: {MISSING_GAP_PATHS[0]}"
-        if expected not in issues:
-            print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=fail")
-            print(f"expected returned-gap guard was not reported: {expected}")
+        if (
+            _expect_returned_gap(
+                root,
+                MISSING_GAP_PATHS[0],
+                "expected returned-gap guard was not reported",
+            )
+            != 0
+        ):
             return 1
 
     print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST=pass")
-    print("PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES=3")
+    print(
+        "PHASE3_EXPORT_UAPI_SURVEY_SELF_TEST_CASES="
+        f"{1 + len(marker_cases) + 1}"
+    )
     return 0
 
 
