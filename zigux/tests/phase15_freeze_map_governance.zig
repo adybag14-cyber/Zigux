@@ -121,22 +121,24 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(rcu.repo_reality, "Documentation/zigux/phase14-rcu-tree-survey.md");
     try expectContains(rcu.repo_reality, "P14-L14");
     try expectContains(rcu.repo_reality, "phase14-rcu-tree-bridge-blocker");
-    try expectContains(rcu.repo_reality, "missing Phase 15 validator");
-    try expectContains(rcu.repo_reality, "repo-reality gaps");
+    try expectContains(rcu.repo_reality, "public current-master readback now resolves the shared Phase 15 validator, dedicated-build, and lane-owner companions");
+    try expectContains(rcu.repo_reality, "current GitHub contents path still returns not-found for those three files from this runtime");
+    try expectContains(rcu.repo_reality, "zigux/Makefile readback still carries no phase15-validate, phase15-test, or phase15 targets");
     try std.testing.expectEqualStrings("blocked_phase14_followup_still_wider_than_allowed_rcu_seam", rcu.current_blocker);
 
     const skbuff = manifest.deep_core_blocker_survey[3];
     try std.testing.expectEqualStrings("net/core/skbuff.c", skbuff.anchor);
     try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-skbuff-bridge-survey.md");
     try expectContains(skbuff.repo_reality, "P14-L11");
-    try expectContains(skbuff.repo_reality, "phase14-skbuff-anchor-packet-missing");
+    try expectContains(skbuff.repo_reality, "phase14-skbuff-live-ownership-blocker");
     try expectContains(skbuff.repo_reality, "review-first");
     try expectContains(skbuff.repo_reality, "boundary_map_only");
-    try expectContains(skbuff.repo_reality, "retained live ownership and packet-lifetime seam remains the underlying stay-in-C boundary");
+    try expectContains(skbuff.repo_reality, "explicit stay-in-C ownership for qdisc-facing publication");
     try expectContains(skbuff.repo_reality, "Documentation/zigux/phase14-core-boundary-traceability.md");
     try expectContains(skbuff.repo_reality, "retained-in-C posture");
-    try expectContains(skbuff.repo_reality, "missing Phase 15 validator");
-    try expectContains(skbuff.repo_reality, "repo-reality gaps");
+    try expectContains(skbuff.repo_reality, "public current-master readback now resolves the shared Phase 15 validator, dedicated-build, and lane-owner companions");
+    try expectContains(skbuff.repo_reality, "current GitHub contents path still returns not-found for those three files from this runtime");
+    try expectContains(skbuff.repo_reality, "zigux/Makefile readback still carries no phase15-validate, phase15-test, or phase15 targets");
     try std.testing.expectEqualStrings("blocked_packet_lifetime_boundary_still_too_wide", skbuff.current_blocker);
 
     try expectContains(manifest.maintenance_handoff.replay_before_trusting[0], "check-phase15-docs-readme-alignment.py");
@@ -146,20 +148,24 @@ test "phase 15 freeze-map governance manifest records the current dated-readback
     try expectContains(manifest.maintenance_handoff.replay_before_trusting[4], "phase15_freeze_map_governance.zig");
     try expectContains(manifest.maintenance_handoff.reopen_conditions[2], "no-silent-exception posture");
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15-shared-summary-gap.md");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "public current-master readback still resolves");
     try expectContains(manifest.maintenance_handoff.next_future_target, "validate-phase15.py");
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15_build.zig");
+    try expectContains(manifest.maintenance_handoff.next_future_target, "phase15_indefinite_c_lane_owner_alignment.zig");
     try expectContains(manifest.maintenance_handoff.next_future_target, "zigux/Makefile");
     try expectContains(manifest.maintenance_handoff.next_future_target, "phase15 routes");
 
     const validator_gap = findGap(manifest.gaps, "phase15-shared-validator-route-readback") orelse return error.MissingGap;
-    try std.testing.expectEqualStrings("repo_reality_gap_confirmed", validator_gap.status);
-    try std.testing.expectEqualStrings("shared_route_gap", validator_gap.kind);
-    try expectContains(validator_gap.why_now, "not-found for scripts/zigux/validate-phase15.py");
+    try std.testing.expectEqualStrings("materialized_on_public_master", validator_gap.status);
+    try std.testing.expectEqualStrings("shared_route_presence", validator_gap.kind);
+    try expectContains(validator_gap.why_now, "Public current-master readback now resolves scripts/zigux/validate-phase15.py");
+    try expectContains(validator_gap.why_now, "current GitHub contents path still returns not-found");
 
     const build_gap = findGap(manifest.gaps, "phase15-shared-build-route-readback") orelse return error.MissingGap;
-    try std.testing.expectEqualStrings("repo_reality_gap_confirmed", build_gap.status);
-    try std.testing.expectEqualStrings("shared_route_gap", build_gap.kind);
-    try expectContains(build_gap.why_now, "not-found for zigux/tests/phase15_build.zig");
+    try std.testing.expectEqualStrings("materialized_on_public_master", build_gap.status);
+    try std.testing.expectEqualStrings("shared_route_presence", build_gap.kind);
+    try expectContains(build_gap.why_now, "Public current-master readback now resolves zigux/tests/phase15_build.zig");
+    try expectContains(build_gap.why_now, "current GitHub contents path still returns not-found");
 
     const wrapper_gap = findGap(manifest.gaps, "phase15-shared-wrapper-route-readback") orelse return error.MissingGap;
     try std.testing.expectEqualStrings("repo_reality_gap_confirmed", wrapper_gap.status);
@@ -182,8 +188,9 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "PHASE15_SLICE=freeze-map-deep-core-blocker-dated-readback-alignment");
     try expectContains(governance_note, "PHASE15_PROVENANCE_MODE=dated_master_readback");
     try expectContains(governance_note, "current-master-readback-2026-05-19");
-    try expectContains(governance_note, "shared reminder surfaces still carry as repo-reality gaps on current `master`");
-    try expectContains(governance_note, "direct current-master contents reads still return not-found for the broader Phase 15 validator-first and dedicated-build companion paths");
+    try expectContains(governance_note, "with only the `make -C zigux phase15*` wrapper routes still remaining repo-reality gaps on current `master`");
+    try expectContains(governance_note, "public current-master readback now resolves `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`");
+    try expectContains(governance_note, "the current GitHub contents path still returns not-found for those three files from this runtime");
     try expectContains(governance_note, "the current `zigux/Makefile` readback still carries no `phase15-validate`, `phase15-test`, or `phase15` targets");
     try expectContains(governance_note, "exact branch-head parity is not recorded");
     try expectContains(governance_note, "blocked_no_bounded_scheduler_seam");
@@ -191,9 +198,9 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "blocked_phase14_followup_still_wider_than_allowed_rcu_seam");
     try expectContains(governance_note, "blocked_packet_lifetime_boundary_still_too_wide");
     try expectContains(governance_note, "lane P14-L14 still records blocked `phase14-rcu-tree-bridge-blocker`");
-    try expectContains(governance_note, "`Documentation/zigux/phase14-skbuff-bridge-survey.md` on lane P14-L11 still records repo-readback gap `phase14-skbuff-anchor-packet-missing`");
+    try expectContains(governance_note, "`Documentation/zigux/phase14-skbuff-bridge-survey.md` on lane P14-L11 now records live blocker `phase14-skbuff-live-ownership-blocker`");
     try expectContains(governance_note, "surviving skbuff packet review-first and `boundary_map_only`");
-    try expectContains(governance_note, "retained live ownership and packet-lifetime seam remains the underlying stay-in-C boundary");
+    try expectContains(governance_note, "explicit stay-in-C ownership for qdisc-facing publication, queue ownership, skb lifetime ownership, checksum ownership, destructor coordination, segmentation metadata, and the final sock-owned tail transfer remains the Phase 14 boundary");
     try expectContains(governance_note, "`Documentation/zigux/phase14-core-boundary-traceability.md` still keeps skbuff in retained-in-C posture");
     try expectContains(governance_note, "## Maintenance-Mode Handoff");
     try expectContains(governance_note, "current lane posture: `maintenance_mode`");
@@ -202,6 +209,7 @@ test "phase 15 freeze-map governance doc records the current blocker posture hon
     try expectContains(governance_note, "check-phase15-shared-summary-gap.py");
     try expectContains(governance_note, "scripts/zigux/validate-phase15.py");
     try expectContains(governance_note, "zigux/tests/phase15_build.zig");
+    try expectContains(governance_note, "zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig");
     try expectContains(governance_note, "current-master contents reads now resolve `zigux/Makefile`");
     try expectContains(governance_note, "those wrapper route names remain gap vocabulary rather than direct landed evidence");
     try expectContains(governance_note, "phase15-freeze-map-manifest");
@@ -274,9 +282,10 @@ test "phase 15 freeze-map linked blocker evidence stays explicit" {
     const skbuff_note = try loadFile(io_instance.io(), "Documentation/zigux/phase14-skbuff-bridge-survey.md", 24 * 1024);
     defer std.testing.allocator.free(skbuff_note);
     try expectContains(skbuff_note, "PHASE14_LANE_KEY=P14-L11");
-    try expectContains(skbuff_note, "PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing");
-    try expectContains(skbuff_note, "current `master` no longer exposes the earlier `P14-L11` skbuff anchor packet files");
-    try expectContains(skbuff_note, "review-first and `boundary_map_only`");
+    try expectContains(skbuff_note, "PHASE14_BLOCKED_GAP=phase14-skbuff-live-ownership-blocker");
+    try expectContains(skbuff_note, "current `master` ships the bounded skbuff anchor packet again");
+    try expectContains(skbuff_note, "review-only skbuff bridge packet again");
+    try expectContains(skbuff_note, "explicit stay-in-C ownership for qdisc-facing publication");
 
     const skbuff_traceability = try loadFile(io_instance.io(), "Documentation/zigux/phase14-core-boundary-traceability.md", 32 * 1024);
     defer std.testing.allocator.free(skbuff_traceability);
