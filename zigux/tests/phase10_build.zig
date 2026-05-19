@@ -44,6 +44,22 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_input_verify_module.addImport("virtio_input", virtio_input_module);
+    virtio_input_verify_module.addImport(
+        "virtio_input_probe_preflight",
+        virtio_input_probe_preflight_module,
+    );
+    virtio_input_verify_module.addImport(
+        "virtio_input_queue_callback_preflight",
+        virtio_input_queue_callback_preflight_module,
+    );
+    virtio_input_verify_module.addImport(
+        "virtio_input_registration_preflight",
+        virtio_input_registration_preflight_module,
+    );
+    virtio_input_verify_module.addImport(
+        "virtio_input_status_drain",
+        virtio_input_status_drain_module,
+    );
     const virtio_mmio_module = b.createModule(.{
         .root_source_file = b.path("../../drivers/virtio/virtio_mmio.zig"),
         .target = target,
@@ -104,7 +120,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_registration_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_registration_preflight_module.addImport(
         "virtio_input_registration_preflight",
-        virtio_input_registration_preflight_module,
+        phase10_virtio_input_registration_preflight_module,
     );
 
     const phase10_virtio_input_status_drain_module = b.createModule(.{
@@ -115,7 +131,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_status_drain_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_status_drain_module.addImport(
         "virtio_input_status_drain",
-        virtio_input_status_drain_module,
+        phase10_virtio_input_status_drain_module,
     );
 
     const virtio_input_teardown_observation_module = b.createModule(.{
@@ -124,6 +140,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     virtio_input_teardown_observation_module.addImport("virtio_input", virtio_input_module);
+    virtio_input_verify_module.addImport(
+        "virtio_input_teardown_observation",
+        virtio_input_teardown_observation_module,
+    );
 
     const phase10_virtio_input_teardown_observation_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input_teardown_observation.zig"),
@@ -131,10 +151,6 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     phase10_virtio_input_teardown_observation_module.addImport("virtio_input", virtio_input_module);
-    virtio_input_verify_module.addImport(
-        "virtio_input_teardown_observation",
-        phase10_virtio_input_teardown_observation_module,
-    );
 
     const phase10_virtio_input_survey_module = b.createModule(.{
         .root_source_file = b.path("phase10_virtio_input_survey.zig"),
