@@ -29,9 +29,10 @@ The currently reviewable Phase 1 reminder packet is:
 - `zigux/tests/README.md`
 - `zigux/tests/build.zig`
 - `zigux/tests/phase1_host_tools_smoke.zig`
+- `.github/workflows/zigux-bootstrap.yml`
 - `zigux/tests/fixtures/phase1_helper_manifest.json`
 
-- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,zigux/tests/fixtures/phase1_helper_manifest.json`
+- `PHASE1_CURRENT_REMINDER_PACKET=Documentation/zigux/phase1-closure.md,Documentation/zigux/phase1-host-helper-lane-sequencing.md,Documentation/zigux/README.md,Documentation/zigux/review-checklist.md,scripts/zigux/README.md,scripts/zigux/check-phase1-string-review-packet.py,scripts/zigux/check-phase1-direct-owner-markers.py,scripts/zigux/check-phase1-bench.py,scripts/zigux/check-phase1-shared-reminder-packet.py,scripts/zigux/validate-phase1-closure.py,zigux/tests/README.md,zigux/tests/build.zig,zigux/tests/phase1_host_tools_smoke.zig,.github/workflows/zigux-bootstrap.yml,zigux/tests/fixtures/phase1_helper_manifest.json`
 
 ## Current Repo-Reality Gaps
 
@@ -57,6 +58,8 @@ The current shared tests-root closure route is narrow on purpose:
 - `zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
 
 That route keeps a minimal shared import-and-wire smoke check alive for the current helper packet while the dedicated closure validator keeps the restored closure note aligned with the committed helper manifest and the shipped reminder packet on current `master`.
+
+The current bootstrap workflow is part of that same live reminder packet too: `.github/workflows/zigux-bootstrap.yml` self-tests and replays the directly readable Phase 1 direct-owner, string-review, route-summary, bench, shared-reminder, closure-validator, and shared tests-root smoke steps on current `master`.
 
 - `PHASE1_CLOSURE_VALIDATOR=python3 scripts/zigux/validate-phase1-closure.py`
 - `PHASE1_SHARED_TESTS_ROUTE=zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`
