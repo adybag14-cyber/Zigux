@@ -66,8 +66,6 @@ REVIEW_CHECKLIST_MARKERS = (
     "`python3 scripts/zigux/check-zig-toolchain.py --self-test`",
     "`python3 scripts/zigux/check-zig-toolchain.py --policy-only`",
     "`python3 scripts/zigux/check-zig-toolchain.py --archive-only --allow-missing`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`python3 scripts/zigux/check-phase2-toolchain-pin-scope.py --self-test`",
     "`make -C zigux phase2-toolchain`",
     "`make -C zigux phase2-validate`",
@@ -108,8 +106,6 @@ SCRIPTS_README_MARKERS = (
     "`zigux/tests/fixtures/phase2_artifact_tools_manifest.json`",
     "`scripts/zigux/validate-phase2-closure.py`",
     "`scripts/zigux/check-phase2-tool-manifest.py` and `zigux/tests/fixtures/phase2_tool_manifest.json` keep the fixture-backed current Phase 2 tool packet explicit from the scripts root beside the closure-side validator packet and the surviving alignment guards",
-    "`python3 scripts/zigux/check-phase2-toolchain-pinning.py --self-test`",
-    "`python3 scripts/zigux/check-phase2-toolchain-pinning.py`",
     "`scripts/zigux/install-zig.py`, `python3 scripts/zigux/install-zig.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py --self-test`, `python3 scripts/zigux/check-phase2-cross.py`, and `zigux/tests/fixtures/phase2_cross_targets.json` are directly readable on current `master`",
     "keep those installer, tool-manifest, direct cross-route, and genksyms bridge surfaces explicit beside the shipped toolchain and kbuild reminder packet",
 )
