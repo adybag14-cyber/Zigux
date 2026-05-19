@@ -125,3 +125,29 @@ keep the live Phase 9 docs-root packet review-first and narrow: `samples/zigux/r
   * the current docs-root Phase 9 reminder packet should stay parked on `Documentation/zigux/phase9-runtime-pilot-lane-sequencing.md`, `Documentation/zigux/review-checklist.md`, `Documentation/zigux/phase9-runtime-trace-events-module-slice.md`, `Documentation/zigux/phase9-runtime-trace-events-survey.md`, `zigux/tests/README.md`, `zigux/tests/runtime_trace_events_manifest.json`, `zigux/tests/runtime_trace_events_survey.zig`, `samples/zigux/README.md`, `scripts/zigux/README.md`, `scripts/zigux/check-phase9-review-checklist-phase-boundaries.py`, `scripts/zigux/check-phase9-trace-events-runtime-packet.py`, and the surviving trace-events sample family so the docs root matches the same narrow Phase 9 packet already described by the lane-sequencing note, checklist, scripts-root reminder, tests-root witness, and sample-root packet.
   * current `master` does not currently expose the broader shared runtime-loader packet, so `zigux/tests/phase9_build.zig`, the broader shared `zigux/tests/runtime_*` replay family beyond the returned trace-events survey witness, `zigux/kernel/runtime_loader.zig`, `zigux/kernel/runtime_loader_contract.zig`, dedicated `phase9-*` routes in `zigux/Makefile`, and the older `samples/zigux/runtime_*_loader.zig` scaffolds stay backlog references unless a fresh repo reread proves they have returned.
   * keep the older cross-phase non-owner boundaries explicit here too: `scripts/zigux/kconfig/conf_bridge.zig` and `scripts/zigux/kconfig/confdata_bridge.zig` remain Phase 2 config-surface bridge references, while `rust/exports.c` and `zigux/kernel/export_shim.zig` remain Phase 3 export-boundary references rather than runtime-pilot evidence.
+Phase 12 notes
+- `Documentation/zigux/phase12-release-sequencing.md`
+- `Documentation/zigux/phase12-release-readiness-survey.md`
+- `Documentation/zigux/phase12-release-closure-checklist.md`
+- `Documentation/zigux/phase12-release-coordination-matrix.md`
+- `Documentation/zigux/review-checklist.md`
+- `Documentation/zigux/freeze-map.md`
+- `Documentation/zigux/phase12-raw-github-coverage-survey.md`
+- `Documentation/zigux/phase12-virtio-net-survey.md`
+- `Documentation/zigux/phase12-virtio-scsi-slice.md`
+- `Documentation/zigux/phase12-virtio-scsi-survey.md`
+- `Documentation/zigux/phase12-nvme-pci-slice.md`
+- `Documentation/zigux/phase12-nvme-pci-survey.md`
+- `Documentation/zigux/phase12-nvme-pci-reopen-governance.md`
+- `scripts/zigux/README.md`
+- `scripts/zigux/check-build-only-phase12-surface.py`
+- `scripts/zigux/check-phase12-release-readiness-packet.py`
+- `scripts/zigux/validate-phase12.py`
+- `zigux/tests/README.md`
+- `zigux/Makefile`
+- `.github/workflows/zigux-bootstrap.yml`
+keep the bounded Phase 12 docs-root packet explicit through the shared release-order, readiness, closure, coordination, fallback, and driver-local reminder notes plus the shipped validator-side support bundle instead of letting the docs root drift away from the active-not-closed release packet on current `master`.
+  * the current docs-root Phase 12 reminder packet should stay parked on `Documentation/zigux/phase12-release-sequencing.md`, `Documentation/zigux/phase12-release-readiness-survey.md`, `Documentation/zigux/phase12-release-closure-checklist.md`, and `Documentation/zigux/phase12-release-coordination-matrix.md`, with `Documentation/zigux/review-checklist.md`, `Documentation/zigux/freeze-map.md`, `Documentation/zigux/phase12-raw-github-coverage-survey.md`, `scripts/zigux/README.md`, `zigux/tests/README.md`, `.github/workflows/zigux-bootstrap.yml`, and `zigux/Makefile` keeping the same shared packet aligned across docs-root, scripts-root, tests-root, workflow, and make-wrapper surfaces.
+  * `scripts/zigux/validate-phase12.py`, `scripts/zigux/check-build-only-phase12-surface.py`, and `scripts/zigux/check-phase12-release-readiness-packet.py` keep the directly readable validator-side support bundle explicit from the docs root while current `zigux/Makefile` now exposes `make -C zigux phase12-smoke`, `make -C zigux phase12-test`, and `make -C zigux phase12` again, and `make -C zigux phase12-validate` stays reminder-only vocabulary until that wrapper returns on current `master`.
+  * keep the degraded rerun order honest here too: rely on the repo-local `.zig-toolchain` fallback exposed by `zigux/Makefile` before attached-Zig rerun vocabulary, and if that local fallback is absent keep `make -C zigux phase12-smoke ZIG=<attached-zig-path>`, `make -C zigux phase12-test ZIG=<attached-zig-path>`, and `make -C zigux phase12 ZIG=<attached-zig-path>` framed only as last-resort rerun vocabulary while `make -C zigux phase12-validate` remains reminder-only text.
+  * keep the bounded packet split explicit here too: `virtio_net` stays starter-present reviewability, `virtio_scsi` stays the smoke-first and rollback-lab packet, `nvme_pci` stays driver-local outside the shared smoke-and-test route, and the Phase 12 libbpf packet stays parked behind survey, snapshot, and verify-shard reminder surfaces instead of widening the docs root into deeper DMA, queueing, throughput, or transport claims.
