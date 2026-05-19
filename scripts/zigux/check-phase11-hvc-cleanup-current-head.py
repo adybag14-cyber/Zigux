@@ -51,6 +51,7 @@ COMPANION_MARKERS = (
     "`PHASE11_STATUS=current_head_companion_landed`",
     "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
+    "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
     "returned HVC validation matrix",
     "smaller proof-backed HVC continuity packet reviewable",
 )
@@ -65,6 +66,7 @@ VERIFY_MARKERS = (
 MATRIX_MARKERS = (
     "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
     "the current matrix packet now stays aligned with the smaller",
+    "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
     "keep helper-local failure-mode edges reviewable through",
     "do not treat the deeper verify helper, sysrq helper, manifest, teardown note,",
 )
@@ -310,6 +312,7 @@ def build_fixture(root: Path) -> None:
                 "`PHASE11_STATUS=current_head_companion_landed`",
                 "`Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
                 "Keep `scripts/zigux/check-phase11-hvc-survey-packet.py` framed as a repo-reality gap",
+                "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
                 "the returned HVC validation matrix stays explicit beside this companion",
                 "smaller proof-backed HVC continuity packet reviewable",
                 "",
@@ -340,6 +343,7 @@ def build_fixture(root: Path) -> None:
                 "",
                 "`PHASE11_HVC_CONSOLE_STATUS=current_head_companion_packet_truthful`",
                 "the current matrix packet now stays aligned with the smaller authenticated-readback companion stack rather than the older starter-depth public-readback packet",
+                "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
                 "keep helper-local failure-mode edges reviewable through `Documentation/zigux/phase11-hvc-verify-helper-boundary.md` rather than treating `drivers/tty/hvc/hvc_console_verify.zig` as a returned direct-readback anchor",
                 "do not treat the deeper verify helper, sysrq helper, manifest, teardown note, dedicated survey checker, or focused survey and cleanup replays as current-head direct-readback evidence",
                 "",
@@ -479,6 +483,17 @@ def run_self_test() -> int:
         )
         expect_failure(missing_companion, "`scripts/zigux/check-phase11-hvc-survey-packet.py`")
 
+        missing_companion_export_build = tmpdir / "missing_companion_export_build"
+        shutil.copytree(fixture, missing_companion_export_build, dirs_exist_ok=True)
+        write(
+            missing_companion_export_build / COMPANION_PATH,
+            read_text(missing_companion_export_build / COMPANION_PATH).replace(
+                "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
+                "",
+            ),
+        )
+        expect_failure(missing_companion_export_build, "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`")
+
         missing_verify = tmpdir / "missing_verify"
         shutil.copytree(fixture, missing_verify, dirs_exist_ok=True)
         write(
@@ -500,6 +515,17 @@ def run_self_test() -> int:
             ),
         )
         expect_failure(missing_matrix, "do not treat the deeper verify helper")
+
+        missing_matrix_export_build = tmpdir / "missing_matrix_export_build"
+        shutil.copytree(fixture, missing_matrix_export_build, dirs_exist_ok=True)
+        write(
+            missing_matrix_export_build / MATRIX_PATH,
+            read_text(missing_matrix_export_build / MATRIX_PATH).replace(
+                "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`",
+                "",
+            ),
+        )
+        expect_failure(missing_matrix_export_build, "`zigux/tests/phase11_hvc_export_surface_layout_build.zig`")
 
         missing_export_build_marker = tmpdir / "missing_export_build_marker"
         shutil.copytree(fixture, missing_export_build_marker, dirs_exist_ok=True)
@@ -544,7 +570,7 @@ def run_self_test() -> int:
         expect_failure(missing_file, str(SURVEY_PATH))
 
         print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST=pass")
-        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=10")
+        print("PHASE11_HVC_CLEANUP_CURRENT_HEAD_SELF_TEST_CASE_COUNT=12")
         return 0
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
