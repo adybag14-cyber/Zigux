@@ -14,6 +14,7 @@ TOOLCHAIN_POLICY = ROOT / "scripts" / "zigux" / "zig-toolchain-policy.json"
 MAKEFILE = ROOT / "zigux" / "Makefile"
 FIXTURE = ROOT / "zigux" / "tests" / "fixtures" / "phase2_cross_targets.json"
 ROUTE = "make -C zigux phase2-cross"
+SHA256_HEX_DIGEST_LENGTH = 64
 
 MAKEFILE_LINES = (
     "phase2-cross:",
@@ -67,7 +68,7 @@ EXPECTED_ISSUE_CODES = (
     "ARCHIVE_REQUIRED_TARGET_ORDER_MISMATCH",
 )
 
-EXPECTED_SELF_TEST_CASE_COUNT = 30
+EXPECTED_SELF_TEST_CASE_COUNT = 32
 
 
 def read_text(path: Path) -> str:
@@ -106,6 +107,13 @@ def load_toolchain_policy(root: Path) -> tuple[Path, dict[str, object]]:
     if not isinstance(payload, dict):
         raise SystemExit(f"invalid json shape in required file: {policy_path}")
     return policy_path, payload
+
+
+def is_canonical_sha256(value: str) -> bool:
+    return (
+        len(value) == SHA256_HEX_DIGEST_LENGTH
+        and all(character in "0123456789abcdef" for character in value)
+    )
 
 
 def load_archive_target_scope(root: Path) -> list[str]:
@@ -147,6 +155,8 @@ def load_archive_sha256_targets(root: Path) -> list[str]:
         target = key.strip()
         if target != key:
             raise SystemExit(f"invalid archive_sha256 key in required file: {policy_path}")
+        if value != value.strip() or not is_canonical_sha256(value):
+            raise SystemExit(f"invalid archive_sha256 value in required file: {policy_path}: {key}")
         if target in seen:
             raise SystemExit(f"duplicate archive_sha256 key in required file: {policy_path}: {target}")
         seen.add(target)
@@ -445,6 +455,32 @@ def run_self_test() -> int:
             assert "invalid archive_sha256 key" in str(exc)
         else:
             raise AssertionError("whitespace archive_sha256 key did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["archive_sha256"]["x86_64-linux"] = "3" * 63
+        try:
+            path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_sha256 value" in str(exc)
+        else:
+            raise AssertionError("short archive_sha256 value did not abort")
+        checks_run += 1
+
+        build_self_test_root(root)
+        path = resolve_path(root, TOOLCHAIN_POLICY)
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload["archive_sha256"]["x86_64-linux"] = ("A" * 63) + " "
+        try:
+            path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+            collect_issues(root)
+        except SystemExit as exc:
+            assert "invalid archive_sha256 value" in str(exc)
+        else:
+            raise AssertionError("whitespace-padded archive_sha256 value did not abort")
         checks_run += 1
 
         build_self_test_root(root)
