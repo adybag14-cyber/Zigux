@@ -78,6 +78,14 @@ CHECK_COMMANDS = (
         ),
     ),
     (
+        Path("scripts/zigux/validate-phase3-abi-header-family-survey.py"),
+        (),
+        (
+            "validated Documentation/zigux/phase3-abi-header-family-survey.md",
+            "PHASE3_ABI_HEADER_FAMILY_SURVEY=pass",
+        ),
+    ),
+    (
         Path("scripts/zigux/validate-phase3-policy-unsafe-survey.py"),
         (),
         (
@@ -112,9 +120,10 @@ SELF_TEST_MISSING_CASES = (
     (8, "expected catalog-selftest script omission was not reported"),
     (9, "expected validator-support script omission was not reported"),
     (10, "expected export-uapi survey script omission was not reported"),
-    (11, "expected policy-unsafe survey script omission was not reported"),
-    (12, "expected low-level-wrapper script omission was not reported"),
-    (13, "expected selftest-surface script omission was not reported"),
+    (11, "expected abi-header-family survey script omission was not reported"),
+    (12, "expected policy-unsafe survey script omission was not reported"),
+    (13, "expected low-level-wrapper script omission was not reported"),
+    (14, "expected selftest-surface script omission was not reported"),
 )
 
 
@@ -248,11 +257,22 @@ def run_self_test() -> int:
             print("expected missing readme-inventory output marker to fail the runner")
             return 1
 
-        low_level_wrapper_path = root / CHECK_COMMANDS[12][0]
+        header_family_path = root / CHECK_COMMANDS[11][0]
+        populate_repo()
+        _write_synthetic_script(
+            header_family_path,
+            (CHECK_COMMANDS[11][2][0],),
+        )
+        if run_packet(root) != 1:
+            print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
+            print("expected missing abi-header-family pass marker to fail the runner")
+            return 1
+
+        low_level_wrapper_path = root / CHECK_COMMANDS[13][0]
         populate_repo()
         _write_synthetic_script(
             low_level_wrapper_path,
-            (CHECK_COMMANDS[12][2][0],),
+            (CHECK_COMMANDS[13][2][0],),
         )
         if run_packet(root) != 1:
             print("PHASE3_CHECK_RUNNER_SELF_TEST=fail")
@@ -262,7 +282,7 @@ def run_self_test() -> int:
         print("PHASE3_CHECK_RUNNER_SELF_TEST=pass")
         print(
             "PHASE3_CHECK_RUNNER_SELF_TEST_CASE_COUNT="
-            f"{len(SELF_TEST_MISSING_CASES) + 5}"
+            f"{len(SELF_TEST_MISSING_CASES) + 6}"
         )
         return 0
 
