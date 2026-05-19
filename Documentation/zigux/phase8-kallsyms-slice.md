@@ -10,28 +10,30 @@ This document tracks the bounded Phase 8 userspace-adjacent tooling slice for Zi
 - current directly readable packet in this scheduled environment:
   - `Documentation/zigux/phase8-kallsyms-slice.md`
   - `scripts/zigux/validate-phase8.py`
+  - `tools/lib/symbol/kallsyms.zig` through the public raw fallback
 - current degraded readback for the dedicated symbol lane:
   - authenticated GitHub contents reads still return `404` for `tools/lib/symbol/kallsyms.zig`, `scripts/zigux/check-phase8-help-kallsyms-packet.py`, `zigux/tests/phase8_kallsyms.zig`, and `zigux/tests/phase8_kallsyms_only_build.zig`
-  - the public raw fallback also did not yield usable helper, checker, or focused-test content from this run's container or devbox, so this lane remains parked on note-only truthfulness rather than a fresh helper replay
+  - the public raw fallback now yields usable helper content for `tools/lib/symbol/kallsyms.zig`, but this run still could not recover the paired checker, focused test, or focused build file bodies from one consistent source type, so the lane remains parked below a fresh helper-local replay
 
 ## Why this slice exists
 
 The Phase 8 roadmap explicitly names `tools/lib/symbol/kallsyms.c` as a userspace-adjacent tooling anchor, calls for helper-first expansion plus output-stable tooling behavior, and recommends `tools/lib/symbol/*.zig` as a bounded Zigux destination.
 
-This lane therefore stays reserved for one direct `kallsymsParse()` wrapper and the smaller helper-first parser-and-wrapper packet around it. Current `master` still keeps that future helper-first expansion on the roadmap, but this scheduled environment does not currently provide one consistent readable helper-and-test surface for a fresh exact-file replay.
+This lane therefore stays reserved for one direct `kallsymsParse()` wrapper and the smaller helper-first parser-and-wrapper packet around it. Current `master` still keeps that future helper-first expansion on the roadmap, and this scheduled environment can now recover the helper body itself through the public raw fallback even though the dedicated checker-and-test packet still lacks one consistent readable source.
 
 ## Verified current behavior
 
-The current repo state that is directly verifiable from this run is narrower than the broader helper packet described by earlier kallsyms notes.
+The current repo state that is directly verifiable from this run is narrower than the broader helper packet described by earlier kallsyms notes, but it is no longer note-only.
 
 This run could verify that:
 
 - `Documentation/zigux/phase8-kallsyms-slice.md` is present on `master`
 - `scripts/zigux/validate-phase8.py` is present on `master`
+- the public raw fallback now returns usable `tools/lib/symbol/kallsyms.zig` helper content, including the direct parser callback wrapper surface around `kallsymsParseFile()` and `forEachParsedPath()`
 - authenticated GitHub contents reads still fail for the dedicated kallsyms helper, checker, focused test, and focused build file paths
-- the current container and devbox could not recover those same dedicated kallsyms files through the public raw fallback during this scheduled pass
+- the current container and devbox still could not recover the dedicated kallsyms checker, focused test, and focused build files through one consistent source during this scheduled pass
 
-This run could not freshly verify helper-local parser behavior, focused kallsyms test expectations, or the combined help-and-kallsyms checker contents from one consistent source.
+This run could not freshly verify helper-local parser test expectations, focused kallsyms test behavior, or the combined help-and-kallsyms checker contents from one consistent source.
 
 ## Current parity surface
 
@@ -39,14 +41,15 @@ The current readable packet still covers:
 
 - the roadmap-backed claim that `kallsyms` remains a valid Phase 8 tool lane
 - the helper-first expansion wording and one future `kallsymsParse()` wrapper target
-- one directly readable lane note that now matches the degraded read surface available to this scheduled run
-- the fact that broader shared Phase 8 validation infrastructure is still present even though the focused kallsyms packet is not consistently readable here
+- one directly readable lane note that now matches the mixed read surface available to this scheduled run
+- one directly readable `tools/lib/symbol/kallsyms.zig` helper body through the public raw fallback
+- the fact that broader shared Phase 8 validation infrastructure is still present even though the focused kallsyms checker-and-test packet is not consistently readable here
 
 The current packet does not yet provide:
 
-- a directly readable `tools/lib/symbol/kallsyms.zig` helper body from this scheduled environment
+- one consistent source type that yields the helper, checker, focused test, and focused build bodies together
 - a directly readable focused checker or focused kallsyms replay file from this scheduled environment
-- a fresh in-workspace parser replay captured from one consistent helper source
+- a fresh in-workspace parser replay captured from one consistent helper-plus-test source
 - a proof that authenticated contents reads and public fallback reads agree on the focused symbol-lane files
 - a wider userspace symbol pipeline beyond the bounded parser-and-wrapper destination reserved by the roadmap
 
