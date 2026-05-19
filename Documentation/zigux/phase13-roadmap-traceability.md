@@ -42,7 +42,7 @@ Keep the broader docs-root, scripts-root, tests-root, shared-summary-gap, and no
 
 Use this compact reread before editing the broader Phase 13 reminder packet.
 
-- refresh basis: current `master` direct readback on `2026-05-18`
+- refresh basis: current `master` direct readback on `2026-05-19`
 - roadmap source: `zigux-alpha/ZAR_TO_ZIGUX_PRODUCT_ROADMAP.md`
 - stable shared-summary guard: `python3 scripts/zigux/check-phase13-shared-summary-surfaces.py`
 - shared-summary guard handoff note: `Documentation/zigux/phase13-shared-summary-guard-gap.md` keeps the old missing-checker closure explicit beside that shipped guard
