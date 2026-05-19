@@ -76,6 +76,12 @@ def collect_failures(root: Path) -> list[str]:
     if manifest["review_checklist_boundary_rule"] not in review_process:
         failures.append("review-process note is missing the review-checklist boundary rule")
 
+    if manifest["handoff_note"] not in review_process:
+        failures.append("review-process note is missing the handoff note path")
+
+    if manifest["shared_summary_gap_note"] not in review_process:
+        failures.append("review-process note is missing the shared-summary gap note path")
+
     for marker in (
         "PHASE15_STATUS=architecture_council_review_process_landed",
         "PHASE15_LANE_KEY=P15-L08",
@@ -126,6 +132,16 @@ def collect_failures(root: Path) -> list[str]:
         if field not in decision_record_template:
             failures.append(f"decision-record template is missing reopen-evidence field: {field}")
 
+    for marker in manifest.get("study_only_anchor_review_markers", []):
+        if marker not in review_process:
+            failures.append(f"review-process note is missing study-only boundary marker: {marker}")
+
+    study_only_template_rule = manifest.get("decision_record_template_study_only_rule")
+    if study_only_template_rule is None:
+        failures.append("review-process manifest is missing decision_record_template_study_only_rule")
+    elif study_only_template_rule not in decision_record_template:
+        failures.append("decision-record template is missing the study-only anchor boundary rule")
+
     for marker in manifest["indefinite_c_policy_required_markers"]:
         if marker not in indefinite_c_policy:
             failures.append(f"indefinite-C policy note is missing required marker: {marker}")
@@ -133,16 +149,6 @@ def collect_failures(root: Path) -> list[str]:
     for marker in manifest["decision_record_template_required_markers"]:
         if marker not in decision_record_template:
             failures.append(f"decision-record template is missing required marker: {marker}")
-
-    for marker in manifest["study_only_anchor_review_markers"]:
-        if marker not in review_process:
-            failures.append(f"review-process note is missing study-only boundary marker: {marker}")
-
-    study_only_rule = manifest.get("decision_record_template_study_only_rule")
-    if study_only_rule is None:
-        failures.append("review-process manifest is missing decision_record_template_study_only_rule")
-    elif study_only_rule not in decision_record_template:
-        failures.append("decision-record template is missing the study-only anchor review rule")
 
     for marker in manifest["handoff_required_markers"]:
         if marker not in handoff_note:
@@ -216,7 +222,7 @@ def _sample_manifest() -> str:
                 "parity scorecard link or blocker record",
                 "indefinite-C policy link or explicit non-applicability note",
                 "explicit non-goals",
-                "written rationale"
+                "written rationale",
             ],
             "stay_in_c_closeout_fields": [
                 "the retained `freeze_in_c` decision",
@@ -226,32 +232,32 @@ def _sample_manifest() -> str:
                 "the automatic return-to-blocked trigger",
                 "the reopen triggers",
                 "the trigger-specific evidence refresh",
-                "the evidence archive path that will be refreshed before any later reopen request"
+                "the evidence archive path that will be refreshed before any later reopen request",
             ],
             "reopen_evidence_fields": [
                 "the exact reopen trigger being exercised",
                 "refreshed evidence by path",
                 "the blocker disposition being challenged",
-                "the narrower seam or policy change that makes the new review safe to consider"
+                "the narrower seam or policy change that makes the new review safe to consider",
             ],
             "indefinite_c_policy_required_markers": [
                 "required approver set",
                 "automatic return-to-blocked trigger",
                 "trigger-specific evidence refresh",
-                "parity scorecard link or blocker record"
+                "parity scorecard link or blocker record",
             ],
             "decision_record_template_required_markers": [
                 "`PHASE15_PROVENANCE_MODE=dated_master_readback`",
                 "`SURVEYED_COMMIT=current-master-readback-YYYY-MM-DD`",
                 "exact-head provenance exception note:",
                 "Prefer the dated master readback form for parked governance and stay-in-C review packets.",
-                "Only record an exact head when the linked review needs it to anchor a named published decision"
+                "Only record an exact head when the linked review needs it to anchor a named published decision",
             ],
             "study_only_anchor_review_markers": [
                 "`kernel/workqueue.c`",
                 "`kernel/trace/ring_buffer.c`",
                 "remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`",
-                "not candidates for a freeze-in-C status review through this note"
+                "not candidates for a freeze-in-C status review through this note",
             ],
             "decision_record_template_study_only_rule": "Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.",
             "handoff_required_markers": [
@@ -267,7 +273,7 @@ def _sample_manifest() -> str:
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
                 "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
                 "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
-                "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker"
+                "one focused review-process checker, one focused tests-readme checker, the shared-summary gap checker, and the focused handoff-note checker",
             ],
             "shared_gap_expected_present_paths": [
                 "`Documentation/zigux/phase15-parity-scorecard-survey.md`",
@@ -285,13 +291,13 @@ def _sample_manifest() -> str:
                 "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
                 "`zigux/tests/phase15_handoff_next_steps.zig`",
                 "`scripts/zigux/check-phase15-review-process-handoff.py`",
-                "`scripts/zigux/check-phase15-handoff-note-alignment.py`"
+                "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
             ],
             "shared_gap_expected_missing_paths": [
                 "`scripts/zigux/validate-phase15.py`",
                 "`zigux/tests/phase15_build.zig`",
-                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`"
-            ]
+                "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+            ],
         },
         indent=2,
     ) + "\n"
@@ -306,6 +312,7 @@ def _sample_review_process() -> str:
 - surveyed against dated current-master readback marker `{CURRENT_READBACK_MARKER}`
 - this note keeps the docs-root field inventory, the dedicated decision-record template, the dedicated review-process manifest, the focused review-process handoff checker, the focused Zig replay, the focused build-file replay, and the stay-in-C policy companion explicit through `Documentation/zigux/phase15-architecture-council-decision-record-template.md`, `Documentation/zigux/phase15-indefinite-c-policy.md`, `scripts/zigux/check-phase15-review-process-handoff.py`, `zigux/tests/phase15_architecture_council_review_process_manifest.json`, `zigux/tests/phase15_architecture_council_review_process.zig`, and `zigux/tests/phase15_architecture_council_review_process_build.zig`
 - `Documentation/zigux/review-checklist.md` keeps the shared entry-review and closeout prompts explicit, but the exact Architecture Council field inventory stays owned by this note and `Documentation/zigux/phase15-architecture-council-decision-record-template.md`
+- the broader validator-first packet remains gap-tracked by `Documentation/zigux/phase15-shared-summary-gap.md`, and maintenance follow-through routes through `Documentation/zigux/phase15-handoff-next-steps-survey.md`
 
 Any freeze-map anchor entering Architecture Council status review must keep all of the following explicit:
 - exact Linux anchor path
@@ -333,7 +340,7 @@ Any freeze-map anchor entering Architecture Council status review must keep all 
 
 Study-only freeze-map anchors stay outside this Architecture Council status-review packet until the freeze map itself changes.
 
-`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`, not candidates for a freeze-in-C status review through this note.
+`kernel/workqueue.c` and `kernel/trace/ring_buffer.c` remain boundary-study context routed through `Documentation/zigux/freeze-map.md` and `Documentation/zigux/phase15-study-only-anchor-accounting.md`, not candidates for a freeze-in-C status review through this note, unless the freeze map and supporting governance packet are explicitly updated first.
 
 If a freeze-in-C review closes without a status change, the closeout record must keep all of the following explicit:
 - the retained `freeze_in_c` decision
@@ -480,27 +487,27 @@ def _sample_gap_note() -> str:
 
 
 def _sample_test_file() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
-test \"placeholder focused review-process replay exists\" {
+test "placeholder focused review-process replay exists" {
     try std.testing.expect(true);
 }
 """
 
 
 def _sample_build_gate() -> str:
-    return """const std = @import(\"std\");
+    return """const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const review_process_module = b.createModule(.{
-        .root_source_file = b.path(\"phase15_architecture_council_review_process.zig\"),
+        .root_source_file = b.path("phase15_architecture_council_review_process.zig"),
     });
     const review_process_tests = b.addTest(.{
-        .name = \"phase15-architecture-council-review-process-tests\",
+        .name = "phase15-architecture-council-review-process-tests",
         .root_module = review_process_module,
     });
     const run_review_process_tests = b.addRunArtifact(review_process_tests);
-    const test_step = b.step(\"test\", \"Run the focused Phase 15 Architecture Council review-process test\");
+    const test_step = b.step("test", "Run the focused Phase 15 Architecture Council review-process test");
     test_step.dependOn(&run_review_process_tests.step);
 }
 """
@@ -554,6 +561,32 @@ def run_self_test() -> int:
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
         _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace(
+                "`Documentation/zigux/phase15-handoff-next-steps-survey.md`",
+                "`Documentation/zigux/phase15-handoff-next-step-survey.md`",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != ["review-process note is missing the handoff note path"]:
+            raise AssertionError(f"unexpected handoff-path failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace(
+                "`Documentation/zigux/phase15-shared-summary-gap.md`",
+                "`Documentation/zigux/phase15-shared-summary-gap-note.md`",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != ["review-process note is missing the shared-summary gap note path"]:
+            raise AssertionError(f"unexpected shared-gap-path failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
             root / DECISION_RECORD_TEMPLATE_PATH,
             _sample_decision_record_template().replace("- rollback owner:\n", "", 1),
         )
@@ -584,6 +617,28 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected stay-in-C closeout failure: {failures}")
 
         _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / REVIEW_PROCESS_PATH,
+            _sample_review_process().replace("`kernel/workqueue.c` and ", "", 1),
+        )
+        failures = collect_failures(root)
+        if failures != ["review-process note is missing study-only boundary marker: `kernel/workqueue.c`"]:
+            raise AssertionError(f"unexpected study-only marker failure: {failures}")
+
+        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
+        _write(
+            root / DECISION_RECORD_TEMPLATE_PATH,
+            _sample_decision_record_template().replace(
+                "- Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.\n",
+                "",
+                1,
+            ),
+        )
+        failures = collect_failures(root)
+        if failures != ["decision-record template is missing the study-only anchor boundary rule"]:
+            raise AssertionError(f"unexpected study-only template-rule failure: {failures}")
+
+        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
             root / INDEFINITE_C_POLICY_PATH,
             _sample_indefinite_c_policy().replace("required approver set, ", "", 1),
@@ -694,32 +749,6 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected handoff-note-checker failure: {failures}")
 
         _write(root / HANDOFF_NOTE_PATH, _sample_handoff_note())
-        _write(
-            root / REVIEW_PROCESS_PATH,
-            _sample_review_process().replace("`kernel/workqueue.c` and ", "", 1),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "review-process note is missing study-only boundary marker: `kernel/workqueue.c`"
-        ]:
-            raise AssertionError(f"unexpected study-only-note failure: {failures}")
-
-        _write(root / REVIEW_PROCESS_PATH, _sample_review_process())
-        _write(
-            root / DECISION_RECORD_TEMPLATE_PATH,
-            _sample_decision_record_template().replace(
-                "- Do not use this template to pull `kernel/workqueue.c`, `kernel/trace/ring_buffer.c`, or any other study-only anchor into a freeze-in-C status review unless the freeze map and supporting governance packet have been explicitly updated first.\n",
-                "",
-                1,
-            ),
-        )
-        failures = collect_failures(root)
-        if failures != [
-            "decision-record template is missing the study-only anchor review rule"
-        ]:
-            raise AssertionError(f"unexpected study-only-template failure: {failures}")
-
-        _write(root / DECISION_RECORD_TEMPLATE_PATH, _sample_decision_record_template())
         _write(
             root / SHARED_GAP_NOTE_PATH,
             _sample_gap_note().replace(
