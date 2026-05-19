@@ -24,6 +24,22 @@ fn expectNotContains(haystack: []const u8, needle: []const u8) !void {
     try std.testing.expect(std.mem.indexOf(u8, haystack, needle) == null);
 }
 
+fn countOccurrences(haystack: []const u8, needle: []const u8) usize {
+    if (needle.len == 0) return 0;
+
+    var count: usize = 0;
+    var start: usize = 0;
+    while (std.mem.indexOfPos(u8, haystack, start, needle)) |index| {
+        count += 1;
+        start = index + needle.len;
+    }
+    return count;
+}
+
+fn expectContainsCount(haystack: []const u8, needle: []const u8, expected: usize) !void {
+    try std.testing.expectEqual(expected, countOccurrences(haystack, needle));
+}
+
 fn expectStringSliceContains(haystack: []const []const u8, needle: []const u8) !void {
     for (haystack) |item| {
         if (std.mem.eql(u8, item, needle)) return;
@@ -128,8 +144,12 @@ test "phase 7 rbtree survey keeps the fallback truthfulness packet honest" {
     try expectContains(direct_anchor_note, "`scripts/zigux/validate-phase7.py`");
     try expectContains(direct_anchor_note, "`zigux/Makefile` still lacks dedicated `phase7-*` wrapper markers");
     try expectContains(direct_anchor_note, "`.github/workflows/zigux-bootstrap.yml` still lacks dedicated Phase 7 runtime-helper steps");
+    try expectContains(direct_anchor_note, "Keep the current Phase 7 rbtree reminder surface tied to missing-helper truthfulness rather than a returned-packet claim.");
+    try expectContainsCount(direct_anchor_note, "Keep the current Phase 7 rbtree reminder surface tied to missing-helper truthfulness rather than a returned-packet claim.", 1);
     try expectContains(direct_anchor_note, "`string_helpers` remains the Phase 7 fully landed sibling packet");
     try expectContains(direct_anchor_note, "`cmdline` and `argv_split` keep their own helper-local packet ownership");
+    try expectContains(direct_anchor_note, "Do not widen this note into make-wrapper or workflow-recovery claims until a fresh same-lane reread proves one concrete rbtree helper-local surface has rematerialized on current `master`.");
+    try expectContainsCount(direct_anchor_note, "Do not widen this note into make-wrapper or workflow-recovery claims until a fresh same-lane reread proves one concrete rbtree helper-local surface has rematerialized on current `master`.", 1);
     try expectNotContains(direct_anchor_note, "publicly visible again through");
     try expectNotContains(direct_anchor_note, "fully returned helper-local packet plus the returned shared build and validator evidence");
 }
