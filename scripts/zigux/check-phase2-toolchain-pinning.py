@@ -305,7 +305,7 @@ def collect_policy_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(upgrade_policy, dict):
         return issues + [("INVALID_UPGRADE_POLICY", type(upgrade_policy).__name__)]
 
-    if upgrade_policy.get("channel_minimum_lockstep") is not EXPECTED_POLICY["channel_minimum_LOCKSTEP"]:
+    if upgrade_policy.get("channel_minimum_lockstep") is not EXPECTED_POLICY["channel_minimum_lockstep"]:
         issues.append(("POLICY_LOCKSTEP_MISMATCH", f"actual={upgrade_policy.get('channel_minimum_lockstep')!r}:expected={EXPECTED_POLICY['channel_minimum_lockstep']!r}"))
 
     if upgrade_policy.get("archive_target_scope") != EXPECTED_POLICY["archive_target_scope"]:
@@ -362,7 +362,6 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             issues.append(("MISSING_WORKFLOW_SETUP_MARKERS", marker))
         elif count != 1:
             issues.append(("DUPLICATE_WORKFLOW_SETUP_MARKERS", f"{marker}:count={count}"))
-
 
     for marker in WORKFLOW_LINES:
         count = count_exact_lines(workflow_text, marker)
