@@ -40,6 +40,7 @@ RELEASE_READINESS_CHECKER_PATH = (
 VALIDATOR_PATH = "scripts/zigux/validate-phase12.py"
 MAKEFILE_PATH = "zigux/Makefile"
 PHASE12_BUILD_PATH = "zigux/tests/phase12_build.zig"
+WORKFLOW_PATH = ".github/workflows/zigux-bootstrap.yml"
 PHASE12_VIRTIO_NET_SURVEY_PATH = "Documentation/zigux/phase12-virtio-net-survey.md"
 PHASE12_VIRTIO_NET_DRIVER_PATH = "drivers/net/virtio_net.zig"
 PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_DRIVER_PATH = (
@@ -97,6 +98,7 @@ REQUIRED_FILES = [
     VALIDATOR_PATH,
     MAKEFILE_PATH,
     PHASE12_BUILD_PATH,
+    WORKFLOW_PATH,
     PHASE12_VIRTIO_NET_SURVEY_PATH,
     PHASE12_VIRTIO_NET_DRIVER_PATH,
     PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_DRIVER_PATH,
@@ -181,12 +183,28 @@ REQUIRED_MARKERS = {
         "phase12: phase12-smoke phase12-test",
     ],
     PHASE12_BUILD_PATH: [
-        '"phase12_virtio_net_transmit_recycle.zig"',
-        '"phase12_virtio_net_queue_resume.zig"',
+        "\"phase12_virtio_net_transmit_recycle.zig\"",
+        "\"phase12_virtio_net_queue_resume.zig\"",
         "smoke_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
         "smoke_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
         "test_step.dependOn(&run_virtio_net_transmit_recycle_tests.step);",
         "test_step.dependOn(&run_virtio_net_queue_resume_tests.step);",
+    ],
+    WORKFLOW_PATH: [
+        "- name: Self-test current Phase 12 build-only surface checker",
+        "        run: python3 scripts/zigux/check-build-only-phase12-surface.py --self-test",
+        "- name: Check current Phase 12 build-only surface",
+        "        run: python3 scripts/zigux/check-build-only-phase12-surface.py",
+        "- name: Self-test current Phase 12 release-readiness packet checker",
+        "        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py --self-test",
+        "- name: Check current Phase 12 release-readiness packet",
+        "        run: python3 scripts/zigux/check-phase12-release-readiness-packet.py",
+        "- name: Validate current Phase 12 support bundle",
+        "        run: python3 scripts/zigux/validate-phase12.py",
+        "- name: Run current Phase 12 smoke packet",
+        "        run: make -C zigux phase12-smoke",
+        "- name: Run current Phase 12 shared test packet",
+        "        run: make -C zigux phase12-test",
     ],
 }
 
@@ -196,6 +214,16 @@ FORBIDDEN_MARKERS = {
         "phase12: phase12-validate phase12-smoke phase12-test",
     ]
 }
+
+EXACT_LINE_MARKER_PATHS = {
+    WORKFLOW_PATH,
+}
+
+
+def has_required_marker(rel_path: str, text: str, marker: str) -> bool:
+    if rel_path in EXACT_LINE_MARKER_PATHS:
+        return marker in text.splitlines()
+    return marker in text
 
 
 def validate(root: Path) -> list[str]:
@@ -209,7 +237,7 @@ def validate(root: Path) -> list[str]:
     for rel_path, markers in REQUIRED_MARKERS.items():
         text = (root / rel_path).read_text(encoding="utf-8")
         for marker in markers:
-            if marker not in text:
+            if not has_required_marker(rel_path, text, marker):
                 failures.append(f"missing_marker:{rel_path}:{marker}")
     for rel_path, markers in FORBIDDEN_MARKERS.items():
         text = (root / rel_path).read_text(encoding="utf-8")
@@ -238,10 +266,12 @@ def fixture_text(rel_path: str) -> str:
             PHASE12_COMPLEX_DRIVER_LANE_PATH: "# Phase 12 Complex-Driver Lane Sequencing",
             RAW_GITHUB_COVERAGE_SURVEY_PATH: "# Phase 12 Raw GitHub Coverage Survey",
             SCRIPTS_README_PATH: "# scripts/zigux",
+            WORKFLOW_PATH: "name: zigux-bootstrap",
         }.get(rel_path, "# Fixture")
         if rel_path in {
             VALIDATOR_PATH,
             MAKEFILE_PATH,
+            WORKFLOW_PATH,
         }:
             return "\n".join(REQUIRED_MARKERS[rel_path]) + "\n"
         return marker_fixture(title, REQUIRED_MARKERS[rel_path])
@@ -253,6 +283,8 @@ def fixture_text(rel_path: str) -> str:
         return "// fixture\n"
     if rel_path.endswith(".json"):
         return "{}\n"
+    if rel_path.endswith(".yml"):
+        return "name: zigux-bootstrap\n"
     return ""
 
 
@@ -295,6 +327,7 @@ def run_self_test() -> int:
             VALIDATOR_PATH,
             MAKEFILE_PATH,
             PHASE12_BUILD_PATH,
+            WORKFLOW_PATH,
             PHASE12_VIRTIO_NET_TRANSMIT_RECYCLE_DRIVER_PATH,
             PHASE12_VIRTIO_NET_QUEUE_RESUME_DRIVER_PATH,
             PHASE12_VIRTIO_SCSI_MANIFEST_PATH,
@@ -344,6 +377,18 @@ def run_self_test() -> int:
             (PHASE12_BUILD_PATH, REQUIRED_MARKERS[PHASE12_BUILD_PATH][3]),
             (PHASE12_BUILD_PATH, REQUIRED_MARKERS[PHASE12_BUILD_PATH][4]),
             (PHASE12_BUILD_PATH, REQUIRED_MARKERS[PHASE12_BUILD_PATH][5]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][0]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][1]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][2]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][3]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][4]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][5]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][6]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][7]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][8]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][9]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][10]),
+            (WORKFLOW_PATH, REQUIRED_MARKERS[WORKFLOW_PATH][11]),
         ]
         for rel_path, marker in marker_cases:
             write_fixture_tree(base)
