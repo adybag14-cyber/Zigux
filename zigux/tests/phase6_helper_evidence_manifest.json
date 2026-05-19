@@ -95,7 +95,25 @@
         "zigux/tests/phase6_checksum_c_parity.zig",
         "zigux/tests/fixtures/phase6_checksum_c_harness.c",
         "scripts/zigux/check-phase6-checksum-c-parity.py"
-      ]
+      ],
+      "current_perf_evidence": {
+        "payload_case_labels": [
+          "64B",
+          "1501B"
+        ],
+        "ipv4_fast_path_case_labels": [
+          "IPV4_20B",
+          "IPV4_24B",
+          "IPV4_60B"
+        ],
+        "linux_style_rerun_routes": [
+          "zig build phase6-checksum-perf-matrix-test --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-checksum-perf-matrix-test",
+          "zig build phase6-checksum-perf --build-file zigux/tests/phase6_build.zig",
+          "make -C zigux phase6-checksum-perf",
+          "make -C zigux phase6-perf"
+        ]
+      }
     },
     {
       "key": "hexdump",
