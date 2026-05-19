@@ -4,7 +4,7 @@
 - `PHASE10_STATUS=parked`
 - `PHASE10_SLICE=virtio-ring-freeze-boundary-survey`
 - schedule lane prompt: `P10-L07`
-- current packet lane on master: `P10-L05`
+- current packet lane on master: `P10-L10`
 - adjacent freeze-boundary owner: `P10-L11`
 - surveyed head: `0aa2db32bcb1c7065850ee3f66ec119b071fbf5c`
 - prior ring survey provenance: `e42103fc02f544e1bd23a5ec2e5b584734f5af7d`
@@ -21,7 +21,7 @@ Repeated direct contents reads now materialize `drivers/virtio/virtio_ring.zig`,
 The risky-transport freeze-boundary posture still belongs to the adjacent MMIO-owned blocked `phase10-ring-lab-driver-bridge` packet. This note therefore does not claim queue setup or reset execution, IRQ delivery, DMA paths, or probe/remove lifecycle behavior.
 
 ## Gap Crosswalk
-- current packet lane on master: `P10-L05`
+- current packet lane on master: `P10-L10`
 - adjacent freeze-boundary owner: `P10-L11`
 - the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap beside the queue-local helper ladder
 - the dedicated ring survey replay `zigux/tests/phase10_virtio_ring_survey.zig` stays part of the same directly readable ring packet
