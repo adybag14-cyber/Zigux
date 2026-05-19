@@ -49,6 +49,7 @@ The broader shared reminder packet is also thinner than earlier wording implied:
 - `Documentation/zigux/review-checklist.md` and `zigux/tests/README.md` are readable, but they do not currently carry dedicated Phase 8 or libbpf-specific reminder text.
 
 So those shared docs-root, checklist, and tests-root surfaces should be treated as adjacent cross-phase context only, not as current shared proof for the broader Phase 8 libbpf bridge packet.
+That does not make them irrelevant: the shared bridge-boundary note, review checklist, and tests-root guide remain useful reminder surfaces for bounded coordination even while they are not current dedicated proof for the broader Phase 8 libbpf bridge packet.
 
 ## Current bounded gap
 The real same-lane gap is still truthfulness about directly readable segment evidence, not a new helper implementation claim.
