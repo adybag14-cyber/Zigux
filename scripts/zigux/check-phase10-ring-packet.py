@@ -19,7 +19,7 @@ REQUIRED_MARKERS = {
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
-        "current packet lane on master: `P10-L05`",
+        "current packet lane on master: `P10-L10`",
         "adjacent freeze-boundary owner: `P10-L11`",
         "the broader ring replay `zigux/tests/phase10_virtio_ring.zig` still remains a direct-readback gap beside the queue-local helper ladder",
         "the dedicated ring survey replay `zigux/tests/phase10_virtio_ring_survey.zig` stays part of the same directly readable ring packet",
@@ -63,7 +63,7 @@ REQUIRED_MARKERS = {
         "Run the live Phase 10 virtio core, input, ring, and MMIO lab validation tests",
     ],
     "zigux/tests/phase10_virtio_ring_manifest.json": [
-        '"lane_key": "P10-L05"',
+        '"lane_key": "P10-L10"',
         '"preexisting_phase10_test_files": 3,',
         '"freeze_status_change_claimed": false,',
         '"risky_transport_posture": "blocked_on_risky_transport",',
