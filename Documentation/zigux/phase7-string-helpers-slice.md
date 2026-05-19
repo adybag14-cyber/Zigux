@@ -40,6 +40,7 @@ This is intentionally not a Phase 5 `samples/zigux/` reference-sample lane. Curr
 - do not count `scripts/zigux/check-phase7-build-wiring.py`
 - do not count `zigux/tests/phase7_build.zig`
 - do not count `make -C zigux phase7-validate`
+- do not count `make -C zigux phase7-test`
 - do not count `make -C zigux phase7`
 unless a fresh same-family reread proves those broader shared-control reminders are directly readable again on current `master`.
 
