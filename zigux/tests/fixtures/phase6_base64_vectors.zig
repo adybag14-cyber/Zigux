@@ -180,21 +180,10 @@ fn encodedChars(nbytes: usize, padding: bool) usize {
 }
 
 test "phase 6 base64 perf fixture packet stays bounded to the documented matrix" {
-    const expected = [_]struct {
-        label: []const u8,
-        variant_name: []const u8,
-        padding: bool,
-        iterations: usize,
-        max_encode_slowdown_pct: u64,
-        max_decode_slowdown_pct: u64,
-    }{
-        .{ .label = "STD_PAD", .variant_name = "std", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
-        .{ .label = "STD_NO_PAD", .variant_name = "std", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
-        .{ .label = "URLSAFE_PAD", .variant_name = "urlsafe", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
-        .{ .label = "URLSAFE_NO_PAD", .variant_name = "urlsafe", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
-        .{ .label = "IMAP_PAD", .variant_name = "imap", .padding = true, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
-        .{ .label = "IMAP_NO_PAD", .variant_name = "imap", .padding = false, .iterations = 12000, .max_encode_slowdown_pct = 150, .max_decode_slowdown_pct = 325 },
-    };
+    const expected_case_count = 6;
+    const expected_iterations = 12_000;
+    const expected_max_encode_slowdown_pct = 150;
+    const expected_max_decode_slowdown_pct = 325;
 
     var saw_std_pad = false;
     var saw_std_no_pad = false;
@@ -203,54 +192,49 @@ test "phase 6 base64 perf fixture packet stays bounded to the documented matrix"
     var saw_imap_pad = false;
     var saw_imap_no_pad = false;
 
-    try std.testing.expectEqual(expected.len, perf_cases.len);
+    try std.testing.expectEqual(expected_case_count, perf_cases.len);
     try std.testing.expectEqual(perf_payload.len, perf_payload_buf_size);
-
-    for (expected, 0..) |want, idx| {
-        const actual = perf_cases[idx];
-        try std.testing.expectEqualStrings(want.label, actual.label);
-        try std.testing.expectEqualStrings(want.variant_name, actual.variant_name);
-        try std.testing.expectEqual(want.padding, actual.padding);
-        try std.testing.expectEqual(want.iterations, actual.iterations);
-        try std.testing.expectEqual(want.max_encode_slowdown_pct, actual.max_encode_slowdown_pct);
-        try std.testing.expectEqual(want.max_decode_slowdown_pct, actual.max_decode_slowdown_pct);
-    }
 
     for (perf_cases, 0..) |case, idx| {
         try std.testing.expectEqualStrings(perf_payload, case.payload);
-        try std.testing.expect(case.iterations > 0);
-        try std.testing.expect(case.max_encode_slowdown_pct > 0);
-        try std.testing.expect(case.max_decode_slowdown_pct > 0);
+        try std.testing.expectEqual(expected_iterations, case.iterations);
+        try std.testing.expectEqual(expected_max_encode_slowdown_pct, case.max_encode_slowdown_pct);
+        try std.testing.expectEqual(expected_max_decode_slowdown_pct, case.max_decode_slowdown_pct);
         try std.testing.expect(perf_payload_buf_size >= case.payload.len);
         try std.testing.expect(perf_encoded_buf_size >= encodedChars(case.payload.len, case.padding));
-        try std.testing.expect(
-            std.mem.eql(u8, case.variant_name, "std") or std.mem.eql(u8, case.variant_name, "urlsafe") or std.mem.eql(u8, case.variant_name, "imap"),
-        );
 
         if (std.mem.eql(u8, case.variant_name, "std")) {
             if (case.padding) {
+                try std.testing.expectEqualStrings("STD_PAD", case.label);
                 try std.testing.expect(!saw_std_pad);
                 saw_std_pad = true;
             } else {
+                try std.testing.expectEqualStrings("STD_NO_PAD", case.label);
                 try std.testing.expect(!saw_std_no_pad);
                 saw_std_no_pad = true;
             }
         } else if (std.mem.eql(u8, case.variant_name, "urlsafe")) {
             if (case.padding) {
+                try std.testing.expectEqualStrings("URLSAFE_PAD", case.label);
                 try std.testing.expect(!saw_urlsafe_pad);
                 saw_urlsafe_pad = true;
             } else {
+                try std.testing.expectEqualStrings("URLSAFE_NO_PAD", case.label);
                 try std.testing.expect(!saw_urlsafe_no_pad);
                 saw_urlsafe_no_pad = true;
             }
-        } else {
+        } else if (std.mem.eql(u8, case.variant_name, "imap")) {
             if (case.padding) {
+                try std.testing.expectEqualStrings("IMAP_PAD", case.label);
                 try std.testing.expect(!saw_imap_pad);
                 saw_imap_pad = true;
             } else {
+                try std.testing.expectEqualStrings("IMAP_NO_PAD", case.label);
                 try std.testing.expect(!saw_imap_no_pad);
                 saw_imap_no_pad = true;
             }
+        } else {
+            try std.testing.expect(false);
         }
 
         for (perf_cases[idx + 1 ..]) |other| {
