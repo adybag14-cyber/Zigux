@@ -21,6 +21,7 @@ REQUIRED_FILES = [
     "scripts/zigux/check-phase10-harness-coverage.py",
     "zigux/Makefile",
     "zigux/tests/phase10_closure_manifest.json",
+    "zigux/tests/phase10_virtio_core_manifest.json",
     "zigux/tests/phase10_virtio_ring_manifest.json",
     "zigux/tests/phase10_virtio_input_manifest.json",
     "zigux/tests/phase10_virtio_mmio_manifest.json",
@@ -66,6 +67,7 @@ MANIFEST_MARKERS = [
 ]
 
 SURVEY_MANIFESTS = {
+    "core": "zigux/tests/phase10_virtio_core_manifest.json",
     "ring": "zigux/tests/phase10_virtio_ring_manifest.json",
     "input": "zigux/tests/phase10_virtio_input_manifest.json",
     "mmio": "zigux/tests/phase10_virtio_mmio_manifest.json",
@@ -77,6 +79,7 @@ READY_TRANSPORT_FOLLOWUPS = {
 }
 
 LANDED_HELPER_FIELDS = {
+    "landed_core_helper_evidence": "zigux/tests/phase10_virtio_core_manifest.json",
     "landed_ring_helper_evidence": "zigux/tests/phase10_virtio_ring_manifest.json",
     "landed_input_helper_evidence": "zigux/tests/phase10_virtio_input_manifest.json",
     "landed_mmio_helper_evidence": "zigux/tests/phase10_virtio_mmio_manifest.json",
@@ -292,11 +295,13 @@ def write_fixture(root: Path) -> None:
                 "exact_checks": EXPECTED_EXACT_CHECK_ROUTE,
                 "survey_provenance": {
                     "lane_keys": {
+                        "core": "P10-L01",
                         "ring": "P10-L05",
                         "input": "P10-L13",
                         "mmio": "P10-L11",
                     },
                     "surveyed_commits": {
+                        "core": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
                         "ring": "e42103fc02f544e1bd23a5ec2e5b584734f5af7d",
                         "input": "7361ac51374149a96b7a7a2c6ea3c995d8cc1231",
                         "mmio": "b53ec2bd507d0b3283486e76acc273b184ad5bf8",
@@ -305,6 +310,12 @@ def write_fixture(root: Path) -> None:
                 "ready_transport_followups": {
                     "zigux/tests/phase10_virtio_input_manifest.json": "phase10-virtio-input-registration-lifecycle",
                     "zigux/tests/phase10_virtio_mmio_manifest.json": "phase10-mmio-lifecycle-and-irq-paths",
+                },
+                "landed_core_helper_evidence": {
+                    "zigux/tests/phase10_virtio_core_manifest.json": [
+                        "phase10-queue-shape-bookkeeping-helper",
+                        "phase10-config-generation-bookkeeping-helper",
+                    ]
                 },
                 "landed_ring_helper_evidence": {
                     "zigux/tests/phase10_virtio_ring_manifest.json": [
@@ -379,6 +390,17 @@ def write_fixture(root: Path) -> None:
                     "zigux/tests/phase10_virtio_input_probe_preflight.zig",
                     "zigux/tests/phase10_virtio_input_registration_preflight.zig",
                     "zigux/tests/phase10_virtio_input_teardown_observation.zig",
+                ],
+            }
+        ),
+        "zigux/tests/phase10_virtio_core_manifest.json": json.dumps(
+            {
+                "lane_key": "P10-L01",
+                "surveyed_commit": "c11221dc7a68d7511ae1c69d64b3f08528287ed8",
+                "gaps": [
+                    {"id": "phase10-queue-shape-bookkeeping-helper", "status": "starter_landed"},
+                    {"id": "phase10-config-generation-bookkeeping-helper", "status": "starter_landed"},
+                    {"id": "phase10-core-probe-remove-lifecycle", "status": "blocked_on_risky_transport"},
                 ],
             }
         ),
@@ -474,7 +496,27 @@ def run_self_test() -> int:
         broken = dict(original)
         broken["survey_provenance"] = dict(original["survey_provenance"])
         broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
-        broken["survey_provenance"]["lane_keys"]["ring"] = "P10-L10"
+        broken["survey_provenance"]["core"] = "P10-L10"
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "survey_provenance:core:lane_key:'P10-L10'!='P10-L01'" not in drift:
+            raise SystemExit("phase10-closure-self-test:core_lane_drift_not_detected")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
+
+        broken = dict(original)
+        broken["survey_provenance"] = dict(original["survey_provenance"])
+        broken["survey_provenance"]["surveyed_commits"] = dict(original["survey_provenance"]["surveyed_commits"])
+        broken["survey_provenance"]["surveyed_commits"]["core"] = "stale-core-sha"
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "survey_provenance:core:surveyed_commit:'stale-core-sha'!='c11221dc7a68d7511ae1c69d64b3f08528287ed8'" not in drift:
+            raise SystemExit("phase10-closure-self-test:core_commit_drift_not_detected")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
+
+        broken = dict(original)
+        broken["survey_provenance"] = dict(original["survey_provenance"])
+        broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
+        broken["survey_provenance"]["ring"] = "P10-L10"
         closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "survey_provenance:ring:lane_key:'P10-L10'!='P10-L05'" not in drift:
@@ -484,7 +526,7 @@ def run_self_test() -> int:
         broken = dict(original)
         broken["survey_provenance"] = dict(original["survey_provenance"])
         broken["survey_provenance"]["lane_keys"] = dict(original["survey_provenance"]["lane_keys"])
-        broken["survey_provenance"]["lane_keys"]["mmio"] = "P10-L10"
+        broken["survey_provenance"]["mmio"] = "P10-L10"
         closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if not any(item.startswith("survey_provenance:mmio:lane_key:") for item in drift):
@@ -494,7 +536,7 @@ def run_self_test() -> int:
         broken = dict(original)
         broken["survey_provenance"] = dict(original["survey_provenance"])
         broken["survey_provenance"]["surveyed_commits"] = dict(original["survey_provenance"]["surveyed_commits"])
-        broken["survey_provenance"]["surveyed_commits"]["ring"] = "stale-ring-sha"
+        broken["survey_provenance"]["ring"] = "stale-ring-sha"
         closure_path.write_text(json.dumps(broken), encoding="utf-8")
         drift = collect_manifest_drift(root)
         if "survey_provenance:ring:surveyed_commit:'stale-ring-sha'!='e42103fc02f544e1bd23a5ec2e5b584734f5af7d'" not in drift:
@@ -508,6 +550,18 @@ def run_self_test() -> int:
         drift = collect_manifest_drift(root)
         if "ready_transport_followups:zigux/tests/phase10_virtio_mmio_manifest.json:'phase10-mmio-config-write-helper'!='phase10-mmio-lifecycle-and-irq-paths'" not in drift:
             raise SystemExit("phase10-closure-self-test:mmio_followup_drift_not_detected")
+        closure_path.write_text(json.dumps(original), encoding="utf-8")
+
+        broken = dict(original)
+        broken["landed_core_helper_evidence"] = dict(original["landed_core_helper_evidence"])
+        broken["landed_core_helper_evidence"]["zigux/tests/phase10_virtio_core_manifest.json"] = [
+            "phase10-queue-shape-bookkeeping-helper",
+            "phase10-interrupt-ack-bookkeeping-helper",
+        ]
+        closure_path.write_text(json.dumps(broken), encoding="utf-8")
+        drift = collect_manifest_drift(root)
+        if "landed_core_helper_evidence:zigux/tests/phase10_virtio_core_manifest.json:'phase10-interrupt-ack-bookkeeping-helper':not_starter_landed" not in drift:
+            raise SystemExit("phase10-closure-self-test:core_helper_drift_not_detected")
         closure_path.write_text(json.dumps(original), encoding="utf-8")
 
         broken = dict(original)
@@ -606,7 +660,7 @@ def run_self_test() -> int:
             )
 
     print("PHASE10_CLOSURE_VALIDATION_SELF_TEST=pass")
-    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=14")
+    print("PHASE10_CLOSURE_VALIDATION_SELF_TEST_CASE_COUNT=17")
     return 0
 
 
