@@ -45,6 +45,18 @@ pub const HListNode = extern struct {
     pprev: usize,
 };
 
+pub const ListBackLinkBreak = extern struct {
+    current_index: usize,
+    expected_prev: usize,
+    actual_prev: usize,
+};
+
+pub const HListPrevLinkBreak = extern struct {
+    current_index: usize,
+    expected_pprev: usize,
+    actual_pprev: usize,
+};
+
 pub fn chainHasNonincreasingPriority(head: ?*const NotifierBlock) bool {
     var current = head orelse return true;
     var previous_priority = current.priority;
@@ -83,32 +95,80 @@ pub fn firstChainPriorityIncrease(head: ?*const NotifierBlock) ?NotifierChainPri
     return null;
 }
 
-pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
-    const sentinel = head orelse return false;
+pub fn firstBrokenBacklink(head: ?*const ListHead) ?ListBackLinkBreak {
+    const sentinel = head orelse return null;
     var expected_prev = @intFromPtr(sentinel);
-    var cursor = listHeadFromRaw(sentinel.next) orelse return false;
+    var current_index: usize = 0;
+    var cursor = listHeadFromRaw(sentinel.next) orelse {
+        return .{
+            .current_index = 0,
+            .expected_prev = expected_prev,
+            .actual_prev = 0,
+        };
+    };
 
     while (cursor != sentinel) {
-        if (cursor.prev != expected_prev) return false;
+        if (cursor.prev != expected_prev) {
+            return .{
+                .current_index = current_index,
+                .expected_prev = expected_prev,
+                .actual_prev = cursor.prev,
+            };
+        }
+
         expected_prev = @intFromPtr(cursor);
-        cursor = listHeadFromRaw(cursor.next) orelse return false;
+        current_index += 1;
+        cursor = listHeadFromRaw(cursor.next) orelse {
+            return .{
+                .current_index = current_index,
+                .expected_prev = expected_prev,
+                .actual_prev = 0,
+            };
+        };
     }
 
-    return sentinel.prev == expected_prev;
+    if (sentinel.prev != expected_prev) {
+        return .{
+            .current_index = current_index,
+            .expected_prev = expected_prev,
+            .actual_prev = sentinel.prev,
+        };
+    }
+
+    return null;
 }
 
-pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
-    const first_head = head orelse return false;
+pub fn listHasConsistentBacklinks(head: ?*const ListHead) bool {
+    if (head == null) return false;
+    return firstBrokenBacklink(head) == null;
+}
+
+pub fn firstBrokenPrevLink(head: ?*const HListHead) ?HListPrevLinkBreak {
+    const first_head = head orelse return null;
     var expected_pprev = @intFromPtr(&first_head.first);
+    var current_index: usize = 0;
     var cursor = hlistNodeFromRaw(first_head.first);
 
     while (cursor) |node| {
-        if (node.pprev != expected_pprev) return false;
+        if (node.pprev != expected_pprev) {
+            return .{
+                .current_index = current_index,
+                .expected_pprev = expected_pprev,
+                .actual_pprev = node.pprev,
+            };
+        }
+
         expected_pprev = @intFromPtr(&node.next);
+        current_index += 1;
         cursor = hlistNodeFromRaw(node.next);
     }
 
-    return true;
+    return null;
+}
+
+pub fn hlistHasConsistentPrevLinks(head: ?*const HListHead) bool {
+    if (head == null) return false;
+    return firstBrokenPrevLink(head) == null;
 }
 
 test "notifier result constants stay aligned with the exported ABI values" {
@@ -157,6 +217,18 @@ test "list and hlist layouts stay aligned with the exported ABI header" {
     try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListNode, "next"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListNode, "pprev"));
     try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @sizeOf(HListNode));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(ListBackLinkBreak));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(ListBackLinkBreak, "current_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(ListBackLinkBreak, "expected_prev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(ListBackLinkBreak, "actual_prev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(ListBackLinkBreak));
+
+    try std.testing.expectEqual(@as(usize, @alignOf(usize)), @alignOf(HListPrevLinkBreak));
+    try std.testing.expectEqual(@as(usize, 0), @offsetOf(HListPrevLinkBreak, "current_index"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize)), @offsetOf(HListPrevLinkBreak, "expected_pprev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 2), @offsetOf(HListPrevLinkBreak, "actual_pprev"));
+    try std.testing.expectEqual(@as(usize, @sizeOf(usize) * 3), @sizeOf(HListPrevLinkBreak));
 }
 
 test "notifier priority helper accepts empty chain" {
@@ -279,6 +351,7 @@ test "list helper accepts a sentinel-only list" {
     head.next = @intFromPtr(&head);
     head.prev = @intFromPtr(&head);
 
+    try std.testing.expect(firstBrokenBacklink(&head) == null);
     try std.testing.expect(listHasConsistentBacklinks(&head));
 }
 
@@ -294,11 +367,16 @@ test "list helper rejects a broken backlink" {
     second.next = @intFromPtr(&head);
     second.prev = @intFromPtr(&head);
 
+    const breakage = firstBrokenBacklink(&head) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&first)), breakage.expected_prev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head)), breakage.actual_prev);
     try std.testing.expect(!listHasConsistentBacklinks(&head));
 }
 
 test "hlist helper accepts an empty head" {
     const head = HListHead{ .first = 0 };
+    try std.testing.expect(firstBrokenPrevLink(&head) == null);
     try std.testing.expect(hlistHasConsistentPrevLinks(&head));
 }
 
@@ -313,5 +391,9 @@ test "hlist helper rejects a broken prev-link" {
     second.next = 0;
     second.pprev = @intFromPtr(&head.first);
 
+    const breakage = firstBrokenPrevLink(&head) orelse return error.TestUnexpectedResult;
+    try std.testing.expectEqual(@as(usize, 1), breakage.current_index);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&first.next)), breakage.expected_pprev);
+    try std.testing.expectEqual(@as(usize, @intFromPtr(&head.first)), breakage.actual_pprev);
     try std.testing.expect(!hlistHasConsistentPrevLinks(&head));
 }
