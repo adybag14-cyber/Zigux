@@ -78,6 +78,7 @@ MARKERS = {
     ),
     "zigux/tests/README.md": (
         "current direct-readback Phase 1 reminder packet:",
+        "- `scripts/zigux/check-phase1-shared-reminder-packet.py`",
         "`zig build phase1-host-tools-smoke --build-file zigux/tests/build.zig`",
     ),
     "zigux/tests/build.zig": (
