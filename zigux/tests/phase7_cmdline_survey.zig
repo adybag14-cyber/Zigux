@@ -118,8 +118,10 @@ test "phase 7 cmdline survey keeps the returned helper-local packet truthful" {
     try expectContains(helper_companion, "const cmdline = @import(\"cmdline\");");
     try expectContains(helper_companion, "phase 7 cmdline companion replays exact bare-option matching boundaries");
     try expectContains(helper_companion, "phase 7 cmdline companion replays option decoding, ranges, and malformed-input posture");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays validator-only getOption cursor movement");
     try expectContains(helper_companion, "phase 7 cmdline companion replays quoted argument splitting and memparse boundaries");
     try expectContains(helper_companion, "phase 7 cmdline companion replays leading-whitespace sentinels and quoted full-token boundaries");
+    try expectContains(helper_companion, "phase 7 cmdline companion replays bare quoted-empty-token ownership");
 
     try expectStringSliceContains(manifest.ownership_focus, "parseOptionStr() stays bounded to exact comma-delimited bare options inside the exported C-string prefix");
     try expectStringSliceContains(manifest.ownership_focus, "getOption() and getOptions() keep caller-provided state explicit while preserving Linux-style malformed-input, range, and wraparound behavior");
