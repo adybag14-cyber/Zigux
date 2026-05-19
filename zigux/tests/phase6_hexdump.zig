@@ -93,9 +93,17 @@ test "phase 6 hexdump direct helper entrypoints stay aligned with the packet" {
     try std.testing.expectError(hexdump.HexError.InvalidSourceLength, hexdump.hex2bin(decoded[0..], "be32db"));
     try std.testing.expectError(hexdump.HexError.InvalidHexDigit, hexdump.hex2bin(decoded[0..], "be32dz7b"));
 
+    var alias_decoded: [4]u8 = undefined;
+    try hexdump.hex2Bin(alias_decoded[0..], "bE32Db7B");
+    try std.testing.expectEqualSlices(u8, decoded[0..], alias_decoded[0..]);
+
     var encoded: [8]u8 = undefined;
     const text = try hexdump.bin2hex(encoded[0..], fixtures.data_b[0..4]);
     try std.testing.expectEqualStrings("be32db7b", text);
+
+    var alias_encoded: [8]u8 = undefined;
+    const alias_text = try hexdump.bin2Hex(alias_encoded[0..], alias_decoded[0..]);
+    try std.testing.expectEqualStrings(text, alias_text);
 }
 
 test "phase 6 hexdump direct pack helpers keep uppercase and lowercase nibble parity" {
