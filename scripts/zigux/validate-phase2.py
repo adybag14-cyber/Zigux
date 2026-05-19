@@ -29,6 +29,7 @@ REQUIRED_PATHS = (
     "scripts/zigux/check-phase2-toolchain-pin-scope.py",
     "scripts/zigux/check-phase2-required-make-routes.py",
     "scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "scripts/zigux/check-phase2-tool-manifest.py",
     "scripts/zigux/check-genksyms-bridge.py",
     "scripts/zigux/install-zig.py",
     "scripts/zigux/kconfig/conf_bridge.zig",
@@ -84,6 +85,8 @@ REQUIRED_WORKFLOW_LINES = (
     "run: python3 scripts/zigux/check-phase2-cross-selftest-alignment.py",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py --self-test",
     "run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py --self-test",
+    "run: python3 scripts/zigux/check-phase2-tool-manifest.py",
     "run: python3 scripts/zigux/check-genksyms-bridge.py --self-test",
     "run: python3 scripts/zigux/check-genksyms-bridge.py",
     "run: zig test scripts/zigux/genksyms.zig",
@@ -120,6 +123,7 @@ REQUIRED_MAKEFILE_LINES = (
     "cd $(ZIGUX_ROOT) && $(ZIG) test scripts/zigux/genksyms.zig",
     "phase2-validate: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-genksyms",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tests-readme-alignment.py",
+    "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/check-phase2-tool-manifest.py",
     "$(PYTHON) $(PHASE2_SCRIPT_ROOT)/validate-phase2-closure.py",
 )
 
