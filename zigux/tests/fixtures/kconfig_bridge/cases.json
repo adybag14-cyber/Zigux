@@ -84,7 +84,7 @@
       "kconfig": "Kconfig",
       "config": ".config",
       "arch": "x86_64",
-      "mode_arg": "defconfig.out",
+      "mode_arg": "silent=debug_defconfig",
       "expected": "savedefconfig_expected.json"
     },
     {
