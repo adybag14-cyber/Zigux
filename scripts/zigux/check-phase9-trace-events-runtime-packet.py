@@ -64,6 +64,9 @@ SAMPLES_README_REENTRY_GATE_DETAIL_MARKER = (
 SAMPLES_README_EXIT_ROLLBACK_GUARD_DETAIL_MARKER = (
     "`samples/zigux/runtime_trace_events_exit_rollback_guard.zig` keeps failed-exit rollback explicit after reusable selftest replay"
 )
+SAMPLES_README_INITIALIZED_EXIT_MARKER = (
+    "The same direct sample now also keeps initialized-stage clean exit explicit through `test \"trace-events sample preserves initialized summary across direct exit without selftest\"`"
+)
 SAMPLES_README_POST_EXIT_REJECTION_MARKER = "post-exit invalid-lifecycle rejections"
 SAMPLES_README_SUMMARY_STABILITY_MARKER = (
     "initialized-before/after, selftest_complete-before/after, and exited-before/after summary-stability checks"
@@ -366,6 +369,7 @@ FILE_MARKERS = {
         EXIT_ROLLBACK_COMPANION_MARKER,
         SAMPLES_README_REENTRY_GATE_DETAIL_MARKER,
         SAMPLES_README_EXIT_ROLLBACK_GUARD_DETAIL_MARKER,
+        SAMPLES_README_INITIALIZED_EXIT_MARKER,
         SAMPLES_README_POST_EXIT_REJECTION_MARKER,
         SAMPLES_README_SUMMARY_STABILITY_MARKER,
         ABSENT_SHARED_LOADER_MARKER,
