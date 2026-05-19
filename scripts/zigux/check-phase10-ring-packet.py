@@ -14,27 +14,21 @@ REQUIRED_MARKERS = {
     "Documentation/zigux/phase10-virtio-ring-survey.md": [
         "`phase10-virtio-ring-survey-gate`",
         "`zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`",
+        "`zigux/tests/phase10_virtio_ring.zig`",
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
-        "while `zigux/tests/phase10_virtio_ring.zig` still returns missing on current `master`.",
         "the blocked `phase10-ring-lab-driver-bridge` remains owned by the adjacent `P10-L11` MMIO packet",
     ],
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
         "current packet lane on master: `P10-L05`",
         "adjacent freeze-boundary owner: `P10-L11`",
-        "and `zigux/tests/phase10_virtio_ring_survey.zig` on current `master`, while `zigux/tests/phase10_virtio_ring.zig` still returns missing.",
-        "the smallest same-lane follow-through is reminder-surface or checker truthfulness work",
+        "`zigux/tests/phase10_virtio_ring.zig` joins direct current-head evidence beside the queue-local helper ladder",
+        "the smallest same-lane follow-through is reminder-surface, checker, or manifest truthfulness work",
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
         "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
+        "`zigux/tests/phase10_virtio_ring.zig`",
         "`zigux/tests/phase10_virtio_ring_survey.zig`",
-        "while `zigux/tests/phase10_virtio_ring.zig` still does not materialize through direct contents readback.",
-        "the dedicated survey gate is now landed review surface inside this slice",
-    ],
-    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
-        "directly re-readable ring packet anchors:",
-        "`zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`",
-        "Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside",
-        "`zigux/tests/phase10_virtio_ring.zig` through the direct readback available in this lane",
+        "the broader ring replay and the dedicated survey gate are now landed review surfaces inside this slice",
     ],
     "drivers/virtio/virtio_ring.zig": [
         "pub const QueueShapeSummary = struct {",
@@ -105,24 +99,24 @@ REQUIRED_MARKERS = {
         "try std.testing.expectError(error.QueueBroken, ring.enableCallbackDelayed(7));",
     ],
     "zigux/tests/phase10_virtio_ring_survey.zig": [
-        'test "phase10 virtio ring survey note keeps the dedicated survey replay explicit beside the queue-local helper packet" {',
-        'try expectContains(survey_note, "zigux/tests/phase10_virtio_ring_survey.zig");',
-        'try expectContains(build_file, "\\"phase10-virtio-ring-survey-tests\\"");',
+        'test "phase10 virtio ring survey note keeps the broader replay explicit beside the queue-local helper packet" {',
+        'try expectContains(survey_note, "zigux/tests/phase10_virtio_ring.zig");',
+        'try expectContains(build_file, "\\\"phase10-virtio-ring-survey-tests\\\"");',
         'test "phase10 virtio ring freeze-boundary note keeps risky transport work blocked" {',
     ],
 }
 
 FORBIDDEN_MARKERS = {
     "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md": [
-        "while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing.",
-        "the remaining direct ring gap is the dedicated survey replay",
+        "while `zigux/tests/phase10_virtio_ring.zig` still returns missing.",
+        "the dedicated ring survey replay now rematerializes: `zigux/tests/phase10_virtio_ring_survey.zig` joins direct current-head evidence",
     ],
     "Documentation/zigux/phase10-virtio-ring-slice.md": [
-        "while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still do not materialize through direct contents readback.",
-        "while the dedicated survey gate remains the only direct ring packet gap in this slice.",
+        "while `zigux/tests/phase10_virtio_ring.zig` still does not materialize through direct contents readback.",
+        "the dedicated survey gate is now landed review surface inside this slice",
     ],
-    "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md": [
-        "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
+    "Documentation/zigux/phase10-virtio-ring-survey.md": [
+        "while `zigux/tests/phase10_virtio_ring.zig` still returns missing on current `master`.",
     ],
 }
 
@@ -218,19 +212,15 @@ def run_self_test() -> int:
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-survey.md",
-                "`zigux/tests/phase10_virtio_ring_survey.zig`",
+                "`zigux/tests/phase10_virtio_ring.zig`",
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
-                "and `zigux/tests/phase10_virtio_ring_survey.zig` on current `master`, while `zigux/tests/phase10_virtio_ring.zig` still returns missing.",
+                "`zigux/tests/phase10_virtio_ring.zig` joins direct current-head evidence beside the queue-local helper ladder",
             ),
             (
                 "Documentation/zigux/phase10-virtio-ring-slice.md",
-                "the dedicated survey gate is now landed review surface inside this slice",
-            ),
-            (
-                "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-                "Keep `zigux/tests/phase10_virtio_ring_survey.zig` explicit as the returned dedicated ring survey gate beside",
+                "the broader ring replay and the dedicated survey gate are now landed review surfaces inside this slice",
             ),
             (
                 "drivers/virtio/virtio_ring.zig",
@@ -262,7 +252,7 @@ def run_self_test() -> int:
             ),
             (
                 "zigux/tests/phase10_virtio_ring_survey.zig",
-                'try expectContains(build_file, "\\"phase10-virtio-ring-survey-tests\\"");',
+                'try expectContains(survey_note, "zigux/tests/phase10_virtio_ring.zig");',
             ),
             (
                 "zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig",
@@ -275,17 +265,17 @@ def run_self_test() -> int:
         expect_forbidden_marker(
             root,
             "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
-            "while `zigux/tests/phase10_virtio_ring.zig` and `zigux/tests/phase10_virtio_ring_survey.zig` still return missing.",
+            "while `zigux/tests/phase10_virtio_ring.zig` still returns missing.",
         )
         expect_forbidden_marker(
             root,
-            "Documentation/zigux/phase10-phase11-phase13-tests-root-review-companion.md",
-            "keep `zigux/tests/phase10_virtio_ring_survey.zig` framed as a last-known packet member until a fresh reread proves it rematerializes on current `master`.",
+            "Documentation/zigux/phase10-virtio-ring-slice.md",
+            "while `zigux/tests/phase10_virtio_ring.zig` still does not materialize through direct contents readback.",
         )
         expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=16")
+    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
     return 0
 
 
