@@ -4,6 +4,7 @@ const ReviewProcessManifest = struct {
     lane_key: []const u8,
     phase: []const u8,
     surveyed_commit: []const u8,
+    surveyed_commit_mode: []const u8,
     review_process_note: []const u8,
     decision_record_template: []const u8,
     indefinite_c_policy_note: []const u8,
@@ -53,6 +54,7 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqualStrings("P15-L08", manifest.lane_key);
     try std.testing.expectEqualStrings("Phase 15", manifest.phase);
     try std.testing.expectEqualStrings("current-master-readback-2026-05-19", manifest.surveyed_commit);
+    try std.testing.expectEqualStrings("dated_master_readback", manifest.surveyed_commit_mode);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-review-process.md", manifest.review_process_note);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-architecture-council-decision-record-template.md", manifest.decision_record_template);
     try std.testing.expectEqualStrings("Documentation/zigux/phase15-indefinite-c-policy.md", manifest.indefinite_c_policy_note);
