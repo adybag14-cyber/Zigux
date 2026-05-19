@@ -151,6 +151,120 @@ test "materialized tools/lib/bpf Zigux segments keep direct return helpers expli
     );
 }
 
+test "materialized tools/lib/bpf Zigux segments keep stable perf-buffer summary outputs explicit" {
+    const ready_buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{ .error_code = -32 },
+        .{ .ready = true },
+    };
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.ReadyBufferSummary{
+            .ready_count = 2,
+            .first_ready_index = 1,
+            .first_error = -32,
+        },
+        perf_buffer_poll.summarizeReadyBuffers(&ready_buffers),
+    );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.PollSummary{
+            .wait_class = .bounded,
+            .outcome = .ready,
+            .observed_ready_events = 3,
+            .ready_count = 2,
+            .first_ready_index = 1,
+            .first_error = -32,
+        },
+        try perf_buffer_poll.summarizePollFromWaitResult(12, 3, &ready_buffers),
+    );
+
+    const process_observations = [_]perf_buffer_poll.ProcessRecordObservation{
+        .{ .records_processed = 4 },
+        .{ .result = -11 },
+    };
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.ProcessRecordSummary{
+            .attempted_count = 2,
+            .completed_count = 1,
+            .processed_record_count = 4,
+            .first_error_index = 1,
+            .first_error = -11,
+        },
+        perf_buffer_poll.summarizeProcessRecords(&process_observations),
+    );
+
+    const execution_buffers = [_]perf_buffer_poll.BufferObservation{
+        .{},
+        .{ .ready = true },
+        .{},
+        .{ .ready = true },
+    };
+    const execution = try perf_buffer_poll.summarizePollExecutionFromWaitResult(
+        12,
+        2,
+        &execution_buffers,
+        &process_observations,
+    );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.PollExecutionSummary{
+            .poll = .{
+                .wait_class = .bounded,
+                .outcome = .ready,
+                .observed_ready_events = 2,
+                .ready_count = 2,
+                .first_ready_index = 1,
+                .first_error = null,
+            },
+            .attempted_ready_buffer_count = 2,
+            .completed_ready_buffer_count = 1,
+            .processed_record_count = 4,
+            .first_process_error_index = 1,
+            .first_process_error_ready_index = 3,
+            .first_process_error = -11,
+        },
+        execution,
+    );
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.PollExecutionResult{
+            .execution = execution,
+            .return_value = -11,
+            .disposition = .processing_failed,
+        },
+        try perf_buffer_poll.summarizePollExecutionResultFromWaitResult(
+            12,
+            2,
+            &execution_buffers,
+            &process_observations,
+        ),
+    );
+
+    const buffer_fds = [_]?i32{ 9, null, 21 };
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.BufferFdLookupSummary{
+            .slot_count = 3,
+            .requested_index = 2,
+            .fd = 21,
+            .disposition = .found_fd,
+        },
+        perf_buffer_poll.summarizeBufferFdLookup(&buffer_fds, 2),
+    );
+
+    const buffer_windows = [_]?perf_buffer_poll.BufferWindowObservation{
+        .{ .mapped_size = 4096 },
+        null,
+        .{ .mapped_size = 8192 },
+    };
+    try std.testing.expectEqualDeep(
+        perf_buffer_poll.BufferWindowLookupSummary{
+            .slot_count = 3,
+            .requested_index = 2,
+            .mapped_size = 8192,
+            .disposition = .found_window,
+        },
+        perf_buffer_poll.summarizeBufferWindowLookup(&buffer_windows, 2),
+    );
+}
+
 test "materialized tools/lib/bpf Zigux segments keep typed direct lookup helpers explicit and stable" {
     const buffers = [_]perf_buffer_poll.BufferObservation{
         .{},
