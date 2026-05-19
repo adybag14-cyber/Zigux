@@ -65,6 +65,16 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase10_virtio_ring_manifest.json": [
         '"lane_key": "P10-L05"',
         '"preexisting_phase10_test_files": 3,',
+        '"freeze_status_change_claimed": false,',
+        '"risky_transport_posture": "blocked_on_risky_transport",',
+        '"allowed_evidence_kinds": [',
+        '"driver_local_lab_slices",',
+        '"shared_validation_gates"',
+        '"forbidden_transport_claims": [',
+        '"queue_setup_reset_paths",',
+        '"probe_remove_lifecycle"',
+        '"architecture_council_reopen_required": true,',
+        '"architecture_council_reopen_attached": false,',
         '"id": "phase10-virtio-ring-survey-gate"',
         '"status": "starter_landed"',
         '"id": "phase10-ring-verify-replay"',
@@ -102,7 +112,7 @@ REQUIRED_MARKERS = {
     "zigux/tests/phase10_virtio_ring_survey.zig": [
         'test "phase10 virtio ring survey note keeps the missing broader replay explicit beside the queue-local helper packet" {',
         'try expectContains(survey_note, "broader replay `zigux/tests/phase10_virtio_ring.zig` still does not materialize");',
-        'try expectContains(build_file, "\\\\\\\"phase10-virtio-ring-survey-tests\\\\\\\"");',
+        'try expectContains(build_file, "\\\"phase10-virtio-ring-survey-tests\\\"");',
         'test "phase10 virtio ring freeze-boundary note keeps risky transport work blocked" {',
     ],
 }
@@ -246,6 +256,46 @@ def run_self_test() -> int:
             ),
             (
                 "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"freeze_status_change_claimed": false,',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"risky_transport_posture": "blocked_on_risky_transport",',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"allowed_evidence_kinds": [',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"driver_local_lab_slices",',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"shared_validation_gates"',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"forbidden_transport_claims": [',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"queue_setup_reset_paths",',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"probe_remove_lifecycle"',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"architecture_council_reopen_required": true,',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
+                '"architecture_council_reopen_attached": false,',
+            ),
+            (
+                "zigux/tests/phase10_virtio_ring_manifest.json",
                 '"id": "phase10-virtio-ring-survey-gate"',
             ),
             (
@@ -264,20 +314,26 @@ def run_self_test() -> int:
         for rel_path, marker in cases:
             expect_missing_marker(root, rel_path, marker)
 
-        expect_forbidden_marker(
-            root,
-            "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
-            "the broader ring replay now rematerializes",
-        )
-        expect_forbidden_marker(
-            root,
-            "Documentation/zigux/phase10-virtio-ring-slice.md",
-            "the broader ring replay and the dedicated survey gate are now landed review surfaces inside this slice",
-        )
+        forbidden_cases = [
+            (
+                "Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md",
+                "the broader ring replay now rematerializes",
+            ),
+            (
+                "Documentation/zigux/phase10-virtio-ring-slice.md",
+                "the broader ring replay and the dedicated survey gate are now landed review surfaces inside this slice",
+            ),
+        ]
+        for rel_path, marker in forbidden_cases:
+            expect_forbidden_marker(root, rel_path, marker)
+
         expect_missing_file(root, "zigux/tests/phase10_virtio_ring_notification_data_readiness.zig")
 
     print("PHASE10_RING_PACKET_SELF_TEST=pass")
-    print("PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT=15")
+    print(
+        "PHASE10_RING_PACKET_SELF_TEST_CASE_COUNT="
+        f"{len(cases) + len(forbidden_cases) + 1}"
+    )
     return 0
 
 
