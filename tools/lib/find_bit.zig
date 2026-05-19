@@ -676,6 +676,29 @@ test "clump8 scans align to the containing byte and return its value" {
     try std.testing.expectEqual(@as(u8, 0b0000_0001), clump);
 }
 
+test "clump8 scans keep the last aligned byte of a word visible" {
+    const boundary_offset = bits_per_long - 8;
+    const nbits = bits_per_long * 2;
+    const bitmap = [_]Word{
+        @as(Word, 0x80) << @intCast(boundary_offset),
+        (@as(Word, 1) << 0) | (@as(Word, 1) << 5),
+    };
+
+    try std.testing.expectEqual(@as(u8, 0x80), getValue8(&bitmap, boundary_offset));
+
+    var clump: u8 = 0;
+    try std.testing.expectEqual(boundary_offset, findNextClump8(&clump, &bitmap, nbits, boundary_offset));
+    try std.testing.expectEqual(@as(u8, 0x80), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(boundary_offset, findNextClump8(&clump, &bitmap, nbits, boundary_offset + 1));
+    try std.testing.expectEqual(@as(u8, 0x80), clump);
+
+    clump = 0;
+    try std.testing.expectEqual(bits_per_long, findNextClump8(&clump, &bitmap, nbits, bits_per_long));
+    try std.testing.expectEqual(@as(u8, 0b0010_0001), clump);
+}
+
 test "clump8 scans keep tail bytes reachable from partial final words" {
     const nbits = bits_per_long + 5;
     const bitmap = [_]Word{ 0, @as(Word, 1) << 3 };
