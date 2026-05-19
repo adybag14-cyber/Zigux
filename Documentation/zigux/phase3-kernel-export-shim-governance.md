@@ -4,16 +4,16 @@ This note records the current kernel-facing ownership boundary for `zigux/kernel
 
 ## Current Status
 
-- `PHASE3_KERNEL_EXPORT_SHIM_SCOPE=current master now exposes one bounded kernel-facing export shim companion that keeps Phase 3 relay ownership explicit for boundary-header constructors and predicates, compatibility and canonicalization helpers, starter version and dev_t field forwarding, and status-tagged dev_t validation without widening into broader runtime-shim or helper-family claims`
-- `PHASE3_KERNEL_EXPORT_SHIM_FILE_SET=direct current-head readback on 2026-05-18 reaches zigux/kernel/export_shim.zig, zigux/bindings/abi.zig, zigux/bindings/dev_t.zig, zigux/bindings/version.zig, zigux/uapi/dev_t.zig, zigux/uapi/version.zig, zigux/tests/phase3_export_uapi_layout.zig, and zigux/tests/phase3_export_uapi_layout_build.zig`
+- `PHASE3_KERNEL_EXPORT_SHIM_SCOPE=current master now exposes one bounded kernel-facing export shim companion that keeps Phase 3 relay ownership explicit for boundary-header constructors and predicates, compatibility and canonicalization helpers, starter version and dev_t field forwarding, status-tagged version and dev_t validation, and the bounded device-number bridge without widening into broader runtime-shim or helper-family claims`
+- `PHASE3_KERNEL_EXPORT_SHIM_FILE_SET=direct current-head readback on 2026-05-19 reaches zigux/kernel/export_shim.zig, zigux/bindings/abi.zig, zigux/bindings/dev_t.zig, zigux/bindings/version.zig, zigux/uapi/dev_t.zig, zigux/uapi/version.zig, zigux/tests/phase3_export_uapi_layout.zig, and zigux/tests/phase3_export_uapi_layout_build.zig`
 - `PHASE3_KERNEL_EXPORT_SHIM_NEXT_SAFE_STEP=keep follow-through bounded to one kernel-facing ownership note or directly coupled export-uapi layout proof refresh at a time; do not widen into shared ABI manifests, linux header governance, broader export-uapi survey work, or low-level-wrapper maintenance from this packet`
 
 ## Current Kernel-Facing Relay Surface
 
 - `canonicalHeader(flags)` owns the bounded constructor path for the shared `BoundaryHeader` shape.
 - `isCurrentAbiVersion`, `isCanonicalSize`, `isCompatibleSize`, `headerIsCanonical`, `headerIsCompatible`, `extendsBoundary`, `requestedExtraBytes`, and `canonicalizeHeader` keep the starter header-compatibility contract reviewable inside the kernel-facing shim.
-- `currentVersion()` keeps the starter version relay explicit through the shared `zigux/bindings/version.zig` surface.
-- `makeDevTFields`, `validateDeviceFields`, `validateDeviceNumber`, and `validateDeviceRange` keep bounded `dev_t` field forwarding and validation tied to the kernel-facing shim rather than spread across unrelated helper packets.
+- `currentVersion()`, `versionMatchesCurrent()`, and `validateVersion()` keep the starter version relay and compatibility gate explicit through the shared `zigux/bindings/version.zig` surface.
+- `makeDevTFields`, `encodeDeviceNumber`, `decodeDeviceNumber`, `validateDeviceFields`, `validateDeviceNumber`, and `validateDeviceRange` keep bounded `dev_t` field forwarding, device-number bridging, and validation tied to the kernel-facing shim rather than spread across unrelated helper packets.
 - `okStatus`, `errorStatus`, and `statusIsOk` keep facility-tagged export status handling explicit for the same starter relay packet.
 
 ## Files Present On Master
