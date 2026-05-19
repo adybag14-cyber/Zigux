@@ -33,6 +33,7 @@
     "detach-time cleanup ownership on success",
     "failed allocation frees the release record",
     "release_record_consumed",
+    "releases_from_devres",
     "dma_map_*",
     "dma_unmap_*",
     "dma_sync_*",
