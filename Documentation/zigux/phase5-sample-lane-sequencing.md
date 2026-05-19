@@ -64,6 +64,7 @@ Treat `samples/zigux/kretprobe_example.zig` as the current direct sample-root pr
 Treat `samples/zigux/trace_events_string_formatting_sample.zig` as the bounded trace-events formatting companion rather than a returned full trace-events port or a fifth sample.
 Keep the kobject anchor in shared-reminder or repo-reality-gap wording until a fresh reread proves `samples/zigux/kobject_example.zig` and its older companion packet returned on current `master`.
 Fresh authenticated contents reread in this run still returned 404 for `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, `zigux/tests/phase5_kobject_example_manifest.json`, and `zigux/tests/phase5_kobject_example_survey.zig`.
+Keep the ownership contract explicit even while that packet stays in split-readback posture: shared contributor guidance should continue to name the one `init()` -> `registerAttributes()` -> `exit()` path, keep the initialized-only `exit()` abandonment route separate from the registered teardown path, and keep the `abandoned_before_registration` versus `tore_down_registered_attributes` exit-summary split plus post-`exit()` rejection cues visible instead of collapsing the kobject sample back into generic lifecycle prose.
 
 ## Tracing and probe packet
 
