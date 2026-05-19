@@ -63,10 +63,18 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try std.testing.expectEqual(@as(usize, 8), manifest.stay_in_c_closeout_fields.len);
     try std.testing.expectEqual(@as(usize, 4), manifest.reopen_evidence_fields.len);
     try std.testing.expectEqual(@as(usize, 5), manifest.decision_record_template_required_markers.len);
-    try std.testing.expectEqual(@as(usize, 10), manifest.handoff_required_markers.len);
-    try std.testing.expectEqual(@as(usize, 13), manifest.shared_gap_expected_present_paths.len);
-    try std.testing.expectEqual(@as(usize, 4), manifest.shared_gap_expected_missing_paths.len);
+    try std.testing.expectEqual(@as(usize, 12), manifest.handoff_required_markers.len);
+    try std.testing.expectEqual(@as(usize, 15), manifest.shared_gap_expected_present_paths.len);
+    try std.testing.expectEqual(@as(usize, 3), manifest.shared_gap_expected_missing_paths.len);
 
+    try expectSliceContains(
+        manifest.handoff_required_markers,
+        "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    );
+    try expectSliceContains(
+        manifest.handoff_required_markers,
+        "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
+    );
     try expectSliceContains(
         manifest.shared_gap_expected_present_paths,
         "`scripts/zigux/check-phase15-tests-readme-alignment.py`",
@@ -78,6 +86,14 @@ test "phase 15 review-process manifest records the focused replay as materialize
     try expectSliceContains(
         manifest.shared_gap_expected_present_paths,
         "`zigux/tests/phase15_architecture_council_review_process_build.zig`",
+    );
+    try expectSliceContains(
+        manifest.shared_gap_expected_present_paths,
+        "`zigux/tests/phase15_handoff_next_steps_manifest.json`",
+    );
+    try expectSliceContains(
+        manifest.shared_gap_expected_present_paths,
+        "`scripts/zigux/check-phase15-handoff-note-alignment.py`",
     );
     try expectSliceContains(
         manifest.shared_gap_expected_missing_paths,
@@ -175,5 +191,7 @@ test "phase 15 review-process handoff checker fails closed on missing present pa
     try expectContains(review_process, "current-master-readback-2026-05-19");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process.zig`");
     try expectContains(gap_note, "`zigux/tests/phase15_architecture_council_review_process_build.zig`");
+    try expectContains(gap_note, "`zigux/tests/phase15_handoff_next_steps_manifest.json`");
+    try expectContains(gap_note, "`scripts/zigux/check-phase15-handoff-note-alignment.py`");
     try expectContains(gap_note, "`zigux/tests/phase15_build.zig`");
 }
