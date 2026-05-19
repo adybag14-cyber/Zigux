@@ -209,6 +209,15 @@ def build_base_text() -> str:
     )
 
 
+def assert_system_exit_contains(callback, expected_fragment: str) -> None:
+    try:
+        callback()
+    except SystemExit as exc:
+        assert expected_fragment in str(exc), str(exc)
+        return
+    raise AssertionError(f"expected SystemExit containing: {expected_fragment}")
+
+
 def run_self_test() -> int:
     checks_run = 0
     base_text = build_base_text()
@@ -243,7 +252,21 @@ def run_self_test() -> int:
         assert collect_issues(read_text(resolve_readme_path(root=root, readme=explicit_readme))) == []
         checks_run += 1
 
-    expected_case_count = 3 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
+        missing_root = root / "missing-root"
+        assert_system_exit_contains(
+            lambda: read_text(resolve_readme_path(root=missing_root, readme=None)),
+            "required file missing:",
+        )
+        checks_run += 1
+
+        missing_explicit = root / "README.missing.md"
+        assert_system_exit_contains(
+            lambda: read_text(resolve_readme_path(root=root, readme=missing_explicit)),
+            "required file missing:",
+        )
+        checks_run += 1
+
+    expected_case_count = 5 + (2 * len(REQUIRED_SNIPPETS)) + len(FORBIDDEN_SNIPPETS)
     if checks_run != expected_case_count:
         print("PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST=fail")
         print(f"PHASE2_KCONFIG_README_ALIGNMENT_SELF_TEST_CASE_COUNT_ACTUAL={checks_run}")
