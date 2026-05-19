@@ -21,6 +21,7 @@ REQUIRED_MARKERS = [
     "`Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "`Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`",
     "`scripts/zigux/check-phase11-matrix-gap-survey.py`",
+    "Current Repo Reality - `Documentation/zigux/phase11-validation-matrix-gap-survey.md` - `Documentation/zigux/phase11-driver-lane-sequencing.md` - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` - `Documentation/zigux/phase11-hvc-console-validation-matrix.md` - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
     "`python3 scripts/zigux/check-phase11-matrix-gap-survey.py`",
     "`scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
     "`python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`",
@@ -41,6 +42,7 @@ REQUIRED_MARKERS = [
 FORBIDDEN_MARKERS = [
     "`PHASE11_MATRIX_GAP_STATUS=gpio_and_hvc_matrices_direct_readback_only`",
     "do not rematerialize `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` or `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`",
+    "Current Repo Reality - `Documentation/zigux/phase11-validation-matrix-gap-survey.md` - `Documentation/zigux/phase11-driver-lane-sequencing.md` - `Documentation/zigux/phase11-bcm2835-wdt-validation-matrix.md` - `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`",
     "The directly readable driver-local Phase 11 matrix notes on current `master` are `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md` and `Documentation/zigux/phase11-hvc-console-validation-matrix.md`",
     "does not stand in for a whole-Phase-11 replay roster while the current direct-readback expansion is limited to the gpio and HVC matrix notes plus the existing HVC continuity packet",
     "`PHASE11_MATRIX_GAP_STATUS=all_phase11_driver_matrices_direct_readback_only`",
@@ -59,6 +61,12 @@ FIXTURE_TEXT = """# Phase 11 Validation Matrix Gap Survey
 - `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `Documentation/zigux/phase11-uapi-header-parity-validation-matrix.md`
 - `scripts/zigux/check-phase11-matrix-gap-survey.py`
+- Current Repo Reality
+- `Documentation/zigux/phase11-validation-matrix-gap-survey.md`
+- `Documentation/zigux/phase11-driver-lane-sequencing.md`
+- `Documentation/zigux/phase11-gpio-wdt-validation-matrix.md`
+- `Documentation/zigux/phase11-hvc-console-validation-matrix.md`
+- `Documentation/zigux/phase11-dw-wdt-validation-matrix.md`
 - `python3 scripts/zigux/check-phase11-matrix-gap-survey.py`
 - `scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
 - `python3 scripts/zigux/check-phase11-validation-matrix-gap-survey.py`
@@ -136,7 +144,7 @@ def run_self_test() -> None:
         build_fixture(fixture)
         run_check(fixture)
 
-        for index, marker in enumerate(REQUIRED_MARKERS[:8], start=1):
+        for index, marker in enumerate(REQUIRED_MARKERS[:9], start=1):
             case_root = tmpdir / f"missing_marker_{index}"
             shutil.copytree(fixture, case_root, dirs_exist_ok=True)
             survey_path = case_root / SURVEY_PATH
@@ -160,7 +168,7 @@ def run_self_test() -> None:
         expect_failure(missing_file_root, SURVEY_PATH)
 
         print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST=pass")
-        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=17")
+        print("PHASE11_MATRIX_GAP_SURVEY_SELF_TEST_CASE_COUNT=19")
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
