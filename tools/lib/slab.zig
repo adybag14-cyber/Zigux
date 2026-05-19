@@ -43,7 +43,9 @@ pub fn kmallocArray(n: usize, size: usize, gfp: gfp_t) ?[]u8 {
     const total = std.math.mul(usize, n, size) catch return null;
     const bytes = backing_allocator.alloc(u8, total) catch return null;
     kmalloc_nr_allocated += 1;
-    @memset(bytes, 0);
+    if ((gfp & __GFP_ZERO) != 0) {
+        @memset(bytes, 0);
+    }
     return bytes;
 }
 
@@ -70,13 +72,18 @@ test "kmalloc respects reclaim flags and zeroing" {
     }
 }
 
-test "kmallocArray returns zeroed memory and updates counters" {
+test "kmallocArray only zeroes when __GFP_ZERO is requested" {
     kmalloc_nr_allocated = 0;
-    const bytes = kmallocArray(4, 2, GFP_KERNEL) orelse return error.TestUnexpectedResult;
-    defer kfree(bytes);
 
+    const plain = kmallocArray(4, 2, GFP_KERNEL) orelse return error.TestUnexpectedResult;
+    defer kfree(plain);
     try std.testing.expectEqual(@as(isize, 1), kmalloc_nr_allocated);
-    for (bytes) |value| {
+    @memset(plain, 0xaa);
+
+    const zeroed = kmallocArray(4, 2, GFP_KERNEL | __GFP_ZERO) orelse return error.TestUnexpectedResult;
+    defer kfree(zeroed);
+    try std.testing.expectEqual(@as(isize, 2), kmalloc_nr_allocated);
+    for (zeroed) |value| {
         try std.testing.expectEqual(@as(u8, 0), value);
     }
     try std.testing.expect(slabIsAvailable());
