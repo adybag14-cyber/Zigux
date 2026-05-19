@@ -75,3 +75,22 @@ test "strErrorR handles empty and single-byte buffers without exposing bytes" {
     try std.testing.expectEqualStrings("", rendered);
     try std.testing.expectEqual(@as(u8, 0), tiny[0]);
 }
+
+test "strErrorR returns full messages when buffers fit exactly" {
+    var success_buffer: [8]u8 = undefined;
+    const success_rendered = strErrorR(0, &success_buffer);
+    try std.testing.expectEqualStrings("Success", success_rendered);
+    try std.testing.expectEqual(@as(u8, 0), success_buffer[success_rendered.len]);
+
+    var internal_storage: [64]u8 = undefined;
+    const expected_internal = try std.fmt.bufPrint(
+        &internal_storage,
+        "INTERNAL ERROR: strerror_r({d}, [buf], {d})=22",
+        .{ 4096, 48 },
+    );
+
+    var exact_buffer: [48]u8 = undefined;
+    const exact_rendered = strErrorR(4096, &exact_buffer);
+    try std.testing.expectEqualStrings(expected_internal, exact_rendered);
+    try std.testing.expectEqual(@as(u8, 0), exact_buffer[exact_rendered.len]);
+}
