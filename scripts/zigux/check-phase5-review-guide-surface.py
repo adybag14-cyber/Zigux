@@ -9,6 +9,7 @@ ROOT = Path(__file__).resolve().parent
 GUIDE_PATH = Path("Documentation/zigux/phase5-sample-review-guide.md")
 DOCS_ROOT_PATH = Path("Documentation/zigux/README.md")
 APPROVED_IDIOM_PATH = Path("Documentation/zigux/phase5-trace-events-approved-idiom-gap.md")
+REVIEW_CHECKLIST_PATH = Path("Documentation/zigux/review-checklist.md")
 
 DIRECT_PACKET_PATHS = (
     "Documentation/zigux/phase5-kfifo-sample-survey.md",
@@ -85,6 +86,14 @@ APPROVED_IDIOM_REQUIRED_TEXT = (
     "Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/vsprintf.zig` packet plus the bounded Phase 7 helper reminders, keep `cmdline`, `argv_split`, and `rbtree` evidence under the bounded Phase 7 helper packet, keep direct bitmap helper reviewability under the closed Phase 1 plus bounded Phase 4 reminder packet, and keep runtime-facing trace-events loader work under the separate Phase 9 lane.",
 )
 
+REVIEW_CHECKLIST_REQUIRED_TEXT = (
+    "if the change touches the shared Phase 5 sample packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still agree on the current four-anchor reminder packet,",
+    "keep `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` explicit as the direct bytestream proof,",
+    "keep `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` explicit as current direct reminder or packet evidence, keep `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` framed as current public-tree-backed companion evidence until a fresh reread proves direct authenticated proof for those two routes again,",
+    "keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit as the shipped guide-surface guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording,",
+    "and keep `samples/zigux/runtime_*.zig` plus standalone `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, and broad `*format*` sample claims out of the Phase 5 packet?",
+)
+
 APPROVED_IDIOM_REQUIRED_PATHS = (
     "samples/trace_events/trace-events-sample.c",
     "samples/zigux/trace_events_string_formatting_sample.zig",
@@ -153,6 +162,7 @@ def collect_failures(root: Path) -> list[str]:
     guide = _read(root / GUIDE_PATH)
     docs_root = _read(root / DOCS_ROOT_PATH)
     approved_idiom = _read(root / APPROVED_IDIOM_PATH)
+    review_checklist = _read(root / REVIEW_CHECKLIST_PATH)
     failures: list[str] = []
 
     for marker in REQUIRED_TEXT:
@@ -166,6 +176,10 @@ def collect_failures(root: Path) -> list[str]:
     for marker in APPROVED_IDIOM_REQUIRED_TEXT:
         if marker not in approved_idiom:
             failures.append(f"approved_idiom:missing_text:{marker}")
+
+    for marker in REVIEW_CHECKLIST_REQUIRED_TEXT:
+        if marker not in review_checklist:
+            failures.append(f"review_checklist:missing_text:{marker}")
 
     for marker in BYTESTREAM_CONTRACT_MARKERS:
         if marker not in guide:
@@ -379,12 +393,22 @@ Keep standalone formatting-helper evidence under the closed Phase 1 `tools/lib/v
 """
 
 
+def _sample_review_checklist() -> str:
+    return """# Zigux Review Checklist
+
+## Validation
+
+  * if the change touches the shared Phase 5 sample packet, do `Documentation/zigux/README.md`, `Documentation/zigux/phase5-kfifo-sample-survey.md`, `Documentation/zigux/phase5-kretprobe-sample-survey.md`, `Documentation/zigux/phase5-sample-lane-sequencing.md`, `Documentation/zigux/phase5-sample-review-guide.md`, `Documentation/zigux/phase5-trace-events-approved-idiom-gap.md`, `Documentation/zigux/review-checklist.md`, `samples/zigux/README.md`, `scripts/zigux/README.md`, and `zigux/tests/README.md` still agree on the current four-anchor reminder packet, keep `samples/zigux/bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo.zig`, `zigux/tests/phase5_bytestream_fifo_manifest.json`, and `zigux/tests/phase5_bytestream_fifo_survey.zig` explicit as the direct bytestream proof, keep `Documentation/zigux/phase5-kobject-sample-survey.md`, `samples/zigux/kobject_example.zig`, `zigux/tests/phase5_kobject_example.zig`, and `zigux/tests/phase5_kobject_example_manifest.json` explicit as current direct reminder or packet evidence, keep `zigux/tests/phase5_kobject_example_survey.zig` and `zigux/tests/phase5_build.zig` framed as current public-tree-backed companion evidence until a fresh reread proves direct authenticated proof for those two routes again, keep `scripts/zigux/check-phase5-review-guide-surface.py` explicit as the shipped guide-surface guard for the direct-proof, public-tree-backed-companion, and no-extra-sample boundary wording, and keep `samples/zigux/runtime_*.zig` plus standalone `*string*`, `*cmdline*`, `*argv*`, `*rbtree*`, `*bitmap*`, `*printf*`, `*vsprintf*`, and broad `*format*` sample claims out of the Phase 5 packet?
+"""
+
+
 def _seed(root: Path) -> None:
     _write(root / GUIDE_PATH, _sample_guide())
     _write(root / DOCS_ROOT_PATH, _sample_docs_root())
     _write(root / APPROVED_IDIOM_PATH, _sample_approved_idiom_gap())
+    _write(root / REVIEW_CHECKLIST_PATH, _sample_review_checklist())
     for rel in DIRECT_PACKET_PATHS:
-        if Path(rel) == APPROVED_IDIOM_PATH:
+        if Path(rel) == APPROVED_IDIOM_PATH or Path(rel) == REVIEW_CHECKLIST_PATH:
             continue
         _write(root / rel, "present\n")
     for rel in KOBJECT_DIRECT_PACKET_PATHS:
@@ -395,7 +419,7 @@ def _seed(root: Path) -> None:
 
 def run_self_test() -> int:
     checks_run = 0
-    expected_case_count = 19
+    expected_case_count = 20
     with tempfile.TemporaryDirectory(prefix="phase5_review_guide_surface_") as tmpdir:
         root = Path(tmpdir)
         _seed(root)
@@ -557,6 +581,18 @@ def run_self_test() -> int:
             raise AssertionError(f"unexpected missing-approved-idiom-destination failure: {failures}")
         checks_run += 1
 
+        missing_review_checklist_marker_root = root / "missing_review_checklist_marker"
+        _seed(missing_review_checklist_marker_root)
+        _write(
+            missing_review_checklist_marker_root / REVIEW_CHECKLIST_PATH,
+            _sample_review_checklist().replace(REVIEW_CHECKLIST_REQUIRED_TEXT[3], "", 1),
+        )
+        failures = collect_failures(missing_review_checklist_marker_root)
+        expected = [f"review_checklist:missing_text:{REVIEW_CHECKLIST_REQUIRED_TEXT[3]}"]
+        if failures != expected:
+            raise AssertionError(f"unexpected missing-review-checklist-marker failure: {failures}")
+        checks_run += 1
+
         missing_approved_idiom_path_root = root / "missing_approved_idiom_path"
         _seed(missing_approved_idiom_path_root)
         _write(
@@ -647,6 +683,7 @@ def main() -> int:
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_DOCS_ROOT_REQUIRED_TEXT_COUNT={len(DOCS_ROOT_REQUIRED_TEXT)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_APPROVED_IDIOM_REQUIRED_TEXT_COUNT={len(APPROVED_IDIOM_REQUIRED_TEXT)}")
     print(f"PHASE5_REVIEW_GUIDE_SURFACE_APPROVED_IDIOM_REQUIRED_PATH_COUNT={len(APPROVED_IDIOM_REQUIRED_PATHS)}")
+    print(f"PHASE5_REVIEW_GUIDE_SURFACE_REVIEW_CHECKLIST_REQUIRED_TEXT_COUNT={len(REVIEW_CHECKLIST_REQUIRED_TEXT)}")
     return 0
 
 
