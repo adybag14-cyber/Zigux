@@ -54,6 +54,9 @@ SURVEY_STATIC_MARKERS = [
 HELPER_MARKERS = [
     ".provides_offset_add_planning = true",
     ".provides_offset_remove_planning = true",
+    ".provides_offset_readdir_planning = true",
+    ".provides_transaction_release_planning = true",
+    ".provides_directory_scan_resched_planning = true",
     "pub const TransactionReleasePlan",
     "pub fn simpleTransactionReleasePlan(",
     "pub fn planSimpleOffsetAdd(",
@@ -268,6 +271,30 @@ def run_self_test() -> int:
             validate(root),
             ["helper:missing_marker:pub fn planSimpleOffsetRemove("],
             "helper_missing_marker_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
+            "\n".join(marker for marker in HELPER_MARKERS if marker != ".provides_transaction_release_planning = true") + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["helper:missing_marker:.provides_transaction_release_planning = true"],
+            "helper_release_flag_missing_failed",
+        )
+        case_count += 1
+
+        seed_fixture_tree(root)
+        write_text(
+            root / HELPER_PATH,
+            "\n".join(marker for marker in HELPER_MARKERS if marker != ".provides_directory_scan_resched_planning = true") + "\n",
+        )
+        assert_only(
+            validate(root),
+            ["helper:missing_marker:.provides_directory_scan_resched_planning = true"],
+            "helper_scan_resched_flag_missing_failed",
         )
         case_count += 1
 
