@@ -98,6 +98,18 @@ REQUIRED_NOTE_MARKERS = (
 )
 
 
+def find_duplicates(entries: list[str]) -> list[str]:
+    seen: set[str] = set()
+    duplicates: list[str] = []
+    duplicate_set: set[str] = set()
+    for entry in entries:
+        if entry in seen and entry not in duplicate_set:
+            duplicates.append(entry)
+            duplicate_set.add(entry)
+        seen.add(entry)
+    return duplicates
+
+
 def read_manifest(path: Path) -> dict:
     try:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -120,6 +132,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
             if not isinstance(entries, list):
                 issues.append(("MISSING_SURFACE_CATEGORY", category))
                 continue
+            for duplicate in find_duplicates(entries):
+                issues.append(("DUPLICATE_SURFACE_ENTRY", f"{category}:{duplicate}"))
             for entry in required_entries:
                 if entry not in entries:
                     issues.append(("MISSING_SURFACE_ENTRY", f"{category}:{entry}"))
@@ -129,6 +143,8 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
     if not isinstance(notes, list):
         issues.append(("MISSING_NOTES", "notes"))
     else:
+        for duplicate in find_duplicates(notes):
+            issues.append(("DUPLICATE_NOTE_MARKER", duplicate))
         for marker in REQUIRED_NOTE_MARKERS:
             if marker not in notes:
                 issues.append(("MISSING_NOTE_MARKER", marker))
@@ -175,6 +191,7 @@ def run_self_test() -> int:
         + 1
         + 1
         + len(REQUIRED_NOTE_MARKERS)
+        + 2
         + 1
     )
     checks_run = 0
@@ -212,6 +229,15 @@ def run_self_test() -> int:
                 checks_run += 1
 
         manifest = build_self_test_manifest()
+        manifest["present_surfaces"]["checkers"].append(REQUIRED_PRESENT_SURFACES["checkers"][0])
+        write_manifest(manifest_path, manifest)
+        assert (
+            "DUPLICATE_SURFACE_ENTRY",
+            f"checkers:{REQUIRED_PRESENT_SURFACES['checkers'][0]}",
+        ) in collect_issues(root)
+        checks_run += 1
+
+        manifest = build_self_test_manifest()
         manifest["repo_reality_gaps"] = ["unexpected-gap"]
         write_manifest(manifest_path, manifest)
         assert ("NONEMPTY_REPO_REALITY_GAPS", "repo_reality_gaps") in collect_issues(root)
@@ -229,6 +255,12 @@ def run_self_test() -> int:
             write_manifest(manifest_path, manifest)
             assert ("MISSING_NOTE_MARKER", marker) in collect_issues(root)
             checks_run += 1
+
+        manifest = build_self_test_manifest()
+        manifest["notes"].append(REQUIRED_NOTE_MARKERS[0])
+        write_manifest(manifest_path, manifest)
+        assert ("DUPLICATE_NOTE_MARKER", REQUIRED_NOTE_MARKERS[0]) in collect_issues(root)
+        checks_run += 1
 
         manifest_path.unlink()
         try:
