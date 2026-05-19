@@ -8,6 +8,7 @@
   "current_master_state": "expanded_starter_packet",
   "review_surfaces": [
     "Documentation/zigux/phase7-string-helpers-slice.md",
+    "scripts/zigux/check-phase7-string-helpers-packet.py",
     "lib/string_helpers.zig",
     "zigux/tests/phase7_string_helpers.zig",
     "zigux/tests/phase7_string_helpers_survey.zig",
@@ -66,7 +67,7 @@
     "memcpy_and_pad",
     "strreplace"
   ],
-  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, this manifest, and `samples/zigux/README.md` aligned on the any-NP and string-wrapper escape helpers, the bounded string-array ownership pair, the duplicate-and-replace helper, the quotable log-safe duplication pair, the quotable file-path companion, the quotable cmdline companion, the bounded parse-int-array helper pair, the bounded case-conversion pair, and the shared no-extra-sample boundary without overstating the device-managed follow-on as landed.",
+  "current_master_truthfulness": "The helper pair `lib/string_helpers.zig` and `zigux/tests/phase7_string_helpers.zig` now ships an expanded starter packet on current master. The helper-local packet keeps the slice note, dedicated checker, helper, dedicated tests, dedicated survey, dedicated no-string-sample boundary replay, this manifest, and `samples/zigux/README.md` aligned on the any-NP and string-wrapper escape helpers, the bounded string-array ownership pair, the duplicate-and-replace helper, the quotable log-safe duplication pair, the quotable file-path companion, the quotable cmdline companion, the bounded parse-int-array helper pair, the bounded case-conversion pair, and the shared no-extra-sample boundary without overstating the device-managed follow-on as landed.",
   "starter_packet_focus": [
     "first-NUL-bounded whitespace trimming and prefix skipping",
     "newline-aware sysfs string equality",
@@ -85,6 +86,7 @@
     "bounded memcpy-and-pad copy semantics",
     "in-place replacement inside the exported C-string prefix",
     "shared no-sample boundary and helper-local reviewability",
+    "dedicated helper-local checker-backed packet reviewability",
     "shared sample-root no-extra-sample boundary rooted at `samples/zigux/README.md`"
   ],
   "ownership_focus": [
@@ -103,5 +105,5 @@
     "memcpyAndPad() and strreplace() keep writes inside caller-provided destination and exported prefix boundaries",
     "the shared no-sample boundary stays reviewable only while `samples/zigux/README.md` keeps the explicit `*string*`, `*cmdline*`, `*argv*`, and `*rbtree*` exclusions aligned with the helper-local boundary test"
   ],
-  "next_bounded_step": "Keep the dedicated survey and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on, and reopen only when that helper-local non-goal lands or the no-sample boundary drifts on current `master`."
+  "next_bounded_step": "Keep the dedicated checker, survey, and sample-boundary replays fail-closed on the still-parked `devm_kasprintf_strarray()` follow-on, and reopen only when that helper-local non-goal lands or the no-sample boundary drifts on current `master`."
 }
