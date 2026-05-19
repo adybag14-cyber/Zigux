@@ -33,7 +33,7 @@ The ring-owned parity scoreboard against the Phase 10 roadmap is:
 - `virtqueue_wrappers=starter_landed`
 - evidence: `drivers/virtio/virtio_ring.zig`, `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_prepare_kick_idempotent.zig`, `zigux/tests/phase10_virtio_ring_reset_reuse.zig`, `zigux/tests/phase10_virtio_ring_broken_queue_queue_discipline.zig`, and `zigux/tests/phase10_virtio_ring_delayed_callback_budget.zig`
 - `lab_only_driver_validation=starter_landed`
-- evidence: `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`
+- evidence: `drivers/virtio/virtio_ring_verify.zig`, `zigux/tests/phase10_virtio_ring_notification_data_readiness.zig`, `zigux/tests/phase10_virtio_ring_survey.zig`, `zigux/tests/phase10_build.zig`, `Documentation/zigux/phase10-virtio-ring-survey.md`, and `Documentation/zigux/phase10-virtio-ring-freeze-boundary-survey.md`
 - `dual_implementations_for_risky_areas=blocked_on_risky_transport`
 - evidence: `Documentation/zigux/phase10-closure-evidence.md`, `Documentation/zigux/freeze-map.md`, and the adjacent MMIO-owned blocked `phase10-ring-lab-driver-bridge`
 
