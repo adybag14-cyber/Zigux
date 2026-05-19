@@ -247,6 +247,18 @@ def validate_fixture_inventory(
         raise ValueError(f"{fixture_dir}:unexpected_fixtures:{','.join(unexpected)}")
 
 
+def require_non_empty_string(
+    name: str,
+    case: dict[str, object],
+    field_name: str,
+    error_name: str,
+) -> str:
+    value = case.get(field_name)
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"{CASES_PATH}:{name}:{error_name}")
+    return value
+
+
 def get_expected_exit_code(name: str, case: dict[str, object]) -> int:
     expected_exit_code = case.get("expected_exit_code")
     if expected_exit_code is None:
@@ -288,27 +300,23 @@ def validate_cases(cases: object) -> list[dict[str, object]]:
             raise ValueError(f"{CASES_PATH}:{name}:unexpected_field:{unexpected_fields[0]}")
 
         validated_case = dict(raw_case)
-        depfile = validated_case.get("depfile")
-        if not isinstance(depfile, str) or not depfile:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_depfile")
-
-        target = validated_case.get("target")
-        if not isinstance(target, str) or not target:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_target")
-
-        cmdline = validated_case.get("cmdline")
-        if not isinstance(cmdline, str) or not cmdline:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_non_empty_cmdline")
-
-        expected_stdout_name = validated_case.get("expected")
-        if not isinstance(expected_stdout_name, str) or not expected_stdout_name:
-            raise ValueError(f"{CASES_PATH}:{name}:missing_expected_output")
-
+        depfile = require_non_empty_string(name, validated_case, "depfile", "missing_non_empty_depfile")
+        target = require_non_empty_string(name, validated_case, "target", "missing_non_empty_target")
+        cmdline = require_non_empty_string(name, validated_case, "cmdline", "missing_non_empty_cmdline")
+        expected_stdout_name = require_non_empty_string(
+            name,
+            validated_case,
+            "expected",
+            "missing_expected_output",
+        )
         expected_exit_code = get_expected_exit_code(name, validated_case)
         if expected_exit_code != 0:
-            expected_stderr_name = validated_case.get("expected_stderr")
-            if not isinstance(expected_stderr_name, str) or not expected_stderr_name:
-                raise ValueError(f"{CASES_PATH}:{name}:missing_expected_stderr")
+            expected_stderr_name = require_non_empty_string(
+                name,
+                validated_case,
+                "expected_stderr",
+                "missing_expected_stderr",
+            )
 
         stdout_mode = validated_case.get("stdout_mode")
         if "stdout_mode" in expected_case and stdout_mode is None:
@@ -461,11 +469,27 @@ def run_self_test() -> int:
         f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
     )
 
+    empty_expected_stderr_cases = copy_valid_cases(valid_cases)
+    find_case(empty_expected_stderr_cases, "sample_comment_only")["expected_stderr"] = ""
+    counted_expect_failure(
+        "empty_expected_stderr_field",
+        lambda: validate_cases(empty_expected_stderr_cases),
+        f"{CASES_PATH}:sample_comment_only:missing_expected_stderr",
+    )
+
     missing_expected_output_cases = copy_valid_cases(valid_cases)
     find_case(missing_expected_output_cases, "sample").pop("expected", None)
     counted_expect_failure(
         "missing_expected_output_field",
         lambda: validate_cases(missing_expected_output_cases),
+        f"{CASES_PATH}:sample:missing_expected_output",
+    )
+
+    empty_expected_output_cases = copy_valid_cases(valid_cases)
+    find_case(empty_expected_output_cases, "sample")["expected"] = ""
+    counted_expect_failure(
+        "empty_expected_output_field",
+        lambda: validate_cases(empty_expected_output_cases),
         f"{CASES_PATH}:sample:missing_expected_output",
     )
 
@@ -583,6 +607,22 @@ def run_self_test() -> int:
         "missing_non_empty_target",
         lambda: validate_cases(missing_target_cases),
         f"{CASES_PATH}:sample:missing_non_empty_target",
+    )
+
+    empty_target_cases = copy_valid_cases(valid_cases)
+    find_case(empty_target_cases, "sample")["target"] = ""
+    counted_expect_failure(
+        "empty_target_field",
+        lambda: validate_cases(empty_target_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_target",
+    )
+
+    missing_cmdline_cases = copy_valid_cases(valid_cases)
+    find_case(missing_cmdline_cases, "sample").pop("cmdline", None)
+    counted_expect_failure(
+        "missing_cmdline_field",
+        lambda: validate_cases(missing_cmdline_cases),
+        f"{CASES_PATH}:sample:missing_non_empty_cmdline",
     )
 
     empty_cmdline_cases = copy_valid_cases(valid_cases)
