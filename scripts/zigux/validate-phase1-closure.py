@@ -75,15 +75,19 @@ EXPECTED_BITMAP_HELPER_TEST_ANCHORS = [
     'test "bitmap copy aliases preserve tail clearing and extension semantics"',
     'test "bitmap copy and extend handles zero and aligned counts"',
     'test "bitmap copy helpers keep zero-sized destination views untouched"',
+    'test "bitmap zero-bit logical helpers stay explicit"',
     'test "bitmap and andnot equal intersects subset"',
     'test "bitmap tail-masked helpers ignore out-of-range differences"',
     'test "bitmap full empty and weight ignore out-of-range tail bits"',
     'test "bitmap xor keeps caller-selected bit window"',
     'test "bitmap xor across a multiword tail still lets callers clamp the last word"',
     'test "bitmap scnprintf collapses contiguous ranges"',
+    'test "bitmap scnprintf keeps contiguous ranges merged across word boundaries"',
     'test "bitmap scnprintf truncates and keeps a terminator slot"',
     'test "bitmap scnprintf handles terminator-only and zero-length caller views"',
     'test "bitmap scnprintf leaves the caller buffer untouched for an empty bitmap"',
+    'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
+    'test "bitmap Linux-style aliases mirror size state and allocation helpers"',
     'test "bitmap allocation helpers size zero fill and reset optionals"',
 ]
 
@@ -98,10 +102,11 @@ EXPECTED_BITMAP_REVIEW_FIELDS = {
         "scnprintf output, truncation, tiny-buffer, and partial-window xor replay, while current "
         "master keeps the direct helper-local bitmap packet bounded to whole-word range edges, raw "
         "copy alias behavior, tail-clearing and extension semantics, zero and aligned copyAndExtend "
-        "handling, zero-sized destination-view no-op coverage, tail-masked predicate behavior, "
-        "out-of-range tail-bit full or empty or weight masking, caller-window xor clamping, "
-        "terminator-only and zero-length caller-view formatting, empty-bitmap caller-buffer "
-        "preservation, and allocator optional-reset coverage."
+        "handling, zero-sized destination-view no-op coverage, zero-bit logical short-circuit coverage, "
+        "tail-masked predicate behavior, out-of-range tail-bit full or empty or weight masking, "
+        "caller-window xor clamping, terminator-only and zero-length caller-view formatting, "
+        "empty-bitmap caller-buffer preservation, Linux-style alias mirror coverage, and allocator "
+        "optional-reset coverage."
     ),
     "parity_fixture_keys": [
         "alloc_words",
@@ -127,17 +132,17 @@ EXPECTED_BITMAP_REVIEW_FIELDS = {
         'test "bitmap copy and extend handles zero and aligned counts"',
         'test "bitmap copy helpers keep zero-sized destination views untouched"',
     ],
-    "zero_bit_noop_anchor": "",
-    "zero_bit_binary_identity_anchor": "",
-    "linux_alias_anchor": "",
+    "zero_bit_noop_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
+    "zero_bit_binary_identity_anchor": 'test "bitmap zero-bit logical helpers stay explicit"',
+    "linux_alias_anchor": 'test "bitmap Linux-style aliases mirror copy logical range and format helpers"',
     "next_safe_step_note": (
         "If this helper lane reopens, keep bitmap parked unless a fresh reread finds new "
         "direct-anchor drift inside the current helper-local packet or committed shared replay "
         "drift in the bitmap parity fields; current master still ships direct fill-tail clamp, "
-        "copy-alias, truncation, cross-word scnprintf, empty-buffer, and allocator-reset anchors "
-        "here, while zero-bit and Linux-style alias follow-through no longer live in the "
-        "helper-local packet, and if the separate bitmap closure-validator anchor-sync repair is "
-        "still outstanding, treat that as the only other bitmap follow-through."
+        "copy-alias, zero-bit logical, cross-word scnprintf, truncation, empty-buffer, "
+        "Linux-style alias, and allocator-reset anchors here, so leave those helper-local tests "
+        "as the bounded bitmap-only review packet unless one of those named anchors drifts or "
+        "the separate bitmap closure-validator anchor-sync repair is still outstanding."
     ),
 }
 
@@ -902,6 +907,15 @@ def run_self_test() -> int:
             ),
         ),
         ("missing_bitmap_helper_file", lambda root: (root / BITMAP_HELPER_REL).unlink()),
+        (
+            "bad_bitmap_helper_anchors",
+            lambda root: mutate_manifest_packet(
+                root,
+                "tools/lib/bitmap.zig",
+                "helper_test_anchors",
+                EXPECTED_BITMAP_HELPER_TEST_ANCHORS[:-1],
+            ),
+        ),
         (
             "bad_bitmap_review_field",
             lambda root: mutate_manifest_packet(root, "tools/lib/bitmap.zig", "copy_raw_alias_anchor", "drift"),
