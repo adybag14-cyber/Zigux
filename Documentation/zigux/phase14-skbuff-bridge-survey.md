@@ -2,7 +2,8 @@
 This document records the bounded Phase 14 survey lane around `net/core/skbuff.c`.
 
 ## Status
-- `PHASE14_LANE_KEY=P14-L11`
+- `PHASE14_LANE_KEY=P14-Y03`
+- `PHASE14_PREVIOUS_PACKET_LANE=P14-L11`
 - `PHASE14_BLOCKED_GAP=phase14-skbuff-anchor-packet-missing`
 - `PHASE14_POSTURE=boundary_map_only`
 - current `master` no longer exposes the earlier `P14-L11` skbuff anchor packet files `zigux/tests/phase14_skbuff_bridge.zig`, `zigux/tests/phase14_build.zig`, `net/core/skbuff_bridge.zig`, or `zigux/tests/phase14_skbuff_bridge_manifest.json`
@@ -16,6 +17,7 @@ The current repo state no longer ships the earlier skbuff bridge helper, focused
 That missing packet is a repo-readback gap layered on top of the roadmap posture, not a reason to pretend the underlying blocker changed.
 The deeper blocker is still the live ownership seam: queue-facing tail publication, queue ownership, shared-info refcount and header-write ownership, checksum state, destructor and frag-list teardown, segmentation metadata, the final sock-owned tail transfer, and the consumer-side list reset inside `validate_xmit_skb_list()` remain in C.
 That means the meaningful current statement is narrower than the previous review-only helper summary: there is no live Zigux skbuff bridge packet on current `master`, and there is therefore no honest skbuff-local compile route to claim today.
+`P14-Y03` is therefore the surviving bridge-local truthfulness marker for this retained boundary, while `P14-L11` remains only the older absent-packet label.
 The Phase 14 boundary itself has not changed.
 
 ## Compile Evidence
