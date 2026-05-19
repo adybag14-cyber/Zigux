@@ -93,7 +93,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_queue_callback_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_queue_callback_preflight_module.addImport(
         "virtio_input_queue_callback_preflight",
-        virtio_input_queue_callback_preflight_module,
+        phase10_virtio_input_queue_callback_preflight_module,
     );
 
     const phase10_virtio_input_registration_preflight_module = b.createModule(.{
@@ -104,7 +104,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_registration_preflight_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_registration_preflight_module.addImport(
         "virtio_input_registration_preflight",
-        virtio_input_registration_preflight_module,
+        phase10_virtio_input_registration_preflight_module,
     );
 
     const phase10_virtio_input_status_drain_module = b.createModule(.{
@@ -115,7 +115,7 @@ pub fn build(b: *std.Build) void {
     phase10_virtio_input_status_drain_module.addImport("virtio_input", virtio_input_module);
     phase10_virtio_input_status_drain_module.addImport(
         "virtio_input_status_drain",
-        virtio_input_status_drain_module,
+        phase10_virtio_input_status_drain_module,
     );
 
     const virtio_input_teardown_observation_module = b.createModule(.{
@@ -189,9 +189,16 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    const phase10_virtio_core_module = b.createModule(.{
+        .root_source_file = b.path("phase10_virtio_core.zig"),
+        .target = target,
+        .optimize = optimize,
+    });
+    phase10_virtio_core_module.addImport("virtio_core", virtio_core_module);
+
     const phase10_virtio_core_tests = b.addTest(.{
         .name = "phase10-virtio-core-tests",
-        .root_module = virtio_core_module,
+        .root_module = phase10_virtio_core_module,
     });
     const run_phase10_virtio_core_tests = b.addRunArtifact(phase10_virtio_core_tests);
 
