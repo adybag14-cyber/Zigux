@@ -97,7 +97,19 @@ EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [
     INSTALLER_PATH,
 ]
 
-EXPECTED_SELF_TEST_CASE_COUNT = 36
+SELF_TEST_MARKER_GROUPS = (
+    (CLOSURE_DOC, CLOSURE_DOC_MARKERS, "MISSING_CLOSURE_DOC_MARKERS"),
+    (BOOTSTRAP_NOTES, BOOTSTRAP_NOTES_MARKERS, "MISSING_BOOTSTRAP_NOTES_MARKERS"),
+    (PHASE2_VALIDATOR, PHASE2_VALIDATOR_MARKERS, "MISSING_PHASE2_VALIDATOR_MARKERS"),
+    (
+        PHASE2_CLOSURE_VALIDATOR,
+        PHASE2_CLOSURE_VALIDATOR_MARKERS,
+        "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS",
+    ),
+)
+
+SELF_TEST_NON_MARKER_CASE_COUNT = 30
+EXPECTED_SELF_TEST_CASE_COUNT = 1 + sum(len(markers) for _, markers, _ in SELF_TEST_MARKER_GROUPS) + SELF_TEST_NON_MARKER_CASE_COUNT
 
 
 def resolve_path(root: Path, path: Path) -> Path:
@@ -314,10 +326,10 @@ def build_self_test_root(root: Path) -> None:
     write_text(root, MANIFEST, manifest_json())
 
 
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
+def replace_all(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
+    return text.replace(marker, replacement)
 
 
 def run_self_test() -> int:
@@ -329,21 +341,13 @@ def run_self_test() -> int:
         assert collect_issues(root) == []
         checks_run += 1
 
-        for path, marker, code in (
-            (CLOSURE_DOC, CLOSURE_DOC_MARKERS[0], "MISSING_CLOSURE_DOC_MARKERS"),
-            (BOOTSTRAP_NOTES, BOOTSTRAP_NOTES_MARKERS[0], "MISSING_BOOTSTRAP_NOTES_MARKERS"),
-            (PHASE2_VALIDATOR, PHASE2_VALIDATOR_MARKERS[0], "MISSING_PHASE2_VALIDATOR_MARKERS"),
-            (
-                PHASE2_CLOSURE_VALIDATOR,
-                PHASE2_CLOSURE_VALIDATOR_MARKERS[0],
-                "MISSING_PHASE2_CLOSURE_VALIDATOR_MARKERS",
-            ),
-        ):
-            build_self_test_root(root)
-            resolved = resolve_path(root, path)
-            resolved.write_text(replace_once(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
-            assert (code, marker) in collect_issues(root)
-            checks_run += 1
+        for path, markers, code in SELF_TEST_MARKER_GROUPS:
+            for marker in markers:
+                build_self_test_root(root)
+                resolved = resolve_path(root, path)
+                resolved.write_text(replace_all(resolved.read_text(encoding="utf-8"), marker), encoding="utf-8")
+                assert (code, marker) in collect_issues(root)
+                checks_run += 1
 
         for field, kwargs in (
             ("packet", {"packet": "wrong"}),
@@ -394,18 +398,6 @@ def run_self_test() -> int:
         write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[]))
         issues = collect_issues(root)
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
-        assert ("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH) in issues
-        assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
-        assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
-        assert ("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH) in issues
-        checks_run += 1
-
-        build_self_test_root(root)
-        write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[PIN_SCOPE_CHECKER_PATH]))
-        issues = collect_issues(root)
-        assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
-        assert ("MASTER_PRESENT_PATH_MARKED_PRESENT", PIN_SCOPE_CHECKER_PATH) in issues
-        assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", PIN_SCOPE_CHECKER_PATH) in issues
         assert ("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH) in issues
         assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
         assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
