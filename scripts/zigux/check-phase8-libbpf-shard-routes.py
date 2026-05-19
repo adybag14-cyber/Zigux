@@ -23,7 +23,7 @@ REQUIRED_FILES = (
 
 REQUIRED_MARKERS = {
     SURVEY_PATH: (
-        "Current exact readback",
+        "Current helper-plus-build packet",
         "`tools/lib/bpf/zigux_segments/verify.zig`",
         "`tools/lib/bpf/zigux_segments/type_names.zig`",
         "`tools/lib/bpf/zigux_segments/pin_path.zig`",
@@ -31,7 +31,7 @@ REQUIRED_MARKERS = {
         "`tools/lib/bpf/zigux_segments/file_path_handle_bridge.zig`",
         "`tools/lib/bpf/zigux_segments/online_cpu_routing.zig`",
         "`zigux/tests/phase8_build.zig`",
-        "reminder-surface or verify-shard evidence",
+        "mixed authenticated-plus-public reread surface",
     ),
     DOCS_README_PATH: (
         "Phase 8 notes",
