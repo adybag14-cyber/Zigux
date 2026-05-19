@@ -44,7 +44,7 @@ Current `master` still does not expose:
 - the older `samples/zigux/runtime_*_loader.zig` scaffolds
 - dedicated `phase9-*` runtime-pilot routes in `zigux/Makefile`
 
-Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a narrow `phase9-runtime-atomic64-diff` build shard rooted in `runtime_atomic64_diff.zig` rather than a broader shared runtime-loader or trace-events build packet.
+Current `master` does now expose `zigux/tests/phase9_build.zig`, but the live file is still a bounded Phase 9 build bundle rooted in `runtime_atomic64_diff.zig` together with the separate runtime bitmap sample, module, diff, loader, survey, and top-bit targets rather than a broader shared runtime-loader or trace-events build packet.
 
 Current `master` does still carry the separate Phase 9 runtime bitmap companion `samples/zigux/runtime_bitmap_loader.zig`, so the absent-loader wording above is about the older trace-events loader-backed packet rather than that separate bitmap family.
 
