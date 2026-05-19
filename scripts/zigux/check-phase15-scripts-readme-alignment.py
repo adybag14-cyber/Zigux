@@ -29,6 +29,7 @@ READINESS_MANIFEST_REL = "zigux/tests/phase15_readiness_gate_manifest.json"
 REVIEW_PROCESS_MANIFEST_REL = "zigux/tests/phase15_architecture_council_review_process_manifest.json"
 HANDOFF_MANIFEST_REL = "zigux/tests/phase15_handoff_next_steps_manifest.json"
 MAKEFILE_REL = "zigux/Makefile"
+WORKFLOW_REL = ".github/workflows/zigux-bootstrap.yml"
 FREEZE_GOVERNANCE_TEST_REL = "zigux/tests/phase15_freeze_map_governance.zig"
 PARITY_SCORECARD_TEST_REL = "zigux/tests/phase15_parity_scorecard.zig"
 INDEFINITE_C_POLICY_JSON_REL = "zigux/tests/phase15_indefinite_c_policy.json"
@@ -58,6 +59,7 @@ REQUIRED_FILES = (
     REVIEW_PROCESS_MANIFEST_REL,
     HANDOFF_MANIFEST_REL,
     MAKEFILE_REL,
+    WORKFLOW_REL,
     "zigux/tests/phase15_architecture_council_review_process.zig",
     FREEZE_GOVERNANCE_TEST_REL,
     PARITY_SCORECARD_TEST_REL,
@@ -90,10 +92,13 @@ README_PHASE15_MARKERS = (
     f"`{INDEFINITE_C_POLICY_JSON_REL}`",
     f"`{INDEFINITE_C_POLICY_TEST_REL}`",
     f"`{READINESS_MANIFEST_REL}`",
+    f"`{WORKFLOW_REL}`",
     "`scripts/zigux/validate-phase15.py`",
     "`zigux/tests/phase15_build.zig`",
     "`zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`",
+    "repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, build, and lane-owner companions framed as repo-reality gaps instead of shipped scripts-root evidence",
     "although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths",
+    "`.github/workflows/zigux-bootstrap.yml` is present on current `master`, but it still carries no dedicated Phase 15 validate, test, or aggregate route, so keep that workflow surface framed as shared-summary gap vocabulary rather than shipped Phase 15 replay evidence",
     "no Architecture Council approval is currently recorded for a freeze-map status change",
 )
 
@@ -238,9 +243,10 @@ This directory holds shipped Zigux validation helpers and compact reminder surfa
 
 - Phase 15 flow - the current scripts-root governance reminder packet stays in maintenance-mode truthfulness work, keeping the landed freeze-map, readiness, handoff, parity, stay-in-C, study-only, and shared-summary surfaces aligned without implying Architecture Council approval or a deep-core port-readiness decision
 - `{DOCS_CHECKER_REL}`, `{SCRIPTS_CHECKER_REL}`, `{TESTS_CHECKER_REL}`, `{HANDOFF_CHECKER_REL}`, `{GAP_CHECKER_REL}`, and `{READINESS_CHECKER_REL}` keep the shipped docs-root, scripts-root, tests-root, handoff, shared-summary, and readiness packet guards explicit from the scripts root
-- `{FREEZE_GOVERNANCE_REL}`, `{INDEFINITE_C_POLICY_REL}`, `{PARITY_SCORECARD_SURVEY_REL}`, `{LANE_SEQ_REL}`, `{READINESS_REL}`, `{HANDOFF_REL}`, `{STUDY_ONLY_REL}`, `{SHARED_GAP_REL}`, `{REVIEW_CHECKLIST_REL}`, `{TESTS_README_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{HANDOFF_MANIFEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, and `{READINESS_MANIFEST_REL}` keep the current directly readable governance packet explicit from the scripts root
+- `{FREEZE_GOVERNANCE_REL}`, `{INDEFINITE_C_POLICY_REL}`, `{PARITY_SCORECARD_SURVEY_REL}`, `{LANE_SEQ_REL}`, `{READINESS_REL}`, `{HANDOFF_REL}`, `{STUDY_ONLY_REL}`, `{SHARED_GAP_REL}`, `{REVIEW_CHECKLIST_REL}`, `{TESTS_README_REL}`, `{REVIEW_PROCESS_MANIFEST_REL}`, `{HANDOFF_MANIFEST_REL}`, `{FREEZE_GOVERNANCE_TEST_REL}`, `{PARITY_SCORECARD_TEST_REL}`, `{INDEFINITE_C_POLICY_JSON_REL}`, `{INDEFINITE_C_POLICY_TEST_REL}`, `{READINESS_MANIFEST_REL}`, and `{WORKFLOW_REL}` keep the current directly readable governance packet explicit from the scripts root
 - repeated authenticated reads on current `master` still return missing for `scripts/zigux/validate-phase15.py`, `zigux/tests/phase15_build.zig`, and `zigux/tests/phase15_indefinite_c_lane_owner_alignment.zig`, so keep those broader validator-first, build, and lane-owner companions framed as repo-reality gaps instead of shipped scripts-root evidence
 - although `zigux/Makefile` is present on current `master`, it still does not materialize `make -C zigux phase15-validate`, `make -C zigux phase15-test`, or `make -C zigux phase15`, so keep those route names as blocked route vocabulary rather than directly readable replay paths
+- `{WORKFLOW_REL}` is present on current `master`, but it still carries no dedicated Phase 15 validate, test, or aggregate route, so keep that workflow surface framed as shared-summary gap vocabulary rather than shipped Phase 15 replay evidence
 - no Architecture Council approval is currently recorded for a freeze-map status change, and any future follow-through should tighten the smallest truthful reminder surface first instead of widening into a status-change claim
 """
 
@@ -300,6 +306,10 @@ def _seed(root: Path) -> None:
         ".PHONY: phase2-toolchain phase2-tools phase2-kconfig phase2-cross phase2-validate phase2\n"
         "phase2-toolchain:\n"
         "\t@true\n",
+    )
+    _write(
+        root / WORKFLOW_REL,
+        "name: zigux-bootstrap\njobs:\n  bootstrap:\n    steps:\n      - run: python3 scripts/zigux/check-phase15-scripts-readme-alignment.py\n",
     )
     for rel in REQUIRED_FILES:
         if not (root / rel).exists():
