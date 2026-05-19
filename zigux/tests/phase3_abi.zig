@@ -47,20 +47,27 @@ test "phase3 abi keeps export shim compatibility and status helpers reviewable" 
     const ok = export_shim.okStatus(.helpers);
     const err = export_shim.errorStatus(-71, .drivers);
     const positive = export_shim.errorStatus(7, .kernel);
+    const abi_ok = abi.okStatus(.helpers);
+    const abi_err = abi.makeStatus(-71, .drivers);
+    const abi_positive = abi.makeStatus(7, .kernel);
 
     try std.testing.expect(export_shim.statusIsOk(ok));
     try std.testing.expectEqual(@as(i32, 0), ok.code);
     try std.testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.helpers)), ok.facility);
     try std.testing.expectEqual(@as(u16, 0), ok.flags);
+    try std.testing.expect(std.meta.eql(ok, abi_ok));
 
     try std.testing.expect(!export_shim.statusIsOk(err));
     try std.testing.expectEqual(@as(i32, -71), err.code);
     try std.testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.drivers)), err.facility);
     try std.testing.expectEqual(@as(u16, abi.STATUS_FLAG_ERROR), err.flags);
+    try std.testing.expect(std.meta.eql(err, abi_err));
 
     try std.testing.expect(export_shim.statusIsOk(positive));
     try std.testing.expectEqual(@as(i32, 7), positive.code);
+    try std.testing.expectEqual(@as(u16, @intFromEnum(export_shim.Facility.kernel)), positive.facility);
     try std.testing.expectEqual(@as(u16, 0), positive.flags);
+    try std.testing.expect(std.meta.eql(positive, abi_positive));
 }
 
 test "phase3 abi keeps version and dev_t relays explicit" {
