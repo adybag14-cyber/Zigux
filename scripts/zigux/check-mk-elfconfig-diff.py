@@ -56,6 +56,12 @@ EXPECTED_FIXTURE_FILES = frozenset(
     }
 )
 EXPECTED_RESULT_KEYS = frozenset({"stdout", "stderr", "exit_code"})
+EXPECTED_ZIG_MARKERS = {
+    "fd_entrypoint": "pub fn runMkElfconfigFromFd(",
+    "fd_exact_elf32": 'test "fd-backed exact 32-bit ELF header exits with stdout at EOF" {',
+    "fd_exact_invalid_class": 'test "fd-backed exact invalid-class header exits silently at EOF" {',
+    "fd_exact_not_elf": 'test "fd-backed exact non-ELF header exits with stderr at EOF" {',
+}
 
 C_REFERENCE_SOURCE = """// SPDX-License-Identifier: GPL-2.0
 #include <stdio.h>
@@ -125,6 +131,13 @@ def validate_fixture_inventory() -> None:
         raise FileNotFoundError(f"{FIXTURE_DIR}:missing_fixtures:{','.join(missing)}")
     if unexpected:
         raise ValueError(f"{FIXTURE_DIR}:unexpected_fixtures:{','.join(unexpected)}")
+
+
+def validate_zig_source_markers(path: Path) -> None:
+    text = path.read_text(encoding="utf-8")
+    for label, marker in EXPECTED_ZIG_MARKERS.items():
+        if marker not in text:
+            raise ValueError(f"{path}:missing_marker:{label}")
 
 
 def load_json(path: Path) -> object:
@@ -232,6 +245,7 @@ def run_tool(binary: Path, input_bytes: bytes) -> dict[str, object]:
 
 def check_cases(*, zig: str, compiler: str) -> None:
     validate_fixture_inventory()
+    validate_zig_source_markers(ZIG_TOOL)
     cases = validate_cases(load_json(CASES_PATH))
     for case in cases:
         validate_expected_result(FIXTURE_DIR / case["expected"])
@@ -277,6 +291,7 @@ def run_self_test() -> None:
         decode_hex_input(FIXTURE_DIR / case["input"])
     if not ZIG_TOOL.exists():
         raise FileNotFoundError(ZIG_TOOL)
+    validate_zig_source_markers(ZIG_TOOL)
     print("MK_ELFCONFIG_DIFF_SELF_TEST=pass")
     print(f"MK_ELFCONFIG_DIFF_SELF_TEST_CASE_COUNT={validate_self_test_case_count(cases)}")
 
