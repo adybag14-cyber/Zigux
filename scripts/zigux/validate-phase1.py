@@ -382,8 +382,7 @@ def run_self_test() -> int:
         case_count += 1
 
         mandatory_live_root = base / "mandatory_live"
-        build_sampleRepo = build_sample_repo
-        build_sampleRepo(mandatory_live_root)
+        build_sample_repo(mandatory_live_root)
         build_stub_script(
             mandatory_live_root / "scripts/zigux/check-phase1-direct-owner-markers.py",
             live_exit=1,
