@@ -54,7 +54,7 @@ jobs:
       - name: Setup pinned Zig toolchain
         run: |
           set -euxo pipefail
-          eval "$(python3 - <<'PY'
+          eval "$(python3 - <<'PY2'
           import json
           from pathlib import Path
 
@@ -70,7 +70,7 @@ jobs:
           print(f"ZIGUX_ZIG_CHANNEL='{channel}'")
           print(f"ZIGUX_ZIG_FILENAME='{filename}'")
           print(f"ZIGUX_ZIG_URL='{url}'")
-          PY
+          PY2
           )"
           mkdir -p .zig-toolchain
           archive_path=".zig-toolchain/$ZIGUX_ZIG_FILENAME"
@@ -156,6 +156,11 @@ jobs:
       - name: Validate current bootstrap packet
         run: python3 scripts/zigux/validate-bootstrap.py
 
+      - name: Self-test current Lane 01 bootstrap charter checker
+        run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py --self-test
+      - name: Check current Lane 01 bootstrap charter packet
+        run: python3 scripts/zigux/check-lane01-bootstrap-charter-alignment.py
+
       - name: Self-test current kconfig bridge checker
         run: python3 scripts/zigux/check-kconfig-bridge.py --self-test
 
@@ -227,6 +232,12 @@ jobs:
 
       - name: Check current Phase 2 shared reminder packet
         run: python3 scripts/zigux/check-phase2-docs-shared-reminder.py
+
+      - name: Self-test current Phase 2 genksyms bridge checker
+        run: python3 scripts/zigux/check-genksyms-bridge.py --self-test
+
+      - name: Check current Phase 2 genksyms bridge packet
+        run: python3 scripts/zigux/check-genksyms-bridge.py
 
       - name: Run current Phase 2 genksyms unit replay
         run: zig test scripts/zigux/genksyms.zig
