@@ -7,7 +7,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+HERE = Path(__file__).resolve()
+ROOT = HERE.parents[2] if len(HERE.parents) > 2 else HERE.parent
 
 CLOSURE_DOC = ROOT / "Documentation" / "zigux" / "phase2-closure.md"
 BOOTSTRAP_NOTES = ROOT / "Documentation" / "zigux" / "phase2-toolchain-bootstrap-notes.md"
@@ -18,6 +19,7 @@ TESTS_README = ROOT / "zigux" / "tests" / "README.md"
 MANIFEST = ROOT / "zigux" / "tests" / "fixtures" / "phase2_tool_manifest.json"
 INSTALLER_PATH = "scripts/zigux/install-zig.py"
 CROSS_CHECKER_PATH = "scripts/zigux/check-phase2-cross.py"
+GENKSYMS_CHECKER_PATH = "scripts/zigux/check-genksyms-bridge.py"
 CROSS_FIXTURE_PATH = "zigux/tests/fixtures/phase2_cross_targets.json"
 
 EXPECTED_DOC_MARKERS = (
@@ -31,6 +33,7 @@ EXPECTED_DOC_MARKERS = (
     "`PHASE2_SHARED_VALIDATOR=scripts/zigux/validate-phase2.py`",
     "`PHASE2_SHARED_MAKEFILE=zigux/Makefile`",
     "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/check-phase2-cross.py`",
+    "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/check-genksyms-bridge.py`",
     "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=zigux/tests/fixtures/phase2_cross_targets.json`",
     "`PHASE2_MASTER_PRESENT_BRANCH_MISSING=scripts/zigux/install-zig.py`",
     "`scripts/zigux/check-phase2-tests-readme-alignment.py`",
@@ -43,7 +46,7 @@ EXPECTED_DOC_MARKERS = (
     "`scripts/zigux/check-genksyms-bridge.py`",
     "`scripts/zigux/install-zig.py`",
     "`zigux/tests/fixtures/phase2_cross_targets.json`",
-    "current `master` already directly serves `scripts/zigux/check-phase2-cross.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, and `scripts/zigux/install-zig.py`",
+    "current `master` already directly serves `scripts/zigux/check-phase2-cross.py`, `scripts/zigux/check-genksyms-bridge.py`, `zigux/tests/fixtures/phase2_cross_targets.json`, and `scripts/zigux/install-zig.py`",
     "`PHASE2_NEXT_STEP=restore one remaining broader checker, fixture-backed helper, or installer-backed helper packet at a time now that the closure note, bootstrap companion, shared validator, dedicated kconfig README checker, dedicated toolchain pin-scope guard, manifest checker, and Linux-style Makefile routes are replayed together on the lane branch`",
 )
 
@@ -89,12 +92,17 @@ EXPECTED_PRESENT_FILES = [
 
 EXPECTED_MISSING_FILES = [
     CROSS_CHECKER_PATH,
-    "scripts/zigux/check-genksyms-bridge.py",
+    GENKSYMS_CHECKER_PATH,
     CROSS_FIXTURE_PATH,
     INSTALLER_PATH,
 ]
 
-EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [CROSS_CHECKER_PATH, CROSS_FIXTURE_PATH, INSTALLER_PATH]
+EXPECTED_MASTER_PRESENT_BRANCH_MISSING_FILES = [
+    CROSS_CHECKER_PATH,
+    GENKSYMS_CHECKER_PATH,
+    CROSS_FIXTURE_PATH,
+    INSTALLER_PATH,
+]
 
 EXPECTED_DOCS_ROOT_MARKERS = (
     "`Documentation/zigux/phase2-closure.md`",
@@ -267,6 +275,10 @@ def collect_issues(root: Path) -> list[tuple[str, str]]:
         issues.append(("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH))
     if CROSS_CHECKER_PATH not in missing_files:
         issues.append(("CROSS_CHECKER_NOT_MARKED_BRANCH_MISSING", CROSS_CHECKER_PATH))
+    if GENKSYMS_CHECKER_PATH not in master_present_branch_missing_files:
+        issues.append(("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH))
+    if GENKSYMS_CHECKER_PATH not in missing_files:
+        issues.append(("GENKSYMS_CHECKER_NOT_MARKED_BRANCH_MISSING", GENKSYMS_CHECKER_PATH))
     if CROSS_FIXTURE_PATH not in master_present_branch_missing_files:
         issues.append(("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH))
     if CROSS_FIXTURE_PATH not in missing_files:
@@ -359,12 +371,6 @@ def build_self_test_root(root: Path) -> None:
         write_placeholder(root, relpath)
 
 
-def replace_once(text: str, marker: str, replacement: str = "") -> str:
-    if marker not in text:
-        raise AssertionError(f"marker not found: {marker}")
-    return text.replace(marker, replacement, 1)
-
-
 def replace_all(text: str, marker: str, replacement: str = "") -> str:
     if marker not in text:
         raise AssertionError(f"marker not found: {marker}")
@@ -437,6 +443,7 @@ def run_self_test() -> int:
         issues = collect_issues(root)
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
         assert ("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH) in issues
+        assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
         assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
         assert ("INSTALLER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", INSTALLER_PATH) in issues
         checks_run += 1
@@ -445,6 +452,7 @@ def run_self_test() -> int:
         write_text(root, MANIFEST, manifest_json(master_present_branch_missing_files=[CROSS_CHECKER_PATH, INSTALLER_PATH]))
         issues = collect_issues(root)
         assert ("INVALID_MANIFEST_FIELD", "master_present_branch_missing_files") in issues
+        assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
         assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
         checks_run += 1
 
@@ -455,6 +463,7 @@ def run_self_test() -> int:
         assert ("MASTER_PRESENT_PATH_MARKED_PRESENT", "scripts/zigux/check-phase2-toolchain-pin-scope.py") in issues
         assert ("MASTER_PRESENT_PATH_NOT_MARKED_MISSING", "scripts/zigux/check-phase2-toolchain-pin-scope.py") in issues
         assert ("CROSS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_CHECKER_PATH) in issues
+        assert ("GENKSYMS_CHECKER_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", GENKSYMS_CHECKER_PATH) in issues
         assert ("CROSS_FIXTURE_NOT_MARKED_MASTER_PRESENT_BRANCH_MISSING", CROSS_FIXTURE_PATH) in issues
         checks_run += 1
 
