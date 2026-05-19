@@ -484,6 +484,22 @@ fn expectNonCanonicalTailMutationRejectionSweep(variant: Variant, padding: bool)
     }
 }
 
+fn bytesVariantPinned(src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
+    return switch (variant) {
+        .std => bytesStd(src, padding),
+        .urlsafe => bytesUrlsafe(src, padding),
+        .imap => bytesImap(src, padding),
+    };
+}
+
+fn decodeVariantPinned(dst: []u8, src: []const u8, padding: bool, variant: Variant) DecodeError!usize {
+    return switch (variant) {
+        .std => decodeStd(dst, src, padding),
+        .urlsafe => decodeUrlsafe(dst, src, padding),
+        .imap => decodeImap(dst, src, padding),
+    };
+}
+
 fn expectVariantPinnedConvenienceParity(input: []const u8, expected: []const u8, padding: bool, variant: Variant) !void {
     var generic_buf: [16]u8 = undefined;
     var pinned_buf: [16]u8 = undefined;
@@ -498,21 +514,13 @@ fn expectVariantPinnedConvenienceParity(input: []const u8, expected: []const u8,
     try std.testing.expectEqualStrings(expected, pinned_buf[0..pinned_written]);
 
     const generic_len = try bytes(expected, padding, variant);
-    const pinned_len = switch (variant) {
-        .std => try bytesStd(expected, padding),
-        .urlsafe => try bytesUrlsafe(expected, padding),
-        .imap => try bytesImap(expected, padding),
-    };
+    const pinned_len = try bytesVariantPinned(expected, padding, variant);
     try std.testing.expectEqual(generic_len, pinned_len);
 
     var generic_decoded: [8]u8 = undefined;
     var pinned_decoded: [8]u8 = undefined;
     const generic_decoded_len = try decode(generic_decoded[0..], expected, padding, variant);
-    const pinned_decoded_len = switch (variant) {
-        .std => try decodeStd(pinned_decoded[0..], expected, padding),
-        .urlsafe => try decodeUrlsafe(pinned_decoded[0..], expected, padding),
-        .imap => try decodeImap(pinned_decoded[0..], expected, padding),
-    };
+    const pinned_decoded_len = try decodeVariantPinned(pinned_decoded[0..], expected, padding, variant);
     try std.testing.expectEqual(generic_decoded_len, pinned_decoded_len);
     try std.testing.expectEqualSlices(u8, input, generic_decoded[0..generic_decoded_len]);
     try std.testing.expectEqualSlices(u8, input, pinned_decoded[0..pinned_decoded_len]);
@@ -564,6 +572,26 @@ fn expectVariantPinnedConvenienceParity(input: []const u8, expected: []const u8,
     try std.testing.expectEqualSlices(u8, generic_decode_alloc, pinned_decode_alloc);
 }
 
+fn expectVariantPinnedForeignAlphabetRejection(
+    accepted: []const u8,
+    expected: []const u8,
+    padding: bool,
+    variant: Variant,
+    rejected: []const []const u8,
+) !void {
+    var decoded_buf: [3]u8 = undefined;
+    const exact_len = try bytesVariantPinned(accepted, padding, variant);
+    try std.testing.expectEqual(expected.len, exact_len);
+    const decoded_len = try decodeVariantPinned(decoded_buf[0..], accepted, padding, variant);
+    try std.testing.expectEqual(expected.len, decoded_len);
+    try std.testing.expectEqualSlices(u8, expected, decoded_buf[0..decoded_len]);
+
+    for (rejected) |input| {
+        try std.testing.expectError(DecodeError.InvalidInput, bytesVariantPinned(input, padding, variant));
+        try std.testing.expectError(DecodeError.InvalidInput, decodeVariantPinned(decoded_buf[0..], input, padding, variant));
+    }
+}
+
 test "chars matches padded and unpadded output sizes" {
     try std.testing.expectEqual(@as(usize, 0), chars(0, true));
     try std.testing.expectEqual(@as(usize, 4), chars(1, true));
@@ -607,6 +635,26 @@ test "variant-pinned convenience helpers mirror the generic api" {
     try expectVariantPinnedConvenienceParity(&two_byte, "//A=", true, .std);
     try expectVariantPinnedConvenienceParity(&two_byte, "__A=", true, .urlsafe);
     try expectVariantPinnedConvenienceParity(&two_byte, ",,A=", true, .imap);
+}
+
+test "variant-pinned decode wrappers reject foreign alphabet tails" {
+    const one_byte = [_]u8{0xfb};
+    const two_byte = [_]u8{ 0xff, 0xf0 };
+
+    try expectVariantPinnedForeignAlphabetRejection("+w", &one_byte, false, .std, &[_][]const u8{"-w"});
+    try expectVariantPinnedForeignAlphabetRejection("+w==", &one_byte, true, .std, &[_][]const u8{"-w=="});
+    try expectVariantPinnedForeignAlphabetRejection("//A", &two_byte, false, .std, &[_][]const u8{ "__A", ",,A" });
+    try expectVariantPinnedForeignAlphabetRejection("//A=", &two_byte, true, .std, &[_][]const u8{ "__A=", ",,A=" });
+
+    try expectVariantPinnedForeignAlphabetRejection("-w", &one_byte, false, .urlsafe, &[_][]const u8{"+w"});
+    try expectVariantPinnedForeignAlphabetRejection("-w==", &one_byte, true, .urlsafe, &[_][]const u8{"+w=="});
+    try expectVariantPinnedForeignAlphabetRejection("__A", &two_byte, false, .urlsafe, &[_][]const u8{ "//A", ",,A" });
+    try expectVariantPinnedForeignAlphabetRejection("__A=", &two_byte, true, .urlsafe, &[_][]const u8{ "//A=", ",,A=" });
+
+    try expectVariantPinnedForeignAlphabetRejection("+w", &one_byte, false, .imap, &[_][]const u8{"-w"});
+    try expectVariantPinnedForeignAlphabetRejection("+w==", &one_byte, true, .imap, &[_][]const u8{"-w=="});
+    try expectVariantPinnedForeignAlphabetRejection(",,A", &two_byte, false, .imap, &[_][]const u8{ "//A", "__A" });
+    try expectVariantPinnedForeignAlphabetRejection(",,A=", &two_byte, true, .imap, &[_][]const u8{ "//A=", "__A=" });
 }
 
 test "standard slice and allocator helpers pin the common variant across exact-span ownership paths" {
