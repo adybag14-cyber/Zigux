@@ -83,9 +83,15 @@ TOOLCHAIN_CHECKER_MARKERS = (
     "def load_pinned_channel(",
     "def iter_repo_local_zig_candidates(",
     "def resolve_zig_executable(",
+    "def iter_repo_local_archive_candidates(",
+    "def resolve_policy_archive(",
+    "def expected_archive_metadata(",
+    "def validate_policy_archive(",
     'parser.add_argument("--allow-missing"',
     'parser.add_argument("--policy-only"',
     'parser.add_argument("--archive-only"',
+    'parser.add_argument("--archive"',
+    'parser.add_argument("--archive-target"',
 )
 
 EXPECTED_PHASE = "Phase 2"
