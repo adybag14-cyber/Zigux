@@ -158,6 +158,62 @@ pub fn summarizePmResume(request: PmResumeRequest) PmResumeSummary {
     };
 }
 
+pub const PmShutdownState = enum {
+    blocked_missing_drvdata,
+    idle_unregister_only,
+    running_shutdown_requires_stop,
+};
+
+pub const PmShutdownRequest = struct {
+    drvdata_published: bool,
+    hardware_running: bool,
+    reset_control_available: bool,
+    stop_on_reboot_registered: bool,
+    restart_priority_registered: bool,
+    keeps_live_pm_execution_out_of_scope: bool = true,
+};
+
+pub const PmShutdownSummary = struct {
+    anchor: []const u8,
+    state: PmShutdownState,
+    stop_requested: bool,
+    reset_assert_ready: bool,
+    unregister_stop_on_reboot_requested: bool,
+    clear_restart_priority_requested: bool,
+    keeps_live_pm_execution_out_of_scope: bool,
+    blocked_on_live_mmio: bool,
+};
+
+pub fn summarizePmShutdown(request: PmShutdownRequest) PmShutdownSummary {
+    if (!request.drvdata_published) {
+        return .{
+            .anchor = anchor_path,
+            .state = .blocked_missing_drvdata,
+            .stop_requested = false,
+            .reset_assert_ready = false,
+            .unregister_stop_on_reboot_requested = false,
+            .clear_restart_priority_requested = false,
+            .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
+            .blocked_on_live_mmio = false,
+        };
+    }
+
+    const stop_requested = request.hardware_running;
+    return .{
+        .anchor = anchor_path,
+        .state = if (request.hardware_running)
+            .running_shutdown_requires_stop
+        else
+            .idle_unregister_only,
+        .stop_requested = stop_requested,
+        .reset_assert_ready = stop_requested and request.reset_control_available,
+        .unregister_stop_on_reboot_requested = request.stop_on_reboot_registered,
+        .clear_restart_priority_requested = request.restart_priority_registered,
+        .keeps_live_pm_execution_out_of_scope = request.keeps_live_pm_execution_out_of_scope,
+        .blocked_on_live_mmio = stop_requested,
+    };
+}
+
 test "phase11 dw_wdt pm suspend keeps missing drvdata explicit" {
     const summary = summarizePmSuspend(.{
         .drvdata_published = false,
@@ -283,4 +339,59 @@ test "phase11 dw_wdt pm resume keeps timeout reprogram block explicit before idl
     try std.testing.expect(restored.restore_restart_priority_requested);
     try std.testing.expect(restored.keeps_live_pm_execution_out_of_scope);
     try std.testing.expect(!restored.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm shutdown keeps missing drvdata explicit" {
+    const summary = summarizePmShutdown(.{
+        .drvdata_published = false,
+        .hardware_running = true,
+        .reset_control_available = true,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = true,
+    });
+
+    try std.testing.expectEqualStrings(anchor_path, summary.anchor);
+    try std.testing.expectEqual(PmShutdownState.blocked_missing_drvdata, summary.state);
+    try std.testing.expect(!summary.stop_requested);
+    try std.testing.expect(!summary.reset_assert_ready);
+    try std.testing.expect(!summary.unregister_stop_on_reboot_requested);
+    try std.testing.expect(!summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm shutdown keeps running teardown stop and hook removal explicit" {
+    const summary = summarizePmShutdown(.{
+        .drvdata_published = true,
+        .hardware_running = true,
+        .reset_control_available = true,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = true,
+    });
+
+    try std.testing.expectEqual(PmShutdownState.running_shutdown_requires_stop, summary.state);
+    try std.testing.expect(summary.stop_requested);
+    try std.testing.expect(summary.reset_assert_ready);
+    try std.testing.expect(summary.unregister_stop_on_reboot_requested);
+    try std.testing.expect(summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(summary.blocked_on_live_mmio);
+}
+
+test "phase11 dw_wdt pm shutdown keeps idle hook teardown explicit without stop" {
+    const summary = summarizePmShutdown(.{
+        .drvdata_published = true,
+        .hardware_running = false,
+        .reset_control_available = true,
+        .stop_on_reboot_registered = true,
+        .restart_priority_registered = true,
+    });
+
+    try std.testing.expectEqual(PmShutdownState.idle_unregister_only, summary.state);
+    try std.testing.expect(!summary.stop_requested);
+    try std.testing.expect(!summary.reset_assert_ready);
+    try std.testing.expect(summary.unregister_stop_on_reboot_requested);
+    try std.testing.expect(summary.clear_restart_priority_requested);
+    try std.testing.expect(summary.keeps_live_pm_execution_out_of_scope);
+    try std.testing.expect(!summary.blocked_on_live_mmio);
 }
